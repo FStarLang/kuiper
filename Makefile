@@ -1,5 +1,5 @@
 PULSE_REPO := https://github.com/FStarLang/pulse
-PULSE_HASH := f08e579a352fc88e5be3078b6021861b0f5e7142
+PULSE_HASH := $(shell cat .pulse.hash)
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
@@ -52,6 +52,15 @@ update-pulse:
 	@# All we do is build the ocaml plugin. We check the library
 	@# files incrementally, on demand.
 	$(MAKE) -C pulse/src/ build-ocaml
+
+.PHONY: save-pulse
+save-pulse:
+	git -C pulse rev-parse HEAD >.pulse.hash
+
+.PHONY: pull-pulse
+pull-pulse:
+	git -C pulse pull
+	$(MAKE) save-pulse
 
 .depend: $(ROOTS) pulse
 	$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
