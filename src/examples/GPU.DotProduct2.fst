@@ -11,13 +11,13 @@ open GPU
 let size : nat = 1024
 
 let kpre (ga1 ga2 r : gpu_array int size) (nth : nat) (tid:nat{tid < nth}) : vprop =
-  gpu_pts_to_array1 ga1 tid **
-  gpu_pts_to_array1 ga2 tid **
+  (gpu_pts_to_array1 ga1 tid **
+  gpu_pts_to_array1 ga2 tid) **
   gpu_pts_to_array1 r tid
 
 let kpost (ga1 ga2 r : gpu_array int size) (nth : nat) (tid:nat{tid < nth}) : vprop =
-  gpu_pts_to_array1 ga1 tid **
-  gpu_pts_to_array1 ga2 tid **
+  (gpu_pts_to_array1 ga1 tid **
+  gpu_pts_to_array1 ga2 tid) **
   gpu_pts_to_array1 r tid
 
 ```pulse
@@ -104,6 +104,32 @@ ghost fn rw_assume
 ```
 
 ```pulse
+ghost
+fn bigstar_eta
+  ()
+  (#m : nat) (#n : nat{m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  requires bigstar m n f
+  ensures  bigstar m n (fun i -> f i)
+{
+  admit();
+}
+``` 
+
+```pulse
+ghost
+fn bigstar_uneta
+  ()
+  (#m : nat) (#n : nat{m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  requires bigstar m n (fun i -> f i)
+  ensures  bigstar m n f
+{
+  admit();
+}
+``` 
+
+```pulse
 fn main (_:unit)
   requires cpu
   ensures  cpu
@@ -142,23 +168,27 @@ fn main (_:unit)
   (**)gpu_array_slice_1_underspec gr;
   
   // Boring combination of resources
-  (**)bigstar_zip 0 size _ _;
-  (**)bigstar_zip 0 size _ _;
-  (**)rw_assume
+  (**)bigstar_zip 0 size (gpu_pts_to_array1 ga1) (gpu_pts_to_array1 ga2);
+  (**)bigstar_zip 0 size _ (gpu_pts_to_array1 gr);
+  (**)rewrite
     (bigstar 0 size
-      (fun i -> (fun i -> gpu_pts_to_array1 gr i **
-                 gpu_pts_to_array1 ga2 i) i **
-                 gpu_pts_to_array1 ga1 i))
-    (bigstar 0 size (kpre ga1 ga2 gr size));
+      (fun i -> (gpu_pts_to_array1 ga1 i **
+                 gpu_pts_to_array1 ga2 i) **
+                 gpu_pts_to_array1 gr i))
+  as
+    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i));
+  (**)bigstar_uneta ();
   
   launch_kernel_n size (kernel ga1 ga2 gr size);
-
-  (**)rw_assume
-    (bigstar 0 size (kpre ga1 ga2 gr size))
+  
+  (**)bigstar_eta ();
+  (**)rewrite
+    (bigstar 0 size (fun i -> kpost ga1 ga2 gr size i))
+  as
     (bigstar 0 size
-      (fun i -> gpu_pts_to_array1 gr i **
+      (fun i -> gpu_pts_to_array1 ga1 i **
                 gpu_pts_to_array1 ga2 i **
-                gpu_pts_to_array1 ga1 i));
+                gpu_pts_to_array1 gr i));
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
   
