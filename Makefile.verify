@@ -24,11 +24,12 @@ FSTAR := fstar.exe					\
 # which is empty before including .depend. Sigh.
 all: verify-all
 include .depend
-verify-all: $(ALL_CHECKED_FILES)
-	# ^ This is a bit excessive since it will traverse interfaces
-	# and add them too. But I don't want do $(patsubst...) to turn
-	# the $(ROOTS) into .checked, since it involves choosing the
-	# directory too and that is the job of --dep.
+# verify-all: $(ALL_CHECKED_FILES)
+	# ^ This is a bit excessive since it will traverse interfaces and
+	# add them too. Instead, I'm using this expression below to turn the
+	# $(ROOTS) into .checked. I don't like this since it involves choosing
+	# the directory too and that is the job of --dep.
+verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
 %.checked:
