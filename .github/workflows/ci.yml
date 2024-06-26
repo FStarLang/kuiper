@@ -22,8 +22,8 @@ jobs:
         shell: bash
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
-        
+        uses: actions/checkout@v4
+
       # FIXME: Why is $HOME badly set?
       - name: Setup HOME and PATH
         run: |

@@ -19,8 +19,8 @@ jobs:
         shell: bash
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
-        
+        uses: actions/checkout@v4
+
       # FIXME: Why is $HOME badly set?
       - name: Setup HOME and PATH
         run: |
@@ -41,12 +41,12 @@ jobs:
           eval $(opam env)
           make -skj$(nproc) update-pulse
           make -skj$(nproc) pull-pulse
-          
+
       - name: Test the build
         run: |
           eval $(opam env)
           make -skj$(nproc) ci
-      
+
       - name: Save new hash
         run: |
           eval $(opam env)
