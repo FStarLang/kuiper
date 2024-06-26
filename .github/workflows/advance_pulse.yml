@@ -47,10 +47,12 @@ jobs:
           eval $(opam env)
           make -skj$(nproc) ci
 
-      - name: Save new hash
+      - name: Save new hash and commit
         run: |
           eval $(opam env)
           make -skj$(nproc) save-pulse
+          git config user.name "Actions bot"
+          git config user.email "none@none"
           git add .pulse.hash
           git commit -m "Advancing Pulse hash (via action)"
           git push
