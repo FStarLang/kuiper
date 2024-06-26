@@ -27,7 +27,7 @@ save-pulse:
 	git -C pulse rev-parse HEAD >.pulse.hash
 
 .PHONY: pull-pulse
-pull-pulse:
+pull-pulse: pulse
 	git -C pulse pull
 	$(MAKE) save-pulse
 
