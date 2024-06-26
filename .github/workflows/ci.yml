@@ -1,0 +1,45 @@
+name: Test build
+
+on:
+  push:
+    branches-ignore:
+    - _**
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, X64]
+    container:
+      image: mtzguido/pulse-base-devcontainer
+    defaults:
+      run:
+        # Setting the default shell to bash. This is not only more standard,
+        # but also makes sure that we run with -o pipefail, so we can safely
+        # pipe data (such as | tee LOG) without missing out on failures
+        # and getting false positives. If you want to change the default shell,
+        # keep in mind you need a way to handle this.
+        shell: bash
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+        
+      # FIXME: Why is $HOME badly set?
+      - name: Setup HOME and PATH
+        run: |
+          echo "HOME=/home/vscode" >> $GITHUB_ENV
+          echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
+
+      # This doesn't work. $GITHUB_ENV is not sourced, it must be of the
+      # shape K=V, but opam env prints stuff like 'export' directives.
+      # So, instead, call eval $(opam env) in every step.
+      # - run: opam env --set-switch >> $GITHUB_ENV
+
+      # If these fail, stop right now.
+      - run: which fstar.exe
+      - run: which z3
+
+      - name: Run CI Makefile rule
+        run: |
+          eval $(opam env)
+          make -skj$(nproc) ci

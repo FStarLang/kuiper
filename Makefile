@@ -64,3 +64,8 @@ pull-pulse:
 
 .depend: $(ROOTS) pulse
 	$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
+
+.PHONY: ci
+ci:
+	$(MAKE) update-pulse
+	$(MAKE) all
