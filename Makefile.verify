@@ -1,0 +1,43 @@
+ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
+
+CACHEDIR := .cache
+OUTDIR   := .out
+
+FSTAR_FLAGS += --cache_checked_modules
+FSTAR_FLAGS += --cache_dir $(CACHEDIR)
+FSTAR_FLAGS += --odir $(OUTDIR)
+FSTAR_FLAGS += $(OTHERFLAGS)
+
+FSTAR := fstar.exe					\
+	--include pulse/lib/pulse/			\
+	--include pulse/lib/pulse/core/			\
+	--include pulse/lib/pulse/lib/			\
+	--include pulse/lib/pulse/lib/class/		\
+	--include src/lib/				\
+	--include src/examples/				\
+	--load_cmxs pulse				\
+	--warn_error -249-321				\
+	$(FSTAR_FLAGS)
+
+# This sandwich is needed so all is the first rule (and not
+# something in the include), and verify-all can refer to ALL_CHECKED_FILES,
+# which is empty before including .depend. Sigh.
+all: verify-all
+include .depend
+verify-all: $(ALL_CHECKED_FILES)
+	# ^ This is a bit excessive since it will traverse interfaces
+	# and add them too. But I don't want do $(patsubst...) to turn
+	# the $(ROOTS) into .checked, since it involves choosing the
+	# directory too and that is the job of --dep.
+
+# Dependencies come from .depend. We still need this rule.
+%.checked:
+	$(FSTAR) $<
+	@touch -c $@
+
+.PHONY: echo-fstar
+echo-fstar:
+	@echo $(FSTAR)
+
+.depend: $(ROOTS)
+	$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
