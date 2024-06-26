@@ -54,16 +54,6 @@ fn kernel
 ```
 
 ```pulse
-ghost fn rw_assume
-  (a b : vprop)
-  requires a
-  ensures b
-{
-  admit();
-}
-```
-
-```pulse
 fn main (_:unit)
   requires cpu
   ensures  cpu
@@ -95,7 +85,6 @@ fn main (_:unit)
   GPU.Array.gpu_memcpy_host_to_device a2 ga2;
   
   let gr = gpu_array_alloc #int size;
-  admit();
   
   // Slicing the arrays
   (**)gpu_array_slice_1_underspec ga1;
@@ -103,25 +92,39 @@ fn main (_:unit)
   (**)gpu_array_slice_1_underspec gr;
 
   // Boring combination of resources
-  (**)bigstar_zip 0 size _ _;
-  (**)bigstar_zip 0 size _ _;
+  (**)bigstar_zip 0 size (gpu_pts_to_array1 ga1) (gpu_pts_to_array1 ga2);
+  (**)bigstar_zip 0 size _ (gpu_pts_to_array1 gr);
 
-  (**)rw_assume
+  (**)rewrite
     (bigstar 0 size
-      (fun i -> (fun i -> gpu_pts_to_array1 gr i **
-                 gpu_pts_to_array1 ga2 i) i **
-                 gpu_pts_to_array1 ga1 i))
-    (bigstar 0 size (kpre ga1 ga2 gr size));
-  
+      (fun i -> (gpu_pts_to_array1 ga1 i **
+                 gpu_pts_to_array1 ga2 i) **
+                 gpu_pts_to_array1 gr i))
+  as
+    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i));
+
+  rewrite
+    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i))
+  as
+    (bigstar 0 size (kpre ga1 ga2 gr size))
+  by tadmit (); // FIXME: extensionality.
+  // Alternative: always use eta expanded bigstars?
   
   launch_kernel_n size (kernel ga1 ga2 gr size);
 
-  (**)rw_assume
+  (**)rewrite
     (bigstar 0 size (kpre ga1 ga2 gr size))
+  as
+    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i))
+  by tadmit(); // Idem: extensionality
+
+  rewrite
+    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i))
+  as
     (bigstar 0 size
-      (fun i -> gpu_pts_to_array1 gr i **
+      (fun i -> gpu_pts_to_array1 ga1 i **
                 gpu_pts_to_array1 ga2 i **
-                gpu_pts_to_array1 ga1 i));
+                gpu_pts_to_array1 gr i));
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
   

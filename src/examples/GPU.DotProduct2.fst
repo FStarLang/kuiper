@@ -29,7 +29,6 @@ fn kernel
   requires gpu ** kpre  ga1 ga2 r nth tid
   ensures  gpu ** kpost ga1 ga2 r nth tid
 {
-  admit();
   (**)unfold (kpre ga1 ga2 r nth tid);
 
   (**)unfold (gpu_pts_to_array1 ga1 tid);
@@ -50,6 +49,8 @@ fn kernel
 
 
   assume_ (if tid < size / 2 then (exists* s. gpu_pts_to_array_slice r (tid+size/2) (tid+size/2+1) s) else emp);
+
+  admit();
 
   rewrite (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
        as (if tid < vn then (exists* s. gpu_pts_to_array_slice r tid (tid+1) s) else emp);
