@@ -128,6 +128,18 @@ let gpu_pts_to_array1
 : vprop =
   exists* s. gpu_pts_to_array_slice arr i (i+1) s
 
+val gpu_array_slice_1
+  (#a:Type u#0)
+  (#[exact (`0)] uid: int) (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a) { Seq.length v == sz })
+: stt_ghost
+    unit
+    emp_inames
+    (gpu_pts_to_array arr #f v)
+    (fun _ -> bigstar #uid 0 sz (fun i -> gpu_pts_to_array_slice arr #f i (i+1) (Seq.Base.cons (Seq.Base.index v i) Seq.Base.empty)))
+
 val gpu_array_slice_1_underspec
   (#a:Type u#0)
   (#sz:nat)
