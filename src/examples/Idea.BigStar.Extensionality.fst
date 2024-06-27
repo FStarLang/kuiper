@@ -26,7 +26,8 @@ let bigstar_equiv
   (h : ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
   : vprop_equiv (bigstar m n f) (bigstar m n g)
   = bigstar_congr m n m n f g (fun i -> h (i+m));
-    vprop_equiv_refl (bigstar m n f)
+    assert (bigstar m n f == bigstar m n g);
+    coerce_eq () <| vprop_equiv_refl (bigstar m n f)
 
 // And have Pulse use it automatically?
 

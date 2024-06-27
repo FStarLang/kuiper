@@ -6,6 +6,13 @@ open FStar.Mul
 open FStar.FunctionalExtensionality
 module SZ = FStar.SizeT
 
+let rec bigstar
+  (m : nat)
+  (n : nat {m <= n})
+  (f : (i:nat { m <= i /\ i < n } -> vprop))
+: Tot vprop (decreases n - m) =
+  if m = n then emp else f m ** bigstar (m+1) n f
+
 let star_aci () :
     squash (
       (forall (a b : vprop). {:pattern (a ** b)} a ** b == b ** a) /\
@@ -21,26 +28,18 @@ let rec bigstar_split (m : nat) (n : nat {m <= n}) f (i : nat { m <= i /\ i <= n
   if m = i then () else bigstar_split (m+1) n f i
 
 let rec bigstar_star (m : nat) (n : nat {m <= n}) f g h
-    (heq : (i:nat { m <= i /\ i < n }) -> squash (f i ** g i == h i)) :
-    Pure
-      (squash (bigstar m n f ** bigstar m n g == bigstar m n h))
-      (requires True) //forall i. f i ** g i == h i)
-      (ensures fun _ -> True)
-      (decreases n - m) =
-  star_aci ();
+    (heq : (i:nat { m <= i /\ i < n }) -> squash (f i ** g i == h i))
+: Lemma (ensures bigstar m n f ** bigstar m n g == bigstar m n h)
+        (decreases n - m)
+= star_aci ();
   if m = n then () else (bigstar_star (m+1) n f g h heq; heq m)
 
 let rec bigstar_congr (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
     (f : (i:nat { m <= i /\ i < n }) -> vprop) (f' : (i:nat { m' <= i /\ i < n' }) -> vprop)
     (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
-    :
-    Pure
-      (squash (bigstar m n f == bigstar m' n' f'))
-      (requires True)
-      (ensures fun _ -> True)
-      (decreases n-m)
-       =
-  if m = n then () else begin
+: Lemma (ensures bigstar m n f == bigstar m' n' f')
+        (decreases n-m)
+= if m = n then () else begin
     bigstar_congr (m+1) n (m'+1) n' f f' (fun i -> h (i+1));
     h 0
   end
@@ -64,7 +63,6 @@ fn bigstar_rw_congr
   ();
 }
 ```
-
 
 ```pulse
 ghost fn rw (a b : vprop) requires a ** pure (a == b) ensures b {
