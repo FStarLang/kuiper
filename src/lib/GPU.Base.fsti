@@ -16,7 +16,7 @@ val gpu : vprop
   void f() {
     ...
   }
-  
+
   f<<<1, 1>>>();
 *)
 val launch_kernel_1
@@ -33,7 +33,7 @@ val launch_kernel_n
   (nthr  : pos)
   (#pre  : (tid:nat{tid < nthr} -> vprop))
   (#post : (tid:nat{tid < nthr} -> vprop))
-  (f : 
+  (f :
     (tid:nat{tid < nthr}) ->
     stt unit (gpu ** pre tid) (fun _ -> gpu ** post tid)
   )

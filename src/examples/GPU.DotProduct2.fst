@@ -76,7 +76,6 @@ fn kernel
       let vr = gpu_array_read #int #size #(tid+vn) #(tid+vn+1) r (tid + vn);
       gpu_array_write #int #size #tid #(tid+1) r tid (vl + vr);
       n := vn / 2;
-      admit();
       ()
     } else {
       n := vn / 2;
@@ -85,7 +84,6 @@ fn kernel
       ()
     };
   };
-  admit();
 
   (**)fold (gpu_pts_to_array1 r tid);
   (**)fold (gpu_pts_to_array1 ga1 tid);
@@ -93,42 +91,6 @@ fn kernel
   (**)fold (kpost ga1 ga2 r nth tid);
 }
 ```
-
-```pulse
-ghost fn rw_assume
-  (a b : vprop)
-  requires a
-  ensures b
-{
-  admit();
-}
-```
-
-```pulse
-ghost
-fn bigstar_eta
-  ()
-  (#m : nat) (#n : nat{m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
-  requires bigstar m n f
-  ensures  bigstar m n (fun i -> f i)
-{
-  admit();
-}
-``` 
-
-```pulse
-ghost
-fn bigstar_uneta
-  ()
-  (#m : nat) (#n : nat{m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
-  requires bigstar m n (fun i -> f i)
-  ensures  bigstar m n f
-{
-  admit();
-}
-``` 
 
 ```pulse
 fn main (_:unit)

@@ -2,6 +2,7 @@ module Pulse.Lib.BigStar
 
 open Pulse.Lib.Pervasives
 
+(* Hide? *)
 let rec bigstar
   (m : nat)
   (n : nat {m <= n})
@@ -26,19 +27,18 @@ val bigstar_star (m : nat) (n : nat {m <= n}) f g h
       (ensures fun _ -> True)
 
 val bigstar_congr (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
-    (f : (i:nat { m <= i /\ i < n }) -> vprop) (f' : (i:nat { m' <= i /\ i < n' }) -> vprop) 
+    (f : (i:nat { m <= i /\ i < n }) -> vprop) (f' : (i:nat { m' <= i /\ i < n' }) -> vprop)
     (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
     :
     Pure
       (squash (bigstar m n f == bigstar m' n' f'))
       (requires True)
       (ensures fun _ -> True)
-      (decreases n-m)
 
 val bigstar_rw_congr
    (m : nat) (n : nat { m <= n })
    (f : (i:nat { m <= i /\ i < n }) -> vprop)
-   (f' : (i:nat { m <= i /\ i < n }) -> vprop) 
+   (f' : (i:nat { m <= i /\ i < n }) -> vprop)
    (h : ((i:nat{m <= i /\ i < n}) -> squash (f i == f' i)))
   : stt_ghost unit emp_inames
               (bigstar m n f)
@@ -79,3 +79,31 @@ val bigstar_unzip
   : stt_ghost unit emp_inames
               (bigstar m n (fun i -> f i ** g i))
               (fun _ -> bigstar m n f ** bigstar m n g)
+
+val bigstar_extensionality
+    (m : nat)
+    (n : nat {m <= n})
+    (f: (i: nat{m <= i /\ i < n} -> vprop))
+    (g: (i: nat{m <= i /\ i < n} -> vprop))
+    (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
+  : stt_ghost unit emp_inames
+              (bigstar m n f)
+              (fun _ -> bigstar m n g)
+
+val bigstar_eta
+    ()
+    (#m : nat)
+    (#n : nat {m <= n})
+    (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  : stt_ghost unit emp_inames
+              (bigstar m n f)
+              (fun _ -> bigstar m n (fun i -> f i))
+
+val bigstar_uneta
+    ()
+    (#m : nat)
+    (#n : nat {m <= n})
+    (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  : stt_ghost unit emp_inames
+              (bigstar m n (fun i -> f i))
+              (fun _ -> bigstar m n f)

@@ -103,20 +103,11 @@ fn main (_:unit)
   as
     (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i));
 
-  rewrite
-    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i))
-  as
-    (bigstar 0 size (kpre ga1 ga2 gr size))
-  by tadmit (); // FIXME: extensionality.
-  // Alternative: always use eta expanded bigstars?
+  (**)bigstar_uneta ();
   
   launch_kernel_n size (kernel ga1 ga2 gr size);
 
-  (**)rewrite
-    (bigstar 0 size (kpre ga1 ga2 gr size))
-  as
-    (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i))
-  by tadmit(); // Idem: extensionality
+  (**)bigstar_eta ();
 
   rewrite
     (bigstar 0 size (fun i -> kpre ga1 ga2 gr size i))

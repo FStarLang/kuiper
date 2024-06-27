@@ -17,7 +17,7 @@ val barrier_alive
   (q : nat -> vprop)
   (b : barrier n p q)
   : vprop
-  
+
 val barrier_tok
   (#n:nat)
   (#p : nat -> vprop)
