@@ -1,5 +1,6 @@
 module GPU.Example1
 
+open Pulse.Lib
 open Pulse.Lib.Pervasives
 open GPU
 
@@ -17,7 +18,7 @@ fn main (_:unit)
   requires cpu
   ensures  cpu
 {
-   let r = alloc 1;
+   let r = Box.alloc 1;
    let gr = gpu_alloc0 #int ();
    
   //  GPU.Ref.gpu_memcpy_host_to_device r gr;
@@ -25,12 +26,15 @@ fn main (_:unit)
    (* kernel<<1,1>>(gr); *)
    launch_kernel_1 (fun () -> kernel gr);
 
-   GPU.Ref.gpu_memcpy_device_to_host r gr;
-   let v = !r;
+   Box.to_ref_pts_to r;
+   GPU.Ref.gpu_memcpy_device_to_host (Box.box_to_ref r) gr;
+   Box.to_box_pts_to r;
+
+   let v = Pulse.Lib.Box.(!r);
    
    assert (pure (v == 2));
    
    gpu_free gr;
-   free r;
+   Box.free r;
 }
 ```
