@@ -45,4 +45,5 @@ echo-fstar:
 	@echo $(FSTAR)
 
 .depend: $(ROOTS)
-	$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
+	$(call msg, "DEPEND")
+	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
