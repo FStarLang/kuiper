@@ -18,6 +18,7 @@ FSTAR := fstar.exe					\
 	--include pulse/lib/pulse/lib/class/		\
 	--include src/lib/				\
 	--include src/examples/				\
+	--include src/examples/matmul/			\
 	--load_cmxs pulse				\
 	--warn_error -249-321				\
 	$(FSTAR_FLAGS)
