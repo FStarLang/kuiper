@@ -1,3 +1,5 @@
+include .common.mk
+
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
 CACHEDIR := .cache
@@ -9,6 +11,7 @@ FSTAR_FLAGS += --odir $(OUTDIR)
 FSTAR_FLAGS += $(OTHERFLAGS)
 
 FSTAR := fstar.exe					\
+	$(SIL)						\
 	--include pulse/lib/pulse/			\
 	--include pulse/lib/pulse/core/			\
 	--include pulse/lib/pulse/lib/			\
@@ -33,7 +36,8 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
 %.checked:
-	$(FSTAR) $<
+	@$(call msg, "CHECK", $(notdir $@))
+	$(Q)$(FSTAR) $<
 	@touch -c $@
 
 .PHONY: echo-fstar

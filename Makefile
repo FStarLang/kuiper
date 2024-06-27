@@ -1,3 +1,5 @@
+include .common.mk
+
 PULSE_REPO := https://github.com/FStarLang/pulse
 PULSE_HASH := $(shell cat .pulse.hash)
 
