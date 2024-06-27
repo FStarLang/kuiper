@@ -1,8 +1,10 @@
 module Pulse.Lib.BigStar
 
 open Pulse.Lib.Pervasives
+open FStar.Tactics.V2
 
 val bigstar
+  (#[exact (`0)][@@@equate_strict] uid: int)
   ([@@@equate_strict] m : nat)
   ([@@@equate_strict] n : nat {m <= n})
   (f : (i:nat { m <= i /\ i < n } -> vprop))
@@ -44,43 +46,65 @@ val bigstar_rw_congr
             (fun _ -> bigstar m n f')
 
 val bigstar_extract
+  (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (i : nat { m <= i /\ i < n })
 : stt_ghost unit emp_inames
-            (bigstar m n f)
-            (fun _ -> bigstar m i f ** f i ** bigstar (i+1) n f)
+            (bigstar #u1 m n f)
+            (fun _ -> bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f)
 
 val bigstar_compose
+  (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (i : nat { m <= i /\ i < n })
 : stt_ghost unit
             emp_inames
-            (bigstar m i f ** f i ** bigstar (i+1) n f)
-            (fun _ -> bigstar m n f)
+            (bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f)
+            (fun _ -> bigstar #u1 m n f)
 
+val bigstar_map
+  (#u1 : int)
+  (#[exact (`0)]u2 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  (#g: (i: nat{m <= i /\ i < n} -> vprop))
+  (stt: ((i: nat{m <= i /\ i < n}) -> stt_ghost unit emp_inames
+            (f i)
+            (fun _ -> g i)))
+: stt_ghost unit emp_inames
+            (bigstar #u1 m n f)
+            (fun _ -> bigstar #u2 m n g)
+
+[@@allow_ambiguous]
 val bigstar_zip
+  (#u1 #u2 : int)
+  (#[exact (`0)]u3 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (g: (i: nat{m <= i /\ i < n} -> vprop))
 : stt_ghost unit
             emp_inames
-            (bigstar m n f ** bigstar m n g)
-            (fun _ -> bigstar m n (fun i -> f i ** g i))
+            (bigstar #u1 m n f ** bigstar #u2 m n g)
+            (fun _ -> bigstar #u3 m n (fun i -> f i ** g i))
 
 val bigstar_unzip
+  (#[exact (`0)]u1 : int)
+  (#[exact (`0)]u2 : int)
+  (#u3 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (g: (i: nat{m <= i /\ i < n} -> vprop))
 : stt_ghost unit
             emp_inames
-            (bigstar m n (fun i -> f i ** g i))
-            (fun _ -> bigstar m n f ** bigstar m n g)
+            (bigstar #u3 m n (fun i -> f i ** g i))
+            (fun _ -> bigstar #u1 m n f ** bigstar #u2 m n g)
 
 val bigstar_extensionality
   (m : nat)

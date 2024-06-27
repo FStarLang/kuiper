@@ -1,0 +1,51 @@
+module GPU.MatMul.Pure
+
+#push-options "--fuel 1 --ifuel 1"
+
+open FStar.Mul
+open Pulse.Lib.Pervasives
+
+let rec matmul_single
+  (rows shared columns: nat)
+  (s1: erased (Seq.Base.seq int){ Seq.Base.length s1 == rows * shared })
+  (s2 : erased (Seq.Base.seq int){ Seq.Base.length s2 == shared * columns })
+  (row: erased nat{row < rows}) (col: erased nat{col < columns}) (to: nat)
+    : GTot (erased int) (decreases to)
+  =
+  if reveal to > shared then 0 else if reveal to = 0 then 0 else
+    (
+        assert ((row + 1) <= rows /\ (row + 1) * shared <= rows * shared);
+        Seq.Base.index s1 (row * shared + (to - 1)) * Seq.Base.index s2 (col + (to - 1) * columns) + (matmul_single rows shared columns s1 s2 row col (to - 1))
+    )
+
+let matmul_single_lemma
+  (rows shared columns: erased nat)
+  (s1: erased (Seq.Base.seq int){ Seq.Base.length s1 == rows * shared })
+  (s2 : erased (Seq.Base.seq int){ Seq.Base.length s2 == shared * columns })
+  (row: erased nat{row < rows}) (col: erased nat{col < columns}) (to: nat)
+    : Lemma
+      (requires (0 < to /\ to <= shared))
+      (ensures (
+        assert ((row + 1) <= rows /\ (row + 1) * shared <= rows * shared);
+        reveal (matmul_single rows shared columns s1 s2 row col to) = Seq.Base.index s1 (row * shared + (to - 1)) * Seq.Base.index s2 (col + (to - 1) * columns) + (matmul_single rows shared columns s1 s2 row col (to - 1))
+      ))
+  = ()
+
+private let matmul_single_at
+  (rows shared columns: erased nat)
+  (s1: erased (Seq.Base.seq int){ Seq.Base.length s1 == rows * shared })
+  (s2 : erased (Seq.Base.seq int){ Seq.Base.length s2 == shared * columns })
+  (idx: nat{idx < rows * columns})
+    : GTot int
+  =
+  let row = idx / columns in let col = idx % columns in matmul_single rows shared columns s1 s2 row col shared
+
+let matmul
+  (rows shared columns: erased nat)
+  (s1: erased (Seq.Base.seq int){ Seq.Base.length s1 == rows * shared })
+  (s2 : erased (Seq.Base.seq int){ Seq.Base.length s2 == shared * columns })
+    : GTot (sr:(Seq.Base.seq int){ Seq.Base.length sr == rows * columns })
+  =
+  Seq.Base.init_ghost (rows * columns) (matmul_single_at rows shared columns s1 s2)
+
+#pop-options

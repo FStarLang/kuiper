@@ -7,6 +7,7 @@ open FStar.FunctionalExtensionality
 module SZ = FStar.SizeT
 
 let rec bigstar
+  (#uid : int)
   (m : nat)
   (n : nat {m <= n})
   (f : (i:nat { m <= i /\ i < n } -> vprop))
@@ -65,130 +66,189 @@ fn bigstar_rw_congr
 ```
 
 ```pulse
-ghost fn rw (a b : vprop) requires a ** pure (a == b) ensures b {
-  rewrite a as b
-}
-```
-
-```pulse
 ghost fn bigstar_extract
+    (#u1 : int)
     (m : nat)
     (n : nat {m <= n})
     (f: (i: nat{m <= i /\ i < n} -> vprop))
     (i : nat { m <= i /\ i < n })
-  requires bigstar m n f
+  requires bigstar #u1 m n f
   returns _:unit
-  ensures bigstar m i f ** f i ** bigstar (i+1) n f
+  ensures bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
 {
   bigstar_split m n f i;
-  rw (bigstar m n f) (bigstar m i f ** bigstar i n f);
-  rw (bigstar i n f) (f i ** bigstar (i+1) n f);
+  rewrite bigstar #u1 m n f
+       as bigstar #u1 m i f ** bigstar #u1 i n f;
+  rewrite bigstar #u1 i n f
+       as f i ** bigstar #u1 (i+1) n f;
 }
 ```
+
+#set-options "--print_implicits"
 
 ```pulse
 ghost fn bigstar_compose
+    (#u1 : int)
     (m : nat)
     (n : nat {m <= n})
     (f: (i: nat{m <= i /\ i < n} -> vprop))
     (i : nat { m <= i /\ i < n })
-  requires bigstar m i f ** f i ** bigstar (i+1) n f
+  requires bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
   returns _:unit
-  ensures bigstar m n f
+  ensures bigstar #u1 m n f
 {
   bigstar_split m n f i;
-  rw (f i ** bigstar (i+1) n f) (bigstar i n f);
-  rw (bigstar m i f ** bigstar i n f) (bigstar m n f);
+  rewrite f i ** bigstar #u1 (i+1) n f
+       as bigstar #u1 i n f;
+  rewrite bigstar #u1 m i f ** bigstar #u1 i n f
+       as bigstar #u1 m n f;
 }
 ```
+
+// As we work with bigstar, we need to make sure the domain of f,g remains
+// the same, since it appears as an argument to bigstar. So, this function
+// is further parametrized by lo,hi the bounds of the domain of f,g
+```pulse
+ghost
+fn rec bigstar_map'
+  (#u1 #u2 : int)
+  (#lo : nat)
+  (#hi : nat{lo <= hi})
+  (#m : nat{lo <= m})
+  (#n : nat {m <= n /\ n <= hi})
+  (#f: (i: nat{lo <= i /\ i < hi} -> vprop))
+  (#g: (i: nat{lo <= i /\ i < hi} -> vprop))
+  (stt: ((i: nat{lo <= i /\ i < hi}) -> stt_ghost unit emp_inames
+            (f i)
+            (fun _ -> g i)))
+  requires  bigstar #u1 m n f
+  ensures   bigstar #u2 m n g
+  decreases (n-m)
+{
+  if (m = n) {
+    rewrite bigstar #u1 m n f as emp;
+    rewrite emp as bigstar #u2 m n g;
+  } else {
+    bigstar_extract m n f m;
+    stt m;
+    bigstar_map' #u1 #u2 #lo #hi #(m+1) #n #f #g stt;
+    rewrite bigstar #u1 m m f
+         as bigstar #u2 m m g;
+    bigstar_compose m n g m;
+  }
+}
+```
+
+```pulse
+ghost
+fn __bigstar_map
+  (#u1 : int)
+  (#u2 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  (#g: (i: nat{m <= i /\ i < n} -> vprop))
+  (stt: ((i: nat{m <= i /\ i < n}) -> stt_ghost unit emp_inames
+            (f i)
+            (fun _ -> g i)))
+  requires bigstar #u1 m n f
+  ensures  bigstar #u2 m n g
+{
+  bigstar_map' #u1 #u2 #m #n #m #n #f #g stt;
+}
+```
+let bigstar_map #u1 #u2 = __bigstar_map #u1 #u2
 
 let comb (f g : 'a -> vprop) : 'a -> vprop =
   fun x -> f x ** g x
 
-// As we work with comb, we need to make sure the domain of f,g remains
-// the same, so this function is further parametrized by lo,hi the bounds
-// of the domain of f,g
 ```pulse
 ghost
 fn rec bigstar_zip'
+    (#u1 #u2 #u3 : int)
     (#lo #hi : nat)
     (m : nat {lo <= m})
     (n : nat {m <= n /\ n <= hi})
     (f: (i: nat{lo <= i /\ i < hi} -> vprop))
     (g: (i: nat{lo <= i /\ i < hi} -> vprop))
-  requires  bigstar m n f ** bigstar m n g
-  ensures   bigstar m n (comb f g)
+  requires  bigstar #u1 m n f ** bigstar #u2 m n g
+  ensures   bigstar #u3 m n (comb f g)
   decreases (n-m)
 {
   if (n = m) {
-    rewrite bigstar m n f as emp;
-    rewrite bigstar m n g as emp;
-    rewrite emp as bigstar m n (comb f g);
+    rewrite bigstar #u1 m n f as emp;
+    rewrite bigstar #u2 m n g as emp;
+    rewrite emp as bigstar #u3 m n (comb f g);
     ()
   } else {
-    rewrite bigstar m n f as f m ** bigstar (m+1) n f;
-    rewrite bigstar m n g as g m ** bigstar (m+1) n g;
-    bigstar_zip' #lo #hi (m+1) n f g;
-    rewrite (f m ** g m) ** bigstar (m+1) n (comb f g)
-         as bigstar m n (comb f g);
+    rewrite bigstar #u1 m n f as f m ** bigstar #u1 (m+1) n f;
+    rewrite bigstar #u2 m n g as g m ** bigstar #u2 (m+1) n g;
+    bigstar_zip' #_ #_ #u3 #lo #hi (m+1) n f g;
+    rewrite (f m ** g m) ** bigstar #u3 (m+1) n (comb f g)
+         as bigstar #u3 m n (comb f g);
   }
 }
 ```
 
 ```pulse
 ghost
-fn bigstar_zip
+fn __bigstar_zip
+    (#u1 #u2 #u3 : int)
     (m : nat)
     (n : nat {m <= n})
     (f: (i: nat{m <= i /\ i < n} -> vprop))
     (g: (i: nat{m <= i /\ i < n} -> vprop))
-  requires bigstar m n f ** bigstar m n g
-  ensures  bigstar m n (comb f g)
+  requires bigstar #u1 m n f ** bigstar #u2 m n g
+  ensures  bigstar #u3 m n (fun i -> f i ** g i)
 {
-  bigstar_zip' #m #n m n f g;
+  bigstar_zip' #u1 #u2 #u3 #m #n m n f g;
 }
 ```
+let bigstar_zip #u1 #u2 #u3 = __bigstar_zip #u1 #u2 #u3
 
 ```pulse
 ghost
 fn rec bigstar_unzip'
+    (#u1 #u2 #u3 : int)
     (#lo #hi : nat)
     (m : nat {lo <= m})
     (n : nat {m <= n /\ n <= hi})
     (f: (i: nat{lo <= i /\ i < hi} -> vprop))
     (g: (i: nat{lo <= i /\ i < hi} -> vprop))
-  requires  bigstar m n (comb f g)
-  ensures   bigstar m n f ** bigstar m n g
+  requires  bigstar #u3 m n (comb f g)
+  ensures   bigstar #u1 m n f ** bigstar #u2 m n g
   decreases (n-m)
 {
   if (n = m) {
-    rewrite bigstar m n (comb f g) as emp;
-    rewrite emp as bigstar m n f;
-    rewrite emp as bigstar m n g;
+    rewrite bigstar #u3 m n (comb f g) as emp;
+    rewrite emp as bigstar #u1 m n f;
+    rewrite emp as bigstar #u2 m n g;
     ()
   } else {
-    rewrite bigstar m n (comb f g)
-         as (f m ** g m) ** bigstar (m+1) n (comb f g);
-    bigstar_unzip' #lo #hi (m+1) n f g;
-    rewrite f m ** bigstar (m+1) n f as bigstar m n f;
-    rewrite g m ** bigstar (m+1) n g as bigstar m n g;
+    rewrite bigstar #u3 m n (comb f g)
+         as (f m ** g m) ** bigstar #u3 (m+1) n (comb f g);
+    bigstar_unzip' #u1 #u2 #u3 #lo #hi (m+1) n f g;
+    rewrite f m ** bigstar #u1 (m+1) n f as bigstar #u1 m n f;
+    rewrite g m ** bigstar #u2 (m+1) n g as bigstar #u2 m n g;
   }
 }
 ```
 
 ```pulse
 ghost
-fn bigstar_unzip
+fn __bigstar_unzip
+    (#u1 #u2 #u3 : int)
     (m : nat)
     (n : nat {m <= n})
     (f: (i: nat{m <= i /\ i < n} -> vprop))
     (g: (i: nat{m <= i /\ i < n} -> vprop))
-  requires bigstar m n (comb f g)
-  ensures  bigstar m n f ** bigstar m n g
+  requires bigstar #u3 m n (fun i -> f i ** g i)
+  ensures  bigstar #u1 m n f ** bigstar #u2 m n g
 {
-  bigstar_unzip' #m #n m n f g;
+  bigstar_unzip' #u1 #u2 #u3 #m #n m n f g;
 }
 ```
+let bigstar_unzip #u1 #u2 #u3 = __bigstar_unzip #u1 #u2 #u3
 
 ```pulse
 ghost
