@@ -118,21 +118,21 @@ val bigstar_extensionality
             (fun _ -> bigstar m n g)
 
 val bigstar_eta
-  ()
+  (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> vprop))
 : stt_ghost unit
             emp_inames
-            (bigstar m n f)
-            (fun _ -> bigstar m n (fun i -> f i))
+            (bigstar #u1 m n f)
+            (fun _ -> bigstar #u1 m n (fun i -> f i))
 
 val bigstar_uneta
-  ()
+  (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> vprop))
 : stt_ghost unit
             emp_inames
-            (bigstar m n (fun i -> f i))
-            (fun _ -> bigstar m n f)
+            (bigstar #u1 m n (fun i -> f i))
+            (fun _ -> bigstar #u1 m n f)

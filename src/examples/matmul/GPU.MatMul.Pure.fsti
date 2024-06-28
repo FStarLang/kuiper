@@ -48,4 +48,13 @@ let matmul
   =
   Seq.Base.init_ghost (rows * columns) (matmul_single_at rows shared columns s1 s2)
 
+let lemma_matmul_index
+  (rows shared columns: erased nat)
+  (s1: erased (Seq.Base.seq int){ Seq.Base.length s1 == rows * shared })
+  (s2 : erased (Seq.Base.seq int){ Seq.Base.length s2 == shared * columns })
+  (idx: nat{idx < rows * columns})
+    : Lemma
+      (ensures (Seq.Base.index (reveal (matmul rows shared columns s1 s2)) idx) == reveal (matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared))
+  = ()
+
 #pop-options

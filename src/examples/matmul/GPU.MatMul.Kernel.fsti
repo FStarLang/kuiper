@@ -15,8 +15,8 @@ let singleton #a (elem: a) : Seq.Base.seq a = Seq.Base.cons elem Seq.Base.empty
 let kpre_pair (rows shared columns: nat)
   (ga1: gpu_array int (rows * shared))
   (ga2: gpu_array int (shared * columns))
-  (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
-  (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
+  (#s1: erased (Seq.Base.seq int))
+  (#s2: erased (Seq.Base.seq int))
   (nth: erased nat { nth > 0 })
   : vprop
   =
@@ -27,15 +27,14 @@ let kpre (rows shared columns: nat)
   (ga1: gpu_array int (rows * shared))
   (ga2: gpu_array int (shared * columns))
   (r: gpu_array int (rows * columns))
-  (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
-  (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
-  (#sr: erased (Seq.Base.seq int) {Seq.Base.length sr == 1})
-  (nth: erased nat)
-  (tid : nat{tid < nth /\ tid < rows * columns})
+  (#s1: erased (Seq.Base.seq int) )
+  (#s2: erased (Seq.Base.seq int))
+  (nth: erased nat { reveal nth == rows * columns })
+  (tid : nat{ tid < rows * columns})
   : vprop
   =
   kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
-  ** gpu_pts_to_array_slice r tid (tid+1) sr
+  ** (exists* sr. gpu_pts_to_array_slice r tid (tid+1) sr)
 
 let kpost (rows shared columns: nat)
   (ga1: gpu_array int (rows * shared))
@@ -43,20 +42,20 @@ let kpost (rows shared columns: nat)
   (r: gpu_array int (rows * columns))
   (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
-  (nth: erased nat)
-  (tid : nat{tid < nth /\ tid < rows * columns})
+  (nth: erased nat { reveal nth == rows * columns })
+  (tid : nat {  tid < rows * columns })
   : vprop
   =
   Impure.gpu_pts_to_matrix rows shared ga1 nth s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-  // ** gpu_pts_to_array_slice r tid (tid+1) (singleton (reveal (matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared)))
-  ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
+  ** gpu_pts_to_array_slice r tid (tid+1) (singleton (reveal (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared)))
+  // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 // TODO: un-hardcode
-let rows : nat = 1024 // rows of ga1/r
+let rows : nat = 255 // rows of ga1/r
 // assume val rows : nat
 let shared : nat = 1024 // columns of ga1, rows of ga2
-let columns : nat = 1024 // columns of ga2/r
+let columns : nat = 255 // columns of ga2/r
 
 ```pulse
 fn kernel
@@ -64,15 +63,14 @@ fn kernel
   (ga1 : gpu_array int (rows * shared)) (ga2 : gpu_array int (shared * columns)) (r : gpu_array int (rows * columns))
   (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
-  (#sr: erased (Seq.Base.seq int) {Seq.Base.length sr == 1})
-  (nth : erased nat)
-  (tid : nat{tid < nth /\ tid < rows * columns})
+  (nth : erased nat { nth == rows * columns })
+  (tid : nat{ tid < nth })
   requires gpu
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 #sr nth tid
+    ** kpre rows shared columns ga1 ga2 r #s1 #s2 nth tid
   ensures  gpu
     ** kpost rows shared columns ga1 ga2 r #s1 #s2 nth tid
 {
-  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 #sr nth tid;
+  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 nth tid;
   unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth;
 
   (* r[tid] = TODO *)
@@ -107,7 +105,12 @@ fn kernel
 
   let s = !sum;
   gpu_array_write #int #_ #tid #(tid+1) r tid s;
-  (**)Seq.Base.lemma_eq_intro (Seq.Base.upd sr 0 s) (singleton s);
+
+
+  with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
+  (**)Seq.Base.lemma_eq_intro v (singleton s);
+  (**)rewrite gpu_pts_to_array_slice r tid (tid + 1) v
+    as gpu_pts_to_array_slice r tid (tid + 1) (singleton s);
 
   fold kpost rows shared columns ga1 ga2 r #s1 #s2 nth tid;
   ()
@@ -142,13 +145,36 @@ ghost fn fold_pre
   (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
   (#sr: (Seq.Base.seq int) {Seq.Base.length sr == 1})
-  (nth: erased nat)
+  (nth: erased nat { nth == (rows * columns) })
   (tid: nat { tid < nth /\ tid < rows * columns })
   requires kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
-        ** gpu_pts_to_array_slice gr tid (tid+1) sr
-  ensures  kpre rows shared columns ga1 ga2 gr #s1 #s2 #sr nth tid
+        ** gpu_pts_to_array_slice #int #nth gr tid (tid+1) sr
+  ensures  kpre rows shared columns ga1 ga2 gr #s1 #s2 nth tid
 {
-  fold kpre rows shared columns ga1 ga2 gr #s1 #s2 #sr nth tid;
+  fold kpre rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
+  ()
+}
+```
+
+
+#push-options "--print_implicits --print_bound_var_types"
+
+```pulse
+ghost fn unfold_post
+  (rows shared columns: nat)
+  (ga1: gpu_array int (rows * shared))
+  (ga2: gpu_array int (shared * columns))
+  (gr: gpu_array int (rows * columns))
+  (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
+  (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
+  (nth: erased nat { reveal nth == rows * columns })
+  (tid: nat {  tid < rows * columns })
+  requires kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid
+  ensures  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
+        ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
+        ** gpu_pts_to_array_slice gr tid (tid+1) (singleton (reveal (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared)))
+{
+  unfold kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
   ()
 }
 ```
