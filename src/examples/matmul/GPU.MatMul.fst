@@ -100,28 +100,28 @@ fn main
   bigstar_rw_congr 0 size 
         (fun (i: nat{b2t (0 <= i) /\ b2t (i < size)}) ->
           gpu_pts_to_array_slice #int
-            #(MatMul.Kernel.rows * MatMul.Kernel.columns)
+            #(Defs.rows * Defs.columns)
             gr
             #1.0R
             i
             (i + 1)
-            (MatMul.Kernel.singleton #int
+            (Defs.singleton #int
                 (reveal #int
-                    (MatMul.Pure.matmul_single MatMul.Kernel.rows
-                        MatMul.Kernel.shared
-                        MatMul.Kernel.columns
+                    (Defs.matmul_single Defs.rows
+                        Defs.shared
+                        Defs.columns
                         v1
                         v2
-                        (hide #nat (i / MatMul.Kernel.columns))
-                        (hide #nat (i % MatMul.Kernel.columns))
-                        MatMul.Kernel.shared))))
+                        (hide #nat (i / Defs.columns))
+                        (hide #nat (i % Defs.columns))
+                        Defs.shared))))
         (fun i -> gpu_pts_to_array_slice #int #size gr #1.0R i
             (i + 1)
-            (MatMul.Kernel.singleton #int
+            (Defs.singleton #int
                 (reveal #int
                     (Seq.Base.index #int
                       (reveal #(Seq.Base.seq int)
-                          (hide #(Seq.Base.seq int) (MatMul.Pure.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
+                          (hide #(Seq.Base.seq int) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
                       i))))
         (fun i -> Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i);
 
