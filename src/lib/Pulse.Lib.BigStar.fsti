@@ -34,38 +34,43 @@ val bigstar_congr
   (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
 : Lemma (bigstar m n f == bigstar m' n' f')
 
-val bigstar_rw_congr
+```pulse
+ghost
+val fn bigstar_rw_congr
   (m : nat)
   (n : nat { m <= n })
   (f  : (i:nat { m <= i /\ i < n }) -> vprop)
   (f' : (i:nat { m <= i /\ i < n }) -> vprop)
-  (h : ((i:nat{m <= i /\ i < n}) -> squash (f i == f' i)))
-: stt_ghost unit
-            emp_inames
-            (bigstar m n f)
-            (fun _ -> bigstar m n f')
+  (h : (i:nat{m <= i /\ i < n}) -> squash (f i == f' i))
+  requires bigstar m n f
+  ensures  bigstar m n f'
+```
 
-val bigstar_extract
+```pulse
+ghost
+val fn bigstar_extract
   (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (i : nat { m <= i /\ i < n })
-: stt_ghost unit emp_inames
-            (bigstar #u1 m n f)
-            (fun _ -> bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f)
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
+```
 
-val bigstar_compose
+```pulse
+ghost
+val fn bigstar_compose
   (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (i : nat { m <= i /\ i < n })
-: stt_ghost unit
-            emp_inames
-            (bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f)
-            (fun _ -> bigstar #u1 m n f)
+  requires bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
+  ensures  bigstar #u1 m n f
+```
 
+// No meta args in pulse syntax, so F* val for now
 val bigstar_map
   (#u1 : int)
   (#[exact (`0)]u2 : int)
@@ -80,6 +85,7 @@ val bigstar_map
             (bigstar #u1 m n f)
             (fun _ -> bigstar #u2 m n g)
 
+// No meta args in pulse syntax, so F* val for now
 [@@allow_ambiguous]
 val bigstar_zip
   (#u1 #u2 : int)
@@ -93,6 +99,7 @@ val bigstar_zip
             (bigstar #u1 m n f ** bigstar #u2 m n g)
             (fun _ -> bigstar #u3 m n (fun i -> f i ** g i))
 
+// No meta args in pulse syntax, so F* val for now
 val bigstar_unzip
   (#[exact (`0)]u1 : int)
   (#[exact (`0)]u2 : int)
@@ -106,33 +113,36 @@ val bigstar_unzip
             (bigstar #u3 m n (fun i -> f i ** g i))
             (fun _ -> bigstar #u1 m n f ** bigstar #u2 m n g)
 
-val bigstar_extensionality
+```pulse
+ghost
+val fn bigstar_extensionality
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> vprop))
   (g: (i: nat{m <= i /\ i < n} -> vprop))
   (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
-: stt_ghost unit
-            emp_inames
-            (bigstar m n f)
-            (fun _ -> bigstar m n g)
+  requires bigstar m n f
+  ensures  bigstar m n g
+```
 
-val bigstar_eta
+```pulse
+ghost
+val fn bigstar_eta
   ()
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> vprop))
-: stt_ghost unit
-            emp_inames
-            (bigstar m n f)
-            (fun _ -> bigstar m n (fun i -> f i))
+  requires bigstar m n f
+  ensures  bigstar m n (fun i -> f i)
+```
 
-val bigstar_uneta
+```pulse
+ghost
+val fn bigstar_uneta
   ()
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> vprop))
-: stt_ghost unit
-            emp_inames
-            (bigstar m n (fun i -> f i))
-            (fun _ -> bigstar m n f)
+  requires bigstar m n (fun i -> f i)
+  ensures  bigstar m n f
+```
