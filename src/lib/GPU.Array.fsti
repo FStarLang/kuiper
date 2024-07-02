@@ -10,6 +10,8 @@ open FStar.Seq
 open GPU.Base
 module A = Pulse.Lib.Array
 
+module SZ = FStar.SizeT
+
 val gpu_array (a:Type u#0) (sz:nat) : Type u#0
 
 val gpu_pts_to_array_slice
@@ -42,18 +44,20 @@ val gpu_pts_to_slice_ref
       (gpu_pts_to_array_slice x #f i j v)
       (fun _ -> gpu_pts_to_array_slice x #f i j v ** pure (i <= j /\ j <= sz /\ Seq.length v == (j-i)))
 
-val gpu_array_alloc
-  (#a:Type u#0)
-  (sz:nat)
-: stt (gpu_array a sz)
-      cpu
-      (fun x ->
-        cpu **
-        (exists* (s:seq a). gpu_pts_to_array x #1.0R s))
+```pulse
+val
+fn gpu_array_alloc
+  (#a : Type u#0)
+  (sz : SZ.t)
+  requires cpu
+  returns  x : gpu_array a (SZ.v sz)
+  ensures  cpu **
+            (exists* (s:seq a). gpu_pts_to_array x #1.0R s)
+```
 
 val gpu_array_free
   (#a:Type u#0)
-  (#sz:nat)
+  (#sz:erased nat)
   (r : gpu_array a sz)
   (#v : erased (seq a))
 : stt unit
@@ -61,11 +65,13 @@ val gpu_array_free
       (fun _ -> cpu)
 
 val gpu_array_read
-  (#a:Type u#0)
-  (#sz:nat) (#i:nat) (#j : nat{i <= j /\ j <= sz})
+  (#a : Type u#0)
+  (#sz : erased nat)
+  (#i  : erased nat)
+  (#j  : erased nat{i <= j /\ j <= sz})
   (r:gpu_array a sz)
   (#f:perm)
-  (idx:nat{i <= idx /\ idx < j})
+  (idx : SZ.t {i <= SZ.v idx /\ SZ.v idx < j})
   (#s : erased (seq a))
 : stt a
       (gpu ** gpu_pts_to_array_slice #a #sz r #f i j s)
@@ -75,13 +81,15 @@ val gpu_array_read
         pure (
           i <= j /\ j <= sz /\
           Seq.length s == (j-i) /\
-          x == Seq.index s (idx - i)))
+          x == Seq.index s (SZ.v idx - i)))
 
 val gpu_array_write
   (#a:Type u#0)
-  (#sz:nat) (#i:nat) (#j : nat{i <= j /\ j <= sz})
+  (#sz: erased nat)
+  (#i: erased nat)
+  (#j: erased nat{i <= j /\ j <= sz})
   (r:gpu_array a sz)
-  (idx:nat{i <= idx /\ idx < j})
+  (idx : SZ.t{i <= SZ.v idx /\ SZ.v idx < j})
   (v : a)
   (#s : erased (seq a))
 : stt unit
@@ -93,11 +101,11 @@ val gpu_array_write
           pure (
             i <= j /\ j <= sz /\
             Seq.length s == (j-i) /\
-            s' == Seq.upd s (idx - i) v))
+            s' == Seq.upd s (SZ.v idx - i) v))
 
 val gpu_memcpy_host_to_device
   (#a:Type u#0)
-  (#sz : nat)
+  (#sz : erased nat)
   (arr : array a)
   (#f : perm)
   (#v : erased (seq a))
@@ -109,7 +117,7 @@ val gpu_memcpy_host_to_device
 
 val gpu_memcpy_device_to_host
   (#a:Type u#0)
-  (#sz : nat)
+  (#sz : erased nat)
   (arr : array a)
   (#v : erased (seq a))
   (garr : gpu_array a sz)
@@ -117,7 +125,7 @@ val gpu_memcpy_device_to_host
   (#gv : erased (seq a))
 : stt unit
       (cpu ** A.pts_to arr #1.0R v ** gpu_pts_to_array garr #f gv)
-      (fun _ -> cpu ** A.pts_to arr #1.0R gv ** gpu_pts_to_array garr #f gv ** pure (Seq.length gv == sz))
+      (fun _ -> cpu ** A.pts_to arr #1.0R gv ** gpu_pts_to_array garr #f gv ** pure (Seq.length gv == reveal sz))
 
 let gpu_pts_to_array1
   (#a:Type0)
@@ -205,3 +213,82 @@ val gpu_array_unslice_1_underspec
 
 
 
+
+```pulse
+val
+fn gpu_array_alloc_u32
+  (sz : SZ.t)
+  requires cpu
+  returns  x : gpu_array FStar.UInt32.t (SZ.v sz)
+  ensures  cpu **
+            (exists* (s:seq _). gpu_pts_to_array x #1.0R s)
+```
+
+val gpu_array_free_u32
+  (#sz:erased nat)
+  (r : gpu_array FStar.UInt32.t sz)
+  (#v : erased (seq FStar.UInt32.t))
+: stt unit
+      (cpu ** gpu_pts_to_array r #1.0R v)
+      (fun _ -> cpu)
+
+[@@noextract_to "krml"]
+val gpu_array_read_u32
+  (#sz : erased nat)
+  (#i  : erased nat)
+  (#j  : erased nat{i <= j /\ j <= sz})
+  (r:gpu_array FStar.UInt32.t sz)
+  (#f:perm)
+  (idx : SZ.t {i <= SZ.v idx /\ SZ.v idx < j})
+  (#s : erased (seq FStar.UInt32.t))
+: stt FStar.UInt32.t
+      (gpu ** gpu_pts_to_array_slice #FStar.UInt32.t #sz r #f i j s)
+      (fun x ->
+        gpu **
+        gpu_pts_to_array_slice #FStar.UInt32.t #sz r #f i j s **
+        pure (
+          i <= j /\ j <= sz /\
+          Seq.length s == (j-i) /\
+          x == Seq.index s (SZ.v idx - i)))
+
+[@@noextract_to "krml"]
+val gpu_array_write_u32
+  (#sz: erased nat)
+  (#i: erased nat)
+  (#j: erased nat{i <= j /\ j <= sz})
+  (r:gpu_array FStar.UInt32.t sz)
+  (idx : SZ.t{i <= SZ.v idx /\ SZ.v idx < j})
+  (v : FStar.UInt32.t)
+  (#s : erased (seq FStar.UInt32.t))
+: stt unit
+      (gpu ** gpu_pts_to_array_slice #FStar.UInt32.t #sz r #1.0R i j s)
+      (fun _ ->
+        exists* (s' : seq FStar.UInt32.t).
+          gpu **
+          gpu_pts_to_array_slice #FStar.UInt32.t #sz r #1.0R i j s' **
+          pure (
+            i <= j /\ j <= sz /\
+            Seq.length s == (j-i) /\
+            s' == Seq.upd s (SZ.v idx - i) v))
+
+val gpu_memcpy_host_to_device_u32
+  (#sz : erased nat)
+  (arr : array FStar.UInt32.t)
+  (#f : perm)
+  (#v : erased (seq FStar.UInt32.t))
+  (garr : gpu_array FStar.UInt32.t sz)
+  (#gv : erased (seq FStar.UInt32.t))
+: stt unit
+      (cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R gv)
+      (fun _ -> cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R v)
+
+val gpu_memcpy_device_to_host_u32
+  (#sz : erased nat)
+  (arr : array FStar.UInt32.t)
+  (#v : erased (seq FStar.UInt32.t))
+  (garr : gpu_array FStar.UInt32.t sz)
+  (#f : perm)
+  (#gv : erased (seq FStar.UInt32.t))
+: stt unit
+      (cpu ** A.pts_to arr #1.0R v ** gpu_pts_to_array garr #f gv)
+      (fun _ -> cpu ** A.pts_to arr #1.0R gv ** gpu_pts_to_array garr #f gv ** pure (Seq.length gv == reveal sz))

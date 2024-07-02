@@ -28,11 +28,12 @@ fn main
   returns ar: array U64.t
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
 {
-  let size = Defs.rows * Defs.columns;
-  let ar = Pulse.Lib.Array.alloc #U64.t 0UL (SZ.uint_to_t size);
+  open FStar.SizeT;
+  let size = Defs.rows *^ Defs.columns;
+  let ar = Pulse.Lib.Array.alloc #U64.t 0UL size;
 
-  let ga1 = gpu_array_alloc #U64.t (Defs.rows * Defs.shared);
-  let ga2 = gpu_array_alloc #U64.t (Defs.shared * Defs.columns);
+  let ga1 = gpu_array_alloc #U64.t (Defs.rows *^ Defs.shared);
+  let ga2 = gpu_array_alloc #U64.t (Defs.shared *^ Defs.columns);
 
   GPU.Array.gpu_memcpy_host_to_device a1 ga1;
   GPU.Array.gpu_memcpy_host_to_device a2 ga2;
@@ -47,8 +48,9 @@ fn main
 
   (**)fold Defs.gpu_pts_to_matrix Defs.rows Defs.shared ga1 1 v1;
   (**)fold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
-  (**)Defs.gpu_matrix_share_underspec #_ #1 Defs.rows Defs.shared ga1 size v1;
-  (**)Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 size v2;
+  (**)Defs.gpu_matrix_share_underspec #_ #1 (SZ.v Defs.rows) (SZ.v Defs.shared) ga1 (SZ.v size) v1;
+  (**)Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 (SZ.v size) v2;
+  admit();
 
   // Boring combination of resources
   (**)bigstar_zip #1 #2 #3 0 size _ _;

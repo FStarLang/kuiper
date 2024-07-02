@@ -9,6 +9,7 @@ open GPU
 module Impure = GPU.MatMul.Impure
 module Pure = GPU.MatMul.Pure
 module SZ = FStar.SizeT
+module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
 let singleton #a (elem: a) : Seq.Base.seq a = Seq.Base.cons elem Seq.Base.empty
@@ -49,14 +50,14 @@ let kpost (rows shared columns: nat)
   =
   Impure.gpu_pts_to_matrix rows shared ga1 nth s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-  ** gpu_pts_to_array_slice r tid (tid+1) (singleton (reveal (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared)))
+  ** gpu_pts_to_array_slice r tid (tid+1) (singleton (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared))
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 // TODO: un-hardcode
-let rows : nat = 255 // rows of ga1/r
+let rows : SZ.t = 255sz // rows of ga1/r
 // assume val rows : nat
-let shared : nat = 1024 // columns of ga1, rows of ga2
-let columns : nat = 255 // columns of ga2/r
+let shared : SZ.t = 1024sz // columns of ga1, rows of ga2
+let columns : SZ.t = 255sz // columns of ga2/r
 
 ```pulse
 fn kernel
@@ -65,27 +66,33 @@ fn kernel
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
   (nth : erased nat { nth == rows * columns })
-  (tid : nat{ tid < nth })
+  (etid : nat{ etid < nth })
   requires gpu
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 nth tid
+    ** kpre rows shared columns ga1 ga2 r #s1 #s2 nth etid
+    ** thread_id etid
   ensures  gpu
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 nth tid
+    ** kpost rows shared columns ga1 ga2 r #s1 #s2 nth etid
+    ** thread_id etid
 {
-  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 nth tid;
+  open FStar.SizeT;
+  
+  let tid = block_idx_x ();
+
+  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 nth (U32.v tid);
   unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth;
 
   (* r[tid] = TODO *)
-  let trow = tid / columns;
-  let tcol = tid % columns;
+  let trow = SZ.div (SZ.uint32_to_sizet tid) columns;
+  let tcol = SZ.rem (SZ.uint32_to_sizet tid) columns;
   // assert (pure (0 <= trow /\ trow < rows /\ 0 <= tcol /\ tcol < columns));
 
   let mut i = 0sz;
   let mut sum = 0UL;
 
-  while (let v = !i; (SZ.v v < shared))
+  while (let v = !i; (v <^ shared))
      invariant b.
        exists* v.
-       pure (0 <= shared /\ b == (SZ.v v < shared) /\ SZ.v v <= shared) **
+       pure (0 <= shared /\ b == (SZ.v v < shared) /\ SZ.v v <= shared /\ SZ.v v >= 0) **
        pts_to i v **
        gpu **
        pts_to sum (Pure.matmul_single rows shared columns s1 s2 trow tcol (SZ.v v))
@@ -94,8 +101,8 @@ fn kernel
   {
     let v = !i;
     let s = !sum;
-    let v1 = Impure.gpu_matrix_read #U64.t #rows #shared ga1 #nth #s1 trow (SZ.v v);
-    let v2 = Impure.gpu_matrix_read #U64.t #shared #columns ga2 #nth #s2 (SZ.v v) tcol;
+    let v1 = Impure.gpu_matrix_read #U64.t #rows #shared ga1 #nth #s1 trow v;
+    let v2 = Impure.gpu_matrix_read #U64.t #shared #columns ga2 #nth #s2 v tcol;
 
     i := SZ.add v 1sz;
     sum := U64.add_mod (U64.mul_mod v1 v2) s;
@@ -105,8 +112,7 @@ fn kernel
   };
 
   let s = !sum;
-  gpu_array_write #U64.t #_ #tid #(tid+1) r tid s;
-
+  gpu_array_write #U64.t #(rows * columns) #((U32.v tid)) #((U32.v tid + 1)) r (SZ.uint32_to_sizet tid) s;
 
   with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
   (**)Seq.Base.lemma_eq_intro v (singleton s);
@@ -173,7 +179,7 @@ ghost fn unfold_post
   requires kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid
   ensures  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
         ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-        ** gpu_pts_to_array_slice gr tid (tid+1) (singleton (reveal (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared)))
+        ** gpu_pts_to_array_slice gr tid (tid+1) (singleton (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared))
 {
   unfold kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
   ()

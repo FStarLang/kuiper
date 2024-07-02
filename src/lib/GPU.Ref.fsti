@@ -13,6 +13,12 @@ val gpu_pts_to
   (v : a)
 : slprop
 
+val gpu_alloc0_u64
+  ()
+: stt (gpu_ref FStar.UInt64.t)
+      cpu
+      (fun x -> cpu ** (exists* (v:_). gpu_pts_to x v))
+
 val gpu_alloc0
   (#a:Type u#0)
   ()
@@ -64,3 +70,29 @@ val gpu_memcpy_device_to_host
   (#gv : erased a)
   : stt unit (cpu ** pts_to r #1.0R v ** gpu_pts_to gr #f gv)
              (fun _ -> cpu ** pts_to r #1.0R gv ** gpu_pts_to gr #f gv)
+
+val gpu_memcpy_host_to_device_u64
+  (r  : ref FStar.UInt64.t)
+  (#f : perm)
+  (#v : erased FStar.UInt64.t)
+  (gr : gpu_ref FStar.UInt64.t)
+  (#gv : erased FStar.UInt64.t)
+  : stt unit (cpu ** pts_to r #f v ** gpu_pts_to gr #1.0R gv)
+             (fun _ -> cpu ** pts_to r #f v ** gpu_pts_to gr #1.0R v)
+
+(* cudaMemcpy (_, _, _, cudaMemcpyDeviceToHost) *)
+val gpu_memcpy_device_to_host_u64
+  (r  : ref FStar.UInt64.t)
+  (#v : erased FStar.UInt64.t)
+  (gr : gpu_ref FStar.UInt64.t)
+  (#f:perm)
+  (#gv : erased FStar.UInt64.t)
+  : stt unit (cpu ** pts_to r #1.0R v ** gpu_pts_to gr #f gv)
+             (fun _ -> cpu ** pts_to r #1.0R gv ** gpu_pts_to gr #f gv)
+
+val gpu_free_u64
+  (r : gpu_ref FStar.UInt64.t)
+  (#v : erased FStar.UInt64.t)
+: stt unit
+      (cpu ** gpu_pts_to r v)
+      (fun _ -> cpu)

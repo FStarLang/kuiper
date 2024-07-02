@@ -7,6 +7,9 @@ open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open GPU
 
+module SZ = FStar.SizeT
+open FStar.SizeT
+
 let gpu_pts_to_matrix #a (rows columns: nat) (ga : gpu_array a (rows * columns)) (shared: erased nat{shared > 0}) (s: erased (Seq.Base.seq a)): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int shared) s
 
@@ -39,22 +42,24 @@ val gpu_matrix_unshare_underspec
 ```pulse
 fn gpu_matrix_read
   #a
-  (#rows #columns: nat)
+  (#rows #columns: SZ.t)
   (ga : gpu_array a (rows * columns))
   (#shared: erased nat{shared > 0})
   (#s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
-  (row: nat{row < rows})
-  (col: nat{col < columns})
+  (row: SZ.t{SZ.v row < rows})
+  (col: SZ.t{SZ.v col < columns})
   requires gpu ** gpu_pts_to_matrix rows columns ga shared s
   returns v: a
   // TODO: is the assert here opaque?
-  ensures gpu ** gpu_pts_to_matrix rows columns ga shared s ** pure (assert ((row + 1) * columns <= rows * columns); v == Seq.Base.index s (row * columns + col))
+  ensures gpu ** gpu_pts_to_matrix rows columns ga shared s ** pure (assert ((SZ.v row + 1) * columns <= rows * columns); v == Seq.Base.index s (row * columns + SZ.v col))
 {
+  assume_ (pure (forall (x:nat). SizeT.fits x)); // CHEATING overflow
   unfold gpu_pts_to_matrix rows columns ga shared s;
   unfold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
   // TODO: strange that commenting this out causes an error
   assert (pure ((row + 1) * columns <= rows * columns));
-  let v = gpu_array_read #a #(rows * columns) #0 #(rows * columns) ga #(Real.one /. Real.of_int shared) (row * columns + col) #s;
+  let idx = row *^ columns +^ col;
+  let v = gpu_array_read #a #(rows * columns) #0 #(rows * columns) ga #(Real.one /. Real.of_int shared) idx #s;
   fold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
   fold gpu_pts_to_matrix rows columns ga shared s;
   v

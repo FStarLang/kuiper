@@ -6,12 +6,14 @@ open GPU
 
 module U64 = FStar.UInt64
 
+[@@CPrologue "__global__"]
 ```pulse
-fn kernel (r : gpu_ref U64.t)
-  requires gpu ** (exists* v. gpu_pts_to r v)
-  ensures  gpu ** gpu_pts_to r 2uL
+fn kernel (r : gpu_ref U64.t) (#v : erased U64.t)
+  requires gpu ** gpu_pts_to r v
+  ensures  gpu ** gpu_pts_to r (U64.add_underspec v 1uL)
 {
-   gpu_write r 2uL; // *r = 2
+  let v = gpu_read r;
+  gpu_write r (U64.add_underspec v 1uL);
 }
 ```
 
@@ -21,22 +23,21 @@ fn main (_:unit)
   ensures  cpu
 {
   let r  = Box.alloc #U64.t 1uL;
-  let gr = gpu_alloc0 #U64.t ();
+  let gr = gpu_alloc0_u64 ();
    
   Box.to_ref_pts_to r;
-  GPU.Ref.gpu_memcpy_host_to_device #U64.t (Box.box_to_ref r) gr;
+  GPU.Ref.gpu_memcpy_host_to_device_u64  (Box.box_to_ref r) gr;
 
-  (* kernel<<1,1>>(gr); *)
-  launch_kernel_1 (fun () -> kernel gr);
+  launch_kernel_1 (fun () -> kernel gr #(hide 1uL));
 
-  GPU.Ref.gpu_memcpy_device_to_host (Box.box_to_ref r) gr;
+  GPU.Ref.gpu_memcpy_device_to_host_u64 (Box.box_to_ref r) gr;
   Box.to_box_pts_to r;
 
   let v = Pulse.Lib.Box.(!r);
    
   assert (pure (v == 2uL));
    
-  gpu_free gr;
+  gpu_free_u64 gr;
   Box.free r;
 }
 ```
