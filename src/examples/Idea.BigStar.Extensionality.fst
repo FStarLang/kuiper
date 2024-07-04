@@ -4,7 +4,7 @@ open Pulse.Lib.Pervasives
 open GPU
 open Pulse.Lib.BigStar
 
-assume val f : int -> vprop
+assume val f : int -> slprop
 
 ```pulse
 fn test ()
@@ -21,13 +21,13 @@ fn test ()
 let bigstar_equiv
   (m : nat)
   (n : nat {m <= n})
-  (f : (i: nat{m <= i /\ i < n} -> vprop))
-  (g : (i: nat{m <= i /\ i < n} -> vprop))
+  (f : (i: nat{m <= i /\ i < n} -> slprop))
+  (g : (i: nat{m <= i /\ i < n} -> slprop))
   (h : ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
-  : vprop_equiv (bigstar m n f) (bigstar m n g)
+  : slprop_equiv (bigstar m n f) (bigstar m n g)
   = bigstar_congr m n m n f g (fun i -> h (i+m));
     assert (bigstar m n f == bigstar m n g);
-    coerce_eq () <| vprop_equiv_refl (bigstar m n f)
+    coerce_eq () <| slprop_equiv_refl (bigstar m n f)
 
 // And have Pulse use it automatically?
 
@@ -37,8 +37,8 @@ let equate_via (_:'a) : unit = ()
 val bigstar' 
   (m : nat)
   (n : nat {m <= n})
-  (f : (i:nat { m <= i /\ i < n } -> vprop))
-  : vprop
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
+  : slprop
 let bigstar' = bigstar
 
 (* Or: *)
@@ -46,6 +46,6 @@ let equate_arg_via (_:'a) : unit = ()
 val bigstar''
   ([@@@ equate_strict] m : nat)
   ([@@@ equate_strict] n : nat {m <= n})
-  ([@@@ equate_arg_via bigstar_equiv] f : (i:nat { m <= i /\ i < n } -> vprop))
-  : vprop
+  ([@@@ equate_arg_via bigstar_equiv] f : (i:nat { m <= i /\ i < n } -> slprop))
+  : slprop
 let bigstar'' = bigstar

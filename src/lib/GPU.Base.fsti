@@ -6,10 +6,10 @@ open FStar.Seq
 open Pulse.Lib.BigStar
 
 (* Token for being in CPU code *)
-val cpu : vprop
+val cpu : slprop
 
 (* Token for being in GPU code *)
-val gpu : vprop
+val gpu : slprop
 
 (*
   __device__
@@ -20,7 +20,7 @@ val gpu : vprop
   f<<<1, 1>>>();
 *)
 val launch_kernel_1
-  (#pre #post : vprop)
+  (#pre #post : slprop)
   (k : unit ->
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
@@ -31,8 +31,8 @@ val launch_kernel_1
 *)
 val launch_kernel_n
   (nthr  : pos)
-  (#pre  : (tid:nat{tid < nthr} -> vprop))
-  (#post : (tid:nat{tid < nthr} -> vprop))
+  (#pre  : (tid:nat{tid < nthr} -> slprop))
+  (#post : (tid:nat{tid < nthr} -> slprop))
   (f :
     (tid:nat{tid < nthr}) ->
     stt unit (gpu ** pre tid) (fun _ -> gpu ** post tid)

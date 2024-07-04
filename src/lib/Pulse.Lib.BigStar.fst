@@ -10,18 +10,18 @@ let rec bigstar
   (#uid : int)
   (m : nat)
   (n : nat {m <= n})
-  (f : (i:nat { m <= i /\ i < n } -> vprop))
-: Tot vprop (decreases n - m) =
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
+: Tot slprop (decreases n - m) =
   if m = n then emp else f m ** bigstar (m+1) n f
 
 let star_aci () :
     squash (
-      (forall (a b : vprop). {:pattern (a ** b)} a ** b == b ** a) /\
-      (forall (a : vprop). {:pattern (a ** emp)} a ** emp == a) /\
-      (forall (a b c : vprop). {:pattern (a ** b ** c)} a ** (b ** c) == (a ** b) ** c)) =
-  introduce forall (a b : vprop). a ** b == b ** a with elim_vprop_equiv (vprop_equiv_comm a b);
-  introduce forall (a : vprop). a ** emp == a with elim_vprop_equiv (vprop_equiv_unit a);
-  introduce forall (a b c : vprop). a ** (b ** c) == (a ** b) ** c with elim_vprop_equiv (vprop_equiv_assoc a b c)
+      (forall (a b : slprop). {:pattern (a ** b)} a ** b == b ** a) /\
+      (forall (a : slprop). {:pattern (a ** emp)} a ** emp == a) /\
+      (forall (a b c : slprop). {:pattern (a ** b ** c)} a ** (b ** c) == (a ** b) ** c)) =
+  introduce forall (a b : slprop). a ** b == b ** a with elim_slprop_equiv (slprop_equiv_comm a b);
+  introduce forall (a : slprop). a ** emp == a with elim_slprop_equiv (slprop_equiv_unit a);
+  introduce forall (a b c : slprop). a ** (b ** c) == (a ** b) ** c with elim_slprop_equiv (slprop_equiv_assoc a b c)
 
 let rec bigstar_split (m : nat) (n : nat {m <= n}) f (i : nat { m <= i /\ i <= n }) :
     Lemma (ensures bigstar m n f == bigstar m i f ** bigstar i n f) (decreases n - m) =
@@ -36,7 +36,7 @@ let rec bigstar_star (m : nat) (n : nat {m <= n}) f g h
   if m = n then () else (bigstar_star (m+1) n f g h heq; heq m)
 
 let rec bigstar_congr (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
-    (f : (i:nat { m <= i /\ i < n }) -> vprop) (f' : (i:nat { m' <= i /\ i < n' }) -> vprop)
+    (f : (i:nat { m <= i /\ i < n }) -> slprop) (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
     (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
 : Lemma (ensures bigstar m n f == bigstar m' n' f')
         (decreases n-m)
@@ -49,8 +49,8 @@ let rec bigstar_congr (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <
 ghost
 fn bigstar_rw_congr
    (m : nat) (n : nat { m <= n })
-   (f : (i:nat { m <= i /\ i < n }) -> vprop)
-   (f' : (i:nat { m <= i /\ i < n }) -> vprop)
+   (f : (i:nat { m <= i /\ i < n }) -> slprop)
+   (f' : (i:nat { m <= i /\ i < n }) -> slprop)
    (h : ((i:nat{m <= i /\ i < n}) -> squash (f i == f' i)))
   requires bigstar m n f
   ensures  bigstar m n f'
@@ -70,7 +70,7 @@ ghost fn bigstar_extract
     (#u1 : int)
     (m : nat)
     (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> vprop))
+    (f: (i: nat{m <= i /\ i < n} -> slprop))
     (i : nat { m <= i /\ i < n })
   requires bigstar #u1 m n f
   returns _:unit
@@ -91,7 +91,7 @@ ghost fn bigstar_compose
     (#u1 : int)
     (m : nat)
     (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> vprop))
+    (f: (i: nat{m <= i /\ i < n} -> slprop))
     (i : nat { m <= i /\ i < n })
   requires bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
   returns _:unit
@@ -116,8 +116,8 @@ fn rec bigstar_map'
   (#hi : nat{lo <= hi})
   (#m : nat{lo <= m})
   (#n : nat {m <= n /\ n <= hi})
-  (#f: (i: nat{lo <= i /\ i < hi} -> vprop))
-  (#g: (i: nat{lo <= i /\ i < hi} -> vprop))
+  (#f: (i: nat{lo <= i /\ i < hi} -> slprop))
+  (#g: (i: nat{lo <= i /\ i < hi} -> slprop))
   (stt: ((i: nat{lo <= i /\ i < hi}) -> stt_ghost unit emp_inames
             (f i)
             (fun _ -> g i)))
@@ -146,8 +146,8 @@ fn __bigstar_map
   (#u2 : int)
   (#m : nat)
   (#n : nat {m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
-  (#g: (i: nat{m <= i /\ i < n} -> vprop))
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  (#g: (i: nat{m <= i /\ i < n} -> slprop))
   (stt: ((i: nat{m <= i /\ i < n}) -> stt_ghost unit emp_inames
             (f i)
             (fun _ -> g i)))
@@ -159,7 +159,7 @@ fn __bigstar_map
 ```
 let bigstar_map #u1 #u2 = __bigstar_map #u1 #u2
 
-let comb (f g : 'a -> vprop) : 'a -> vprop =
+let comb (f g : 'a -> slprop) : 'a -> slprop =
   fun x -> f x ** g x
 
 ```pulse
@@ -169,8 +169,8 @@ fn rec bigstar_zip'
     (#lo #hi : nat)
     (m : nat {lo <= m})
     (n : nat {m <= n /\ n <= hi})
-    (f: (i: nat{lo <= i /\ i < hi} -> vprop))
-    (g: (i: nat{lo <= i /\ i < hi} -> vprop))
+    (f: (i: nat{lo <= i /\ i < hi} -> slprop))
+    (g: (i: nat{lo <= i /\ i < hi} -> slprop))
   requires  bigstar #u1 m n f ** bigstar #u2 m n g
   ensures   bigstar #u3 m n (comb f g)
   decreases (n-m)
@@ -196,8 +196,8 @@ fn __bigstar_zip
     (#u1 #u2 #u3 : int)
     (m : nat)
     (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> vprop))
-    (g: (i: nat{m <= i /\ i < n} -> vprop))
+    (f: (i: nat{m <= i /\ i < n} -> slprop))
+    (g: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u1 m n f ** bigstar #u2 m n g
   ensures  bigstar #u3 m n (fun i -> f i ** g i)
 {
@@ -213,8 +213,8 @@ fn rec bigstar_unzip'
     (#lo #hi : nat)
     (m : nat {lo <= m})
     (n : nat {m <= n /\ n <= hi})
-    (f: (i: nat{lo <= i /\ i < hi} -> vprop))
-    (g: (i: nat{lo <= i /\ i < hi} -> vprop))
+    (f: (i: nat{lo <= i /\ i < hi} -> slprop))
+    (g: (i: nat{lo <= i /\ i < hi} -> slprop))
   requires  bigstar #u3 m n (comb f g)
   ensures   bigstar #u1 m n f ** bigstar #u2 m n g
   decreases (n-m)
@@ -240,8 +240,8 @@ fn __bigstar_unzip
     (#u1 #u2 #u3 : int)
     (m : nat)
     (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> vprop))
-    (g: (i: nat{m <= i /\ i < n} -> vprop))
+    (f: (i: nat{m <= i /\ i < n} -> slprop))
+    (g: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u3 m n (fun i -> f i ** g i)
   ensures  bigstar #u1 m n f ** bigstar #u2 m n g
 {
@@ -255,8 +255,8 @@ ghost
 fn bigstar_extensionality
     (m : nat)
     (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> vprop))
-    (g: (i: nat{m <= i /\ i < n} -> vprop))
+    (f: (i: nat{m <= i /\ i < n} -> slprop))
+    (g: (i: nat{m <= i /\ i < n} -> slprop))
     (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
   requires bigstar m n f
   ensures  bigstar m n g
@@ -271,7 +271,7 @@ ghost
 fn bigstar_eta
   ()
   (#m : nat) (#n : nat{m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar m n f
   ensures  bigstar m n (fun i -> f i)
 {
@@ -284,7 +284,7 @@ ghost
 fn bigstar_uneta
   ()
   (#m : nat) (#n : nat{m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar m n (fun i -> f i)
   ensures  bigstar m n f
 {

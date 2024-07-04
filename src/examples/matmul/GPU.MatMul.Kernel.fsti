@@ -18,7 +18,7 @@ let kpre_pair (rows shared columns: nat)
   (#s1: erased (Seq.Base.seq int) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
   (nth: erased nat { nth > 0 })
-  : vprop
+  : slprop
   =
   Impure.gpu_pts_to_matrix rows shared ga1 nth s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
@@ -32,7 +32,7 @@ let kpre (rows shared columns: nat)
   (#sr: erased (Seq.Base.seq int) {Seq.Base.length sr == 1})
   (nth: erased nat)
   (tid : nat{tid < nth /\ tid < rows * columns})
-  : vprop
+  : slprop
   =
   kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
   ** gpu_pts_to_array_slice r tid (tid+1) sr
@@ -45,7 +45,7 @@ let kpost (rows shared columns: nat)
   (#s2: erased (Seq.Base.seq int) {Seq.Base.length s2 == shared * columns})
   (nth: erased nat)
   (tid : nat{tid < nth /\ tid < rows * columns})
-  : vprop
+  : slprop
   =
   Impure.gpu_pts_to_matrix rows shared ga1 nth s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2

@@ -1,6 +1,6 @@
 module GPU.Array
 
-// let with_pure (p:prop) (f : squash p -> vprop) : vprop =
+// let with_pure (p:prop) (f : squash p -> slprop) : slprop =
 //   pure p ** f ()
 
 open Pulse.Lib.Pervasives
@@ -19,7 +19,7 @@ val gpu_pts_to_array_slice
   (#[exact (`1.0R)] f : perm)
   (i:nat) (j:nat)
   (v : seq a)
-: vprop
+: slprop
 
 let gpu_pts_to_array
   (#a:Type u#0)
@@ -27,7 +27,7 @@ let gpu_pts_to_array
   (x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   (v : seq a)
-: vprop
+: slprop
 =
   gpu_pts_to_array_slice x #f 0 sz v
 
@@ -125,7 +125,7 @@ let gpu_pts_to_array1
   (arr : gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   (i:nat)
-: vprop =
+: slprop =
   exists* s. gpu_pts_to_array_slice arr i (i+1) s
 
 val gpu_array_slice_1

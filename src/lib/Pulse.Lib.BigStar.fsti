@@ -7,20 +7,20 @@ val bigstar
   (#[exact (`0)][@@@equate_strict] uid: int)
   ([@@@equate_strict] m : nat)
   ([@@@equate_strict] n : nat {m <= n})
-  (f : (i:nat { m <= i /\ i < n } -> vprop))
-: Tot vprop
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
+: Tot slprop
 
 val bigstar_split
   (m : nat)
   (n : nat {m <= n})
-  (f : (i:nat { m <= i /\ i < n } -> vprop))
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
   (i : nat { m <= i /\ i <= n })
 : Lemma (ensures bigstar m n f == bigstar m i f ** bigstar i n f)
 
 val bigstar_star
   (m : nat)
   (n : nat {m <= n})
-  (f g h : (i:nat { m <= i /\ i < n }) -> vprop)
+  (f g h : (i:nat { m <= i /\ i < n }) -> slprop)
   (heq : (i:nat { m <= i /\ i < n }) -> squash (f i ** g i == h i))
 : Lemma (bigstar m n f ** bigstar m n g == bigstar m n h)
 
@@ -29,8 +29,8 @@ val bigstar_congr
   (n : nat { m <= n })
   (m' : nat)
   (n' : nat { m' <= n' /\ n' - m' == n - m })
-  (f  : (i:nat { m <= i /\ i < n }) -> vprop)
-  (f' : (i:nat { m' <= i /\ i < n' }) -> vprop)
+  (f  : (i:nat { m <= i /\ i < n }) -> slprop)
+  (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
   (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
 : Lemma (bigstar m n f == bigstar m' n' f')
 
@@ -39,8 +39,8 @@ ghost
 val fn bigstar_rw_congr
   (m : nat)
   (n : nat { m <= n })
-  (f  : (i:nat { m <= i /\ i < n }) -> vprop)
-  (f' : (i:nat { m <= i /\ i < n }) -> vprop)
+  (f  : (i:nat { m <= i /\ i < n }) -> slprop)
+  (f' : (i:nat { m <= i /\ i < n }) -> slprop)
   (h : (i:nat{m <= i /\ i < n}) -> squash (f i == f' i))
   requires bigstar m n f
   ensures  bigstar m n f'
@@ -52,7 +52,7 @@ val fn bigstar_extract
   (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
-  (f: (i: nat{m <= i /\ i < n} -> vprop))
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
   (i : nat { m <= i /\ i < n })
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
@@ -64,7 +64,7 @@ val fn bigstar_compose
   (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
-  (f: (i: nat{m <= i /\ i < n} -> vprop))
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
   (i : nat { m <= i /\ i < n })
   requires bigstar #u1 m i f ** f i ** bigstar #u1 (i+1) n f
   ensures  bigstar #u1 m n f
@@ -76,8 +76,8 @@ val bigstar_map
   (#[exact (`0)]u2 : int)
   (#m : nat)
   (#n : nat {m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
-  (#g: (i: nat{m <= i /\ i < n} -> vprop))
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  (#g: (i: nat{m <= i /\ i < n} -> slprop))
   (stt: ((i: nat{m <= i /\ i < n}) -> stt_ghost unit emp_inames
             (f i)
             (fun _ -> g i)))
@@ -92,8 +92,8 @@ val bigstar_zip
   (#[exact (`0)]u3 : int)
   (m : nat)
   (n : nat {m <= n})
-  (f: (i: nat{m <= i /\ i < n} -> vprop))
-  (g: (i: nat{m <= i /\ i < n} -> vprop))
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
 : stt_ghost unit
             emp_inames
             (bigstar #u1 m n f ** bigstar #u2 m n g)
@@ -106,8 +106,8 @@ val bigstar_unzip
   (#u3 : int)
   (m : nat)
   (n : nat {m <= n})
-  (f: (i: nat{m <= i /\ i < n} -> vprop))
-  (g: (i: nat{m <= i /\ i < n} -> vprop))
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
 : stt_ghost unit
             emp_inames
             (bigstar #u3 m n (fun i -> f i ** g i))
@@ -118,8 +118,8 @@ ghost
 val fn bigstar_extensionality
   (m : nat)
   (n : nat {m <= n})
-  (f: (i: nat{m <= i /\ i < n} -> vprop))
-  (g: (i: nat{m <= i /\ i < n} -> vprop))
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
   (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
   requires bigstar m n f
   ensures  bigstar m n g
@@ -131,7 +131,7 @@ val fn bigstar_eta
   ()
   (#m : nat)
   (#n : nat {m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar m n f
   ensures  bigstar m n (fun i -> f i)
 ```
@@ -142,7 +142,7 @@ val fn bigstar_uneta
   ()
   (#m : nat)
   (#n : nat {m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> vprop))
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar m n (fun i -> f i)
   ensures  bigstar m n f
 ```

@@ -10,12 +10,12 @@ open GPU
 
 let size : nat = 1024
 
-let kpre (ga1 ga2 r : gpu_array int size) (nth : nat) (tid:nat{tid < nth}) : vprop =
+let kpre (ga1 ga2 r : gpu_array int size) (nth : nat) (tid:nat{tid < nth}) : slprop =
   gpu_pts_to_array1 ga1 tid **
   gpu_pts_to_array1 ga2 tid **
   gpu_pts_to_array1 r tid
 
-let kpost (ga1 ga2 r : gpu_array int size) (nth : nat) (tid:nat{tid < nth}) : vprop =
+let kpost (ga1 ga2 r : gpu_array int size) (nth : nat) (tid:nat{tid < nth}) : slprop =
   gpu_pts_to_array1 ga1 tid **
   gpu_pts_to_array1 ga2 tid **
   gpu_pts_to_array1 r tid

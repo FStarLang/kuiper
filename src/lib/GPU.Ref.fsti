@@ -11,7 +11,7 @@ val gpu_pts_to
   (x:gpu_ref a)
   (#[exact (`1.0R)] f : perm)
   (v : a)
-: vprop
+: slprop
 
 val gpu_alloc0
   (#a:Type u#0)

@@ -7,31 +7,31 @@ open GPU.Base
 
 val barrier
   (n:nat)
-  (p : nat -> vprop)
-  (q : nat -> vprop)
+  (p : nat -> slprop)
+  (q : nat -> slprop)
   : Type0
 
 val barrier_alive
   (n:nat)
-  (p : nat -> vprop)
-  (q : nat -> vprop)
+  (p : nat -> slprop)
+  (q : nat -> slprop)
   (b : barrier n p q)
-  : vprop
+  : slprop
 
 val barrier_tok
   (#n:nat)
-  (#p : nat -> vprop)
-  (#q : nat -> vprop)
+  (#p : nat -> slprop)
+  (#q : nat -> slprop)
   (b : barrier n p q)
   (tid : nat)
-  : vprop
+  : slprop
 
 ```pulse
 val
 fn mk_barrier
   (n : nat)
-  (p : nat -> vprop)
-  (q : nat -> vprop)
+  (p : nat -> slprop)
+  (q : nat -> slprop)
   (pf : unit -> stt_ghost unit emp_inames
                   (requires bigstar 0 n p)
                   (ensures  fun _ -> bigstar 0 n q))
@@ -45,8 +45,8 @@ fn mk_barrier
 ghost
 val fn barrier_wait
   (#n : nat)
-  (#p : nat -> vprop)
-  (#q : nat -> vprop)
+  (#p : nat -> slprop)
+  (#q : nat -> slprop)
   (b : barrier n p q)
   (#i : erased nat)
   requires barrier_alive n p q b ** barrier_tok b i ** p i
