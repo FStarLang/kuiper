@@ -30,6 +30,7 @@ val launch_kernel_1
   f<<<n, 1>>>();
 *)
 val launch_kernel_n
+  (#u1: int)
   (nthr  : pos)
   (#pre  : (tid:nat{tid < nthr} -> slprop))
   (#post : (tid:nat{tid < nthr} -> slprop))
@@ -37,5 +38,5 @@ val launch_kernel_n
     (tid:nat{tid < nthr}) ->
     stt unit (gpu ** pre tid) (fun _ -> gpu ** post tid)
   )
-  : stt unit (cpu ** bigstar 0 nthr pre)
-             (fun _ -> cpu ** bigstar 0 nthr post)
+  : stt unit (cpu ** bigstar #u1 0 nthr pre)
+             (fun _ -> cpu ** bigstar #u1 0 nthr post)

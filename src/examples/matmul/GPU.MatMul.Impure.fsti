@@ -7,7 +7,7 @@ open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open GPU
 
-let gpu_pts_to_matrix #a (rows columns: nat) (ga : gpu_array a (rows * columns)) (shared: erased nat{shared > 0}) (s: erased (Seq.Base.seq a) { Seq.length s == rows * columns }): slprop =
+let gpu_pts_to_matrix #a (rows columns: nat) (ga : gpu_array a (rows * columns)) (shared: erased nat{shared > 0}) (s: erased (Seq.Base.seq a)): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int shared) s
 
 val gpu_matrix_share_underspec
@@ -22,6 +22,19 @@ val gpu_matrix_share_underspec
     emp_inames
     (gpu_pts_to_matrix #a rows columns ga 1 s)
     (fun _ -> bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s))
+
+val gpu_matrix_unshare_underspec
+  (#a:Type u#0)
+  (#uid: int)
+  (rows columns: nat)
+  (ga : gpu_array a (rows * columns))
+  (shared: erased nat{shared > 0})
+  (s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
+: stt_ghost
+    unit
+    emp_inames
+    (bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s))
+    (fun _ -> gpu_pts_to_matrix #a rows columns ga 1 s)
 
 ```pulse
 fn gpu_matrix_read
