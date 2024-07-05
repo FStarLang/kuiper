@@ -9,6 +9,7 @@ open Pulse.Lib.Array
 open Pulse.Lib.Pervasives
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
+module U64 = FStar.UInt64
 open Pulse.Lib.BigStar
 open GPU
 module Defs = GPU.MatMul.Defs
@@ -20,23 +21,23 @@ let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
 
 ```pulse
 fn main
-  (a1 a2: array int)
-  (v1: erased (Seq.Base.seq int) { Seq.Base.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.Base.seq int) { Seq.Base.length v2 == Defs.shared * Defs.columns })
+  (a1 a2: array U64.t)
+  (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (Seq.Base.seq U64.t) { Seq.Base.length v2 == Defs.shared * Defs.columns })
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
-  returns ar: array int
+  returns ar: array U64.t
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
 {
   let size = Defs.rows * Defs.columns;
-  let ar = Pulse.Lib.Array.alloc #int 0 (SZ.uint_to_t size);
+  let ar = Pulse.Lib.Array.alloc #U64.t 0UL (SZ.uint_to_t size);
 
-  let ga1 = gpu_array_alloc #int (Defs.rows * Defs.shared);
-  let ga2 = gpu_array_alloc #int (Defs.shared * Defs.columns);
+  let ga1 = gpu_array_alloc #U64.t (Defs.rows * Defs.shared);
+  let ga2 = gpu_array_alloc #U64.t (Defs.shared * Defs.columns);
 
   GPU.Array.gpu_memcpy_host_to_device a1 ga1;
   GPU.Array.gpu_memcpy_host_to_device a2 ga2;
   
-  let gr = gpu_array_alloc #int size;
+  let gr = gpu_array_alloc #U64.t size;
 
   // Slicing the array
   rewrite gpu_pts_to_array ga1 #1.0R v1
@@ -61,7 +62,7 @@ fn main
   (**)bigstar_zip #3 #4 #5 0 size _ _;
   // admit();
   (**)bigstar_map #5 #5 #0 #size #_ #_
-        (fun i -> Defs.fold_pre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.Base.cons #int _ (Seq.Base.empty #int)) size i);
+        (fun i -> Defs.fold_pre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.Base.cons #U64.t _ (Seq.Base.empty #U64.t)) size i);
 
   // bigstar_uneta #5 #0 #size #(Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size);
   // bigstar_uneta #_ #_ #_ #_;
@@ -99,14 +100,14 @@ fn main
   // admit();
   bigstar_rw_congr 0 size 
         (fun (i: nat{b2t (0 <= i) /\ b2t (i < size)}) ->
-          gpu_pts_to_array_slice #int
+          gpu_pts_to_array_slice #U64.t
             #(Defs.rows * Defs.columns)
             gr
             #1.0R
             i
             (i + 1)
-            (Defs.singleton #int
-                (reveal #int
+            (Defs.singleton #U64.t
+                (reveal #U64.t
                     (Defs.matmul_single Defs.rows
                         Defs.shared
                         Defs.columns
@@ -115,13 +116,13 @@ fn main
                         (hide #nat (i / Defs.columns))
                         (hide #nat (i % Defs.columns))
                         Defs.shared))))
-        (fun i -> gpu_pts_to_array_slice #int #size gr #1.0R i
+        (fun i -> gpu_pts_to_array_slice #U64.t #size gr #1.0R i
             (i + 1)
-            (Defs.singleton #int
-                (reveal #int
-                    (Seq.Base.index #int
-                      (reveal #(Seq.Base.seq int)
-                          (hide #(Seq.Base.seq int) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
+            (Defs.singleton #U64.t
+                (reveal #U64.t
+                    (Seq.Base.index #U64.t
+                      (reveal #(Seq.Base.seq U64.t)
+                          (hide #(Seq.Base.seq U64.t) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
                       i))))
         (fun i -> Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i);
 
