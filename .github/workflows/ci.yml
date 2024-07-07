@@ -42,4 +42,4 @@ jobs:
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)
-          make -skj$(nproc) ci
+          make -skj$(nproc) -Otarget ci
