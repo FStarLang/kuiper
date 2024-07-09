@@ -8,23 +8,22 @@ open GPU.Base
 [@@erasable]
 val barrier
   (n:nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
   : Type0
 
-val barrier_alive
-  (n:nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
-  (it : nat)
-  (b : barrier n p q)
-  : slprop
+// val barrier_alive
+//   (n:nat)
+//   (p : (it:nat -> tid:nat -> slprop))
+//   (q : (it:nat -> tid:nat -> slprop))
+//   (it : nat)
+//   (b : barrier n p q)
+//   : slprop
 
 val barrier_tok
   (#n:nat)
-  (#p : (it:nat -> tid:nat -> slprop))
-  (#q : (it:nat -> tid:nat -> slprop))
-  (b : barrier n p q)
+  (p : (it:nat -> tid:nat -> slprop))
+  (q : (it:nat -> tid:nat -> slprop))
+  (b : barrier n)
+  (it : nat)
   (tid : nat)
   : slprop
 
@@ -39,21 +38,34 @@ fn mk_barrier
                   (requires bigstar 0 n (p it))
                   (ensures  fun _ -> bigstar 0 n (q it))))
   requires emp
-  returns  b : barrier n p q
-  ensures  barrier_alive n p q 0 b ** bigstar 0 n (barrier_tok b)
+  returns  b : erased (barrier n)
+  ensures  bigstar 0 n (barrier_tok p q b 0)
 ```
 
 // __syncthreads()
 ```pulse
 val fn barrier_wait
+  (#n : erased nat)
+  (#p : (it:nat -> tid:nat -> slprop))
+  (#q : (it:nat -> tid:nat -> slprop))
+  (b : barrier n)
+  (#it : erased nat)
+  (#i : erased nat)
+  requires barrier_tok p q b  it    i ** p it i
+  ensures  barrier_tok p q b (it+1) i ** q it i
+```
+
+```pulse
+ghost
+val
+fn drop_barrier
   (#n : nat)
   (#p : (it:nat -> tid:nat -> slprop))
   (#q : (it:nat -> tid:nat -> slprop))
-  (b : barrier n p q)
-  (#it : erased nat)
-  (#i : erased nat)
-  requires barrier_alive n p q  it    b ** barrier_tok b i ** p it i
-  ensures  barrier_alive n p q (it+1) b ** barrier_tok b i ** q it i
+  (#b : barrier n)
+  (#it: nat)
+  requires bigstar 0 n (barrier_tok p q b it)
+  ensures  emp
 ```
 
 (* Does this always deadlock? *)
