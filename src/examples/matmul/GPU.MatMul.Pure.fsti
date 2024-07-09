@@ -19,6 +19,7 @@ let rec matmul_single
         U64.add_mod (U64.mul_mod (Seq.Base.index s1 (row * shared + (to - 1))) (Seq.Base.index s2 (col + (to - 1) * columns))) (matmul_single rows shared columns s1 s2 row col (to - 1))
     )
 
+#push-options "--retry 2"
 let matmul_single_lemma
   (rows shared columns: erased nat)
   (s1: erased (Seq.Base.seq U64.t){ Seq.Base.length s1 == rows * shared })
@@ -31,6 +32,7 @@ let matmul_single_lemma
         reveal (matmul_single rows shared columns s1 s2 row col to) = U64.add_mod (U64.mul_mod (Seq.Base.index s1 (row * shared + (to - 1))) (Seq.Base.index s2 (col + (to - 1) * columns))) (matmul_single rows shared columns s1 s2 row col (to - 1))
       ))
   = ()
+#pop-options
 
 private let matmul_single_at
   (rows shared columns: erased nat)
