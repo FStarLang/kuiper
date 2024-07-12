@@ -20,11 +20,11 @@ val barrier
 
 val barrier_tok
   (#n:nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
+  (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (b : barrier n)
   (it : nat)
-  (tid : nat)
+  (tid : nat { tid < n })
   : slprop
 
 ```pulse
@@ -32,8 +32,8 @@ ghost
 val
 fn mk_barrier
   (n : nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
+  (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (pf : (it:nat -> stt_ghost unit emp_inames
                   (requires bigstar 0 n (p it))
                   (ensures  fun _ -> bigstar 0 n (q it))))
@@ -46,13 +46,13 @@ fn mk_barrier
 ```pulse
 val fn barrier_wait
   (#n : erased nat)
-  (#p : (it:nat -> tid:nat -> slprop))
-  (#q : (it:nat -> tid:nat -> slprop))
+  (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (b : barrier n)
   (#it : erased nat)
-  (#i : erased nat)
-  requires barrier_tok p q b  it    i ** p it i
-  ensures  barrier_tok p q b (it+1) i ** q it i
+  (#tid : erased nat { tid < n })
+  requires barrier_tok p q b  it    tid ** p it tid
+  ensures  barrier_tok p q b (it+1) tid ** q it tid
 ```
 
 ```pulse
@@ -60,8 +60,8 @@ ghost
 val
 fn drop_barrier
   (#n : nat)
-  (#p : (it:nat -> tid:nat -> slprop))
-  (#q : (it:nat -> tid:nat -> slprop))
+  (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (#b : barrier n)
   (#it: nat)
   requires bigstar 0 n (barrier_tok p q b it)
