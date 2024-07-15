@@ -1,0 +1,8 @@
+(lang dune 3.2)
+(name gpuextr)
+(generate_opam_files false)
+(using menhir 2.1)
+(package
+  (name gpuextr)
+  (synopsis "Extracton plugin for GPU DSL")
+)

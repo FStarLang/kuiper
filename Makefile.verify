@@ -5,6 +5,9 @@ ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 CACHEDIR := .cache
 OUTDIR   := .out
 
+# Without .cmxs extension
+PLUGIN=extraction/dune/_build/default/gpuextr
+
 FSTAR_FLAGS += --cache_checked_modules
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
@@ -20,6 +23,7 @@ FSTAR := fstar.exe					\
 	--include src/examples/				\
 	--include src/examples/matmul/			\
 	--load_cmxs pulse				\
+	--load_cmxs $(PLUGIN)				\
 	--warn_error -249-321				\
 	$(FSTAR_FLAGS)
 
@@ -36,10 +40,13 @@ include .depend
 verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
-%.checked:
+%.checked: | $(PLUGIN).cmxs
 	@$(call msg, "CHECK", $(notdir $@))
 	$(Q)$(FSTAR) $<
 	@touch -c $@
+
+$(PLUGIN).cmxs:
+	make -C extraction build
 
 .PHONY: echo-fstar
 echo-fstar:
