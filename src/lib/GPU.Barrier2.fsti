@@ -8,24 +8,23 @@ open GPU.Base
 [@@erasable]
 val barrier
   (n:nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
   : Type0
 
-val barrier_alive
-  (n:nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
-  (it : nat)
-  (b : barrier n p q)
-  : slprop
+// val barrier_alive
+//   (n:nat)
+//   (p : (it:nat -> tid:nat -> slprop))
+//   (q : (it:nat -> tid:nat -> slprop))
+//   (it : nat)
+//   (b : barrier n p q)
+//   : slprop
 
 val barrier_tok
   (#n:nat)
-  (#p : (it:nat -> tid:nat -> slprop))
-  (#q : (it:nat -> tid:nat -> slprop))
-  (b : barrier n p q)
-  (tid : nat)
+  (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (b : barrier n)
+  (it : nat)
+  (tid : nat { tid < n })
   : slprop
 
 ```pulse
@@ -33,27 +32,40 @@ ghost
 val
 fn mk_barrier
   (n : nat)
-  (p : (it:nat -> tid:nat -> slprop))
-  (q : (it:nat -> tid:nat -> slprop))
+  (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (pf : (it:nat -> stt_ghost unit emp_inames
                   (requires bigstar 0 n (p it))
                   (ensures  fun _ -> bigstar 0 n (q it))))
   requires emp
-  returns  b : barrier n p q
-  ensures  barrier_alive n p q 0 b ** bigstar 0 n (barrier_tok b)
+  returns  b : erased (barrier n)
+  ensures  bigstar 0 n (barrier_tok p q b 0)
 ```
 
 // __syncthreads()
 ```pulse
 val fn barrier_wait
-  (#n : nat)
-  (#p : (it:nat -> tid:nat -> slprop))
-  (#q : (it:nat -> tid:nat -> slprop))
-  (b : barrier n p q)
+  (#n : erased nat)
+  (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (b : barrier n)
   (#it : erased nat)
-  (#i : erased nat)
-  requires barrier_alive n p q  it    b ** barrier_tok b i ** p it i
-  ensures  barrier_alive n p q (it+1) b ** barrier_tok b i ** q it i
+  (#tid : erased nat { tid < n })
+  requires barrier_tok p q b  it    tid ** p it tid
+  ensures  barrier_tok p q b (it+1) tid ** q it tid
+```
+
+```pulse
+ghost
+val
+fn drop_barrier
+  (#n : nat)
+  (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#b : barrier n)
+  (#it: nat)
+  requires bigstar 0 n (barrier_tok p q b it)
+  ensures  emp
 ```
 
 (* Does this always deadlock? *)

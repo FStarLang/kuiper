@@ -183,6 +183,18 @@ val gpu_array_unslice_1_underspec
     (bigstar 0 sz (gpu_pts_to_array1 arr #f))
     (fun _ -> exists* v. gpu_pts_to_array arr #f v)
 
+```pulse
+ghost val fn gpu_slice_concat
+  (#a:Type0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#[exact (`1.0R)] f : perm)
+  (#s1 #s2: erased (seq a))
+  (i n m:nat)
+  requires gpu_pts_to_array_slice #a #sz arr #f i n s1 ** gpu_pts_to_array_slice #a #sz arr #f n m s2
+  ensures  gpu_pts_to_array_slice #a #sz arr #f i m (Seq.Base.append s1 s2)
+```
+
 // ```xx
 // fn memcpy_host_to_device
 //   (arr : array a)
