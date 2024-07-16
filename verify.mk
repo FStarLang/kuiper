@@ -1,5 +1,8 @@
 include .common.mk
 
+# No default rules
+.SUFFIXES:
+
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
 CACHEDIR := .cache
@@ -26,11 +29,21 @@ FSTAR := fstar.exe					\
 	--load_cmxs $(PLUGIN)				\
 	--warn_error -249-321				\
 	$(FSTAR_FLAGS)
+	
+GPUH := $(realpath GPU.h)
+
+KRML := $(KRML_HOME)/krml				\
+	-add-early-include '"$(GPUH)"'			\
+	-fc++-compat					\
+	-fcast-allocations				\
+	-verbose					\
+	-skip-compilation				\
+	-warn-error -2
 
 # This sandwich is needed so all is the first rule (and not
 # something in the include), and verify-all can refer to ALL_CHECKED_FILES,
 # which is empty before including .depend. Sigh.
-all: verify-all
+all: verify-all extraction-targets
 include .depend
 # verify-all: $(ALL_CHECKED_FILES)
 	# ^ This is a bit excessive since it will traverse interfaces and
@@ -52,6 +65,23 @@ $(PLUGIN).cmxs:
 echo-fstar:
 	@echo $(FSTAR)
 
+.PHONY: echo-krml
+echo-krml:
+	@echo $(KRML)
+
 .depend: $(ROOTS)
 	$(call msg, "DEPEND")
 	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
+
+# Awful special casing
+out/GPU.DotProduct/GPU_DotProduct.cu: .cache/GPU.DotProduct.fst.checked
+	./extract_cu.sh GPU.DotProduct
+out/GPU.Example1/GPU_Example1.cu: .cache/GPU.Example1.fst.checked
+	./extract_cu.sh GPU.Example1
+
+%.o: %.cu
+	nvcc -o $@ -c $< -I $(KRML_HOME)/include/ -I $(KRML_HOME)/krmllib/dist/minimal/
+
+extraction-targets: \
+	out/GPU.DotProduct/GPU_DotProduct.o \
+	out/GPU.Example1/GPU_Example1.o \

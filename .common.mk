@@ -63,3 +63,6 @@ maybe_cygwin_path=$(if $(findstring $(OS),Windows_NT),$(shell cygpath -m $(1)),$
 # Ensure that any failing rule will not create its target file.
 # In other words, make `make` less insane.
 .DELETE_ON_ERROR:
+
+# No default rules
+.SUFIXES:

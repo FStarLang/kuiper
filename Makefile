@@ -8,11 +8,14 @@ all: verify-all
 
 .PHONY: verify-all
 verify-all: pulse
-	$(MAKE) -f Makefile.verify $@
+	$(MAKE) -f verify.mk all
 
 .PHONY: echo-fstar
 echo-fstar: pulse
-	$(MAKE) -f Makefile.verify $@
+	$(MAKE) -f verify.mk $@
+.PHONY: echo-krml
+echo-krml: pulse
+	$(MAKE) -f verify.mk $@
 
 pulse:
 	$(error pulse directory not found: Run `make update-pulse` to fetch and compile Pulse)
@@ -37,3 +40,5 @@ pull-pulse: pulse
 ci:
 	$(MAKE) update-pulse
 	$(MAKE) all
+
+.SUFFIXES:

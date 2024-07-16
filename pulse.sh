@@ -3,6 +3,11 @@
 # A helper to call F* with all the relevant flags to check a Pulse
 # file in this repo.
 
-FSTAR=$(make -s echo-fstar)
+SNAME="$0"
 
-exec ${FSTAR} "$@"
+gcmd () {
+	cd $(dirname $0)
+	make -s echo-fstar
+}
+
+exec $(gcmd) "$@"
