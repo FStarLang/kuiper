@@ -81,12 +81,12 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "GPU.Ref.gpu_write" ->
     EBufWrite (cb e1, zero_for_deref, cb e2)
 
-  | MLE_App ({ expr = MLE_Name p }, sz :: i :: j :: r :: f :: idx :: s :: [])
-    when string_of_mlpath p = "GPU.Array.gpu_array_read_u32" ->
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: f :: idx :: s :: [])
+    when string_of_mlpath p = "GPU.Array.gpu_array_read" ->
     EBufRead (cb r, cb idx)
 
-  | MLE_App ({ expr = MLE_Name p }, sz :: i :: j :: r :: idx :: v :: s :: [])
-    when string_of_mlpath p = "GPU.Array.gpu_array_write_u32" ->
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: idx :: v :: s :: [])
+    when string_of_mlpath p = "GPU.Array.gpu_array_write" ->
     EBufWrite (cb r, cb idx, cb v)
 
   | MLE_App ({ expr = MLE_Name p }, [

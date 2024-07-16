@@ -56,15 +56,15 @@ fn kernel
 
   (**)unfold (gpu_pts_to_array1 ga1 tid);
   (**)gpu_pts_to_slice_ref ga1 tid (tid+1); // recall tid < size
-  let v1 = gpu_array_read_u32 #size #tid #(tid+1) ga1 tid;
+  let v1 = gpu_array_read #_ #size #tid #(tid+1) ga1 tid;
 
   (**)unfold (gpu_pts_to_array1 ga2 tid);
-  let v2 = gpu_array_read_u32 #size #tid #(tid+1) ga2 tid;
+  let v2 = gpu_array_read #_ #size #tid #(tid+1) ga2 tid;
   
   let v = v1 `U32.mul_underspec` v2;
   
   (**)unfold (gpu_pts_to_array1 r tid);
-  gpu_array_write_u32 #size #tid #(tid+1) r tid v;
+  gpu_array_write #_ #size #tid #(tid+1) r tid v;
 
   (**)fold (gpu_pts_to_array1 r tid);
   (**)fold (gpu_pts_to_array1 ga1 tid);
@@ -98,13 +98,13 @@ fn main (_:unit)
     ()
   };
 
-  let ga1 = gpu_array_alloc_u32 m_size;
-  let ga2 = gpu_array_alloc_u32 m_size;
+  let ga1 = gpu_array_alloc #U32.t m_size;
+  let ga2 = gpu_array_alloc #U32.t m_size;
 
-  GPU.Array.gpu_memcpy_host_to_device_u32 a1 ga1;
-  GPU.Array.gpu_memcpy_host_to_device_u32 a2 ga2;
+  GPU.Array.gpu_memcpy_host_to_device a1 ga1;
+  GPU.Array.gpu_memcpy_host_to_device a2 ga2;
   
-  let gr = gpu_array_alloc_u32 m_size;
+  let gr = gpu_array_alloc #U32.t m_size;
   
   let nthr : U32.t = SZ.sizet_to_uint32 m_size <: U32.t;
   
@@ -157,10 +157,10 @@ fn main (_:unit)
   (**)gpu_array_unslice_1_underspec ga2;
   (**)gpu_array_unslice_1_underspec gr;
   
-  GPU.Array.gpu_memcpy_device_to_host_u32 ar gr;
-  gpu_array_free_u32 ga1;
-  gpu_array_free_u32 ga2;
-  gpu_array_free_u32 gr;
+  GPU.Array.gpu_memcpy_device_to_host ar gr;
+  gpu_array_free ga1;
+  gpu_array_free ga2;
+  gpu_array_free gr;
 
   i := 0sz;
   let mut psum = 0ul;

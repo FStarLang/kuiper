@@ -155,31 +155,43 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
-                FStar_Extraction_ML_Syntax.MLE_Name p;
-              FStar_Extraction_ML_Syntax.mlty = uu___1;
-              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 uu___3);
+              FStar_Extraction_ML_Syntax.mlty = uu___4;
+              FStar_Extraction_ML_Syntax.loc = uu___5;_},
             sz::i::j::r::f::idx::s::[])
            when
-           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___3 = "GPU.Array.gpu_array_read_u32" ->
-           let uu___3 =
-             let uu___4 = cb r in let uu___5 = cb idx in (uu___4, uu___5) in
-           FStar_Extraction_Krml.EBufRead uu___3
+           let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___6 = "GPU.Array.gpu_array_read" ->
+           let uu___6 =
+             let uu___7 = cb r in let uu___8 = cb idx in (uu___7, uu___8) in
+           FStar_Extraction_Krml.EBufRead uu___6
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
-                FStar_Extraction_ML_Syntax.MLE_Name p;
-              FStar_Extraction_ML_Syntax.mlty = uu___1;
-              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 uu___3);
+              FStar_Extraction_ML_Syntax.mlty = uu___4;
+              FStar_Extraction_ML_Syntax.loc = uu___5;_},
             sz::i::j::r::idx::v::s::[])
            when
-           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___3 = "GPU.Array.gpu_array_write_u32" ->
-           let uu___3 =
-             let uu___4 = cb r in
-             let uu___5 = cb idx in
-             let uu___6 = cb v in (uu___4, uu___5, uu___6) in
-           FStar_Extraction_Krml.EBufWrite uu___3
+           let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___6 = "GPU.Array.gpu_array_write" ->
+           let uu___6 =
+             let uu___7 = cb r in
+             let uu___8 = cb idx in
+             let uu___9 = cb v in (uu___7, uu___8, uu___9) in
+           FStar_Extraction_Krml.EBufWrite uu___6
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -284,7 +296,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___182 : unit) =
+let (uu___190 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
