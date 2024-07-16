@@ -78,6 +78,8 @@ out/GPU.DotProduct/GPU_DotProduct.cu: .cache/GPU.DotProduct.fst.checked
 	./extract_cu.sh GPU.DotProduct
 out/GPU.Example1/GPU_Example1.cu: .cache/GPU.Example1.fst.checked
 	./extract_cu.sh GPU.Example1
+out/GPU.DotProduct2/GPU_DotProduct2.cu: .cache/GPU.DotProduct2.fst.checked
+	./extract_cu.sh GPU.DotProduct2
 
 %.o: %.cu
 	nvcc -o $@ -c $< -I $(KRML_HOME)/include/ -I $(KRML_HOME)/krmllib/dist/minimal/
@@ -85,3 +87,4 @@ out/GPU.Example1/GPU_Example1.cu: .cache/GPU.Example1.fst.checked
 extraction-targets: \
 	out/GPU.DotProduct/GPU_DotProduct.o \
 	out/GPU.Example1/GPU_Example1.o \
+	out/GPU.DotProduct2/GPU_DotProduct2.o \
