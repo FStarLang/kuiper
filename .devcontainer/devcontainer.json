@@ -1,6 +1,6 @@
 {
   "name": "Default devcontainer",
-  "image": "mtzguido/pulse-base-devcontainer:latest",
+  "image": "mtzguido/pulse-cuda-devcontainer:latest",
   "customizations": {
     "vscode": {
       "extensions": [
