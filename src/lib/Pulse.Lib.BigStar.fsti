@@ -37,6 +37,42 @@ val bigstar_congr
   (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
 : Lemma (bigstar #u1 m n f == bigstar #u1 m' n' f')
 
+
+val bigstar_extensionality
+  (#[exact (`0)] u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
+  (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
+  : stt_ghost unit emp_inames
+      (requires bigstar #u1 m n f)
+      (ensures fun _ -> bigstar #u1 m n g)
+
+```pulse
+ghost
+val fn bigstar_eta
+  ()
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m n (fun i -> f i)
+```
+
+```pulse
+ghost
+val fn bigstar_uneta
+  ()
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n (fun i -> f i)
+  ensures  bigstar #u1 m n f
+```
+
 ```pulse
 ghost
 val fn bigstar_rw_congr
@@ -84,15 +120,13 @@ val fn bigstar_zs_elim
   ensures  emp
 ```
 
-```pulse
-ghost
-val fn bigstar_zs_into
+val bigstar_zs_into
   (#[exact (`0)] u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < m} -> slprop))
-  requires emp
-  ensures  bigstar #u1 m m f
-```
+  : stt_ghost unit emp_inames
+      (requires emp)
+      (ensures  fun _ -> bigstar #u1 m m f)
 
 ```pulse
 ghost
@@ -104,15 +138,13 @@ val fn bigstar_emp_elim
   ensures  emp
 ```
 
-```pulse
-ghost
-val fn bigstar_emp_intro
+val bigstar_emp_intro
   (#[exact (`0)] u1 : int)
   (m : nat)
   (n : nat {m <= n})
-  requires emp
-  ensures  bigstar #u1 m n (fun _ -> emp)
-```
+  : stt_ghost unit emp_inames
+      (requires emp)
+      (ensures  fun _ -> bigstar #u1 m n (fun _ -> emp))
 
 // No meta args in pulse syntax, so F* val for now
 val bigstar_map
@@ -168,37 +200,3 @@ val bigstar_unzip
             emp_inames
             (bigstar #u3 m n (fun i -> f i ** g i))
             (fun _ -> bigstar #u1 m n f ** bigstar #u2 m n g)
-
-```pulse
-ghost
-val fn bigstar_extensionality
-  (m : nat)
-  (n : nat {m <= n})
-  (f: (i: nat{m <= i /\ i < n} -> slprop))
-  (g: (i: nat{m <= i /\ i < n} -> slprop))
-  (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
-  requires bigstar m n f
-  ensures  bigstar m n g
-```
-
-```pulse
-ghost
-val fn bigstar_eta
-  ()
-  (#m : nat)
-  (#n : nat {m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  requires bigstar m n f
-  ensures  bigstar m n (fun i -> f i)
-```
-
-```pulse
-ghost
-val fn bigstar_uneta
-  ()
-  (#m : nat)
-  (#n : nat {m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  requires bigstar m n (fun i -> f i)
-  ensures  bigstar m n f
-```

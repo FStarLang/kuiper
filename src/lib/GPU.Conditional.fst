@@ -91,8 +91,9 @@ ghost fn combine (b: bool) (p1 p2: slprop)
     if_elim_true b p2;
     if_intro_true b (p1 ** p2);
   } else {
-    if_elim_false b p1;
-    if_elim_false b p2;
+    (* Why the assymetry here? using `b` fails *)
+    if_elim_false false p1;
+    if_elim_false false p2;
     if_intro_false b (p1 ** p2);
   }
 }
@@ -172,7 +173,7 @@ ghost fn if_rewrite (#b: bool) (#p1 p2: slprop) (#e: (squash b -> squash (p1 == 
 
 // BIGSTAR
 
-// #push-options "--print_implicits --print_bound_var_types"
+#push-options "--print_implicits --print_bound_var_types"
 
 ```pulse
 ghost fn bigstar_if_elim
@@ -185,19 +186,32 @@ ghost fn bigstar_if_elim
   ensures  p x
 {
   bigstar_extract m n _ x;
-  bigstar_map #u1 #u1 #m #x #(fun (i: nat { m <= i /\ i < n }) -> _ i) #(fun _ -> emp)
-    (fun (i: nat { m <= i /\ i < x }) -> if_elim_false ((i <: nat) = x) (p (i <: nat)));
+  bigstar_map
+    #u1 #u1
+    #m #x
+    #(fun (i: nat { m <= i /\ i < x }) -> _ i)
+    #(fun _ -> emp)
+    (fun (i: nat { m <= i /\ i < x }) ->
+      if_elim_false ((i <: nat) = x) (p (i <: nat)));
+
   bigstar_emp_elim #_ #m #x;
-  bigstar_map #u1 #u1 #(x + 1) #n #(fun (i: nat { m <= i /\ i < n }) -> _ i) #(fun _ -> emp)
-    (fun (i: nat { (x + 1) <= i /\ i < n }) -> if_elim_false ((i <: nat) = x) (p (i <: nat)));
+  bigstar_map
+    #u1 #u1
+    #(x + 1) #n
+    #(fun (i: nat {(x+1) <= i /\ i < n }) -> _ i)
+    #(fun _ -> emp)
+    (fun (i: nat { (x + 1) <= i /\ i < n }) ->
+      if_elim_false ((i <: nat) = x) (p (i <: nat)));
+
   bigstar_emp_elim #_ #(x + 1) #n;
   if_elim_true true (p x)
 }
 ```
 
 ```pulse
-ghost fn bigstar_if_intro
-  (#[exact (`0)]u1 : int)
+ghost
+fn __bigstar_if_intro
+  (#u1 : int)
   (m: nat)
   (n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
@@ -206,12 +220,23 @@ ghost fn bigstar_if_intro
   ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #nat i x) (p i))
 {
   if_intro_true true (p x);
-  bigstar_emp_intro u1 m x;
+  bigstar_emp_intro #u1 m x;
   bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
     (fun (i: nat { m <= i /\ i < x }) -> if_intro_false ((i <: nat) = x) (p (i <: nat)));
-  bigstar_emp_intro u1 (x + 1) n;
+  bigstar_emp_intro #u1 (x + 1) n;
   bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
     (fun (i: nat { (x + 1) <= i /\ i < n }) -> if_intro_false ((i <: nat) = x) (p (i <: nat)));
   bigstar_compose #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #nat i x) (p i)) x;
 }
 ```
+
+let bigstar_if_intro
+  (#[exact (`0)]u1 : int)
+  (m: nat)
+  (n : nat {m <= n})
+  (x : nat { m <= x /\ x < n })
+  (p: nat -> slprop)
+  : stt_ghost unit emp_inames
+      (requires p x)
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #nat i x) (p i)))
+  = __bigstar_if_intro #u1 m n x p

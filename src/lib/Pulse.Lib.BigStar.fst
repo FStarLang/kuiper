@@ -80,6 +80,52 @@ let rec bigstar_congr (#u1: int) (m : nat) (n : nat { m <= n }) (m' : nat) (n' :
 
 ```pulse
 ghost
+fn __bigstar_extensionality
+    (#u1: int)
+    (m : nat)
+    (n : nat {m <= n})
+    (f: (i: nat{m <= i /\ i < n} -> slprop))
+    (g: (i: nat{m <= i /\ i < n} -> slprop))
+    (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m n g
+{
+  bigstar_congr #u1 m n m n f g (fun j -> h (m+j));
+  ();
+}
+```
+let bigstar_extensionality #u1 m n = __bigstar_extensionality #u1 m n
+
+```pulse
+ghost
+fn bigstar_eta
+  ()
+  (#u1: int)
+  (#m : nat) (#n : nat{m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m n (fun i -> f i)
+{
+  bigstar_extensionality #u1 m n f (fun i -> f i) (fun _ -> ());
+}
+```
+
+```pulse
+ghost
+fn bigstar_uneta
+  ()
+  (#u1: int)
+  (#m : nat) (#n : nat{m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n (fun i -> f i)
+  ensures  bigstar #u1 m n f
+{
+  bigstar_extensionality #u1 m n (fun i -> f i) f (fun _ -> ());
+}
+```
+
+```pulse
+ghost
 fn bigstar_rw_congr
    (#u1: int)
    (m : nat) (n : nat { m <= n })
@@ -96,49 +142,6 @@ fn bigstar_rw_congr
   bigstar_congr #u1 m n m n f f' h';
   rewrite bigstar #u1 m n f as bigstar #u1 m n f';
   ();
-}
-```
-
-```pulse
-ghost
-fn bigstar_extensionality
-    (#u1: int)
-    (m : nat)
-    (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> slprop))
-    (g: (i: nat{m <= i /\ i < n} -> slprop))
-    (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
-  requires bigstar #u1 m n f
-  ensures  bigstar #u1 m n g
-{
-  bigstar_congr #u1 m n m n f g (fun j -> h (m+j));
-  ();
-}
-```
-
-```pulse
-ghost
-fn bigstar_eta
-  () (#u1: int)
-  (#m : nat) (#n : nat{m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  requires bigstar #u1 m n f
-  ensures  bigstar #u1 m n (fun i -> f i)
-{
-  bigstar_extensionality #u1 m n f (fun i -> f i) (fun _ -> ());
-}
-```
-
-```pulse
-ghost
-fn bigstar_uneta
-  () (#u1: int)
-  (#m : nat) (#n : nat{m <= n})
-  (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  requires bigstar #u1 m n (fun i -> f i)
-  ensures  bigstar #u1 m n f
-{
-  bigstar_extensionality m n (fun i -> f i) f (fun _ -> ());
 }
 ```
 
@@ -206,8 +209,8 @@ ghost fn bigstar_zs_elim
 ```
 
 ```pulse
-ghost fn bigstar_zs_into
-  (#[exact (`0)] u1 : int)
+ghost fn __bigstar_zs_into
+  (#u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < m} -> slprop))
   requires emp
@@ -216,6 +219,7 @@ ghost fn bigstar_zs_into
   rewrite emp as bigstar #u1 m m f;
 }
 ```
+let bigstar_zs_into #u1 m f = __bigstar_zs_into #u1 m f
 
 ```pulse
 ghost fn rec bigstar_emp_elim
@@ -236,8 +240,9 @@ ghost fn rec bigstar_emp_elim
 ```
 
 ```pulse
-ghost fn rec bigstar_emp_intro
-  (#[exact (`0)] u1 : int)
+ghost
+fn rec __bigstar_emp_intro
+  (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
   requires emp
@@ -247,11 +252,14 @@ ghost fn rec bigstar_emp_intro
   if (m = n) {
     rewrite emp as bigstar #u1 m n (fun _ -> emp);
   } else {
-    bigstar_emp_intro u1 (m+1) n;
+    __bigstar_emp_intro #u1 (m+1) n;
     bigstar_push #u1 m n (fun _ -> emp);
   }
 }
 ```
+let bigstar_emp_intro #u1 m n = __bigstar_emp_intro #u1 m n
+
+
 
 // As we work with bigstar, we need to make sure the domain of f,g remains
 // the same, since it appears as an argument to bigstar. So, this function
@@ -338,7 +346,7 @@ ghost fn rec bigstar_commute
       #(fun (i: nat{m0 <= i /\ i < n0}) -> bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> f i j)) #_
       (fun (i: nat{m0 <= i /\ i < n0}) -> bigstar_zs_elim #_ #_ #_);
     bigstar_emp_elim #u1 #m0 #n0;
-    bigstar_zs_into u2 m1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j));
+    bigstar_zs_into #u2 m1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j));
     rewrite (bigstar #u2 m1 m1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j)))
         as  bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j));
   } else {

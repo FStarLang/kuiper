@@ -25,7 +25,7 @@ fn mk_mbarrier_proof
   requires bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from))
   ensures  bigstar 0 n (fun (to : nat { 0 <= to /\ to < n }) -> bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> p it from to))
 {
-  bigstar_map #0 #0 #0 #n #(fun (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from)) #_
+  bigstar_map #0 #0 #0 #n #(fun (from : nat { 0 <= from /\ from < n }) -> bigstar #0 0 n (p it from)) #_
     (fun (from : nat { 0 <= from /\ from < n }) -> bigstar_eta _);
   bigstar_commute #0 #0 0 n 0 n (fun (from : nat { 0 <= from /\ from < n }) -> fun (to : nat { 0 <= to /\ to < n }) -> p it from to);
 }

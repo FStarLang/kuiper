@@ -5,11 +5,14 @@ open Pulse.Lib.Array
 open Pulse.Lib.Pervasives
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
+module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 open Pulse.Lib.BigStar
 open GPU
+open FStar.SizeT
 
-let size : nat = 1024
+let m_size : SZ.t = 1024sz
+let size : nat = SZ.v m_size
 
 let mul (s1 s2: erased (FStar.Seq.seq U64.t)) (#_: squash (FStar.Seq.length s1 == FStar.Seq.length s2)): erased (FStar.Seq.seq U64.t)
   = FStar.Seq.init_ghost (FStar.Seq.length s1) (fun i -> U64.mul_mod (FStar.Seq.index s1 i) (FStar.Seq.index s2 i))
@@ -17,7 +20,13 @@ let mul (s1 s2: erased (FStar.Seq.seq U64.t)) (#_: squash (FStar.Seq.length s1 =
 let rec log2 (n: nat{n <> 0}): (r:nat{r < n}) = if n = 1 then 0 else 1 + log2 (n / 2)
 let rec pow_log_lemma (n: nat): Lemma (log2 (pow2 n) = n) = if n = 0 then () else pow_log_lemma (n - 1)
 
+let spow2 (s : SZ.t{s < 32}) : r:SZ.t{SZ.v r == pow2 (SZ.v s)} =
+  let r = SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s)) in
+  assume (SZ.v r == pow2 (SZ.v s)); // prove this from UInt library
+  r
+
 let div_pow2 (i tid: nat): bool = tid % pow2 i = 0
+let sdiv_pow2 (i:SZ.t{i < 32}) (tid: SZ.t): bool = SZ.rem tid (spow2 i) = 0sz
 
 let rec div_pow2_lemma (i j tid: nat):
   Lemma
@@ -28,7 +37,8 @@ let rec div_pow2_lemma (i j tid: nat):
       FStar.Math.Lemmas.mod_mult_exact tid (pow2 (j - 1)) 2
   )
 
-let min (a b: nat): nat = if a < b then a else b
+let min  (a b: nat)  : nat  = if a < b then a else b
+let smin (a b: SZ.t ): SZ.t = if a <^ b then a else b
 
 // Pure SUM
 
@@ -61,7 +71,9 @@ let gpu_pts_to_slice_sum
 // Barrier
 
 let barrier_matrix (nth: nat) (r : gpu_array U64.t nth) (v: erased (FStar.Seq.seq U64.t)) (it from to: nat): slprop =
-  if_ (from = to + pow2 it) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
+  if_ (from = to + pow2 it)
+      (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+           (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
 
 // #push-options "--debug SMTFail --split_queries always"
 // #push-options "--print_implicits"
@@ -149,111 +161,123 @@ ghost fn fold_barrier_matrix_false
 
 ```pulse
 fn mk_barrier_pre
-  (nth : nat)
+  (nth : SZ.t)
   (r : gpu_array U64.t nth)
   (b: erased (barrier nth))
-  (v: erased (FStar.Seq.seq U64.t))
-  (#_: squash (FStar.Seq.length v == nth))
-  (tid : nat{tid < nth})
-  (it: nat)
+  (vv: erased (FStar.Seq.seq U64.t))
+  (#_: squash (FStar.Seq.length vv == nth))
+  (tid : SZ.t{SZ.v tid < nth})
+  (it: SZ.t{it < 31})
   requires if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
-      (gpu_pts_to_slice_sum #nth r tid (min (tid + pow2 it) nth) v)
-  ensures bigstar 0 nth (barrier_matrix nth r v it tid)
+      (gpu_pts_to_slice_sum #nth r tid (min (tid + pow2 it) nth) vv)
+  ensures bigstar 0 nth (barrier_matrix nth r vv it tid)
 {
-  if (tid >= pow2 it) {
-    bigstar_if_intro 0 0 nth (tid - pow2 it) (fun _ -> if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
-    bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> _ i) (fold_barrier_matrix_true nth r v it tid);
+  open FStar.SizeT;
+  if (tid >=^ spow2 it) {
+    bigstar_if_intro 0 nth (tid - pow2 it) (fun _ -> if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
+    bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> _ i) (fold_barrier_matrix_true nth r vv it tid);
   } else {
-    FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
-    FStar.Math.Lemmas.modulo_lemma 0 (pow2 (it + 1));
+    FStar.Math.Lemmas.modulo_lemma tid (spow2 it);
+    FStar.Math.Lemmas.modulo_lemma 0 (spow2 (it +^ 1sz));
     // assert (pure (tid <> 0 ==> not (div_pow2 it tid)));
     // assert (pure (tid = 0 ==> (div_pow2 (it + 1) tid)));
     if_elim_false _ _;
 
-    bigstar_emp_intro 0 0 nth;
-    bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> emp) (fold_barrier_matrix_false nth r v it tid);
+    bigstar_emp_intro 0 nth;
+    bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> emp) (fold_barrier_matrix_false nth r vv it tid);
   }
 }
 ```
 
 ```pulse
 fn iteration
-  (nth : nat)
+  (nth : SZ.t)
   (r : gpu_array U64.t nth)
   (b: erased (barrier nth))
-  (v: erased (FStar.Seq.seq U64.t))
-  (#_: squash (FStar.Seq.length v == nth))
-  (tid : nat{tid < nth})
-  (it: nat)
+  (vv: erased (FStar.Seq.seq U64.t))
+  (#_: squash (FStar.Seq.length vv == nth))
+  (tid : SZ.t{SZ.v tid < nth})
+  (it: SZ.t{it < 31})
   requires gpu
-    ** mbarrier_tok (barrier_matrix nth r v) b it tid
-    ** if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v)
+    ** mbarrier_tok (barrier_matrix nth r vv) b it tid
+    ** if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv)
   ensures gpu
-    ** mbarrier_tok (barrier_matrix nth r v) b (it+1) tid
-    ** if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) v)
+    ** mbarrier_tok (barrier_matrix nth r vv) b (it+1) tid
+    ** if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv)
 {
-  assert (pure (FStar.Seq.length v = nth));
+  open FStar.SizeT;
+  assume_ (pure (forall (x:nat). FStar.SizeT.fits x)); // CHEATING overflow
+  assert (pure (FStar.Seq.length vv = nth));
 
-  case_split (div_pow2 (it + 1) tid) (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
+  case_split (div_pow2 (it + 1) tid) (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
   if_flatten #(div_pow2 (it + 1) tid);
   if_flatten #(not (div_pow2 (it + 1) tid));
-
+  
   div_pow2_lemma it (it + 1) tid;
   rewrite (if_ (div_pow2 (it + 1) tid && div_pow2 it tid)
-            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v))
+            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv))
       as (if_ (div_pow2 (it + 1) tid)
-            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
+            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
 
-  mk_barrier_pre nth r b v tid it;
-  mbarrier_wait #nth #(barrier_matrix nth r v) b #it #tid;
+  mk_barrier_pre nth r b vv tid it;
+  mbarrier_wait #(SZ.v nth) #(barrier_matrix nth r vv) b #(SZ.v it) #(SZ.v tid);
 
-  bigstar_map #_ #_ #0 #nth (fun (from: nat { 0 <= from /\ from < nth }) -> unfold_barrier_matrix nth r v it from tid);
+  bigstar_map #_ #_ #0 #nth (fun (from: nat { 0 <= from /\ from < nth }) -> unfold_barrier_matrix nth r vv it from tid);
 
-  // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v) _;
+  // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 
-  let middle = min (tid + pow2 it) nth;
-  let end_ = min (tid + 2 * pow2 it) nth;
+  let middle : SZ.t = smin (tid +^ spow2 it) nth;
+  let end_   : SZ.t = smin (tid +^ 2sz *^ spow2 it) nth;
 
-  if (tid + pow2 it < nth) {
-    bigstar_if_elim #_ #0 #nth (tid + pow2 it) (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v));
+  if (tid +^ spow2 it <^ nth) {
+    bigstar_if_elim #_ #0 #nth (tid + pow2 it) (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
+
+    let b = sdiv_pow2 (it +^ 1sz) tid;
+    
+    assume_ (pure (b <==> (div_pow2 (SZ.v it + 1) (SZ.v tid))));
+    rewrite each (div_pow2 (SZ.v it + 1) (SZ.v tid)) as b;
 
     div_pow2_lemma_2 it tid;
-    combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r (tid + pow2 it) (min (tid + pow2 it + pow2 it) nth) v) _;
-
-    if (div_pow2 (it + 1) tid) {
+    combine
+      b
+      (gpu_pts_to_slice_sum r (tid + pow2 it) (min (tid + pow2 it + pow2 it) nth) vv)
+      _;
+      
+    if b {
+      assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
       if_elim_true _ _;
     
-      unfold (gpu_pts_to_slice_sum r tid middle v);
+      unfold (gpu_pts_to_slice_sum r tid middle vv);
       if_elim_true _ _;
       unfold gpu_pts_to_slice_sum_inner;
-      unfold (gpu_pts_to_slice_sum r middle end_ v);
+      unfold (gpu_pts_to_slice_sum r middle end_ vv);
       if_elim_true _ _;
       unfold gpu_pts_to_slice_sum_inner;
 
-      let s1 = gpu_array_read #U64.t #nth #tid #middle r tid;
-      // assert (pure (s1 == sum_seq v tid middle));
-      let s2 = gpu_array_read #U64.t #nth #middle #end_ r middle;
-      // assert (pure (s2 == sum_seq v middle end_));
+      let s1 = gpu_array_read #U64.t #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid;
+      // assert (pure (s1 == sum_seq vv tid middle));
+      let s2 = gpu_array_read #U64.t #(SZ.v nth) #(SZ.v middle) #(SZ.v end_) r middle;
+      // assert (pure (s2 == sum_seq vv middle end_));
       let s = U64.add_mod s1 s2;
-      sum_seq_lemma v tid middle end_;
-      // assert (pure ( s == sum_seq v tid end_ ));
-      gpu_array_write #U64.t #nth #tid #middle r tid s;
+      sum_seq_lemma vv tid middle end_;
+      // assert (pure ( s == sum_seq vv tid end_ ));
+      gpu_array_write #U64.t #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid s;
 
-      gpu_slice_concat #U64.t #nth r 1.0R tid middle end_;
+      gpu_slice_concat #U64.t #(SZ.v nth) r tid middle end_;
       with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
       // assert (pure (FStar.Seq.index seq 0 == s));
-      fold (gpu_pts_to_slice_sum_inner #nth r tid end_ v seq);
-      if_intro_true (tid < end_ && end_ <= nth) (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ v s);
-      fold (gpu_pts_to_slice_sum r tid end_ v);
-      if_intro_true (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ v);
+      fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
+      if_intro_true (tid < end_ && end_ <= nth) (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
+      fold (gpu_pts_to_slice_sum r tid end_ vv);
+      if_intro_true (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ vv);
     } else {
       if_elim_false _ _;
-      if_intro_false (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ v);
+      if_intro_false (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ vv);
     }
   } else {
     bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
       (fun (from: nat{0 <= from /\ from < nth}) ->
-        if_elim_false (op_Equality #nat from (tid + pow2 it)) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v)));
+        if_elim_false (op_Equality #nat from (tid + pow2 it)) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv)));
     bigstar_emp_elim #_;
   }
 }
@@ -281,34 +305,36 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (FStar.S
 
 ```pulse
 fn kernel
-  (nth : nat)
+  (nth : SZ.t)
   (ga1 ga2 : gpu_array U64.t nth)
   (r : gpu_array U64.t nth)
   (#s1 #s2: erased (FStar.Seq.seq U64.t))
   (#_: squash ( FStar.Seq.length s1 == nth /\ FStar.Seq.length s2 == nth ))
   (b: erased (barrier nth))
-  (tid : nat{tid < nth})
-  requires gpu ** kpre  nth ga1 ga2 r #s1 #s2 b tid
-  ensures  gpu ** kpost nth ga1 ga2 r #s1 #s2 b tid
+  (etid : erased nat{etid < SZ.v nth})
+  requires gpu ** thread_id etid ** kpre  nth ga1 ga2 r #s1 #s2 b etid
+  ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b etid
 {
+  let tid : U32.t = block_idx_x ();
+  let tid : SZ.t = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r #s1 #s2 b tid);
 
-  (**)unfold (gpu_pts_to_array #U64.t #nth ga1 #(1.0R /. Real.of_int nth) s1);
-  let v1 = gpu_array_read #U64.t #nth #0 #nth ga1 tid #s1;
+  (**)unfold (gpu_pts_to_array #U64.t #(SZ.v nth) ga1 #(1.0R /. Real.of_int nth) s1);
+  let v1 = gpu_array_read #U64.t #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
   (**)fold (gpu_pts_to_array #U64.t #nth ga1 #(1.0R /. Real.of_int nth) s1);
 
   (**)unfold (gpu_pts_to_array #U64.t #nth ga2 #(1.0R /. Real.of_int nth) s2);
-  let v2 = gpu_array_read #U64.t #nth #0 #nth ga2 tid #s2;
+  let v2 = gpu_array_read #U64.t #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
   (**)fold (gpu_pts_to_array #U64.t #nth ga2 #(1.0R /. Real.of_int nth) s2);
   
   let vm = U64.mul_mod v1 v2;
   let dot_v = mul s1 s2;
   
   (**)unfold (gpu_pts_to_array1 r tid);
-  gpu_array_write #U64.t #nth #tid #(tid+1) r tid vm;
+  gpu_array_write #U64.t #(SZ.v nth) #(SZ.v tid) #(hide (SZ.v tid+1)) r tid vm;
   
   (* Reduction *)
-  let mut n = 0 <: nat;
+  let mut n = 0sz;
 
   (**)with s. assert (gpu_pts_to_array_slice r tid (tid+1) s);
   (**)fold (gpu_pts_to_slice_sum_inner #nth r tid (tid+1) dot_v s);
@@ -316,18 +342,22 @@ fn kernel
   (**)fold (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
   (**)if_intro_true (div_pow2 0 tid) (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
 
-  while (let it = !n; (pow2 it < nth))
+  while (let it = !n; (spow2 it <^ nth))
     invariant c.
-    exists* (it:nat).
+    exists* (it:SZ.t).
       gpu **
       pts_to n it **
       mbarrier_tok #nth (barrier_matrix nth r dot_v) b it tid **
-      if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) dot_v) **
-      pure (c == (pow2 it < nth))
+      if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) dot_v) **
+      pure (c == (pow2 it < nth) /\ SZ.v it < 31)
   {
     let it = !n <: nat;
     iteration nth r b dot_v tid it;
-    n := it + 1;
+    if (it = 30sz) {
+      admit(); // panic!
+    } else {
+      n := it +^ 1sz;
+    }
   };
   
   (**)let it = !n;
@@ -337,9 +367,9 @@ fn kernel
   // rewrite (if_ (div_pow2 (reveal it) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (reveal it)) nth) dot_v))
   //     as  (if_ (tid = 0) (gpu_pts_to_slice_sum r tid nth dot_v));
 
-  if (tid = 0) {
+  if (tid = 0sz) {
     (**)if_elim_true _ _;
-    (**)if_intro_true (tid = 0) (gpu_pts_to_slice_sum r 0 nth dot_v);
+    (**)if_intro_true (tid = 0sz) (gpu_pts_to_slice_sum r 0 nth dot_v);
     (**)fold (kpost nth ga1 ga2 r #s1 #s2 b tid);
   } else {
     (**)fold (kpost nth ga1 ga2 r #s1 #s2 b tid);
@@ -389,62 +419,72 @@ fn main
 
   let mut i = 0sz;
 
-  let ga1 = gpu_array_alloc #U64.t size;
-  let ga2 = gpu_array_alloc #U64.t size;
+  let ga1 = gpu_array_alloc #U64.t m_size;
+  let ga2 = gpu_array_alloc #U64.t m_size;
 
   GPU.Array.gpu_memcpy_host_to_device a1 ga1;
   GPU.Array.gpu_memcpy_host_to_device a2 ga2;
   
-  let gr = gpu_array_alloc #U64.t size;
+  let gr = gpu_array_alloc #U64.t m_size;
 
   // Slicing the arrays
   (**)share_array ga1;
   (**)share_array ga2;
   (**)gpu_array_slice_1_underspec gr;
 
-  let b = mk_mbarrier size (barrier_matrix size gr (mul v1 v2));
+  let b = mk_mbarrier m_size (barrier_matrix size gr (mul v1 v2));
 
   // Boring combination of resources
-  (**)bigstar_zip 0 size (shared_array ga1) (shared_array ga2);
-  (**)bigstar_zip 0 size _ (gpu_pts_to_array1 gr);
-  (**)bigstar_zip 0 size _ (mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0);
+  (**)bigstar_zip 0 m_size (shared_array ga1) (shared_array ga2);
+  (**)bigstar_zip 0 m_size _ (gpu_pts_to_array1 gr);
+  (**)bigstar_zip 0 m_size _ (mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0);
   (**)rewrite
-    (bigstar 0 size
-      (fun i -> ((shared_array #size ga1 #v1 i **
-                 shared_array #size ga2 #v2 i) **
+    (bigstar 0 m_size
+      (fun i -> ((shared_array #m_size ga1 #v1 i **
+                 shared_array #m_size ga2 #v2 i) **
                  gpu_pts_to_array1 gr i) **
                  mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0 i))
   as
-    (bigstar 0 size (fun i -> kpre size ga1 ga2 gr #v1 #v2 b i));
+    (bigstar 0 m_size (fun i -> kpre size ga1 ga2 gr #v1 #v2 b i));
   (**)bigstar_uneta ();
 
-  launch_kernel_n size #(kpre size ga1 ga2 gr #v1 #v2 b) #(kpost size ga1 ga2 gr #v1 #v2 b) (kernel size ga1 ga2 gr #v1 #v2 b);
+  rewrite
+    bigstar 0 m_size
+      (kpre size ga1 ga2 gr #v1 #v2 b)
+  as
+    bigstar 0 (U32.v (sizet_to_u32 m_size))
+      (kpre size ga1 ga2 gr #v1 #v2 b);
+
+  launch_kernel_n (sizet_to_u32 m_size)
+    #(kpre size ga1 ga2 gr #v1 #v2 b)
+    #(kpost size ga1 ga2 gr #v1 #v2 b)
+    (kernel m_size ga1 ga2 gr #v1 #v2 b);
 
   (**)bigstar_eta ();
   // TODO:
   (**)drop_
-        (bigstar 0 size (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
+        (bigstar 0 (U32.v (sizet_to_u32 m_size)) (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
   let it = 10;
   (**)assume_
-        (bigstar 0 size
+        (bigstar 0 m_size
           (fun i -> ((gpu_pts_to_array #U64.t #size ga1 #(1.0R /. Real.of_int size) v1 **
                     gpu_pts_to_array #U64.t #size ga2 #(1.0R /. Real.of_int size) v2) **
                     if_ (op_Equality #nat i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2))) **
                     mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b it i
         ));
   
-  (**)bigstar_unzip 0 size _ _;
-  (**)bigstar_unzip 0 size _ _;
-  (**)bigstar_unzip 0 size _ _;
+  (**)bigstar_unzip 0 m_size _ _;
+  (**)bigstar_unzip 0 m_size _ _;
+  (**)bigstar_unzip 0 m_size _ _;
   
-  (**)bigstar_uneta () #0 #size #(shared_array #size ga1 #v1);
+  (**)bigstar_uneta () #0 #0 #m_size #(shared_array #size ga1 #v1);
   gather_array ga1;
-  (**)bigstar_uneta () #0 #size #(shared_array #size ga2 #v2);
+  (**)bigstar_uneta () #0 #0 #m_size #(shared_array #size ga2 #v2);
   gather_array ga2;
 
-  drop_mbarrier #size #(barrier_matrix size gr (mul v1 v2)) #b #it;
+  drop_mbarrier #m_size #(barrier_matrix size gr (mul v1 v2)) #b #it;
 
-  bigstar_if_elim #_ #0 #size 0 (fun _ -> gpu_pts_to_slice_sum #size gr 0 size (mul v1 v2));
+  bigstar_if_elim #_ #0 #m_size 0 (fun _ -> gpu_pts_to_slice_sum #size gr 0 size (mul v1 v2));
 
   unfold gpu_pts_to_slice_sum;
   if_elim_true _ _;
