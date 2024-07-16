@@ -14,6 +14,10 @@ let rec bigstar
 : Tot slprop (decreases n - m) =
   if m = n then emp else f m ** bigstar (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
 
+let bigstar_defn (#uid : int) (m : nat) (n : nat {m <= n}) (f : (i:nat { m <= i /\ i < n } -> slprop)) :
+  Lemma (ensures bigstar #uid m n f == (if m = n then emp else f m ** bigstar (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
+  = ()
+
 ```pulse
 ghost fn bigstar_pop
   (#u1 : int)
@@ -53,19 +57,42 @@ let star_aci () :
   introduce forall (a : slprop). a ** emp == a with elim_slprop_equiv (slprop_equiv_unit a);
   introduce forall (a b c : slprop). a ** (b ** c) == (a ** b) ** c with elim_slprop_equiv (slprop_equiv_assoc a b c)
 
-// TODO: fix the following 3 lemmas
+let rec bigstar_feq (#u1 #u2: int) (m : nat) (n : nat {m <= n}) (f: (i: nat{m <= i /\ i < n} -> slprop)):
+  Lemma (ensures bigstar #u1 m n f == bigstar #u2 m n (fun (i: nat { m <= i /\ i < n }) -> f i)) (decreases n - m) =
+  star_aci ();
+  if m = n then () else (
+    bigstar_feq #u1 #u2 (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i);
+    assert (f m ** (bigstar (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)) ==
+            ((fun (i: nat { m <= i /\ i < n }) -> f i)) m ** (bigstar (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> (fun (i: nat { m <= i /\ i < n }) -> f i) i)));
+    bigstar_defn #u1 m n f;
+    bigstar_defn #u2 m n (fun (i: nat { m <= i /\ i < n }) -> f i);
+    assert (bigstar #u1 m n f == bigstar #u2 m n (fun (i: nat { m <= i /\ i < n }) -> f i))
+  )
 
-let rec bigstar_split (#u1: int) (m : nat) (n : nat {m <= n}) f (i : nat { m <= i /\ i <= n }) :
+let rec bigstar_split (#u1: int) (m : nat) (n : nat {m <= n}) (f: (i: nat{m <= i /\ i < n} -> slprop)) (i : nat { m <= i /\ i <= n }) :
     Lemma (ensures bigstar #u1 m n f == bigstar #u1 m i (fun (j: nat { m <= j /\ j < i }) -> f j) ** bigstar #u1 i n (fun (j: nat { i <= j /\ j < n }) -> f j)) (decreases n - m) =
   star_aci ();
-  if m = i then admit() else (bigstar_split #u1 (m+1) n (fun (j: nat { (m + 1) <= j /\ j < n }) -> f j) i; admit())
+  if m = i then bigstar_feq #u1 #u1 i n f else (
+    bigstar_split #u1 (m+1) n (fun (j: nat { (m + 1) <= j /\ j < n }) -> f j) i;
+    bigstar_defn #u1 m n f;
+    bigstar_defn #u1 m i (fun (j: nat { m <= j /\ j < i }) -> f j)
+  )
 
 let rec bigstar_star (#u1: int) (m : nat) (n : nat {m <= n}) (f g h : (i:nat { m <= i /\ i < n }) -> slprop)
     (heq : (i:nat { m <= i /\ i < n }) -> squash (f i ** g i == h i))
 : Lemma (ensures bigstar #u1 m n f ** bigstar #u1 m n g == bigstar #u1 m n h)
         (decreases n - m)
 = star_aci ();
-  if m = n then admit() else (bigstar_star #u1 (m+1) n f g h heq; heq m; admit())
+  if m = n then () else (
+    bigstar_star #u1 (m+1) n
+      (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
+      (fun (i: nat { (m+1) <= i /\ i < n }) -> g i)
+      (fun (i: nat { (m+1) <= i /\ i < n }) -> h i) heq;
+    heq m;
+    bigstar_defn #u1 m n f;
+    bigstar_defn #u1 m n g;
+    bigstar_defn #u1 m n h
+  )
 
 let rec bigstar_congr (#u1: int) (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
     (f : (i:nat { m <= i /\ i < n }) -> slprop) (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
@@ -73,9 +100,13 @@ let rec bigstar_congr (#u1: int) (m : nat) (n : nat { m <= n }) (m' : nat) (n' :
 : Lemma (ensures bigstar #u1 m n f == bigstar #u1 m' n' f')
         (decreases n-m)
 = if m = n then () else begin
-    bigstar_congr #u1 (m+1) n (m'+1) n' f f' (fun i -> h (i+1));
+    bigstar_congr #u1 (m+1) n (m'+1) n'
+      (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
+      (fun (i: nat { (m'+1) <= i /\ i < n' }) -> f' i)
+      (fun i -> h (i+1));
     h 0;
-    admit()
+    bigstar_defn #u1 m n f;
+    bigstar_defn #u1 m' n' f'
   end
 
 ```pulse
