@@ -59,7 +59,7 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 	@touch -c $@
 
 $(PLUGIN).cmxs:
-	make -C extraction build
+	+$(MAKE) -C extraction build
 
 .PHONY: echo-fstar
 echo-fstar:

@@ -8,14 +8,14 @@ all: verify-all
 
 .PHONY: verify-all
 verify-all: pulse
-	$(MAKE) -f verify.mk all
+	+$(MAKE) -f verify.mk all
 
 .PHONY: echo-fstar
 echo-fstar: pulse
-	$(MAKE) -f verify.mk $@
+	+$(MAKE) -f verify.mk $@
 .PHONY: echo-krml
 echo-krml: pulse
-	$(MAKE) -f verify.mk $@
+	+$(MAKE) -f verify.mk $@
 
 pulse:
 	$(error pulse directory not found: Run `make update-pulse` to fetch and compile Pulse)
@@ -25,7 +25,7 @@ update-pulse:
 	./scripts/update-pulse.sh "${PULSE_REPO}" "${PULSE_HASH}"
 	@# All we do is build the ocaml plugin. We check the library
 	@# files incrementally, on demand.
-	$(MAKE) -C pulse/src/ build-ocaml
+	+$(MAKE) -C pulse/src/ build-ocaml
 
 .PHONY: save-pulse
 save-pulse:
@@ -34,11 +34,11 @@ save-pulse:
 .PHONY: pull-pulse
 pull-pulse: pulse
 	git -C pulse pull
-	$(MAKE) save-pulse
+	+$(MAKE) save-pulse
 
 .PHONY: ci
 ci:
-	$(MAKE) update-pulse
-	$(MAKE) all
+	+$(MAKE) update-pulse
+	+$(MAKE) all
 
 .SUFFIXES:
