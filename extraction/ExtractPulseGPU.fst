@@ -62,6 +62,13 @@ let escape_hatch (s:string) : expr =
   EComment ("*/ ( /*", EConstant (UInt32, "0"), "*/ , " ^ s ^ ") /* ")
 
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
+let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
+let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
+
+let get_sizet (e : mlexpr) : mlexpr =
+  match e.expr with
+  | MLE_Record (_, _, [(_, sz)]) -> sz
+  | _ -> raise (Failed "Expected a single-field record for the size")
 
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -81,7 +88,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p } , [u1;u2;u3;u4;u5])
     when string_of_mlpath p = "GPU.MatrixBarrier.mbarrier_wait" ->
     BU.print1_warning "GGGG %s\n" (mlexpr_to_string e);
-    EApp (EQualified ([], "PULSE_GPU_MATRIX_BARRIER"), [ EUnit ])
+    EApp (EQualified ([], "__syncthreads"), [ EUnit ])
 
   | MLE_App({expr=MLE_App({expr=MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e ])}, [_perm])}, [_v])
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e; _perm; _v ])
@@ -94,23 +101,19 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Array.gpu_memcpy_device_to_host"->
-    let sz : mlexpr =
-      match sz.expr with
-      | MLE_Record (_, _, [(_, sz)]) -> sz
-      | _ -> raise (Failed "Expected a single-field record for the size")
-    in
+    let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
-    EApp (EQualified ([], "PULSE_GPU_MEMCPY_D2H"), [ cb a; cb ga; bytesize ])
+    EApp (EQualified ([], "CUDA_CHECK"), [
+      EApp (EQualified ([], "cudaMemcpy"), [ cb ga; cb a; bytesize; cudaMemcpyDeviceToHost ])
+    ])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Array.gpu_memcpy_host_to_device"->
-    let sz : mlexpr =
-      match sz.expr with
-      | MLE_Record (_, _, [(_, sz)]) -> sz
-      | _ -> raise (Failed "Expected a single-field record for the size")
-    in
+    let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
-    EApp (EQualified ([], "PULSE_GPU_MEMCPY_H2D"), [ cb a; cb ga; bytesize ])
+    EApp (EQualified ([], "CUDA_CHECK"), [
+      EApp (EQualified ([], "cudaMemcpy"), [ cb a; cb ga; bytesize; cudaMemcpyHostToDevice ])
+    ])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: len :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_alloc" ->
@@ -125,7 +128,9 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: v :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_free" ->
-    EApp (EQualified ([], "PULSE_GPU_FREE"), [cb r])
+    EApp (EQualified ([], "CUDA_CHECK"), [
+      EApp (EQualified ([], "cudaFree"), [cb r])
+    ])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: f :: idx :: s :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_read" ->

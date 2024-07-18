@@ -67,6 +67,19 @@ let (escape_hatch : Prims.string -> FStar_Extraction_Krml.expr) =
         (Prims.strcat "*/ , " (Prims.strcat s ") /* ")))
 let (zero_for_deref : FStar_Extraction_Krml.expr) =
   FStar_Extraction_Krml.EQualified (["C"], "_zero_for_deref")
+let (cudaMemcpyDeviceToHost : FStar_Extraction_Krml.expr) =
+  FStar_Extraction_Krml.EQualified ([], "cudaMemcpyDeviceToHost")
+let (cudaMemcpyHostToDevice : FStar_Extraction_Krml.expr) =
+  FStar_Extraction_Krml.EQualified ([], "cudaMemcpyHostToDevice")
+let (get_sizet :
+  FStar_Extraction_ML_Syntax.mlexpr -> FStar_Extraction_ML_Syntax.mlexpr) =
+  fun e ->
+    match e.FStar_Extraction_ML_Syntax.expr with
+    | FStar_Extraction_ML_Syntax.MLE_Record (uu___, uu___1, (uu___2, sz)::[])
+        -> sz
+    | uu___ ->
+        FStar_Compiler_Effect.raise
+          (Failed "Expected a single-field record for the size")
 let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
   fun env ->
     fun e ->
@@ -118,8 +131,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            ((let uu___4 = FStar_Extraction_ML_Syntax.mlexpr_to_string e1 in
              FStar_Compiler_Util.print1_warning "GGGG %s\n" uu___4);
             FStar_Extraction_Krml.EApp
-              ((FStar_Extraction_Krml.EQualified
-                  ([], "PULSE_GPU_MATRIX_BARRIER")),
+              ((FStar_Extraction_Krml.EQualified ([], "__syncthreads")),
                 [FStar_Extraction_Krml.EUnit]))
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -205,13 +217,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Array.gpu_memcpy_device_to_host" ->
-           let sz1 =
-             match sz.FStar_Extraction_ML_Syntax.expr with
-             | FStar_Extraction_ML_Syntax.MLE_Record
-                 (uu___5, uu___6, (uu___7, sz2)::[]) -> sz2
-             | uu___5 ->
-                 FStar_Compiler_Effect.raise
-                   (Failed "Expected a single-field record for the size") in
+           let sz1 = get_sizet sz in
            let bytesize =
              let uu___5 =
                let uu___6 =
@@ -224,11 +230,19 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
              FStar_Extraction_Krml.EApp uu___5 in
            let uu___5 =
              let uu___6 =
-               let uu___7 = cb a in
-               let uu___8 = let uu___9 = cb ga in [uu___9; bytesize] in
-               uu___7 :: uu___8 in
-             ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_MEMCPY_D2H")),
-               uu___6) in
+               let uu___7 =
+                 let uu___8 =
+                   let uu___9 =
+                     let uu___10 = cb ga in
+                     let uu___11 =
+                       let uu___12 = cb a in
+                       [uu___12; bytesize; cudaMemcpyDeviceToHost] in
+                     uu___10 :: uu___11 in
+                   ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
+                     uu___9) in
+                 FStar_Extraction_Krml.EApp uu___8 in
+               [uu___7] in
+             ((FStar_Extraction_Krml.EQualified ([], "CUDA_CHECK")), uu___6) in
            FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -246,13 +260,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Array.gpu_memcpy_host_to_device" ->
-           let sz1 =
-             match sz.FStar_Extraction_ML_Syntax.expr with
-             | FStar_Extraction_ML_Syntax.MLE_Record
-                 (uu___5, uu___6, (uu___7, sz2)::[]) -> sz2
-             | uu___5 ->
-                 FStar_Compiler_Effect.raise
-                   (Failed "Expected a single-field record for the size") in
+           let sz1 = get_sizet sz in
            let bytesize =
              let uu___5 =
                let uu___6 =
@@ -265,11 +273,19 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
              FStar_Extraction_Krml.EApp uu___5 in
            let uu___5 =
              let uu___6 =
-               let uu___7 = cb a in
-               let uu___8 = let uu___9 = cb ga in [uu___9; bytesize] in
-               uu___7 :: uu___8 in
-             ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_MEMCPY_H2D")),
-               uu___6) in
+               let uu___7 =
+                 let uu___8 =
+                   let uu___9 =
+                     let uu___10 = cb a in
+                     let uu___11 =
+                       let uu___12 = cb ga in
+                       [uu___12; bytesize; cudaMemcpyHostToDevice] in
+                     uu___10 :: uu___11 in
+                   ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
+                     uu___9) in
+                 FStar_Extraction_Krml.EApp uu___8 in
+               [uu___7] in
+             ((FStar_Extraction_Krml.EQualified ([], "CUDA_CHECK")), uu___6) in
            FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -329,9 +345,15 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Array.gpu_array_free" ->
            let uu___5 =
-             let uu___6 = let uu___7 = cb r in [uu___7] in
-             ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_FREE")),
-               uu___6) in
+             let uu___6 =
+               let uu___7 =
+                 let uu___8 =
+                   let uu___9 = let uu___10 = cb r in [uu___10] in
+                   ((FStar_Extraction_Krml.EQualified ([], "cudaFree")),
+                     uu___9) in
+                 FStar_Extraction_Krml.EApp uu___8 in
+               [uu___7] in
+             ((FStar_Extraction_Krml.EQualified ([], "CUDA_CHECK")), uu___6) in
            FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -477,7 +499,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___330 : unit) =
+let (uu___322 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
