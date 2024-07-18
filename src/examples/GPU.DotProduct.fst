@@ -33,7 +33,7 @@ let kpost (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : sl
 fn kernel
   (#nblk : erased U32.t { 0 < U32.v nblk /\ U32.v nblk <= 1024 * 1024 })
   (#nthr : erased U32.t { 0 < U32.v nthr /\ U32.v nthr <= 1024 })
-  (size : SZ.t { (size <: nat) <= U32.v nblk * U32.v nthr })
+  (size : SZ.t { SZ.v size <= U32.v nblk * U32.v nthr })
   (ga1 ga2 : gpu_array elem_t size)
   (r : gpu_array elem_t size)
   (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
@@ -48,15 +48,15 @@ fn kernel
   if (SZ.(id <^ size)) {
     (**)unfold (gpu_pts_to_array1 ga1 id);
     (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
-    let v1 = gpu_array_read #size #id #(id+1) ga1 id;
+    let v1 = gpu_array_read #_ #size #id #(id+1) ga1 id;
 
     (**)unfold (gpu_pts_to_array1 ga2 id);
-    let v2 = gpu_array_read #size #id #(id+1) ga2 id;
+    let v2 = gpu_array_read #_ #size #id #(id+1) ga2 id;
     
     let v = v1 `U32.mul_underspec` v2;
     
     (**)unfold (gpu_pts_to_array1 r id);
-    gpu_array_write #size #id #(id+1) r id v;
+    gpu_array_write #_ #size #id #(id+1) r id v;
 
     (**)fold (gpu_pts_to_array1 r id);
     (**)fold (gpu_pts_to_array1 ga1 id);
