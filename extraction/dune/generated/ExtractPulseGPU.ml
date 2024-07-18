@@ -93,6 +93,36 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            sz::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "GPU.SizeT.sizet_to_u32" ->
+           let uu___3 =
+             let uu___4 = cb sz in
+             (uu___4,
+               (FStar_Extraction_Krml.TInt FStar_Extraction_Krml.UInt32)) in
+           FStar_Extraction_Krml.ECast uu___3
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            u1::u2::u3::u4::u5::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "GPU.MatrixBarrier.mbarrier_wait" ->
+           ((let uu___4 = FStar_Extraction_ML_Syntax.mlexpr_to_string e1 in
+             FStar_Compiler_Util.print1_warning "GGGG %s\n" uu___4);
+            FStar_Extraction_Krml.EApp
+              ((FStar_Extraction_Krml.EQualified
+                  ([], "PULSE_GPU_MATRIX_BARRIER")), []))
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
                 FStar_Extraction_ML_Syntax.MLE_App
                 ({
                    FStar_Extraction_ML_Syntax.expr =
@@ -446,7 +476,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___311 : unit) =
+let (uu___330 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

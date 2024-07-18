@@ -74,6 +74,15 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "GPU.Base.block_idx_x" ->
     escape_hatch "blockIdx.x"
 
+  | MLE_App ({ expr = MLE_Name p } , [ sz ])
+    when string_of_mlpath p = "GPU.SizeT.sizet_to_u32" ->
+    ECast (cb sz, TInt UInt32)
+
+  | MLE_App ({ expr = MLE_Name p } , [u1;u2;u3;u4;u5])
+    when string_of_mlpath p = "GPU.MatrixBarrier.mbarrier_wait" ->
+    BU.print1_warning "GGGG %s\n" (mlexpr_to_string e);
+    EApp (EQualified ([], "PULSE_GPU_MATRIX_BARRIER"), [])
+
   | MLE_App({expr=MLE_App({expr=MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e ])}, [_perm])}, [_v])
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e; _perm; _v ])
     when string_of_mlpath p = "GPU.Ref.gpu_read" ->

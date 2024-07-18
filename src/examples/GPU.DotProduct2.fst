@@ -19,6 +19,7 @@ let mul (s1 s2: erased (FStar.Seq.seq U64.t)) (#_: squash (FStar.Seq.length s1 =
 let rec log2 (n: nat{n <> 0}): (r:nat{r < n}) = if n = 1 then 0 else 1 + log2 (n / 2)
 let rec pow_log_lemma (n: nat): Lemma (log2 (pow2 n) = n) = if n = 0 then () else pow_log_lemma (n - 1)
 
+[@@ CPrologue "__device__"]
 let spow2 (s : SZ.t{s < 32}) : r:SZ.t{SZ.v r == pow2 (SZ.v s)} =
   let r = SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s)) in
   assume (SZ.v r == pow2 (SZ.v s)); // prove this from UInt library
@@ -26,6 +27,7 @@ let spow2 (s : SZ.t{s < 32}) : r:SZ.t{SZ.v r == pow2 (SZ.v s)} =
 
 let div_pow2 (i tid: nat): bool = tid % pow2 i = 0
 
+[@@ CPrologue "__device__"]
 let sdiv_pow2 (i:SZ.t{i < 32}) (tid: SZ.t): bool =
   SZ.rem tid (spow2 i) = 0sz
 
@@ -39,6 +41,8 @@ let rec div_pow2_lemma (i j tid: nat):
   )
 
 let min  (a b: nat)  : nat  = if a < b then a else b
+
+[@@ CPrologue "__device__"]
 let smin (a b: SZ.t ): SZ.t = if a <^ b then a else b
 
 // Pure SUM
@@ -191,6 +195,7 @@ fn mk_barrier_pre
 }
 ```
 
+[@@ CPrologue "__device__"]
 ```pulse
 fn iteration
   (nth : SZ.t)
@@ -305,6 +310,7 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (FStar.S
 
 // #set-options "--ext pulse:env_on_err=1"
 
+[@@ CPrologue "__global__"]
 ```pulse
 fn kernel
   (nth : SZ.t)
@@ -318,7 +324,6 @@ fn kernel
   ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b etid
 {
   let mut i = 0sz;
-  admit();
   let tid : U32.t = block_idx_x ();
   let tid : SZ.t = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r #s1 #s2 b tid);
@@ -357,11 +362,8 @@ fn kernel
   {
     let it = !n <: nat;
     iteration nth r b dot_v tid it;
-    if (it = 30sz) {
-      admit(); // panic!
-    } else {
-      n := it +^ 1sz;
-    }
+    assume_ (pure (SZ.v it < 30)); // FIXME: overflow
+    n := it +^ 1sz;
   };
   
   (**)let it = !n;
@@ -385,6 +387,7 @@ let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array U64.t nth) (#v: FStar
   gpu_pts_to_array ga #(1.0R /. Real.of_int nth) v
 
 ```pulse
+ghost
 fn share_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array U64.t nth)
@@ -399,6 +402,7 @@ fn share_array
 ```
 
 ```pulse
+ghost
 fn gather_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array U64.t nth)
@@ -463,7 +467,7 @@ fn main
   launch_kernel_n (sizet_to_u32 size)
     #(kpre size ga1 ga2 gr #v1 #v2 b)
     #(kpost size ga1 ga2 gr #v1 #v2 b)
-    (kernel size ga1 ga2 gr #v1 #v2 b);
+    (fun etid -> kernel size ga1 ga2 gr #v1 #v2 b etid);
 
   (**)bigstar_eta ();
   // TODO:

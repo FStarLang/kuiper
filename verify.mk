@@ -87,4 +87,4 @@ out/GPU.DotProduct2/GPU_DotProduct2.cu: .cache/GPU.DotProduct2.fst.checked
 extraction-targets: \
 	out/GPU.DotProduct/GPU_DotProduct.o \
 	out/GPU.Example1/GPU_Example1.o \
-	# out/GPU.DotProduct2/GPU_DotProduct2.o \
+	out/GPU.DotProduct2/GPU_DotProduct2.o \

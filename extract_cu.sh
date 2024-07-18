@@ -13,7 +13,7 @@ mkdir -p "${OUTD}"
 
 make -j32 -f verify.mk .cache/${FILE}.checked
 
-V=1 ./pulse.sh src/examples/${FILE} --codegen krml --extract "-*,+GPU,+${MOD}" --odir "${OUTD}" --debug extraction
+V=1 ./pulse.sh src/examples/${FILE} --codegen krml --extract "-*,+GPU,+${MOD}" --odir "${OUTD}" # --debug extraction
 
 R=$(pwd)
 
