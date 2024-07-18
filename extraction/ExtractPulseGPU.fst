@@ -81,7 +81,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p } , [u1;u2;u3;u4;u5])
     when string_of_mlpath p = "GPU.MatrixBarrier.mbarrier_wait" ->
     BU.print1_warning "GGGG %s\n" (mlexpr_to_string e);
-    EApp (EQualified ([], "PULSE_GPU_MATRIX_BARRIER"), [])
+    EApp (EQualified ([], "PULSE_GPU_MATRIX_BARRIER"), [ EUnit ])
 
   | MLE_App({expr=MLE_App({expr=MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e ])}, [_perm])}, [_v])
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e; _perm; _v ])

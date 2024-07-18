@@ -36,4 +36,6 @@ void PULSE_GPU_MEMCPY_D2H(void *p, void *gp, size_t sz)
 		assert(0);
 }
 
+#define PULSE_GPU_MATRIX_BARRIER() __syncthreads()
+
 #endif

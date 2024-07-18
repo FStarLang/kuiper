@@ -119,7 +119,8 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
              FStar_Compiler_Util.print1_warning "GGGG %s\n" uu___4);
             FStar_Extraction_Krml.EApp
               ((FStar_Extraction_Krml.EQualified
-                  ([], "PULSE_GPU_MATRIX_BARRIER")), []))
+                  ([], "PULSE_GPU_MATRIX_BARRIER")),
+                [FStar_Extraction_Krml.EUnit]))
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
