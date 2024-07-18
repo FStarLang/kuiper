@@ -128,11 +128,9 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___3 = "GPU.MatrixBarrier.mbarrier_wait" ->
-           ((let uu___4 = FStar_Extraction_ML_Syntax.mlexpr_to_string e1 in
-             FStar_Compiler_Util.print1_warning "GGGG %s\n" uu___4);
-            FStar_Extraction_Krml.EApp
-              ((FStar_Extraction_Krml.EQualified ([], "__syncthreads")),
-                [FStar_Extraction_Krml.EUnit]))
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "__syncthreads")),
+               [FStar_Extraction_Krml.EUnit])
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -233,16 +231,16 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                let uu___7 =
                  let uu___8 =
                    let uu___9 =
-                     let uu___10 = cb ga in
+                     let uu___10 = cb a in
                      let uu___11 =
-                       let uu___12 = cb a in
+                       let uu___12 = cb ga in
                        [uu___12; bytesize; cudaMemcpyDeviceToHost] in
                      uu___10 :: uu___11 in
                    ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
                      uu___9) in
                  FStar_Extraction_Krml.EApp uu___8 in
                [uu___7] in
-             ((FStar_Extraction_Krml.EQualified ([], "CUDA_CHECK")), uu___6) in
+             ((FStar_Extraction_Krml.EQualified ([], "MUST")), uu___6) in
            FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -276,16 +274,16 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                let uu___7 =
                  let uu___8 =
                    let uu___9 =
-                     let uu___10 = cb a in
+                     let uu___10 = cb ga in
                      let uu___11 =
-                       let uu___12 = cb ga in
+                       let uu___12 = cb a in
                        [uu___12; bytesize; cudaMemcpyHostToDevice] in
                      uu___10 :: uu___11 in
                    ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
                      uu___9) in
                  FStar_Extraction_Krml.EApp uu___8 in
                [uu___7] in
-             ((FStar_Extraction_Krml.EQualified ([], "CUDA_CHECK")), uu___6) in
+             ((FStar_Extraction_Krml.EQualified ([], "MUST")), uu___6) in
            FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -353,7 +351,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                      uu___9) in
                  FStar_Extraction_Krml.EApp uu___8 in
                [uu___7] in
-             ((FStar_Extraction_Krml.EQualified ([], "CUDA_CHECK")), uu___6) in
+             ((FStar_Extraction_Krml.EQualified ([], "MUST")), uu___6) in
            FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -499,7 +497,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___322 : unit) =
+let (uu___321 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

@@ -19,7 +19,7 @@ uint32_t * PULSE_GPU_ALLOC(size_t len)
 	return ret;
 }
 
-#define CUDA_CHECK(e)					({		\
+#define MUST(e)						({		\
 	cudaError_t r = (e);						\
 	if (r != cudaSuccess)						\
 		assert(!"CALL FAILED: " #e);				\
