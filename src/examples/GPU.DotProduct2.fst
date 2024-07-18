@@ -11,6 +11,8 @@ open Pulse.Lib.BigStar
 open GPU
 open FStar.SizeT
 
+#set-options "--z3rlimit 20"
+
 let size : SZ.t = 1024sz
 
 let mul (s1 s2: Seq.seq U64.t)
@@ -99,12 +101,11 @@ ghost fn unfold_barrier_matrix (nth: nat) (r : gpu_array U64.t nth) (v: erased (
 { unfold (barrier_matrix nth r v it from to) }
 ```
 
-let even n = n % 2 == 0
-let odd  n = ~ (n % 2 == 0)
+// let even n : prop = n % 2 == 0
+// let odd  n : prop = ~ (n % 2 == 0)
 
-
-let div_helper (n : nat) :
-  Lemma ((~(even (n+1))) <==>  even n) = ()
+// let div_helper (n : nat) :
+//   Lemma ((~(even (n+1))) <==>  even n) = ()
 
 val lemma_div_exact: a:int -> p:pos -> Lemma
   (a % p = 0 <==> a = p * (a / p))
@@ -242,7 +243,9 @@ fn iteration
   // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 
   let middle : SZ.t = smin (tid +^ spow2 it) nth;
-  let end_   : SZ.t = smin (tid +^ 2sz *^ spow2 it) nth;
+  (* We do not use end_ in extracted code, so we can use a nat and erase it
+  so there are no traces in the extracted C. *)
+  let end_   : erased nat = hide (min (tid + 2 * pow2 it) nth);
 
   if (tid +^ spow2 it <^ nth) {
     bigstar_if_elim #_ #0 #nth (tid + pow2 it) (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
@@ -271,7 +274,7 @@ fn iteration
 
       let s1 = gpu_array_read #U64.t #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid;
       // assert (pure (s1 == sum_seq vv tid middle));
-      let s2 = gpu_array_read #U64.t #(SZ.v nth) #(SZ.v middle) #(SZ.v end_) r middle;
+      let s2 = gpu_array_read #U64.t #(SZ.v nth) #(SZ.v middle) #end_ r middle;
       // assert (pure (s2 == sum_seq vv middle end_));
       let s = U64.add_mod s1 s2;
       sum_seq_lemma vv tid middle end_;
@@ -282,7 +285,7 @@ fn iteration
       with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
       // assert (pure (Seq.index seq 0 == s));
       fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
-      if_intro_true (tid < end_ && end_ <= nth) (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
+      if_intro_true (tid < reveal end_ && reveal end_ <= nth) (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
       fold (gpu_pts_to_slice_sum r tid end_ vv);
       if_intro_true (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ vv);
     } else {
@@ -331,7 +334,6 @@ fn kernel
   requires gpu ** thread_id etid ** kpre  nth ga1 ga2 r #s1 #s2 b etid
   ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b etid
 {
-  let mut i = 0sz;
   let tid : U32.t = block_idx_x ();
   let tid : SZ.t = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r #s1 #s2 b tid);
@@ -432,8 +434,6 @@ fn main
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum_seq (mul v1 v2) 0 size)
 {
   let ar = A.alloc #U64.t 0UL size;
-
-  let mut i = 0sz;
 
   let ga1 = gpu_array_alloc #U64.t size;
   let ga2 = gpu_array_alloc #U64.t size;
