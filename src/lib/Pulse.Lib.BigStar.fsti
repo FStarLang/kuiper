@@ -27,7 +27,7 @@ val bigstar_star
 : Lemma (bigstar #u1 m n f ** bigstar #u1 m n g == bigstar #u1 m n h)
 
 val bigstar_congr
-  (#u1: int)
+  (#u1 #u2: int)
   (m : nat)
   (n : nat { m <= n })
   (m' : nat)
@@ -35,7 +35,7 @@ val bigstar_congr
   (f  : (i:nat { m <= i /\ i < n }) -> slprop)
   (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
   (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
-: Lemma (bigstar #u1 m n f == bigstar #u1 m' n' f')
+: Lemma (bigstar #u1 m n f == bigstar #u2 m' n' f')
 
 
 val bigstar_extensionality

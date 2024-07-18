@@ -14,62 +14,57 @@ let size : n:(erased nat){reveal n == SZ.v m_size} = SZ.v m_size
 
 let elem_t = U32.t
 
-(* This sucks, clean it up. Multiparam TC? *)
-[@@coercion]
-let uint32_to_int (x:U32.t) : GTot nat = U32.v x
-[@@coercion]
-let uint32_to_erased_nat (x:U32.t) : erased nat = U32.v x
-
-[@@coercion]
-let sizet_to_int (x:SZ.t) : GTot int = SZ.v x
-[@@coercion]
-let sizet_to_erased_nat (x:SZ.t) : erased nat = SZ.v x
-
 [@@coercion]
 inline_for_extraction
 let uint32_to_sizet x = FStar.SizeT.uint32_to_sizet x
 
-let kpre (ga1 ga2 r : gpu_array elem_t (SZ.v m_size)) (nthr : nat) (tid:nat{tid < nthr}) : slprop =
-  gpu_pts_to_array1 ga1 tid **
-  gpu_pts_to_array1 ga2 tid **
-  gpu_pts_to_array1 r tid
+let kpre (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slprop =
+  gpu_pts_to_array1 #elem_t #(SZ.v size) ga1 tid **
+  gpu_pts_to_array1 #elem_t #(SZ.v size) ga2 tid **
+  gpu_pts_to_array1 #elem_t #(SZ.v size) r tid
 
-let kpost (ga1 ga2 r : gpu_array elem_t (SZ.v m_size)) (nthr : nat) (tid:nat{tid < nthr}) : slprop =
-  gpu_pts_to_array1 ga1 tid **
-  gpu_pts_to_array1 ga2 tid **
-  gpu_pts_to_array1 r tid
+let kpost (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slprop =
+  gpu_pts_to_array1 #elem_t #(SZ.v size) ga1 tid **
+  gpu_pts_to_array1 #elem_t #(SZ.v size) ga2 tid **
+  gpu_pts_to_array1 #elem_t #(SZ.v size) r tid
 
 [@@CPrologue "__global__"]
 ```pulse
 fn kernel
+  (#nblk : erased U32.t { 0 < U32.v nblk /\ U32.v nblk <= 1024 * 1024 })
+  (#nthr : erased U32.t { 0 < U32.v nthr /\ U32.v nthr <= 1024 })
+  (size : SZ.t { (size <: nat) <= U32.v nblk * U32.v nthr })
   (ga1 ga2 : gpu_array elem_t size)
   (r : gpu_array elem_t size)
-  (nthr : erased nat)
-  (etid : erased nat{etid < nthr})
-  requires gpu ** thread_id etid ** kpre ga1 ga2 r nthr etid
-  ensures  gpu ** thread_id etid ** kpost ga1 ga2 r nthr etid
+  (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
+  requires gpu ** thread_id etid ** kpre size ga1 ga2 r (thread_index etid)
+  ensures  gpu ** thread_id etid ** kpost size ga1 ga2 r (thread_index etid)
 {
-  let tid = block_idx_x ();
-  (* r[tid] = ga1[tid] * ga2[tid] *)
+  let id = thread_idx_all ();
+  (* r[id] = ga1[id] * ga2[id] *)
 
-  (**)unfold (kpre ga1 ga2 r nthr tid);
+  (**)unfold (kpre size ga1 ga2 r (thread_index etid));
 
-  (**)unfold (gpu_pts_to_array1 ga1 tid);
-  (**)gpu_pts_to_slice_ref ga1 tid (tid+1); // recall tid < size
-  let v1 = gpu_array_read #_ #size #tid #(tid+1) ga1 tid;
+  if (SZ.(id <^ size)) {
+    (**)unfold (gpu_pts_to_array1 ga1 id);
+    (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
+    let v1 = gpu_array_read #size #id #(id+1) ga1 id;
 
-  (**)unfold (gpu_pts_to_array1 ga2 tid);
-  let v2 = gpu_array_read #_ #size #tid #(tid+1) ga2 tid;
-  
-  let v = v1 `U32.mul_underspec` v2;
-  
-  (**)unfold (gpu_pts_to_array1 r tid);
-  gpu_array_write #_ #size #tid #(tid+1) r tid v;
+    (**)unfold (gpu_pts_to_array1 ga2 id);
+    let v2 = gpu_array_read #size #id #(id+1) ga2 id;
+    
+    let v = v1 `U32.mul_underspec` v2;
+    
+    (**)unfold (gpu_pts_to_array1 r id);
+    gpu_array_write #size #id #(id+1) r id v;
 
-  (**)fold (gpu_pts_to_array1 r tid);
-  (**)fold (gpu_pts_to_array1 ga1 tid);
-  (**)fold (gpu_pts_to_array1 ga2 tid);
-  (**)fold (kpost ga1 ga2 r nthr tid);
+    (**)fold (gpu_pts_to_array1 r id);
+    (**)fold (gpu_pts_to_array1 ga1 id);
+    (**)fold (gpu_pts_to_array1 ga2 id);
+    (**)fold (kpost size ga1 ga2 r (thread_index etid));
+  } else {
+    (**)fold (kpost size ga1 ga2 r (thread_index etid));
+  }
 }
 ```
 
@@ -107,15 +102,15 @@ fn main (_:unit)
   let gr = gpu_array_alloc #U32.t m_size;
   
   let nthr : U32.t = SZ.sizet_to_uint32 m_size <: U32.t;
-  
+
   // Slicing the arrays
-  (**)gpu_array_slice_1_underspec ga1;
-  (**)gpu_array_slice_1_underspec ga2;
-  (**)gpu_array_slice_1_underspec gr;
+  (**)gpu_array_slice_1_underspec #1 ga1;
+  (**)gpu_array_slice_1_underspec #2 ga2;
+  (**)gpu_array_slice_1_underspec #3 gr;
 
   // Boring combination of resources
-  (**)bigstar_zip 0 (SZ.v m_size) (gpu_pts_to_array1 ga1) (gpu_pts_to_array1 ga2);
-  (**)bigstar_zip 0 (SZ.v m_size) _ (gpu_pts_to_array1 gr);
+  (**)bigstar_zip #1 #2 #1 0 (SZ.v m_size) _ _;
+  (**)bigstar_zip #1 #3 #0 0 (SZ.v m_size) _ _;
 
   (**)rewrite
     (bigstar 0 (SZ.v m_size)
@@ -123,27 +118,29 @@ fn main (_:unit)
                  gpu_pts_to_array1 ga2 i) **
                  gpu_pts_to_array1 gr i))
   as
-    (bigstar 0 (SZ.v m_size) (fun i -> kpre ga1 ga2 gr nthr i));
+    (bigstar 0 (SZ.v m_size) (fun i -> kpre m_size ga1 ga2 gr i));
 
   (**)bigstar_uneta ();
 
   assert (pure (SZ.v m_size == U32.v nthr));
   rewrite
-    (bigstar 0 (SZ.v m_size) (kpre ga1 ga2 gr nthr))
+    (bigstar 0 (SZ.v m_size) (kpre m_size ga1 ga2 gr))
   as
-    (bigstar 0 (U32.v nthr)  (kpre ga1 ga2 gr nthr));
+    (bigstar 0 (U32.v nthr * 1)  (kpre m_size ga1 ga2 gr));
 
-  launch_kernel_n #0 nthr (fun tid -> kernel ga1 ga2 gr (hide (U32.v nthr)) tid);
+  launch_kernel_n nthr 1ul
+    #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
+    (kernel #(hide nthr) #(hide 1ul) m_size ga1 ga2 gr);
 
   rewrite
-    (bigstar 0 (U32.v nthr)  (kpost ga1 ga2 gr nthr))
+    (bigstar 0 (U32.v nthr * 1)  (kpost m_size ga1 ga2 gr))
   as
-    (bigstar 0 (SZ.v m_size) (kpost ga1 ga2 gr nthr));
+    (bigstar 0 (SZ.v m_size) (kpost m_size ga1 ga2 gr));
 
   (**)bigstar_eta ();
 
   rewrite
-    (bigstar 0 (SZ.v m_size) (fun i -> kpre ga1 ga2 gr nthr i))
+    (bigstar 0 (SZ.v m_size) (fun i -> kpre m_size ga1 ga2 gr i))
   as
     (bigstar 0 (SZ.v m_size)
       (fun i -> gpu_pts_to_array1 ga1 i **

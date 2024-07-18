@@ -12,10 +12,10 @@ let rec bigstar
   (n : nat {m <= n})
   (f : (i:nat { m <= i /\ i < n } -> slprop))
 : Tot slprop (decreases n - m) =
-  if m = n then emp else f m ** bigstar (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
+  if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
 
 let bigstar_defn (#uid : int) (m : nat) (n : nat {m <= n}) (f : (i:nat { m <= i /\ i < n } -> slprop)) :
-  Lemma (ensures bigstar #uid m n f == (if m = n then emp else f m ** bigstar (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
+  Lemma (ensures bigstar #uid m n f == (if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
   = ()
 
 ```pulse
@@ -94,19 +94,19 @@ let rec bigstar_star (#u1: int) (m : nat) (n : nat {m <= n}) (f g h : (i:nat { m
     bigstar_defn #u1 m n h
   )
 
-let rec bigstar_congr (#u1: int) (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
+let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
     (f : (i:nat { m <= i /\ i < n }) -> slprop) (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
     (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
-: Lemma (ensures bigstar #u1 m n f == bigstar #u1 m' n' f')
+: Lemma (ensures bigstar #u1 m n f == bigstar #u2 m' n' f')
         (decreases n-m)
 = if m = n then () else begin
-    bigstar_congr #u1 (m+1) n (m'+1) n'
+    bigstar_congr #u1 #u2 (m+1) n (m'+1) n'
       (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
       (fun (i: nat { (m'+1) <= i /\ i < n' }) -> f' i)
       (fun i -> h (i+1));
     h 0;
     bigstar_defn #u1 m n f;
-    bigstar_defn #u1 m' n' f'
+    bigstar_defn #u2 m' n' f'
   end
 
 ```pulse
@@ -121,7 +121,7 @@ fn __bigstar_extensionality
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n g
 {
-  bigstar_congr #u1 m n m n f g (fun j -> h (m+j));
+  bigstar_congr #u1 #u1 m n m n f g (fun j -> h (m+j));
   ();
 }
 ```
@@ -170,7 +170,7 @@ fn bigstar_rw_congr
     ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m+i)))
     = (fun (i:nat{i < n-m}) -> h (m+i));
 
-  bigstar_congr #u1 m n m n f f' h';
+  bigstar_congr #u1 #u1 m n m n f f' h';
   rewrite bigstar #u1 m n f as bigstar #u1 m n f';
   ();
 }
