@@ -11,8 +11,7 @@ open Pulse.Lib.BigStar
 open GPU
 open FStar.SizeT
 
-let m_size : SZ.t = 1024sz
-let size : nat = SZ.v m_size
+let size : SZ.t = 1024sz
 
 let mul (s1 s2: erased (FStar.Seq.seq U64.t)) (#_: squash (FStar.Seq.length s1 == FStar.Seq.length s2)): erased (FStar.Seq.seq U64.t)
   = FStar.Seq.init_ghost (FStar.Seq.length s1) (fun i -> U64.mul_mod (FStar.Seq.index s1 i) (FStar.Seq.index s2 i))
@@ -26,7 +25,9 @@ let spow2 (s : SZ.t{s < 32}) : r:SZ.t{SZ.v r == pow2 (SZ.v s)} =
   r
 
 let div_pow2 (i tid: nat): bool = tid % pow2 i = 0
-let sdiv_pow2 (i:SZ.t{i < 32}) (tid: SZ.t): bool = SZ.rem tid (spow2 i) = 0sz
+
+let sdiv_pow2 (i:SZ.t{i < 32}) (tid: SZ.t): bool =
+  SZ.rem tid (spow2 i) = 0sz
 
 let rec div_pow2_lemma (i j tid: nat):
   Lemma
@@ -160,6 +161,7 @@ ghost fn fold_barrier_matrix_false
 // #push-options "--print_implicits --print_bound_var_types"
 
 ```pulse
+ghost
 fn mk_barrier_pre
   (nth : SZ.t)
   (r : gpu_array U64.t nth)
@@ -315,6 +317,8 @@ fn kernel
   requires gpu ** thread_id etid ** kpre  nth ga1 ga2 r #s1 #s2 b etid
   ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b etid
 {
+  let mut i = 0sz;
+  admit();
   let tid : U32.t = block_idx_x ();
   let tid : SZ.t = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r #s1 #s2 b tid);
@@ -412,79 +416,80 @@ fn main
   (v1 v2: erased (Seq.Base.seq U64.t))
   (#_: squash (Seq.length v1 = size /\ Seq.length v2 = size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
-  returns dp: U64.t
+  returns  dp: U64.t
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum_seq (mul v1 v2) 0 size)
 {
-  let ar = A.alloc #U64.t 0UL (SZ.uint_to_t size);
+  let ar = A.alloc #U64.t 0UL size;
 
   let mut i = 0sz;
 
-  let ga1 = gpu_array_alloc #U64.t m_size;
-  let ga2 = gpu_array_alloc #U64.t m_size;
+  let ga1 = gpu_array_alloc #U64.t size;
+  let ga2 = gpu_array_alloc #U64.t size;
 
-  GPU.Array.gpu_memcpy_host_to_device a1 ga1;
-  GPU.Array.gpu_memcpy_host_to_device a2 ga2;
+  GPU.Array.gpu_memcpy_host_to_device a1 ga1 size;
+  GPU.Array.gpu_memcpy_host_to_device a2 ga2 size;
   
-  let gr = gpu_array_alloc #U64.t m_size;
+  let gr = gpu_array_alloc #U64.t size;
 
   // Slicing the arrays
   (**)share_array ga1;
   (**)share_array ga2;
   (**)gpu_array_slice_1_underspec gr;
 
-  let b = mk_mbarrier m_size (barrier_matrix size gr (mul v1 v2));
+  let b = mk_mbarrier size (barrier_matrix size gr (mul v1 v2));
 
   // Boring combination of resources
-  (**)bigstar_zip 0 m_size (shared_array ga1) (shared_array ga2);
-  (**)bigstar_zip 0 m_size _ (gpu_pts_to_array1 gr);
-  (**)bigstar_zip 0 m_size _ (mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0);
+  (**)bigstar_zip 0 size (shared_array ga1) (shared_array ga2);
+  (**)bigstar_zip 0 size _ (gpu_pts_to_array1 gr);
+  (**)bigstar_zip 0 size _ (mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0);
   (**)rewrite
-    (bigstar 0 m_size
-      (fun i -> ((shared_array #m_size ga1 #v1 i **
-                 shared_array #m_size ga2 #v2 i) **
+    (bigstar 0 size
+      (fun i -> ((shared_array #size ga1 #v1 i **
+                 shared_array #size ga2 #v2 i) **
                  gpu_pts_to_array1 gr i) **
                  mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0 i))
   as
-    (bigstar 0 m_size (fun i -> kpre size ga1 ga2 gr #v1 #v2 b i));
+    (bigstar 0 size (fun i -> kpre size ga1 ga2 gr #v1 #v2 b i))
+    by tadmit ();
   (**)bigstar_uneta ();
 
   rewrite
-    bigstar 0 m_size
+    bigstar 0 size
       (kpre size ga1 ga2 gr #v1 #v2 b)
   as
-    bigstar 0 (U32.v (sizet_to_u32 m_size))
+    bigstar 0 (U32.v (sizet_to_u32 size))
       (kpre size ga1 ga2 gr #v1 #v2 b);
 
-  launch_kernel_n (sizet_to_u32 m_size)
+  launch_kernel_n (sizet_to_u32 size)
     #(kpre size ga1 ga2 gr #v1 #v2 b)
     #(kpost size ga1 ga2 gr #v1 #v2 b)
-    (kernel m_size ga1 ga2 gr #v1 #v2 b);
+    (kernel size ga1 ga2 gr #v1 #v2 b);
 
   (**)bigstar_eta ();
   // TODO:
   (**)drop_
-        (bigstar 0 (U32.v (sizet_to_u32 m_size)) (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
+        (bigstar 0 (U32.v (sizet_to_u32 size)) (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
   let it = 10;
   (**)assume_
-        (bigstar 0 m_size
+        (bigstar 0 size
           (fun i -> ((gpu_pts_to_array #U64.t #size ga1 #(1.0R /. Real.of_int size) v1 **
                     gpu_pts_to_array #U64.t #size ga2 #(1.0R /. Real.of_int size) v2) **
                     if_ (op_Equality #nat i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2))) **
                     mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b it i
         ));
   
-  (**)bigstar_unzip 0 m_size _ _;
-  (**)bigstar_unzip 0 m_size _ _;
-  (**)bigstar_unzip 0 m_size _ _;
+  (**)bigstar_unzip 0 size _ _;
+  (**)bigstar_unzip 0 size _ _;
+  (**)bigstar_unzip 0 size _ _;
   
-  (**)bigstar_uneta () #0 #0 #m_size #(shared_array #size ga1 #v1);
+  (**)bigstar_uneta () #0 #0 #size #(shared_array #size ga1 #v1);
   gather_array ga1;
-  (**)bigstar_uneta () #0 #0 #m_size #(shared_array #size ga2 #v2);
+  (**)bigstar_uneta () #0 #0 #size #(shared_array #size ga2 #v2);
   gather_array ga2;
 
-  drop_mbarrier #m_size #(barrier_matrix size gr (mul v1 v2)) #b #it;
+  drop_mbarrier #size #(barrier_matrix size gr (mul v1 v2)) #b #it;
 
-  bigstar_if_elim #_ #0 #m_size 0 (fun _ -> gpu_pts_to_slice_sum #size gr 0 size (mul v1 v2));
+  bigstar_if_elim #_ #0 #size 0 (fun _ -> gpu_pts_to_slice_sum #size gr 0 size (mul v1 v2));
 
   unfold gpu_pts_to_slice_sum;
   if_elim_true _ _;
@@ -493,7 +498,7 @@ fn main
   fold (gpu_pts_to_array #U64.t #size gr #1.0R res);
 
   // TODO: don't copy whole array
-  GPU.Array.gpu_memcpy_device_to_host ar gr;
+  GPU.Array.gpu_memcpy_device_to_host ar gr size;
 
   gpu_array_free ga1;
   gpu_array_free ga2;

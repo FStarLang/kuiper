@@ -1,4 +1,4 @@
-all: extract
+all: build
 
 FSTAR_HOME ?= $(realpath $(dir $(shell which fstar.exe))/..)
 FSTAR_EXE = $(FSTAR_HOME)/bin/fstar.exe

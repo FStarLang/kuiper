@@ -35,8 +35,8 @@ fn main
   let ga1 = gpu_array_alloc #U64.t (Defs.rows *^ Defs.shared);
   let ga2 = gpu_array_alloc #U64.t (Defs.shared *^ Defs.columns);
 
-  GPU.Array.gpu_memcpy_host_to_device a1 ga1;
-  GPU.Array.gpu_memcpy_host_to_device a2 ga2;
+  GPU.Array.gpu_memcpy_host_to_device a1 ga1 (Defs.rows *^ Defs.shared);
+  GPU.Array.gpu_memcpy_host_to_device a2 ga2 (Defs.shared *^ Defs.columns);
   
   let gr = gpu_array_alloc #U64.t size;
 
@@ -130,7 +130,7 @@ fn main
 
   (**)gpu_array_unslice_1 #_ #0 #size gr #_ #(Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2);
   
-  GPU.Array.gpu_memcpy_device_to_host ar gr;
+  GPU.Array.gpu_memcpy_device_to_host ar gr size;
 
   gpu_array_free ga1;
   gpu_array_free ga2;

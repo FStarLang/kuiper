@@ -14,6 +14,8 @@ open FStar.Const
 
 open FStar.Class.Show
 
+exception Failed of string
+
 module BU = FStar.Compiler.Util
 
 let flatten_app e =
@@ -80,6 +82,41 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e1; e2 ])
     when string_of_mlpath p = "GPU.Ref.gpu_write" ->
     EBufWrite (cb e1, zero_for_deref, cb e2)
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
+    when string_of_mlpath p = "GPU.Array.gpu_memcpy_device_to_host"->
+    let sz : mlexpr =
+      match sz.expr with
+      | MLE_Record (_, _, [(_, sz)]) -> sz
+      | _ -> raise (Failed "Expected a single-field record for the size")
+    in
+    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
+    EApp (EQualified ([], "PULSE_GPU_MEMCPY_D2H"), [ cb a; cb ga; bytesize ])
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
+    when string_of_mlpath p = "GPU.Array.gpu_memcpy_host_to_device"->
+    let sz : mlexpr =
+      match sz.expr with
+      | MLE_Record (_, _, [(_, sz)]) -> sz
+      | _ -> raise (Failed "Expected a single-field record for the size")
+    in
+    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
+    EApp (EQualified ([], "PULSE_GPU_MEMCPY_H2D"), [ cb a; cb ga; bytesize ])
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: len :: [])
+    when string_of_mlpath p = "GPU.Array.gpu_array_alloc" ->
+    let sz : mlexpr =
+      match sz.expr with
+      | MLE_Record (_, _, [(_, sz)]) -> sz
+      | _ -> raise (Failed "Expected a single-field record for the size")
+    in
+    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb len ]) in
+    ECast (EApp (EQualified ([], "PULSE_GPU_ALLOC"), [ bytesize ]),
+           TBuf (translate_type env ty))
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: v :: [])
+    when string_of_mlpath p = "GPU.Array.gpu_array_free" ->
+    EApp (EQualified ([], "PULSE_GPU_FREE"), [cb r])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: f :: idx :: s :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_read" ->

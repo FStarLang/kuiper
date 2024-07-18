@@ -1,15 +1,13 @@
 module GPU.Array
 
-// let with_pure (p:prop) (f : squash p -> slprop) : slprop =
-//   pure p ** f ()
-
-open Pulse.Lib.Pervasives
+open Pulse
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open FStar.Seq
 open GPU.Base
-module A = Pulse.Lib.Array
+open GPU.Types
 
+module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 
 val gpu_array (a:Type u#0) (sz:nat) : Type u#0
@@ -44,10 +42,12 @@ val gpu_pts_to_slice_ref
       (gpu_pts_to_array_slice x #f i j v)
       (fun _ -> gpu_pts_to_array_slice x #f i j v ** pure (i <= j /\ j <= sz /\ Seq.length v == (j-i)))
 
+noextract
 ```pulse
 val
 fn gpu_array_alloc
   (#a : Type u#0)
+  {| sized a |}
   (sz : SZ.t)
   requires cpu
   returns  x : gpu_array a (SZ.v sz)
@@ -55,17 +55,21 @@ fn gpu_array_alloc
             (exists* (s:seq a). gpu_pts_to_array x #1.0R s)
 ```
 
-val gpu_array_free
+```pulse
+val 
+fn gpu_array_free
   (#a:Type u#0)
   (#sz:erased nat)
   (r : gpu_array a sz)
   (#v : erased (seq a))
-: stt unit
-      (cpu ** gpu_pts_to_array r #1.0R v)
-      (fun _ -> cpu)
+  requires cpu ** gpu_pts_to_array r #1.0R v
+  ensures  cpu
+```
 
 [@@noextract_to "krml"]
-val gpu_array_read
+```pulse
+val
+fn gpu_array_read
   (#a : Type u#0)
   (#sz : erased nat)
   (#i  : erased nat)
@@ -74,18 +78,17 @@ val gpu_array_read
   (#f:perm)
   (idx : SZ.t {i <= SZ.v idx /\ SZ.v idx < j})
   (#s : erased (seq a))
-: stt a
-      (gpu ** gpu_pts_to_array_slice #a #sz r #f i j s)
-      (fun x ->
-        gpu **
-        gpu_pts_to_array_slice #a #sz r #f i j s **
-        pure (
-          i <= j /\ j <= sz /\
-          Seq.length s == (j-i) /\
-          x == Seq.index s (SZ.v idx - i)))
+  requires gpu ** gpu_pts_to_array_slice #a #sz r #f i j s
+  returns  x:a
+  ensures  gpu ** gpu_pts_to_array_slice #a #sz r #f i j s **
+            pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
+                  x == Seq.index s (SZ.v idx - i))
+```
 
 [@@noextract_to "krml"]
-val gpu_array_write
+```pulse
+val
+fn gpu_array_write
   (#a:Type u#0)
   (#sz: erased nat)
   (#i: erased nat)
@@ -94,40 +97,46 @@ val gpu_array_write
   (idx : SZ.t{i <= SZ.v idx /\ SZ.v idx < j})
   (v : a)
   (#s : erased (seq a))
-: stt unit
-      (gpu ** gpu_pts_to_array_slice #a #sz r #1.0R i j s)
-      (fun _ ->
-        exists* (s' : seq a).
-          gpu **
-          gpu_pts_to_array_slice #a #sz r #1.0R i j s' **
-          pure (
-            i <= j /\ j <= sz /\
-            Seq.length s == (j-i) /\
-            s' == Seq.upd s (SZ.v idx - i) v))
+  requires gpu ** gpu_pts_to_array_slice #a #sz r #1.0R i j s
+  ensures  gpu **
+            (exists* (s':seq a). gpu_pts_to_array_slice #a #sz r #1.0R i j s' **
+              pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
+                    s' == Seq.upd s (SZ.v idx - i) v))
+```
 
-val gpu_memcpy_host_to_device
+```pulse
+val 
+fn gpu_memcpy_host_to_device
   (#a:Type u#0)
+  {| sized a |}
   (#sz : erased nat)
   (arr : array a)
+  (garr : gpu_array a sz)
+  (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
-  (garr : gpu_array a sz)
   (#gv : erased (seq a))
-: stt unit
-      (cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R gv)
-      (fun _ -> cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R v)
+  requires cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R gv ** pure (SZ.v cnt == sz)
+  ensures  cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R v
+        ** pure (Seq.length v == reveal sz)
+``` 
 
-val gpu_memcpy_device_to_host
+```pulse
+val
+fn gpu_memcpy_device_to_host
   (#a:Type u#0)
+  {| sized a |}
   (#sz : erased nat)
   (arr : array a)
-  (#v : erased (seq a))
   (garr : gpu_array a sz)
+  (cnt : SZ.t)
   (#f : perm)
+  (#v : erased (seq a))
   (#gv : erased (seq a))
-: stt unit
-      (cpu ** A.pts_to arr #1.0R v ** gpu_pts_to_array garr #f gv)
-      (fun _ -> cpu ** A.pts_to arr #1.0R gv ** gpu_pts_to_array garr #f gv ** pure (Seq.length gv == reveal sz))
+  requires cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R gv ** pure (SZ.v cnt == sz)
+  ensures  cpu ** A.pts_to arr #f gv ** gpu_pts_to_array garr #1.0R gv
+        ** pure (Seq.length gv == reveal sz)
+```
 
 let gpu_pts_to_array1
   (#a:Type0)
@@ -195,30 +204,3 @@ val gpu_slice_concat
   : stt_ghost unit emp_inames
       (gpu_pts_to_array_slice arr #f i n s1 ** gpu_pts_to_array_slice arr #f n m s2)
       (fun _ -> gpu_pts_to_array_slice arr #f i m (Seq.Base.append s1 s2))
-
-// ```xx
-// fn memcpy_host_to_device
-//   (arr : array a)
-//   (#f : perm)
-//   (#v : erased (seq a))
-//   (garr : gpu_array a sz)
-//   (#gv : erased (seq a))
-//   requires cpu ** arr |-> #f v ** garr |-> #1.0R gv
-//   ensures  cpu ** arr |-> #f v ** garr |-> #1.0R v
-
-// fn memcpy_device_to_host
-//   (arr : array a)
-//   (#f : perm)
-//   (#v : erased (seq a))
-//   (garr : gpu_array a sz)
-//   (#gv : erased (seq a))
-//   requires cpu ** arr |-> #1.0R v  ** garr |-> #f gv
-//   ensures  cpu ** arr |-> #1.0R gv ** garr |-> #f gv
-
-
-// fn gpu_array_alloc
-//   (#a:Type u#0)
-//   (sz:nat)
-//   requires cpu
-//   returns  x : gpu_array a sz
-//   ensures  exists* (s:seq a). cpu ** x |-> #1.0R s

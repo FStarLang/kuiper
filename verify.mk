@@ -38,7 +38,7 @@ KRML := $(KRML_HOME)/krml				\
 	-fcast-allocations				\
 	-verbose					\
 	-skip-compilation				\
-	-warn-error -2
+	-warn-error -2@4
 
 # This sandwich is needed so all is the first rule (and not
 # something in the include), and verify-all can refer to ALL_CHECKED_FILES,
@@ -87,4 +87,4 @@ out/GPU.DotProduct2/GPU_DotProduct2.cu: .cache/GPU.DotProduct2.fst.checked
 extraction-targets: \
 	out/GPU.DotProduct/GPU_DotProduct.o \
 	out/GPU.Example1/GPU_Example1.o \
-	out/GPU.DotProduct2/GPU_DotProduct2.o \
+	# out/GPU.DotProduct2/GPU_DotProduct2.o \

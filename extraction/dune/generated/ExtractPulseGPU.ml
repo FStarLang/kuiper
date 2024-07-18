@@ -1,4 +1,10 @@
 open Prims
+exception Failed of Prims.string 
+let (uu___is_Failed : Prims.exn -> Prims.bool) =
+  fun projectee ->
+    match projectee with | Failed uu___ -> true | uu___ -> false
+let (__proj__Failed__item__uu___ : Prims.exn -> Prims.string) =
+  fun projectee -> match projectee with | Failed uu___ -> uu___
 let (flatten_app :
   FStar_Extraction_ML_Syntax.mlexpr -> FStar_Extraction_ML_Syntax.mlexpr) =
   fun e ->
@@ -161,6 +167,150 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                      FStar_Extraction_ML_Syntax.MLE_Name p;
                    FStar_Extraction_ML_Syntax.mlty = uu___1;
                    FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::elen::a::ga::cnt::f::v::gv::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Array.gpu_memcpy_device_to_host" ->
+           let sz1 =
+             match sz.FStar_Extraction_ML_Syntax.expr with
+             | FStar_Extraction_ML_Syntax.MLE_Record
+                 (uu___5, uu___6, (uu___7, sz2)::[]) -> sz2
+             | uu___5 ->
+                 FStar_Compiler_Effect.raise
+                   (Failed "Expected a single-field record for the size") in
+           let bytesize =
+             let uu___5 =
+               let uu___6 =
+                 let uu___7 = cb sz1 in
+                 let uu___8 = let uu___9 = cb cnt in [uu___9] in uu___7 ::
+                   uu___8 in
+               ((FStar_Extraction_Krml.EOp
+                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
+                 uu___6) in
+             FStar_Extraction_Krml.EApp uu___5 in
+           let uu___5 =
+             let uu___6 =
+               let uu___7 = cb a in
+               let uu___8 = let uu___9 = cb ga in [uu___9; bytesize] in
+               uu___7 :: uu___8 in
+             ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_MEMCPY_D2H")),
+               uu___6) in
+           FStar_Extraction_Krml.EApp uu___5
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::elen::a::ga::cnt::f::v::gv::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Array.gpu_memcpy_host_to_device" ->
+           let sz1 =
+             match sz.FStar_Extraction_ML_Syntax.expr with
+             | FStar_Extraction_ML_Syntax.MLE_Record
+                 (uu___5, uu___6, (uu___7, sz2)::[]) -> sz2
+             | uu___5 ->
+                 FStar_Compiler_Effect.raise
+                   (Failed "Expected a single-field record for the size") in
+           let bytesize =
+             let uu___5 =
+               let uu___6 =
+                 let uu___7 = cb sz1 in
+                 let uu___8 = let uu___9 = cb cnt in [uu___9] in uu___7 ::
+                   uu___8 in
+               ((FStar_Extraction_Krml.EOp
+                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
+                 uu___6) in
+             FStar_Extraction_Krml.EApp uu___5 in
+           let uu___5 =
+             let uu___6 =
+               let uu___7 = cb a in
+               let uu___8 = let uu___9 = cb ga in [uu___9; bytesize] in
+               uu___7 :: uu___8 in
+             ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_MEMCPY_H2D")),
+               uu___6) in
+           FStar_Extraction_Krml.EApp uu___5
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::len::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Array.gpu_array_alloc" ->
+           let sz1 =
+             match sz.FStar_Extraction_ML_Syntax.expr with
+             | FStar_Extraction_ML_Syntax.MLE_Record
+                 (uu___5, uu___6, (uu___7, sz2)::[]) -> sz2
+             | uu___5 ->
+                 FStar_Compiler_Effect.raise
+                   (Failed "Expected a single-field record for the size") in
+           let bytesize =
+             let uu___5 =
+               let uu___6 =
+                 let uu___7 = cb sz1 in
+                 let uu___8 = let uu___9 = cb len in [uu___9] in uu___7 ::
+                   uu___8 in
+               ((FStar_Extraction_Krml.EOp
+                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
+                 uu___6) in
+             FStar_Extraction_Krml.EApp uu___5 in
+           let uu___5 =
+             let uu___6 =
+               let uu___7 = FStar_Extraction_Krml.translate_type env ty in
+               FStar_Extraction_Krml.TBuf uu___7 in
+             ((FStar_Extraction_Krml.EApp
+                 ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_ALLOC")),
+                   [bytesize])), uu___6) in
+           FStar_Extraction_Krml.ECast uu___5
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::r::v::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Array.gpu_array_free" ->
+           let uu___5 =
+             let uu___6 = let uu___7 = cb r in [uu___7] in
+             ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_FREE")),
+               uu___6) in
+           FStar_Extraction_Krml.EApp uu___5
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
                  uu___3);
               FStar_Extraction_ML_Syntax.mlty = uu___4;
               FStar_Extraction_ML_Syntax.loc = uu___5;_},
@@ -296,7 +446,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___190 : unit) =
+let (uu___311 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
