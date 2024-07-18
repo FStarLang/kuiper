@@ -74,11 +74,11 @@ echo-krml:
 	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
 
 # Awful special casing
-out/GPU.DotProduct/GPU_DotProduct.cu: .cache/GPU.DotProduct.fst.checked
+out/GPU.DotProduct/GPU_DotProduct.cu: .cache/GPU.DotProduct.fst.checked $(PLUGIN).cmxs
 	./extract_cu.sh GPU.DotProduct
-out/GPU.Example1/GPU_Example1.cu: .cache/GPU.Example1.fst.checked
+out/GPU.Example1/GPU_Example1.cu: .cache/GPU.Example1.fst.checked $(PLUGIN).cmxs
 	./extract_cu.sh GPU.Example1
-out/GPU.DotProduct2/GPU_DotProduct2.cu: .cache/GPU.DotProduct2.fst.checked
+out/GPU.DotProduct2/GPU_DotProduct2.cu: .cache/GPU.DotProduct2.fst.checked $(PLUGIN).cmxs
 	./extract_cu.sh GPU.DotProduct2
 
 %.o: %.cu
