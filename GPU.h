@@ -4,7 +4,11 @@
 #include <assert.h>
 #include <stdint.h>
 
-#define PULSE_KCALL(foo, nblk, nthr, ...) foo<<<nblk,nthr>>>(__VA_ARGS__)
+#define PULSE_KCALL(foo, nblk, nthr, ...)	do {	\
+	foo<<<nblk,nthr>>>(__VA_ARGS__);		\
+	if (cudaGetLastError() != cudaSuccess)		\
+		assert(!"kcall");			\
+	} while (0)
 
 static inline
 uint32_t * PULSE_GPU_ALLOC(size_t len)
