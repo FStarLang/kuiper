@@ -120,13 +120,35 @@ val fn bigstar_zs_elim
   ensures  emp
 ```
 
-val bigstar_zs_into
+```pulse
+ghost
+val fn bigstar_zs_intro
   (#[exact (`0)] u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < m} -> slprop))
-  : stt_ghost unit emp_inames
-      (requires emp)
-      (ensures  fun _ -> bigstar #u1 m m f)
+  requires emp
+  ensures  bigstar #u1 m m f
+```
+
+```pulse
+ghost
+val fn bigstar_single_elim
+  (#u1 : int)
+  (#m : nat)
+  (#f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
+  requires bigstar #u1 m (m+1) f
+  ensures  f m
+```
+
+```pulse
+ghost
+val fn bigstar_single_intro
+  (#[exact (`0)] u1 : int)
+  (m : nat)
+  (f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
+  requires f m
+  ensures  bigstar #u1 m (m+1) f
+```
 
 ```pulse
 ghost

@@ -32,11 +32,10 @@ let kpost (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : sl
 ```pulse
 fn kernel
   (#nblk : erased U32.t { 0 < U32.v nblk /\ U32.v nblk <= 1024 * 1024 })
-  (#nthr : erased U32.t { 0 < U32.v nthr /\ U32.v nthr <= 1024 })
-  (size : SZ.t { SZ.v size <= U32.v nblk * U32.v nthr })
+  (size : SZ.t { SZ.v size == U32.v nblk })
   (ga1 ga2 : gpu_array elem_t size)
   (r : gpu_array elem_t size)
-  (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
+  (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1ul })
   requires gpu ** thread_id etid ** kpre size ga1 ga2 r (thread_index etid)
   ensures  gpu ** thread_id etid ** kpost size ga1 ga2 r (thread_index etid)
 {
@@ -45,26 +44,22 @@ fn kernel
 
   (**)unfold (kpre size ga1 ga2 r (thread_index etid));
 
-  if (SZ.(id <^ size)) {
-    (**)unfold (gpu_pts_to_array1 ga1 id);
-    (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
-    let v1 = gpu_array_read #_ #size #id #(id+1) ga1 id;
+  (**)unfold (gpu_pts_to_array1 ga1 id);
+  (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
+  let v1 = gpu_array_read #_ #size #id #(id+1) ga1 id;
 
-    (**)unfold (gpu_pts_to_array1 ga2 id);
-    let v2 = gpu_array_read #_ #size #id #(id+1) ga2 id;
-    
-    let v = v1 `U32.mul_underspec` v2;
-    
-    (**)unfold (gpu_pts_to_array1 r id);
-    gpu_array_write #_ #size #id #(id+1) r id v;
+  (**)unfold (gpu_pts_to_array1 ga2 id);
+  let v2 = gpu_array_read #_ #size #id #(id+1) ga2 id;
 
-    (**)fold (gpu_pts_to_array1 r id);
-    (**)fold (gpu_pts_to_array1 ga1 id);
-    (**)fold (gpu_pts_to_array1 ga2 id);
-    (**)fold (kpost size ga1 ga2 r (thread_index etid));
-  } else {
-    (**)fold (kpost size ga1 ga2 r (thread_index etid));
-  }
+  let v = v1 `U32.mul_underspec` v2;
+
+  (**)unfold (gpu_pts_to_array1 r id);
+  gpu_array_write #_ #size #id #(id+1) r id v;
+
+  (**)fold (gpu_pts_to_array1 r id);
+  (**)fold (gpu_pts_to_array1 ga1 id);
+  (**)fold (gpu_pts_to_array1 ga2 id);
+  (**)fold (kpost size ga1 ga2 r (thread_index etid));
 }
 ```
 
@@ -126,14 +121,14 @@ fn main (_:unit)
   rewrite
     (bigstar 0 (SZ.v m_size) (kpre m_size ga1 ga2 gr))
   as
-    (bigstar 0 (U32.v nthr * 1)  (kpre m_size ga1 ga2 gr));
+    (bigstar 0 (U32.v nthr)  (kpre m_size ga1 ga2 gr));
 
-  launch_kernel_n nthr 1ul
+  launch_kernel_n nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
-    (kernel #(hide nthr) #(hide 1ul) m_size ga1 ga2 gr);
+    (kernel #(hide nthr) m_size ga1 ga2 gr);
 
   rewrite
-    (bigstar 0 (U32.v nthr * 1)  (kpost m_size ga1 ga2 gr))
+    (bigstar 0 (U32.v nthr)  (kpost m_size ga1 ga2 gr))
   as
     (bigstar 0 (SZ.v m_size) (kpost m_size ga1 ga2 gr));
 

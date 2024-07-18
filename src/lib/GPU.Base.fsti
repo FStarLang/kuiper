@@ -82,32 +82,3 @@ fn thread_idx_all () (#n: tid_t)
   U32.add (U32.mul bid bdim) tid 
 }
 ```
-
-(* f<<<1, 1>>>(...); *)
-```pulse
-val
-fn launch_kernel_1
-  (#pre #post : slprop)
-  (k : unit ->
-    stt unit (gpu ** pre) (fun _ -> gpu ** post)
-  )
-  requires cpu ** pre
-  ensures  cpu ** post
-```
-
-(* f<<<nblk, nthr>>>(...); *)
-```pulse
-val
-fn launch_kernel_n
-  (#u1: int)
-  (nblk : U32.t { 0 < nblk /\ nblk <= max_blocks })
-  (nthr : U32.t { 0 < nthr /\ nthr <= max_threads })
-  (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
-  (k :
-    (etid: erased tid_t {gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
-    stt unit (         gpu ** thread_id etid ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
-  )
-  requires cpu ** bigstar #u1 0 (nblk * nthr) pre
-  ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
-```
