@@ -15,7 +15,7 @@ module U32 = FStar.UInt32
 ```pulse
 val
 fn launch_kernel_n_m_sync
-  (#u1: int)
+  (#u1: erased int)
   (nblk : U32.t { 0 < nblk /\ nblk <= max_blocks })
   (nthr : U32.t { 0 < nthr /\ nthr <= max_threads })
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
@@ -41,7 +41,7 @@ fn launch_kernel_n_m_sync
 ```pulse
 val
 fn launch_kernel_n_m
-  (#u1: int)
+  (#u1: erased int)
   (nblk : U32.t { 0 < nblk /\ nblk <= max_blocks })
   (nthr : U32.t { 0 < nthr /\ nthr <= max_threads })
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
@@ -75,7 +75,7 @@ fn kernel_n_as_n_m
 
 ```pulse
 fn launch_kernel_n
-  (#u1: int)
+  (#u1: erased int)
   (nblk  : U32.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < U32.v nblk } -> slprop))
   (k :
@@ -87,7 +87,8 @@ fn launch_kernel_n
   ensures  cpu ** bigstar #u1 0 (U32.v nblk) post
 {
   rewrite (bigstar #u1 0 (U32.v nblk) pre) as (bigstar #u1 0 (U32.v nblk * 1) pre);
-  launch_kernel_n_m #u1 nblk 1ul #pre #post (fun etid -> kernel_n_as_n_m nblk #pre #post k etid);
+  launch_kernel_n_m #u1 nblk 1ul #pre #post
+    (fun etid -> kernel_n_as_n_m nblk #pre #post k etid);
   rewrite (bigstar #u1 0 (U32.v nblk * 1) post) as (bigstar #u1 0 (U32.v nblk) post);
 }
 ```
