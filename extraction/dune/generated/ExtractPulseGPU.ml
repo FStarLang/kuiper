@@ -109,6 +109,26 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                 FStar_Extraction_ML_Syntax.MLE_Name p;
               FStar_Extraction_ML_Syntax.mlty = uu___1;
               FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            _unit::_erasedn::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "GPU.Base.block_dim_x" -> escape_hatch "blockDim.x"
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            _unit::_erasedn::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "GPU.Base.thread_idx_x" -> escape_hatch "threadIdx.x"
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
             sz::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
@@ -530,7 +550,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___338 : unit) =
+let (uu___354 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
