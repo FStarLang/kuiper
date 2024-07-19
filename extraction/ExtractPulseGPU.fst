@@ -143,7 +143,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         _post;
         { expr = MLE_Fun (_, body) }
       ])
-    when string_of_mlpath p = "GPU.Kernel.kernel_n_as_n_m" ->
+    when string_of_mlpath p = "GPU.Kernel.launch_kernel_n_m" ->
     let hd, args = head_and_args body in
     (* Filter out unit arguments. Not great, not sure why they remain *)
     let args' = List.filter (fun a -> match a.expr with
