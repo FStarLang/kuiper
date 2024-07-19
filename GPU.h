@@ -2,7 +2,10 @@
 #define __PULSE__GPU_H 1
 
 #include <assert.h>
+#include <stddef.h>
 #include <stdint.h>
+
+#include <cuda_runtime.h>
 
 #define PULSE_KCALL(foo, nblk, nthr, ...)	do {	\
 	foo<<<nblk,nthr>>>(__VA_ARGS__);		\

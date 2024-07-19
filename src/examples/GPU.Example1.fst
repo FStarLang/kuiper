@@ -20,6 +20,7 @@ fn kernel (r : gpu_ref U64.t) (#v : erased U64.t)
 ```pulse
 fn main (_:unit)
   requires cpu
+  returns  _ : U64.t
   ensures  cpu
 {
   let r  = Box.alloc #U64.t 1uL;
@@ -39,5 +40,6 @@ fn main (_:unit)
    
   gpu_free gr;
   Box.free r;
+  v
 }
 ```
