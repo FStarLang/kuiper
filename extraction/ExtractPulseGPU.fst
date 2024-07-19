@@ -116,11 +116,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: len :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_alloc" ->
-    let sz : mlexpr =
-      match sz.expr with
-      | MLE_Record (_, _, [(_, sz)]) -> sz
-      | _ -> raise (Failed "Expected a single-field record for the size")
-    in
+    let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb len ]) in
     ECast (EApp (EQualified ([], "PULSE_GPU_ALLOC"), [ bytesize ]),
            TBuf (translate_type env ty))
