@@ -25,7 +25,7 @@ let bigstar_equiv
   (g : (i: nat{m <= i /\ i < n} -> slprop))
   (h : ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
   : slprop_equiv (bigstar m n f) (bigstar m n g)
-  = bigstar_congr #0 m n m n f g (fun i -> h (i+m));
+  = bigstar_congr #0 #0 m n m n f g (fun i -> h (i+m));
     assert (bigstar m n f == bigstar m n g);
     coerce_eq () <| slprop_equiv_refl (bigstar m n f)
 

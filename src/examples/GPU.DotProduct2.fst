@@ -176,7 +176,7 @@ ghost fn fold_barrier_matrix_false
 ```pulse
 ghost
 fn mk_barrier_pre
-  (nth : SZ.t)
+  (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array U64.t nth)
   (b: erased (barrier nth))
   (vv: erased (Seq.seq U64.t))
@@ -207,7 +207,7 @@ fn mk_barrier_pre
 [@@ CPrologue "__device__"]
 ```pulse
 fn iteration
-  (nth : SZ.t)
+  (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array U64.t nth)
   (b: erased (barrier nth))
   (vv: erased (Seq.seq U64.t))
@@ -324,17 +324,17 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (Seq.seq
 [@@ CPrologue "__global__"]
 ```pulse
 fn kernel
-  (nth : SZ.t)
+  (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (ga1 ga2 : gpu_array U64.t nth)
   (r : gpu_array U64.t nth)
   (#s1 #s2: erased (Seq.seq U64.t))
   (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth ))
   (b: erased (barrier nth))
-  (etid : erased nat{etid < SZ.v nth})
-  requires gpu ** thread_id etid ** kpre  nth ga1 ga2 r #s1 #s2 b etid
-  ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b etid
+  (etid : erased tid_t { gdim_x etid == 1ul /\ bdim_x etid == SZ.sizet_to_uint32 nth })
+  requires gpu ** thread_id etid ** kpre  nth ga1 ga2 r #s1 #s2 b (thread_index etid)
+  ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b (thread_index etid)
 {
-  let tid : U32.t = block_idx_x ();
+  let tid : U32.t = thread_idx_x ();
   let tid : SZ.t = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r #s1 #s2 b tid);
 
@@ -469,10 +469,10 @@ fn main
     bigstar 0 size
       (kpre size ga1 ga2 gr #v1 #v2 b)
   as
-    bigstar 0 (U32.v (sizet_to_u32 size))
+    bigstar 0 (1 * U32.v (sizet_to_u32 size))
       (kpre size ga1 ga2 gr #v1 #v2 b);
 
-  launch_kernel_n (sizet_to_u32 size)
+  launch_kernel_n_m 1ul (sizet_to_u32 size)
     #(kpre size ga1 ga2 gr #v1 #v2 b)
     #(kpost size ga1 ga2 gr #v1 #v2 b)
     (fun etid -> kernel size ga1 ga2 gr #v1 #v2 b etid);
@@ -480,7 +480,7 @@ fn main
   (**)bigstar_eta ();
   // TODO:
   (**)drop_
-        (bigstar 0 (U32.v (sizet_to_u32 size)) (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
+        (bigstar 0 (1 * U32.v (sizet_to_u32 size)) (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
   let it = 10;
   (**)assume_
         (bigstar 0 size

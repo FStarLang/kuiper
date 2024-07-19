@@ -66,12 +66,12 @@ fn kernel
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
   (nth : erased nat { nth == rows * columns })
-  (etid : nat{ etid < nth })
+  (etid : erased tid_t { (gdim_x etid <: nat) == nth /\ bdim_x etid == 1ul })
   requires gpu
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 nth etid
+    ** kpre rows shared columns ga1 ga2 r #s1 #s2 nth (thread_index etid)
     ** thread_id etid
   ensures  gpu
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 nth etid
+    ** kpost rows shared columns ga1 ga2 r #s1 #s2 nth (thread_index etid)
     ** thread_id etid
 {
   open FStar.SizeT;
