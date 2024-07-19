@@ -154,33 +154,59 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
-                FStar_Extraction_ML_Syntax.MLE_App
+                FStar_Extraction_ML_Syntax.MLE_TApp
                 ({
                    FStar_Extraction_ML_Syntax.expr =
-                     FStar_Extraction_ML_Syntax.MLE_App
-                     ({
-                        FStar_Extraction_ML_Syntax.expr =
-                          FStar_Extraction_ML_Syntax.MLE_TApp
-                          ({
-                             FStar_Extraction_ML_Syntax.expr =
-                               FStar_Extraction_ML_Syntax.MLE_Name p;
-                             FStar_Extraction_ML_Syntax.mlty = uu___1;
-                             FStar_Extraction_ML_Syntax.loc = uu___2;_},
-                           uu___3);
-                        FStar_Extraction_ML_Syntax.mlty = uu___4;
-                        FStar_Extraction_ML_Syntax.loc = uu___5;_},
-                      e2::[]);
-                   FStar_Extraction_ML_Syntax.mlty = uu___6;
-                   FStar_Extraction_ML_Syntax.loc = uu___7;_},
-                 _perm::[]);
-              FStar_Extraction_ML_Syntax.mlty = uu___8;
-              FStar_Extraction_ML_Syntax.loc = uu___9;_},
-            _v::[])
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::_unit::[])
            when
-           let uu___10 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___10 = "GPU.Ref.gpu_read" ->
-           let uu___10 = let uu___11 = cb e2 in (uu___11, zero_for_deref) in
-           FStar_Extraction_Krml.EBufRead uu___10
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Ref.gpu_alloc0" ->
+           let sz1 = get_sizet sz in
+           let uu___5 =
+             let uu___6 =
+               let uu___7 =
+                 let uu___8 = let uu___9 = cb sz1 in [uu___9] in
+                 ((FStar_Extraction_Krml.EQualified ([], "PULSE_GPU_ALLOC")),
+                   uu___8) in
+               FStar_Extraction_Krml.EApp uu___7 in
+             let uu___7 =
+               let uu___8 = FStar_Extraction_Krml.translate_type env ty in
+               FStar_Extraction_Krml.TBuf uu___8 in
+             (uu___6, uu___7) in
+           FStar_Extraction_Krml.ECast uu___5
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 uu___3);
+              FStar_Extraction_ML_Syntax.mlty = uu___4;
+              FStar_Extraction_ML_Syntax.loc = uu___5;_},
+            r::_v::[])
+           when
+           let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___6 = "GPU.Ref.gpu_free" ->
+           let uu___6 =
+             let uu___7 =
+               let uu___8 =
+                 let uu___9 =
+                   let uu___10 = let uu___11 = cb r in [uu___11] in
+                   ((FStar_Extraction_Krml.EQualified ([], "cudaFree")),
+                     uu___10) in
+                 FStar_Extraction_Krml.EApp uu___9 in
+               [uu___8] in
+             ((FStar_Extraction_Krml.EQualified ([], "MUST")), uu___7) in
+           FStar_Extraction_Krml.EApp uu___6
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -231,30 +257,23 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  ty::[]);
               FStar_Extraction_ML_Syntax.mlty = uu___3;
               FStar_Extraction_ML_Syntax.loc = uu___4;_},
-            sz::elen::a::ga::cnt::f::v::gv::[])
+            sz::r::gr::f::v::gv::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___5 = "GPU.Array.gpu_memcpy_device_to_host" ->
+           uu___5 = "GPU.Ref.gpu_memcpy_host_to_device" ->
            let sz1 = get_sizet sz in
-           let bytesize =
-             let uu___5 =
-               let uu___6 =
-                 let uu___7 = cb sz1 in
-                 let uu___8 = let uu___9 = cb cnt in [uu___9] in uu___7 ::
-                   uu___8 in
-               ((FStar_Extraction_Krml.EOp
-                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
-                 uu___6) in
-             FStar_Extraction_Krml.EApp uu___5 in
            let uu___5 =
              let uu___6 =
                let uu___7 =
                  let uu___8 =
                    let uu___9 =
-                     let uu___10 = cb a in
+                     let uu___10 = cb gr in
                      let uu___11 =
-                       let uu___12 = cb ga in
-                       [uu___12; bytesize; cudaMemcpyDeviceToHost] in
+                       let uu___12 = cb r in
+                       let uu___13 =
+                         let uu___14 = cb sz1 in
+                         [uu___14; cudaMemcpyHostToDevice] in
+                       uu___12 :: uu___13 in
                      uu___10 :: uu___11 in
                    ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
                      uu___9) in
@@ -274,30 +293,23 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  ty::[]);
               FStar_Extraction_ML_Syntax.mlty = uu___3;
               FStar_Extraction_ML_Syntax.loc = uu___4;_},
-            sz::elen::a::ga::cnt::f::v::gv::[])
+            sz::r::gr::f::v::gv::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___5 = "GPU.Array.gpu_memcpy_host_to_device" ->
+           uu___5 = "GPU.Ref.gpu_memcpy_device_to_host" ->
            let sz1 = get_sizet sz in
-           let bytesize =
-             let uu___5 =
-               let uu___6 =
-                 let uu___7 = cb sz1 in
-                 let uu___8 = let uu___9 = cb cnt in [uu___9] in uu___7 ::
-                   uu___8 in
-               ((FStar_Extraction_Krml.EOp
-                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
-                 uu___6) in
-             FStar_Extraction_Krml.EApp uu___5 in
            let uu___5 =
              let uu___6 =
                let uu___7 =
                  let uu___8 =
                    let uu___9 =
-                     let uu___10 = cb ga in
+                     let uu___10 = cb r in
                      let uu___11 =
-                       let uu___12 = cb a in
-                       [uu___12; bytesize; cudaMemcpyHostToDevice] in
+                       let uu___12 = cb gr in
+                       let uu___13 =
+                         let uu___14 = cb sz1 in
+                         [uu___14; cudaMemcpyDeviceToHost] in
+                       uu___12 :: uu___13 in
                      uu___10 :: uu___11 in
                    ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
                      uu___9) in
@@ -407,6 +419,92 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
              let uu___8 = cb idx in
              let uu___9 = cb v in (uu___7, uu___8, uu___9) in
            FStar_Extraction_Krml.EBufWrite uu___6
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::elen::a::ga::cnt::f::v::gv::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Array.gpu_memcpy_host_to_device" ->
+           let sz1 = get_sizet sz in
+           let bytesize =
+             let uu___5 =
+               let uu___6 =
+                 let uu___7 = cb sz1 in
+                 let uu___8 = let uu___9 = cb cnt in [uu___9] in uu___7 ::
+                   uu___8 in
+               ((FStar_Extraction_Krml.EOp
+                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
+                 uu___6) in
+             FStar_Extraction_Krml.EApp uu___5 in
+           let uu___5 =
+             let uu___6 =
+               let uu___7 =
+                 let uu___8 =
+                   let uu___9 =
+                     let uu___10 = cb ga in
+                     let uu___11 =
+                       let uu___12 = cb a in
+                       [uu___12; bytesize; cudaMemcpyHostToDevice] in
+                     uu___10 :: uu___11 in
+                   ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
+                     uu___9) in
+                 FStar_Extraction_Krml.EApp uu___8 in
+               [uu___7] in
+             ((FStar_Extraction_Krml.EQualified ([], "MUST")), uu___6) in
+           FStar_Extraction_Krml.EApp uu___5
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sz::elen::a::ga::cnt::f::v::gv::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Array.gpu_memcpy_device_to_host" ->
+           let sz1 = get_sizet sz in
+           let bytesize =
+             let uu___5 =
+               let uu___6 =
+                 let uu___7 = cb sz1 in
+                 let uu___8 = let uu___9 = cb cnt in [uu___9] in uu___7 ::
+                   uu___8 in
+               ((FStar_Extraction_Krml.EOp
+                   (FStar_Extraction_Krml.Mult, FStar_Extraction_Krml.SizeT)),
+                 uu___6) in
+             FStar_Extraction_Krml.EApp uu___5 in
+           let uu___5 =
+             let uu___6 =
+               let uu___7 =
+                 let uu___8 =
+                   let uu___9 =
+                     let uu___10 = cb a in
+                     let uu___11 =
+                       let uu___12 = cb ga in
+                       [uu___12; bytesize; cudaMemcpyDeviceToHost] in
+                     uu___10 :: uu___11 in
+                   ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
+                     uu___9) in
+                 FStar_Extraction_Krml.EApp uu___8 in
+               [uu___7] in
+             ((FStar_Extraction_Krml.EQualified ([], "MUST")), uu___6) in
+           FStar_Extraction_Krml.EApp uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -550,7 +648,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___354 : unit) =
+let (uu___411 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
