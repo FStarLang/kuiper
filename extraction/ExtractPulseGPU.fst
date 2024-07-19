@@ -78,8 +78,11 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   match e.expr with
 
   | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "GPU.Base.block_idx_x" ->
-    escape_hatch "blockIdx.x"
+    when string_of_mlpath p = "GPU.Base.block_idx_x" -> escape_hatch "blockIdx.x"
+  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
+    when string_of_mlpath p = "GPU.Base.block_dim_x" -> escape_hatch "blockDim.x"
+  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
+    when string_of_mlpath p = "GPU.Base.thread_idx_x" -> escape_hatch "threadIdx.x"
 
   | MLE_App ({ expr = MLE_Name p } , [ sz ])
     when string_of_mlpath p = "GPU.SizeT.sizet_to_u32" ->
