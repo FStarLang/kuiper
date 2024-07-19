@@ -125,7 +125,7 @@ fn main (_:unit)
 
   launch_kernel_n nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
-    (kernel #(hide nthr) m_size ga1 ga2 gr);
+    (fun etid -> kernel #(hide nthr) m_size ga1 ga2 gr etid);
 
   rewrite
     (bigstar 0 (U32.v nthr)  (kpost m_size ga1 ga2 gr))
