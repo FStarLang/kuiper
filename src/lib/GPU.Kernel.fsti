@@ -117,7 +117,7 @@ fn launch_kernel_1
   requires cpu ** pre
   ensures  cpu ** post
 {
-  bigstar_single_intro 0 0 (fun (i: nat { 0 <= i /\ i < 1 }) -> pre);
+  bigstar_single_intro 0 (fun (i: nat { 0 <= i /\ i < 1 }) -> pre);
   launch_kernel_n 1ul (fun etid -> kernel_1_as_n #pre #post k etid);
   bigstar_single_elim #0;
 }

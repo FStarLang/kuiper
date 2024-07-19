@@ -240,8 +240,8 @@ ghost fn bigstar_zs_elim
 ```
 
 ```pulse
-ghost fn bigstar_zs_intro
-  (#[exact (`0)] u1 : int)
+ghost fn __bigstar_zs_intro
+  (# u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < m} -> slprop))
   requires emp
@@ -250,6 +250,7 @@ ghost fn bigstar_zs_intro
   rewrite emp as bigstar #u1 m m f;
 }
 ```
+let bigstar_zs_intro #u = __bigstar_zs_intro #u
 
 ```pulse
 ghost fn bigstar_single_elim
@@ -265,17 +266,18 @@ ghost fn bigstar_single_elim
 ```
 
 ```pulse
-ghost fn bigstar_single_intro
-  (#[exact (`0)] u1 : int)
+ghost fn __bigstar_single_intro
+  (# u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
   requires f m
   ensures  bigstar #u1 m (m+1) f
 {
-  bigstar_zs_intro u1 (m+1) f;
+  bigstar_zs_intro #u1 (m+1) f;
   bigstar_push #u1 m (m+1) f;
 }
 ```
+let bigstar_single_intro #u = __bigstar_single_intro #u
 
 ```pulse
 ghost fn rec bigstar_emp_elim
@@ -402,7 +404,7 @@ ghost fn rec bigstar_commute
       #(fun (i: nat{m0 <= i /\ i < n0}) -> bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> f i j)) #_
       (fun (i: nat{m0 <= i /\ i < n0}) -> bigstar_zs_elim #_ #_ #_);
     bigstar_emp_elim #u1 #m0 #n0;
-    bigstar_zs_intro u2 m1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j));
+    bigstar_zs_intro #u2 m1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j));
     rewrite (bigstar #u2 m1 m1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j)))
         as  bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j));
   } else {
