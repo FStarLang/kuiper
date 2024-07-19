@@ -67,6 +67,7 @@ fn thread_idx_x () (#n: tid_t)
 
 let lemma_mul_lt (a b: nat) (c: nat { a < c }) (d: nat { b <= d /\ d > 0 }): Lemma (a * b < c * d) = ()
 
+noextract inline_for_extraction
 ```pulse
 fn thread_idx_all () (#n: tid_t)
   requires thread_id n
