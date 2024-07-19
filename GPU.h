@@ -15,7 +15,7 @@ uint32_t * PULSE_GPU_ALLOC(size_t len)
 {
 	uint32_t *ret = NULL;
 	if (cudaMalloc(&ret, len) != cudaSuccess)
-		assert(0);
+		assert(!"cudaMalloc failed");
 	return ret;
 }
 
