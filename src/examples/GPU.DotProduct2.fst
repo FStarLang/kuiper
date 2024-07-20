@@ -57,13 +57,18 @@ let smin (a b: SZ.t ): SZ.t = if a <^ b then a else b
 
 // Pure SUM
 
-let rec sum_seq (s: Seq.seq U64.t) (i j:nat) (#_: squash (i < j && j <= Seq.length s)): Tot U64.t (decreases j - i) =
+let rec sum_seq (s: Seq.seq U64.t) (i j : nat)
+  : Ghost U64.t (requires i < j /\ j <= Seq.length s)
+                (ensures fun _ -> True)
+                (decreases j - i)
+=
   if i = j - 1 then Seq.index s i else U64.add_mod (Seq.index s i) (sum_seq s (i + 1) j)
 
 let add_mod_assoc (a b c: U64.t): Lemma (U64.add_mod (U64.add_mod a b) c = U64.add_mod a (U64.add_mod b c)) = admit()
 
 let rec sum_seq_lemma (s: Seq.seq U64.t) (i j k:nat):
-  Lemma (requires i < j && j < k && k <= Seq.length s) (ensures sum_seq s i k = U64.add_mod (sum_seq s i j) (sum_seq s j k)) (decreases j - i) =
+  Lemma (requires i < j && j < k && k <= Seq.length s)
+        (ensures sum_seq s i k = U64.add_mod (sum_seq s i j) (sum_seq s j k)) (decreases j - i) =
     if i = j - 1 then () else (sum_seq_lemma s (i + 1) j k; add_mod_assoc (Seq.index s i) (sum_seq s (i + 1) j) (sum_seq s j k))
 
 // Impure SUM
