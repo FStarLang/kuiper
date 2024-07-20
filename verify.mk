@@ -6,6 +6,7 @@ include .common.mk
 .PRECIOUS: out/%.cu
 .PRECIOUS: out/%.o
 .PRECIOUS: out/%.output
+.PRECIOUS: out/%.exe
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
@@ -46,7 +47,11 @@ KRML := $(KRML_HOME)/krml				\
 	$(if $(V), -verbose,-silent)			\
 	-minimal					\
 	-drop Prims					\
-	-warn-error -2@4
+	-warn-error -2@4-10
+
+# 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
+# 4: type error / malformed input; krml usually skips the decl, we fail hard
+# 10: do not warn about -drop being deprecated (though we should use -bundle instead)
 
 # This sandwich is needed so all is the first rule (and not
 # something in the include), and verify-all can refer to ALL_CHECKED_FILES,

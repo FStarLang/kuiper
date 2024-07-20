@@ -30,6 +30,8 @@ RUNLIM=
 ifneq ($(V),)
 	Q=
 	SIL=
+else
+MAKEFLAGS+=-s
 endif
 
 define NO_RUNLIM_ERR
