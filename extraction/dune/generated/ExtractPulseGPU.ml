@@ -62,9 +62,9 @@ let (head_and_args :
 let (escape_hatch : Prims.string -> FStar_Extraction_Krml.expr) =
   fun s ->
     FStar_Extraction_Krml.EComment
-      ("*/ ( /*",
+      ("",
         (FStar_Extraction_Krml.EConstant (FStar_Extraction_Krml.UInt32, "0")),
-        (Prims.strcat "*/ , " (Prims.strcat s ") /* ")))
+        (Prims.strcat "*/ + " (Prims.strcat s " /* ")))
 let (zero_for_deref : FStar_Extraction_Krml.expr) =
   FStar_Extraction_Krml.EQualified (["C"], "_zero_for_deref")
 let (cudaMemcpyDeviceToHost : FStar_Extraction_Krml.expr) =

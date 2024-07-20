@@ -59,7 +59,8 @@ let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
   aux [] e
 
 let escape_hatch (s:string) : expr =
-  EComment ("*/ ( /*", EConstant (UInt32, "0"), "*/ , " ^ s ^ ") /* ")
+  (* EComment ("*/ ( /*", EConstant (UInt32, "0"), "*/ , " ^ s ^ ") /* ") *)
+  EComment ("", EConstant (UInt32, "0"), "*/ + " ^ s ^ " /* ")
 
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
