@@ -1,12 +1,17 @@
 include .common.mk
 
-# No default rules
+# I HATE MAKE!
 .SUFFIXES:
+.PRECIOUS: out/%.c
+.PRECIOUS: out/%.cu
+.PRECIOUS: out/%.o
+.DELETE_ON_ERROR:
+MAKEFLAGS += --no-builtin-rules
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
 CACHEDIR := .cache
-OUTDIR   := .out
+OUTDIR   := out
 
 # Without .cmxs extension
 PLUGIN=extraction/dune/_build/default/gpuextr
@@ -26,7 +31,6 @@ FSTAR := fstar.exe					\
 	--include src/examples/				\
 	--include src/examples/matmul/			\
 	--load_cmxs pulse				\
-	--load_cmxs $(PLUGIN)				\
 	--warn_error -249-321				\
 	$(FSTAR_FLAGS)
 	
@@ -56,7 +60,7 @@ include .depend
 verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
-%.checked: | $(PLUGIN).cmxs
+%.checked:
 	@$(call msg, "CHECK", $(notdir $@))
 	$(Q)$(FSTAR) $<
 	@touch -c $@
@@ -76,18 +80,29 @@ echo-krml:
 	$(call msg, "DEPEND")
 	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
 
-# Awful special casing
-out/GPU.DotProduct/GPU_DotProduct.cu: .cache/GPU.DotProduct.fst.checked $(PLUGIN).cmxs
-	./extract_cu.sh GPU.DotProduct
-out/GPU.Example1/GPU_Example1.cu: .cache/GPU.Example1.fst.checked $(PLUGIN).cmxs
-	./extract_cu.sh GPU.Example1
-out/GPU.DotProduct2/GPU_DotProduct2.cu: .cache/GPU.DotProduct2.fst.checked $(PLUGIN).cmxs
-	./extract_cu.sh GPU.DotProduct2
+# Invalidate when plugin changes
+$(OUTDIR)/%.krml: | $(PLUGIN).cmxs
+	@# Stupid renaming!
+	$(FSTAR) --codegen krml 						\
+		--load_cmxs $(PLUGIN)						\
+		--extract "-*" 							\
+		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
+		--odir $(shell dirname $@)					\
+		$(patsubst .cache/%.checked,src/examples/%,$<)
+
+$(OUTDIR)/%.c: $(OUTDIR)/%.krml
+	$(KRML) -tmpdir $(OUTDIR) $<
+
+$(OUTDIR)/%.cu: $(OUTDIR)/%.c
+	ln -s $(realpath $<) $@
 
 %.o: %.cu
-	nvcc -o $@ -c $< -I $(KRML_HOME)/include/ -I $(KRML_HOME)/krmllib/dist/minimal/
+	nvcc -o $@ -c $<
+
+$(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
+	nvcc -I $(OUTDIR) -o $@ $^
 
 extraction-targets: \
-	out/GPU.DotProduct/GPU_DotProduct.o \
-	out/GPU.Example1/GPU_Example1.o \
-	out/GPU.DotProduct2/GPU_DotProduct2.o \
+	out/GPU_DotProduct.o \
+	out/GPU_Example1.exe \
+	out/GPU_DotProduct2.exe \
