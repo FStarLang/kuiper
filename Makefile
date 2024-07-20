@@ -43,6 +43,6 @@ pull-pulse: pulse
 .PHONY: ci
 ci:
 	+$(MAKE) update-pulse
-	+$(MAKE) all
+	+$(MAKE) all test
 
 .SUFFIXES:

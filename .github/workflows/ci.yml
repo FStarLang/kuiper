@@ -50,8 +50,3 @@ jobs:
         run: |
           eval $(opam env)
           make -skj$(nproc) -Otarget ci
-
-      - name: Run test Makefile rule
-        run: |
-          eval $(opam env)
-          make -skj$(nproc) -Otarget test
