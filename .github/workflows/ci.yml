@@ -50,3 +50,9 @@ jobs:
         run: |
           eval $(opam env)
           make -skj$(nproc) -Otarget ci
+
+      - name: Make artifact with output
+        uses: actions/upload-artifact@master
+        with:
+          name: output
+          path: out/
