@@ -40,6 +40,11 @@ jobs:
       - run: which fstar.exe
       - run: which z3
 
+      - name: Check CUDA
+        run: |
+          eval $(opam env)
+          ./scripts/check-cuda.sh
+
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)
