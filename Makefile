@@ -29,9 +29,9 @@ update-pulse:
 	./scripts/update-pulse.sh "${PULSE_REPO}" "${PULSE_HASH}"
 	@# All we do is build the ocaml plugin. We check the library
 	@# files incrementally, on demand.
-	@echo "::group:build plugin"
+	@echo "::group::build plugin"
 	+$(MAKE) -C pulse/src/ build-ocaml
-	@echo "::endgroup"
+	@echo "::endgroup::"
 
 .PHONY: save-pulse
 save-pulse:
