@@ -9,7 +9,8 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, linux, X64]
+    # NB: we need the runner to have a working CUDA setup (toolkit + driver)
+    runs-on: [self-hosted, linux, X64, cuda]
     container:
       image: mtzguido/pulse-cuda-devcontainer
     defaults:
