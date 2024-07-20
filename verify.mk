@@ -96,7 +96,7 @@ $(OUTDIR)/%.c: $(OUTDIR)/%.krml
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 	ln -s $(realpath $<) $@
 
-%.o: %.cu
+%.o: %.cu GPU.h
 	nvcc -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
