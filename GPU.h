@@ -7,10 +7,11 @@
 
 #include <cuda_runtime.h>
 
-#define PULSE_KCALL(foo, nblk, nthr, ...)	do {	\
-	foo<<<nblk,nthr>>>(__VA_ARGS__);		\
-	if (cudaGetLastError() != cudaSuccess)		\
-		assert(!"kcall");			\
+#define PULSE_KCALL(foo, nblk, nthr, ...)				\
+	do {								\
+		foo<<<nblk,nthr>>>(__VA_ARGS__);			\
+		if (cudaGetLastError() != cudaSuccess)			\
+			assert(!"kcall");				\
 	} while (0)
 
 static inline
@@ -22,10 +23,11 @@ uint32_t * PULSE_GPU_ALLOC(size_t len)
 	return ret;
 }
 
-#define MUST(e)						({		\
-	cudaError_t uu___r = (e);					\
-	if (uu___r != cudaSuccess)					\
-		assert(!"CALL FAILED: " #e);				\
+#define MUST(e)								\
+	({								\
+		cudaError_t uu___r = (e);				\
+		if (uu___r != cudaSuccess)				\
+			assert(!"CALL FAILED: " #e);			\
 	})
 
 #define KRML_HOST_MALLOC            malloc
@@ -33,6 +35,10 @@ uint32_t * PULSE_GPU_ALLOC(size_t len)
 #define KRML_HOST_FREE              free
 #define KRML_HOST_IGNORE(x)         (void)(x)
 #define KRML_MAYBE_UNUSED_VAR(x)    KRML_HOST_IGNORE(x)
-#define KRML_CHECK_SIZE(sz,cnt)     0  // implement!
+#define KRML_CHECK_SIZE(size_elt, sz)					\
+	do {								\
+		if (((size_t)(sz)) > ((size_t)(SIZE_MAX / (size_elt))))	\
+			assert(!"CHECK_SIZE");				\
+	} while (0)
 
 #endif
