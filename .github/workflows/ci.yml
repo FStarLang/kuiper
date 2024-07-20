@@ -52,6 +52,7 @@ jobs:
           make -skj$(nproc) -Otarget ci
 
       - name: Make artifact with output
+        if: ${{ always () }}
         uses: actions/upload-artifact@master
         with:
           name: output
