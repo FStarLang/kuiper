@@ -10,6 +10,10 @@ all: verify-all
 verify-all: pulse
 	+$(MAKE) -f verify.mk all
 
+.PHONY: test
+test: pulse
+	+$(MAKE) -f verify.mk test
+
 .PHONY: echo-fstar
 echo-fstar: pulse
 	+$(MAKE) -f verify.mk $@
