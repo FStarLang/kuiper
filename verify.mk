@@ -41,9 +41,9 @@ KRML := $(KRML_HOME)/krml				\
 	-add-early-include '"$(GPUH)"'			\
 	-fc++-compat					\
 	-fcast-allocations				\
-	-verbose					\
 	-skip-compilation				\
 	-skip-makefiles					\
+	$(if $(V), -verbose,-silent)			\
 	-minimal					\
 	-drop Prims					\
 	-warn-error -2@4
@@ -62,7 +62,7 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
 %.checked:
-	@$(call msg, "CHECK", $(notdir $@))
+	@$(call msg, "CHECK",$(notdir $@))
 	$(Q)$(FSTAR) $<
 	@touch -c $@
 
@@ -78,13 +78,14 @@ echo-krml:
 	@echo $(KRML)
 
 .depend: $(ROOTS)
-	$(call msg, "DEPEND")
+	$(call msg,"DEPEND")
 	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
 
 # Invalidate when plugin changes
 $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 	@# Stupid renaming!
-	$(FSTAR) --codegen krml 						\
+	$(call msg,"EXTRACT",$@)
+	$(Q)$(FSTAR) --codegen krml 						\
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
@@ -92,26 +93,31 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		$(patsubst .cache/%.checked,src/examples/%,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
-	$(KRML) -tmpdir $(OUTDIR) $<
+	$(call msg,"KRML",$@)
+	$(Q)$(KRML) -tmpdir $(OUTDIR) $<
 
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
-	ln -s $(realpath $<) $@
+	@ln -s $(realpath $<) $@
 
 %.o: %.cu GPU.h
-	nvcc -o $@ -c $<
+	$(call msg,"NVCC",$@)
+	$(Q)nvcc -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
-	nvcc -I $(OUTDIR) -o $@ $^
+	$(call msg,"NVCC",$@)
+	$(Q)nvcc -I $(OUTDIR) -o $@ $^
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 	$< > $@
 
 $(OUTDIR)/%.test: test/%.output.expected $(OUTDIR)/%.output
-	diff -u $^
-	touch $@
+	$(Q)diff -u $^
+	$(call msg,"TEST OK",$@)
+	@touch $@
 
 $(OUTDIR)/%.accept: $(OUTDIR)/%.output
-	cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
+	$(call msg,"ACCEPT",$@)
+	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
 extraction-targets: \
 	out/GPU_DotProduct.o \
