@@ -5,6 +5,7 @@ include .common.mk
 .PRECIOUS: out/%.c
 .PRECIOUS: out/%.cu
 .PRECIOUS: out/%.o
+.PRECIOUS: out/%.output
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
@@ -102,7 +103,25 @@ $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	nvcc -I $(OUTDIR) -o $@ $^
 
+$(OUTDIR)/%.output: $(OUTDIR)/%.exe
+	$< > $@
+
+$(OUTDIR)/%.test: test/%.output.expected $(OUTDIR)/%.output
+	diff -u $^
+	touch $@
+
+$(OUTDIR)/%.accept: $(OUTDIR)/%.output
+	cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
+
 extraction-targets: \
 	out/GPU_DotProduct.o \
 	out/GPU_Example1.exe \
 	out/GPU_DotProduct2.exe \
+
+TESTS+=GPU_Example1
+TESTS+=GPU_DotProduct2
+
+.PHONY: test
+test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
+.PHONY: accept
+accept: $(patsubst %,$(OUTDIR)/%.accept,$(TESTS))
