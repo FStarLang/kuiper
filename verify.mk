@@ -38,6 +38,9 @@ KRML := $(KRML_HOME)/krml				\
 	-fcast-allocations				\
 	-verbose					\
 	-skip-compilation				\
+	-skip-makefiles					\
+	-minimal					\
+	-drop Prims					\
 	-warn-error -2@4
 
 # This sandwich is needed so all is the first rule (and not

@@ -28,4 +28,11 @@ uint32_t * PULSE_GPU_ALLOC(size_t len)
 		assert(!"CALL FAILED: " #e);				\
 	})
 
+#define KRML_HOST_MALLOC            malloc
+#define KRML_HOST_CALLOC            calloc
+#define KRML_HOST_FREE              free
+#define KRML_HOST_IGNORE(x)         (void)(x)
+#define KRML_MAYBE_UNUSED_VAR(x)     KRML_HOST_IGNORE(x)
+#define KRML_CHECK_SIZE(sz,cnt)     0  // implement!
+
 #endif
