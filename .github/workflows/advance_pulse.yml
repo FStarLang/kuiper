@@ -9,6 +9,7 @@ jobs:
     runs-on: [self-hosted, linux, X64, cuda]
     container:
       image: mtzguido/pulse-cuda-devcontainer
+      options: --gpus all
     defaults:
       run:
         # Setting the default shell to bash. This is not only more standard,
