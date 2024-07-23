@@ -144,7 +144,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                 FStar_Extraction_ML_Syntax.MLE_Name p;
               FStar_Extraction_ML_Syntax.mlty = uu___1;
               FStar_Extraction_ML_Syntax.loc = uu___2;_},
-            u1::u2::u3::u4::u5::[])
+            u1::u2::u3::u4::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___3 = "GPU.MatrixBarrier.mbarrier_wait" ->
