@@ -76,8 +76,9 @@ fn kernel
     ** thread_id etid
 {
   open FStar.SizeT;
-  
-  let tid = block_idx_x ();
+
+  let tid : U32.t = block_idx_x ();
+  let tid : SZ.t = SZ.uint32_to_sizet tid;
 
   unfold kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (SZ.v tid);
   unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 (SZ.v nth);

@@ -49,24 +49,24 @@ let thread_count (n: tid_t): GTot pos = gdim_x n * bdim_x n
 val
 fn block_idx_x () (#n: tid_t)
   requires thread_id n
-  returns  id : SZ.t
-  ensures  thread_id n ** pure (id == bidx_x n)
+  returns  id : U32.t
+  ensures  thread_id n ** pure (SZ.uint32_to_sizet id == bidx_x n)
 ```
 
 ```pulse
 val
 fn block_dim_x () (#n: tid_t)
   requires thread_id n
-  returns  id : SZ.t
-  ensures  thread_id n ** pure (id == bdim_x n)
+  returns  id : U32.t
+  ensures  thread_id n ** pure (SZ.uint32_to_sizet id == bdim_x n)
 ```
 
 ```pulse
 val
 fn thread_idx_x () (#n: tid_t)
   requires thread_id n
-  returns  id : SZ.t
-  ensures  thread_id n ** pure (id == tidx_x n)
+  returns  id : U32.t
+  ensures  thread_id n ** pure (SZ.uint32_to_sizet id == tidx_x n)
 ```
 
 let lemma_mul_lt (a b: nat) (c: nat { a < c }) (d: nat { b <= d /\ d > 0 }): Lemma (a * b < c * d) = ()
@@ -84,6 +84,6 @@ fn thread_idx_all () (#n: tid_t)
   let bid = block_idx_x ();
   let bdim = block_dim_x ();
   let tid = thread_idx_x ();
-  SZ.add (SZ.mul bid bdim) tid 
+  SZ.add (SZ.mul (SZ.uint32_to_sizet bid) (SZ.uint32_to_sizet bdim)) (SZ.uint32_to_sizet tid) 
 }
 ```

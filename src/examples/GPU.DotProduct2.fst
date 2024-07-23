@@ -337,7 +337,8 @@ fn kernel
   requires gpu ** thread_id etid ** mbarrier_tok nth (barrier_matrix nth r (mul s1 s2)) 0 (tidx_x etid) ** kpre  nth ga1 ga2 r #s1 #s2 (thread_index etid)
   ensures  gpu ** thread_id etid ** (exists* it. mbarrier_tok nth (barrier_matrix nth r (mul s1 s2)) it (tidx_x etid)) ** kpost nth ga1 ga2 r #s1 #s2 (thread_index etid)
 {
-  let tid : SZ.t = thread_idx_x ();
+  let tid : U32.t = thread_idx_x ();
+  let tid : SZ.t = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r #s1 #s2 tid);
 
   (**)unfold (gpu_pts_to_array #U64.t #(SZ.v nth) ga1 #(1.0R /. Real.of_int nth) s1);
