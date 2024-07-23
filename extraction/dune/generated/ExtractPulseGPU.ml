@@ -511,6 +511,45 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                 FStar_Extraction_ML_Syntax.MLE_Name p;
               FStar_Extraction_ML_Syntax.mlty = uu___1;
               FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            _uid::nblk::nthr::_pre::_post::_barrier::{
+                                             FStar_Extraction_ML_Syntax.expr
+                                               =
+                                               FStar_Extraction_ML_Syntax.MLE_Fun
+                                               (uu___3, body);
+                                             FStar_Extraction_ML_Syntax.mlty
+                                               = uu___4;
+                                             FStar_Extraction_ML_Syntax.loc =
+                                               uu___5;_}::[])
+           when
+           let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___6 = "GPU.Kernel.launch_kernel_n_m_barrier" ->
+           let uu___6 = head_and_args body in
+           (match uu___6 with
+            | (hd, args) ->
+                let args' =
+                  FStar_Compiler_List.filter
+                    (fun a ->
+                       match a.FStar_Extraction_ML_Syntax.expr with
+                       | FStar_Extraction_ML_Syntax.MLE_Const
+                           (FStar_Extraction_ML_Syntax.MLC_Unit) -> false
+                       | uu___7 -> true) args in
+                let kcall =
+                  FStar_Extraction_ML_Syntax.with_ty
+                    FStar_Extraction_ML_Syntax.ml_unit_ty
+                    (FStar_Extraction_ML_Syntax.MLE_Name ([], "PULSE_KCALL")) in
+                let e' =
+                  FStar_Extraction_ML_Syntax.with_ty
+                    FStar_Extraction_ML_Syntax.ml_unit_ty
+                    (FStar_Extraction_ML_Syntax.MLE_App
+                       (kcall,
+                         (FStar_List_Tot_Base.op_At [hd; nblk; nthr] args'))) in
+                cb e')
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
             _uid::nblk::nthr::_pre::_post::{
                                              FStar_Extraction_ML_Syntax.expr
                                                =
