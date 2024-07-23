@@ -50,7 +50,6 @@ fn main
   (**)fold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
   (**)Defs.gpu_matrix_share_underspec #_ #1 (SZ.v Defs.rows) (SZ.v Defs.shared) ga1 (SZ.v size) v1;
   (**)Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 (SZ.v size) v2;
-  admit();
 
   // Boring combination of resources
   (**)bigstar_zip #1 #2 #3 0 size _ _;
@@ -60,7 +59,7 @@ fn main
   with #f v. assert (gpu_pts_to_array gr #f v);
   assume_ (pure (Seq.length v == size)); // FIXME
 
-  (**)gpu_array_slice_1 #_ #4 gr #f #v;
+  (**)gpu_array_slice_1 #4 #_ gr #f #v;
   (**)bigstar_zip #3 #4 #5 0 size _ _;
   // admit();
   (**)bigstar_map #5 #5 #0 #size #_ #_
@@ -69,11 +68,12 @@ fn main
   // bigstar_uneta #5 #0 #size #(Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size);
   // bigstar_uneta #_ #_ #_ #_;
 
+  admit();
   launch_kernel_n #5
     size
     #_
     #_
-    (Defs.kernel ga1 ga2 gr size);
+    (fun (etid: erased tid_t {(gdim_x etid) == size /\ bdim_x etid == 1sz} ) -> Defs.kernel ga1 ga2 gr (hide size) etid);
 
   (**)bigstar_map #5 #5 #0 #size #_ #_
         (fun i -> Defs.unfold_post Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size i);

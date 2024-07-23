@@ -6,6 +6,7 @@ open FStar.Mul
 open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open GPU
+open GPU.SizeT
 module Impure = GPU.MatMul.Impure
 module Pure = GPU.MatMul.Pure
 module SZ = FStar.SizeT
@@ -65,25 +66,25 @@ fn kernel
   (ga1 : gpu_array U64.t (rows * shared)) (ga2 : gpu_array U64.t (shared * columns)) (r : gpu_array U64.t (rows * columns))
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
-  (nth : erased nat { nth == rows * columns })
-  (etid : erased tid_t { (gdim_x etid <: nat) == nth /\ bdim_x etid == 1ul })
+  (nth : erased SZ.t { SZ.v nth == SZ.v SZ.(rows *^ columns) })
+  (etid : erased tid_t { gdim_x etid == nth /\ bdim_x etid == 1sz })
   requires gpu
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 nth (thread_index etid)
+    ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
     ** thread_id etid
   ensures  gpu
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 nth (thread_index etid)
+    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
     ** thread_id etid
 {
   open FStar.SizeT;
   
   let tid = block_idx_x ();
 
-  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 nth (U32.v tid);
-  unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth;
+  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (SZ.v tid);
+  unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 (SZ.v nth);
 
   (* r[tid] = TODO *)
-  let trow = SZ.div (SZ.uint32_to_sizet tid) columns;
-  let tcol = SZ.rem (SZ.uint32_to_sizet tid) columns;
+  let trow = SZ.div tid columns;
+  let tcol = SZ.rem tid columns;
   // assert (pure (0 <= trow /\ trow < rows /\ 0 <= tcol /\ tcol < columns));
 
   let mut i = 0sz;
@@ -96,13 +97,13 @@ fn kernel
        pts_to i v **
        gpu **
        pts_to sum (Pure.matmul_single rows shared columns s1 s2 trow tcol (SZ.v v))
-       ** Impure.gpu_pts_to_matrix #U64.t rows shared ga1 nth s1
-       ** Impure.gpu_pts_to_matrix #U64.t shared columns ga2 nth s2
+       ** Impure.gpu_pts_to_matrix #U64.t rows shared ga1 (SZ.v nth) s1
+       ** Impure.gpu_pts_to_matrix #U64.t shared columns ga2 (SZ.v nth) s2
   {
     let v = !i;
     let s = !sum;
-    let v1 = Impure.gpu_matrix_read #U64.t #rows #shared ga1 #nth #s1 trow v;
-    let v2 = Impure.gpu_matrix_read #U64.t #shared #columns ga2 #nth #s2 v tcol;
+    let v1 = Impure.gpu_matrix_read #U64.t #rows #shared ga1 #(SZ.v nth) #s1 trow v;
+    let v2 = Impure.gpu_matrix_read #U64.t #shared #columns ga2 #(SZ.v nth) #s2 v tcol;
 
     i := SZ.add v 1sz;
     sum := U64.add_mod (U64.mul_mod v1 v2) s;
@@ -112,14 +113,14 @@ fn kernel
   };
 
   let s = !sum;
-  gpu_array_write #U64.t #(rows * columns) #((U32.v tid)) #((U32.v tid + 1)) r (SZ.uint32_to_sizet tid) s;
+  gpu_array_write #U64.t #(rows * columns) #((SZ.v tid)) #((SZ.v tid + 1)) r tid s;
 
   with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
   (**)Seq.Base.lemma_eq_intro v (singleton s);
   (**)rewrite gpu_pts_to_array_slice r tid (tid + 1) v
     as gpu_pts_to_array_slice r tid (tid + 1) (singleton s);
 
-  fold kpost rows shared columns ga1 ga2 r #s1 #s2 nth tid;
+  fold kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) tid;
   ()
 }
 ```

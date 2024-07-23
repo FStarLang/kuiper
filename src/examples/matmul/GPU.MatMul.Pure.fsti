@@ -22,8 +22,8 @@ let rec matmul_single
 #push-options "--retry 2" 
 let matmul_single_lemma
   (rows shared columns: nat)
-  (s1: Seq.Base.seq U64.t{ Seq.Base.length s1 == rows * shared })
-  (s2 : Seq.Base.seq U64.t{ Seq.Base.length s2 == shared * columns })
+  (s1: (Seq.Base.seq U64.t){ Seq.Base.length s1 == rows * shared })
+  (s2 : (Seq.Base.seq U64.t){ Seq.Base.length s2 == shared * columns })
   (row: nat{row < rows}) (col: nat{col < columns}) (to: nat)
     : Lemma
       (requires (0 < to /\ to <= shared))

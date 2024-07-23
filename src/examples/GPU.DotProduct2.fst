@@ -171,7 +171,8 @@ ghost fn fold_barrier_matrix_false
   ensures  barrier_matrix nth r v it tid to
 {
   assert (pure (tid < to + pow2 it /\ not (op_Equality #nat tid (to + pow2 it))));
-  if_intro_false (op_Equality #nat tid (to + pow2 it)) (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
+  if_intro_false (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
+  // (op_Equality #nat tid (to + pow2 it))
   fold (barrier_matrix nth r v it tid to);
 }
 ```
@@ -183,7 +184,6 @@ ghost
 fn mk_barrier_pre
   (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array U64.t nth)
-  (b: erased (barrier nth))
   (vv: erased (Seq.seq U64.t))
   (#_: squash (Seq.length vv == nth))
   (tid : SZ.t{SZ.v tid < nth})
@@ -199,9 +199,10 @@ fn mk_barrier_pre
   } else {
     FStar.Math.Lemmas.modulo_lemma tid (spow2 it);
     FStar.Math.Lemmas.modulo_lemma 0 (spow2 (it +^ 1sz));
-    // assert (pure (tid <> 0 ==> not (div_pow2 it tid)));
-    // assert (pure (tid = 0 ==> (div_pow2 (it + 1) tid)));
-    if_elim_false _ _;
+    // assert (pure ((tid <: nat) <> 0 ==> not (div_pow2 it tid)));
+    // assert (pure ((tid <: nat) = 0 ==> (div_pow2 (it + 1) tid)));
+    if_rewrite_bool (op_Negation (div_pow2 (SZ.v it + 1) (SZ.v tid)) && div_pow2 (SZ.v it) (SZ.v tid)) false _;
+    if_elim_false _;
 
     bigstar_emp_intro 0 nth;
     bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> emp) (fold_barrier_matrix_false nth r vv it tid);
@@ -214,16 +215,15 @@ fn mk_barrier_pre
 fn iteration
   (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array U64.t nth)
-  (b: erased (barrier nth))
   (vv: erased (Seq.seq U64.t))
   (#_: squash (Seq.length vv == nth))
   (tid : SZ.t{SZ.v tid < nth})
   (it: SZ.t{it < 31})
   requires gpu
-    ** mbarrier_tok (barrier_matrix nth r vv) b it tid
+    ** mbarrier_tok nth (barrier_matrix nth r vv) it tid
     ** if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv)
   ensures gpu
-    ** mbarrier_tok (barrier_matrix nth r vv) b (it+1) tid
+    ** mbarrier_tok nth (barrier_matrix nth r vv) (it+1) tid
     ** if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv)
 {
   open FStar.SizeT;
@@ -240,8 +240,8 @@ fn iteration
       as (if_ (div_pow2 (it + 1) tid)
             (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
 
-  mk_barrier_pre nth r b vv tid it;
-  mbarrier_wait #(SZ.v nth) #(barrier_matrix nth r vv) b #(SZ.v it) #(SZ.v tid);
+  mk_barrier_pre nth r vv tid it;
+  mbarrier_wait #(SZ.v nth) #(barrier_matrix nth r vv) #(SZ.v it) #(SZ.v tid);
 
   bigstar_map #_ #_ #0 #nth (fun (from: nat { 0 <= from /\ from < nth }) -> unfold_barrier_matrix nth r vv it from tid);
 
@@ -268,13 +268,13 @@ fn iteration
       
     if b {
       assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
-      if_elim_true _ _;
-    
+      if_elim_true _;
+
       unfold (gpu_pts_to_slice_sum r tid middle vv);
-      if_elim_true _ _;
+      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid middle vv s);
       unfold gpu_pts_to_slice_sum_inner;
       unfold (gpu_pts_to_slice_sum r middle end_ vv);
-      if_elim_true _ _;
+      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r middle end_ vv s);
       unfold gpu_pts_to_slice_sum_inner;
 
       let s1 = gpu_array_read #U64.t #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid;
@@ -290,39 +290,38 @@ fn iteration
       with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
       // assert (pure (Seq.index seq 0 == s));
       fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
-      if_intro_true (tid < reveal end_ && reveal end_ <= nth) (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
+      if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
       fold (gpu_pts_to_slice_sum r tid end_ vv);
-      if_intro_true (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ vv);
+      if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
     } else {
-      if_elim_false _ _;
-      if_intro_false (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid end_ vv);
+      if_elim_false _;
+      if_intro_false (gpu_pts_to_slice_sum r tid end_ vv);
     }
   } else {
     bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
       (fun (from: nat{0 <= from /\ from < nth}) ->
-        if_elim_false (op_Equality #nat from (tid + pow2 it)) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv)));
+        if_rewrite_bool (op_Equality #nat from (tid + pow2 it)) false _);
+    bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
+      (fun (from: nat{0 <= from /\ from < nth}) ->
+        if_elim_false (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv)));
     bigstar_emp_elim #_;
   }
 }
 ```
 
 let kpre (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (Seq.seq U64.t))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth ))
-  (b: erased (barrier nth)) (tid:nat{tid < nth})
+  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     (gpu_pts_to_array #U64.t #nth ga1 #(1.0R /. Real.of_int nth) s1 **
     gpu_pts_to_array #U64.t #nth ga2 #(1.0R /. Real.of_int nth) s2) **
-    gpu_pts_to_array1 r tid **
-    mbarrier_tok (barrier_matrix nth r (mul s1 s2)) b 0 tid
+    gpu_pts_to_array1 r tid
 
 let kpost (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (Seq.seq U64.t))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth ))
-  (b: erased (barrier nth)) (tid:nat{tid < nth})
+  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     ((gpu_pts_to_array #U64.t #nth ga1 #(1.0R /. Real.of_int nth) s1 **
     gpu_pts_to_array #U64.t #nth ga2 #(1.0R /. Real.of_int nth) s2) **
-    if_ (tid = 0) (gpu_pts_to_slice_sum r 0 nth (mul s1 s2))) **
-    (exists* it. mbarrier_tok (barrier_matrix nth r (mul s1 s2)) b it tid)
+    if_ (tid = 0) (gpu_pts_to_slice_sum r 0 nth (mul s1 s2)))
 
 // #set-options "--ext pulse:env_on_err=1"
 
@@ -334,14 +333,12 @@ fn kernel
   (r : gpu_array U64.t nth)
   (#s1 #s2: erased (Seq.seq U64.t))
   (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth ))
-  (b: erased (barrier nth))
-  (etid : erased tid_t { gdim_x etid == 1ul /\ bdim_x etid == SZ.sizet_to_uint32 nth })
-  requires gpu ** thread_id etid ** kpre  nth ga1 ga2 r #s1 #s2 b (thread_index etid)
-  ensures  gpu ** thread_id etid ** kpost nth ga1 ga2 r #s1 #s2 b (thread_index etid)
+  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  requires gpu ** thread_id etid ** mbarrier_tok nth (barrier_matrix nth r (mul s1 s2)) 0 (tidx_x etid) ** kpre  nth ga1 ga2 r #s1 #s2 (thread_index etid)
+  ensures  gpu ** thread_id etid ** (exists* it. mbarrier_tok nth (barrier_matrix nth r (mul s1 s2)) it (tidx_x etid)) ** kpost nth ga1 ga2 r #s1 #s2 (thread_index etid)
 {
-  let tid : U32.t = thread_idx_x ();
-  let tid : SZ.t = SZ.uint32_to_sizet tid;
-  (**)unfold (kpre nth ga1 ga2 r #s1 #s2 b tid);
+  let tid : SZ.t = thread_idx_x ();
+  (**)unfold (kpre nth ga1 ga2 r #s1 #s2 tid);
 
   (**)unfold (gpu_pts_to_array #U64.t #(SZ.v nth) ga1 #(1.0R /. Real.of_int nth) s1);
   let v1 = gpu_array_read #U64.t #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
@@ -362,21 +359,21 @@ fn kernel
 
   (**)with s. assert (gpu_pts_to_array_slice r tid (tid+1) s);
   (**)fold (gpu_pts_to_slice_sum_inner #nth r tid (tid+1) dot_v s);
-  (**)if_intro_true (tid < tid + pow2 0 && tid + pow2 0 <= nth) (exists* s. gpu_pts_to_slice_sum_inner #nth r tid (tid + pow2 0) dot_v s);
+  (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid (tid + pow2 0) dot_v s);
   (**)fold (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
-  (**)if_intro_true (div_pow2 0 tid) (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
+  (**)if_intro_true (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
 
   while (let it = !n; (spow2 it <^ nth))
     invariant c.
     exists* (it:SZ.t).
       gpu **
       pts_to n it **
-      mbarrier_tok #nth (barrier_matrix nth r dot_v) b it tid **
+      mbarrier_tok nth (barrier_matrix nth r dot_v) it tid **
       if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) dot_v) **
       pure (c == (pow2 it < nth) /\ SZ.v it < 31)
   {
     let it = !n <: nat;
-    iteration nth r b dot_v tid it;
+    iteration nth r dot_v tid it;
     assume_ (pure (SZ.v it < 30)); // FIXME: overflow
     n := it +^ 1sz;
   };
@@ -389,11 +386,11 @@ fn kernel
   //     as  (if_ (tid = 0) (gpu_pts_to_slice_sum r tid nth dot_v));
 
   if (tid = 0sz) {
-    (**)if_elim_true _ _;
-    (**)if_intro_true (tid = 0sz) (gpu_pts_to_slice_sum r 0 nth dot_v);
-    (**)fold (kpost nth ga1 ga2 r #s1 #s2 b tid);
+    (**)if_elim_true (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) dot_v);
+    (**)if_intro_true (gpu_pts_to_slice_sum r 0 nth dot_v);
+    (**)fold (kpost nth ga1 ga2 r #s1 #s2 tid);
   } else {
-    (**)fold (kpost nth ga1 ga2 r #s1 #s2 b tid);
+    (**)fold (kpost nth ga1 ga2 r #s1 #s2 tid);
   };
 }
 ```
@@ -453,49 +450,43 @@ fn main
   (**)share_array ga2;
   (**)gpu_array_slice_1_underspec gr;
 
-  let b = mk_mbarrier size (barrier_matrix size gr (mul v1 v2));
-
   // Boring combination of resources
   (**)bigstar_zip 0 size (shared_array ga1) (shared_array ga2);
   (**)bigstar_zip 0 size _ (gpu_pts_to_array1 gr);
-  (**)bigstar_zip 0 size _ (mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0);
   (**)rewrite
     (bigstar 0 size
       (fun i -> ((shared_array #size ga1 #v1 i **
                  shared_array #size ga2 #v2 i) **
-                 gpu_pts_to_array1 gr i) **
-                 mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b 0 i))
+                 gpu_pts_to_array1 gr i)))
   as
-    (bigstar 0 size (fun i -> kpre size ga1 ga2 gr #v1 #v2 b i))
+    (bigstar 0 size (fun i -> kpre size ga1 ga2 gr #v1 #v2 i))
     by tadmit ();
   (**)bigstar_uneta ();
 
   rewrite
     bigstar 0 size
-      (kpre size ga1 ga2 gr #v1 #v2 b)
+      (kpre size ga1 ga2 gr #v1 #v2)
   as
-    bigstar 0 (1 * U32.v (sizet_to_u32 size))
-      (kpre size ga1 ga2 gr #v1 #v2 b);
+    bigstar 0 (1 * SZ.v size)
+      (kpre size ga1 ga2 gr #v1 #v2);
 
-  launch_kernel_n_m 1ul (sizet_to_u32 size)
-    #(kpre size ga1 ga2 gr #v1 #v2 b)
-    #(kpost size ga1 ga2 gr #v1 #v2 b)
-    (fun etid -> kernel size ga1 ga2 gr #v1 #v2 b etid);
+  launch_kernel_n_m_barrier #0 1sz size
+    #(kpre size ga1 ga2 gr #v1 #v2)
+    #(kpost size ga1 ga2 gr #v1 #v2)
+    #(barrier_matrix size gr (mul v1 v2))
+    (fun etid -> kernel size ga1 ga2 gr #v1 #v2 etid);
 
   (**)bigstar_eta ();
   // TODO:
   (**)drop_
-        (bigstar 0 (1 * U32.v (sizet_to_u32 size)) (fun i -> kpost size ga1 ga2 gr #v1 #v2 b i));
-  let it = 10;
+        (bigstar 0 (1 * SZ.v size) (fun i -> kpost size ga1 ga2 gr #v1 #v2 i));
   (**)assume_
         (bigstar 0 size
           (fun i -> ((gpu_pts_to_array #U64.t #size ga1 #(1.0R /. Real.of_int size) v1 **
                     gpu_pts_to_array #U64.t #size ga2 #(1.0R /. Real.of_int size) v2) **
-                    if_ (op_Equality #nat i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2))) **
-                    mbarrier_tok (barrier_matrix size gr (mul v1 v2)) b it i
+                    if_ (op_Equality #nat i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2)))
         ));
   
-  (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
   
@@ -504,12 +495,10 @@ fn main
   (**)bigstar_uneta () #0 #0 #size #(shared_array #size ga2 #v2);
   gather_array ga2;
 
-  drop_mbarrier #size #(barrier_matrix size gr (mul v1 v2)) #b #it;
-
   bigstar_if_elim #_ #0 #size 0 (fun _ -> gpu_pts_to_slice_sum #size gr 0 size (mul v1 v2));
 
   unfold gpu_pts_to_slice_sum;
-  if_elim_true _ _;
+  if_elim_true _;
   unfold gpu_pts_to_slice_sum_inner;
   with res. assert (gpu_pts_to_array_slice gr 0 size res);
   fold (gpu_pts_to_array #U64.t #size gr #1.0R res);

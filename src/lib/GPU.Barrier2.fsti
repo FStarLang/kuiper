@@ -4,19 +4,13 @@ open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open GPU.Base
+open GPU.SizeT
+module SZ = FStar.SizeT
 
 [@@erasable]
 val barrier
   (n:nat)
   : Type0
-
-// val barrier_alive
-//   (n:nat)
-//   (p : (it:nat -> tid:nat -> slprop))
-//   (q : (it:nat -> tid:nat -> slprop))
-//   (it : nat)
-//   (b : barrier n p q)
-//   : slprop
 
 val barrier_tok
   (#n:nat)
@@ -31,15 +25,15 @@ val barrier_tok
 ghost
 val
 fn mk_barrier
-  (n : nat)
+  (n: SZ.t { 0 < n /\ n <= max_threads })
   (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (pf : (it:nat -> stt_ghost unit emp_inames
                   (requires bigstar 0 n (p it))
                   (ensures  fun _ -> bigstar 0 n (q it))))
-  requires emp
+  requires block_setup n
   returns  b : erased (barrier n)
-  ensures  bigstar 0 n (barrier_tok p q b 0)
+  ensures  block_setup n ** bigstar 0 n (barrier_tok p q b 0)
 ```
 
 // __syncthreads()

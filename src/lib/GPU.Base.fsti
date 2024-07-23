@@ -7,6 +7,7 @@ open Pulse.Lib.BigStar
 open GPU.SizeT
 open FStar.Mul
 module U32 = FStar.UInt32
+module SZ = FStar.SizeT
 
 (* Token for being in CPU code *)
 val cpu : slprop
@@ -17,23 +18,26 @@ val gpu : slprop
 [@@erasable]
 val tid_t : Type0
 
-(* Token for being a particular thread *)
-val thread_id : tid_t -> slprop
-
 (* Arbitrary *)
 let max_blocks = 1024 * 1024
 (* Hard CUDA limit *)
 let max_threads = 1024
 
+(* Token for being in GPU block setup code *)
+val block_setup : (nthr: SZ.t { 0 < nthr /\ nthr <= max_threads }) -> slprop
+
+(* Token for being a particular thread *)
+val thread_id : tid_t -> slprop
+
 (* How many blocks total in the grid *)
-val gdim_x : tid_t -> (r:U32.t { 0 < r /\ r <= max_blocks })
+val gdim_x : tid_t -> (r:SZ.t { 0 < r /\ r <= max_blocks })
 (* Which block am I in? *)
-val bidx_x : (etid:tid_t) -> (r:U32.t { r < gdim_x etid })
+val bidx_x : (etid:tid_t) -> (r:SZ.t { r < gdim_x etid })
 
 (* How many threads per block *)
-val bdim_x : tid_t -> (r:U32.t { 0 < r /\ r <= max_threads })
+val bdim_x : tid_t -> (r:SZ.t { 0 < r /\ r <= max_threads })
 (* Which thread am I in? *)
-val tidx_x : (etid:tid_t) -> (r:U32.t { r < bdim_x etid })
+val tidx_x : (etid:tid_t) -> (r:SZ.t { r < bdim_x etid })
 
 let thread_index (n: tid_t): GTot (i: nat { i < gdim_x n * bdim_x n }) = (
   assert ((bidx_x n + 1) * bdim_x n <= gdim_x n * bdim_x n);
@@ -45,7 +49,7 @@ let thread_count (n: tid_t): GTot pos = gdim_x n * bdim_x n
 val
 fn block_idx_x () (#n: tid_t)
   requires thread_id n
-  returns  id : U32.t
+  returns  id : SZ.t
   ensures  thread_id n ** pure (id == bidx_x n)
 ```
 
@@ -53,7 +57,7 @@ fn block_idx_x () (#n: tid_t)
 val
 fn block_dim_x () (#n: tid_t)
   requires thread_id n
-  returns  id : U32.t
+  returns  id : SZ.t
   ensures  thread_id n ** pure (id == bdim_x n)
 ```
 
@@ -61,7 +65,7 @@ fn block_dim_x () (#n: tid_t)
 val
 fn thread_idx_x () (#n: tid_t)
   requires thread_id n
-  returns  id : U32.t
+  returns  id : SZ.t
   ensures  thread_id n ** pure (id == tidx_x n)
 ```
 
@@ -71,15 +75,15 @@ noextract inline_for_extraction
 ```pulse
 fn thread_idx_all () (#n: tid_t)
   requires thread_id n
-  returns  id : U32.t
-  ensures  thread_id n ** pure (U32.v id == thread_index n /\ U32.v id < max_blocks * max_threads)
+  returns  id : SZ.t
+  ensures  thread_id n ** pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
 {
   assert (pure (bidx_x n < 1024 * 1024 /\ tidx_x n < 1024 /\ bdim_x n <= 1024));
-  lemma_mul_lt (U32.v (bidx_x n)) (U32.v (bdim_x n)) (1024 * 1024) 1024;
+  lemma_mul_lt (SZ.v (bidx_x n)) (SZ.v (bdim_x n)) (1024 * 1024) 1024;
   // assert (pure (bidx_x n * tidx_x n < 1024 * 1024 * 1024 /\ bdim_x n <= 1024));
   let bid = block_idx_x ();
   let bdim = block_dim_x ();
   let tid = thread_idx_x ();
-  U32.add (U32.mul bid bdim) tid 
+  SZ.add (SZ.mul bid bdim) tid 
 }
 ```

@@ -31,8 +31,8 @@ let kpost (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : sl
 [@@CPrologue "__global__"]
 ```pulse
 fn kernel
-  (#nblk : erased U32.t { 0 < U32.v nblk /\ U32.v nblk <= 1024 * 1024 })
-  (size : SZ.t { SZ.v size == U32.v nblk })
+  (#nblk : erased SZ.t { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
+  (size : SZ.t { SZ.v size == SZ.v nblk })
   (ga1 ga2 : gpu_array elem_t size)
   (r : gpu_array elem_t size)
   (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1ul })
@@ -96,7 +96,7 @@ fn main (_:unit)
   
   let gr = gpu_array_alloc #U32.t m_size;
   
-  let nthr : U32.t = SZ.sizet_to_uint32 m_size <: U32.t;
+  let nthr : SZ.t = m_size;
 
   // Slicing the arrays
   (**)gpu_array_slice_1_underspec #1 ga1;
@@ -117,18 +117,18 @@ fn main (_:unit)
 
   (**)bigstar_uneta ();
 
-  assert (pure (SZ.v m_size == U32.v nthr));
+  assert (pure (SZ.v m_size == SZ.v nthr));
   rewrite
     (bigstar 0 (SZ.v m_size) (kpre m_size ga1 ga2 gr))
   as
-    (bigstar 0 (U32.v nthr)  (kpre m_size ga1 ga2 gr));
+    (bigstar 0 (SZ.v nthr)  (kpre m_size ga1 ga2 gr));
 
   launch_kernel_n nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
     (fun etid -> kernel #(hide nthr) m_size ga1 ga2 gr etid);
 
   rewrite
-    (bigstar 0 (U32.v nthr)  (kpost m_size ga1 ga2 gr))
+    (bigstar 0 (SZ.v nthr)  (kpost m_size ga1 ga2 gr))
   as
     (bigstar 0 (SZ.v m_size) (kpost m_size ga1 ga2 gr));
 
