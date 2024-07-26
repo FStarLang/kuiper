@@ -69,11 +69,11 @@ fn kernel
   (nth : erased SZ.t { SZ.v nth == SZ.v SZ.(rows *^ columns) })
   (etid : erased tid_t { gdim_x etid == nth /\ bdim_x etid == 1sz })
   requires gpu
+    ** thread_id etid
     ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
-    ** thread_id etid
   ensures  gpu
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
     ** thread_id etid
+    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
 {
   open FStar.SizeT;
 
