@@ -518,3 +518,141 @@ fn __bigstar_unzip
 }
 ```
 let bigstar_unzip #u1 #u2 #u3 = __bigstar_unzip #u1 #u2 #u3
+
+// Bigstar cond
+
+```pulse
+ghost fn with_pure
+  (#p #q: slprop)
+  (b: prop)
+  (op: unit -> stt_ghost unit emp_inames (p ** pure b) (fun _ -> q))
+  (#_: squash b)
+  requires p
+  ensures  q
+{
+  op ();
+}
+```
+
+```pulse
+ghost fn bigstar_if_elim
+  (#u1 : int)
+  (#m: nat)
+  (#n : nat {m <= n})
+  (x : nat { m <= x /\ x < n })
+  (p: (i: nat { m <= i /\ i < n }) -> slprop)
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp)
+  ensures  p x
+{
+  bigstar_extract m n _ x;
+  bigstar_map #u1 #u1 #m #x
+    (fun (i: nat { m <= i /\ i < x }) -> with_pure (op_Equality #(i:nat { m <= i /\ i < n }) i x == false) (fun _ -> elim_cond_false (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p (i <: nat)) emp));
+
+  bigstar_emp_elim #_ #m #x;
+
+  bigstar_map #u1 #u1 #(x + 1) #n
+    (fun (i: nat { (x + 1) <= i /\ i < n }) -> with_pure (op_Equality #(i:nat { m <= i /\ i < n }) i x == false) (fun _ -> elim_cond_false (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p (i <: nat)) emp));
+
+  bigstar_emp_elim #_ #(x + 1) #n;
+  elim_cond_true (x = x) (p x) emp;
+}
+```
+
+```pulse
+ghost fn cond_rewrite_bool
+  (b1 b2: bool)
+  (#p #q: slprop)
+  (#_: squash (b1 == b2))
+  requires cond b1 p q
+  ensures  cond b2 p q
+{
+  ()
+}
+```
+
+```pulse
+ghost fn cond_rewrite_bool_2
+  (b1 b2: bool)
+  (#p #q: slprop)
+  (#pf: unit -> squash (b1 <==> b2))
+  requires cond b1 p q
+  ensures  cond b2 p q
+{
+  pf ();
+  ()
+}
+```
+
+```pulse
+ghost
+fn __bigstar_if_intro
+  (#u1 : int)
+  (m: nat)
+  (n : nat {m <= n})
+  (x : nat { m <= x /\ x < n })
+  (p: (i: nat { m <= i /\ i < n }) -> slprop)
+  requires p x
+  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp)
+{
+  intro_cond_true (p x) emp;
+  bigstar_emp_intro #u1 m x;
+  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
+    (fun (i: nat { m <= i /\ i < x }) -> intro_cond_false (p (i <: nat)) emp);
+  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
+    (fun (i: nat { m <= i /\ i < x }) -> cond_rewrite_bool false (op_Equality #(i:nat { m <= i /\ i < n }) i x) #(p (i <: nat)) #emp);
+  bigstar_emp_intro #u1 (x + 1) n;
+  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
+    (fun (i: nat { (x + 1) <= i /\ i < n }) -> intro_cond_false (p (i <: nat)) emp);
+  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
+    (fun (i: nat { (x + 1) <= i /\ i < n }) -> cond_rewrite_bool false (op_Equality #(i:nat { m <= i /\ i < n }) i x) #(p (i <: nat)) #emp);
+  bigstar_compose #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp) x;
+}
+```
+
+let bigstar_if_intro
+  (#[exact (`0)]u1 : int)
+  (m: nat)
+  (n : nat {m <= n})
+  (x : nat { m <= x /\ x < n })
+  (p: (i: nat { m <= i /\ i < n }) -> slprop)
+  : stt_ghost unit emp_inames
+      (requires p x)
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp))
+  = __bigstar_if_intro #u1 m n x p
+
+// #push-options "--print_implicits --print_bound_var_types"
+
+let equality_translate
+  (#m : nat) (#n : nat {m <= n})
+  (a b c d: (i: nat {m <= i /\ i < n}))
+  (_: squash (a == b <==> c == d))
+  : squash (op_Equality #(i:nat { m <= i /\ i < n }) a b == op_Equality #(i:nat { m <= i /\ i < n }) c d) = ()
+
+```pulse
+ghost fn bigstar_permute
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  (p: permutation (i: nat{m <= i /\ i < n}))
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m n (fun i -> f (p.f i))
+{
+  // bigstar 0 n (fun j -> f j)
+  bigstar_map #u1 #u1 #m #n (fun j -> bigstar_if_intro #u1 m n (p.g j) (fun _ -> f j));
+  // bigstar 0 n (fun j -> bigstar 0 n (fun i -> cond (i == p.g j) (f j) emp)
+  bigstar_commute #u1 #u1 m n m n (fun j i -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i (p.g j)) (f j) emp);
+  // bigstar 0 n (fun i -> bigstar 0 n (fun j -> cond (i == p.g j) (f j) emp)
+  bigstar_map #u1 #u1 #m #n (fun (j:nat { m <= j /\ j < n }) ->
+    bigstar_map #u1 #u1 #m #n (fun (i:nat { m <= i /\ i < n }) ->
+      // let tmp: squash ((op_Equality #(i:nat { m <= i /\ i < n }) j (p.g i)) == (op_Equality #(i:nat { m <= i /\ i < n }) i (p.f j))) = (equality_translate #m #n j (p.g i) i (p.f j) (p.proof j i)) in
+      //  p.proof j i;
+      cond_rewrite_bool (op_Equality #(i:nat { m <= i /\ i < n }) j (p.g i)) (op_Equality #(i:nat { m <= i /\ i < n }) i (p.f j)) #(f i) #emp
+        // #tmp
+        #(assume ((op_Equality #(i:nat { m <= i /\ i < n }) j (p.g i)) <==> (op_Equality #(i:nat { m <= i /\ i < n }) i (p.f j)))) // <- TODO
+    ));
+  // bigstar 0 n (fun i -> bigstar 0 n (fun j -> cond (j == p.f i) (f j) emp)
+  bigstar_map #u1 #u1 #m #n (fun j -> bigstar_if_elim #u1 #m #n (p.f j) f);
+  // bigstar 0 n (fun i -> f (p.f i))
+}
+```

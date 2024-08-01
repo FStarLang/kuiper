@@ -10,7 +10,7 @@ open GPU
 module SZ = FStar.SizeT
 open FStar.SizeT
 
-let gpu_pts_to_matrix #a (rows columns: nat) (ga : gpu_array a (rows * columns)) (shared: erased nat{shared > 0}) (s: erased (Seq.Base.seq a)): slprop =
+let gpu_pts_to_matrix #a (rows columns: nat) (ga : gpu_array a (rows * columns)) (shared: erased pos) (s: erased (Seq.Base.seq a)): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int shared) s
 
 val gpu_matrix_share_underspec
@@ -18,7 +18,7 @@ val gpu_matrix_share_underspec
   (#uid: int)
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
-  (shared: erased nat{shared > 0})
+  (shared: erased pos)
   (s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
 : stt_ghost
     unit
@@ -31,7 +31,7 @@ val gpu_matrix_unshare_underspec
   (#uid: int)
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
-  (shared: erased nat{shared > 0})
+  (shared: erased pos)
   (s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
 : stt_ghost
     unit
@@ -44,7 +44,7 @@ fn gpu_matrix_read
   #a
   (#rows #columns: SZ.t)
   (ga : gpu_array a (rows * columns))
-  (#shared: erased nat{shared > 0})
+  (#shared: erased pos)
   (#s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
   (row: SZ.t{SZ.v row < rows})
   (col: SZ.t{SZ.v col < columns})

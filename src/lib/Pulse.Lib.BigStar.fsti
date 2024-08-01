@@ -218,3 +218,42 @@ val bigstar_unzip
             emp_inames
             (bigstar #u3 m n (fun i -> f i ** g i))
             (fun _ -> bigstar #u1 m n f ** bigstar #u2 m n g)
+
+```pulse
+ghost val fn bigstar_if_elim
+  (#u1 : int)
+  (#m: nat)
+  (#n : nat {m <= n})
+  (x : nat { m <= x /\ x < n })
+  (p: (i: nat { m <= i /\ i < n }) -> slprop)
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp)
+  ensures  p x
+```
+
+val bigstar_if_intro
+  (#[exact (`0)]u1 : int)
+  (m: nat)
+  (n : nat {m <= n})
+  (x : nat { m <= x /\ x < n })
+  (p: (i: nat { m <= i /\ i < n }) -> slprop)
+  : stt_ghost unit emp_inames
+      (requires p x)
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp))
+
+class permutation (a:Type) = {
+   f          : a -> a;
+   g          : a -> a;
+   [@@@FStar.Tactics.Typeclasses.no_method]
+   proof : (x: a) -> (y: a) -> squash (f x == y <==> g y == x);
+}
+
+```pulse
+ghost val fn bigstar_permute
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: (i: nat{m <= i /\ i < n} -> slprop))
+  (p: permutation (i: nat{m <= i /\ i < n}))
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m n (fun i -> f (p.f i))
+```
