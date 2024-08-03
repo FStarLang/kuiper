@@ -55,25 +55,31 @@ let kpost (rows shared columns: nat)
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 // TODO: un-hardcode
+[@@CPrologue "const"]
 let rows : SZ.t = 255sz // rows of ga1/r
 // assume val rows : nat
+[@@CPrologue "const"]
 let shared : SZ.t = 1024sz // columns of ga1, rows of ga2
+[@@CPrologue "const"]
 let columns : SZ.t = 255sz // columns of ga2/r
 
+[@@CPrologue "__global__"]
 ```pulse
 fn kernel
   // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
-  (ga1 : gpu_array U64.t (rows * shared)) (ga2 : gpu_array U64.t (shared * columns)) (r : gpu_array U64.t (rows * columns))
+  (ga1 : gpu_array U64.t (rows * shared))
+  (ga2 : gpu_array U64.t (shared * columns))
+  (r : gpu_array U64.t (rows * columns))
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
   (nth : erased SZ.t { SZ.v nth == SZ.v SZ.(rows *^ columns) })
   (etid : erased tid_t { gdim_x etid == nth /\ bdim_x etid == 1sz })
   requires gpu
+    ** thread_id etid
     ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
-    ** thread_id etid
   ensures  gpu
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
     ** thread_id etid
+    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
 {
   open FStar.SizeT;
 
@@ -103,8 +109,8 @@ fn kernel
   {
     let v = !i;
     let s = !sum;
-    let v1 = Impure.gpu_matrix_read #U64.t #rows #shared ga1 #(SZ.v nth) #s1 trow v;
-    let v2 = Impure.gpu_matrix_read #U64.t #shared #columns ga2 #(SZ.v nth) #s2 v tcol;
+    let v1 = Impure.gpu_matrix_read #_ #rows #shared ga1 #(SZ.v nth) #s1 trow v;
+    let v2 = Impure.gpu_matrix_read #_ #shared #columns ga2 #(SZ.v nth) #s2 v tcol;
 
     i := SZ.add v 1sz;
     sum := U64.add_mod (U64.mul_mod v1 v2) s;
