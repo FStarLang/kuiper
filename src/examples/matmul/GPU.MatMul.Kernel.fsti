@@ -56,12 +56,16 @@ let kpost (rows shared columns: nat)
 
 // TODO: un-hardcode
 [@@CPrologue "const"]
-let rows : SZ.t = 255sz // rows of ga1/r
+inline_for_extraction
+let rows : SZ.t = 1024sz // rows of ga1/r
 // assume val rows : nat
 [@@CPrologue "const"]
-let shared : SZ.t = 1024sz // columns of ga1, rows of ga2
+inline_for_extraction
+let shared : SZ.t = rows // columns of ga1, rows of ga2
+
 [@@CPrologue "const"]
-let columns : SZ.t = 255sz // columns of ga2/r
+inline_for_extraction
+let columns : SZ.t = rows // columns of ga2/r
 
 [@@CPrologue "__global__"]
 ```pulse
