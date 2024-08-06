@@ -45,13 +45,14 @@ KRML := $(KRML_HOME)/krml				\
 	-skip-compilation				\
 	-skip-makefiles					\
 	$(if $(V), -verbose,-silent)			\
-	-minimal					\
 	-drop Prims					\
-	-warn-error -2@4-10
+	-minimal					\
+	-warn-error -2@4-10@18
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
 # 10: do not warn about -drop being deprecated (though we should use -bundle instead)
+# Warning 18: After bundling, two C files are named XXX
 
 # This sandwich is needed so all is the first rule (and not
 # something in the include), and verify-all can refer to ALL_CHECKED_FILES,
@@ -95,14 +96,20 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
 		--odir $(shell dirname $@)					\
+		--output $@							\
 		$(patsubst .cache/%.checked,src/examples/%,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
 	$(call msg,"KRML",$@)
-	$(Q)$(KRML) -tmpdir $(OUTDIR) $<
+	@# Awful substitution here to get the module name, turning something like
+	@# out/GPU_DotProduct2.krml into GPU.DotProduct2
+	$(Q)MOD=$$(echo $< | sed 's,.*/,,' | sed 's/.krml$$//' | sed 's/_/./g') && \
+	$(KRML) \
+		-bundle "$${MOD}=$${MOD}.*" \
+		-tmpdir $(OUTDIR) $<
 
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
-	@ln -s $(realpath $<) $@
+	@ln -sf $(realpath $<) $@
 
 %.o: %.cu GPU.h
 	$(call msg,"NVCC",$@)
