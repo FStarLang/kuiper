@@ -32,8 +32,7 @@ let mapping_lemma (blocksize: pos) (columns rows: (i: pos { i % blocksize == 0 }
 let mapping_inv_lemma (blocksize: pos) (columns rows: (i: pos { i % blocksize == 0 })) (tid: nat { tid < rows * columns }):
   Lemma (tid < blocksize * blocksize * (columns / blocksize) * (rows / blocksize)) = ()
 let mapping_fixed = hide (mapping blocksize columns rows)
-
-let singleton #a (elem: a) : Seq.Base.seq a = Seq.Base.cons elem Seq.Base.empty
+let mapping_fixed_lemma (tid: nat { tid < rows * columns }): Lemma (mapping_fixed.f tid < rows * columns) = ()
 
 let kpre_pair (rows shared columns: nat)
   (ga1: gpu_array U64.t (rows * shared))
@@ -64,69 +63,27 @@ let lemma_div_lt (a b: nat) (c: pos): Lemma (requires a < b * c) (ensures 0 <= a
 let lemma_mod_lt (a: nat) (c: pos): Lemma (0 <= a % c /\ a % c < c) = ()
 
 let kpost (shared: nat)
-  (rows columns: (i: nat { i % SZ.v blocksize == 0 }))
+  (rows columns: (i: pos { i % SZ.v blocksize == 0 }))
   (ga1: gpu_array U64.t (rows * shared))
   (ga2: gpu_array U64.t (shared * columns))
   (r: gpu_array U64.t (rows * columns))
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
-  (size: erased pos { reveal size == rows * columns })
+  (size: erased pos { (reveal size <: nat) == rows * columns })
   (idx : nat { idx < rows * columns })
   : slprop
-  =
+  = lemma_div_lt idx rows columns;
   Impure.gpu_pts_to_matrix rows shared ga1 size s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 size s2
-  ** (lemma_div_lt idx rows columns;
-      gpu_pts_to_array_slice r idx (idx+1) (singleton (Pure.matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared)))
+  ** gpu_pts_to_array_slice r idx (idx+1) (Pure.singleton (Pure.matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared))
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
-
-let shared_pre (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads }) (it: nat) (ar: gpu_array U64.t SZ.(2sz *^ nthr)) (i: nat { 0 <= i /\ i < nthr }): slprop =
-  gpu_pts_to_array1 ar i ** gpu_pts_to_array1 ar (i + nthr) ** mbarrier_tok nthr (barrier_mm nthr) it i
 
 // #push-options "--print_implicits --print_bound_var_types"
 
 ```pulse
-ghost
-fn block_setup_ghost
-  (nblk : SZ.t { 0 < reveal nblk /\ reveal nblk <= max_blocks })
-  (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
-  (smem_sz : SZ.t { smem_sz == SZ.(2sz *^ nthr) })
-  (ar: gpu_array U64.t smem_sz)
-  (bid: SZ.t { 0 <= bid /\ SZ.v bid < SZ.v nblk })
-  requires block_setup nthr ** (exists* v. gpu_pts_to_array #U64.t #smem_sz ar #1.0R v)
-  ensures block_setup nthr ** bigstar 0 nthr (shared_pre nthr 0 ar)
-{
-  with v. assert (gpu_pts_to_array #U64.t #smem_sz ar #1.0R v);
-  unfold gpu_pts_to_array ar v;
-  gpu_slice_slice_1_underspec #1 ar #1.0R 0 smem_sz nthr;
-  drop_   (bigstar #1 0 (SZ.v nthr - 0) (fun x -> gpu_pts_to_array1 ar (x + 0)));
-  assume_ (bigstar #1 0 nthr            (fun x -> gpu_pts_to_array1 ar x));
-
-  gpu_slice_slice_1_underspec #2 ar #1.0R nthr smem_sz smem_sz;
-  drop_   (bigstar #2 0 (smem_sz - nthr) (fun x -> gpu_pts_to_array1 ar (x + nthr)));
-  assume_ (bigstar #2 0 nthr             (fun x -> gpu_pts_to_array1 ar (x + nthr)));
-
-  bigstar_zip #1 #2 #1 0 nthr _ _;
-
-  mk_mbarrier nthr (barrier_mm nthr);
-  bigstar_zip #1 #0 #0 0 nthr _ _;
-
-  // FOLD:
-  drop_   (bigstar #0 0 nthr (fun x -> gpu_pts_to_array1 ar x ** gpu_pts_to_array1 ar (x + nthr) ** mbarrier_tok nthr (barrier_mm nthr) 0 x));
-  assume_ (bigstar #0 0 nthr (fun x -> shared_pre nthr 0 ar x));
-
-  bigstar_uneta();
-  gpu_slice_empty_elim ar smem_sz;
-}
-```
-
-let shared_post (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads }) (ar: gpu_array U64.t SZ.(2sz *^ nthr)) (i: nat { 0 <= i /\ i < nthr }): slprop =
-  exists* it. shared_pre nthr it ar i
-
-```pulse
 val fn thread_id_to_idx_2_sz (tid: SZ.t { SZ.v tid < rows * columns })
   requires emp
-  returns  idx: (i: SZ.t { SZ.v i < rows * columns /\ SZ.v i == (mapping blocksize columns rows).f (SZ.v tid) })
+  returns  idx: (i: SZ.t { SZ.v i < rows * columns /\ SZ.v i == mapping_fixed.f (SZ.v tid) })
   ensures  emp
 ```
 
@@ -146,24 +103,26 @@ fn kernel
   requires gpu
     ** thread_id etid
     ** shared_pre nthr 0 ar (SZ.v (tidx_x etid))
-    ** (assert (thread_index etid < rows * columns); mapping_inv_lemma blocksize columns rows (thread_index etid);
-      kpre shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid)))
+    //** (assert (thread_index etid < rows * columns); mapping_inv_lemma blocksize columns rows (thread_index etid);
+    ** kpre shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid))//)
   ensures  gpu
     ** thread_id etid
     ** shared_post nthr ar (SZ.v (tidx_x etid))
-    ** (mapping_lemma blocksize columns rows (thread_index etid); assert (mapping_fixed.f (thread_index etid) < rows * columns);
-      kpost shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid)))
+    //** (mapping_fixed_lemma (thread_index etid); assert (mapping_fixed.f (thread_index etid) < rows * columns);
+    ** kpost shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid))//)
 {
   open FStar.SizeT;
 
   assert (pure (thread_index etid < rows * columns));
   mapping_inv_lemma blocksize columns rows (thread_index etid);
-  mapping_lemma blocksize columns rows (thread_index etid);
+  mapping_fixed_lemma (thread_index etid);
   let tid : SZ.t = thread_idx_all ();
   mapping_inv_lemma blocksize columns rows tid;
-  mapping_lemma blocksize columns rows tid;
+  mapping_fixed_lemma (SZ.v tid);
   let idx = (mapping_fixed.f (SZ.v tid));
+  assert (pure (idx < rows * columns));
   let idx_sz = thread_id_to_idx_2_sz tid;
+  assert (pure (SZ.v idx_sz == idx));
 
   unfold kpre shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) idx;
   unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 (SZ.v size);
@@ -198,6 +157,7 @@ fn kernel
     i := SZ.add v 1sz;
     sum := U64.add_mod (U64.mul_mod v1 v2) s;
 
+    assert (pure (trow < rows /\ tcol < columns));
     (**)Pure.matmul_single_lemma rows shared columns s1 s2 trow tcol (SZ.v (SZ.add v 1sz));
     drop_   (shared_pre nthr (2 * v)       ar (SZ.v (tidx_x etid)));
     assume_ (shared_pre nthr (2 * (v + 1)) ar (SZ.v (tidx_x etid)));
@@ -208,9 +168,9 @@ fn kernel
   gpu_array_write #U64.t #(rows * columns) #idx #(idx + 1) r idx_sz s;
 
   with #v. assert (gpu_pts_to_array_slice r idx (idx + 1) v);
-  (**)Seq.Base.lemma_eq_intro v (singleton s);
+  (**)Seq.Base.lemma_eq_intro v (Pure.singleton s);
   (**)rewrite gpu_pts_to_array_slice r idx (idx + 1) v
-    as gpu_pts_to_array_slice r idx (idx + 1) (singleton s);
+    as gpu_pts_to_array_slice r idx (idx + 1) (Pure.singleton s);
 
   fold kpost shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) idx;
   fold shared_post nthr ar (SZ.v (tidx_x etid));
@@ -226,7 +186,7 @@ ghost fn fold_pre_pair
   (ga2: gpu_array U64.t (shared * columns))
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
-  (size: erased nat { size > 0 })
+  (size: erased pos)
   (tid: nat)
   requires Impure.gpu_pts_to_matrix rows shared ga1 size s1
         ** Impure.gpu_pts_to_matrix shared columns ga2 size s2
@@ -236,6 +196,20 @@ ghost fn fold_pre_pair
   ()
 }
 ```
+
+// let kpre (shared: nat)
+//   (rows columns: (i: nat { i % SZ.v blocksize == 0 }))
+//   (ga1: gpu_array U64.t (rows * shared))
+//   (ga2: gpu_array U64.t (shared * columns))
+//   (r: gpu_array U64.t (rows * columns))
+//   (#s1: erased (Seq.Base.seq U64.t) )
+//   (#s2: erased (Seq.Base.seq U64.t))
+//   (size: erased pos { reveal size == rows * columns })
+//   (idx : nat)
+//   : slprop
+//   =
+//   kpre_pair rows shared columns ga1 ga2 #s1 #s2 (hide (reveal size))
+//   ** (exists* sr. gpu_pts_to_array_slice r idx (idx+1) sr)
 
 ```pulse
 ghost fn fold_pre
@@ -247,13 +221,13 @@ ghost fn fold_pre
   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
   (#sr: (Seq.Base.seq U64.t) {Seq.Base.length sr == 1})
-  (size: erased nat { size == (rows * columns) })
-  (tid: nat { tid < size /\ tid < rows * columns })
-  requires kpre_pair rows shared columns ga1 ga2 #s1 #s2 size
-        ** gpu_pts_to_array_slice #U64.t #size gr tid (tid+1) sr
-  ensures  kpre shared rows columns ga1 ga2 gr #s1 #s2 size tid
+  (size: erased pos { (reveal size <: nat) == rows * columns })
+  (idx : nat)
+  requires kpre_pair rows shared columns ga1 ga2 #s1 #s2 (hide (reveal size))
+        ** gpu_pts_to_array_slice #U64.t #size gr idx (idx+1) sr
+  ensures  kpre shared rows columns ga1 ga2 gr #s1 #s2 size idx
 {
-  fold kpre shared rows columns ga1 ga2 gr #s1 #s2 size tid;
+  fold kpre shared rows columns ga1 ga2 gr #s1 #s2 size idx;
   ()
 }
 ```
@@ -261,24 +235,43 @@ ghost fn fold_pre
 
 // #push-options "--print_implicits --print_bound_var_types"
 
+// let kpost (shared: nat)
+//   (rows columns: (i: nat { i % SZ.v blocksize == 0 }))
+//   (ga1: gpu_array U64.t (rows * shared))
+//   (ga2: gpu_array U64.t (shared * columns))
+//   (r: gpu_array U64.t (rows * columns))
+//   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
+//   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
+//   (size: erased pos { reveal size == rows * columns })
+//   (idx : nat { idx < rows * columns })
+//   : slprop
+//   =
+//   Impure.gpu_pts_to_matrix rows shared ga1 size s1
+//   ** Impure.gpu_pts_to_matrix shared columns ga2 size s2
+//   ** (lemma_div_lt idx rows columns;
+//       gpu_pts_to_array_slice r idx (idx+1) (Pure.singleton (Pure.matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared)))
+//   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
+
+
 // ```pulse
 // ghost fn unfold_post
 //   (shared: nat)
-//   (rows columns: (i: nat { i % SZ.v blocksize == 0 }))
+//   (rows columns: (i: pos { i % SZ.v blocksize == 0 }))
 //   (ga1: gpu_array U64.t (rows * shared))
 //   (ga2: gpu_array U64.t (shared * columns))
 //   (gr: gpu_array U64.t (rows * columns))
 //   (#s1: erased (Seq.Base.seq U64.t) {Seq.Base.length s1 == rows * shared})
 //   (#s2: erased (Seq.Base.seq U64.t) {Seq.Base.length s2 == shared * columns})
-//   (size: erased nat { reveal size == rows * columns })
-//   (idx: nat { idx < rows * columns })
+//   (size: erased pos { (reveal size <: nat) == rows * columns })
+//   (idx : nat { idx < rows * columns })
 //   requires kpost shared rows columns ga1 ga2 gr #s1 #s2 size idx
-//   ensures  Impure.gpu_pts_to_matrix rows shared ga1 size s1
+//   ensures  (lemma_div_lt idx rows columns;
+//         Impure.gpu_pts_to_matrix rows shared ga1 size s1
 //         ** Impure.gpu_pts_to_matrix shared columns ga2 size s2
-//         ** (assert (idx < rows * columns /\ idx / columns < rows);
-//             gpu_pts_to_array_slice gr idx (idx+1) (singleton (Pure.matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared)))
+//         ** gpu_pts_to_array_slice #U64.t #(rows * columns) gr #1.0R idx (idx+1) (Pure.singleton (Pure.matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared)))
 // {
-//   unfold kpost shared rows columns ga1 ga2 gr #s1 #s2 size idx;
+//   lemma_div_lt idx rows columns;
+//   unfold (kpost shared rows columns ga1 ga2 gr #s1 #s2 size idx);
 //   ()
 // }
 // ```

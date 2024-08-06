@@ -6,6 +6,8 @@ open FStar.Mul
 open Pulse.Lib.Pervasives
 module U64 = FStar.UInt64
 
+let singleton #a (elem: a) : Seq.Base.seq a = Seq.Base.cons elem Seq.Base.empty
+
 let rec matmul_single
   (rows shared columns: nat)
   (s1: (Seq.Base.seq U64.t){ Seq.Base.length s1 == rows * shared })
@@ -29,6 +31,7 @@ let matmul_single_lemma
       (requires (0 < to /\ to <= shared))
       (ensures (
         assert ((row + 1) <= rows /\ (row + 1) * shared <= rows * shared);
+        assert (row * shared + (to - 1) < rows * shared);
         reveal (matmul_single rows shared columns s1 s2 row col to) = U64.add_mod (U64.mul_mod (Seq.Base.index s1 (row * shared + (to - 1))) (Seq.Base.index s2 (col + (to - 1) * columns))) (matmul_single rows shared columns s1 s2 row col (to - 1))
       ))
   = ()

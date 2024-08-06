@@ -634,7 +634,7 @@ ghost fn bigstar_permute
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  (p: permutation (i: nat{m <= i /\ i < n}))
+  (p: permutation (i: erased nat{m <= i /\ i < n}))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
 {
