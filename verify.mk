@@ -101,7 +101,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
 		--odir $(shell dirname $@)					\
-		--output $@							\
+		--krmloutput $@							\
 		$(patsubst .cache/%.checked,src/examples/%,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
