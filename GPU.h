@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <cuda_runtime.h>
 
@@ -14,21 +15,24 @@
 			assert(!"kcall");				\
 	} while (0)
 
+#define MUST(e)								\
+	({								\
+		cudaError_t uu___r = (e);				\
+		if (uu___r != cudaSuccess) {				\
+			fprintf(stderr, "CALL FAILED: " #e "\n");	\
+			fprintf(stderr, "CUDA error: %s\n",		\
+					cudaGetErrorString(uu___r));	\
+			exit(1);					\
+		}							\
+	})
+
 static inline
 uint32_t * PULSE_GPU_ALLOC(size_t len)
 {
 	uint32_t *ret = NULL;
-	if (cudaMalloc(&ret, len) != cudaSuccess)
-		assert(!"cudaMalloc failed");
+	MUST(cudaMalloc(&ret, len));
 	return ret;
 }
-
-#define MUST(e)								\
-	({								\
-		cudaError_t uu___r = (e);				\
-		if (uu___r != cudaSuccess)				\
-			assert(!"CALL FAILED: " #e);			\
-	})
 
 #define KRML_HOST_MALLOC            malloc
 #define KRML_HOST_CALLOC            calloc
