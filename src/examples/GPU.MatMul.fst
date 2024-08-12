@@ -20,7 +20,6 @@ let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
 
 // #push-options "--print_implicits --print_bound_var_types"
 
-```pulse
 ghost
 fn setup
   (size: SZ.t { size == SZ.(Defs.rows *^ Defs.columns) })
@@ -56,9 +55,7 @@ fn setup
 
   bigstar_eta();
 }
-```
 
-```pulse
 fn main
   (a1 a2: array U64.t)
   (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
