@@ -1,4 +1,4 @@
-module GPU.MatrixBarrier
+module GPU.Barrier.RPM
 
 #lang-pulse
 
@@ -6,7 +6,7 @@ open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open GPU.Base
-module B = GPU.Barrier2
+module B = GPU.Barrier
 open GPU.SizeT
 module SZ = FStar.SizeT
 
@@ -82,15 +82,7 @@ fn drop_mbarrier
   (#it: nat)
   requires bigstar 0 n (mbarrier_tok n p it)
   ensures  emp
-
-(* Does this always deadlock? *)
-// if (tid % 2) {
-//   ...
-//   __syncthreads();
-// } else {
-//   ...
-//   __syncthreads();
-// }
-
-
-
+{
+  (* should use drop_barrier.. but not a big deal really. *)
+  drop_ (bigstar 0 n (mbarrier_tok n p it))
+}

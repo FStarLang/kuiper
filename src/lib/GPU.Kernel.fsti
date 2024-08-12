@@ -8,7 +8,7 @@ open Pulse.Lib.BigStar
 open GPU.SizeT
 open GPU.Array
 open GPU.Base
-open GPU.MatrixBarrier
+open GPU.Barrier.RPM
 open FStar.Mul
 module U32 = FStar.UInt32
 module SZ = FStar.SizeT

@@ -6,6 +6,4 @@ include GPU.Scalars
 include GPU.Array
 include GPU.Kernel
 include GPU.SizeT
-include GPU.Barrier2
-include GPU.MatrixBarrier
 include GPU.Conditional

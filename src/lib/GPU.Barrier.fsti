@@ -6,46 +6,52 @@ open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open GPU.Base
+open GPU.SizeT
+module SZ = FStar.SizeT
 
+[@@erasable]
 val barrier
   (n:nat)
-  (p : nat -> slprop)
-  (q : nat -> slprop)
   : Type0
-
-val barrier_alive
-  (n:nat)
-  (p : nat -> slprop)
-  (q : nat -> slprop)
-  (b : barrier n p q)
-  : slprop
 
 val barrier_tok
   (#n:nat)
-  (#p : nat -> slprop)
-  (#q : nat -> slprop)
-  (b : barrier n p q)
-  (tid : nat)
+  (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (b : barrier n)
+  (it : nat)
+  (tid : nat { tid < n })
   : slprop
 
+ghost
 fn mk_barrier
-  (n : nat)
-  (p : nat -> slprop)
-  (q : nat -> slprop)
-  (pf : unit -> stt_ghost unit emp_inames
-                  (requires bigstar 0 n p)
-                  (ensures  fun _ -> bigstar 0 n q))
-  requires emp
-  returns  b : barrier n p q
-  ensures  barrier_alive n p q b ** bigstar 0 n (barrier_tok b)
+  (n: SZ.t { 0 < n /\ n <= max_threads })
+  (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (pf : (it:nat -> stt_ghost unit emp_inames
+                  (requires bigstar 0 n (p it))
+                  (ensures  fun _ -> bigstar 0 n (q it))))
+  requires block_setup n
+  returns  b : erased (barrier n)
+  ensures  block_setup n ** bigstar 0 n (barrier_tok p q b 0)
 
 // __syncthreads()
-ghost
 fn barrier_wait
+  (#n : erased nat)
+  (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (b : barrier n)
+  (#it : erased nat)
+  (#tid : erased nat { tid < n })
+  requires barrier_tok p q b  it    tid ** p it tid
+  ensures  barrier_tok p q b (it+1) tid ** q it tid
+
+ghost
+fn drop_barrier
   (#n : nat)
-  (#p : nat -> slprop)
-  (#q : nat -> slprop)
-  (b : barrier n p q)
-  (#i : erased nat)
-  requires barrier_alive n p q b ** barrier_tok b i ** p i
-  ensures  barrier_alive n p q b ** barrier_tok b i ** q i
+  (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
+  (#b : barrier n)
+  (#it: nat)
+  requires bigstar 0 n (barrier_tok p q b it)
+  ensures  emp

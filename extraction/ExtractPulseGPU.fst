@@ -94,7 +94,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** BARRIERS ********)
 
   | MLE_App ({ expr = MLE_Name p } , [u1;u2;u3;u4])
-    when string_of_mlpath p = "GPU.MatrixBarrier.mbarrier_wait" ->
+    when string_of_mlpath p = "GPU.Barrier.RPM.mbarrier_wait" ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
 
   (******** REFERENCES ********)

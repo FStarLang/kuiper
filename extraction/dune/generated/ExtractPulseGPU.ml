@@ -154,7 +154,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
             u1::u2::u3::u4::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___3 = "GPU.MatrixBarrier.mbarrier_wait" ->
+           uu___3 = "GPU.Barrier.RPM.mbarrier_wait" ->
            FStar_Extraction_Krml.EApp
              ((FStar_Extraction_Krml.EQualified ([], "__syncthreads")),
                [FStar_Extraction_Krml.EUnit])

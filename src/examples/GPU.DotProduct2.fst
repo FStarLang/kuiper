@@ -11,6 +11,7 @@ module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 open Pulse.Lib.BigStar
 open GPU
+open GPU.Barrier.RPM
 open FStar.SizeT
 
 #set-options "--z3rlimit 20"

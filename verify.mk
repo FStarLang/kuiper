@@ -109,7 +109,8 @@ depgraph.pdf: dep_simpl.graph
 	$(call msg, "DOT", $@)
 	$(Q)dot -Tpdf -o $@ dep_simpl.graph
 
-# Invalidate when plugin changes
+# FIXME: find a way to invalidate when plugin changes. The added dependency below does
+# not do that.
 $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 	@# Stupid renaming!
 	$(call msg,"EXTRACT",$@)
