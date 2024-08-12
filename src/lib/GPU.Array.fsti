@@ -204,3 +204,41 @@ val gpu_slice_concat
   : stt_ghost unit emp_inames
       (gpu_pts_to_array_slice arr #f i n s1 ** gpu_pts_to_array_slice arr #f n m s2)
       (fun _ -> gpu_pts_to_array_slice arr #f i m (Seq.Base.append s1 s2))
+
+```pulse
+ghost val
+fn gpu_slice_slice_1_underspec
+  (#uid: int) (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a))
+  (i n:nat)
+  (m: nat { i <= m /\ m <= n })
+  requires gpu_pts_to_array_slice arr #f i n v
+  ensures bigstar #uid 0 (m - i) (fun x -> gpu_pts_to_array1 arr #f (x + i)) ** gpu_pts_to_array_slice arr #f m n v
+```
+
+```pulse
+ghost val
+fn gpu_slice_unslice_1_underspec
+  (#uid: int) (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (i n:nat)
+  (m: nat { i <= m /\ m <= n })
+  requires bigstar #uid 0 (m - i) (fun x -> gpu_pts_to_array1 arr #f (x + i)) ** (exists* v. gpu_pts_to_array_slice arr #f m n v)
+  ensures exists* v. gpu_pts_to_array_slice arr #f i n v
+```
+
+```pulse
+ghost val
+fn gpu_slice_empty_elim
+  (#a:Type u#0) (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (i : nat)
+  requires exists* v. gpu_pts_to_array_slice arr #f i i v
+  ensures  emp
+```

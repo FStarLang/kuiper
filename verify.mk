@@ -32,6 +32,7 @@ FSTAR := fstar.exe					\
 	--include src/lib/				\
 	--include src/examples/				\
 	--include src/examples/matmul/			\
+	--include src/examples/matmul-opt/			\
 	--load_cmxs pulse				\
 	--warn_error -249-321				\
 	$(FSTAR_FLAGS)

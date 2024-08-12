@@ -14,6 +14,7 @@
     "pulse/lib/pulse/lib/class",
     "src/lib",
     "src/examples",
-    "src/examples/matmul"
+    "src/examples/matmul",
+    "src/examples/matmul-opt"
   ]
 }

@@ -193,26 +193,13 @@ ghost fn bigstar_if_elim
   (#m: nat)
   (#n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
-  (p: nat -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #nat i x) (p i))
+  (p: (i:nat { m <= i /\ i < n }) -> slprop)
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i))
   ensures  p x
 {
-  bigstar_extract m n _ x;
-
-  bigstar_map #u1 #u1 #m #x
-    (fun (i: nat { m <= i /\ i < x }) -> if_rewrite_bool ((i <: nat) = x) false (p (i <: nat)));
-  bigstar_map #u1 #u1 #m #x
-    (fun (i: nat { m <= i /\ i < x }) -> if_elim_false (p (i <: nat)));
-
-  bigstar_emp_elim #_ #m #x;
-
-  bigstar_map #u1 #u1 #(x + 1) #n
-    (fun (i: nat { (x + 1) <= i /\ i < n }) -> if_rewrite_bool ((i <: nat) = x) false (p (i <: nat)));
-  bigstar_map #u1 #u1 #(x + 1) #n
-    (fun (i: nat { (x + 1) <= i /\ i < n }) -> if_elim_false (p (i <: nat)));
-
-  bigstar_emp_elim #_ #(x + 1) #n;
-  if_elim_true (p x)
+  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i)))
+       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp));
+  Pulse.Lib.BigStar.bigstar_if_elim #u1 #m #n x p;
 }
 ```
 
@@ -223,22 +210,13 @@ fn __bigstar_if_intro
   (m: nat)
   (n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
-  (p: nat -> slprop)
+  (p: (i:nat { m <= i /\ i < n }) -> slprop)
   requires p x
-  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #nat i x) (p i))
+  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i))
 {
-  if_intro_true (p x);
-  bigstar_emp_intro #u1 m x;
-  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
-    (fun (i: nat { m <= i /\ i < x }) -> if_intro_false (p (i <: nat)));
-  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
-    (fun (i: nat { m <= i /\ i < x }) -> if_rewrite_bool false ((i <: nat) = x) (p (i <: nat)));
-  bigstar_emp_intro #u1 (x + 1) n;
-  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
-    (fun (i: nat { (x + 1) <= i /\ i < n }) -> if_intro_false (p (i <: nat)));
-  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
-    (fun (i: nat { (x + 1) <= i /\ i < n }) -> if_rewrite_bool false ((i <: nat) = x) (p (i <: nat)));
-  bigstar_compose #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #nat i x) (p i)) x;
+  Pulse.Lib.BigStar.bigstar_if_intro #u1 m n x p;
+  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp))
+       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i)));
 }
 ```
 

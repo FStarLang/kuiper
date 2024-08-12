@@ -51,7 +51,7 @@ val fn gpu_read
   (#v0 : erased a)
   requires gpu ** gpu_pts_to r #f v0
   returns  v : a
-  ensures  gpu ** gpu_pts_to r #f v ** pure (v == reveal v0)
+  ensures  gpu ** gpu_pts_to r #f v0 ** pure (v == reveal v0)
 ```
 
 ```pulse
