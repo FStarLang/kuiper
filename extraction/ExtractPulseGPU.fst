@@ -69,7 +69,7 @@ let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
 let get_sizet (e : mlexpr) : mlexpr =
   match e.expr with
   | MLE_Record (_, _, [(_, sz)]) -> sz
-  | _ -> raise (Failed "Expected a single-field record for the size")
+  | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
