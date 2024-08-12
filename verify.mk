@@ -12,6 +12,10 @@ MAKEFLAGS += --no-builtin-rules
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
+FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
+
+ROOTS := $(call FILTER_OUT,MatMulOpt,$(ROOTS))
+
 CACHEDIR := .cache
 OUTDIR   := out
 
