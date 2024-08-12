@@ -92,6 +92,23 @@ echo-krml:
 	$(call msg,"DEPEND")
 	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
 
+dep.graph: $(DEPENDRSP)
+	$(Q)$(FSTAR) --dep graph $(ROOTS) --output_deps_to $@
+
+dep_filtered.graph: dep.graph
+	$(Q) cat $< |					\
+	  sed '/.*"fstar.*/d' |			\
+	  sed '/.*"pulse.*/d' |			\
+	  sed '/.*"prims.*/d' |			\
+	  cat > $@
+
+dep_simpl.graph: dep_filtered.graph
+	$(Q)$(FSTAR_HOME)/.scripts/simpl_graph.py $< > $@
+
+depgraph.pdf: dep_simpl.graph
+	$(call msg, "DOT", $@)
+	$(Q)dot -Tpdf -o $@ dep_simpl.graph
+
 # Invalidate when plugin changes
 $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 	@# Stupid renaming!
