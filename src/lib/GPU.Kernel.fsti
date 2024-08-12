@@ -1,4 +1,5 @@
 module GPU.Kernel
+#lang-pulse
 
 open Pulse.Lib.Pervasives
 open FStar.Tactics.V2
@@ -13,8 +14,6 @@ module U32 = FStar.UInt32
 module SZ = FStar.SizeT
 
 (* f<<<nblk, nthr>>>(...); *)
-```pulse
-val
 fn launch_kernel_n_m_sync
   (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
@@ -37,11 +36,8 @@ fn launch_kernel_n_m_sync
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
-```
 
 (* f<<<nblk, nthr>>>(...); *)
-```pulse
-val
 fn launch_kernel_n_m_barrier
   (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
@@ -56,11 +52,8 @@ fn launch_kernel_n_m_barrier
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
-```
 
 (* f<<<nblk, nthr>>>(...); *)
-```pulse
-val
 fn launch_kernel_n_m
   (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
@@ -73,10 +66,8 @@ fn launch_kernel_n_m
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
-```
 
 (* f<<<nblk, 1>>>(...); *)
-```pulse
 // Private
 fn kernel_n_as_n_m
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
@@ -92,9 +83,7 @@ fn kernel_n_as_n_m
 {
   k etid;
 }
-```
 
-```pulse
 fn launch_kernel_n
   (#u1: erased int)
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
@@ -112,10 +101,8 @@ fn launch_kernel_n
     (fun etid -> kernel_n_as_n_m nblk #pre #post k etid);
   rewrite (bigstar #u1 0 (SZ.v nblk * 1) post) as (bigstar #u1 0 (SZ.v nblk) post);
 }
-```
 
 (* f<<<1, 1>>>(...); *)
-```pulse
 // Private
 fn kernel_1_as_n
   (#pre #post : slprop)
@@ -128,9 +115,7 @@ fn kernel_1_as_n
 {
   k ()
 }
-```
 
-```pulse
 fn launch_kernel_1
   (#pre #post : slprop)
   (k : unit ->
@@ -143,4 +128,3 @@ fn launch_kernel_1
   launch_kernel_n 1sz (fun etid -> kernel_1_as_n #pre #post k etid);
   bigstar_single_elim #0;
 }
-```
