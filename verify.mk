@@ -131,13 +131,15 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(call msg,"ACCEPT",$@)
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
+TESTS+=GPU_Example1
+TESTS+=GPU_DotProduct2
+TESTS+=GPU_MatMul
+
 extraction-targets: \
 	out/GPU_DotProduct.o \
 	out/GPU_Example1.exe \
 	out/GPU_DotProduct2.exe \
-
-TESTS+=GPU_Example1
-TESTS+=GPU_DotProduct2
+	$(patsubst %,out/%.exe,$(TESTS))
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
