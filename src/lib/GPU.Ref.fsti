@@ -5,7 +5,7 @@ module GPU.Ref
 open Pulse.Lib.Pervasives
 open FStar.Tactics.V2
 open GPU.Base
-open GPU.Types
+open GPU.Sized
 
 val gpu_ref (a:Type u#0) : Type u#0
 

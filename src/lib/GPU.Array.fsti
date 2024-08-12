@@ -7,7 +7,7 @@ open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open FStar.Seq
 open GPU.Base
-open GPU.Types
+open GPU.Sized
 
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
