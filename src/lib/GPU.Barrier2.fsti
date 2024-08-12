@@ -1,5 +1,7 @@
 module GPU.Barrier2
 
+#lang-pulse
+
 open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
@@ -21,9 +23,7 @@ val barrier_tok
   (tid : nat { tid < n })
   : slprop
 
-```pulse
 ghost
-val
 fn mk_barrier
   (n: SZ.t { 0 < n /\ n <= max_threads })
   (p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
@@ -34,11 +34,9 @@ fn mk_barrier
   requires block_setup n
   returns  b : erased (barrier n)
   ensures  block_setup n ** bigstar 0 n (barrier_tok p q b 0)
-```
 
 // __syncthreads()
-```pulse
-val fn barrier_wait
+fn barrier_wait
   (#n : erased nat)
   (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
   (#q : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
@@ -47,11 +45,8 @@ val fn barrier_wait
   (#tid : erased nat { tid < n })
   requires barrier_tok p q b  it    tid ** p it tid
   ensures  barrier_tok p q b (it+1) tid ** q it tid
-```
 
-```pulse
 ghost
-val
 fn drop_barrier
   (#n : nat)
   (#p : (it:nat -> tid:nat { 0 <= tid /\ tid < n } -> slprop))
@@ -60,16 +55,3 @@ fn drop_barrier
   (#it: nat)
   requires bigstar 0 n (barrier_tok p q b it)
   ensures  emp
-```
-
-(* Does this always deadlock? *)
-// if (tid % 2) {
-//   ...
-//   __syncthreads();
-// } else {
-//   ...
-//   __syncthreads();
-// }
-
-
-

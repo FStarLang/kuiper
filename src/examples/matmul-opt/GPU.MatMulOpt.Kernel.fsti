@@ -1,5 +1,7 @@
 module GPU.MatMulOpt.Kernel
 
+#lang-pulse
+
 #push-options "--fuel 1 --ifuel 1"
 
 open FStar.Mul
@@ -80,16 +82,13 @@ let kpost (shared: nat)
 
 // #push-options "--print_implicits --print_bound_var_types"
 
-```pulse
-val fn thread_id_to_idx_2_sz (tid: SZ.t { SZ.v tid < rows * columns })
+fn thread_id_to_idx_2_sz (tid: SZ.t { SZ.v tid < rows * columns })
   requires emp
   returns  idx: (i: SZ.t { SZ.v i < rows * columns /\ SZ.v i == mapping_fixed.f (SZ.v tid) })
   ensures  emp
-```
 
 #push-options "--print_implicits --print_bound_var_types"
 
-```pulse
 fn kernel
   // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
   (ga1 : gpu_array U64.t (rows * shared)) (ga2 : gpu_array U64.t (shared * columns)) (r : gpu_array U64.t (rows * columns))
@@ -102,7 +101,7 @@ fn kernel
   (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
   requires gpu
     ** thread_id etid
-    ** shared_pre nthr 0 ar (SZ.v (tidx_x etid))
+    ** shared_pre nthr s1 s2 0 ar (SZ.v (tidx_x etid))
     //** (assert (thread_index etid < rows * columns); mapping_inv_lemma blocksize columns rows (thread_index etid);
     ** kpre shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid))//)
   ensures  gpu
@@ -176,10 +175,8 @@ fn kernel
   fold shared_post nthr ar (SZ.v (tidx_x etid));
   ()
 }
-```
 
 
-```pulse
 ghost fn fold_pre_pair
   (rows shared columns: nat)
   (ga1: gpu_array U64.t (rows * shared))
@@ -195,7 +192,6 @@ ghost fn fold_pre_pair
   fold kpre_pair rows shared columns ga1 ga2 #s1 #s2 size;
   ()
 }
-```
 
 // let kpre (shared: nat)
 //   (rows columns: (i: nat { i % SZ.v blocksize == 0 }))
@@ -211,7 +207,6 @@ ghost fn fold_pre_pair
 //   kpre_pair rows shared columns ga1 ga2 #s1 #s2 (hide (reveal size))
 //   ** (exists* sr. gpu_pts_to_array_slice r idx (idx+1) sr)
 
-```pulse
 ghost fn fold_pre
   (shared: nat)
   (rows columns: (i: nat { i % SZ.v blocksize == 0 }))
@@ -230,7 +225,6 @@ ghost fn fold_pre
   fold kpre shared rows columns ga1 ga2 gr #s1 #s2 size idx;
   ()
 }
-```
 
 
 // #push-options "--print_implicits --print_bound_var_types"
@@ -253,7 +247,6 @@ ghost fn fold_pre
 //   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 
-// ```pulse
 // ghost fn unfold_post
 //   (shared: nat)
 //   (rows columns: (i: pos { i % SZ.v blocksize == 0 }))
@@ -274,6 +267,5 @@ ghost fn fold_pre
 //   unfold (kpost shared rows columns ga1 ga2 gr #s1 #s2 size idx);
 //   ()
 // }
-// ```
 
 // #pop-options

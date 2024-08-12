@@ -1,5 +1,7 @@
 module Pulse.Lib.BigStar
 
+#lang-pulse
+
 open Pulse.Lib.Pervasives
 open FStar.Tactics.V2
 
@@ -49,9 +51,8 @@ val bigstar_extensionality
       (requires bigstar #u1 m n f)
       (ensures fun _ -> bigstar #u1 m n g)
 
-```pulse
 ghost
-val fn bigstar_eta
+fn bigstar_eta
   ()
   (#u1 : int)
   (#m : nat)
@@ -59,11 +60,9 @@ val fn bigstar_eta
   (#f: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f i)
-```
 
-```pulse
 ghost
-val fn bigstar_uneta
+fn bigstar_uneta
   ()
   (#u1 : int)
   (#m : nat)
@@ -71,11 +70,9 @@ val fn bigstar_uneta
   (#f: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u1 m n (fun i -> f i)
   ensures  bigstar #u1 m n f
-```
 
-```pulse
 ghost
-val fn bigstar_rw_congr
+fn bigstar_rw_congr
   (#u1: int)
   (m : nat)
   (n : nat { m <= n })
@@ -84,11 +81,9 @@ val fn bigstar_rw_congr
   (h : (i:nat{m <= i /\ i < n}) -> squash (f i == f' i))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n f'
-```
 
-```pulse
 ghost
-val fn bigstar_extract
+fn bigstar_extract
   (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
@@ -96,11 +91,9 @@ val fn bigstar_extract
   (i : nat { m <= i /\ i < n })
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m i (fun (j: nat { m <= j /\ j < i }) -> f j) ** f i ** bigstar #u1 (i+1) n (fun (j: nat { (i+1) <= j /\ j < n }) -> f j)
-```
 
-```pulse
 ghost
-val fn bigstar_compose
+fn bigstar_compose
   (#u1 : int)
   (m : nat)
   (n : nat {m <= n})
@@ -108,17 +101,14 @@ val fn bigstar_compose
   (i : nat { m <= i /\ i < n })
   requires bigstar #u1 m i (fun (j: nat { m <= j /\ j < i }) -> f j) ** f i ** bigstar #u1 (i+1) n (fun (j: nat { (i+1) <= j /\ j < n }) -> f j)
   ensures  bigstar #u1 m n f
-```
 
-```pulse
 ghost
-val fn bigstar_zs_elim
+fn bigstar_zs_elim
   (#u1 : int)
   (#m : nat)
   (#f: (i: nat{m <= i /\ i < m} -> slprop))
   requires bigstar #u1 m m f
   ensures  emp
-```
 
 val bigstar_zs_intro
   (#[exact (`0)] u1 : int)
@@ -128,15 +118,13 @@ val bigstar_zs_intro
       (requires emp)
       (ensures  fun _ -> bigstar #u1 m m f)
 
-```pulse
 ghost
-val fn bigstar_single_elim
+fn bigstar_single_elim
   (#u1 : int)
   (#m : nat)
   (#f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
   requires bigstar #u1 m (m+1) f
   ensures  f m
-```
 
 val bigstar_single_intro
   (#[exact (`0)] u1 : int)
@@ -146,15 +134,13 @@ val bigstar_single_intro
       (requires f m)
       (ensures  fun _ -> bigstar #u1 m (m+1) f)
 
-```pulse
 ghost
-val fn bigstar_emp_elim
+fn bigstar_emp_elim
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
   requires bigstar #u1 m n (fun _ -> emp)
   ensures  emp
-```
 
 val bigstar_emp_intro
   (#[exact (`0)] u1 : int)
@@ -179,8 +165,7 @@ val bigstar_map
             (bigstar #u1 m n f)
             (fun _ -> bigstar #u2 m n g)
 
-```pulse
-ghost val fn bigstar_commute
+ghost fn bigstar_commute
   (#u1 #u2 : int)
   (m0 : nat)
   (n0 : nat {m0 <= n0})
@@ -189,7 +174,6 @@ ghost val fn bigstar_commute
   (f: (i: nat{m0 <= i /\ i < n0} -> j: nat{m1 <= j /\ j < n1} -> slprop))
   requires bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> f i j))
   ensures  bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j))
-```
 
 // No meta args in pulse syntax, so F* val for now
 [@@allow_ambiguous]
@@ -219,16 +203,14 @@ val bigstar_unzip
             (bigstar #u3 m n (fun i -> f i ** g i))
             (fun _ -> bigstar #u1 m n f ** bigstar #u2 m n g)
 
-```pulse
-ghost val fn bigstar_if_elim
+ghost fn bigstar_if_elim
   (#u1 : int)
   (#m: nat)
   (#n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
   (p: (i: nat { m <= i /\ i < n }) -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp)
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #int i x) (p i) emp)
   ensures  p x
-```
 
 val bigstar_if_intro
   (#[exact (`0)]u1 : int)
@@ -238,7 +220,7 @@ val bigstar_if_intro
   (p: (i: nat { m <= i /\ i < n }) -> slprop)
   : stt_ghost unit emp_inames
       (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #(i:nat { m <= i /\ i < n }) i x) (p i) emp))
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #int i x) (p i) emp))
 
 class permutation (a:Type) = {
    f          : a -> a;
@@ -247,8 +229,7 @@ class permutation (a:Type) = {
    proof : (x: a) -> (y: a) -> squash (f x == y <==> g y == x);
 }
 
-```pulse
-ghost val fn bigstar_permute
+ghost fn bigstar_permute
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
@@ -256,4 +237,3 @@ ghost val fn bigstar_permute
   (p: permutation (i: erased nat{m <= i /\ i < n}))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
-```

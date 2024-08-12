@@ -1,5 +1,7 @@
 module GPU.MatrixBarrier
 
+#lang-pulse
+
 open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
@@ -17,7 +19,6 @@ let mbarrier_tok
     (fun it (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from))
     (fun it (to : nat { 0 <= to /\ to < n }) -> bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> p it from to)) b it tid
 
-```pulse
 ghost
 fn mk_mbarrier_proof
   (n : nat)
@@ -30,10 +31,8 @@ fn mk_mbarrier_proof
     (fun (from : nat { 0 <= from /\ from < n }) -> bigstar_eta _);
   bigstar_commute #0 #0 0 n 0 n (fun (from : nat { 0 <= from /\ from < n }) -> fun (to : nat { 0 <= to /\ to < n }) -> p it from to);
 }
-```
 
 // TODO: remove
-```pulse
 ghost fn fold_mbarrier_tok
   (#n:nat)
   (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
@@ -47,9 +46,7 @@ ghost fn fold_mbarrier_tok
 {
   fold (mbarrier_tok n p it tid)
 }
-```
 
-```pulse
 ghost
 fn mk_mbarrier
   (n: SZ.t { 0 < n /\ n <= max_threads })
@@ -63,10 +60,8 @@ fn mk_mbarrier
     (mk_mbarrier_proof n p);
   bigstar_map #0 #0 #0 #n (fold_mbarrier_tok #n p b 0);
 }
-```
 
 // __syncthreads()
-```pulse
 fn mbarrier_wait
   (#n : erased nat)
   (#p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
@@ -79,18 +74,14 @@ fn mbarrier_wait
   B.barrier_wait #n #(fun it (from: nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from)) #_ _;
   fold (mbarrier_tok n p (it+1) tid);
 }
-```
 
-```pulse
 ghost
-val
 fn drop_mbarrier
   (#n : nat)
   (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
   (#it: nat)
   requires bigstar 0 n (mbarrier_tok n p it)
   ensures  emp
-```
 
 (* Does this always deadlock? *)
 // if (tid % 2) {

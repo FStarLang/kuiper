@@ -34,7 +34,7 @@ let spow2 (s : SZ.t{s < 32}) : r:SZ.t{SZ.v r == pow2 (SZ.v s)} =
   r
 
 let div_pow2 (i tid: nat) : GTot bool =
-  tid % pow2 i = 0
+  (=) #int (tid % pow2 i) 0
 
 [@@ CPrologue "__device__"]
 let sdiv_pow2 (i:SZ.t{i < 32}) (tid: SZ.t): bool =
@@ -253,7 +253,9 @@ fn iteration
   let end_   : erased nat = hide (min (tid + 2 * pow2 it) nth);
 
   if (tid +^ spow2 it <^ nth) {
-    bigstar_if_elim #_ #0 #nth (tid + pow2 it) (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
+    bigstar_if_elim #_ #0
+      #nth (tid + pow2 it)
+      (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
 
     let b = sdiv_pow2 (it +^ 1sz) tid;
     

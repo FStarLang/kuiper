@@ -1,5 +1,7 @@
 module GPU.Base
 
+#lang-pulse
+
 open Pulse.Lib.Pervasives
 open FStar.Tactics.V2
 open FStar.Seq
@@ -45,34 +47,24 @@ let thread_index (n: tid_t): GTot (i: nat { i < SZ.v (gdim_x n) * SZ.v (bdim_x n
 )
 let thread_count (n: tid_t): GTot pos = gdim_x n * bdim_x n
 
-```pulse
-val
 fn block_idx_x () (#n: tid_t)
   requires thread_id n
   returns  id : U32.t
   ensures  thread_id n ** pure (SZ.uint32_to_sizet id == bidx_x n)
-```
 
-```pulse
-val
 fn block_dim_x () (#n: tid_t)
   requires thread_id n
   returns  id : U32.t
   ensures  thread_id n ** pure (SZ.uint32_to_sizet id == bdim_x n)
-```
 
-```pulse
-val
 fn thread_idx_x () (#n: tid_t)
   requires thread_id n
   returns  id : U32.t
   ensures  thread_id n ** pure (SZ.uint32_to_sizet id == tidx_x n)
-```
 
 let lemma_mul_lt (a b: nat) (c: nat { a < c }) (d: nat { b <= d /\ d > 0 }): Lemma (a * b < c * d) = ()
 
 noextract inline_for_extraction
-```pulse
 fn thread_idx_all () (#n: tid_t)
   requires thread_id n
   returns  id : SZ.t
@@ -86,4 +78,3 @@ fn thread_idx_all () (#n: tid_t)
   let tid = thread_idx_x ();
   SZ.add (SZ.mul (SZ.uint32_to_sizet bid) (SZ.uint32_to_sizet bdim)) (SZ.uint32_to_sizet tid) 
 }
-```

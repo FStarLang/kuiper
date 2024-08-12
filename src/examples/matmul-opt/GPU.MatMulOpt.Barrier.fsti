@@ -1,5 +1,7 @@
 module GPU.MatMulOpt.Barrier
 
+#lang-pulse
+
 open FStar.Mul
 open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
@@ -8,15 +10,21 @@ module Pure = GPU.MatMulOpt.Pure
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
+#push-options "--admit_smt_queries true"
 let barrier_mm_share
     (n: nat)
-    (s1 s2: Seq.Base.seq (i: Seq.Base.seq U64.t { Seq.Base.length i == n }))
+    (s1 s2: Seq.Base.seq (Seq.Base.seq U64.t))
     (ar: gpu_array U64.t (2 * n))
     (it: nat { it < Seq.Base.length s1 /\ it < Seq.Base.length s2 })
     (from: nat { 0 <= from /\ from < n })
     (to: nat { 0 <= to /\ to < n })
-    : slprop = gpu_pts_to_array_slice ar #(1.0R /. Real.of_int n) from (from + 1) (Pure.singleton (Seq.Base.index (Seq.Base.index s1 it) from))
-            ** gpu_pts_to_array_slice ar #(1.0R /. Real.of_int n) (from + n) (from + n + 1) (Pure.singleton (Seq.Base.index (Seq.Base.index s2 it) from))
+    : slprop
+=
+  gpu_pts_to_array_slice ar #(1.0R /. Real.of_int n)
+    from (from + 1) (Pure.singleton (Seq.Base.index (Seq.Base.index s1 it) from)) **
+  gpu_pts_to_array_slice ar #(1.0R /. Real.of_int n)
+    (from + n) (from + n + 1) (Pure.singleton (Seq.Base.index (Seq.Base.index s2 it) from))
+#pop-options
 
 let barrier_mm_gather
     (n: nat)
@@ -24,23 +32,29 @@ let barrier_mm_gather
     (it: nat)
     (from: nat { 0 <= from /\ from < n })
     (to: nat { 0 <= to /\ to < n })
-    : slprop = bigstar 0 n (fun i -> cond (i = to) (gpu_pts_to_array1 ar #(1.0R /. Real.of_int n) i ** gpu_pts_to_array1 ar #(1.0R /. Real.of_int n) (i + n)) emp)
+    : slprop
+= bigstar 0 n (fun i -> cond (i = to) (gpu_pts_to_array1 ar #(1.0R /. Real.of_int n) i ** gpu_pts_to_array1 ar #(1.0R /. Real.of_int n) (i + n)) emp)
 
 let barrier_mm
     (n: nat)
-    (s1 s2: Seq.Base.seq (i: Seq.Base.seq U64.t { Seq.Base.length i == n }))
+    (s1 s2: Seq.Base.seq (Seq.Base.seq U64.t)) //  { Seq.Base.length i == n }))
     (ar: gpu_array U64.t (2 * n))
     (it: nat)
     (from: nat { 0 <= from /\ from < n })
     (to: nat { 0 <= to /\ to < n })
-    : slprop = if (it / 2 < Seq.Base.length s1 && it / 2 < Seq.Base.length s2) then (cond (it % 2 = 0) (barrier_mm_share n s1 s2 ar (it / 2) from to) (barrier_mm_gather n ar (it / 2) from to)) else emp
+    : slprop
+=
+  if (it / 2 < Seq.Base.length s1 && it / 2 < Seq.Base.length s2)
+  then (cond (it % 2 = 0) (barrier_mm_share n s1 s2 ar (it / 2) from to) (barrier_mm_gather n ar (it / 2) from to))
+  else emp
 
 let shared_pre (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
-    (s1 s2: Seq.Base.seq (i: Seq.Base.seq U64.t { Seq.Base.length i == SZ.v nthr }))
-    (it: nat) (ar: gpu_array U64.t SZ.(2sz *^ nthr)) (i: nat { 0 <= i /\ i < nthr }): slprop =
-  gpu_pts_to_array1 ar i ** gpu_pts_to_array1 ar (i + nthr) ** mbarrier_tok nthr (barrier_mm nthr s1 s2 ar) it i
+    (s1 s2: Seq.Base.seq (Seq.Base.seq U64.t))
+    (it: nat) (ar: gpu_array U64.t SZ.(2sz *^ nthr)) (i: nat { 0 <= i /\ i < nthr })
+: slprop
+= gpu_pts_to_array1 ar i **
+  gpu_pts_to_array1 ar (i + nthr) ** mbarrier_tok nthr (barrier_mm nthr s1 s2 ar) it i
 
-```pulse
 ghost
 fn block_setup_ghost
   (nblk : SZ.t { 0 < reveal nblk /\ reveal nblk <= max_blocks })
@@ -73,8 +87,6 @@ fn block_setup_ghost
   bigstar_uneta();
   gpu_slice_empty_elim ar smem_sz;
 }
-```
 
 let shared_post (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads }) (ar: gpu_array U64.t SZ.(2sz *^ nthr)) (i: nat { 0 <= i /\ i < nthr }): slprop =
   exists* it. shared_pre nthr Seq.Base.empty Seq.Base.empty it ar i
-
