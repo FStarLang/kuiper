@@ -1,5 +1,7 @@
 module GPU.DotProduct2
 
+#lang-pulse
+
 open FStar.Mul
 open Pulse.Lib.Array
 open Pulse.Lib.Pervasives
@@ -99,12 +101,13 @@ let barrier_matrix (nth: nat) (r : gpu_array U64.t nth) (v: Seq.seq U64.t) (it f
 // #push-options "--print_implicits"
 
 
-```pulse
-ghost fn unfold_barrier_matrix (nth: nat) (r : gpu_array U64.t nth) (v: erased (Seq.seq U64.t)) (it from to: nat)
+ghost fn unfold_barrier_matrix (nth: nat) (r : gpu_array U64.t nth) (v: erased (Seq.seq U64.t))
+ (it from to: nat)
   requires barrier_matrix nth r v it from to
-  ensures  if_ (from = to + pow2 it) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
-{ unfold (barrier_matrix nth r v it from to) }
-```
+  ensures  if_ (op_Equality #int from (to + pow2 it)) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
+{
+  unfold (barrier_matrix nth r v it from to)
+}
 
 // let even n : prop = n % 2 == 0
 // let odd  n : prop = ~ (n % 2 == 0)
@@ -144,7 +147,6 @@ let div_pow2_lemma_2 (it tid: nat):
       div_pow2 (it + 1) tid;
     }
 
-```pulse
 ghost fn fold_barrier_matrix_true
   (nth : nat)
   (r: gpu_array U64.t nth)
@@ -152,14 +154,14 @@ ghost fn fold_barrier_matrix_true
   (it: nat)
   (tid: nat { tid <= nth /\ tid >= pow2 it })
   (to: nat)
-  requires if_ (to = tid - pow2 it) (if_ (op_Negation (div_pow2 (it + 1) tid) && div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v))
+  requires if_ (op_Equality #int to (tid - pow2 it))
+             (if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
+               (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v))
   ensures  barrier_matrix nth r v it tid to
 {
   fold (barrier_matrix nth r v it tid to);
 }
-```
 
-```pulse
 ghost fn fold_barrier_matrix_false
   (nth : nat)
   (r: gpu_array U64.t nth)
@@ -170,16 +172,14 @@ ghost fn fold_barrier_matrix_false
   requires emp
   ensures  barrier_matrix nth r v it tid to
 {
-  assert (pure (tid < to + pow2 it /\ not (op_Equality #nat tid (to + pow2 it))));
+  assert (pure (tid < to + pow2 it /\ not (op_Equality #int tid (to + pow2 it))));
   if_intro_false (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
-  // (op_Equality #nat tid (to + pow2 it))
+  // (op_Equality #int tid (to + pow2 it))
   fold (barrier_matrix nth r v it tid to);
 }
-```
 
 // #push-options "--print_implicits --print_bound_var_types"
 
-```pulse
 ghost
 fn mk_barrier_pre
   (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
@@ -208,10 +208,10 @@ fn mk_barrier_pre
     bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> emp) (fold_barrier_matrix_false nth r vv it tid);
   }
 }
-```
+
+#set-options "--print_implicits"
 
 [@@ CPrologue "__device__"]
-```pulse
 fn iteration
   (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array U64.t nth)
@@ -302,14 +302,13 @@ fn iteration
   } else {
     bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
       (fun (from: nat{0 <= from /\ from < nth}) ->
-        if_rewrite_bool (op_Equality #nat from (tid + pow2 it)) false _);
+        if_rewrite_bool (op_Equality #int from (tid + pow2 it)) false _);
     bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
       (fun (from: nat{0 <= from /\ from < nth}) ->
         if_elim_false (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv)));
     bigstar_emp_elim #_;
   }
 }
-```
 
 let kpre (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (Seq.seq U64.t))
   (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
@@ -328,7 +327,6 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array U64.t nth) (#s1 #s2: erased (Seq.seq
 // #set-options "--ext pulse:env_on_err=1"
 
 [@@ CPrologue "__global__"]
-```pulse
 fn kernel
   (nth : SZ.t { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (ga1 ga2 : gpu_array U64.t nth)
@@ -396,12 +394,10 @@ fn kernel
     (**)fold (kpost nth ga1 ga2 r #s1 #s2 tid);
   };
 }
-```
 
 let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array U64.t nth) (#v: Seq.seq U64.t { Seq.length v == nth }) (_: nat): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int nth) v
 
-```pulse
 ghost
 fn share_array
   (#nth : nat { nth <> 0 })
@@ -414,9 +410,7 @@ fn share_array
     as gpu_pts_to_array ga #(1.0R /. of_int 1) v;
   admit();
 }
-```
 
-```pulse
 ghost
 fn gather_array
   (#nth : nat { nth <> 0 })
@@ -427,9 +421,7 @@ fn gather_array
 {
   admit();
 }
-```
 
-```pulse
 fn main
   (a1 a2: array U64.t)
   (v1 v2: erased (Seq.Base.seq U64.t))
@@ -487,7 +479,7 @@ fn main
         (bigstar 0 size
           (fun i -> ((gpu_pts_to_array #U64.t #size ga1 #(1.0R /. Real.of_int size) v1 **
                     gpu_pts_to_array #U64.t #size ga2 #(1.0R /. Real.of_int size) v2) **
-                    if_ (op_Equality #nat i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2)))
+                    if_ (op_Equality #int i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2)))
         ));
   
   (**)bigstar_unzip 0 size _ _;
@@ -517,4 +509,3 @@ fn main
   A.free ar;
   dp
 }
-```
