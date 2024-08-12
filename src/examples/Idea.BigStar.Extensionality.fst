@@ -1,12 +1,13 @@
 module Idea.BigStar.Extensionality
 
+#lang-pulse
+
 open Pulse.Lib.Pervasives
 open GPU
 open Pulse.Lib.BigStar
 
 assume val f : int -> slprop
 
-```pulse
 fn test ()
   requires bigstar 0 9 f
   ensures  bigstar 0 9 (fun i -> f i)
@@ -14,7 +15,6 @@ fn test ()
   bigstar_extensionality 0 9 f (fun i -> f i) (fun _ -> ()); // boring
   ();
 }
-```
 
 // Could we say:
 
@@ -27,7 +27,7 @@ let bigstar_equiv
   : slprop_equiv (bigstar m n f) (bigstar m n g)
   = bigstar_congr #0 #0 m n m n f g (fun i -> h (i+m));
     assert (bigstar m n f == bigstar m n g);
-    coerce_eq () <| slprop_equiv_refl (bigstar m n f)
+    coerce_eq () (slprop_equiv_refl (bigstar m n f))
 
 // And have Pulse use it automatically?
 

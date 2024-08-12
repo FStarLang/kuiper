@@ -1,5 +1,7 @@
 module GPU.MatMulOpt
 
+#lang-pulse
+
 #push-options "--fuel 1 --ifuel 1"
 
 // #push-options "--debug SMTFail --split_queries always --log_failing_queries"
@@ -17,7 +19,6 @@ module Defs = GPU.MatMulOpt.Defs
 let matmul_single = Defs.matmul_single Defs.rows Defs.shared Defs.columns
 let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
 
-```pulse
 ghost
 fn setup
   (size: SZ.t { size == SZ.(Defs.rows *^ Defs.columns) })
@@ -52,11 +53,9 @@ fn setup
   (**)bigstar_map #5 #0 #0 #size #_ #_
         (fun i -> Defs.fold_pre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.Base.cons #U64.t _ (Seq.Base.empty #U64.t)) size i);
 }
-```
 
 #push-options "--print_implicits --print_bound_var_types"
 
-```pulse
 fn main
   (a1 a2: array U64.t)
   (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
@@ -205,4 +204,3 @@ fn main
 
   ar
 }
-```

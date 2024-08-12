@@ -1,5 +1,7 @@
 module GPU.MatMul.Kernel
 
+#lang-pulse
+
 #push-options "--fuel 1 --ifuel 1"
 
 open FStar.Mul
@@ -68,7 +70,6 @@ inline_for_extraction
 let columns : SZ.t = rows // columns of ga2/r
 
 [@@CPrologue "__global__"]
-```pulse
 fn kernel
   // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
   (ga1 : gpu_array U64.t (rows * shared))
@@ -134,10 +135,7 @@ fn kernel
   fold kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) tid;
   ()
 }
-```
 
-
-```pulse
 ghost fn fold_pre_pair
   (rows shared columns: nat)
   (ga1: gpu_array U64.t (rows * shared))
@@ -153,9 +151,7 @@ ghost fn fold_pre_pair
   fold kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth;
   ()
 }
-```
 
-```pulse
 ghost fn fold_pre
   (rows shared columns: nat)
   (ga1: gpu_array U64.t (rows * shared))
@@ -173,12 +169,10 @@ ghost fn fold_pre
   fold kpre rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
   ()
 }
-```
 
 
 #push-options "--print_implicits --print_bound_var_types"
 
-```pulse
 ghost fn unfold_post
   (rows shared columns: nat)
   (ga1: gpu_array U64.t (rows * shared))
@@ -196,6 +190,5 @@ ghost fn unfold_post
   unfold kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
   ()
 }
-```
 
 #pop-options

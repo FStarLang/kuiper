@@ -1,5 +1,7 @@
 module GPU.Example1
 
+#lang-pulse
+
 open Pulse.Lib
 open Pulse.Lib.Pervasives
 open GPU
@@ -7,7 +9,6 @@ open GPU
 module U64 = FStar.UInt64
 
 [@@CPrologue "__global__"]
-```pulse
 fn kernel (r : gpu_ref U64.t) (#v : erased U64.t)
   requires gpu ** gpu_pts_to r v
   ensures  gpu ** gpu_pts_to r (U64.add_underspec v 1uL)
@@ -15,9 +16,7 @@ fn kernel (r : gpu_ref U64.t) (#v : erased U64.t)
   let v = gpu_read r;
   gpu_write r (U64.add_underspec v 1uL);
 }
-```
 
-```pulse
 fn main (_:unit)
   requires cpu
   returns  _ : U64.t
@@ -42,4 +41,3 @@ fn main (_:unit)
   Box.free r;
   v
 }
-```

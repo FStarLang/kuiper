@@ -1,5 +1,7 @@
 module GPU.MatMul.Impure
 
+#lang-pulse
+
 #push-options "--fuel 1 --ifuel 1"
 
 open FStar.Mul
@@ -42,7 +44,6 @@ val gpu_matrix_unshare_underspec
 
 [@@CPrologue "__device__"]
 inline_for_extraction
-```pulse
 fn gpu_matrix_read
   #a
   (#rows #columns: SZ.t)
@@ -67,14 +68,12 @@ fn gpu_matrix_read
   fold gpu_pts_to_matrix rows columns ga shared s;
   v
 }
-```
 
 // fixme, function above extracts wrongly (returns void* instead of uint64_t in
 // the specialization). If the inline_for_extraction was not there above, the
 // resulting C code would not typecheck.
 [@@CPrologue "__device__"]
 inline_for_extraction
-```pulse
 fn gpu_matrix_read_u64
   (#rows #columns: SZ.t)
   (ga : gpu_array U64.t (rows * columns))
@@ -98,6 +97,5 @@ fn gpu_matrix_read_u64
   fold gpu_pts_to_matrix rows columns ga shared s;
   v
 }
-```
 
 #pop-options

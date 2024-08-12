@@ -1,5 +1,7 @@
 module GPU.DotProduct
 
+#lang-pulse
+
 open FStar.Mul
 open Pulse.Lib.Array
 open Pulse.Lib.Pervasives
@@ -29,7 +31,6 @@ let kpost (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : sl
   gpu_pts_to_array1 #elem_t #(SZ.v size) r tid
 
 [@@CPrologue "__global__"]
-```pulse
 fn kernel
   (#nblk : erased SZ.t { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
   (size : SZ.t { SZ.v size == SZ.v nblk })
@@ -61,11 +62,10 @@ fn kernel
   (**)fold (gpu_pts_to_array1 ga2 id);
   (**)fold (kpost size ga1 ga2 r (thread_index etid));
 }
-```
 
-```pulse
+
 fn main (_:unit)
-  requires cpu ** pure SizeT.fits_u32
+  requires cpu ** pure SZ.fits_u32
   ensures  cpu
 {
   let a1 = A.alloc #elem_t 0ul m_size;
@@ -176,4 +176,3 @@ fn main (_:unit)
 
   ()
 }
-```

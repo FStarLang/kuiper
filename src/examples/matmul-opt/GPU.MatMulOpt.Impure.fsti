@@ -1,5 +1,7 @@
 module GPU.MatMulOpt.Impure
 
+#lang-pulse
+
 #push-options "--fuel 1 --ifuel 1"
 
 open FStar.Mul
@@ -39,7 +41,6 @@ val gpu_matrix_unshare_underspec
     (bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s))
     (fun _ -> gpu_pts_to_matrix #a rows columns ga 1 s)
 
-```pulse
 fn gpu_matrix_read
   #a
   (#rows #columns: SZ.t)
@@ -64,5 +65,4 @@ fn gpu_matrix_read
   fold gpu_pts_to_matrix rows columns ga shared s;
   v
 }
-```
 #pop-options
