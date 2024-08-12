@@ -41,7 +41,7 @@ FSTAR := fstar.exe					\
 	--warn_error -249-321				\
 	$(FSTAR_FLAGS)
 	
-GPUH := $(realpath GPU.h)
+GPUH := $(realpath include/GPU.h)
 
 KRML := $(KRML_HOME)/krml				\
 	-add-early-include '"$(GPUH)"'			\
@@ -116,13 +116,13 @@ $(OUTDIR)/%.c: $(OUTDIR)/%.krml
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 	@ln -sf $(realpath $<) $@
 
-%.o: %.cu GPU.h
+%.o: %.cu include/GPU.h
 	$(call msg,"NVCC",$@)
 	$(Q)nvcc -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	$(call msg,"NVCC",$@)
-	$(Q)nvcc -I $(OUTDIR) -o $@ $^
+	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 	$< > $@

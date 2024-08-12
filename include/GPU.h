@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "krml_float.h"
+
 #include <cuda_runtime.h>
 
 #define PULSE_KCALL(foo, nblk, nthr, ...)				\
