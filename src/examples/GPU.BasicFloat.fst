@@ -5,7 +5,7 @@ module GPU.BasicFloat
 open Pulse.Lib
 open Pulse.Lib.Pervasives
 open GPU
-module F = FStar.Float
+module F = GPU.Float32
 
 [@@CPrologue "__global__"]
 fn kernel (r : gpu_ref F.t) (#v : erased F.t)

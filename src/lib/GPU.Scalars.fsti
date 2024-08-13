@@ -10,8 +10,9 @@ module I8  = FStar.Int8
 module I16 = FStar.Int16
 module I32 = FStar.Int32
 module I64 = FStar.Int64
-module F32 = FStar.Float
 module SZ  = FStar.SizeT
+
+module F32 = GPU.Float32
 
 inline_for_extraction instance _ : sized U8.t  = { size = 1sz; }
 inline_for_extraction instance _ : sized U16.t = { size = 2sz; }
