@@ -17,24 +17,32 @@
 			assert(!"kcall");				\
 	} while (0)
 
+static inline
+void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
+{
+	if (rc != cudaSuccess) {
+		fprintf(stderr, "*** ABORTING ***\n");
+		fprintf(stderr, "This call failed: %s\n", str);
+		fprintf(stderr, "At file %s, line %d\n", fname, line);
+		fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(rc));
+		exit(1);
+	}
+}
+
 #define MUST(e)								\
-	({								\
-		cudaError_t uu___r = (e);				\
-		if (uu___r != cudaSuccess) {				\
-			fprintf(stderr, "CALL FAILED: " #e "\n");	\
-			fprintf(stderr, "CUDA error: %s\n",		\
-					cudaGetErrorString(uu___r));	\
-			exit(1);					\
-		}							\
-	})
+	__MUST(e, #e, __FILE__, __LINE__)
 
 static inline
-uint32_t * PULSE_GPU_ALLOC(size_t len)
+uint32_t * __PULSE_GPU_ALLOC(size_t len, const char *str, const char *fname,
+			     int line)
 {
 	uint32_t *ret = NULL;
-	MUST(cudaMalloc(&ret, len));
+	__MUST(cudaMalloc(&ret, len), str, fname, line);
 	return ret;
 }
+
+#define PULSE_GPU_ALLOC(len)						\
+	__PULSE_GPU_ALLOC(len, "PULSE_GPU_ALLOC(" #len ")", __FILE__, __LINE__)
 
 #define KRML_HOST_MALLOC            malloc
 #define KRML_HOST_CALLOC            calloc
