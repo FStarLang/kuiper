@@ -5,12 +5,12 @@ val t : Type0
 
 let float = t
 
-val zero : t
-val one : t
+[@@noextract_to "krml"] val zero : t
+[@@noextract_to "krml"] val one : t
 
-val add : t -> t -> t
-val sub : t -> t -> t
-val neg : t -> t
-val mul : t -> t -> t
-val div : t -> t -> t
-val rem : t -> t -> t
+[@@noextract_to "krml"] val add : t -> t -> t
+[@@noextract_to "krml"] val sub : t -> t -> t
+[@@noextract_to "krml"] val neg : t -> t
+[@@noextract_to "krml"] val mul : t -> t -> t
+[@@noextract_to "krml"] val div : t -> t -> t
+[@@noextract_to "krml"] val rem : t -> t -> t

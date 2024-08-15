@@ -6,7 +6,7 @@
 #define GPU_Float32_zero 0.0
 #define GPU_Float32_add(x,y) ((x)+(y))
 #define GPU_Float32_sub(x,y) ((x)-(y))
-#define GPU_Float32_neg(x,y) (-(x))
+#define GPU_Float32_neg(x)   (-(x))
 #define GPU_Float32_div(x,y) ((x)/(y))
 #define GPU_Float32_rem(x,y) ((x)%(y))
 
