@@ -26,16 +26,16 @@ fn setup
   (ga1 : gpu_array U64.t (Defs.rows * Defs.shared)) (ga2 : gpu_array U64.t (Defs.shared * Defs.columns)) (gr : gpu_array U64.t size)
   (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
   (v2: erased (Seq.Base.seq U64.t) { Seq.Base.length v2 == Defs.shared * Defs.columns })
-  requires cpu ** (exists* s. gpu_pts_to_array gr s) ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
-  ensures cpu ** bigstar 0 size (fun i -> Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)) i)
+  requires (exists* s. gpu_pts_to_array gr s) ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
+  ensures  bigstar 0 size (fun i -> Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)) i)
 {
   // Slicing the array
-  rewrite gpu_pts_to_array ga1 #1.0R v1
-    as gpu_pts_to_array ga1 #(1.0R /. of_int 1) v1;
-  rewrite gpu_pts_to_array ga2 #1.0R v2
-    as gpu_pts_to_array ga2 #(1.0R /. of_int 1) v2;
+  // rewrite gpu_pts_to_array ga1 #1.0R v1
+  //   as gpu_pts_to_array ga1 #(1.0R /. of_int 1) v1;
+  // rewrite gpu_pts_to_array ga2 #1.0R v2
+  //   as gpu_pts_to_array ga2 #(1.0R /. of_int 1) v2;
 
-  (**)fold Defs.gpu_pts_to_matrix Defs.rows Defs.shared ga1 1 v1;
+  (**)fold Defs.gpu_pts_to_matrix Defs.rows   Defs.shared  ga1 1 v1;
   (**)fold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
   (**)Defs.gpu_matrix_share_underspec #_ #1 (SZ.v Defs.rows) (SZ.v Defs.shared) ga1 (SZ.v size) v1;
   (**)Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 (SZ.v size) v2;
