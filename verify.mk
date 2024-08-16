@@ -10,6 +10,9 @@ include .common.mk
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
+# Keep pulse plugin updated
+HACK:=$(shell make -C pulse/src build-ocaml)
+
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
 FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
@@ -27,7 +30,9 @@ FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
 FSTAR_FLAGS += $(OTHERFLAGS)
 
-FSTAR := fstar.exe					\
+FSTAR_EXE := $(shell which fstar.exe)
+
+FSTAR := $(FSTAR_EXE)					\
 	$(SIL)						\
 	--include pulse/lib/pulse/			\
 	--include pulse/lib/pulse/core/			\
@@ -36,11 +41,13 @@ FSTAR := fstar.exe					\
 	--include src/lib/				\
 	--include src/examples/				\
 	--include src/examples/matmul/			\
-	--include src/examples/matmul-opt/			\
+	--include src/examples/matmul-opt/		\
 	--load_cmxs pulse				\
 	--warn_error -249-321				\
+	--warn_error @242@250				\
 	$(FSTAR_FLAGS)
-	
+# 242, 250: abort if could not extract something
+
 GPUH := $(realpath include/GPU.h)
 
 KRML := $(KRML_HOME)/krml				\
@@ -77,7 +84,7 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 	$(Q)$(FSTAR) $<
 	@touch -c $@
 
-$(PLUGIN).cmxs:
+$(PLUGIN).cmxs: $(FSTAR_EXE)
 	+$(MAKE) -C extraction build
 
 .PHONY: echo-fstar
@@ -118,6 +125,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
+		--extract "+GPU"						\
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
 		$(patsubst .cache/%.checked,src/examples/%,$<)
@@ -163,6 +171,7 @@ extraction-targets: \
 	out/GPU_DotProduct.o \
 	out/GPU_Example1.exe \
 	out/GPU_DotProduct2.exe \
+	out/GPU_Reduction.cu \
 	$(patsubst %,out/%.exe,$(TESTS))
 
 .PHONY: test
