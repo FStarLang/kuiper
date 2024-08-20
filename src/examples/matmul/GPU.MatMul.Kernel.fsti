@@ -124,7 +124,7 @@ fn kernel
   gpu_array_write #u64 #(rows * columns) #((SZ.v tid)) #((SZ.v tid + 1)) r tid s;
 
   with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
-  (**)Seq.Base.lemma_eq_intro v (singleton s);
+  (**)Seq.lemma_eq_intro v (singleton s);
   (**)rewrite gpu_pts_to_array_slice r tid (tid + 1) v
     as gpu_pts_to_array_slice r tid (tid + 1) (singleton s);
 

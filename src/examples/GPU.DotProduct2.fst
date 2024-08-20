@@ -425,7 +425,7 @@ fn gather_array
 
 fn main
   (a1 a2: array U64.t)
-  (v1 v2: erased (Seq.Base.seq U64.t))
+  (v1 v2: erased (Seq.seq U64.t))
   (#_: squash (Seq.length v1 = size /\ Seq.length v2 = size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  dp: U64.t

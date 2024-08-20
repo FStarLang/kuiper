@@ -141,7 +141,7 @@ val gpu_array_slice_1
     unit
     emp_inames
     (gpu_pts_to_array arr #f v)
-    (fun _ -> bigstar #uid 0 sz (fun i -> gpu_pts_to_array_slice arr #f i (i+1) (Seq.Base.cons (Seq.Base.index v i) Seq.Base.empty)))
+    (fun _ -> bigstar #uid 0 sz (fun i -> gpu_pts_to_array_slice arr #f i (i+1) (Seq.cons (Seq.index v i) Seq.empty)))
 
 val gpu_array_unslice_1
   (#uid: int) (#a:Type u#0)
@@ -152,7 +152,7 @@ val gpu_array_unslice_1
 : stt_ghost
     unit
     emp_inames
-    (bigstar #uid 0 sz (fun i -> gpu_pts_to_array_slice arr #f i (i+1) (Seq.Base.cons (Seq.Base.index v i) Seq.Base.empty)))
+    (bigstar #uid 0 sz (fun i -> gpu_pts_to_array_slice arr #f i (i+1) (Seq.cons (Seq.index v i) Seq.empty)))
     (fun _ -> gpu_pts_to_array arr #f v)
 
 val gpu_array_slice_1_underspec
@@ -187,7 +187,7 @@ val gpu_slice_concat
   (i n m:nat)
   : stt_ghost unit emp_inames
       (gpu_pts_to_array_slice arr #f i n s1 ** gpu_pts_to_array_slice arr #f n m s2)
-      (fun _ -> gpu_pts_to_array_slice arr #f i m (Seq.Base.append s1 s2))
+      (fun _ -> gpu_pts_to_array_slice arr #f i m (Seq.append s1 s2))
 
 ghost
 fn gpu_slice_slice_1_underspec

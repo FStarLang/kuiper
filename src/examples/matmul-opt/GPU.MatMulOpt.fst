@@ -23,8 +23,8 @@ ghost
 fn setup
   (size: SZ.t { size == SZ.(Defs.rows *^ Defs.columns) })
   (ga1 : gpu_array U64.t (Defs.rows * Defs.shared)) (ga2 : gpu_array U64.t (Defs.shared * Defs.columns)) (gr : gpu_array U64.t size)
-  (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.Base.seq U64.t) { Seq.Base.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (Seq.seq U64.t) { Seq.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (Seq.seq U64.t) { Seq.length v2 == Defs.shared * Defs.columns })
   requires cpu ** (exists* s. gpu_pts_to_array gr s) ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
   ensures cpu ** bigstar 0 size (Defs.kpre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)))
 {
@@ -51,15 +51,15 @@ fn setup
   (**)gpu_array_slice_1 #4 #_ gr #f #v;
   (**)bigstar_zip #3 #4 #5 0 size _ _;
   (**)bigstar_map #5 #0 #0 #size #_ #_
-        (fun i -> Defs.fold_pre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.Base.cons #U64.t _ (Seq.Base.empty #U64.t)) size i);
+        (fun i -> Defs.fold_pre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.cons #U64.t _ (Seq.empty #U64.t)) size i);
 }
 
 #push-options "--print_implicits --print_bound_var_types"
 
 fn main
   (a1 a2: array U64.t)
-  (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.Base.seq U64.t) { Seq.Base.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (Seq.seq U64.t) { Seq.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (Seq.seq U64.t) { Seq.length v2 == Defs.shared * Defs.columns })
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns ar: array U64.t
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
@@ -167,9 +167,9 @@ fn main
             (i + 1)
             (Defs.singleton #U64.t
                 (reveal #U64.t
-                    (hide (Seq.Base.index #U64.t
-                      (reveal #(Seq.Base.seq U64.t)
-                          (hide #(Seq.Base.seq U64.t) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
+                    (hide (Seq.index #U64.t
+                      (reveal #(Seq.seq U64.t)
+                          (hide #(Seq.seq U64.t) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
                       i)))))
         (fun i -> Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i);
 
@@ -181,22 +181,22 @@ fn main
       #(SZ.v MatMulOpt.Kernel.rows * SZ.v MatMulOpt.Kernel.shared)
       ga1
       #(1.0R /. 1.0R)
-      (reveal #(Seq.Base.seq U64.t) v1)) as
+      (reveal #(Seq.seq U64.t) v1)) as
       (gpu_pts_to_array #U64.t
       #(SZ.v (MatMulOpt.Kernel.rows *^ MatMulOpt.Kernel.shared))
       ga1
       #1.0R
-      (reveal #(Seq.Base.seq U64.t) v1));
+      (reveal #(Seq.seq U64.t) v1));
   (**)rewrite (gpu_pts_to_array #U64.t
       #(SZ.v MatMulOpt.Kernel.shared * SZ.v MatMulOpt.Kernel.columns)
       ga2
       #(1.0R /. 1.0R)
-      (reveal #(Seq.Base.seq U64.t) v2)) as
+      (reveal #(Seq.seq U64.t) v2)) as
       (gpu_pts_to_array #U64.t
       #(SZ.v (MatMulOpt.Kernel.shared *^ MatMulOpt.Kernel.columns))
       ga2
       #1.0R
-      (reveal #(Seq.Base.seq U64.t) v2));
+      (reveal #(Seq.seq U64.t) v2));
 
   gpu_array_free ga1;
   gpu_array_free ga2;
