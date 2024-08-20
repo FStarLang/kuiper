@@ -2,14 +2,10 @@ module GPU.DotProduct
 
 #lang-pulse
 
-open FStar.Mul
-open Pulse.Lib.Array
-open Pulse.Lib.Pervasives
+open GPU
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
-open Pulse.Lib.BigStar
-open GPU
 
 let m_size : sz = 1024sz
 let size : n:(erased nat){reveal n == SZ.v m_size} = SZ.v m_size

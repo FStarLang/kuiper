@@ -2,17 +2,13 @@ module GPU.DotProduct2
 
 #lang-pulse
 
-open FStar.Mul
-open Pulse.Lib.Array
-open Pulse.Lib.Pervasives
+open GPU
+open GPU.Barrier.RPM
+
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
-open Pulse.Lib.BigStar
-open GPU
-open GPU.Barrier.RPM
-open FStar.SizeT
 
 #set-options "--z3rlimit 20"
 
@@ -56,7 +52,9 @@ let min (a b: nat) : GTot nat =
   if a < b then a else b
 
 [@@ CPrologue "__device__"]
-let smin (a b: sz ): sz = if a <^ b then a else b
+let smin (a b : sz): sz =
+  let open FStar.SizeT in
+  if a <^ b then a else b
 
 // Pure SUM
 
@@ -365,6 +363,7 @@ fn kernel
   (**)fold (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
   (**)if_intro_true (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
 
+  open FStar.SizeT;
   while (let it = !n; (spow2 it <^ nth))
     invariant c.
     exists* (it:sz).
