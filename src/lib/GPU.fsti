@@ -5,6 +5,8 @@ include FStar.Mul
 include Pulse
 include Pulse.Lib.BigStar
 
+include FStar.Seq { seq, cons, empty }
+
 include GPU.Base
 include GPU.Ref
 include GPU.Sized
