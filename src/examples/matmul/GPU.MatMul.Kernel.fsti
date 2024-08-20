@@ -4,11 +4,8 @@ module GPU.MatMul.Kernel
 
 #push-options "--fuel 1 --ifuel 1"
 
-open FStar.Mul
-open Pulse.Lib.Pervasives
-open Pulse.Lib.BigStar
 open GPU
-open GPU.SizeT
+
 module Impure = GPU.MatMul.Impure
 module Pure = GPU.MatMul.Pure
 module SZ = FStar.SizeT
@@ -170,9 +167,6 @@ ghost fn fold_pre
   ()
 }
 
-
-#push-options "--print_implicits --print_bound_var_types"
-
 ghost fn unfold_post
   (rows shared columns: nat)
   (ga1: gpu_array U64.t (rows * shared))
@@ -190,5 +184,3 @@ ghost fn unfold_post
   unfold kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
   ()
 }
-
-#pop-options

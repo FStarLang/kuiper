@@ -4,48 +4,43 @@ module GPU.MatMul.Impure
 
 #push-options "--fuel 1 --ifuel 1"
 
-open FStar.Mul
-open Pulse.Lib.Pervasives
-open Pulse.Lib.BigStar
 open GPU
-module U64 = FStar.UInt64
 
+module U64 = FStar.UInt64
 module SZ = FStar.SizeT
-open FStar.SizeT
 
 let gpu_pts_to_matrix #a (rows columns: nat) (ga : gpu_array a (rows * columns)) (shared: erased nat{shared > 0}) (s: erased (Seq.Base.seq a)): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int shared) s
 
-val gpu_matrix_share_underspec
+ghost
+fn gpu_matrix_share_underspec
   (#a:Type u#0)
   (#uid: int)
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
   (shared: erased nat{shared > 0})
   (s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
-: stt_ghost
-    unit
-    emp_inames
-    (gpu_pts_to_matrix #a rows columns ga 1 s)
-    (fun _ -> bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s))
+  requires gpu_pts_to_matrix #a rows columns ga 1 s
+  ensures bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s)
 
-val gpu_matrix_unshare_underspec
+ghost
+fn gpu_matrix_unshare_underspec
   (#a:Type u#0)
   (#uid: int)
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
   (shared: erased nat{shared > 0})
   (s: erased (Seq.Base.seq a) { Seq.length s == rows * columns })
-: stt_ghost
-    unit
-    emp_inames
-    (bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s))
-    (fun _ -> gpu_pts_to_matrix #a rows columns ga 1 s)
+  requires bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s)
+  ensures  gpu_pts_to_matrix #a rows columns ga 1 s
+
+
+// TODO: Make --cmi work and put this in the fst
 
 [@@CPrologue "__device__"]
-inline_for_extraction
+inline_for_extraction noextract
 fn gpu_matrix_read
-  #a
+  (#a:Type0)
   (#rows #columns: SZ.t)
   (ga : gpu_array a (rows * columns))
   (#shared: erased nat{shared > 0})
@@ -57,6 +52,7 @@ fn gpu_matrix_read
   // TODO: is the assert here opaque?
   ensures gpu ** gpu_pts_to_matrix rows columns ga shared s ** pure (assert ((SZ.v row + 1) * columns <= rows * columns); v == Seq.Base.index s (row * columns + SZ.v col))
 {
+  open FStar.SizeT;
   assume_ (pure (forall (x:nat). SizeT.fits x)); // CHEATING overflow
   unfold gpu_pts_to_matrix rows columns ga shared s;
   unfold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
@@ -73,7 +69,7 @@ fn gpu_matrix_read
 // the specialization). If the inline_for_extraction was not there above, the
 // resulting C code would not typecheck.
 [@@CPrologue "__device__"]
-inline_for_extraction
+inline_for_extraction noextract
 fn gpu_matrix_read_u64
   (#rows #columns: SZ.t)
   (ga : gpu_array U64.t (rows * columns))
@@ -86,6 +82,7 @@ fn gpu_matrix_read_u64
   // TODO: is the assert here opaque?
   ensures gpu ** gpu_pts_to_matrix rows columns ga shared s ** pure (assert ((SZ.v row + 1) * columns <= rows * columns); v == Seq.Base.index s (row * columns + SZ.v col))
 {
+  open FStar.SizeT;
   assume_ (pure (forall (x:nat). SizeT.fits x)); // CHEATING overflow
   unfold gpu_pts_to_matrix rows columns ga shared s;
   unfold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;

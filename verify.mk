@@ -34,6 +34,7 @@ FSTAR_EXE := $(shell which fstar.exe)
 
 FSTAR := $(FSTAR_EXE)					\
 	$(SIL)						\
+	--cmi						\
 	--include pulse/lib/pulse/			\
 	--include pulse/lib/pulse/core/			\
 	--include pulse/lib/pulse/lib/			\
@@ -97,10 +98,10 @@ echo-krml:
 
 .depend: $(ROOTS)
 	$(call msg,"DEPEND")
-	$(Q)$(FSTAR) --dep full $(ROOTS) --output_deps_to $@
+	$(Q)$(FSTAR) --codegen krml --dep full $(ROOTS) --output_deps_to $@
 
 dep.graph: $(DEPENDRSP)
-	$(Q)$(FSTAR) --dep graph $(ROOTS) --output_deps_to $@
+	$(Q)$(FSTAR) --codegen krml --dep graph $(ROOTS) --output_deps_to $@
 
 dep_filtered.graph: dep.graph
 	$(Q) cat $< |					\

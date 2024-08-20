@@ -3,22 +3,19 @@ module GPU.MatMul
 
 #push-options "--fuel 1 --ifuel 1"
 
-// #push-options "--debug SMTFail --split_queries always --log_failing_queries"
-
-open FStar.Mul
-open Pulse.Lib.Array
-open Pulse.Lib.Pervasives
-module A = Pulse.Lib.Array
-module SZ = FStar.SizeT
-module U64 = FStar.UInt64
-open Pulse.Lib.BigStar
 open GPU
+open FStar.Mul
+open Pulse
+open Pulse.Lib.Array
+open Pulse.Lib.BigStar
+
+module A    = Pulse.Lib.Array
+module SZ   = FStar.SizeT
+module U64  = FStar.UInt64
 module Defs = GPU.MatMul.Defs
 
 let matmul_single = Defs.matmul_single Defs.rows Defs.shared Defs.columns
 let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
-
-// #push-options "--print_implicits --print_bound_var_types"
 
 ghost
 fn setup
@@ -26,32 +23,33 @@ fn setup
   (ga1 : gpu_array U64.t (Defs.rows * Defs.shared)) (ga2 : gpu_array U64.t (Defs.shared * Defs.columns)) (gr : gpu_array U64.t size)
   (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
   (v2: erased (Seq.Base.seq U64.t) { Seq.Base.length v2 == Defs.shared * Defs.columns })
-  requires (exists* s. gpu_pts_to_array gr s) ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
-  ensures  bigstar 0 size (fun i -> Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)) i)
+  requires gpu_pts_to_array gr 's ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
+  ensures  bigstar 0 size (fun i ->
+             Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)) i)
 {
   // Slicing the array
-  // rewrite gpu_pts_to_array ga1 #1.0R v1
-  //   as gpu_pts_to_array ga1 #(1.0R /. of_int 1) v1;
-  // rewrite gpu_pts_to_array ga2 #1.0R v2
-  //   as gpu_pts_to_array ga2 #(1.0R /. of_int 1) v2;
+  rewrite gpu_pts_to_array ga1 #1.0R v1
+    as gpu_pts_to_array ga1 #(1.0R /. of_int 1) v1;
+  rewrite gpu_pts_to_array ga2 #1.0R v2
+    as gpu_pts_to_array ga2 #(1.0R /. of_int 1) v2;
 
-  (**)fold Defs.gpu_pts_to_matrix Defs.rows   Defs.shared  ga1 1 v1;
-  (**)fold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
-  (**)Defs.gpu_matrix_share_underspec #_ #1 (SZ.v Defs.rows) (SZ.v Defs.shared) ga1 (SZ.v size) v1;
-  (**)Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 (SZ.v size) v2;
+  fold Defs.gpu_pts_to_matrix Defs.rows   Defs.shared  ga1 1 v1;
+  fold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
+  Defs.gpu_matrix_share_underspec #_ #1 (SZ.v Defs.rows) (SZ.v Defs.shared) ga1 (SZ.v size) v1;
+  Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 (SZ.v size) v2;
 
   // Boring combination of resources
-  (**)bigstar_zip #1 #2 #3 0 size _ _;
-  (**)bigstar_map #3 #3 #0 #size #_ #_
-       (fun i -> Defs.fold_pre_pair Defs.rows Defs.shared Defs.columns ga1 ga2 #v1 #v2 size i);
+  bigstar_zip #1 #2 #3 0 size _ _;
+  bigstar_map #3 #3 #0 #size #_ #_
+   (fun i -> Defs.fold_pre_pair Defs.rows Defs.shared Defs.columns ga1 ga2 #v1 #v2 size i);
 
   with #f v. assert (gpu_pts_to_array gr #f v);
   assume_ (pure (Seq.length v == size)); // FIXME
 
-  (**)gpu_array_slice_1 #4 #_ gr #f #v;
-  (**)bigstar_zip #3 #4 #5 0 size _ _;
-  (**)bigstar_map #5 #0 #0 #size #_ #_
-        (fun i -> Defs.fold_pre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.Base.cons #U64.t _ (Seq.Base.empty #U64.t)) size i);
+  gpu_array_slice_1 #4 #_ gr #f #v;
+  bigstar_zip #3 #4 #5 0 size _ _;
+  bigstar_map #5 #0 #0 #size #_ #_
+    (fun i -> Defs.fold_pre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 #(Seq.Base.cons #U64.t _ (Seq.Base.empty #U64.t)) size i);
 
   bigstar_eta();
 }
@@ -61,7 +59,7 @@ fn main
   (v1: erased (Seq.Base.seq U64.t) { Seq.Base.length v1 == Defs.rows * Defs.shared })
   (v2: erased (Seq.Base.seq U64.t) { Seq.Base.length v2 == Defs.shared * Defs.columns })
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
-  returns ar: array U64.t
+  returns  ar: array U64.t
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
 {
   open FStar.SizeT;
