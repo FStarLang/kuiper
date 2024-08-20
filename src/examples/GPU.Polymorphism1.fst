@@ -47,7 +47,7 @@ module F32 = GPU.Float32
 
 [@@CPrologue "__global__"]
 fn kswap_U64
-  (r1 r2 : gpu_ref U64.t)
+  (r1 r2 : gpu_ref u64)
   (#v1 #v2 : erased _)
   requires gpu ** (gpu_pts_to r1 v1 ** gpu_pts_to r2 v2)
   ensures  gpu ** (gpu_pts_to r1 v2 ** gpu_pts_to r2 v1)
@@ -66,7 +66,7 @@ fn kswap_F32
 }
 (*
 fn swap_U64
-  (r1 r2 : ref U64.t)
+  (r1 r2 : ref u64)
   (#v1 #v2 : erased _)
   requires cpu ** (pts_to r1 v1 ** pts_to r2 v2)
   ensures  cpu ** (pts_to r1 v2 ** pts_to r2 v1)

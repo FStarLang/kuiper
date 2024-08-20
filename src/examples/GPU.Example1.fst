@@ -9,7 +9,7 @@ open GPU
 module U64 = FStar.UInt64
 
 [@@CPrologue "__global__"]
-fn kernel (r : gpu_ref U64.t) (#v : erased U64.t)
+fn kernel (r : gpu_ref u64) (#v : erased u64)
   requires gpu ** gpu_pts_to r v
   ensures  gpu ** gpu_pts_to r (U64.add_underspec v 1uL)
 {
@@ -19,11 +19,11 @@ fn kernel (r : gpu_ref U64.t) (#v : erased U64.t)
 
 fn main (_:unit)
   requires cpu
-  returns  _ : U64.t
+  returns  _ : u64
   ensures  cpu
 {
-  let r  = Box.alloc #U64.t 1uL;
-  let gr = gpu_alloc0 #U64.t ();
+  let r  = Box.alloc #u64 1uL;
+  let gr = gpu_alloc0 #u64 ();
    
   Box.to_ref_pts_to r;
   GPU.Ref.gpu_memcpy_host_to_device (Box.box_to_ref r) gr;

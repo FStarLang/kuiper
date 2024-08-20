@@ -43,12 +43,12 @@ val gpu_matrix_unshare_underspec
 
 fn gpu_matrix_read
   #a
-  (#rows #columns: SZ.t)
+  (#rows #columns: sz)
   (ga : gpu_array a (rows * columns))
   (#shared: erased pos)
   (#s: erased (seq a) { Seq.length s == rows * columns })
-  (row: SZ.t{SZ.v row < rows})
-  (col: SZ.t{SZ.v col < columns})
+  (row: sz{SZ.v row < rows})
+  (col: sz{SZ.v col < columns})
   requires gpu ** gpu_pts_to_matrix rows columns ga shared s
   returns v: a
   // TODO: is the assert here opaque?

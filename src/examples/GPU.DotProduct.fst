@@ -11,29 +11,29 @@ module U32 = FStar.UInt32
 open Pulse.Lib.BigStar
 open GPU
 
-let m_size : SZ.t = 1024sz
+let m_size : sz = 1024sz
 let size : n:(erased nat){reveal n == SZ.v m_size} = SZ.v m_size
 
-let elem_t = U32.t
+let elem_t = u32
 
 [@@coercion]
 inline_for_extraction
 let uint32_to_sizet x = FStar.SizeT.uint32_to_sizet x
 
-let kpre (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slprop =
+let kpre (size: sz) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slprop =
   gpu_pts_to_array1 #elem_t #(SZ.v size) ga1 tid **
   gpu_pts_to_array1 #elem_t #(SZ.v size) ga2 tid **
   gpu_pts_to_array1 #elem_t #(SZ.v size) r tid
 
-let kpost (size: SZ.t) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slprop =
+let kpost (size: sz) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slprop =
   gpu_pts_to_array1 #elem_t #(SZ.v size) ga1 tid **
   gpu_pts_to_array1 #elem_t #(SZ.v size) ga2 tid **
   gpu_pts_to_array1 #elem_t #(SZ.v size) r tid
 
 [@@CPrologue "__global__"]
 fn kernel
-  (#nblk : erased SZ.t { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
-  (size : SZ.t { SZ.v size == SZ.v nblk })
+  (#nblk : erased sz { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
+  (size : sz { SZ.v size == SZ.v nblk })
   (ga1 ga2 : gpu_array elem_t size)
   (r : gpu_array elem_t size)
   (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1ul })
@@ -88,15 +88,15 @@ fn main (_:unit)
     ()
   };
 
-  let ga1 = gpu_array_alloc #U32.t m_size;
-  let ga2 = gpu_array_alloc #U32.t m_size;
+  let ga1 = gpu_array_alloc #u32 m_size;
+  let ga2 = gpu_array_alloc #u32 m_size;
 
   GPU.Array.gpu_memcpy_host_to_device a1 ga1 m_size;
   GPU.Array.gpu_memcpy_host_to_device a2 ga2 m_size;
   
-  let gr = gpu_array_alloc #U32.t m_size;
+  let gr = gpu_array_alloc #u32 m_size;
   
-  let nthr : SZ.t = m_size;
+  let nthr : sz = m_size;
 
   // Slicing the arrays
   (**)gpu_array_slice_1_underspec #1 ga1;

@@ -19,7 +19,7 @@ module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 
-let size : SZ.t = 1024sz
+let size : sz = 1024sz
 
 (* Reduces a simple scalar array with the addition operation, leaving
 the result in the 0th index of the original array (overwriting that element). *)
@@ -27,7 +27,7 @@ the result in the 0th index of the original array (overwriting that element). *)
 fn k_reduce
   (#tt : Type0)
   {| d : simple_scalar tt |}
-  (size : SZ.t)
+  (size : sz)
   (a : gpu_array tt size)
   (#v : erased (seq tt))
   requires gpu ** GA.gpu_pts_to_array a v ** pure (size > 0)
@@ -64,7 +64,7 @@ the result in the 0th index of the original array (overwriting that element). *)
 fn k_reduce_and_set
   (#tt : Type0)
   {| d : simple_scalar tt |}
-  (size : SZ.t)
+  (size : sz)
   (a : gpu_array tt size)
   (#v : erased (seq tt))
   ()
@@ -83,7 +83,7 @@ inline_for_extraction noextract
 fn copy_to_gpu
   (#t:Type0)
   {| d : sized t |}
-  (sz : SZ.t)
+  (sz : sz)
   (a : A.array t)
   (#v : erased (seq t))
   requires cpu ** A.pts_to a v
@@ -101,7 +101,7 @@ fn reduce
   (#t : Type0)
   {| d : simple_scalar t |}
   (a : array t)
-  (size : SZ.t)
+  (size : sz)
   (#v : erased (seq t))
   requires cpu
         ** A.pts_to a v
@@ -127,7 +127,7 @@ module F32 = GPU.Float32
 (*
 fn reduce_F32
   (a : array F32.t)
-  (size : SZ.t)
+  (size : sz)
   (#v : erased (seq F32.t))
   requires cpu
         ** A.pts_to a v

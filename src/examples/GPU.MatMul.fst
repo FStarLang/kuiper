@@ -14,7 +14,7 @@ let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
 
 ghost
 fn setup
-  (size: SZ.t { size == SZ.(Defs.rows *^ Defs.columns) })
+  (size: sz { size == SZ.(Defs.rows *^ Defs.columns) })
   (ga1 : gpu_array u64 (Defs.rows * Defs.shared)) (ga2 : gpu_array u64 (Defs.shared * Defs.columns)) (gr : gpu_array u64 size)
   (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
   (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
