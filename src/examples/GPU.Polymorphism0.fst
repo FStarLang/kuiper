@@ -37,7 +37,7 @@ fn kswap_U64
 
 [@@CPrologue "__global__"]
 fn kswap_F32
-  (r1 r2 : gpu_ref F32.t)
+  (r1 r2 : gpu_ref f32)
   (#v1 #v2 : erased _)
   requires gpu ** (gpu_pts_to r1 v1 ** gpu_pts_to r2 v2)
   ensures  gpu ** (gpu_pts_to r1 v2 ** gpu_pts_to r2 v1)

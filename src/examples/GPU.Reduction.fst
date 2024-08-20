@@ -4,17 +4,11 @@ module GPU.Reduction
 
 #lang-pulse
 
-open Pulse
-open Pulse.Lib.Array
-open FStar.Mul
-open FStar.SizeT
-open Pulse.Lib.BigStar
 open GPU
-open GPU.Scalars
 open GPU.Barrier.RPM
-open FStar.Seq
-module GA = GPU.Array
+open FStar.SizeT { op_Less_Hat }
 
+module GA = GPU.Array
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
@@ -121,21 +115,19 @@ fn reduce
   r
 }
 
-module U64 = FStar.UInt64
-module F32 = GPU.Float32
-
 (*
+
 fn reduce_F32
-  (a : array F32.t)
+  (a : array f32)
   (size : sz)
-  (#v : erased (seq F32.t))
+  (#v : erased (seq f32))
   requires cpu
         ** A.pts_to a v
         ** pure (size > 0 /\
                  Seq.length v == size)
-  returns  r : F32.t
+  returns  r : f32
   ensures  cpu ** (exists* v'. A.pts_to a v')
 {
-  reduce #F32.t a size
+  reduce #f32 a size
 }
 
