@@ -13,6 +13,7 @@ module I64 = FStar.Int64
 module SZ  = FStar.SizeT
 
 module F32 = GPU.Float32
+module F64 = GPU.Float64
 
 inline_for_extraction instance _ : sized U8.t  = { size = 1sz; }
 inline_for_extraction instance _ : sized U16.t = { size = 2sz; }
@@ -23,6 +24,7 @@ inline_for_extraction instance _ : sized I16.t = { size = 2sz; }
 inline_for_extraction instance _ : sized I32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized I64.t = { size = 8sz; }
 inline_for_extraction instance _ : sized F32.t = { size = 4sz; }
+inline_for_extraction instance _ : sized F64.t = { size = 8sz; }
 inline_for_extraction instance _ : sized SZ.t  = { size = 8sz; }
 
 (* There are no simple_scalar instances for signed ints, we do not have
@@ -87,4 +89,14 @@ instance _ : simple_scalar F32.t = {
   mul = F32.mul;
   zero = F32.zero;
   one = F32.one;
+}
+
+inline_for_extraction
+instance _ : simple_scalar F64.t = {
+  is_sized = FStar.Tactics.Typeclasses.solve;
+  add = F64.add;
+  sub = F64.sub;
+  mul = F64.mul;
+  zero = F64.zero;
+  one = F64.one;
 }
