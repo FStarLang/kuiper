@@ -16,8 +16,8 @@ ghost
 fn setup
   (size: SZ.t { size == SZ.(Defs.rows *^ Defs.columns) })
   (ga1 : gpu_array u64 (Defs.rows * Defs.shared)) (ga2 : gpu_array u64 (Defs.shared * Defs.columns)) (gr : gpu_array u64 size)
-  (v1: erased (Seq.seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
   requires gpu_pts_to_array gr 's ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
   ensures  bigstar 0 size (fun i ->
              Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)) i)
@@ -51,8 +51,8 @@ fn setup
 
 fn main
   (a1 a2: array u64)
-  (v1: erased (Seq.seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  ar: array u64
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
@@ -126,8 +126,8 @@ fn main
             (Defs.singleton #u64
                 (reveal #u64
                     (hide (Seq.index #u64
-                      (reveal #(Seq.seq u64)
-                          (hide #(Seq.seq u64) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
+                      (reveal #(seq u64)
+                          (hide #(seq u64) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
                       i)))))
         (fun i -> Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i);
 

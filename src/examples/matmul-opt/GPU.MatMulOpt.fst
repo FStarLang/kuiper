@@ -23,8 +23,8 @@ ghost
 fn setup
   (size: SZ.t { size == SZ.(Defs.rows *^ Defs.columns) })
   (ga1 : gpu_array U64.t (Defs.rows * Defs.shared)) (ga2 : gpu_array U64.t (Defs.shared * Defs.columns)) (gr : gpu_array U64.t size)
-  (v1: erased (Seq.seq U64.t) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.seq U64.t) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq U64.t) { Seq.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (seq U64.t) { Seq.length v2 == Defs.shared * Defs.columns })
   requires cpu ** (exists* s. gpu_pts_to_array gr s) ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
   ensures cpu ** bigstar 0 size (Defs.kpre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)))
 {
@@ -58,8 +58,8 @@ fn setup
 
 fn main
   (a1 a2: array U64.t)
-  (v1: erased (Seq.seq U64.t) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (Seq.seq U64.t) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq U64.t) { Seq.length v1 == Defs.rows * Defs.shared })
+  (v2: erased (seq U64.t) { Seq.length v2 == Defs.shared * Defs.columns })
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns ar: array U64.t
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
@@ -168,8 +168,8 @@ fn main
             (Defs.singleton #U64.t
                 (reveal #U64.t
                     (hide (Seq.index #U64.t
-                      (reveal #(Seq.seq U64.t)
-                          (hide #(Seq.seq U64.t) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
+                      (reveal #(seq U64.t)
+                          (hide #(seq U64.t) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
                       i)))))
         (fun i -> Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i);
 
@@ -181,22 +181,22 @@ fn main
       #(SZ.v MatMulOpt.Kernel.rows * SZ.v MatMulOpt.Kernel.shared)
       ga1
       #(1.0R /. 1.0R)
-      (reveal #(Seq.seq U64.t) v1)) as
+      (reveal #(seq U64.t) v1)) as
       (gpu_pts_to_array #U64.t
       #(SZ.v (MatMulOpt.Kernel.rows *^ MatMulOpt.Kernel.shared))
       ga1
       #1.0R
-      (reveal #(Seq.seq U64.t) v1));
+      (reveal #(seq U64.t) v1));
   (**)rewrite (gpu_pts_to_array #U64.t
       #(SZ.v MatMulOpt.Kernel.shared * SZ.v MatMulOpt.Kernel.columns)
       ga2
       #(1.0R /. 1.0R)
-      (reveal #(Seq.seq U64.t) v2)) as
+      (reveal #(seq U64.t) v2)) as
       (gpu_pts_to_array #U64.t
       #(SZ.v (MatMulOpt.Kernel.shared *^ MatMulOpt.Kernel.columns))
       ga2
       #1.0R
-      (reveal #(Seq.seq U64.t) v2));
+      (reveal #(seq U64.t) v2));
 
   gpu_array_free ga1;
   gpu_array_free ga2;
