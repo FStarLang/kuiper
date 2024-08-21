@@ -8,8 +8,8 @@ module U64 = FStar.UInt64
 #push-options "--retry 2" 
 let matmul_single_lemma
   (rows shared columns: nat)
-  (s1: (seq u64){ Seq.length s1 == rows * shared })
-  (s2 : (seq u64){ Seq.length s2 == shared * columns })
+  (s1 : seq u64 { Seq.length s1 == rows * shared })
+  (s2 : seq u64 { Seq.length s2 == shared * columns })
   (row: nat{row < rows}) (col: nat{col < columns}) (to: nat)
     : Lemma
       (requires (0 < to /\ to <= shared))
@@ -22,19 +22,21 @@ let matmul_single_lemma
 
 private let matmul_single_at
   (rows shared columns: nat)
-  (s1: (seq u64){ Seq.length s1 == rows * shared })
-  (s2 : (seq u64){ Seq.length s2 == shared * columns })
+  (s1 : seq u64 { Seq.length s1 == rows * shared })
+  (s2 : seq u64 { Seq.length s2 == shared * columns })
   (idx: nat{idx < rows * columns})
-    : GTot u64
-  =
-  let row = idx / columns in let col = idx % columns in matmul_single rows shared columns s1 s2 row col shared
+  : GTot u64
+=
+  let row = idx / columns in
+  let col = idx % columns in
+  matmul_single rows shared columns s1 s2 row col shared
 
 let matmul
   (rows shared columns: nat)
-  (s1: (seq u64){ Seq.length s1 == rows * shared })
-  (s2 : (seq u64){ Seq.length s2 == shared * columns })
-    : GTot (sr:(seq u64){ Seq.length sr == rows * columns })
-  =
+  (s1 : seq u64 { Seq.length s1 == rows * shared })
+  (s2 : seq u64 { Seq.length s2 == shared * columns })
+: GTot (sr: seq u64 { Seq.length sr == rows * columns })
+=
   Seq.init_ghost (rows * columns) (matmul_single_at rows shared columns s1 s2)
 
 let lemma_matmul_index
@@ -42,8 +44,11 @@ let lemma_matmul_index
   (s1: (seq u64){ Seq.length s1 == rows * shared })
   (s2 : (seq u64){ Seq.length s2 == shared * columns })
   (idx: nat{idx < rows * columns})
-    : Lemma
-      (ensures (Seq.index (matmul rows shared columns s1 s2) idx) == matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared)
-  = ()
+: Lemma (
+    Seq.index (matmul rows shared columns s1 s2) idx
+    ==
+    matmul_single rows shared columns s1 s2 (idx / columns) (idx % columns) shared
+  )
+= ()
 
 #pop-options

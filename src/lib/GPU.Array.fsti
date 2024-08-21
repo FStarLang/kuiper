@@ -36,13 +36,23 @@ let gpu_pts_to_array
 val gpu_pts_to_slice_ref
   (#a:Type u#0)
   (#sz:nat)
-  (x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
+  (x:gpu_array a sz)
   (i:nat) (j:nat)
   (#v : seq a)
   : stt_ghost unit emp_inames
       (gpu_pts_to_array_slice x #f i j v)
       (fun _ -> gpu_pts_to_array_slice x #f i j v ** pure (i <= j /\ j <= sz /\ Seq.length v == (j-i)))
+
+val gpu_pts_to_ref
+  (#a:Type u#0)
+  (#sz:nat)
+  (#[exact (`1.0R)] f : perm)
+  (x:gpu_array a sz)
+  (#v : seq a)
+  : stt_ghost unit emp_inames
+      (gpu_pts_to_array x #f v)
+      (fun _ -> gpu_pts_to_array x #f v ** pure (Seq.length v == sz))
 
 noextract
 fn gpu_array_alloc
