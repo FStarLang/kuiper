@@ -57,3 +57,12 @@ jobs:
         with:
           name: output
           path: out/
+
+      - name: Spit out all CUDA files into action log
+        if: ${{ always () }}
+        run: |
+          for i in out/*.cu; do
+            echo "::group::$i"
+            cat "$i"
+            echo "::endgroup::"
+          done
