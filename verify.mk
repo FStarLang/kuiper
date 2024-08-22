@@ -173,6 +173,7 @@ extraction-targets: \
 	out/GPU_Example1.exe \
 	out/GPU_DotProduct2.exe \
 	out/GPU_Reduction.cu \
+	out/GPU_InnerGhostLem.cu \
 	$(patsubst %,out/%.exe,$(TESTS))
 
 .PHONY: test
