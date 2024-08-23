@@ -4,11 +4,10 @@ module GPU.Polymorphism0
 
 #lang-pulse
 
-open Pulse
-open FStar.Mul
 open GPU
 
 inline_for_extraction noextract
+[@@CPrologue "__device__"]
 fn kswap
   (#t : Type0)
   (r1 r2 : gpu_ref t)

@@ -174,6 +174,8 @@ extraction-targets: \
 	out/GPU_DotProduct2.exe \
 	out/GPU_Reduction.cu \
 	out/GPU_InnerGhostLem.cu \
+	out/GPU_Polymorphism0.cu \
+	out/GPU_Polymorphism1.cu \
 	$(patsubst %,out/%.exe,$(TESTS))
 
 .PHONY: test
