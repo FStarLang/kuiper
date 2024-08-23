@@ -1,12 +1,7 @@
 module GPU.MatMul.Pure
 
-open FStar.Mul
-open Pulse.Lib.Pervasives
-
-open FStar.Seq { seq }
-
+open GPU
 module U64 = FStar.UInt64
-unfold let u64 = FStar.UInt64.t
 
 let rec matmul_single
   (rows shared columns: nat)

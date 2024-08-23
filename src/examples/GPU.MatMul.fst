@@ -9,7 +9,9 @@ module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
 module Defs = GPU.MatMul.Defs
 
+[@@pulse_unfold]
 let matmul_single = Defs.matmul_single Defs.rows Defs.shared Defs.columns
+[@@pulse_unfold]
 let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
 
 ghost
@@ -50,8 +52,7 @@ fn setup
     ensures
       Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size i
   {
-    fold Defs.kpre_pair Defs.rows Defs.shared Defs.columns ga1 ga2 #v1 #v2 size;
-    fold Defs.kpre;
+    ()
   };
   bigstar_map #_ #_ #0 #size aux;
   bigstar_eta();
@@ -85,20 +86,6 @@ fn main
     #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpost Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size) tid)
     (fun etid -> Defs.kernel ga1 ga2 gr (hide size) etid);
 
-  ghost
-  fn aux0 (i:nat{0 <= i /\ i < size})
-    requires
-      Defs.kpost Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size i
-    ensures
-      Defs.gpu_pts_to_matrix Defs.rows   Defs.shared  ga1 size v1 **
-      Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 size v2 **
-      gpu_pts_to_array_slice gr i (i + 1) seq![matmul_single v1 v2 (i / Defs.columns) (i % Defs.columns) Defs.shared]
-  {
-    unfold Defs.kpost;
-  };
-  bigstar_uneta();
-  bigstar_map #_ #_ #0 #size aux0;
-
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
 
@@ -109,17 +96,19 @@ fn main
 
   ghost
   fn aux1 (i:nat{0 <= i /\ i < size})
+    // FIXME: need to explicit about slice sizes here
     requires
-      gpu_pts_to_array_slice gr i (i + 1)
-            seq![matmul_single v1 v2 (i / Defs.columns) (i % Defs.columns) Defs.shared]
+      gpu_pts_to_array_slice #_ #(SZ.v Defs.rows * SZ.v Defs.columns) gr i (i + 1)
+            seq![Defs.matmul_single Defs.rows Defs.shared Defs.columns
+                   v1 v2 (i / Defs.columns) (i % Defs.columns) Defs.shared]
     ensures
-      gpu_pts_to_array_slice gr i (i + 1)
+      gpu_pts_to_array_slice #_ #size gr i (i + 1)
             seq![Seq.index (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2) i]
   {
     Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i;
     () (* cf. issue #181 in Pulse *)
   };
-  bigstar_map #_ #_ #0 #size aux1;
+  bigstar_map #0 #0 #0 #size aux1;
 
   (**)gpu_array_unslice_1 #0 #_ #size gr #_ #(Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2);
 

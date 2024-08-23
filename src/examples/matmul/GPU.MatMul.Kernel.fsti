@@ -11,8 +11,7 @@ module Pure = GPU.MatMul.Pure
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
-let singleton #a (elem: a) : seq a = cons elem empty
-
+[@@pulse_unfold]
 let kpre_pair (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
@@ -24,6 +23,7 @@ let kpre_pair (rows shared columns: nat)
   Impure.gpu_pts_to_matrix rows shared ga1 nth s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
 
+[@@pulse_unfold]
 let kpre (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
@@ -37,6 +37,7 @@ let kpre (rows shared columns: nat)
   kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
   ** (exists* sr. gpu_pts_to_array_slice r tid (tid+1) sr)
 
+[@@pulse_unfold]
 let kpost (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
@@ -49,7 +50,7 @@ let kpost (rows shared columns: nat)
   =
   Impure.gpu_pts_to_matrix rows shared ga1 nth s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-  ** gpu_pts_to_array_slice r tid (tid+1) (singleton (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared))
+  ** gpu_pts_to_array_slice r tid (tid+1) (seq![Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared])
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 // TODO: un-hardcode
@@ -87,9 +88,6 @@ fn kernel
   let tid = block_idx_x () <: u32;
   let tid : sz = SZ.uint32_to_sizet tid;
 
-  unfold kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (SZ.v tid);
-  unfold kpre_pair rows shared columns ga1 ga2 #s1 #s2 (SZ.v nth);
-
   (* r[tid] = TODO *)
   let trow = SZ.div tid columns;
   let tcol = SZ.rem tid columns;
@@ -124,62 +122,9 @@ fn kernel
   gpu_array_write #u64 #(rows * columns) #((SZ.v tid)) #((SZ.v tid + 1)) r tid s;
 
   with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
-  (**)Seq.lemma_eq_intro v (singleton s);
+  (**)Seq.lemma_eq_intro v seq![s];
   (**)rewrite gpu_pts_to_array_slice r tid (tid + 1) v
-    as gpu_pts_to_array_slice r tid (tid + 1) (singleton s);
+    as gpu_pts_to_array_slice r tid (tid + 1) seq![s];
 
-  fold kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) tid;
-  ()
-}
-
-ghost fn fold_pre_pair
-  (rows shared columns: nat)
-  (ga1: gpu_array u64 (rows * shared))
-  (ga2: gpu_array u64 (shared * columns))
-  (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
-  (nth: erased nat { nth > 0 })
-  (tid: nat)
-  requires Impure.gpu_pts_to_matrix rows shared ga1 nth s1
-        ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-  ensures  kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
-{
-  fold kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth;
-  ()
-}
-
-ghost fn fold_pre
-  (rows shared columns: nat)
-  (ga1: gpu_array u64 (rows * shared))
-  (ga2: gpu_array u64 (shared * columns))
-  (gr: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
-  (#sr: (seq u64) {Seq.length sr == 1})
-  (nth: erased nat { nth == (rows * columns) })
-  (tid: nat { tid < nth /\ tid < rows * columns })
-  requires kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
-        ** gpu_pts_to_array_slice #u64 #nth gr tid (tid+1) sr
-  ensures  kpre rows shared columns ga1 ga2 gr #s1 #s2 nth tid
-{
-  fold kpre rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
-  ()
-}
-
-ghost fn unfold_post
-  (rows shared columns: nat)
-  (ga1: gpu_array u64 (rows * shared))
-  (ga2: gpu_array u64 (shared * columns))
-  (gr: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
-  (nth: erased nat { reveal nth == rows * columns })
-  (tid: nat {  tid < rows * columns })
-  requires kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid
-  ensures  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
-        ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-        ** gpu_pts_to_array_slice gr tid (tid+1) (singleton (Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared))
-{
-  unfold kpost rows shared columns ga1 ga2 gr #s1 #s2 nth tid;
   ()
 }
