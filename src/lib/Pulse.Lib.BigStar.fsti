@@ -209,7 +209,7 @@ ghost fn bigstar_if_elim
   (#n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
   (p: (i: nat { m <= i /\ i < n }) -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #int i x) (p i) emp)
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp)
   ensures  p x
 
 val bigstar_if_intro
@@ -220,7 +220,7 @@ val bigstar_if_intro
   (p: (i: nat { m <= i /\ i < n }) -> slprop)
   : stt_ghost unit emp_inames
       (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #int i x) (p i) emp))
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
 
 class permutation (a:Type) = {
    f          : a -> a;

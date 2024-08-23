@@ -62,7 +62,7 @@ fn kernel
   };
 
   let s = !sum;
-  gpu_array_write #u64 #(rows * columns) #((SZ.v tid)) #((SZ.v tid + 1)) r tid s;
+  gpu_array_write #u64 #(rows * columns) #(SZ.v tid) #(SZ.v tid + 1) r tid s;
 
   with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
   (**)Seq.lemma_eq_intro v seq![s];

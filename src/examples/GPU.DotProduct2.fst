@@ -33,7 +33,7 @@ let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   r
 
 let div_pow2 (i tid: nat) : GTot bool =
-  (=) #int (tid % pow2 i) 0
+  (tid % pow2 i) = 0
 
 [@@ CPrologue "__device__"]
 let sdiv_pow2 (i:sz{i < 32}) (tid: sz): bool =
@@ -103,7 +103,7 @@ let barrier_matrix (nth: nat) (r : gpu_array u64 nth) (v: seq u64) (it from to: 
 ghost fn unfold_barrier_matrix (nth: nat) (r : gpu_array u64 nth) (v: erased (seq u64))
  (it from to: nat)
   requires barrier_matrix nth r v it from to
-  ensures  if_ (op_Equality #int from (to + pow2 it)) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
+  ensures  if_ (from = to + pow2 it) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
 {
   unfold (barrier_matrix nth r v it from to)
 }
@@ -153,7 +153,7 @@ ghost fn fold_barrier_matrix_true
   (it: nat)
   (tid: nat { tid <= nth /\ tid >= pow2 it })
   (to: nat)
-  requires if_ (op_Equality #int to (tid - pow2 it))
+  requires if_ (to = tid - pow2 it)
              (if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
                (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v))
   ensures  barrier_matrix nth r v it tid to
@@ -171,9 +171,9 @@ ghost fn fold_barrier_matrix_false
   requires emp
   ensures  barrier_matrix nth r v it tid to
 {
-  assert (pure (tid < to + pow2 it /\ not (op_Equality #int tid (to + pow2 it))));
+  assert (pure (tid < to + pow2 it /\ not (tid = to + pow2 it)));
   if_intro_false (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
-  // (op_Equality #int tid (to + pow2 it))
+  // (tid = to + pow2 it)
   fold (barrier_matrix nth r v it tid to);
 }
 
@@ -301,7 +301,7 @@ fn iteration
   } else {
     bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
       (fun (from: nat{0 <= from /\ from < nth}) ->
-        if_rewrite_bool (op_Equality #int from (tid + pow2 it)) false _);
+        if_rewrite_bool (from = tid + pow2 it) false _);
     bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
       (fun (from: nat{0 <= from /\ from < nth}) ->
         if_elim_false (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv)));
@@ -479,7 +479,7 @@ fn main
         (bigstar 0 size
           (fun i -> ((gpu_pts_to_array #u64 #size ga1 #(1.0R /. Real.of_int size) v1 **
                     gpu_pts_to_array #u64 #size ga2 #(1.0R /. Real.of_int size) v2) **
-                    if_ (op_Equality #int i 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2)))
+                    if_ (i = 0) (gpu_pts_to_slice_sum gr 0 size (mul v1 v2)))
         ));
   
   (**)bigstar_unzip 0 size _ _;

@@ -168,11 +168,11 @@ ghost fn bigstar_if_elim
   (#n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
   (p: (i:nat { m <= i /\ i < n }) -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i))
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
   ensures  p x
 {
-  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i)))
-       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #int i x) (p i) emp));
+  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)))
+       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp));
   Pulse.Lib.BigStar.bigstar_if_elim #u1 #m #n x p;
 }
 
@@ -184,11 +184,11 @@ fn __bigstar_if_intro
   (x : nat { m <= x /\ x < n })
   (p: (i:nat { m <= i /\ i < n }) -> slprop)
   requires p x
-  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i))
+  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
 {
   Pulse.Lib.BigStar.bigstar_if_intro #u1 m n x p;
-  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (op_Equality #int i x) (p i) emp))
-       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i)));
+  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
+       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)));
 }
 
 let bigstar_if_intro
@@ -199,5 +199,5 @@ let bigstar_if_intro
   (p: nat -> slprop)
   : stt_ghost unit emp_inames
       (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i)))
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)))
   = __bigstar_if_intro #u1 m n x p

@@ -71,7 +71,7 @@ ghost fn bigstar_if_elim
   (#n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
   (p: (i:nat { m <= i /\ i < n }) -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i))
+  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
   ensures  p x
 
 ghost
@@ -82,7 +82,7 @@ fn __bigstar_if_intro
   (x : nat { m <= x /\ x < n })
   (p: (i:nat { m <= i /\ i < n }) -> slprop)
   requires p x
-  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i))
+  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
 
 val bigstar_if_intro
   (#[Tactics.exact (`0)]u1 : int)
@@ -92,4 +92,4 @@ val bigstar_if_intro
   (p: nat -> slprop)
   : stt_ghost unit emp_inames
       (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (op_Equality #int i x) (p i)))
+      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)))
