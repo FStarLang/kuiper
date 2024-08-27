@@ -6,6 +6,7 @@ module GPU.MatMulOpt.Impure
 
 open FStar.Mul
 open Pulse.Lib.Pervasives
+open FStar.Seq { seq }
 open Pulse.Lib.BigStar
 open GPU
 

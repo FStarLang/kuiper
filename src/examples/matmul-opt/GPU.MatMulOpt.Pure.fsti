@@ -4,7 +4,10 @@ module GPU.MatMulOpt.Pure
 
 open FStar.Mul
 open Pulse.Lib.Pervasives
+open FStar.Seq { seq, init }
+
 module U64 = FStar.UInt64
+unfold type u64 = FStar.UInt64.t
 
 let singleton #a (elem: a) : seq a = Seq.cons elem Seq.empty
 

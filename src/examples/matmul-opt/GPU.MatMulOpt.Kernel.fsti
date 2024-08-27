@@ -11,6 +11,7 @@ open GPU
 open GPU.SizeT
 open GPU.MatMulOpt.Barrier
 open GPU.MatMulOpt.Layout
+module Array = GPU.MatMulOpt.Array
 module Impure = GPU.MatMulOpt.Impure
 module Pure = GPU.MatMulOpt.Pure
 module SZ = FStar.SizeT
@@ -21,11 +22,15 @@ let blocksize : sz = 32sz
 // Thread Per Block
 let tpb : sz = SZ.(blocksize *^ blocksize)
 
+let bdim_rows : sz = 8sz
+let bdim_shared : sz = 32sz
+let bdim_columns : sz = 8sz
+
 // TODO: un-hardcode
-let rows : (i: sz { SZ.v i % SZ.v blocksize == 0 }) = 256sz // rows of ga1/r
+let rows : (i: sz { SZ.v i == SZ.v bdim_rows * SZ.v blocksize }) = 256sz // rows of ga1/r
 // assume val rows : nat
-let shared : sz = 1024sz // columns of ga1, rows of ga2
-let columns : (i: sz { SZ.v i % SZ.v blocksize == 0 }) = 256sz // columns of ga2/r
+let shared : (i: sz { SZ.v i == SZ.v bdim_shared * SZ.v blocksize }) = 1024sz // columns of ga1, rows of ga2
+let columns : (i: sz { SZ.v i == SZ.v bdim_columns * SZ.v blocksize }) = 256sz // columns of ga2/r
 
 let mapping (blocksize: pos) (columns rows: (i: pos { i % blocksize == 0 })) = titi_permutation blocksize blocksize (columns / blocksize) (rows / blocksize)
 let mapping_lemma (blocksize: pos) (columns rows: (i: pos { i % blocksize == 0 })) (tid: nat { tid < rows * columns }):
@@ -106,7 +111,7 @@ fn kernel
     ** kpre shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid))//)
   ensures  gpu
     ** thread_id etid
-    ** shared_post nthr ar (SZ.v (tidx_x etid))
+    // ** shared_post nthr ar (SZ.v (tidx_x etid))
     //** (mapping_fixed_lemma (thread_index etid); assert (mapping_fixed.f (thread_index etid) < rows * columns);
     ** kpost shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) (mapping_fixed.f (thread_index etid))//)
 {
@@ -172,7 +177,7 @@ fn kernel
     as gpu_pts_to_array_slice r idx (idx + 1) (Pure.singleton s);
 
   fold kpost shared rows columns ga1 ga2 r #s1 #s2 (SZ.v size) idx;
-  fold shared_post nthr ar (SZ.v (tidx_x etid));
+  // fold shared_post nthr ar (SZ.v (tidx_x etid));
   ()
 }
 

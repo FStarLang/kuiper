@@ -118,7 +118,7 @@ fn main
   drop_   (bigstar #0 0 size (Defs.kpost Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size)));
   assume_ (bigstar #0 0 size (fun idx -> Defs.gpu_pts_to_matrix Defs.rows Defs.shared ga1 (SZ.v size) v1
                             ** Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 (SZ.v size) v2
-                            ** gpu_pts_to_array_slice gr idx (idx+1) (Defs.singleton (Defs.matmul_single Defs.rows Defs.shared Defs.columns v1 v2 (idx / Defs.columns) (idx % Defs.columns) Defs.shared))));
+                            ** gpu_pts_to_array_slice gr idx (idx+1) seq![Defs.matmul_single Defs.rows Defs.shared Defs.columns v1 v2 (idx / Defs.columns) (idx % Defs.columns) Defs.shared]));
 
   // (**)bigstar_map #0 #5 #0 #size #_ #_
   //       (fun i -> Defs.unfold_post Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 size i);
@@ -153,8 +153,7 @@ fn main
             #1.0R
             i
             (i + 1)
-            (Defs.singleton #u64
-                (reveal #u64
+            seq![reveal #u64
                     (hide (Defs.matmul_single Defs.rows
                         Defs.shared
                         Defs.columns
@@ -162,15 +161,14 @@ fn main
                         v2
                         (hide #nat (i / Defs.columns))
                         (hide #nat (i % Defs.columns))
-                        Defs.shared)))))
+                        Defs.shared))])
         (fun i -> gpu_pts_to_array_slice #u64 #size gr #1.0R i
             (i + 1)
-            (Defs.singleton #u64
-                (reveal #u64
+            seq![reveal #u64
                     (hide (Seq.index #u64
                       (reveal #(seq u64)
                           (hide #(seq u64) (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2)))
-                      i)))))
+                      i))])
         (fun i -> Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i);
 
   (**)gpu_array_unslice_1 #0 #_ #size gr #_ #(Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2);

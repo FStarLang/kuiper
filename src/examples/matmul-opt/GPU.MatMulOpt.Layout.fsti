@@ -1,11 +1,16 @@
 module GPU.MatMulOpt.Layout
 
 open Pulse.Lib.Pervasives
+open FStar.Seq { seq }
 open FStar.Mul
 open FStar.Pervasives.Native
 module SZ = FStar.SizeT
 // open GPU.MatMulOpt.Kernel
 open Pulse.Lib.BigStar
+
+[@@pulse_unfold]
+let op_String_Access #a (s: seq a) (idx: nat { idx < FStar.Seq.length s }): a
+  = FStar.Seq.index s idx
 
 // let block_id (rows columns: nat) (tid: nat { tid < rows * columns }) : GTot nat = tid / (SZ.v tpb)
 // let thread_id (rows columns: nat) (tid: nat { tid < rows * columns }) : GTot nat = tid % (SZ.v tpb)
@@ -85,7 +90,7 @@ open Pulse.Lib.BigStar
 //     //     + ((tid % (SZ.v tpb)) / blocksize) * columns;
 
 /// Defined these to try and get `seq_tail_lemma` for free, but that didn't work so had to write the lemma anyway
-let seq_head #a (s: seq a { FStar.Seq.length s <> 0 }): (r: a { FStar.Seq.index s 0 == r }) = FStar.Seq.index s 0
+let seq_head #a (s: seq a { FStar.Seq.length s <> 0 }): (r: a { s.[0] == r }) = s.[0]
 let seq_tail #a (s: seq a { FStar.Seq.length s <> 0 }):
     (r: seq a { FStar.Seq.length r == FStar.Seq.length s - 1 /\ FStar.Seq.cons (seq_head s) r == s })
     = FStar.Seq.slice s 1 (FStar.Seq.length s)
@@ -95,19 +100,23 @@ let seq_tail_lemma #a (hd: a) (tl: seq a):
     [SMTPat (seq_tail (FStar.Seq.cons hd tl))] = admit()
 
 /// Fold operations we need, I imagine there's a fold in std somewhere but didn't use that for now
-let rec multiply (dims: erased (seq pos)): Tot (erased pos) (decreases FStar.Seq.length dims) =
+let rec multiply (dims: seq pos): Tot pos (decreases FStar.Seq.length dims) =
     if FStar.Seq.length dims = 0 then 1 else seq_head dims * multiply (seq_tail dims)
 
-let rec elementwise_smaller (outs: erased (seq nat)) (dims: erased (seq pos) { FStar.Seq.length dims == FStar.Seq.length outs }):
-    Tot prop (decreases FStar.Seq.length dims) =
+let rec elementwise_smaller (outs: seq nat) (dims: seq pos { FStar.Seq.length dims == FStar.Seq.length outs }):
+    Tot bool (decreases FStar.Seq.length dims) =
     if FStar.Seq.length dims = 0 then true else
-        seq_head outs < seq_head dims /\ elementwise_smaller (seq_tail outs) (seq_tail dims)
+        seq_head outs < seq_head dims && elementwise_smaller (seq_tail outs) (seq_tail dims)
 
 /// Properties we don't get inside of `smt.arith.nl=false`
 let lemma_div_eq (x y: int) (z: nonzero): Lemma (requires x == y) (ensures x / z == y / z) = ()
 let lemma_div_sub1 (x: int) (z: pos): Lemma ((z * x - 1) / z == x - 1) = ()
-let lemma_multiply_defn (dims: erased (seq pos)):
-    Lemma (reveal (multiply dims) == (if FStar.Seq.length dims = 0 then 1 else seq_head dims * multiply (seq_tail dims))) = ()
+let lemma_multiply_defn (dims: seq pos):
+    Lemma (multiply dims == (if FStar.Seq.length dims = 0 then 1 else seq_head dims * multiply (seq_tail dims))) = ()
+
+let lemma_ews_defn (outs: seq nat) (dims: seq pos { FStar.Seq.length dims == FStar.Seq.length outs }):
+    Lemma (elementwise_smaller outs dims == (if FStar.Seq.length dims = 0 then true else
+        seq_head outs < seq_head dims && elementwise_smaller (seq_tail outs) (seq_tail dims))) = ()
 
 /// Nick suggested trying this to avoid NL arith non-termination, I don't think it helped that much since I still ran into
 /// (probably some other kind of) non-termination in some cases.
@@ -131,8 +140,8 @@ let lemma_div_idx (dims: erased (seq pos) { FStar.Seq.length dims <> 0 }) (idx: 
 /// Notice that the last dimension (i.e. when `length dims = 1`) isn't really used
 /// since in that case `idx % seq_head dims == idx` and `idx / seq_head dims == 0`,
 /// it is important in the `elementwise_smaller` postcondition though.
-let rec split_to_dims (dims: erased (seq pos)) (idx: erased nat { idx < multiply dims }):
-    Tot (outs: erased (seq nat) { FStar.Seq.length dims == FStar.Seq.length outs /\ elementwise_smaller outs dims }) (decreases FStar.Seq.length dims) =
+let rec split_to_dims (dims: seq pos) (idx: nat { idx < multiply dims }):
+    Tot (outs: seq nat { FStar.Seq.length dims == FStar.Seq.length outs /\ elementwise_smaller outs dims }) (decreases FStar.Seq.length dims) =
     if FStar.Seq.length dims = 0 then FStar.Seq.empty else
         let new_idx = idx / seq_head dims in
         lemma_div_idx dims idx;
@@ -159,15 +168,15 @@ let lemma_mult_idx (dims: erased (seq pos) { FStar.Seq.length dims <> 0 })
 /// 2nd / 2 core functions, combines dimensions into an index.
 /// Notice again that the last dimension isn't really used since in that
 /// case `new_idx == 0`, though again it gets us the `idx < multiply dims` post.
-let rec join_from_dims (dims: erased (seq pos)) (outs: erased (seq nat) { FStar.Seq.length dims == FStar.Seq.length outs /\ elementwise_smaller outs dims }):
-    Tot (idx: erased nat { idx < multiply dims }) (decreases FStar.Seq.length dims) =
+let rec join_from_dims (dims: seq pos) (outs: seq nat { FStar.Seq.length dims == FStar.Seq.length outs /\ elementwise_smaller outs dims }):
+    Tot (idx: nat { idx < multiply dims }) (decreases FStar.Seq.length dims) =
     if FStar.Seq.length dims = 0 then 0 else
         let new_idx = join_from_dims (seq_tail dims) (seq_tail outs) in
         lemma_mult_idx dims (seq_head outs) new_idx;
         seq_head outs + seq_head dims * new_idx
 
 /// The inductive proof revolves around the fact that `a = (a / b) * b + a % b`
-let rec inverse_fwd (dims: erased (seq pos)) (idx: erased nat { idx < multiply dims }):
+let rec inverse_fwd (dims: seq pos) (idx: nat { idx < multiply dims }):
     Lemma (ensures join_from_dims dims (split_to_dims dims idx) == idx) (decreases FStar.Seq.length dims) =
     if FStar.Seq.length dims = 0 then () else
         let dim = seq_head dims in
@@ -175,13 +184,13 @@ let rec inverse_fwd (dims: erased (seq pos)) (idx: erased nat { idx < multiply d
         calc (==) {
             join_from_dims dims (split_to_dims dims idx);
             == {}
-            hide (lemma_div_idx dims idx;
+            (lemma_div_idx dims idx;
                 let tail_outs = split_to_dims tail_dims (idx / dim) in
                 let new_idx = join_from_dims tail_dims tail_outs in
                 lemma_mult_idx dims (idx % dim) new_idx;
                 idx % dim + dim * new_idx);
             == { inverse_fwd tail_dims (idx / dim) }
-            hide (lemma_div_idx dims idx;
+            (lemma_div_idx dims idx;
                 lemma_mult_idx dims (idx % dim) (idx / dim);
                 idx % dim + dim * (idx / dim));
             == { FStar.Math.Lemmas.euclidean_division_definition idx dim }
@@ -190,7 +199,7 @@ let rec inverse_fwd (dims: erased (seq pos)) (idx: erased nat { idx < multiply d
 
 /// The inductive proof revolves around the fact that `(a + b * c) % c = a` and `(a + b * c) / c = b` (when `a < c`)
 /// i.e. that `/` and `%` can pull out the respective components.
-let rec inverse_bwd (dims: erased (seq pos)) (outs: erased (seq nat) { FStar.Seq.length dims == FStar.Seq.length outs /\ elementwise_smaller outs dims }):
+let rec inverse_bwd (dims: seq pos) (outs: seq nat { FStar.Seq.length dims == FStar.Seq.length outs /\ elementwise_smaller outs dims }):
     Lemma (ensures split_to_dims dims (join_from_dims dims outs) == outs) (decreases FStar.Seq.length dims) =
     if FStar.Seq.length dims = 0 then FStar.Seq.lemma_eq_intro FStar.Seq.empty outs else
         let dim = seq_head dims in
@@ -199,7 +208,7 @@ let rec inverse_bwd (dims: erased (seq pos)) (outs: erased (seq nat) { FStar.Seq
         calc (==) {
             split_to_dims dims (join_from_dims dims outs);
             == {}
-            hide (let new_idx = join_from_dims tail_dims (seq_tail outs) in
+            (let new_idx = join_from_dims tail_dims (seq_tail outs) in
                 lemma_mult_idx dims out new_idx;
                 let idx = out + dim * new_idx in
                 lemma_div_idx dims idx;
@@ -212,7 +221,7 @@ let rec inverse_bwd (dims: erased (seq pos)) (outs: erased (seq nat) { FStar.Seq
                 FStar.Math.Lemmas.lemma_div_plus out new_idx dim;
                 FStar.Math.Lemmas.small_div out dim
             }
-            hide (let new_idx = join_from_dims tail_dims (seq_tail outs) in
+            (let new_idx = join_from_dims tail_dims (seq_tail outs) in
                 lemma_mult_idx dims out new_idx;
                 lemma_div_idx dims (out + dim * new_idx);
                 let tail_outs = split_to_dims tail_dims new_idx in
@@ -229,23 +238,34 @@ let rec inverse_bwd (dims: erased (seq pos)) (outs: erased (seq nat) { FStar.Seq
 /// which must be `<= 1024 / tcols` since that's the maximum threads per block, `bcols` is the width the output matrix divided by
 /// `tcols`, and `brows` is the height of the output matrix divided by `trows`.
 
-let seq_0: (r: seq pos { FStar.Seq.length r == 0 /\ reveal (multiply r) == 1 }) = FStar.Seq.empty
-let seq_1 (x: pos): (r: seq pos { FStar.Seq.length r == 1 /\ reveal (multiply r) == x /\ FStar.Seq.index r 0 == x }) =
-    let r = FStar.Seq.cons x seq_0     in lemma_multiply_defn r; assert (reveal (multiply r) == seq_head r * 1); r
-let seq_2 (x y: pos): (r: seq pos { FStar.Seq.length r == 2 /\ reveal (multiply r) == x * y /\ FStar.Seq.index r 0 == x /\ FStar.Seq.index r 1 == y }) =
-    let r = FStar.Seq.cons x (seq_1 y) in lemma_multiply_defn r; assert (reveal (multiply r) == seq_head r * y); r
+let seq_0: (r: seq pos { FStar.Seq.length r == 0 /\ multiply r == 1 }) = FStar.Seq.empty
+let seq_1 (x: pos): (r: seq pos { FStar.Seq.length r == 1 /\ multiply r == x /\ r.[0] == x }) =
+    let r = seq![x]     in lemma_multiply_defn r; assert (multiply r == seq_head r * 1); r
+let seq_2 (x y: pos): (r: seq pos { FStar.Seq.length r == 2 /\ multiply r == x * y /\ r.[0] == x /\ r.[1] == y }) =
+    let r = seq![x; y] in lemma_multiply_defn r; assert (multiply r == seq_head r * y); r
 let seq_3 (x y z: pos): (r: seq pos {
-    FStar.Seq.length r == 3 /\ reveal (multiply r) == x * y * z /\ FStar.Seq.index r 0 == x /\ FStar.Seq.index r 1 == y /\ FStar.Seq.index r 2 == z
-}) = let r = FStar.Seq.cons x (seq_2 y z) in lemma_multiply_defn r; assert (reveal (multiply r) == seq_head r * (y * z)); r
+    FStar.Seq.length r == 3 /\ multiply r == x * y * z /\ r.[0] == x /\ r.[1] == y /\ r.[2] == z
+}) = let r = seq![x; y; z] in lemma_multiply_defn r; assert (multiply r == seq_head r * (y * z)); r
 let seq_4 (x y z w: pos): (r: seq pos {
-    FStar.Seq.length r == 4 /\ reveal (multiply r) == x * y * z * w /\ FStar.Seq.index r 0 == x /\ FStar.Seq.index r 1 == y /\ FStar.Seq.index r 2 == z /\ FStar.Seq.index r 3 == w
-}) = let r = FStar.Seq.cons x (seq_3 y z w) in lemma_multiply_defn r; assert (reveal (multiply r) == seq_head r * (y * (z * w))); r
+    FStar.Seq.length r == 4 /\ multiply r == x * y * z * w /\ r.[0] == x /\ r.[1] == y /\ r.[2] == z /\ r.[3] == w
+}) = let r = seq![x; y; z; w] in lemma_multiply_defn r; assert (multiply r == seq_head r * (y * (z * w))); r
+
+let iseq_0: (r: seq nat { FStar.Seq.length r == 0 /\ elementwise_smaller r FStar.Seq.empty }) = FStar.Seq.empty
+let iseq_1 (x: nat) (dims: seq pos { FStar.Seq.length dims == 1 /\ x < dims.[0] }): (r: seq nat { FStar.Seq.length r == 1 /\ elementwise_smaller r dims /\ r.[0] == x }) =
+    let r = seq![x]     in lemma_ews_defn r dims; r
+let iseq_2 (x y: nat) (dims: seq pos { FStar.Seq.length dims == 2 /\ x < dims.[0] /\ y < dims.[1] }): (r: seq nat { FStar.Seq.length r == 2 /\ elementwise_smaller r dims /\ r.[0] == x /\ r.[1] == y }) =
+    let r = seq![x; y] in lemma_ews_defn r dims; r
+let iseq_3 (x y z: nat) (dims: seq pos { FStar.Seq.length dims == 3 /\ x < dims.[0] /\ y < dims.[1] /\ z < dims.[2] }): (r: seq nat {
+    FStar.Seq.length r == 3 /\ elementwise_smaller r dims /\ r.[0] == x /\ r.[1] == y /\ r.[2] == z
+}) = let r = seq![x; y; z] in lemma_ews_defn r dims; r
+let iseq_4 (x y z w: nat) (dims: seq pos { FStar.Seq.length dims == 4 /\ x < dims.[0] /\ y < dims.[1] /\ z < dims.[2] /\ w < dims.[3] }): (r: seq nat {
+    FStar.Seq.length r == 4 /\ elementwise_smaller r dims /\ r.[0] == x /\ r.[1] == y /\ r.[2] == z /\ r.[3] == w
+}) = let r = seq![x; y; z; w] in lemma_ews_defn r dims; r
 
 let permute_middle #a (i: seq a { FStar.Seq.length i == 4 }): (o: seq a { FStar.Seq.length o == 4 /\
-    FStar.Seq.index i 0 == FStar.Seq.index o 0 /\ FStar.Seq.index i 1 == FStar.Seq.index o 2 /\
-    FStar.Seq.index i 2 == FStar.Seq.index o 1 /\ FStar.Seq.index i 3 == FStar.Seq.index o 3
-}) = let (i0, i1, i2, i3) = (FStar.Seq.index i 0, FStar.Seq.index i 1, FStar.Seq.index i 2, FStar.Seq.index i 3) in
-     FStar.Seq.cons i0 (FStar.Seq.cons i2 (FStar.Seq.cons i1 (FStar.Seq.cons i3 FStar.Seq.empty)))
+    i.[0] == o.[0] /\ i.[1] == o.[2] /\
+    i.[2] == o.[1] /\ i.[3] == o.[3]
+}) = seq![i.[0]; i.[2]; i.[1]; i.[3]]
 
 let lemma_permute_middle_inverse #a (i: seq a { FStar.Seq.length i == 4 }): Lemma (permute_middle (permute_middle i) == i)
     = FStar.Seq.lemma_eq_intro (permute_middle (permute_middle i)) i
@@ -277,8 +297,8 @@ let idx_to_thread_id (tcols trows bcols brows: pos)
 
 let lemma_permute (x y z w: int): Lemma (x * y * z * w == x * z * y * w) = ()
 let elementwise_smaller_4 (outs: erased (seq nat)) (dims: erased (seq pos) { FStar.Seq.length dims == FStar.Seq.length outs }):
-    Lemma //(requires FStar.Seq.length dims == 4 /\ FStar.Seq.index outs 0 < FStar.Seq.index dims 0 /\ FStar.Seq.index outs 1 < FStar.Seq.index dims 1
-          //                                      /\ FStar.Seq.index outs 2 < FStar.Seq.index dims 2 /\ FStar.Seq.index outs 3 < FStar.Seq.index dims 3)
+    Lemma //(requires FStar.Seq.length dims == 4 /\ outs.[0] < dims.[0] /\ outs.[1] < dims.[1]
+          //                                      /\ outs.[2] < dims.[2] /\ outs.[3] < dims.[3])
           (ensures  elementwise_smaller outs dims) = admit()
 
 #push-options "--z3cliopt 'smt.arith.nl=false'"
@@ -340,7 +360,7 @@ instance titi_permutation (tcols trows bcols brows: pos) : permutation (i: erase
 //     let dims = FStar.Seq.cons tcols (FStar.Seq.cons trows (FStar.Seq.cons bcols (FStar.Seq.cons brows FStar.Seq.empty))) in
 //     assume (reveal (multiply dims) == tcols * trows * bcols * brows);
 //     let outs = split_to_dims dims tid in
-//     (seq_head outs, FStar.Seq.index outs 1, FStar.Seq.index outs 2, FStar.Seq.index outs 3)
+//     (seq_head outs, outs.[1], outs.[2], outs.[3])
 
 // let dims_to_thread_id (tcols trows bcols brows: pos)
 //     (x: erased (nat & nat & nat & nat) { (reveal x)._1 < tcols /\ (reveal x)._2 < trows /\ (reveal x)._3 < bcols /\ (reveal x)._4 < brows }):
