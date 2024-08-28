@@ -4,7 +4,8 @@
     "--query_cache",
     "--load_cmxs", "pulse",
     "--warn_error", "-249",
-    "--already_cached", "Pulse.Lib.*"
+    "--already_cached", "Pulse.Lib.*",
+    "--ext", "__unrefine"
   ],
   "include_dirs": [
     ".cache",

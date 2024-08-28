@@ -28,13 +28,16 @@ PLUGIN=extraction/dune/_build/default/gpuextr
 FSTAR_FLAGS += --cache_checked_modules
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
+FSTAR_FLAGS += --cmi
+FSTAR_FLAGS += --warn_error -249-321
+FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
+FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += $(OTHERFLAGS)
 
 FSTAR_EXE := $(shell which fstar.exe)
 
 FSTAR := $(FSTAR_EXE)					\
 	$(SIL)						\
-	--cmi						\
 	--include pulse/lib/pulse/			\
 	--include pulse/lib/pulse/core/			\
 	--include pulse/lib/pulse/lib/			\
@@ -44,10 +47,7 @@ FSTAR := $(FSTAR_EXE)					\
 	--include src/examples/matmul/			\
 	--include src/examples/matmul-opt/		\
 	--load_cmxs pulse				\
-	--warn_error -249-321				\
-	--warn_error @242@250				\
 	$(FSTAR_FLAGS)
-# 242, 250: abort if could not extract something
 
 GPUH := $(realpath include/GPU.h)
 
