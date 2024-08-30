@@ -30,7 +30,7 @@ fn launch_kernel_n_m_sync
       (fun _ -> block_setup nthr ** bigstar 0 nthr (shared_pre ar)))
 
   (k :
-    (ar: gpu_array a smem_sz) -> (etid: erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (ar: gpu_array a smem_sz) -> (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
     stt unit (         gpu ** thread_id etid ** shared_pre ar (SZ.v (tidx_x etid)) ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** shared_post ar (SZ.v (tidx_x etid)) ** post (thread_index etid))
   )
@@ -42,11 +42,11 @@ fn launch_kernel_n_m_barrier
   (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
-  (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
+  (#pre #post : (tid:nat{ tid < (nblk * nthr) } -> slprop))
 
   (#p: (it:nat -> from: nat { 0 <= from /\ from < nthr } -> to: nat { 0 <= to /\ to < nthr } -> slprop))
   (k :
-    (etid: erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
     stt unit (         gpu ** thread_id etid ** mbarrier_tok nthr p 0 (tidx_x etid) ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** (exists* it. mbarrier_tok nthr p it (tidx_x etid)) ** post (thread_index etid))
   )
@@ -60,7 +60,7 @@ fn launch_kernel_n_m
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
   (k :
-    (etid: erased tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
     stt unit (         gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
@@ -73,11 +73,11 @@ fn kernel_n_as_n_m
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < SZ.v nblk } -> slprop))
   (k :
-    (etid:erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
+    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
     stt unit (gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
-  (etid:erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz })
+  (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz })
   requires gpu ** thread_id etid ** pre (thread_index etid)
   ensures  gpu ** thread_id etid ** post (thread_index etid)
 {
@@ -89,7 +89,7 @@ fn launch_kernel_n
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < SZ.v nblk } -> slprop))
   (k :
-    (etid:erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
+    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
     stt unit (gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
@@ -109,7 +109,7 @@ fn kernel_1_as_n
   (k : unit ->
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
-  (etid:erased tid_t { gdim_x etid == 1sz /\ bdim_x etid == 1sz })
+  (etid:tid_t { gdim_x etid == 1sz /\ bdim_x etid == 1sz })
   requires gpu ** thread_id etid ** pre
   ensures  gpu ** thread_id etid ** post
 {

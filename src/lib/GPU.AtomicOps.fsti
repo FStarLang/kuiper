@@ -8,6 +8,8 @@ open GPU.Base
 open GPU.Ref
 open GPU.IntAliases
 
+// TODO: Model alignment
+
 noextract
 atomic
 fn gpu_faa_u64
