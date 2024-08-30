@@ -518,6 +518,22 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                 FStar_Extraction_ML_Syntax.MLE_Name p;
               FStar_Extraction_ML_Syntax.mlty = uu___1;
               FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            r::v::_ev::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "GPU.AtomicOps.gpu_faa_u64" ->
+           let uu___3 =
+             let uu___4 =
+               let uu___5 = cb r in
+               let uu___6 = let uu___7 = cb v in [uu___7] in uu___5 :: uu___6 in
+             ((FStar_Extraction_Krml.EQualified ([], "atomicAdd")), uu___4) in
+           FStar_Extraction_Krml.EApp uu___3
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
             _uid::nblk::nthr::_pre::_post::_barrier::{
                                                        FStar_Extraction_ML_Syntax.expr
                                                          =
@@ -620,28 +636,38 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                            (FStar_Extraction_ML_Syntax.MLC_Unit) -> false
                        | uu___7 -> true) args in
                 let e' =
+                  let uu___7 =
+                    let uu___8 =
+                      let uu___9 =
+                        let uu___10 =
+                          let uu___11 =
+                            let uu___12 =
+                              FStar_Extraction_ML_Syntax.with_ty
+                                FStar_Extraction_ML_Syntax.ml_int_ty
+                                (FStar_Extraction_ML_Syntax.MLE_Const
+                                   (FStar_Extraction_ML_Syntax.MLC_Int
+                                      ("1",
+                                        (FStar_Pervasives_Native.Some
+                                           (FStar_Const.Unsigned,
+                                             FStar_Const.Int32))))) in
+                            let uu___13 =
+                              let uu___14 =
+                                FStar_Extraction_ML_Syntax.with_ty
+                                  FStar_Extraction_ML_Syntax.ml_int_ty
+                                  (FStar_Extraction_ML_Syntax.MLE_Const
+                                     (FStar_Extraction_ML_Syntax.MLC_Int
+                                        ("1",
+                                          (FStar_Pervasives_Native.Some
+                                             (FStar_Const.Unsigned,
+                                               FStar_Const.Int32))))) in
+                              [uu___14] in
+                            uu___12 :: uu___13 in
+                          hd :: uu___11 in
+                        FStar_List_Tot_Base.op_At uu___10 args' in
+                      (kcall, uu___9) in
+                    FStar_Extraction_ML_Syntax.MLE_App uu___8 in
                   FStar_Extraction_ML_Syntax.with_ty
-                    FStar_Extraction_ML_Syntax.ml_unit_ty
-                    (FStar_Extraction_ML_Syntax.MLE_App
-                       (kcall,
-                         (FStar_List_Tot_Base.op_At
-                            [hd;
-                            FStar_Extraction_ML_Syntax.with_ty
-                              FStar_Extraction_ML_Syntax.ml_int_ty
-                              (FStar_Extraction_ML_Syntax.MLE_Const
-                                 (FStar_Extraction_ML_Syntax.MLC_Int
-                                    ("1",
-                                      (FStar_Pervasives_Native.Some
-                                         (FStar_Const.Unsigned,
-                                           FStar_Const.Int32)))));
-                            FStar_Extraction_ML_Syntax.with_ty
-                              FStar_Extraction_ML_Syntax.ml_int_ty
-                              (FStar_Extraction_ML_Syntax.MLE_Const
-                                 (FStar_Extraction_ML_Syntax.MLC_Int
-                                    ("1",
-                                      (FStar_Pervasives_Native.Some
-                                         (FStar_Const.Unsigned,
-                                           FStar_Const.Int32)))))] args'))) in
+                    FStar_Extraction_ML_Syntax.ml_unit_ty uu___7 in
                 cb e')
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
@@ -675,26 +701,34 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                     FStar_Extraction_ML_Syntax.ml_unit_ty
                     (FStar_Extraction_ML_Syntax.MLE_Name ([], "PULSE_KCALL")) in
                 let e' =
+                  let uu___7 =
+                    let uu___8 =
+                      let uu___9 =
+                        let uu___10 =
+                          let uu___11 =
+                            let uu___12 =
+                              let uu___13 =
+                                FStar_Extraction_ML_Syntax.with_ty
+                                  FStar_Extraction_ML_Syntax.ml_int_ty
+                                  (FStar_Extraction_ML_Syntax.MLE_Const
+                                     (FStar_Extraction_ML_Syntax.MLC_Int
+                                        ("1",
+                                          (FStar_Pervasives_Native.Some
+                                             (FStar_Const.Unsigned,
+                                               FStar_Const.Int32))))) in
+                              [uu___13] in
+                            nthr :: uu___12 in
+                          hd :: uu___11 in
+                        FStar_List_Tot_Base.op_At uu___10 args' in
+                      (kcall, uu___9) in
+                    FStar_Extraction_ML_Syntax.MLE_App uu___8 in
                   FStar_Extraction_ML_Syntax.with_ty
-                    FStar_Extraction_ML_Syntax.ml_unit_ty
-                    (FStar_Extraction_ML_Syntax.MLE_App
-                       (kcall,
-                         (FStar_List_Tot_Base.op_At
-                            [hd;
-                            nthr;
-                            FStar_Extraction_ML_Syntax.with_ty
-                              FStar_Extraction_ML_Syntax.ml_int_ty
-                              (FStar_Extraction_ML_Syntax.MLE_Const
-                                 (FStar_Extraction_ML_Syntax.MLC_Int
-                                    ("1",
-                                      (FStar_Pervasives_Native.Some
-                                         (FStar_Const.Unsigned,
-                                           FStar_Const.Int32)))))] args'))) in
+                    FStar_Extraction_ML_Syntax.ml_unit_ty uu___7 in
                 cb e')
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___437 : unit) =
+let (uu___449 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

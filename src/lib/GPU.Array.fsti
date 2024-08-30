@@ -73,6 +73,7 @@ fn gpu_array_free
   ensures  cpu
 
 [@@noextract_to "krml"]
+atomic
 fn gpu_array_read
   (#a : Type u#0)
   (#sz : erased nat)

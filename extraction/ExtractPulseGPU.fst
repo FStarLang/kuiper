@@ -172,6 +172,12 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
       EApp (EQualified ([], "cudaMemcpy"), [ cb a; cb ga; bytesize; cudaMemcpyDeviceToHost ])
     ])
 
+  (******** ATOMIC OPS ********)
+
+  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
+    when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_u64" ->
+    EApp (EQualified ([], "atomicAdd"), [cb r; cb v])
+
   (******** KERNEL CALLS ********)
 
   | MLE_App ({ expr = MLE_Name p }, [
