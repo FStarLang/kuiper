@@ -1,8 +1,5 @@
 module GPU.MatMul.Kernel
 
-(* THIS IS NEEDED SO F* WILL ACTUALLY DO CROSS-MODULE INLINING. *)
-inline_for_extraction val hack : int
-
 #lang-pulse
 
 #push-options "--fuel 1 --ifuel 1"

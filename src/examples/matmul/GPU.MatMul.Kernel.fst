@@ -1,7 +1,5 @@
 module GPU.MatMul.Kernel
 
-inline_for_extraction let hack = 1
-
 #lang-pulse
 
 open GPU
