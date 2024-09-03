@@ -60,8 +60,6 @@ fn bigstar_ghost_upd_lemma
   admit();
 }
 
-// #set-options "--debug SMTFail --split_queries always"
-
 assume
 val contributions_lemma
   (nn: nat)
@@ -75,19 +73,18 @@ val contributions_lemma
 
 [@@ CPrologue "__global__"]
 fn kernel
-  (nn: erased nat)
-  (a : gpu_array u64 nn)
+  (nn: erased SZ.t)
+  (a : gpu_array u64 (SZ.v nn))
   (r : gpu_ref u64)
   (done : erased (seq (gref bool)){Seq.length done == reveal nn})
   (i : iname)
   (v_a : erased (seq u64))
-  (etid : tid_t { gdim_x etid == 1sz /\ SZ.v (bdim_x etid) == reveal nn})
-  requires gpu ** thread_id etid ** kpre  nn a v_a r done i (thread_index etid)
-  ensures  gpu ** thread_id etid ** kpost nn a v_a r done i (thread_index etid)
+  (etid : tid_t { SZ.v (gdim_x etid) == reveal nn /\ SZ.v (bdim_x etid) == 1sz})
+  requires gpu ** thread_id etid ** kpre  (SZ.v nn) a v_a r done i (thread_index etid)
+  ensures  gpu ** thread_id etid ** kpost (SZ.v nn) a v_a r done i (thread_index etid)
 {
   assume_ (pure (Seq.length v_a == reveal nn));
-  let tid = thread_idx_x ();
-  let tid : sz = SZ.uint32_to_sizet tid;
+  let tid = thread_idx_all ();
   rewrite each thread_index etid as SZ.v tid;
   (* Read array at idx *)
   let v =
@@ -97,14 +94,14 @@ fn kernel
         gpu **
         thread_id etid **
         gref_pts_to (done @! tid) #0.5R false **
-        inv_p nn a v_a r done **
+        inv_p (SZ.v nn) a v_a r done **
         pure (v == v_a @! SZ.v tid)
     {
       unfold inv_p;
       unfold gpu_pts_to_array a v_a;
-      let rr = gpu_array_read #u64 #nn #0 #nn a tid;
+      let rr = gpu_array_read #u64 #(SZ.v nn) #0 #(SZ.v nn) a tid;
       fold (gpu_pts_to_array a v_a);
-      fold (inv_p nn a v_a r done);
+      fold inv_p;
       rr
     };
   (* Fetch and add into result cell. *)
@@ -113,9 +110,9 @@ fn kernel
     unfold inv_p;
     gpu_faa_u64 r v;
     bigstar_ghost_upd_lemma done _ _ ;
-    assume_ (pure False);
+    assume_ (pure False); (* FIXME *)
     rewrite each SZ.v tid as thread_index etid;
-    fold (inv_p nn a v_a r done);
+    fold inv_p;
   }
 }
 
@@ -128,7 +125,7 @@ fn done_lemma
   (i : iname)
   (v_a : erased (seq u64))
   (etid : tid_t { gdim_x etid == 1sz /\ SZ.v (bdim_x etid) == reveal nn})
-  requires gpu ** bigstar 0 nn (fun tid -> kpre  nn a v_a r done i tid)
+  requires gpu ** bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
   ensures  
     gpu **
     GPU.Ref.gpu_pts_to r (GPU.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed

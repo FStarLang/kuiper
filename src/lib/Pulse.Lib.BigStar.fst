@@ -107,6 +107,8 @@ let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (
     bigstar_defn #u2 m' n' f'
   end
 
+let bigstar_extensionality_lem = admit()
+
 ghost
 fn __bigstar_extensionality
     (#u1: int)

@@ -50,10 +50,10 @@ let kpost
   inv i (inv_p nn a v_a r done)
 
 fn kernel
-  (n: erased sz)
+  (n: erased SZ.t)
   (a : gpu_array u64 (SZ.v n))
   (r : gpu_ref u64)
-  (done : erased (seq (gref bool)){Seq.length done == SZ.v (reveal n)})
+  (done : erased (seq (gref bool)){Seq.length done == reveal n})
   (i : iname)
   (v_a : erased (seq u64))
   (etid : tid_t { gdim_x etid == n /\ SZ.v (bdim_x etid) == 1sz })
@@ -69,7 +69,7 @@ fn done_lemma
   (i : iname)
   (v_a : erased (seq u64))
   (etid : tid_t { gdim_x etid == 1sz /\ SZ.v (bdim_x etid) == reveal nn})
-  requires gpu ** bigstar 0 nn (fun tid -> kpre  nn a v_a r done i tid)
+  requires gpu ** bigstar 0 nn (fun tid -> kpost nn a v_a r done i tid)
   ensures  
     gpu **
     GPU.Ref.gpu_pts_to r (GPU.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed

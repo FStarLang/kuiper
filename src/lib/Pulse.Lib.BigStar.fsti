@@ -40,6 +40,15 @@ val bigstar_congr
 : Lemma (bigstar #u1 m n f == bigstar #u2 m' n' f')
 
 
+val bigstar_extensionality_lem
+  (u1 u2 : int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
+  (h: ((i: nat{m <= i /\ i < n}) -> slprop_equiv (f i) (g i)))
+  : Lemma (slprop_equiv (bigstar #u1 m n f) (bigstar #u2 m n g))
+
 val bigstar_extensionality
   (#[exact (`0)] u1: int)
   (m : nat)

@@ -8,6 +8,7 @@ open GPU
 open GPU.AtomicReduce.Kernel
 
 module SZ = FStar.SizeT
+module W = Pulse.Lib.WithPure
 
 ghost
 fn setup
@@ -22,32 +23,75 @@ fn setup
     gpu_pts_to r #1.0R 0uL **
     pure (SZ.v n <= 1024)
   returns
-    i_done : erased (iname & erased (lseq (gref bool) (SZ.v n)))
+    i_done : erased (iname & erased (seq (gref bool)))
     // i : iname
     // done : lseq (gref bool) (SZ.v n)
   ensures
     emp
     ** cpu
-    ** bigstar 0 (SZ.v n) (fun tid ->
-        inv (reveal i_done)._1 (inv_p (SZ.v n) a v_a r (reveal i_done)._2) **
-        gref_pts_to ((reveal i_done)._2 @! tid) #0.5R false)
-    ** pure (Seq.length (reveal i_done)._2 == SZ.v n)
+    ** W.with_pure (Seq.length (reveal i_done)._2 == SZ.v n) (fun _ ->
+       bigstar 0 (SZ.v n) (fun tid ->
+        gref_pts_to ((reveal i_done)._2 @! tid) #0.5R false **
+        inv (reveal i_done)._1 (inv_p (SZ.v n) a v_a r (reveal i_done)._2))
+    )
 {
   admit();
 }
 
-#push-options "--debug SMTQuery,SMTFail --split_queries always"
+ghost
+fn teardown
+  (n : sz)
+  (a : gpu_array u64 n)
+  (#f : perm)
+  (#v_a : erased (seq u64))
+  (r : gpu_ref u64)
+  (i : iname)
+  (done : lseq (gref bool) (SZ.v n))
+  // returns
+  //   i_done : erased (iname & erased (seq (gref bool)))
+  requires
+    emp
+    ** cpu
+    ** pure (Seq.length done == SZ.v n) 
+    ** bigstar 0 (SZ.v n) (fun tid ->
+        gref_pts_to (done @! tid) #0.5R true **
+        inv i (inv_p (SZ.v n) a v_a r done))
+  ensures
+    cpu **
+    gpu_pts_to_array a #f v_a **
+    gpu_pts_to r #1.0R (GPU.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) **
+    pure (SZ.v n <= 1024)
+{
+  admit();
+}
+
+// #push-options "--debug SMTFail --split_queries always" // --print_implicits"
+
+
+
+module T = FStar.Tactics.V2
+
+let tac () : T.Tac unit =
+  // T.norm [];
+  // T.dump "1";
+  // T.apply_lemma (`bigstar_extensionality_lem);
+  // T.dump "2";
+  // T.rewrite_all_context_equalities (T.cur_vars ());
+  // T.dump "";
+  T.tadmit ()
+
+#set-options "--ext pulse:trace="
 
 fn reduce
-  (#nn: erased nat)
   (n : sz)
   (a : gpu_array u64 n)
   (#f : perm)
   (#v_a : erased (seq u64))
   requires
     cpu **
+    pure (f == 1.0R) **
     gpu_pts_to_array a #f v_a **
-    pure (SZ.v n <= 1024 /\ nn == SZ.v n)
+    pure (SZ.v n > 0 /\ SZ.v n <= 1024)
   returns
     r : u64
   ensures 
@@ -62,22 +106,33 @@ fn reduce
   with v. assert (pts_to r v);
   assert (pure (v == 0uL));
 
-  assume_ (pure (n > 0));
   assert (pure (n < max_blocks));
 
   // assert (gpu_pts_to gr #1.0R 0uL);
   let i_done = setup n a gr;
   let i = (reveal i_done)._1;
-  let done = (reveal i_done)._2;
+  let done : erased (seq (gref bool)) = hide (reveal ((reveal i_done)._2));
+  W.elim_with_pure (Seq.length (reveal i_done)._2 == SZ.v n) _; 
   // let i, done = setup n a #f #v_a gr;
-
+  rewrite each (reveal i_done)._1 as i by (tadmit());
+  rewrite each (reveal i_done)._2 as done by (tadmit());
+  assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
 
   launch_kernel_n #0 n
-    #(kpre  nn a v_a gr done i)
-    #(kpost nn a v_a gr done i)
-    (
-      kernel (hide n) a gr done i v_a );
+    #(kpre  (SZ.v n) a v_a gr done i)
+    #(kpost (SZ.v n) a v_a gr done i)
+    (fun etid -> kernel (hide n) a gr done i v_a etid);
 
+  teardown n a #f #v_a gr i done;
+
+  Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
+  
+  GPU.Ref.gpu_free gr;
+  
+  let v = !r;
+  free r;
+  // admit();
+  v
 }
 
 
