@@ -130,7 +130,8 @@ fn reduce
   GPU.Ref.gpu_free gr;
   
   let v = !r;
-  free r;
+  // free r;
+  drop_ (pts_to r _); // cannot free, should use boxes and fix the library
   // admit();
   v
 }

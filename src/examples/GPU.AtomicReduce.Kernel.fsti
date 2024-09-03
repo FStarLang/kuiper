@@ -49,6 +49,8 @@ let kpost
   gref_pts_to (done @! tid) #0.5R true **
   inv i (inv_p nn a v_a r done)
 
+[@@CPrologue "__global__"]
+inline_for_extraction
 fn kernel
   (n: erased SZ.t)
   (a : gpu_array u64 (SZ.v n))

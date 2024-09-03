@@ -167,6 +167,7 @@ TESTS+=GPU_Example1
 TESTS+=GPU_DotProduct2
 TESTS+=GPU_MatMul
 TESTS+=GPU_BasicFloat
+TESTS+=GPU_AtomicReduce
 
 extraction-targets: \
 	out/GPU_DotProduct.o \
