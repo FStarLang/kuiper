@@ -5,7 +5,7 @@
 	depth = 1
 [submodule "karamel"]
 	path = karamel
-	url = github:mtzguido/karamel
+	url = ../karamel
 	branch = gpu
 	depth = 1
 [submodule "pulse"]
