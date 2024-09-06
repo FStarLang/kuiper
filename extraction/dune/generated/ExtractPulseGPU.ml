@@ -62,9 +62,9 @@ let (head_and_args :
 let (escape_hatch : Prims.string -> FStar_Extraction_Krml.expr) =
   fun s ->
     FStar_Extraction_Krml.EComment
-      ("",
+      ("*/ ( /*",
         (FStar_Extraction_Krml.EConstant (FStar_Extraction_Krml.UInt32, "0")),
-        (Prims.strcat "*/ + " (Prims.strcat s " /* ")))
+        (Prims.strcat "*/ + " (Prims.strcat s " ) /* ")))
 let (zero_for_deref : FStar_Extraction_Krml.expr) =
   FStar_Extraction_Krml.EQualified (["C"], "_zero_for_deref")
 let (cudaMemcpyDeviceToHost : FStar_Extraction_Krml.expr) =
@@ -522,12 +522,11 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___3 = "GPU.AtomicOps.gpu_faa_u64" ->
-           let uu___3 =
-             let uu___4 =
-               let uu___5 = cb r in
-               let uu___6 = let uu___7 = cb v in [uu___7] in uu___5 :: uu___6 in
-             ((FStar_Extraction_Krml.EQualified ([], "atomicAdd")), uu___4) in
-           FStar_Extraction_Krml.EApp uu___3
+           let rr = cb r in
+           let vv = cb v in
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "atomic_add_u64")),
+               [rr; vv])
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -728,7 +727,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___449 : unit) =
+let (uu___451 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
