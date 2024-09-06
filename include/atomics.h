@@ -2,11 +2,13 @@
 #define __PULSE__ATOMIC_H 1
 
 #include <stdint.h>
+#include <type_traits>
 
 __device__
 static inline
 uint32_t atomic_add_u32(uint32_t *p, uint32_t v)
 {
+    static_assert(std::is_same<unsigned int, uint32_t>::value, "xxx1");
 	return atomicAdd((unsigned int*)p, v);
 }
 
@@ -14,8 +16,12 @@ __device__
 static inline
 uint64_t atomic_add_u64(uint64_t *p, uint64_t v)
 {
+    static_assert(std::is_same<unsigned long, uint64_t>::value, "xxx2");
+    // static_assert(std::is_same<unsigned long long, uint64_t>::value, "xxx3");
+    // fails, why??
     static_assert(sizeof (unsigned long long) == 8,
       "unsigned long long must be uint64_t for this to be OK");
+
 	return atomicAdd((unsigned long long int*)p, v);
 }
 
