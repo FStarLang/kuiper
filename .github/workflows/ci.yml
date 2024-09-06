@@ -23,6 +23,7 @@ jobs:
         # keep in mind you need a way to handle this.
         shell: bash
     steps:
+      - run: find . -delete
       - name: Check out repo
         uses: actions/checkout@v4
 
