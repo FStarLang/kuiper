@@ -175,10 +175,21 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** ATOMIC OPS ********)
 
   | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
+    when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_u32" ->
+    (* Can we cast here instead of using a wrapper? *)
+    EApp (EQualified ([], "atomic_add_u32"), [cb r; cb v])
+
+  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
     when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_u64" ->
-    let rr = cb r in
-    let vv = cb v in
-    EApp (EQualified ([], "atomic_add_u64"), [rr; vv])
+    EApp (EQualified ([], "atomic_add_u64"), [cb r; cb v])
+
+  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
+    when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_f32" ->
+    EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
+
+  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
+    when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_f64" ->
+    EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
   (******** KERNEL CALLS ********)
 
