@@ -65,21 +65,8 @@ fn teardown
 
 // #push-options "--debug SMTFail --split_queries always" // --print_implicits"
 
-
-
-module T = FStar.Tactics.V2
-
-let tac () : T.Tac unit =
-  // T.norm [];
-  // T.dump "1";
-  // T.apply_lemma (`bigstar_extensionality_lem);
-  // T.dump "2";
-  // T.rewrite_all_context_equalities (T.cur_vars ());
-  // T.dump "";
-  T.tadmit ()
-
-#set-options "--ext pulse:trace=1"
- //--debug SMTFail --split_queries always"
+// #set-options "--ext pulse:trace=1"
+//  --debug SMTFail --split_queries always"
 
 fn reduce
   (n : sz)
@@ -109,12 +96,6 @@ fn reduce
 
   // assert (gpu_pts_to gr #1.0R 0uL);
   
-
-  // let i_done = setup n a gr;
-  // let i = (i_done)._1;
-  // let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
-  // rewrite each (i_done)._1 as i by (tadmit());
-  // rewrite each (i_done)._2 as done by (tadmit());
   
   // pack (x,y) as p?
   // let p = (x, y);
@@ -123,8 +104,14 @@ fn reduce
   // pack Inl x as o;
 
 
-  let Mktuple2 i done = setup n a gr;
-  ();
+
+  let i_done = setup n a gr;
+  let i = (i_done)._1;
+  let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
+  rewrite each i_done as (i, done) by (tadmit ());
+  // New fancy syntax, does not extract
+  // let Mktuple2 i done = setup n a gr;
+
   W.elim_with_pure (Seq.length done == SZ.v n) _; 
 
   assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
