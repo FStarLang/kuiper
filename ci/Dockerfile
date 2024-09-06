@@ -26,7 +26,7 @@ RUN apt-get install -y nvidia-cuda-toolkit \
 # Get compiled Z3
 RUN wget -nv https://github.com/Z3Prover/z3/releases/download/Z3-4.8.5/z3-4.8.5-x64-ubuntu-16.04.zip \
  && unzip z3-4.8.5-x64-ubuntu-16.04.zip \
- && cp z3-4.8.5-x64-ubuntu-16.04/bin/z3 /usr/local/bin/z3-4.8.5
+ && cp z3-4.8.5-x64-ubuntu-16.04/bin/z3 /usr/local/bin/z3-4.8.5 \
  && rm -r z3-4.8.5-*
 
 # Create a new user and give them sudo rights
