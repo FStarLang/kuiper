@@ -30,9 +30,12 @@ jobs:
       - name: Setup HOME and PATH
         run: |
           echo "HOME=/home/vscode" >> $GITHUB_ENV
-          echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
 
       - uses: mtzguido/set-opam-env@master
+
+      - name: Setup HOME and PATH
+        run: |
+          echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
 
       # If these fail, stop right now.
       - run: which z3
