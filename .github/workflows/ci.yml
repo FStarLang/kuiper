@@ -32,7 +32,7 @@ jobs:
         run: |
           echo "HOME=/home/vscode" >> $GITHUB_ENV
 
-      - uses: mtzguido/set-opam-env@master
+      # - uses: mtzguido/set-opam-env@master
 
       - name: Setup HOME and PATH
         run: |
