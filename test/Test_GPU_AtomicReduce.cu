@@ -23,13 +23,18 @@ int main()
 
 		// printf("M1\n"); pr(m1); printf("\n");
 		// printf("M2\n"); pr(m2); printf("\n");
-
-		u64 r = TIME(GPU_AtomicReduce_reduce(n, a), NULL);
 		
+		u64 *aa = (uint64_t *)PULSE_GPU_ALLOC(n * sizeof aa[0]);
+		MUST(cudaMemcpy(aa, a, n * 8U, cudaMemcpyHostToDevice));
+
+		u64 r = TIME(GPU_AtomicReduce_reduce(n, aa), NULL);
+		
+		cudaFree(aa);
+
 		printf("reduce(%d) = %llu\n", n, r);
 
 		free(a);
 
-		return 0;
 	}
+	return 0;
 }

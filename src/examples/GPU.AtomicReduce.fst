@@ -22,18 +22,16 @@ fn setup
     gpu_pts_to_array a #f v_a **
     gpu_pts_to r #1.0R 0uL **
     pure (SZ.v n <= 1024)
-  returns
-    i_done : erased (iname & erased (seq (gref bool)))
-    // i : iname
-    // done : lseq (gref bool) (SZ.v n)
+  returns 
+    i_done : iname & erased (seq (gref bool))
   ensures
-    emp
-    ** cpu
-    ** W.with_pure (Seq.length (reveal i_done)._2 == SZ.v n) (fun _ ->
+    (match i_done with | (i, done) ->
+    cpu
+    ** W.with_pure (Seq.length done == SZ.v n) (fun _ ->
        bigstar 0 (SZ.v n) (fun tid ->
-        gref_pts_to ((reveal i_done)._2 @! tid) #0.5R false **
-        inv (reveal i_done)._1 (inv_p (SZ.v n) a v_a r (reveal i_done)._2))
-    )
+        gref_pts_to (done @! tid) #0.5R false **
+        inv i (inv_p (SZ.v n) a v_a r done))
+    ))
 {
   admit();
 }
@@ -80,7 +78,8 @@ let tac () : T.Tac unit =
   // T.dump "";
   T.tadmit ()
 
-#set-options "--ext pulse:trace="
+#set-options "--ext pulse:trace=1"
+ //--debug SMTFail --split_queries always"
 
 fn reduce
   (n : sz)
@@ -109,13 +108,25 @@ fn reduce
   assert (pure (n < max_blocks));
 
   // assert (gpu_pts_to gr #1.0R 0uL);
-  let i_done = setup n a gr;
-  let i = (reveal i_done)._1;
-  let done : erased (seq (gref bool)) = hide (reveal ((reveal i_done)._2));
-  W.elim_with_pure (Seq.length (reveal i_done)._2 == SZ.v n) _; 
-  // let i, done = setup n a #f #v_a gr;
-  rewrite each (reveal i_done)._1 as i by (tadmit());
-  rewrite each (reveal i_done)._2 as done by (tadmit());
+  
+
+  // let i_done = setup n a gr;
+  // let i = (i_done)._1;
+  // let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
+  // rewrite each (i_done)._1 as i by (tadmit());
+  // rewrite each (i_done)._2 as done by (tadmit());
+  
+  // pack (x,y) as p?
+  // let p = (x, y);
+  // rewrite each x as p._1;
+  // rewrite each y as p._2;
+  // pack Inl x as o;
+
+
+  let Mktuple2 i done = setup n a gr;
+  ();
+  W.elim_with_pure (Seq.length done == SZ.v n) _; 
+
   assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
 
   launch_kernel_n #0 n

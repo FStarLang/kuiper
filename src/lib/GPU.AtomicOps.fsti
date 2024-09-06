@@ -17,4 +17,5 @@ fn gpu_faa_u64
   (v : u64)
   (#v0 : erased u64)
   requires gpu ** gpu_pts_to r #1.0R v0
-  ensures  gpu ** gpu_pts_to r #1.0R (FStar.UInt64.add_mod v v0)
+  returns  old : u64
+  ensures  gpu ** gpu_pts_to r #1.0R (FStar.UInt64.add_mod v v0) ** pure (old == reveal v0)
