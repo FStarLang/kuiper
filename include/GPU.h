@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "krml_float.h"
+#include "atomics.h"
 
 #include <cuda_runtime.h>
 

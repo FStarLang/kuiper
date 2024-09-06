@@ -176,7 +176,9 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
     when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_u64" ->
-    EApp (EQualified ([], "atomicAdd"), [cb r; cb v])
+    let rr = cb r in
+    let vv = cb v in
+    EApp (EQualified ([], "atomic_add_u64"), [rr; vv])
 
   (******** KERNEL CALLS ********)
 
