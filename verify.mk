@@ -10,8 +10,14 @@ include .common.mk
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
-# Keep pulse plugin updated
-HACK:=$(shell make -C pulse/src build-ocaml)
+FSTAR_HOME=$(PWD)/FStar
+FSTAR_EXE := $(FSTAR_HOME)/bin/fstar.exe
+
+export FSTAR_HOME
+
+# Keep FStar built and pulse plugin updated
+HACK:=$(shell make -C FStar 1)
+HACK:=$(shell make FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml)
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
@@ -34,9 +40,7 @@ FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract some
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += $(OTHERFLAGS)
 
-FSTAR_EXE := $(shell which fstar.exe)
-
-FSTAR := $(FSTAR_EXE)					\
+FSTAR_NOPLUG := $(FSTAR_EXE)				\
 	$(SIL)						\
 	--include pulse/lib/pulse/			\
 	--include pulse/lib/pulse/core/			\
@@ -46,8 +50,9 @@ FSTAR := $(FSTAR_EXE)					\
 	--include src/examples/				\
 	--include src/examples/matmul/			\
 	--include src/examples/matmul-opt/		\
-	--load_cmxs pulse				\
 	$(FSTAR_FLAGS)
+
+FSTAR := $(FSTAR_NOPLUG) --load_cmxs pulse
 
 GPUH := $(realpath include/GPU.h)
 
@@ -96,6 +101,8 @@ echo-fstar:
 echo-krml:
 	@echo $(KRML)
 
+# NB: The dependency analysis needs to parse the files, so it needs
+# the Pulse plugin
 .depend: $(ROOTS)
 	$(call msg,"DEPEND")
 	$(Q)$(FSTAR) --codegen krml --dep full $(ROOTS) --output_deps_to $@

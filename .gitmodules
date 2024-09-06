@@ -1,0 +1,8 @@
+[submodule "FStar"]
+	path = FStar
+	url = ../FStar
+	branch = gpu
+[submodule "pulse"]
+	path = pulse
+	url = ../pulse
+	branch = gpu

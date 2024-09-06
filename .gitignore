@@ -2,7 +2,6 @@
 .cache/**
 .out/**
 .depend
-pulse
 out
 dep.graph
 dep_filtered.graph
