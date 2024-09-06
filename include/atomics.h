@@ -14,6 +14,8 @@ __device__
 static inline
 uint64_t atomic_add_u64(uint64_t *p, uint64_t v)
 {
+    static_assert(sizeof (unsigned long long) == 8,
+      "unsigned long long must be uint64_t for this to be OK");
 	return atomicAdd((unsigned long long int*)p, v);
 }
 
