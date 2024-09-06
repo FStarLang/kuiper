@@ -12,13 +12,16 @@ MAKEFLAGS += --no-builtin-rules
 
 # We DO NOT read FSTAR_HOME externally.
 FSTAR_HOME=$(PWD)/FStar
+KRML_HOME=$(PWD)/karamel
 FSTAR_EXE := $(FSTAR_HOME)/bin/fstar.exe
 
 export FSTAR_HOME
+export KRML_HOME
 
 # Keep FStar built and pulse plugin updated
-HACK:=$(shell make -C FStar 1)
-HACK:=$(shell make FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml)
+HACK:=$(shell $(MAKE) -C FStar 1)
+HACK:=$(shell $(MAKE) FSTAR_HOME=$(PWD)/FStar -C karamel minimal)
+HACK:=$(shell $(MAKE) FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml)
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 

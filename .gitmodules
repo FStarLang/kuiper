@@ -3,6 +3,11 @@
 	url = ../FStar
 	branch = gpu
 	depth = 1
+[submodule "karamel"]
+	path = karamel
+	url = github:mtzguido/karamel
+	branch = gpu
+	depth = 1
 [submodule "pulse"]
 	path = pulse
 	url = ../pulse
