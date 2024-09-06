@@ -59,12 +59,6 @@ let (head_and_args :
           aux (FStar_List_Tot_Base.op_At args acc) head
       | uu___ -> (e1, acc) in
     aux [] e
-let (escape_hatch : Prims.string -> FStar_Extraction_Krml.expr) =
-  fun s ->
-    FStar_Extraction_Krml.EComment
-      ("*/ ( /*",
-        (FStar_Extraction_Krml.EConstant (FStar_Extraction_Krml.UInt32, "0")),
-        (Prims.strcat "*/ + " (Prims.strcat s " ) /* ")))
 let (zero_for_deref : FStar_Extraction_Krml.expr) =
   FStar_Extraction_Krml.EQualified (["C"], "_zero_for_deref")
 let (cudaMemcpyDeviceToHost : FStar_Extraction_Krml.expr) =
@@ -109,7 +103,10 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
             _unit::_erasedn::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___3 = "GPU.Base.block_idx_x" -> escape_hatch "blockIdx.x"
+           uu___3 = "GPU.Base.block_idx_x" ->
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "blockIdx_x")),
+               [FStar_Extraction_Krml.EUnit])
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -119,7 +116,10 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
             _unit::_erasedn::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___3 = "GPU.Base.block_dim_x" -> escape_hatch "blockDim.x"
+           uu___3 = "GPU.Base.block_dim_x" ->
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "blockDim_x")),
+               [FStar_Extraction_Krml.EUnit])
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -129,7 +129,10 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
             _unit::_erasedn::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___3 = "GPU.Base.thread_idx_x" -> escape_hatch "threadIdx.x"
+           uu___3 = "GPU.Base.thread_idx_x" ->
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "threadIdx_x")),
+               [FStar_Extraction_Krml.EUnit])
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -780,7 +783,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___485 : unit) =
+let (uu___484 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

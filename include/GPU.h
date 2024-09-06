@@ -9,6 +9,10 @@
 #include "krml_float.h"
 #include "atomics.h"
 
+#define blockIdx_x() blockIdx.x
+#define blockDim_x() blockDim.x
+#define threadIdx_x() threadIdx.x
+
 #include <cuda_runtime.h>
 
 #define PULSE_KCALL(foo, nblk, nthr, ...)				\

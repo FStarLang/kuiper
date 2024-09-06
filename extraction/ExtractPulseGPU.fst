@@ -58,10 +58,6 @@ let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
   in
   aux [] e
 
-let escape_hatch (s:string) : expr =
-  (* EComment ("*/ ( /*", EConstant (UInt32, "0"), "*/ , " ^ s ^ ") /* ") *)
-  EComment ("*/ ( /*", EConstant (UInt32, "0"), "*/ + " ^ s ^ " ) /* ")
-
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
 let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
@@ -81,11 +77,16 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** PREDEFINED VARS ********)
 
   | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "GPU.Base.block_idx_x" -> escape_hatch "blockIdx.x"
+    when string_of_mlpath p = "GPU.Base.block_idx_x" ->
+    EApp (EQualified ([], "blockIdx_x"), [ EUnit ])
+
   | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "GPU.Base.block_dim_x" -> escape_hatch "blockDim.x"
+    when string_of_mlpath p = "GPU.Base.block_dim_x" ->
+    EApp (EQualified ([], "blockDim_x"), [ EUnit ])
+
   | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "GPU.Base.thread_idx_x" -> escape_hatch "threadIdx.x"
+    when string_of_mlpath p = "GPU.Base.thread_idx_x" ->
+    EApp (EQualified ([], "threadIdx_x"), [ EUnit ])
 
   | MLE_App ({ expr = MLE_Name p } , [ sz ])
     when string_of_mlpath p = "GPU.SizeT.sizet_to_u32" ->
