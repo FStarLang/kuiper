@@ -39,7 +39,8 @@ jobs:
           echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
 
       # If these fail, stop right now.
-      # - run: which z3
+      - run: which z3
+      - run: false
 
       - name: Get submodules
         run: |
