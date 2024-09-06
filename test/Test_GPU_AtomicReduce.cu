@@ -32,6 +32,9 @@ int main()
 		cudaFree(aa);
 
 		printf("reduce(%d) = %llu\n", n, r);
+		
+		if (r != n * (n - 1) / 2)
+			printf("ERROR: should have been %llu\n", n * (n - 1) / 2);
 
 		free(a);
 
