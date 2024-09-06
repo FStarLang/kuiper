@@ -32,6 +32,7 @@ jobs:
         run: |
           echo "HOME=/home/vscode" >> $GITHUB_ENV
 
+      # FIXME: env or path gets broken
       # - uses: mtzguido/set-opam-env@master
 
       - name: Setup HOME and PATH
@@ -40,7 +41,6 @@ jobs:
 
       # If these fail, stop right now.
       - run: which z3
-      - run: false
 
       - name: Get submodules
         run: |
@@ -51,7 +51,9 @@ jobs:
         run: ./scripts/check-cuda.sh
 
       - name: Run CI Makefile rule
-        run: make -skj$(nproc) -Otarget ci
+        run: |
+          eval $(opam env)
+          make -skj$(nproc) -Otarget ci
 
       - name: Make artifact with output
         if: ${{ always () }}
