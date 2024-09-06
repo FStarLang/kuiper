@@ -50,6 +50,16 @@ jobs:
       - name: Check CUDA
         run: ./scripts/check-cuda.sh
 
+      - name: Startup check
+        run: |
+          nvcc -I include/ -o out/startup.exe test/startup.cu
+          ./out/startup.exe
+
+      - name: Run CI Makefile rule
+        run: |
+          eval $(opam env)
+          make -skj$(nproc) -Otarget ci
+
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)

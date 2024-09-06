@@ -163,6 +163,10 @@ $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	$(call msg,"NVCC",$@)
 	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
 
+$(OUTDIR)/startup.exe: test/startup.cu
+	$(call msg,"NVCC",$@)
+	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
+
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 	$< > $@
 

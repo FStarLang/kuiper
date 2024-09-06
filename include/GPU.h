@@ -60,4 +60,18 @@ uint32_t * __PULSE_GPU_ALLOC(size_t len, const char *str, const char *fname,
 			assert(!"CHECK_SIZE");				\
 	} while (0)
 
+static inline
+void INFO ()
+{
+	printf("sizeof(short) = %lu\n", sizeof(short));
+	printf("sizeof(int) = %lu\n", sizeof(int));
+	printf("sizeof(long) = %lu\n", sizeof(long));
+	printf("sizeof(long long) = %lu\n", sizeof(long long));
+
+	printf("sizeof(unsigned short) = %lu\n", sizeof(unsigned short));
+	printf("sizeof(unsigned int) = %lu\n", sizeof(unsigned int));
+	printf("sizeof(unsigned long) = %lu\n", sizeof(unsigned long));
+	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
+}
+
 #endif
