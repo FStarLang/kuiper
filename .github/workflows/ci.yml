@@ -32,24 +32,21 @@ jobs:
           echo "HOME=/home/vscode" >> $GITHUB_ENV
           echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
 
-      # This doesn't work. $GITHUB_ENV is not sourced, it must be of the
-      # shape K=V, but opam env prints stuff like 'export' directives.
-      # So, instead, call eval $(opam env) in every step.
-      # - run: opam env --set-switch >> $GITHUB_ENV
+      - uses: mtzguido/set-opam-env@master
 
       # If these fail, stop right now.
-      - run: which fstar.exe
       - run: which z3
 
-      - name: Check CUDA
+      - name: Get submodules
         run: |
-          eval $(opam env)
-          ./scripts/check-cuda.sh
+          git submodule init
+          git submodule update
+
+      - name: Check CUDA
+        run: ./scripts/check-cuda.sh
 
       - name: Run CI Makefile rule
-        run: |
-          eval $(opam env)
-          make -skj$(nproc) -Otarget ci
+        run: make -skj$(nproc) -Otarget ci
 
       - name: Make artifact with output
         if: ${{ always () }}
