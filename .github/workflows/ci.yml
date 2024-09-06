@@ -32,10 +32,12 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      # FIXME: Why is $HOME badly set?
+      # Fixup HOME (https://github.com/actions/runner/issues/863)
       - name: Setup HOME and PATH
         run: |
-          echo "HOME=/home/vscode" >> $GITHUB_ENV
+          find /github
+          rm -rf /github/home
+          ln -s /home/vscode /github/home
 
       # FIXME: env or path gets broken
       # - uses: mtzguido/set-opam-env@master
