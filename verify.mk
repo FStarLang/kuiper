@@ -143,7 +143,7 @@ $(OUTDIR)/%.c: $(OUTDIR)/%.krml
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 	@ln -sf $(realpath $<) $@
 
-%.o: %.cu include/GPU.h
+%.o: %.cu include/*.h
 	$(call msg,"NVCC",$@)
 	$(Q)nvcc -o $@ -c $<
 
