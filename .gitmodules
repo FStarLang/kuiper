@@ -2,7 +2,9 @@
 	path = FStar
 	url = ../FStar
 	branch = gpu
+	depth = 1
 [submodule "pulse"]
 	path = pulse
 	url = ../pulse
 	branch = gpu
+	depth = 1

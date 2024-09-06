@@ -10,6 +10,7 @@ include .common.mk
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
+# We DO NOT read FSTAR_HOME externally.
 FSTAR_HOME=$(PWD)/FStar
 FSTAR_EXE := $(FSTAR_HOME)/bin/fstar.exe
 

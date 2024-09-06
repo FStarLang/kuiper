@@ -1,5 +1,5 @@
 {
-  "fstar_exe": "${FSTAR_HOME}/bin/fstar.exe",
+  "fstar_exe": "FStar/bin/fstar.exe",
   "options": [
     "--query_cache",
     "--load_cmxs", "pulse",
