@@ -1,7 +1,9 @@
 all: build
 
-FSTAR_HOME ?= $(realpath $(dir $(shell which fstar.exe))/..)
+FSTAR_HOME = ../FStar
 FSTAR_EXE = $(FSTAR_HOME)/bin/fstar.exe
+
+OTHERFLAGS += --MLish
 
 # Assume FSTAR_HOME points to the F* source tree
 include $(FSTAR_HOME)/.common.mk
@@ -26,7 +28,6 @@ $(OUTPUT_DIRECTORY)/%.ml: %.fst
 	$(Q)$(BENCHMARK_PRE) $(FSTAR_C) $< \
 		   --odir "$(OUTPUT_DIRECTORY)" \
 		   --codegen OCaml \
-		   --MLish \
 		   --extract_module $(basename $(notdir $<))
 	chmod -x $@
 
