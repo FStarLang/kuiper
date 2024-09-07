@@ -42,7 +42,7 @@ jobs:
       # - uses: mtzguido/set-opam-env@master
 
       # If these fail, stop right now.
-      - run: which z3
+      - run: which z3-4.8.5
 
       - name: Get submodules
         run: |
