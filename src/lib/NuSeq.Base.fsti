@@ -21,7 +21,6 @@ val index (#a : Type)
   : Tot a
 
 unfold let op_String_Access = index
-// let op_String_Assignment (x:'a) (l:lens 'a 'b) (v:'b) : 'a = (x |:= l) v
 
 // Use `s1 == s2` instead
 val equal (#a : Type)

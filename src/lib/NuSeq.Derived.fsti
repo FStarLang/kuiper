@@ -47,6 +47,16 @@ unfold let delete (#a:Type)
   : Tot (seq a)
   = remove s i (i + 1)
 
+// Use `s.[i] <- v` instead
+unfold let update (#a:Type)
+  (s : seq a)
+  (i : natlt (len s))
+  (v : a)
+  : Tot (seq a)
+  = insert (delete s i) i (seq1 v)
+
+unfold let op_String_Assignment = update
+
 unfold let push_l (#a:Type)
   (s : seq a)
   (v : a)

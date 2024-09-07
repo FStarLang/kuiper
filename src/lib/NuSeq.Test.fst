@@ -15,6 +15,9 @@ let add_delete (#a:Type) (s : seq a) (i : natle (len s)) (v : a) =
 let concat_seq0 (#a:Type) (s : seq a) =
   assert (s `equal` (s @ seq0 #a) /\ s `equal` (seq0 #a @ s))
 
+let update_id (#a:Type) (s : seq a) (i : natlt (len s)) =
+  assert (s `equal` (s.[i] <- s.[i]))
+
 let sliceA
   (#a:Type)
   (s:seq a)
