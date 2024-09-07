@@ -54,6 +54,7 @@ jobs:
 
       - name: Startup check
         run: |
+          mkdir -p out
           nvcc -I include/ -o out/startup.exe test/startup.cu
           ./out/startup.exe
 
