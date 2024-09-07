@@ -35,7 +35,8 @@ jobs:
       # Fixup HOME (https://github.com/actions/runner/issues/863)
       - name: Setup HOME
         run: |
-          echo "HOME=/home/vscode:$PATH" >> $GITHUB_ENV
+          echo "HOME=/home/vscode" >> $GITHUB_ENV
+          echo "PATH=/usr/local/bin/:$PATH" >> $GITHUB_ENV
 
       # FIXME: env or path gets broken
       # - uses: mtzguido/set-opam-env@master
