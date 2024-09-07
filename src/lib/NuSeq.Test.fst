@@ -2,6 +2,19 @@ module NuSeq.Test
 
 open NuSeq
 
+let split_concat (#a:Type) (s : seq a) (i: natle (len s)) =
+  let (sl, sr) = split s i in
+  assert (s `equal` (sl @ sr))
+
+let insert_remove (#a:Type) (s : seq a) (i : natle (len s)) (v : seq a) =
+  assert (s `equal` remove (insert s i v) i (i + len v))
+
+let add_delete (#a:Type) (s : seq a) (i : natle (len s)) (v : a) =
+  assert (s `equal` delete (add s i v) i)
+
+let concat_seq0 (#a:Type) (s : seq a) =
+  assert (s `equal` (s @ seq0 #a) /\ s `equal` (seq0 #a @ s))
+
 let sliceA
   (#a:Type)
   (s:seq a)
@@ -60,4 +73,3 @@ let test2 (#a:Type) (s:seq a) (from:nat) (to : nat{from <= to /\ to <= len s}) =
   assert (removeA s from to `equal` removeC s from to);
   assert (removeB s from to `equal` removeC s from to);
   ()
-
