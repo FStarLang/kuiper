@@ -141,6 +141,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--extract "+GPU"						\
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
+		--ext extraction_inline_all					\
 		$(patsubst .cache/%.checked,src/examples/%,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
