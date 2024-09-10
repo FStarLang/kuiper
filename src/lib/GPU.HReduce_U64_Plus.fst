@@ -1,6 +1,4 @@
-module GPU.HReduce
-
-#set-options "--ext pulse:trace"
+module GPU.HReduce_U64_Plus
 
 #lang-pulse
 
@@ -14,8 +12,6 @@ module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-#set-options "--z3rlimit 20"
-
 let size : sz = 1024sz
 
 (* no polymorphism, but at least keep the definitions here *)
@@ -25,7 +21,18 @@ let neu = 0uL
 
 let op_assoc () : Lemma (is_associative op) = admit() // prove
 let op_neu () : Lemma (is_neutral_for neu op) = ()
-let op_monoid () : Lemma (is_monoid neu op) [SMTPat (is_monoid neu op)] = op_assoc (); op_neu ()
+let op_monoid () : Lemma (is_monoid neu op) = op_assoc (); op_neu ()
+
+(* using seq_fold_left op neu directly in pulse code blows up
+in many colorful ways. Probably the refinment of op? Anyway, 
+specialize it here. *)
+let sum (s : seq ety) : GTot ety =
+  seq_fold_left op neu s
+  
+(* same, also the op_monoid does not (cannot?) have a pattern. *)
+let sum_lemma (s1 s2 : seq ety) : Lemma (sum (s1 `Seq.append` s2) == op (sum s1) (sum s2)) =
+  op_monoid();
+  lemma_seq_fold_left_sum neu op s1 s2
 
 [@@ CPrologue "__device__"]
 let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
@@ -35,8 +42,13 @@ let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   r
 
 [@@ CPrologue "__device__"]
-let sdiv_pow2 (i:sz{i < 32}) (tid: sz): bool =
+let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
   SZ.rem tid (spow2 i) = 0sz
+
+let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
+  Lemma (sdiv_pow2 i tid <==> div_pow2 (SZ.v i) (SZ.v tid))
+        [SMTPat (sdiv_pow2 i tid)]
+= ()
 
 [@@ CPrologue "__device__"]
 let smin (a b : sz): sz =
@@ -56,7 +68,7 @@ let gpu_pts_to_slice_sum_inner
   ** pure (i < j /\ j <= sz /\
            Seq.length v = sz /\
            Seq.length s = j - i /\
-           Seq.index s 0 = GPU.Seq.Common.seq_fold_left op neu (Seq.slice v i j))
+           Seq.index s 0 = sum (Seq.slice v i j))
 
 let gpu_pts_to_slice_sum
   (#sz:nat)
@@ -223,7 +235,6 @@ fn iteration
 
     let b = sdiv_pow2 (it +^ 1sz) tid;
     
-    assume (pure (b <==> (div_pow2 (SZ.v it + 1) (SZ.v tid))));
     rewrite each (div_pow2 (SZ.v it + 1) (SZ.v tid)) as b;
 
     div_pow2_lemma_2 it tid;
@@ -237,7 +248,6 @@ fn iteration
       if_elim_true _;
 
       unfold (gpu_pts_to_slice_sum r tid middle vv);
-      assume (pure False); // FIXME
       if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid middle vv s);
       with s. assert (gpu_pts_to_slice_sum_inner r tid middle vv s);
       ();
@@ -251,9 +261,12 @@ fn iteration
       let s = op s1 s2;
       // sum_seq_lemma vv tid middle end_;
       
-      // admit();
       // lemma_seq_fold_left_sum neu op s1 s2;
-      assume (pure (s == seq_fold_left op neu (Seq.slice vv tid end_)));
+      assert (pure (s1 == sum (Seq.slice vv tid middle)));
+      assert (pure (s2 == sum (Seq.slice vv middle end_)));
+      lem_append_slice vv tid middle end_;
+      sum_lemma (Seq.slice vv tid middle) (Seq.slice vv middle end_);
+      assert (pure (s == sum (Seq.slice vv tid end_)));
       
       // assert (pure ( s == sum_seq vv tid end_ ));
       gpu_array_write #u64 #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid s;
@@ -280,91 +293,71 @@ fn iteration
   }
 }
 
-let kpre (nth: nat) (a r : gpu_array u64 nth) (s : erased (seq u64))
+[@@pulse_unfold]
+let kpre (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
   (#_: squash (Seq.length s == nth)) (tid:nat{tid < nth})
   : slprop =
-    gpu_pts_to_array #u64 #nth a #(1.0R /. Real.of_int nth) s **
-    gpu_pts_to_array1 r tid
+    gpu_pts_to_array_slice a tid (tid+1) seq![Seq.index s tid]
 
-let kpost (nth: nat) (a r : gpu_array u64 nth) (s : erased (seq u64))
+[@@pulse_unfold]
+let kpost (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
   (#_: squash (Seq.length s == nth)) (tid:nat{tid < nth})
   : slprop =
-    gpu_pts_to_array #u64 #nth a #(1.0R /. Real.of_int nth) s **
-    if_ (tid = 0) (gpu_pts_to_slice_sum r 0 nth s)
-
-#set-options "--debug SMTFail --split_queries always"
+    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 nth s)
 
 [@@ CPrologue "__global__"]
 fn kernel
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (a r : gpu_array u64 nth)
+  (a : gpu_array u64 nth)
   (#s :  erased (seq u64))
   (#_: squash (Seq.length s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **
     thread_id etid **
-    mbarrier_tok nth (barrier_matrix nth r s) 0 (tidx_x etid) **
-    kpre nth a r s (thread_index etid)
+    mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
+    kpre nth a s (thread_index etid)
   ensures 
     gpu **
     thread_id etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth r s) it (tidx_x etid)) **
-    kpost nth a r s (thread_index etid)
+    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
+    kpost nth a s (thread_index etid)
 {
-  let s1 = ();
-  let s2 = ();
-  let ga1 = ();
-  let ga2 = ();
   let tid = thread_idx_x ();
   let tid : sz = SZ.uint32_to_sizet tid;
-  (**)unfold kpre ;
 
   (* Reduction *)
   let mut n = 0sz;
 
-  (**)unfold (gpu_pts_to_array1 r tid);
-  (**)with ss. assert (gpu_pts_to_array_slice r tid (tid+1) ss);
-  gpu_pts_to_slice_ref r tid (tid+1);
-  assert (pure (Seq.length ss == 1));
+  (**)with ss. assert (gpu_pts_to_array_slice a tid (tid+1) ss);
+  (**) gpu_pts_to_slice_ref a tid (tid+1);
   (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
-  let r : erased ety = (seq_fold_left #u64 op neu ss);
-  // assume (pure (reveal v0 == seq_fold_left op neu ss));
-  admit();
-  // (**)fold (gpu_pts_to_slice_sum_inner #nth r tid (tid+1) s ss);
-  // let dot_v = v0;
-  // (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid (tid + pow2 0) dot_v s);
-  // (**)fold (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
-  // (**)if_intro_true (gpu_pts_to_slice_sum r tid (tid + pow2 0) dot_v);
+  (**)fold (gpu_pts_to_slice_sum_inner #nth a tid (tid+1) s ss);
+  (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner #nth a tid (tid + pow2 0) s ss);
+  (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
+  (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
 
-  // open FStar.SizeT;
-  // while (let it = !n; (spow2 it <^ nth))
-  //   invariant c.
-  //   exists* (it:sz).
-  //     gpu **
-  //     pts_to n it **
-  //     mbarrier_tok nth (barrier_matrix nth r dot_v) it tid **
-  //     if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) dot_v) **
-  //     pure (c == (pow2 it < nth) /\ SZ.v it < 31)
-  // {
-  //   let it = !n <: nat;
-  //   iteration nth r dot_v tid it;
-  //   assume (pure (SZ.v it < 30)); // FIXME: overflow
-  //   n := it +^ 1sz;
-  // };
+  open FStar.SizeT;
+  while (let it = !n; (spow2 it <^ nth))
+    invariant c.
+    exists* (it:sz).
+      gpu **
+      pts_to n it **
+      mbarrier_tok nth (barrier_matrix nth a s) it tid **
+      if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
+      pure (c == (pow2 it < nth) /\ SZ.v it < 31)
+  {
+    let it = !n <: nat;
+    iteration nth a s tid it;
+    assume (pure (SZ.v it < 30)); // FIXME: overflow
+    n := it +^ 1sz;
+  };
   
-  // (**)let it = !n;
-  // (**)FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
-  // // assert (pure (pow2 it >= nth /\ tid < nth /\ (div_pow2 it tid) == (tid = 0)));
+  (**)let it = !n;
+  (**)FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
 
-  // // rewrite (if_ (div_pow2 (reveal it) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (reveal it)) nth) dot_v))
-  // //     as  (if_ (tid = 0) (gpu_pts_to_slice_sum r tid nth dot_v));
-
-  // if (tid = 0sz) {
-  //   (**)if_elim_true (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) dot_v);
-  //   (**)if_intro_true (gpu_pts_to_slice_sum r 0 nth dot_v);
-  //   (**)fold (kpost nth ga1 ga2 r #s1 #s2 tid);
-  // } else {
-  //   (**)fold (kpost nth ga1 ga2 r #s1 #s2 tid);
-  // };
+  if (tid = 0sz) {
+    (**)if_elim_true (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s);
+    (**)if_intro_true (gpu_pts_to_slice_sum a 0 nth s);
+  }
 }
