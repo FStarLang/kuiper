@@ -279,7 +279,7 @@ fn iteration
 
 [@@ CPrologue "__device__"]
 inline_for_extraction
-fn kernel
+fn reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array u64 nth)
   (#s :  erased (seq u64))
@@ -333,4 +333,26 @@ fn kernel
     (**)if_elim_true (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s);
     (**)if_intro_true (gpu_pts_to_slice_sum a 0 nth s);
   }
+}
+
+[@@ CPrologue "__global__"]
+inline_for_extraction
+fn k_reduce
+  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+  (a : gpu_array u64 nth)
+  (#s :  erased (seq u64))
+  (#_: squash (Seq.length s == nth))
+  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  requires
+    gpu **
+    thread_id etid **
+    mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
+    kpre nth a s (thread_index etid)
+  ensures
+    gpu **
+    thread_id etid **
+    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
+    kpost nth a s (thread_index etid)
+{
+  reduce nth a #s etid;
 }

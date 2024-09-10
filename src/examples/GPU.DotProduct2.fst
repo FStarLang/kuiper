@@ -87,7 +87,7 @@ fn kernel
   rewrite each s' as seq![vm <: u64];
   
   (* Reduction *)
-  GPU.HReduce_U64_Plus.kernel nth r #dot_v #() etid;
+  GPU.HReduce_U64_Plus.reduce nth r #dot_v #() etid;
   
   fold (kpost nth ga1 ga2 r s1 s2 tid);
 }
