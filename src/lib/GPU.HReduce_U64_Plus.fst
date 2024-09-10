@@ -1,5 +1,12 @@
 module GPU.HReduce_U64_Plus
 
+(* This module is specialized to U64 and addition.
+
+The only admits are a boring fact about associativity of add_mod (unsure why
+it's not already trivial in F* ) and lack of overflow of the iteration counter.
+This last thing should fall out from the fact that any the size of an array must
+fit in a sizet, and the log of that size even more so. *)
+
 #lang-pulse
 
 open GPU
@@ -84,14 +91,6 @@ let barrier_matrix (nth: nat) (r : gpu_array u64 nth) (v: seq u64) (it from to: 
   if_ (from = to + pow2 it)
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
-
-ghost fn unfold_barrier_matrix (nth: nat) (r : gpu_array u64 nth) (v: erased (seq u64))
- (it from to: nat)
-  requires barrier_matrix nth r v it from to
-  ensures  if_ (from = to + pow2 it) (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
-{
-  unfold (barrier_matrix nth r v it from to)
-}
 
 val lemma_div_exact: a:int -> p:pos -> Lemma
   (a % p = 0 <==> a = p * (a / p))
@@ -187,6 +186,8 @@ fn mk_barrier_pre
   }
 }
 
+#set-options "--print_implicits --print_universes --print_full_names"
+
 [@@ CPrologue "__device__"]
 fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
@@ -219,7 +220,16 @@ fn iteration
   mk_barrier_pre nth r vv tid it;
   mbarrier_wait #(SZ.v nth) #(barrier_matrix nth r vv) #(SZ.v it) #(SZ.v tid);
 
-  bigstar_map #_ #_ #0 #nth (fun (from: nat { 0 <= from /\ from < nth }) -> unfold_barrier_matrix nth r vv it from tid);
+  ghost fn aux (from : nat)
+    requires barrier_matrix nth r vv it from tid
+    ensures  if_ (from = tid + pow2 it) (
+               if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (
+                 gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv
+             ))
+  {
+    unfold barrier_matrix;
+  };
+  bigstar_map #_ #_ #0 #nth (fun (from: nat { 0 <= from /\ from < nth }) -> aux from );
 
   // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 
