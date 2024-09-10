@@ -33,3 +33,7 @@ val lemma_seq_fold_left_sum (#a:Type) (e:a) (f: a -> a -> a)
 val lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
   : Lemma (requires i <= j /\ j <= k /\ k <= length s)
           (ensures append (slice s i j) (slice s j k) == slice s i k)
+
+val lem_one_elem (#a:Type) (s : seq a) (v : a)
+  : Lemma (requires length s == 1 /\ s @! 0 == v)
+          (ensures s == seq![v])

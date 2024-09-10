@@ -23,8 +23,8 @@ let size : sz = 1024sz
 
 (* no polymorphism, but at least keep the definitions here *)
 let ety = u64
-let op = U64.add_mod
-let neu = 0uL
+inline_for_extraction noextract let op = U64.add_mod
+inline_for_extraction noextract let neu = 0uL
 
 let op_assoc () : Lemma (is_associative op) = admit() // prove
 let op_neu () : Lemma (is_neutral_for neu op) = ()
@@ -42,6 +42,7 @@ let sum_lemma (s1 s2 : seq ety) : Lemma (sum (s1 `Seq.append` s2) == op (sum s1)
   lemma_seq_fold_left_sum neu op s1 s2
 
 [@@ CPrologue "__device__"]
+inline_for_extraction
 let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   (* Computing 2^s by 1<<s *)
   let r = SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s)) in
@@ -49,6 +50,7 @@ let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   r
 
 [@@ CPrologue "__device__"]
+inline_for_extraction
 let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
   SZ.rem tid (spow2 i) = 0sz
 
@@ -58,6 +60,7 @@ let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
 = ()
 
 [@@ CPrologue "__device__"]
+inline_for_extraction
 let smin (a b : sz): sz =
   let open FStar.SizeT in
   if a <^ b then a else b
@@ -186,9 +189,8 @@ fn mk_barrier_pre
   }
 }
 
-#set-options "--print_implicits --print_universes --print_full_names"
-
 [@@ CPrologue "__device__"]
+inline_for_extraction
 fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array u64 nth)
@@ -315,7 +317,8 @@ let kpost (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
   : slprop =
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 nth s)
 
-[@@ CPrologue "__global__"]
+[@@ CPrologue "__device__"]
+inline_for_extraction
 fn kernel
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array u64 nth)
