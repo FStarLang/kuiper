@@ -19,23 +19,10 @@ module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-let size : sz = 1024sz
-
-(* no polymorphism, but at least keep the definitions here *)
-let ety = u64
-inline_for_extraction noextract let op = U64.add_mod
-inline_for_extraction noextract let neu = 0uL
-
 let op_assoc () : Lemma (is_associative op) = admit() // prove
 let op_neu () : Lemma (is_neutral_for neu op) = ()
 let op_monoid () : Lemma (is_monoid neu op) = op_assoc (); op_neu ()
 
-(* using seq_fold_left op neu directly in pulse code blows up
-in many colorful ways. Probably the refinment of op? Anyway, 
-specialize it here. *)
-let sum (s : seq ety) : GTot ety =
-  seq_fold_left op neu s
-  
 (* same, also the op_monoid does not (cannot?) have a pattern. *)
 let sum_lemma (s1 s2 : seq ety) : Lemma (sum (s1 `Seq.append` s2) == op (sum s1) (sum s2)) =
   op_monoid();
@@ -57,36 +44,21 @@ let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
 let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
   Lemma (sdiv_pow2 i tid <==> div_pow2 (SZ.v i) (SZ.v tid))
         [SMTPat (sdiv_pow2 i tid)]
-= ()
+= calc (==) {
+    SZ.v (SZ.rem tid (spow2 i));
+    == {}
+    SZ.v tid - ((SZ.v tid / SZ.v (spow2 i)) * SZ.v (spow2 i));
+    == { FStar.Math.Lemmas.euclidean_division_definition (SZ.v tid) (SZ.v (spow2 i)) }
+    SZ.v tid % SZ.v (spow2 i);
+    == {}
+    SZ.v tid % pow2 (SZ.v i);
+}
 
 [@@ CPrologue "__device__"]
 inline_for_extraction
 let smin (a b : sz): sz =
   let open FStar.SizeT in
   if a <^ b then a else b
-
-(* Ownership of array r between i and j. The first value of that slice
-is the reduction of all the values in the (original) slice v. *)
-let gpu_pts_to_slice_sum_inner
-  (#sz:nat)
-  (r : gpu_array u64 sz)
-  (i j :nat)
-  (v : seq u64)
-  (s : seq u64)
-: slprop
-= gpu_pts_to_array_slice r i j s
-  ** pure (i < j /\ j <= sz /\
-           Seq.length v = sz /\
-           Seq.length s = j - i /\
-           Seq.index s 0 = sum (Seq.slice v i j))
-
-let gpu_pts_to_slice_sum
-  (#sz:nat)
-  ([@@@equate_strict] r: gpu_array u64 sz)
-  (i j:nat)
-  (v: seq u64)
-: slprop
-= if_ (i < j && j <= sz) (exists* s. gpu_pts_to_slice_sum_inner #sz r i j v s)
 
 // Barrier
 
@@ -304,18 +276,6 @@ fn iteration
     bigstar_emp_elim #_;
   }
 }
-
-[@@pulse_unfold]
-let kpre (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
-  (#_: squash (Seq.length s == nth)) (tid:nat{tid < nth})
-  : slprop =
-    gpu_pts_to_array_slice a tid (tid+1) seq![Seq.index s tid]
-
-[@@pulse_unfold]
-let kpost (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
-  (#_: squash (Seq.length s == nth)) (tid:nat{tid < nth})
-  : slprop =
-    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 nth s)
 
 [@@ CPrologue "__device__"]
 inline_for_extraction
