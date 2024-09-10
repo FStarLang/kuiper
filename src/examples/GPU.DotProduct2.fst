@@ -4,6 +4,7 @@ module GPU.DotProduct2
 
 open GPU
 open GPU.Barrier.RPM
+open GPU.Math
 
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
@@ -21,35 +22,15 @@ let mul (s1 s2: seq u64)
   = Seq.init_ghost (Seq.length s1)
       (fun i -> U64.mul_mod (Seq.index s1 i) (Seq.index s2 i))
 
-let rec log2 (n: nat{n <> 0}): GTot (r:nat{r < n}) =
-  if n = 1 then 0 else 1 + log2 (n / 2)
-let rec pow_log_lemma (n: nat) : Lemma (log2 (pow2 n) = n) =
-  if n = 0 then () else pow_log_lemma (n - 1)
-
 [@@ CPrologue "__device__"]
 let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   let r = SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s)) in
   assume (SZ.v r == pow2 (SZ.v s)); // prove this from UInt library
   r
 
-let div_pow2 (i tid: nat) : GTot bool =
-  (tid % pow2 i) = 0
-
 [@@ CPrologue "__device__"]
 let sdiv_pow2 (i:sz{i < 32}) (tid: sz): bool =
   SZ.rem tid (spow2 i) = 0sz
-
-let rec div_pow2_lemma (i j tid: nat):
-  Lemma
-    (requires i < j)
-    (ensures (div_pow2 j tid) ==> (div_pow2 i tid))
-  = if not (div_pow2 j tid) then () else (
-      if i = j - 1 then () else div_pow2_lemma i (j - 1) tid;
-      FStar.Math.Lemmas.mod_mult_exact tid (pow2 (j - 1)) 2
-  )
-
-let min (a b: nat) : GTot nat =
-  if a < b then a else b
 
 [@@ CPrologue "__device__"]
 let smin (a b : sz): sz =
