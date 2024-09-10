@@ -47,14 +47,8 @@ FSTAR_FLAGS += $(OTHERFLAGS)
 
 FSTAR_NOPLUG := $(FSTAR_EXE)				\
 	$(SIL)						\
-	--include pulse/lib/pulse/			\
-	--include pulse/lib/pulse/core/			\
-	--include pulse/lib/pulse/lib/			\
-	--include pulse/lib/pulse/lib/class/		\
-	--include src/lib/				\
-	--include src/examples/				\
-	--include src/examples/matmul/			\
-	--include src/examples/matmul-opt/		\
+	--include pulse					\
+	--include src					\
 	$(FSTAR_FLAGS)
 
 FSTAR := $(FSTAR_NOPLUG) --load_cmxs pulse
