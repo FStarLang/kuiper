@@ -123,6 +123,8 @@ depgraph.pdf: dep_simpl.graph
 	$(call msg, "DOT", $@)
 	$(Q)dot -Tpdf -o $@ dep_simpl.graph
 
+SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
+
 # FIXME: find a way to invalidate when plugin changes. The added dependency below does
 # not do that.
 $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
@@ -136,7 +138,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
 		--ext extraction_inline_all					\
-		$(patsubst .cache/%.checked,src/examples/%,$<)
+		$(call SRC_FILE_FOR_CHECKED,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
 	$(call msg,"KRML",$@)
