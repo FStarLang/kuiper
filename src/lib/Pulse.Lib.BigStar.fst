@@ -6,7 +6,13 @@ open Pulse.Lib.Pervasives
 open FStar.Tactics.V2
 open FStar.Mul
 open FStar.FunctionalExtensionality
+open Pulse.Lib.PartitionRange
 module SZ = FStar.SizeT
+module T = FStar.Tactics.V2
+
+let narrow (m:nat) (n:nat{ m < n }) (f: (i:nat { m <= i /\ i < n }) -> slprop)
+: (i:nat { (m + 1) <= i /\ i < n }) -> slprop
+= fun i -> f i
 
 let rec bigstar
   (#uid : int)
@@ -14,11 +20,12 @@ let rec bigstar
   (n : nat {m <= n})
   (f : (i:nat { m <= i /\ i < n } -> slprop))
 : Tot slprop (decreases n - m) =
-  if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
+  if m = n then emp else f m ** bigstar #uid (m+1) n (narrow m n f) //(fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
 
 let bigstar_defn (#uid : int) (m : nat) (n : nat {m <= n}) (f : (i:nat { m <= i /\ i < n } -> slprop)) :
   Lemma (ensures bigstar #uid m n f == (if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
-  = ()
+  = assert (bigstar #uid m n f == (if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
+        by (T.trefl())
 
 ghost fn bigstar_pop
   (#u1 : int)
@@ -29,7 +36,7 @@ ghost fn bigstar_pop
   ensures  f m ** bigstar #u1 (m + 1) n (fun (i: nat {(m + 1) <= i /\ i < n}) -> f i)
 {
   unfold (bigstar #u1 m n f);
-  rewrite (if m = n then emp else f m ** bigstar #u1 (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i))
+  rewrite (if m = n then emp else f m ** bigstar #u1 (m+1) n (narrow m n f)) //fun (i: nat { (m+1) <= i /\ i < n }) -> f i))
       as  (                       f m ** bigstar #u1 (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i));
 }
 
@@ -599,4 +606,324 @@ ghost fn bigstar_permute
   // bigstar 0 n (fun i -> bigstar 0 n (fun j -> cond (j == p.f i) (f j) emp)
   bigstar_map #u1 #u1 #m #n (fun j -> bigstar_if_elim #u1 #m #n (p.f j) f);
   // bigstar 0 n (fun i -> f (p.f i))
+}
+
+module Set = FStar.FiniteSet.Base
+let rec bigstar_except
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop) )
+  (s : Set.set nat)
+: Tot slprop (decreases n - m)
+= if m = n
+  then emp
+  else if Set.mem m s 
+  then bigstar_except #u1 (m+1) n f (Set.remove m s)
+  else f m ** bigstar_except #u1 (m+1) n f s
+    
+
+let rec bigstar_except_equiv'
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f g: (i: nat{m <= i /\ i < n} -> slprop) )
+  (_:squash (FStar.FunctionalExtensionality.feq f g))
+: Lemma
+  (ensures bigstar #u1 m n f == bigstar_except #u1 m n g Set.emptyset)
+  (decreases n - m)
+= if m = n then ()
+  else (
+    assert (Set.remove m Set.emptyset `Set.equal` Set.emptyset);
+    bigstar_except_equiv' #u1 (m+1) n (narrow m n f) g ()
+  )
+
+let bigstar_except_equiv
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop) )
+: Lemma
+  (ensures bigstar #u1 m n f == bigstar_except #u1 m n f Set.emptyset)
+  (decreases n - m)
+= bigstar_except_equiv' #u1 m n f f ()
+
+
+let rec bigstar_except_equiv_emp
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop) )
+  (s: Set.set nat { range m n `Set.subset` s })
+: Lemma
+  (ensures bigstar_except #u1 m n f s == emp)
+  (decreases n - m)
+= if m = n then ()
+  else bigstar_except_equiv_emp #u1 (m+1) n f (Set.remove m s)
+
+let star_over_partition_singleton
+  (#m:nat) (#n : nat { m <= n })
+  (f: (idx m n -> slprop) )
+  (x: idx m n)
+: Lemma 
+  (ensures star_over_partition f (Set.singleton x) == f x)
+= slprop_equivs()
+
+let star_over_partition_split
+  (#m:nat) (#n : nat { m <= n })
+  (f: (idx m n -> slprop) )
+  (s0: idx_set m n)
+  (s1: idx_set m n { Set.disjoint s0 s1 })
+: Lemma 
+  (ensures star_over_partition f (Set.union s0 s1) ==
+           star_over_partition f s0 ** star_over_partition f s1)
+= admit()
+  
+#restart-solver
+#push-options "--query_stats --ifuel 0 --z3rlimit_factor 16 --fuel 2"
+#restart-solver
+let star_over_partition_reindex 
+      (m:nat)
+      (n:nat {m < n})
+      (f: idx m n -> slprop) 
+      (s: idx_set m n { forall x. Set.mem x s ==> m < x /\ x < n })
+: Lemma (star_over_partition #m #n f s == star_over_partition #(m+1) #n f (s <: idx_set (m + 1) n))
+= admit()
+let star_over_partition_reindex_back
+      (m:nat)
+      (n:nat {m < n})
+      (f: idx m n -> slprop) 
+      (s: idx_set (m + 1) n)
+: Lemma (star_over_partition #m #n f s == star_over_partition #(m+1) #n f s)
+= admit()
+#push-options "--print_implicits --print_bound_var_types"
+let rec bigstar_except_equiv_split
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop) )
+  (s0: idx_set m n)
+  (s1: Set.set nat)
+: Lemma
+  (requires Set.disjoint s0 s1)
+  (ensures 
+    bigstar_except #u1 m n f s1 ==
+    star_over_partition f s0 **
+    bigstar_except #u1 m n f (Set.union s0 s1))
+  (decreases (n - m))
+= let _ : squash (Set.disjoint s0 s1) = () in
+  if m = n
+  then (
+    assert (Set.cardinality s0 = 0);
+    assert (Set.equal (Set.union s0 s1) s1);
+    slprop_equivs()
+  )
+  else (
+    if Set.mem m s1
+    then (
+      calc (==) {
+        bigstar_except #u1 m n f s1;
+      (==) { slprop_equivs () }
+        bigstar_except #u1 (m + 1) n f (Set.remove m s1);
+      (==) {  bigstar_except_equiv_split #u1 (m + 1) n f s0 (Set.remove m s1) }
+        star_over_partition f (s0 <: idx_set (m + 1) n) **
+        bigstar_except #u1 (m + 1) n f (Set.union s0 (Set.remove m s1));
+      (==) { star_over_partition_reindex m n f s0;
+             assert (Set.remove m (Set.union s0 s1) `Set.equal` (Set.union s0 (Set.remove m s1)))
+            }
+        star_over_partition f s0 **
+        bigstar_except #u1 m n f (Set.union s0 s1);
+      }
+    )
+    else if Set.mem m s0
+    then (
+      let s0' : idx_set (m + 1) n = Set.remove m s0 in
+      calc (==) {
+        bigstar_except #u1 m n f s1;
+      (==) { assert (Set.equal (Set.remove m s1) s1) }
+        f m **
+        bigstar_except #u1 (m + 1) n f s1;
+      (==) {  bigstar_except_equiv_split #u1 (m + 1) n f s0' s1 }
+        f m **
+        (star_over_partition f s0' **
+         bigstar_except #u1 (m + 1) n f (Set.union s0' s1));
+      (==) {slprop_equivs ()}
+        (f m ** star_over_partition #(m + 1) #n f s0') **
+        bigstar_except #u1 (m + 1) n f (Set.union s0' s1);
+      (==) { star_over_partition_reindex_back m n f s0' }
+        (f m ** star_over_partition #m #n f s0') **
+        bigstar_except #u1 (m + 1) n f (Set.union s0' s1);
+      (==) { star_over_partition_split #m #n f (Set.singleton m) s0'; slprop_equivs () }
+        star_over_partition #m #n f (Set.union (Set.singleton m) s0') **
+        bigstar_except #u1 (m + 1) n f (Set.union s0' s1);
+      (==) { assert (Set.equal s0 (Set.union (Set.singleton m) s0')) }
+        star_over_partition #m #n f s0 **
+        bigstar_except #u1 (m + 1) n f (Set.union s0' s1);
+      (==) { assert (Set.equal (Set.remove m (Set.union s0 s1)) (Set.union s0' s1)); slprop_equivs () }
+        star_over_partition #m #n f s0 **
+        bigstar_except #u1 m n f (Set.union s0 s1);
+      }
+    )
+    else (
+      calc (==) {
+        bigstar_except #u1 m n f s1;
+      (==) { }
+        f m **
+        bigstar_except #u1 (m + 1) n f s1;
+      (==) {  bigstar_except_equiv_split #u1 (m + 1) n f s0 s1 }
+        f m **
+        (star_over_partition #(m+1) #n f s0 **
+         bigstar_except #u1 (m + 1) n f (Set.union s0 s1));
+      (==) {slprop_equivs ()}
+        star_over_partition #(m+1) #n f s0 **
+        (f m ** bigstar_except #u1 (m + 1) n f (Set.union s0 s1));
+      (==) {}
+        star_over_partition #(m+1) #n f s0 **
+        bigstar_except #u1 m n f (Set.union s0 s1);
+      (==) { star_over_partition_reindex_back m n f s0}
+        star_over_partition #m #n f s0 **
+        bigstar_except #u1 m n f (Set.union s0 s1);
+      }
+    )
+  )
+
+let rec union_partitions_aux_split
+    (#m #n #k : nat)
+    (p:disjoint_partitions m n k)
+    (from:nat)
+    (mid:nat)
+    (to:nat { from <= mid /\ mid <= to /\ to <= k})
+: Lemma
+    (union_partitions_aux p from to `Set.equal`
+     (union_partitions_aux p from mid `Set.union` union_partitions_aux p mid to) /\
+     Set.disjoint (union_partitions_aux p from mid) (union_partitions_aux p mid to))
+= admit()
+  
+
+let union_partitions_aux_step
+    (#m #n #k : nat)
+    (p:disjoint_partitions m n k)
+    (from:nat)
+    (to:nat { from <= to /\ to < k})
+: Lemma
+  (ensures
+    union_partitions_aux p from (to + 1) `Set.equal`
+   (select p to `Set.union`    union_partitions_aux p from to) /\
+    select p to `Set.disjoint` union_partitions_aux p from to)
+= union_partitions_aux_split p from to (to + 1)
+
+let star_of_part_i #n #k (parts:disjoint_partitions 0 n k) (f:idx 0 n -> slprop) (i:idx 0 k) 
+: slprop
+= star_over_partition f (select parts i)
+
+let rec bigstar_partition_equiv_except
+  (#u1: int)
+  (n : nat)
+  (j : nat)
+  (k : nat { j <= k })
+  (f: (i:idx 0 n -> slprop))
+  (parts: disjoint_partitions 0 n k)
+: Lemma
+  (ensures
+    bigstar_except #u1 0 n f (union_partitions_aux parts 0 j) ==
+    bigstar_except #u1 j k (star_of_part_i parts f) Set.emptyset)
+  (decreases k - j)
+= if j = k
+  then (
+    bigstar_except_equiv_emp #u1 0 n f (union_partitions_aux parts 0 j)
+  )
+  else (
+    union_partitions_aux_step parts 0 j;
+    let _ : squash (Set.disjoint (select parts j) (union_partitions_aux parts 0 j)) = () in
+    calc (==) {
+      bigstar_except #u1 j k (star_of_part_i parts f) Set.emptyset;
+    (==) { }
+      star_over_partition f (select parts j) **
+      bigstar_except #u1 (j+1) k (star_of_part_i parts f) Set.emptyset;
+    (==) { bigstar_partition_equiv_except #u1 n (j+1) k f parts }
+      star_over_partition f (select parts j) **
+      bigstar_except #u1 0 n f (union_partitions_aux parts 0 (j+1));
+    (==) { }
+      star_over_partition f (select parts j) **
+      bigstar_except #u1 0 n f (select parts j `Set.union` union_partitions_aux parts 0 j);
+    (==) { bigstar_except_equiv_split #u1 0 n f (select parts j) (union_partitions_aux parts 0 j) }
+      bigstar_except #u1 0 n f (union_partitions_aux parts 0 j);
+    }
+  )
+
+
+let bigstar_partition_equiv
+  (#u1: int)
+  (n : nat)
+  (k : nat)
+  (f: (i:idx 0 n -> slprop))
+  (parts: disjoint_partitions 0 n k)
+: Lemma
+  (ensures
+    bigstar #u1 0 n f ==
+    bigstar #u1 0 k (star_of_part_i parts f))
+= calc (==) {
+    bigstar #u1 0 n f;
+  (==) { bigstar_except_equiv #u1 0 n f }
+    bigstar_except #u1 0 n f Set.emptyset;
+  (==) { bigstar_partition_equiv_except #u1 n 0 k f parts }
+    bigstar_except #u1 0 k (star_of_part_i parts f) Set.emptyset;
+  (==) { bigstar_except_equiv #u1 0 k (star_of_part_i parts f) }
+    bigstar #u1 0 k (star_of_part_i parts f);
+  }
+
+let bigstar_ext #u1 (#m:nat) (#n:nat{m<=n}) (f g: ((i:nat{m<=i /\ i<n}) -> slprop))
+: Lemma
+  (ensures (forall i. f i == g i) ==> bigstar #u1 m n f == bigstar #u1 m n g)
+= admit() 
+let bigstar_partition_equiv_eta
+  (#u1: int)
+  (n : nat)
+  (k : nat)
+  (f: (i:idx 0 n -> slprop))
+  (parts: disjoint_partitions 0 n k)
+: Lemma
+  (ensures
+    bigstar #u1 0 n f ==
+    bigstar #u1 0 k (fun i -> star_over_partition f (select parts i)))
+= calc(==) {
+    bigstar #u1 0 n f;
+  (==) {  bigstar_partition_equiv #u1 n k f parts }
+    bigstar #u1 0 k (star_of_part_i parts f);
+  (==) {   bigstar_ext #u1 #0 #k (star_of_part_i parts f) (fun i -> star_over_partition f (select parts i)) }
+    bigstar #u1 0 k (fun i -> star_over_partition f (select parts i));
+}
+ 
+
+
+ghost
+fn bigstar_partition
+  (n0:nat)
+  (n1:nat)
+  (f0: (idx 0 n0 -> slprop))
+  (partition: disjoint_partitions 0 n0 n1)
+requires
+  bigstar 0 n0 f0
+ensures
+  bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
+{
+  bigstar_partition_equiv_eta #0 n0 n1 f0 partition;
+  rewrite (bigstar #0 0 n0 f0) as 
+          (bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i)))
+}
+
+ghost
+fn bigstar_partition_inv
+  (n0:nat)
+  (n1:nat)
+  (f0: (idx 0 n0 -> slprop))
+  (partition: disjoint_partitions 0 n0 n1)
+requires
+  bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
+ensures
+  bigstar 0 n0 f0
+{
+  bigstar_partition_equiv_eta #0 n0 n1 f0 partition;
+  rewrite (bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))) as
+          (bigstar #0 0 n0 f0);
 }

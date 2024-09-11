@@ -246,3 +246,27 @@ ghost fn bigstar_permute
   (p: permutation (i: erased nat{m <= i /\ i < n}))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
+
+open Pulse.Lib.PartitionRange
+
+ghost
+fn bigstar_partition
+  (n0:nat)
+  (n1:nat)
+  (f0: (idx 0 n0 -> slprop))
+  (partition: disjoint_partitions 0 n0 n1)
+requires
+  bigstar 0 n0 f0
+ensures
+  bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
+
+ghost
+fn bigstar_partition_inv
+  (n0:nat)
+  (n1:nat)
+  (f0: (idx 0 n0 -> slprop))
+  (partition: disjoint_partitions 0 n0 n1)
+requires
+ bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
+ensures
+  bigstar 0 n0 f0
