@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "GPU_HReduce_U64_Plus.h"
+#include "GPU_HReduceU64Plus.h"
 
 int main()
 {
@@ -10,7 +10,7 @@ int main()
 	for (i = 0; i < 1024; i++)
 		a[i] = i;
 
-	uint64_t r = GPU_HReduce_U64_Plus_reduce(a);
+	uint64_t r = GPU_HReduceU64Plus_reduce(a);
 
 	printf("%lu\n", r);
 

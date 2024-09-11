@@ -11,7 +11,7 @@ module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-module HR = GPU.HReduce_U64_Plus
+module HR = GPU.HReduceU64Plus
 
 #set-options "--z3rlimit 20"
 
@@ -87,7 +87,7 @@ fn kernel
   rewrite each s' as seq![vm <: u64];
   
   (* Reduction *)
-  GPU.HReduce_U64_Plus.reduce nth r #dot_v #() etid;
+  GPU.HReduceU64Plus.reduce nth r #dot_v #() etid;
   
   fold (kpost nth ga1 ga2 r s1 s2 tid);
 }

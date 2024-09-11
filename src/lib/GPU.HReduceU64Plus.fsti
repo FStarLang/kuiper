@@ -1,4 +1,4 @@
-module GPU.HReduce_U64_Plus
+module GPU.HReduceU64Plus
 
 (* This module is specialized to U64 and addition.
 
