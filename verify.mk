@@ -43,6 +43,8 @@ FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext context_pruning
+FSTAR_FLAGS += --ext no_krml_private
+FSTAR_FLAGS += --ext extraction_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 
 FSTAR_NOPLUG := $(FSTAR_EXE)				\
@@ -137,7 +139,6 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--extract "+GPU"						\
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
-		--ext extraction_inline_all					\
 		$(call SRC_FILE_FOR_CHECKED,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
