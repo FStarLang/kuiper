@@ -114,7 +114,26 @@ let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (
     bigstar_defn #u2 m' n' f'
   end
 
-let bigstar_extensionality_lem = admit()
+let rec bigstar_ext u1 u2 (m:nat) (n:nat{m<=n}) (f g: ((i:nat{m<=i /\ i<n}) -> slprop))
+: Lemma
+  (requires FStar.FunctionalExtensionality.feq f g)
+  (ensures bigstar #u1 m n f == bigstar #u2 m n g)
+  (decreases n - m)
+= if m = n then ()
+  else bigstar_ext u1 u2 (m + 1) n (narrow m n f) (narrow m n g)
+
+let bigstar_extensionality_lem
+  (u1 u2 : int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
+  (h: ((i: nat{m <= i /\ i < n}) -> slprop_equiv (f i) (g i)))
+: Lemma (slprop_equiv (bigstar #u1 m n f) (bigstar #u2 m n g))
+= introduce forall i. f i == g i
+  with elim_slprop_equiv (h i);
+  bigstar_ext u1 u2 m n f g;
+  FStar.Squash.return_squash (slprop_equiv_refl (bigstar #u1 m n f))
 
 ghost
 fn __bigstar_extensionality
@@ -872,10 +891,6 @@ let bigstar_partition_equiv
     bigstar #u1 0 k (star_of_part_i parts f);
   }
 
-let bigstar_ext #u1 (#m:nat) (#n:nat{m<=n}) (f g: ((i:nat{m<=i /\ i<n}) -> slprop))
-: Lemma
-  (ensures (forall i. f i == g i) ==> bigstar #u1 m n f == bigstar #u1 m n g)
-= admit() 
 let bigstar_partition_equiv_eta
   (#u1: int)
   (n : nat)
@@ -890,7 +905,7 @@ let bigstar_partition_equiv_eta
     bigstar #u1 0 n f;
   (==) {  bigstar_partition_equiv #u1 n k f parts }
     bigstar #u1 0 k (star_of_part_i parts f);
-  (==) {   bigstar_ext #u1 #0 #k (star_of_part_i parts f) (fun i -> star_over_partition f (select parts i)) }
+  (==) {   bigstar_ext u1 u1 0 k (star_of_part_i parts f) (fun i -> star_over_partition f (select parts i)) }
     bigstar #u1 0 k (fun i -> star_over_partition f (select parts i));
 }
  

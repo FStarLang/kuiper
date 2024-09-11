@@ -40,6 +40,11 @@ val bigstar_congr
 : Lemma (bigstar #u1 m n f == bigstar #u2 m' n' f')
 
 
+val bigstar_ext u1 u2 (m:nat) (n:nat{m<=n}) (f g: ((i:nat{m<=i /\ i<n}) -> slprop))
+: Lemma
+  (requires FStar.FunctionalExtensionality.feq f g)
+  (ensures bigstar #u1 m n f == bigstar #u2 m n g)
+
 val bigstar_extensionality_lem
   (u1 u2 : int)
   (m : nat)
