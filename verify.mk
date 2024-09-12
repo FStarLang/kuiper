@@ -183,6 +183,7 @@ TESTS+=GPU_MatMul
 # TESTS+=GPU_MatMulTile
 TESTS+=GPU_BasicFloat
 TESTS+=GPU_AtomicReduce
+TESTS+=GPU_HReduceU32Plus
 TESTS+=GPU_HReduceU64Plus
 TESTS+=GPU_ArrayReversal
 
