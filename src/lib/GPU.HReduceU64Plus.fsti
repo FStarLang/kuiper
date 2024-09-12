@@ -16,7 +16,6 @@ open GPU.Seq.Common
 
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
-module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
 let size : sz = 1024sz
@@ -36,10 +35,10 @@ let sum (s : seq ety) : GTot ety =
 is the reduction of all the values in the (original) slice v. *)
 let gpu_pts_to_slice_sum_inner
   (#sz:nat)
-  (r : gpu_array u64 sz)
+  (r : gpu_array ety sz)
   (i j :nat)
-  (v : seq u64)
-  (s : seq u64)
+  (v : seq ety)
+  (s : seq ety)
 : slprop
 = gpu_pts_to_array_slice r i j s
   ** pure (i < j /\ j <= sz /\
@@ -49,25 +48,25 @@ let gpu_pts_to_slice_sum_inner
 
 let gpu_pts_to_slice_sum
   (#sz:nat)
-  ([@@@equate_strict] r: gpu_array u64 sz)
+  ([@@@equate_strict] r: gpu_array ety sz)
   (i j:nat)
-  (v: seq u64)
+  (v: seq ety)
 : slprop
 = if_ (i < j && j <= sz) (exists* s. gpu_pts_to_slice_sum_inner #sz r i j v s)
 
 // Barrier
 
-val barrier_matrix (nth: nat) (r : gpu_array u64 nth) (v: seq u64) (it from to: nat)
+val barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: nat)
   : slprop
 
 [@@pulse_unfold]
-let kpre (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
+let kpre (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))
   (#_: squash (Seq.length s == nth)) (tid:nat{tid < nth})
   : slprop =
     gpu_pts_to_array_slice a tid (tid+1) seq![Seq.index s tid]
 
 [@@pulse_unfold]
-let kpost (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
+let kpost (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))
   (#_: squash (Seq.length s == nth)) (tid:nat{tid < nth})
   : slprop =
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 nth s)
@@ -76,8 +75,8 @@ let kpost (nth: nat) (a : gpu_array u64 nth) (s : erased (seq u64))
 inline_for_extraction
 fn reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (a : gpu_array u64 nth)
-  (#s :  erased (seq u64))
+  (a : gpu_array ety nth)
+  (#s :  erased (seq ety))
   (#_: squash (Seq.length s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
@@ -95,8 +94,8 @@ fn reduce
 inline_for_extraction
 fn k_reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (a : gpu_array u64 nth)
-  (#s :  erased (seq u64))
+  (a : gpu_array ety nth)
+  (#s :  erased (seq ety))
   (#_: squash (Seq.length s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires

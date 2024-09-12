@@ -62,7 +62,7 @@ let smin (a b : sz): sz =
 
 // Barrier
 
-let barrier_matrix (nth: nat) (r : gpu_array u64 nth) (v: seq u64) (it from to: nat): slprop =
+let barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: nat): slprop =
   if_ (from = to + pow2 it)
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
@@ -101,8 +101,8 @@ let div_pow2_lemma_2 (it tid: nat):
 
 ghost fn fold_barrier_matrix_true
   (nth : nat)
-  (r: gpu_array u64 nth)
-  (v: seq u64 { Seq.length v == nth })
+  (r: gpu_array ety nth)
+  (v: seq ety { Seq.length v == nth })
   (it: nat)
   (tid: nat { tid <= nth /\ tid >= pow2 it })
   (to: nat)
@@ -116,8 +116,8 @@ ghost fn fold_barrier_matrix_true
 
 ghost fn fold_barrier_matrix_false
   (nth : nat)
-  (r: gpu_array u64 nth)
-  (v: seq u64 { Seq.length v == nth })
+  (r: gpu_array ety nth)
+  (v: seq ety { Seq.length v == nth })
   (it: nat)
   (tid: nat { tid <= nth /\ tid < pow2 it })
   (to: nat { to <= nth })
@@ -135,8 +135,8 @@ ghost fn fold_barrier_matrix_false
 ghost
 fn mk_barrier_pre
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (r : gpu_array u64 nth)
-  (vv: erased (seq u64))
+  (r : gpu_array ety nth)
+  (vv: erased (seq ety))
   (#_: squash (Seq.length vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
@@ -165,8 +165,8 @@ fn mk_barrier_pre
 inline_for_extraction
 fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (r : gpu_array u64 nth)
-  (vv: erased (seq u64))
+  (r : gpu_array ety nth)
+  (vv: erased (seq ety))
   (#_: squash (Seq.length vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
@@ -240,8 +240,8 @@ fn iteration
       if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r middle end_ vv s);
       unfold gpu_pts_to_slice_sum_inner;
 
-      let s1 = gpu_array_read #u64 #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid;
-      let s2 = gpu_array_read #u64 #(SZ.v nth) #(SZ.v middle) #end_ r middle;
+      let s1 = gpu_array_read #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid;
+      let s2 = gpu_array_read #ety #(SZ.v nth) #(SZ.v middle) #end_ r middle;
       let s = op s1 s2;
       // sum_seq_lemma vv tid middle end_;
       
@@ -253,9 +253,9 @@ fn iteration
       assert (pure (s == sum (Seq.slice vv tid end_)));
       
       // assert (pure ( s == sum_seq vv tid end_ ));
-      gpu_array_write #u64 #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid s;
+      gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid s;
 
-      gpu_slice_concat #u64 #(SZ.v nth) r tid middle end_;
+      gpu_slice_concat #ety #(SZ.v nth) r tid middle end_;
       with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
       // assert (pure (Seq.index seq 0 == s));
       fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
@@ -281,8 +281,8 @@ fn iteration
 inline_for_extraction
 fn reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (a : gpu_array u64 nth)
-  (#s :  erased (seq u64))
+  (a : gpu_array ety nth)
+  (#s :  erased (seq ety))
   (#_: squash (Seq.length s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
@@ -339,8 +339,8 @@ fn reduce
 inline_for_extraction
 fn k_reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (a : gpu_array u64 nth)
-  (#s :  erased (seq u64))
+  (a : gpu_array ety nth)
+  (#s :  erased (seq ety))
   (#_: squash (Seq.length s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
