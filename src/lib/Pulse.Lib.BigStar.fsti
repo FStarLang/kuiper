@@ -4,6 +4,7 @@ module Pulse.Lib.BigStar
 
 open Pulse.Lib.Pervasives
 open FStar.Tactics.V2
+open FStar.Mul
 
 val bigstar
   (#[exact (`0)][@@@equate_strict] uid: int)
@@ -39,6 +40,14 @@ val bigstar_congr
   (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
 : Lemma (bigstar #u1 m n f == bigstar #u2 m' n' f')
 
+val bigstar_eq
+  (#u1 #u2: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f g : (i:nat { m <= i /\ i < n }) -> slprop)
+  : Lemma (requires (forall i. m <= i /\ i < n ==> f i == g i))
+          (ensures  bigstar #u1 m n f == bigstar #u2 m n g)
+          [SMTPat (bigstar #u1 m n f); SMTPat (bigstar #u2 m n g)]
 
 val bigstar_extensionality_lem
   (u1 u2 : int)
@@ -238,11 +247,34 @@ class permutation (a:Type) = {
    proof : (x: a) -> (y: a) -> squash (f x == y <==> g y == x);
 }
 
+instance perm_inv (#a:Type) (p: permutation a) : permutation a = {
+  f = p.g;
+  g = p.f;
+  proof = fun x y -> p.proof y x
+}
+
 ghost fn bigstar_permute
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  (p: permutation (i: erased nat{m <= i /\ i < n}))
+  (p: permutation (i: nat{m <= i /\ i < n}))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
+
+ghost fn bigstar_flatten
+  (#u1 #u2 : int)
+  (#n1 : nat)
+  (#n2 : nat)
+  (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
+  requires bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
+  ensures  bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
+
+ghost fn bigstar_exists
+  (#a : Type0) // TODO: arbitrary type doesn't work here?
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: a -> (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n (fun i -> exists* (x: a). f x i)
+  ensures  exists* (x: (i:nat { m <= i /\ i < n }) -> a). bigstar #u1 m n (fun i -> f (x i) i)

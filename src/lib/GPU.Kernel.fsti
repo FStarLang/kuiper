@@ -22,17 +22,17 @@ fn launch_kernel_n_m_sync
 
   (a : Type u#0)
   (smem_sz : SZ.t)
-  (#shared_pre : (ar: gpu_array a smem_sz) -> (tid: nat { 0 <= tid /\ tid < nthr } -> slprop))
-  (#shared_post : (ar: gpu_array a smem_sz) -> (tid: nat { 0 <= tid /\ tid < nthr } -> slprop))
+  (#shared_pre : (ar: gpu_array a smem_sz) -> (bid: nat { 0 <= bid /\ bid < nblk }) -> (tid: nat { 0 <= tid /\ tid < nthr } -> slprop))
+  (#shared_post : (ar: gpu_array a smem_sz) -> (bid: nat { 0 <= bid /\ bid < nblk }) -> (tid: nat { 0 <= tid /\ tid < nthr } -> slprop))
   (setup : (ar: gpu_array a smem_sz) -> (bid: SZ.t { 0 <= bid /\ bid < nblk }) ->
     stt_ghost unit emp_inames
       (block_setup nthr ** (exists* v. gpu_pts_to_array #a #smem_sz ar #1.0R v))
-      (fun _ -> block_setup nthr ** bigstar 0 nthr (shared_pre ar)))
+      (fun _ -> block_setup nthr ** bigstar 0 nthr (shared_pre ar bid)))
 
   (k :
     (ar: gpu_array a smem_sz) -> (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
-    stt unit (         gpu ** thread_id etid ** shared_pre ar (SZ.v (tidx_x etid)) ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** shared_post ar (SZ.v (tidx_x etid)) ** post (thread_index etid))
+    stt unit (         gpu ** thread_id etid ** shared_pre ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** pre (thread_index etid))
+             (fun _ -> gpu ** thread_id etid ** shared_post ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** post (thread_index etid))
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post

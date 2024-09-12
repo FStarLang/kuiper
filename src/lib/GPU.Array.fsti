@@ -231,3 +231,49 @@ fn gpu_slice_empty_elim
   (i : nat)
   requires exists* v. gpu_pts_to_array_slice arr #f i i v
   ensures  emp
+
+ghost
+fn gpu_slice_share
+  (#uid: int) (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a))
+  (m n:nat)
+  (k: nat { k > 0 })
+  requires gpu_pts_to_array_slice arr #f m n v
+  ensures bigstar #uid 0 k (fun x -> gpu_pts_to_array_slice arr #(f /. Real.of_int k) m n v)
+
+ghost
+fn gpu_slice_gather
+  (#uid: int) (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a))
+  (m n:nat)
+  (k: nat { k > 0 })
+  requires bigstar #uid 0 k (fun x -> gpu_pts_to_array_slice arr #(f /. Real.of_int k) m n v)
+  ensures gpu_pts_to_array_slice arr #f m n v
+
+ghost
+fn gpu_slice_share_underspec
+  (#uid: int) (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (m n:nat)
+  (k: nat { k > 0 })
+  requires exists* v. gpu_pts_to_array_slice arr #f m n v
+  ensures bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_array_slice arr #(f /. Real.of_int k) m n v)
+
+ghost
+fn gpu_slice_gather_underspec
+  (#uid: int) (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (m n:nat)
+  (k: nat { k > 0 })
+  requires bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_array_slice arr #(f /. Real.of_int k) m n v)
+  ensures exists* v. gpu_pts_to_array_slice arr #f m n v

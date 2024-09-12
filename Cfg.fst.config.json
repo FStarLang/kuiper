@@ -19,6 +19,6 @@
     "src/lib",
     "src/examples",
     "src/examples/matmul",
-    "src/examples/matmul-opt"
+    "src/examples/matmul-tile"
   ]
 }

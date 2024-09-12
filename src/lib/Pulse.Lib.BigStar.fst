@@ -107,6 +107,10 @@ let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (
     bigstar_defn #u2 m' n' f'
   end
 
+let bigstar_eq (#u1 #u2: int) (m : nat) (n : nat {m <= n}) (f g : (i:nat { m <= i /\ i < n }) -> slprop)
+  : Lemma (requires (forall i. m <= i /\ i < n ==> f i == g i))
+          (ensures  bigstar #u1 m n f == bigstar #u2 m n g) = bigstar_congr #u1 #u2 m n m n f g (fun i -> ())
+
 let bigstar_extensionality_lem = admit()
 
 ghost
@@ -579,7 +583,7 @@ ghost fn bigstar_permute
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> slprop))
-  (p: permutation (i: erased nat{m <= i /\ i < n}))
+  (p: permutation (i: nat{m <= i /\ i < n}))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
 {
@@ -600,3 +604,22 @@ ghost fn bigstar_permute
   bigstar_map #u1 #u1 #m #n (fun j -> bigstar_if_elim #u1 #m #n (p.f j) f);
   // bigstar 0 n (fun i -> f (p.f i))
 }
+
+let bigstar_flatten
+  (#u1 #u2 : int)
+  (#n1 : nat)
+  (#n2 : nat)
+  (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
+  : stt_ghost unit emp_inames
+      (bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i)))
+      (fun _ -> bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))) = admit() // TODO
+
+let bigstar_exists
+  (#a : Type0) // TODO: arbitrary type doesn't work here?
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (#f: a -> (i: nat{m <= i /\ i < n} -> slprop))
+  : stt_ghost unit emp_inames
+      (bigstar #u1 m n (fun i -> exists* (x: a). f x i))
+      (fun _ -> exists* (x: (i:nat { m <= i /\ i < n }) -> a). bigstar #u1 m n (fun i -> f (x i) i)) = admit() // TODO
