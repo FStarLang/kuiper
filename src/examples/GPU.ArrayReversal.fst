@@ -35,7 +35,7 @@ let partition_range_disjoint (n:nat { n % 2 == 0 })
 = ()
 
 #restart-solver
-#push-options "--query_stats --fuel 0 --ifuel 0"
+#push-options "--fuel 0 --ifuel 0"
 let partition_covers_range_lemma (n:nat { n % 2 == 0 })
 : Lemma (ensures parts_covers_range (partition_range n))
 = introduce forall z. z `Set.mem` range 0 n ==> z `Set.mem` union_partitions (partition_range n)
