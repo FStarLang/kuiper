@@ -12,19 +12,24 @@ open FStar.FiniteSet.Ambient
 module Set = FStar.FiniteSet.Base
 module SZ = FStar.SizeT
 
+noextract
 let index_flip (#a:Type) (s:seq a) (i:nat { i < Seq.length s }) = Seq.index s (Seq.length s - i - 1 <: nat)
+noextract
 let reverse_spec (#a:Type) (s:seq a) = Seq.init (Seq.length s) (fun i -> index_flip s i)
 
+noextract
 let partition_range (n:nat { n % 2 == 0 })
 : partitions 0 n (n / 2)
 = fun i -> Set.union (Set.singleton i) (Set.singleton (n - i - 1))
 
+noextract
 let star_over_partition_range (n:nat { n % 2 == 0 }) (f:idx 0 n -> slprop) (i:nat { i < n / 2 })
 : Lemma
   (ensures star_over_partition f (select (partition_range n) i) ==
             f i ** f (n - i - 1 <: nat))
 = slprop_equivs() 
 
+noextract
 let partition_range_disjoint (n:nat { n % 2 == 0 })
 : Lemma (parts_disjoint (partition_range n))
 = ()
@@ -46,6 +51,7 @@ let partition_covers_range_lemma (n:nat { n % 2 == 0 })
   )
 #pop-options
 
+noextract
 let disjoint_partitions_range (n:nat { n % 2 == 0 })
 : disjoint_partitions 0 n (n / 2)
 = partition_range_disjoint n;
@@ -298,7 +304,7 @@ fn reverse
     (#ty:Type0)
     (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
     (a:gpu_array ty size)
-    (#s:FStar.Seq.seq ty { Seq.length s == SZ.v size })
+    (#s: erased (FStar.Seq.seq ty) { Seq.length s == SZ.v size })
 requires
   cpu **
   gpu_pts_to_array a s
