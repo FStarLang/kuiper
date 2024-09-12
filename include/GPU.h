@@ -15,13 +15,6 @@
 
 #include <cuda_runtime.h>
 
-#define PULSE_KCALL(foo, nblk, nthr, ...)				\
-	do {								\
-		foo<<<nblk,nthr>>>(__VA_ARGS__);			\
-		if (cudaGetLastError() != cudaSuccess)			\
-			assert(!"kcall");				\
-	} while (0)
-
 static inline
 void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 {
@@ -33,6 +26,12 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 		exit(1);
 	}
 }
+
+#define PULSE_KCALL(foo, nblk, nthr, ...)				\
+	do {								\
+		foo<<<nblk,nthr>>>(__VA_ARGS__);			\
+		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);\
+	} while (0)
 
 #define MUST(e)								\
 	__MUST(e, #e, __FILE__, __LINE__)
