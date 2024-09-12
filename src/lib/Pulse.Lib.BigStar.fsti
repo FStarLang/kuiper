@@ -49,6 +49,11 @@ val bigstar_eq
           (ensures  bigstar #u1 m n f == bigstar #u2 m n g)
           [SMTPat (bigstar #u1 m n f); SMTPat (bigstar #u2 m n g)]
 
+val bigstar_ext u1 u2 (m:nat) (n:nat{m<=n}) (f g: ((i:nat{m<=i /\ i<n}) -> slprop))
+: Lemma
+  (requires FStar.FunctionalExtensionality.feq f g)
+  (ensures bigstar #u1 m n f == bigstar #u2 m n g)
+
 val bigstar_extensionality_lem
   (u1 u2 : int)
   (m : nat)
@@ -262,14 +267,6 @@ ghost fn bigstar_permute
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
 
-ghost fn bigstar_flatten
-  (#u1 #u2 : int)
-  (#n1 : nat)
-  (#n2 : nat)
-  (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
-  requires bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
-  ensures  bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
-
 ghost fn bigstar_exists
   (#a : Type0) // TODO: arbitrary type doesn't work here?
   (#u1 : int)
@@ -278,3 +275,36 @@ ghost fn bigstar_exists
   (#f: a -> (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u1 m n (fun i -> exists* (x: a). f x i)
   ensures  exists* (x: (i:nat { m <= i /\ i < n }) -> a). bigstar #u1 m n (fun i -> f (x i) i)
+
+
+ghost fn bigstar_flatten
+  (#u1 #u2 : int)
+  (#n1 : nat)
+  (#n2 : nat)
+  (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
+  requires bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
+  ensures  bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
+
+open Pulse.Lib.PartitionRange
+
+ghost
+fn bigstar_partition
+  (n0:nat)
+  (n1:nat)
+  (f0: (idx 0 n0 -> slprop))
+  (partition: disjoint_partitions 0 n0 n1)
+requires
+  bigstar 0 n0 f0
+ensures
+  bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
+
+ghost
+fn bigstar_partition_inv
+  (n0:nat)
+  (n1:nat)
+  (f0: (idx 0 n0 -> slprop))
+  (partition: disjoint_partitions 0 n0 n1)
+requires
+ bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
+ensures
+  bigstar 0 n0 f0
