@@ -680,42 +680,8 @@ let rec bigstar_except_equiv_emp
 = if m = n then ()
   else bigstar_except_equiv_emp #u1 (m+1) n f (Set.remove m s)
 
-let star_over_partition_singleton
-  (#m:nat) (#n : nat { m <= n })
-  (f: (idx m n -> slprop) )
-  (x: idx m n)
-: Lemma 
-  (ensures star_over_partition f (Set.singleton x) == f x)
-= slprop_equivs()
-
-let star_over_partition_split
-  (#m:nat) (#n : nat { m <= n })
-  (f: (idx m n -> slprop) )
-  (s0: idx_set m n)
-  (s1: idx_set m n { Set.disjoint s0 s1 })
-: Lemma 
-  (ensures star_over_partition f (Set.union s0 s1) ==
-           star_over_partition f s0 ** star_over_partition f s1)
-= admit()
-  
-#restart-solver
 #push-options "--query_stats --ifuel 0 --z3rlimit_factor 16 --fuel 2"
 #restart-solver
-let star_over_partition_reindex 
-      (m:nat)
-      (n:nat {m < n})
-      (f: idx m n -> slprop) 
-      (s: idx_set m n { forall x. Set.mem x s ==> m < x /\ x < n })
-: Lemma (star_over_partition #m #n f s == star_over_partition #(m+1) #n f (s <: idx_set (m + 1) n))
-= admit()
-let star_over_partition_reindex_back
-      (m:nat)
-      (n:nat {m < n})
-      (f: idx m n -> slprop) 
-      (s: idx_set (m + 1) n)
-: Lemma (star_over_partition #m #n f s == star_over_partition #(m+1) #n f s)
-= admit()
-#push-options "--print_implicits --print_bound_var_types"
 let rec bigstar_except_equiv_split
   (#u1: int)
   (m : nat)
@@ -769,7 +735,7 @@ let rec bigstar_except_equiv_split
       (==) {slprop_equivs ()}
         (f m ** star_over_partition #(m + 1) #n f s0') **
         bigstar_except #u1 (m + 1) n f (Set.union s0' s1);
-      (==) { star_over_partition_reindex_back m n f s0' }
+      (==) { star_over_partition_reindex m n f s0' }
         (f m ** star_over_partition #m #n f s0') **
         bigstar_except #u1 (m + 1) n f (Set.union s0' s1);
       (==) { star_over_partition_split #m #n f (Set.singleton m) s0'; slprop_equivs () }
@@ -799,14 +765,14 @@ let rec bigstar_except_equiv_split
       (==) {}
         star_over_partition #(m+1) #n f s0 **
         bigstar_except #u1 m n f (Set.union s0 s1);
-      (==) { star_over_partition_reindex_back m n f s0}
+      (==) { star_over_partition_reindex m n f s0}
         star_over_partition #m #n f s0 **
         bigstar_except #u1 m n f (Set.union s0 s1);
       }
     )
   )
 
-let rec union_partitions_aux_split
+let union_partitions_aux_split
     (#m #n #k : nat)
     (p:disjoint_partitions m n k)
     (from:nat)
@@ -816,7 +782,8 @@ let rec union_partitions_aux_split
     (union_partitions_aux p from to `Set.equal`
      (union_partitions_aux p from mid `Set.union` union_partitions_aux p mid to) /\
      Set.disjoint (union_partitions_aux p from mid) (union_partitions_aux p mid to))
-= admit()
+= union_partitions_split p from mid to;
+  union_partitions_disjoint p from mid to
   
 
 let union_partitions_aux_step

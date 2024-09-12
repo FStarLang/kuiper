@@ -5,58 +5,59 @@ open Pulse.Lib
 open Pulse.Lib.Pervasives
 open GPU
 open Pulse.Lib.BoundedIntegers
+open Pulse.Lib.PartitionRange
 open FStar.SizeT
+open FStar.FiniteSet.Base
+open FStar.FiniteSet.Ambient
+module Set = FStar.FiniteSet.Base
 module SZ = FStar.SizeT
 
 let index_flip (#a:Type) (s:seq a) (i:nat { i < Seq.length s }) = Seq.index s (Seq.length s - i - 1 <: nat)
 let reverse_spec (#a:Type) (s:seq a) = Seq.init (Seq.length s) (fun i -> index_flip s i)
 
-open FStar.FiniteSet.Base
-open FStar.FiniteSet.Ambient
-module Set = FStar.FiniteSet.Base
-let idx (m n:nat) = i:nat { m <= i /\ i < n }
-let idx_set (m n:nat) = s:set nat { forall x. x `Set.mem` s ==> m <= x /\ x < n }
-let partitions (m:nat) (n:nat) (k:nat) = i:nat{ i < k } -> idx_set m n
-let select #m #n #k (p:partitions m n k) (i:nat{ i < k }) : idx_set m n = p i
+// let idx (m n:nat) = i:nat { m <= i /\ i < n }
+// let idx_set (m n:nat) = s:set nat { forall x. x `Set.mem` s ==> m <= x /\ x < n }
+// let partitions (m:nat) (n:nat) (k:nat) = i:nat{ i < k } -> idx_set m n
+// let select #m #n #k (p:partitions m n k) (i:nat{ i < k }) : idx_set m n = p i
 
-let rec union_partitions_aux #m #n #k (p:partitions m n k) (from:nat) (to:nat{ from <= to /\ to <= k })
-: Tot (s:idx_set m n { forall (j:nat { from <= j /\ j < to }). select p j `Set.subset` s })
-      (decreases to - from)
-= if from = to then Set.emptyset
-  else Set.union (p from) (union_partitions_aux p (from + 1 <: nat) to)
-let union_partitions #m #n #k (p:partitions m n k) = union_partitions_aux p 0 k
+// let rec union_partitions_aux #m #n #k (p:partitions m n k) (from:nat) (to:nat{ from <= to /\ to <= k })
+// : Tot (s:idx_set m n { forall (j:nat { from <= j /\ j < to }). select p j `Set.subset` s })
+//       (decreases to - from)
+// = if from = to then Set.emptyset
+//   else Set.union (p from) (union_partitions_aux p (from + 1 <: nat) to)
+// let union_partitions #m #n #k (p:partitions m n k) = union_partitions_aux p 0 k
 
-let rec range (m:nat) (n:nat { m <= n }) 
-: Tot (s:idx_set m n { forall x. Set.mem x s <==> m <= x /\ x < n }) (decreases n - m)
-= if m = n then Set.emptyset
-  else Set.union (Set.singleton m) (range (m + 1) n)
+// let rec range (m:nat) (n:nat { m <= n }) 
+// : Tot (s:idx_set m n { forall x. Set.mem x s <==> m <= x /\ x < n }) (decreases n - m)
+// = if m = n then Set.emptyset
+//   else Set.union (Set.singleton m) (range (m + 1) n)
 
-let parts_disjoint #m #n #k (parts:partitions m n k) =
-  forall (i j:nat). {:pattern (select parts i); (select parts j) }
-      i < j /\ j < k ==> Set.disjoint (select parts i) (select parts j)
+// let parts_disjoint #m #n #k (parts:partitions m n k) =
+//   forall (i j:nat). {:pattern (select parts i); (select parts j) }
+//       i < j /\ j < k ==> Set.disjoint (select parts i) (select parts j)
 
-let parts_covers_range_except #m #n #k (parts:partitions m n k) (except:Set.set nat) =
-  m <= n /\
-  Set.difference (range m n) except `Set.subset` union_partitions parts
+// let parts_covers_range_except #m #n #k (parts:partitions m n k) (except:Set.set nat) =
+//   m <= n /\
+//   Set.difference (range m n) except `Set.subset` union_partitions parts
 
-let parts_covers_range #m #n #k (parts:partitions m n k) =
-  parts_covers_range_except parts Set.emptyset
+// let parts_covers_range #m #n #k (parts:partitions m n k) =
+//   parts_covers_range_except parts Set.emptyset
 
-let disjoint_partitions (m:nat) (n:nat) (k:nat) =
-  parts:partitions m n k {
-    parts_disjoint parts /\
-    parts_covers_range parts
-  }
+// let disjoint_partitions (m:nat) (n:nat) (k:nat) =
+//   parts:partitions m n k {
+//     parts_disjoint parts /\
+//     parts_covers_range parts
+//   }
 
-let rec star_over_partition (#m:nat) (#n:nat{m<=n}) (f:idx m n -> slprop) (partition:idx_set m n)
-: Tot slprop (decreases (cardinality partition))
-= if cardinality partition = 0
-  then emp
-  else (
-    let i = Set.choose partition in
-    let partition' = Set.remove i partition in
-    f i ** star_over_partition f partition'
-  )
+// let rec star_over_partition (#m:nat) (#n:nat{m<=n}) (f:idx m n -> slprop) (partition:idx_set m n)
+// : Tot slprop (decreases (cardinality partition))
+// = if cardinality partition = 0
+//   then emp
+//   else (
+//     let i = Set.choose partition in
+//     let partition' = Set.remove i partition in
+//     f i ** star_over_partition f partition'
+//   )
 
 let partition_range (n:nat { n % 2 == 0 })
 : partitions 0 n (n / 2)
@@ -94,34 +95,6 @@ let disjoint_partitions_range (n:nat { n % 2 == 0 })
 = partition_range_disjoint n;
   partition_covers_range_lemma n;
   partition_range n
-
-ghost
-fn bigstar_partition
-  (n0:nat)
-  (n1:nat)
-  (f0: (idx 0 n0 -> slprop))
-  (partition: disjoint_partitions 0 n0 n1)
-requires
-  bigstar 0 n0 f0
-ensures
-  bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
-{
-  admit()
-}
-
-ghost
-fn bigstar_partition_inv
-  (n0:nat)
-  (n1:nat)
-  (f0: (idx 0 n0 -> slprop))
-  (partition: disjoint_partitions 0 n0 n1)
-requires
- bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
-ensures
-  bigstar 0 n0 f0
-{
-  admit()
-}
 
 let gpu_pts_to_cell
   (#a:Type0)
