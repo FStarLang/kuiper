@@ -38,10 +38,10 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 	__MUST(e, #e, __FILE__, __LINE__)
 
 static inline
-uint32_t * __PULSE_GPU_ALLOC(size_t len, const char *str, const char *fname,
+void * __PULSE_GPU_ALLOC(size_t len, const char *str, const char *fname,
 			     int line)
 {
-	uint32_t *ret = NULL;
+	void *ret = NULL;
 	__MUST(cudaMalloc(&ret, len), str, fname, line);
 	return ret;
 }

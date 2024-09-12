@@ -43,18 +43,14 @@ FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext context_pruning
+FSTAR_FLAGS += --ext no_krml_private
+FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 
 FSTAR_NOPLUG := $(FSTAR_EXE)				\
 	$(SIL)						\
-	--include pulse/lib/pulse/			\
-	--include pulse/lib/pulse/core/			\
-	--include pulse/lib/pulse/lib/			\
-	--include pulse/lib/pulse/lib/class/		\
-	--include src/lib/				\
-	--include src/examples/				\
-	--include src/examples/matmul/			\
-	--include src/examples/matmul-opt/		\
+	--include pulse					\
+	--include src					\
 	$(FSTAR_FLAGS)
 
 FSTAR := $(FSTAR_NOPLUG) --load_cmxs pulse
@@ -91,7 +87,7 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
 %.checked:
-	@$(call msg, "CHECK",$(notdir $@))
+	@$(call msg,"CHECK")
 	$(Q)$(FSTAR) $<
 	@touch -c $@
 
@@ -126,14 +122,16 @@ dep_simpl.graph: dep_filtered.graph
 	$(Q)$(FSTAR_HOME)/.scripts/simpl_graph.py $< > $@
 
 depgraph.pdf: dep_simpl.graph
-	$(call msg, "DOT", $@)
+	$(call msg, "DOT")
 	$(Q)dot -Tpdf -o $@ dep_simpl.graph
+
+SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
 
 # FIXME: find a way to invalidate when plugin changes. The added dependency below does
 # not do that.
 $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 	@# Stupid renaming!
-	$(call msg,"EXTRACT",$@)
+	$(call msg,"EXTRACT")
 	$(Q)$(FSTAR) --codegen krml 						\
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
@@ -141,10 +139,10 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--extract "+GPU"						\
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
-		$(patsubst .cache/%.checked,src/examples/%,$<)
+		$(call SRC_FILE_FOR_CHECKED,$<)
 
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml
-	$(call msg,"KRML",$@)
+	$(call msg,"KRML")
 	@# Awful substitution here to get the module name, turning something like
 	@# out/GPU_DotProduct2.krml into GPU.DotProduct2
 	$(Q)MOD=$$(echo $< | sed 's,.*/,,' | sed 's/.krml$$//' | sed 's/_/./g') && \
@@ -156,15 +154,15 @@ $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 	@ln -sf $(realpath $<) $@
 
 %.o: %.cu include/*.h
-	$(call msg,"NVCC",$@)
+	$(call msg,"NVCC")
 	$(Q)nvcc -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
-	$(call msg,"NVCC",$@)
+	$(call msg,"NVCC")
 	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
 
 $(OUTDIR)/startup.exe: test/startup.cu
-	$(call msg,"NVCC",$@)
+	$(call msg,"NVCC")
 	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
@@ -172,11 +170,11 @@ $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 
 $(OUTDIR)/%.test: test/%.output.expected $(OUTDIR)/%.output
 	$(Q)diff -u $^
-	$(call msg,"TEST OK",$@)
+	$(call msg,"TEST OK")
 	@touch $@
 
 $(OUTDIR)/%.accept: $(OUTDIR)/%.output
-	$(call msg,"ACCEPT",$@)
+	$(call msg,"ACCEPT")
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
 TESTS+=GPU_Example1
@@ -184,6 +182,7 @@ TESTS+=GPU_DotProduct2
 TESTS+=GPU_MatMul
 TESTS+=GPU_BasicFloat
 TESTS+=GPU_AtomicReduce
+TESTS+=GPU_HReduceU64Plus
 
 extraction-targets: \
 	out/GPU_DotProduct.o \

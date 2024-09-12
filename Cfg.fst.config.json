@@ -6,7 +6,9 @@
     "--warn_error", "-249",
     "--already_cached", "Pulse.Lib.*",
     "--ext", "__unrefine",
-    "--ext", "context_pruning"
+    "--ext", "context_pruning",
+    "--ext", "no_krml_private",
+    "--ext", "krml_inline_all"
   ],
   "include_dirs": [
     ".cache",
@@ -17,6 +19,6 @@
     "src/lib",
     "src/examples",
     "src/examples/matmul",
-    "src/examples/matmul-opt"
+    "src/examples/matmul-tile"
   ]
 }

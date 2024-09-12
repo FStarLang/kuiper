@@ -4,19 +4,29 @@ open NuSeq
 
 let split_concat (#a:Type) (s : seq a) (i: natle (len s)) =
   let (sl, sr) = split s i in
-  assert (s `equal` (sl @ sr))
+  assert (s == (sl @ sr))
 
 let insert_remove (#a:Type) (s : seq a) (i : natle (len s)) (v : seq a) =
-  assert (s `equal` remove (insert s i v) i (i + len v))
+  assert (s == remove (insert s i v) i (i + len v))
 
 let add_delete (#a:Type) (s : seq a) (i : natle (len s)) (v : a) =
-  assert (s `equal` delete (add s i v) i)
+  assert (s == delete (add s i v) i)
 
 let concat_seq0 (#a:Type) (s : seq a) =
-  assert (s `equal` (s @ seq0 #a) /\ s `equal` (seq0 #a @ s))
+  assert (s == (s @ seq0 #a) /\ s == (seq0 #a @ s))
 
 let update_id (#a:Type) (s : seq a) (i : natlt (len s)) =
-  assert (s `equal` (s.[i] <- s.[i]))
+  assert (s == (s.[i] <- s.[i]))
+
+let push_pop (#a:Type) (s : seq a) (v : a) =
+  let s' = push_l v s in
+  assert ((pop_l s')._2 == s)
+
+// let push_pop (#a:Type) (s : seq a) (v : a) =
+//   assume ((split (seq1 v @ s) 1)._2 == mk_seq (len s + 1 - 1) (fun i -> (mk_seq (len s + 1) (fun j -> if j = 0 then v else s.[j - 1])).[i + 1]));
+//   assume (s == mk_seq (len s) (fun i -> s.[i]));
+//   // assert (mk_seq (len s + 1 - 1) (fun i -> (mk_seq (len s + 1) (fun j -> if j = 0 then v else s.[j - 1])).[i + 1]) == mk_seq (len s) (fun i -> s.[i]));
+//   assert (s == (split (seq1 v @ s) 1)._2 /\ has_type s (seq a))
 
 let sliceA
   (#a:Type)
@@ -39,7 +49,7 @@ let sliceB
     s3
 
 let test (#a:Type) (s:seq a) (from:nat) (to : nat{from <= to /\ to <= len s}) =
-  assert (sliceA s from to `equal` sliceB s from to)
+  assert (sliceA s from to == sliceB s from to)
 
 let removeA
   (#a:Type)
@@ -72,7 +82,7 @@ let removeC
     s1 @ s2
 
 let test2 (#a:Type) (s:seq a) (from:nat) (to : nat{from <= to /\ to <= len s}) =
-  assert (removeA s from to `equal` removeB s from to);
-  assert (removeA s from to `equal` removeC s from to);
-  assert (removeB s from to `equal` removeC s from to);
+  assert (removeA s from to == removeB s from to);
+  assert (removeA s from to == removeC s from to);
+  assert (removeB s from to == removeC s from to);
   ()

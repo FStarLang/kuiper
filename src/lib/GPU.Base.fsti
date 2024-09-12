@@ -21,9 +21,9 @@ val gpu : slprop
 val tid_t : Type0
 
 (* Arbitrary *)
-let max_blocks = 1024 * 1024
+let max_blocks : erased int = 1024 * 1024
 (* Hard CUDA limit *)
-let max_threads = 1024
+let max_threads : erased int = 1024
 
 (* Token for being in GPU block setup code *)
 val block_setup : (nthr: SZ.t { 0 < nthr /\ nthr <= max_threads }) -> slprop
