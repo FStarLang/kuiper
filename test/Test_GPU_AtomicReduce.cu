@@ -2,6 +2,7 @@
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #define N 1024
 
@@ -31,10 +32,11 @@ int main()
 		
 		cudaFree(aa);
 
-		printf("reduce(%d) = %llu\n", n, r);
+		printf("reduce(%d) = %" PRIu64 "\n", n, r);
 		
-		if (r != n * (n - 1) / 2)
-			printf("ERROR: should have been %llu\n", n * (n - 1) / 2);
+		u64 expected = ((u64)n * ((u64)n - (u64)1)) / 2;
+		if (r != expected)
+			printf("ERROR: should have been %" PRIu64 "\n", expected);
 
 		free(a);
 
