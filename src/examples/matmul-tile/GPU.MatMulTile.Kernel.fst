@@ -7,7 +7,7 @@ open GPU.Barrier.RPM
 open FStar.SizeT
 module SZ = FStar.SizeT
 
-#set-options "--z3rlimit 10"
+#set-options "--z3rlimit 20"
 #push-options "--fuel 6 --ifuel 6"
 
 // #push-options "--print_implicits --print_bound_var_types"
