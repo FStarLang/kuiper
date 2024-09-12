@@ -196,6 +196,7 @@ fn outer_loop
   gpu_slice_gather_underspec #0 #u64 #smem_sz ar #1.0R (2 * tid) (2 * tid + 2) nthr;
 }
 
+#set-options "--z3rlimit 40"
 [@@CPrologue "__global__"]
 fn kernel
   // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
