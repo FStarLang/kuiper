@@ -184,6 +184,7 @@ TESTS+=GPU_MatMul
 TESTS+=GPU_BasicFloat
 TESTS+=GPU_AtomicReduce
 TESTS+=GPU_HReduceU64Plus
+TESTS+=GPU_ArrayReversal
 
 extraction-targets: \
 	out/GPU_DotProduct.o \

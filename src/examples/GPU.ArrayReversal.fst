@@ -230,6 +230,8 @@ ensures
 
 }
 
+[@@CPrologue "__device__"]
+inline_for_extraction
 fn read_cell
   (#ty:Type0)
   (#size:erased sz)
@@ -253,6 +255,8 @@ ensures
   v
 }
 
+[@@CPrologue "__device__"]
+inline_for_extraction
 fn write_cell
   (#ty:Type0)
   (#size:erased sz)
@@ -322,7 +326,10 @@ ensures
     #(fun tid -> 
       gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip (reverse_spec s) tid))
-    (kernel size a #s);
+    (fun etid -> kernel size a #s etid);
   partition_cells_inv a;
   implode_cells a
 }
+
+// GM: suprised this worked
+let reverse_u64 = reverse #u64
