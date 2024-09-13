@@ -42,7 +42,7 @@ runlim not found:
 endef
 
 define msg =
-@printf "  %-8s  %s\n" $(1) $(shell realpath --relative-to=. $<)
+@printf "  %-8s  %s\n" $(1) $(if $(2),$(2),$(shell realpath --relative-to=. $<))
 endef
 
 # Passing RESOURCEMONITOR=1 will create .runlim files through the source tree with

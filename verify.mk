@@ -115,7 +115,7 @@ echo-krml:
 # NB: The dependency analysis needs to parse the files, so it needs
 # the Pulse plugin
 .depend: $(ROOTS) .b_fstar .b_pulse
-	$(call msg,"DEPEND")
+	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --dep full $(ROOTS) --output_deps_to $@
 
 SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
