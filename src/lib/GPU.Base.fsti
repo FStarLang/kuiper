@@ -11,11 +11,17 @@ open FStar.Mul
 module U32 = FStar.UInt32
 module SZ = FStar.SizeT
 
+type mode_t = | CPU | GPU
+
+val mode : mode_t -> slprop
+
 (* Token for being in CPU code *)
-val cpu : slprop
+[@@pulse_unfold]
+let cpu : slprop = mode CPU
 
 (* Token for being in GPU code *)
-val gpu : slprop
+[@@pulse_unfold]
+let gpu : slprop = mode GPU
 
 [@@erasable]
 val tid_t : Type0
