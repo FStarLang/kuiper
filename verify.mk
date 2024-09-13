@@ -178,6 +178,7 @@ TESTS+=GPU_BasicFloat
 TESTS+=GPU_AtomicReduce
 TESTS+=GPU_HReduceU32Plus
 TESTS+=GPU_HReduceU64Plus
+TESTS+=GPU_HReduceF64Plus
 TESTS+=GPU_ArrayReversal
 
 extraction-targets: \

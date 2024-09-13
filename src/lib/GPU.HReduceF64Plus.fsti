@@ -1,4 +1,4 @@
-module GPU.HReduceU64Plus
+module GPU.HReduceF64Plus
 
 (* This module is specialized to U64 and addition.
 
@@ -16,14 +16,14 @@ open GPU.Seq.Common
 
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
-module U64 = FStar.UInt64
+module F64 = GPU.Float64
 
 let size : sz = 1024sz
 
 (* no polymorphism, but at least keep the definitions here *)
-let ety = u64
-inline_for_extraction noextract let op = U64.add_mod
-inline_for_extraction noextract let neu = 0uL
+let ety = f64
+inline_for_extraction noextract let op = F64.add
+inline_for_extraction noextract let neu = F64.zero
 
 (* using seq_fold_left op neu directly in pulse code blows up
 in many colorful ways. Probably the refinment of op? Anyway, 

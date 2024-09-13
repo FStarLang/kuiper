@@ -44,7 +44,7 @@ let gpu_pts_to_slice_sum_inner
   ** pure (i < j /\ j <= sz /\
            Seq.length v = sz /\
            Seq.length s = j - i /\
-           Seq.index s 0 = sum (Seq.slice v i j))
+           Seq.index s 0 == sum (Seq.slice v i j))
 
 let gpu_pts_to_slice_sum
   (#sz:nat)

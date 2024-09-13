@@ -1,4 +1,4 @@
-module GPU.HReduceU32Plus
+module GPU.HReduceF64Plus
 #set-options "--z3rlimit 10"
 
 (* This module is specialized to U64 and addition.
@@ -19,8 +19,8 @@ module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 
-let op_assoc () : Lemma (is_associative op) = admit() // prove
-let op_neu () : Lemma (is_neutral_for neu op) = ()
+let op_assoc () : Lemma (is_associative op) = admit() // not true for floats
+let op_neu () : Lemma (is_neutral_for neu op) = admit()
 let op_monoid () : Lemma (is_monoid neu op) = op_assoc (); op_neu ()
 
 (* same, also the op_monoid does not (cannot?) have a pattern. *)
@@ -55,7 +55,7 @@ let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
 }
 
 [@@ CPrologue "__device__"]
-inline_for_extraction
+noextract inline_for_extraction
 let smin (a b : sz): sz =
   let open FStar.SizeT in
   if a <^ b then a else b
@@ -314,6 +314,9 @@ fn reduce
   (**)with ss. assert (gpu_pts_to_array_slice a tid (tid+1) ss);
   (**) gpu_pts_to_slice_ref a tid (tid+1);
   (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
+  assert (pure (sum seq![reveal v0] == add Float64.zero v0));
+  op_neu();
+  assert (pure (add Float64.zero v0 == v0));
   (**)fold (gpu_pts_to_slice_sum_inner #nth a tid (tid+1) s ss);
   (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner #nth a tid (tid + pow2 0) s ss);
   (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);

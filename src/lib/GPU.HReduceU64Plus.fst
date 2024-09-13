@@ -1,4 +1,5 @@
 module GPU.HReduceU64Plus
+#set-options "--z3rlimit 10"
 
 (* This module is specialized to U64 and addition.
 
