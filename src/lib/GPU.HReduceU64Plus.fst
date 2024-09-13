@@ -33,9 +33,7 @@ let sum_lemma (s1 s2 : seq ety) : Lemma (sum (s1 `Seq.append` s2) == op (sum s1)
 noextract inline_for_extraction
 let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   (* Computing 2^s by 1<<s *)
-  let r = SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s)) in
-  assume (SZ.v r == pow2 (SZ.v s)); // prove this from UInt library
-  r
+  SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s))
 
 [@@ CPrologue "__device__"]
 noextract inline_for_extraction
@@ -179,7 +177,6 @@ fn iteration
     ** if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv)
 {
   open FStar.SizeT;
-  assume (pure (forall (x:nat). FStar.SizeT.fits x)); // CHEATING overflow
   assert (pure (Seq.length vv = nth));
 
   case_split (div_pow2 (it + 1) tid) (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
@@ -332,7 +329,6 @@ fn reduce
   {
     let it = !n <: nat;
     iteration nth a s tid it;
-    assume (pure (SZ.v it < 30)); // FIXME: overflow
     n := it +^ 1sz;
   };
   
