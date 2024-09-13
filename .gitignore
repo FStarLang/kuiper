@@ -7,3 +7,4 @@ dep.graph
 dep_filtered.graph
 dep_simpl.graph
 depgraph.pdf
+.b_*

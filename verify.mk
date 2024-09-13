@@ -18,10 +18,20 @@ FSTAR_EXE := $(FSTAR_HOME)/bin/fstar.exe
 export FSTAR_HOME
 export KRML_HOME
 
-# Keep FStar built and pulse plugin updated
-HACK:=$(shell $(MAKE) -C FStar 1)
-HACK:=$(shell $(MAKE) FSTAR_HOME=$(PWD)/FStar -C karamel minimal)
-HACK:=$(shell $(MAKE) FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml)
+.b_fstar: $(shell find FStar/ocaml/ -type f)
+	@echo FSTAR
+	$(MAKE) -C FStar 1
+	@touch $@
+
+.b_karamel: $(shell find karamel/ -type f)
+	@echo KRML
+	$(MAKE) FSTAR_HOME=$(PWD)/FStar -C karamel minimal
+	@touch $@
+
+.b_pulse: .b_fstar $(shell find pulse/ -type f)
+	@echo PULSE
+	$(MAKE) FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml
+	@touch $@
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
@@ -86,7 +96,7 @@ include .depend
 verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
-%.checked:
+%.checked: | .b_fstar .b_pulse
 	@$(call msg,"CHECK")
 	$(Q)$(FSTAR) $<
 	@touch -c $@
@@ -104,26 +114,9 @@ echo-krml:
 
 # NB: The dependency analysis needs to parse the files, so it needs
 # the Pulse plugin
-.depend: $(ROOTS)
+.depend: $(ROOTS) .b_fstar .b_pulse
 	$(call msg,"DEPEND")
 	$(Q)$(FSTAR) --codegen krml --dep full $(ROOTS) --output_deps_to $@
-
-dep.graph: $(DEPENDRSP)
-	$(Q)$(FSTAR) --codegen krml --dep graph $(ROOTS) --output_deps_to $@
-
-dep_filtered.graph: dep.graph
-	$(Q) cat $< |					\
-	  sed '/.*"fstar.*/d' |			\
-	  sed '/.*"pulse.*/d' |			\
-	  sed '/.*"prims.*/d' |			\
-	  cat > $@
-
-dep_simpl.graph: dep_filtered.graph
-	$(Q)$(FSTAR_HOME)/.scripts/simpl_graph.py $< > $@
-
-depgraph.pdf: dep_simpl.graph
-	$(call msg, "DOT")
-	$(Q)dot -Tpdf -o $@ dep_simpl.graph
 
 SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
 
@@ -141,7 +134,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--krmloutput $@							\
 		$(call SRC_FILE_FOR_CHECKED,$<)
 
-$(OUTDIR)/%.c: $(OUTDIR)/%.krml
+$(OUTDIR)/%.c: $(OUTDIR)/%.krml | .b_karamel
 	$(call msg,"KRML")
 	@# Awful substitution here to get the module name, turning something like
 	@# out/GPU_DotProduct2.krml into GPU.DotProduct2
