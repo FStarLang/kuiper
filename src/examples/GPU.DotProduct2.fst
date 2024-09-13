@@ -163,7 +163,7 @@ fn main
   // TODO:
   (**)drop_
         (bigstar 0 (1 * SZ.v dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 i));
-  (**)assume_
+  (**)assume
         (bigstar 0 dp2_size
           (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. Real.of_int dp2_size) v1 **
                     gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. Real.of_int dp2_size) v2) **

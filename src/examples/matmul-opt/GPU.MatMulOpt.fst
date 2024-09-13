@@ -46,7 +46,7 @@ fn setup
        (fun i -> Defs.fold_pre_pair Defs.rows Defs.shared Defs.columns ga1 ga2 #v1 #v2 size i);
 
   with #f v. assert (gpu_pts_to_array gr #f v);
-  assume_ (pure (Seq.length v == size)); // FIXME
+  assume (pure (Seq.length v == size)); // FIXME
 
   (**)gpu_array_slice_1 #4 #_ gr #f #v;
   (**)bigstar_zip #3 #4 #5 0 size _ _;
@@ -90,8 +90,8 @@ fn main
 
   // admit();
   Defs.mapping_inv_lemma (SZ.v nblk) (SZ.v nthr);
-  // TODO: fix this assume_
-  assume_ (pure (SZ.v nblk * SZ.v nthr == SZ.v Defs.blocksize * SZ.v Defs.rows * SZ.v Defs.columns));
+  // TODO: fix this assume
+  assume (pure (SZ.v nblk * SZ.v nthr == SZ.v Defs.blocksize * SZ.v Defs.rows * SZ.v Defs.columns));
   let perm: erased (permutation (i: erased nat{0 <= i /\ i < (SZ.v nblk * SZ.v nthr)})) = Defs.mapping_fixed;
   bigstar_permute #0 #0 #(SZ.v nblk * SZ.v nthr) #(Defs.kpre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size)) perm;
 
@@ -116,7 +116,7 @@ fn main
     (Defs.kpost Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size)));
 
   drop_   (bigstar #0 0 size (Defs.kpost Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size)));
-  assume_ (bigstar #0 0 size (fun idx -> Defs.gpu_pts_to_matrix Defs.rows Defs.shared ga1 (SZ.v size) v1
+  assume (bigstar #0 0 size (fun idx -> Defs.gpu_pts_to_matrix Defs.rows Defs.shared ga1 (SZ.v size) v1
                             ** Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 (SZ.v size) v2
                             ** gpu_pts_to_array_slice gr idx (idx+1) (Defs.singleton (Defs.matmul_single Defs.rows Defs.shared Defs.columns v1 v2 (idx / Defs.columns) (idx % Defs.columns) Defs.shared))));
 

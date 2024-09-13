@@ -54,7 +54,7 @@ fn gpu_matrix_read
   // TODO: is the assert here opaque?
   ensures gpu ** gpu_pts_to_matrix rows columns ga shared s ** pure (assert ((SZ.v row + 1) * columns <= rows * columns); v == Seq.index s (row * columns + SZ.v col))
 {
-  assume_ (pure (forall (x:nat). SizeT.fits x)); // CHEATING overflow
+  assume (pure (forall (x:nat). SizeT.fits x)); // CHEATING overflow
   unfold gpu_pts_to_matrix rows columns ga shared s;
   unfold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
   // TODO: strange that commenting this out causes an error

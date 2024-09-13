@@ -59,7 +59,7 @@ fn calc_idxs
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v nthr) (SZ.v bid) (SZ.v nblk - 1);
   assert (pure (SZ.v bid * SZ.v nthr <= (SZ.v nblk - 1) * SZ.v nthr));
   FStar.Math.Lemmas.distributivity_sub_left (SZ.v nblk) 1 (SZ.v nthr);
-  assume_ (pure (SZ.v idx == tid_to_idx (SZ.v bid * SZ.v nthr + SZ.v tid))); // TODO
+  assume (pure (SZ.v idx == tid_to_idx (SZ.v bid * SZ.v nthr + SZ.v tid))); // TODO
 
   assert (pure (SZ.v rows_tile == 32 /\ SZ.v columns_tile == 32 /\ SZ.v bdim == 32));
 

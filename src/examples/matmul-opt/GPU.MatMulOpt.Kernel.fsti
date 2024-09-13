@@ -130,7 +130,7 @@ fn kernel
   let trow = SZ.div idx_sz columns;
   let tcol = SZ.rem idx_sz columns;
   lemma_div_lt idx_sz rows columns;
-  assume_ (pure (tcol < columns));
+  assume (pure (tcol < columns));
   assert (pure ( idx_sz < rows * columns /\ trow < rows /\ tcol < columns ));
   // assert (pure (0 <= trow /\ trow < rows /\ 0 <= tcol /\ tcol < columns));
 
@@ -159,7 +159,7 @@ fn kernel
     assert (pure (trow < rows /\ tcol < columns));
     (**)Pure.matmul_single_lemma rows shared columns s1 s2 trow tcol (SZ.v (SZ.add v 1sz));
     drop_   (shared_pre nthr (2 * v)       ar (SZ.v (tidx_x etid)));
-    assume_ (shared_pre nthr (2 * (v + 1)) ar (SZ.v (tidx_x etid)));
+    assume (shared_pre nthr (2 * (v + 1)) ar (SZ.v (tidx_x etid)));
     ()
   };
 

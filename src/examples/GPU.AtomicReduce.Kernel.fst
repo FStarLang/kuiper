@@ -83,7 +83,7 @@ fn kernel
   requires gpu ** thread_id etid ** kpre  (SZ.v nn) a v_a r done i (thread_index etid)
   ensures  gpu ** thread_id etid ** kpost (SZ.v nn) a v_a r done i (thread_index etid)
 {
-  assume_ (pure (Seq.length v_a == reveal nn));
+  assume (pure (Seq.length v_a == reveal nn));
   let tid = thread_idx_all ();
   rewrite each thread_index etid as SZ.v tid;
   (* Read array at idx *)
@@ -110,7 +110,7 @@ fn kernel
     unfold inv_p;
     gpu_faa_u64 r v;
     bigstar_ghost_upd_lemma done _ _ ;
-    assume_ (pure False); (* FIXME *)
+    assume (pure False); (* FIXME *)
     rewrite each SZ.v tid as thread_index etid;
     fold inv_p;
   }

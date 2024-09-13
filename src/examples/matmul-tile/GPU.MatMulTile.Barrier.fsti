@@ -113,7 +113,7 @@ fn block_setup_ghost
   //               ((from_dims seq![2 <: pos; bdim; bdim]).[ 0 ])._2)
   //           (remove (from_dims seq![2 <: pos; bdim; bdim]) 0)
   //           (slice vv 0 i seq![(bdim <: pos); (bdim <: pos)])));
-  // assume_ (bigstar 0 2
+  // assume (bigstar 0 2
   //     (fun i ->
   //         gpu_pts_to_matrix (slice_matrix ar_split
   //               i
@@ -129,7 +129,7 @@ fn block_setup_ghost
   //           (from_dims seq![bdim; bdim]) (slice vv 0 i seq![(bdim <: pos); (bdim <: pos)]))
   //     );
 
-  // assume_ (gpu_pts_to_matrix ar1 (from_dims seq![bdim; bdim]) (slice vv 0 0 seq![(bdim <: pos); (bdim <: pos)]) **
+  // assume (gpu_pts_to_matrix ar1 (from_dims seq![bdim; bdim]) (slice vv 0 0 seq![(bdim <: pos); (bdim <: pos)]) **
   //          gpu_pts_to_matrix ar2 (from_dims seq![bdim; bdim]) (slice vv 0 1 seq![(bdim <: pos); (bdim <: pos)]));
 
   // gpu_matrix_slice_permission #u64 #(from_dims seq![bdim; bdim]) ar1 0 seq![(bdim <: pos)];
@@ -151,7 +151,7 @@ fn block_setup_ghost
   //           (remove (from_dims seq![bdim; bdim]) 0)
   //           (slice #(get_dims (from_dims seq![bdim; bdim])) #u64
   //               (slice #(get_dims (from_dims seq![2 <: pos; bdim; bdim])) #u64 vv 0 1 seq![(bdim <: pos); (bdim <: pos)]) 0 i seq![(bdim <: pos)])));
-  // assume_ (bigstar 0 bdim (fun i ->
+  // assume (bigstar 0 bdim (fun i ->
   //           (exists* v1. gpu_pts_to_matrix (slice_matrix ar1 i bdim) (from_dims seq![bdim]) v1) **
   //           (exists* v2. gpu_pts_to_matrix (slice_matrix ar2 i bdim) (from_dims seq![bdim]) v2)));
   
@@ -179,7 +179,7 @@ fn block_setup_ghost
   //         ((exists* v1. gpu_pts_to_matrix (slice_matrix (slice_matrix ar1 (i / bdim) bdim) (i % bdim) bdim) seq![] v1) **
   //         (exists* v2. gpu_pts_to_matrix (slice_matrix (slice_matrix ar2 (i / bdim) bdim) (i % bdim) bdim) seq![] v2)) **
   //         mbarrier_tok (bdim * bdim) (barrier_mm s1 ar1 s2 ar2 bid_split.[0] bid_split.[1]) 0 i));
-  // assume_ (bigstar 0 nthr (shared_pre ar_split s1 s2 0 bid));
+  // assume (bigstar 0 nthr (shared_pre ar_split s1 s2 0 bid));
 
   // // let dims_inner: seq pos = seq![bdim; bdim; 2 <: pos];
   // // let t: Type u#0 = (gpu_matrix u64 seq![bdim; bdim; 2] <: Type u#0);
@@ -197,11 +197,11 @@ fn block_setup_ghost
   // // unfold gpu_pts_to_array ar v;
   // // gpu_slice_slice_1_underspec #1 ar #1.0R 0 smem_sz (bdim * bdim);
   // // drop_   (bigstar #1 0 (nthr - 0) (fun x -> gpu_pts_to_array1 ar (x + 0)));
-  // // assume_ (bigstar #1 0 nthr            (fun x -> gpu_pts_to_array1 ar x));
+  // // assume (bigstar #1 0 nthr            (fun x -> gpu_pts_to_array1 ar x));
 
   // // gpu_slice_slice_1_underspec #2 ar #1.0R nthr smem_sz smem_sz;
   // // drop_   (bigstar #2 0 (smem_sz - nthr) (fun x -> gpu_pts_to_array1 ar (x + nthr)));
-  // // assume_ (bigstar #2 0 nthr             (fun x -> gpu_pts_to_array1 ar (x + nthr)));
+  // // assume (bigstar #2 0 nthr             (fun x -> gpu_pts_to_array1 ar (x + nthr)));
 
   // // bigstar_zip #1 #2 #1 0 nthr _ _;
 
@@ -210,7 +210,7 @@ fn block_setup_ghost
 
   // // // FOLD:
   // // drop_   (bigstar #0 0 nthr (fun x -> gpu_pts_to_array1 ar x ** gpu_pts_to_array1 ar (x + nthr) ** mbarrier_tok nthr (barrier_mm nthr Seq.empty Seq.empty ar) 0 x));
-  // // assume_ (bigstar #0 0 nthr (fun x -> shared_pre nthr Seq.empty Seq.empty 0 ar x));
+  // // assume (bigstar #0 0 nthr (fun x -> shared_pre nthr Seq.empty Seq.empty 0 ar x));
 
   // // bigstar_uneta();
   // // gpu_slice_empty_elim ar smem_sz;

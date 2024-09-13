@@ -66,11 +66,11 @@ fn block_setup_ghost
   unfold gpu_pts_to_array ar v;
   gpu_slice_slice_1_underspec #1 ar #1.0R 0 smem_sz nthr;
   drop_   (bigstar #1 0 (SZ.v nthr - 0) (fun x -> gpu_pts_to_array1 ar (x + 0)));
-  assume_ (bigstar #1 0 nthr            (fun x -> gpu_pts_to_array1 ar x));
+  assume (bigstar #1 0 nthr            (fun x -> gpu_pts_to_array1 ar x));
 
   gpu_slice_slice_1_underspec #2 ar #1.0R nthr smem_sz smem_sz;
   drop_   (bigstar #2 0 (smem_sz - nthr) (fun x -> gpu_pts_to_array1 ar (x + nthr)));
-  assume_ (bigstar #2 0 nthr             (fun x -> gpu_pts_to_array1 ar (x + nthr)));
+  assume (bigstar #2 0 nthr             (fun x -> gpu_pts_to_array1 ar (x + nthr)));
 
   bigstar_zip #1 #2 #1 0 nthr _ _;
 
@@ -79,7 +79,7 @@ fn block_setup_ghost
 
   // FOLD:
   drop_   (bigstar #0 0 nthr (fun x -> gpu_pts_to_array1 ar x ** gpu_pts_to_array1 ar (x + nthr) ** mbarrier_tok nthr (barrier_mm nthr Seq.empty Seq.empty ar) 0 x));
-  assume_ (bigstar #0 0 nthr (fun x -> shared_pre nthr Seq.empty Seq.empty 0 ar x));
+  assume (bigstar #0 0 nthr (fun x -> shared_pre nthr Seq.empty Seq.empty 0 ar x));
 
   bigstar_uneta();
   gpu_slice_empty_elim ar smem_sz;
