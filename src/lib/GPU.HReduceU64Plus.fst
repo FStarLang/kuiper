@@ -29,7 +29,7 @@ let sum_lemma (s1 s2 : seq ety) : Lemma (sum (s1 `Seq.append` s2) == op (sum s1)
   lemma_seq_fold_left_sum neu op s1 s2
 
 [@@ CPrologue "__device__"]
-inline_for_extraction
+noextract inline_for_extraction
 let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   (* Computing 2^s by 1<<s *)
   let r = SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s)) in
@@ -37,7 +37,7 @@ let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   r
 
 [@@ CPrologue "__device__"]
-inline_for_extraction
+noextract inline_for_extraction
 let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
   SZ.rem tid (spow2 i) = 0sz
 
@@ -55,7 +55,7 @@ let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
 }
 
 [@@ CPrologue "__device__"]
-inline_for_extraction
+noextract inline_for_extraction
 let smin (a b : sz): sz =
   let open FStar.SizeT in
   if a <^ b then a else b
