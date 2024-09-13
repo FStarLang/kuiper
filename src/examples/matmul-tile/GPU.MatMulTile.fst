@@ -149,7 +149,7 @@ fn main
     #(Barrier.shared_pre nthr 0)
     #(Barrier.shared_pre nthr (2 * Kernel.columns_tile))
     (Barrier.block_setup_ghost nthr smem_sz)
-    (fun ar etid -> Kernel.kernel ga1 ga2 gr #v1 #v2 (hide nblk) (hide nthr) smem_sz ar etid);
+    (fun ear etid -> Kernel.kernel ga1 ga2 gr #v1 #v2 (hide nblk) (hide nthr) smem_sz ear etid);
 
   breakdown nblk nthr ga1 ga2 gr v1 v2;
 
