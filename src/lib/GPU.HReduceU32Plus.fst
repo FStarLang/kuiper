@@ -261,6 +261,15 @@ fn iteration
       if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
       fold (gpu_pts_to_slice_sum r tid end_ vv);
       if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
+      rewrite
+        if_ true (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv))
+      as
+        if_ (div_pow2 (SZ.v it + 1) (SZ.v tid))
+          (gpu_pts_to_slice_sum r
+              (SZ.v tid)
+              (min (SZ.v tid + pow2 (SZ.v it + 1)) (SZ.v nth))
+              (reveal vv));
+      ();
     } else {
       if_elim_false _;
       if_intro_false (gpu_pts_to_slice_sum r tid end_ vv);
