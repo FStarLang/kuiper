@@ -23,3 +23,10 @@ ci:
 	+$(MAKE) -f verify.mk all test
 
 .SUFFIXES:
+
+.PHONY: watch
+watch:
+	while true; do \
+		$(MAKE) ;\
+		inotifywait -qre close_write .; \
+	done
