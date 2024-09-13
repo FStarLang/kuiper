@@ -13,7 +13,21 @@ open FStar.Mul
 module U32 = FStar.UInt32
 module SZ = FStar.SizeT
 
-(* f<<<nblk, nthr>>>(...); *)
+val shmem_tok
+  (#a:Type u#0)
+  (#sz:SZ.t)
+  (ar:gpu_array a sz)
+: slprop
+
+fn obtain_shmem
+  (#a:Type u#0)
+  (#sz:SZ.t)
+  (ear : erased (gpu_array a sz))
+  requires shmem_tok ear
+  returns  ar : gpu_array a sz
+  ensures  pure (reveal ear == ar)
+
+(* f<<<nblk, nthr, smem_sz>>>(...); *)
 fn launch_kernel_n_m_sync
   (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
@@ -30,9 +44,9 @@ fn launch_kernel_n_m_sync
       (fun _ -> block_setup nthr ** bigstar 0 nthr (shared_pre ar bid)))
 
   (k :
-    (ar: gpu_array a smem_sz) -> (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
-    stt unit (         gpu ** thread_id etid ** shared_pre ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** shared_post ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** post (thread_index etid))
+    (ar: erased (gpu_array a smem_sz)) -> (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    stt unit (         gpu ** thread_id etid ** shmem_tok ar ** shared_pre ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** pre (thread_index etid))
+             (fun _ -> gpu ** thread_id etid **                 shared_post ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** post (thread_index etid))
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post

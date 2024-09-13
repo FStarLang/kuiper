@@ -103,13 +103,14 @@ fn kernel
   (nblk : erased sz { SZ.v nblk == SZ.v SZ.(rows_tile *^ columns_tile) })
   (nthr : erased sz { SZ.v nthr == SZ.v SZ.(bdim *^ bdim) })
   (smem_sz : sz { SZ.v smem_sz == 2 * SZ.v nthr })
-  (ar: gpu_array u64 smem_sz)
+  (ear: erased (gpu_array u64 smem_sz))
   (etid : tid_t { gdim_x etid == nthr /\ bdim_x etid == nblk })
   requires gpu
     ** thread_id etid
-    ** Barrier.shared_pre nthr 0 ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
+    ** shmem_tok ear
+    ** Barrier.shared_pre nthr 0 ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
     ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr) (tid_to_idx (thread_index etid))
   ensures  gpu
     ** thread_id etid
-    ** Barrier.shared_pre nthr (2 * columns_tile) ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
+    ** Barrier.shared_pre nthr (2 * columns_tile) ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
     ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr) (tid_to_idx (thread_index etid))
