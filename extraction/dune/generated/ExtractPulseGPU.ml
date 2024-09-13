@@ -586,6 +586,63 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_TApp
+                ({
+                   FStar_Extraction_ML_Syntax.expr =
+                     FStar_Extraction_ML_Syntax.MLE_Name p;
+                   FStar_Extraction_ML_Syntax.mlty = uu___1;
+                   FStar_Extraction_ML_Syntax.loc = uu___2;_},
+                 ty::[]);
+              FStar_Extraction_ML_Syntax.mlty = uu___3;
+              FStar_Extraction_ML_Syntax.loc = uu___4;_},
+            sized_a::sz::earr::[])
+           when
+           let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___5 = "GPU.Base.obtain_shmem" ->
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "PULSE_SHMEM")), [])
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            _uid::nblk::nthr::_pre::_post::_a::sized_a::smem_sz::_shared_pre::_shared_post::_setup::
+            {
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Fun (uu___3, body);
+              FStar_Extraction_ML_Syntax.mlty = uu___4;
+              FStar_Extraction_ML_Syntax.loc = uu___5;_}::[])
+           when
+           let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___6 = "GPU.Kernel.launch_kernel_n_m_sync" ->
+           let uu___6 = head_and_args body in
+           (match uu___6 with
+            | (hd, args) ->
+                let args' =
+                  FStar_Compiler_List.filter
+                    (fun a ->
+                       match a.FStar_Extraction_ML_Syntax.expr with
+                       | FStar_Extraction_ML_Syntax.MLE_Const
+                           (FStar_Extraction_ML_Syntax.MLC_Unit) -> false
+                       | uu___7 -> true) args in
+                let kcall =
+                  FStar_Extraction_ML_Syntax.with_ty
+                    FStar_Extraction_ML_Syntax.ml_unit_ty
+                    (FStar_Extraction_ML_Syntax.MLE_Name
+                       ([], "PULSE_KCALL_SHMEM")) in
+                let e_size = get_sizet sized_a in
+                let e' =
+                  FStar_Extraction_ML_Syntax.with_ty
+                    FStar_Extraction_ML_Syntax.ml_unit_ty
+                    (FStar_Extraction_ML_Syntax.MLE_App
+                       (kcall,
+                         (FStar_List_Tot_Base.op_At
+                            [hd; nblk; nthr; e_size; smem_sz] args'))) in
+                cb e')
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
                 FStar_Extraction_ML_Syntax.MLE_Name p;
               FStar_Extraction_ML_Syntax.mlty = uu___1;
               FStar_Extraction_ML_Syntax.loc = uu___2;_},
@@ -783,7 +840,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___484 : unit) =
+let (uu___534 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

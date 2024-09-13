@@ -15,12 +15,14 @@ module SZ = FStar.SizeT
 
 val shmem_tok
   (#a:Type u#0)
+  {| GPU.Sized.sized a |}
   (#sz:SZ.t)
   (ar:gpu_array a sz)
 : slprop
 
 fn obtain_shmem
   (#a:Type u#0)
+  {| GPU.Sized.sized a |}
   (#sz:SZ.t)
   (ear : erased (gpu_array a sz))
   requires shmem_tok ear
@@ -35,6 +37,7 @@ fn launch_kernel_n_m_sync
   (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
 
   (a : Type u#0)
+  {| GPU.Sized.sized a |}
   (smem_sz : SZ.t)
   (#shared_pre : (ar: gpu_array a smem_sz) -> (bid: nat { 0 <= bid /\ bid < nblk }) -> (tid: nat { 0 <= tid /\ tid < nthr } -> slprop))
   (#shared_post : (ar: gpu_array a smem_sz) -> (bid: nat { 0 <= bid /\ bid < nblk }) -> (tid: nat { 0 <= tid /\ tid < nthr } -> slprop))

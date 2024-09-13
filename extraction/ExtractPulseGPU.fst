@@ -192,7 +192,48 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "GPU.AtomicOps.gpu_faa_f64" ->
     EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
+  (******** OBTAIN SHMEM ********)
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sized_a :: sz :: earr :: [])
+    when string_of_mlpath p = "GPU.Base.obtain_shmem" ->
+    // let sz : mlexpr = get_sizet sz in
+    // let e_size = get_sizet sized_a in
+    EApp (EQualified ([], "PULSE_SHMEM"), [])
+
   (******** KERNEL CALLS ********)
+
+  | MLE_App ({ expr = MLE_Name p }, [
+        _uid;
+        nblk;
+        nthr;
+        _pre;
+        _post;
+        _a;
+        sized_a;
+        smem_sz;
+        _shared_pre;
+        _shared_post;
+        _setup;
+        { expr = MLE_Fun (_, body) }
+      ])
+    when string_of_mlpath p = "GPU.Kernel.launch_kernel_n_m_sync" ->
+    let hd, args = head_and_args body in
+    (* Filter out unit arguments. Not great, not sure why they remain *)
+    let args' = List.filter (fun a -> match a.expr with
+                                      | MLE_Const MLC_Unit -> false
+                                      | _ -> true) args in
+    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "PULSE_KCALL_SHMEM") in
+    let e_size = get_sizet sized_a in
+    let e' =
+      with_ty ml_unit_ty <|
+        MLE_App (kcall, [ hd;
+                          nblk;
+                          nthr;
+                          e_size;
+                          smem_sz ]
+                        @ args')
+    in
+    cb e'
 
   | MLE_App ({ expr = MLE_Name p }, [
         _uid;

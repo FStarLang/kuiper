@@ -33,6 +33,18 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);\
 	} while (0)
 
+#define PULSE_KCALL_SHMEM(foo, nblk, nthr, e_size, cnt, ...)			\
+	do {								\
+		foo<<<nblk, nthr, ((e_size) * (shmem_sz))>>>(__VA_ARGS__);		\
+		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);\
+	} while (0)
+
+#define PULSE_SHMEM()							\
+	({								\
+		extern __shared__ char a[];				\
+		a							\
+	})			
+
 #define MUST(e)								\
 	__MUST(e, #e, __FILE__, __LINE__)
 
