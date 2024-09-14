@@ -62,8 +62,13 @@ let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
 let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
 
-let get_sizet (e : mlexpr) : mlexpr =
+let rec unmagic (e : mlexpr) : mlexpr =
   match e.expr with
+  | MLE_Coerce (e, _, _) -> unmagic e
+  | _ -> e
+
+let get_sizet (e : mlexpr) : mlexpr =
+  match (unmagic e).expr with
   | MLE_Record (_, _, [(_, sz)]) -> sz
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
@@ -195,10 +200,11 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** OBTAIN SHMEM ********)
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sized_a :: sz :: earr :: [])
-    when string_of_mlpath p = "GPU.Base.obtain_shmem" ->
+    when string_of_mlpath p = "GPU.Kernel.obtain_shmem" ->
     // let sz : mlexpr = get_sizet sz in
     // let e_size = get_sizet sized_a in
-    EApp (EQualified ([], "PULSE_SHMEM"), [])
+    ECast (EApp (EQualified ([], "PULSE_SHMEM"), [EUnit]),
+           TBuf (translate_type env ty))
 
   (******** KERNEL CALLS ********)
 

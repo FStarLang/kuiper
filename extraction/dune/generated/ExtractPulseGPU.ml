@@ -65,22 +65,30 @@ let (cudaMemcpyDeviceToHost : FStar_Extraction_Krml.expr) =
   FStar_Extraction_Krml.EQualified ([], "cudaMemcpyDeviceToHost")
 let (cudaMemcpyHostToDevice : FStar_Extraction_Krml.expr) =
   FStar_Extraction_Krml.EQualified ([], "cudaMemcpyHostToDevice")
-let (get_sizet :
+let rec (unmagic :
   FStar_Extraction_ML_Syntax.mlexpr -> FStar_Extraction_ML_Syntax.mlexpr) =
   fun e ->
     match e.FStar_Extraction_ML_Syntax.expr with
-    | FStar_Extraction_ML_Syntax.MLE_Record (uu___, uu___1, (uu___2, sz)::[])
-        -> sz
-    | uu___ ->
-        let uu___1 =
-          let uu___2 =
-            let uu___3 =
+    | FStar_Extraction_ML_Syntax.MLE_Coerce (e1, uu___, uu___1) -> unmagic e1
+    | uu___ -> e
+let (get_sizet :
+  FStar_Extraction_ML_Syntax.mlexpr -> FStar_Extraction_ML_Syntax.mlexpr) =
+  fun e ->
+    let uu___ =
+      let uu___1 = unmagic e in uu___1.FStar_Extraction_ML_Syntax.expr in
+    match uu___ with
+    | FStar_Extraction_ML_Syntax.MLE_Record
+        (uu___1, uu___2, (uu___3, sz)::[]) -> sz
+    | uu___1 ->
+        let uu___2 =
+          let uu___3 =
+            let uu___4 =
               FStar_Class_Show.show FStar_Extraction_ML_Code.showable_mlexpr
                 e in
             Prims.strcat "Expected a single-field record for the size, got: "
-              uu___3 in
-          Failed uu___2 in
-        FStar_Compiler_Effect.raise uu___1
+              uu___4 in
+          Failed uu___3 in
+        FStar_Compiler_Effect.raise uu___2
 let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
   fun env ->
     fun e ->
@@ -598,9 +606,15 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
             sized_a::sz::earr::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___5 = "GPU.Base.obtain_shmem" ->
-           FStar_Extraction_Krml.EApp
-             ((FStar_Extraction_Krml.EQualified ([], "PULSE_SHMEM")), [])
+           uu___5 = "GPU.Kernel.obtain_shmem" ->
+           let uu___5 =
+             let uu___6 =
+               let uu___7 = FStar_Extraction_Krml.translate_type env ty in
+               FStar_Extraction_Krml.TBuf uu___7 in
+             ((FStar_Extraction_Krml.EApp
+                 ((FStar_Extraction_Krml.EQualified ([], "PULSE_SHMEM")),
+                   [FStar_Extraction_Krml.EUnit])), uu___6) in
+           FStar_Extraction_Krml.ECast uu___5
        | FStar_Extraction_ML_Syntax.MLE_App
            ({
               FStar_Extraction_ML_Syntax.expr =
@@ -840,7 +854,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___534 : unit) =
+let (uu___541 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

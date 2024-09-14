@@ -35,15 +35,15 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 
 #define PULSE_KCALL_SHMEM(foo, nblk, nthr, e_size, cnt, ...)			\
 	do {								\
-		foo<<<nblk, nthr, ((e_size) * (shmem_sz))>>>(__VA_ARGS__);		\
+		foo<<<nblk, nthr, ((e_size) * (cnt))>>>(__VA_ARGS__);		\
 		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);\
 	} while (0)
 
 #define PULSE_SHMEM()							\
 	({								\
 		extern __shared__ char a[];				\
-		a							\
-	})			
+		a;							\
+	})
 
 #define MUST(e)								\
 	__MUST(e, #e, __FILE__, __LINE__)
@@ -84,5 +84,9 @@ void INFO ()
 	printf("sizeof(unsigned long) = %lu\n", sizeof(unsigned long));
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
+
+#define FStar_Pervasives_Native___proj__Mktuple3__item___1(i) ((i).fst)
+#define FStar_Pervasives_Native___proj__Mktuple3__item___2(i) ((i).snd)
+#define FStar_Pervasives_Native___proj__Mktuple3__item___3(i) ((i).thd)
 
 #endif

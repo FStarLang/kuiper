@@ -52,9 +52,8 @@ fn kernel
     let v1 = Impure.gpu_matrix_read #_ #rows #shared ga1 #(SZ.v nth) #s1 trow v;
     let v2 = Impure.gpu_matrix_read #_ #shared #columns ga2 #(SZ.v nth) #s2 v tcol;
 
-    i := SZ.add v 1sz;
     sum := U64.add_mod (U64.mul_mod v1 v2) s;
-
+    i := SZ.add v 1sz;
     (**)Pure.matmul_single_lemma rows shared columns s1 s2 trow tcol (SZ.v (SZ.add v 1sz));
     ()
   };

@@ -19,6 +19,7 @@ let lemma_pos_times_pos (a b: pos)
 let lemma_nat_times_nat (a b: nat)
   : Lemma (a * b >= 0) = ()
 
+inline_for_extraction noextract
 fn calc_idxs
   (nblk : erased sz { SZ.v nblk == SZ.v SZ.(rows_tile *^ columns_tile) })
   (nthr : erased sz { SZ.v nthr == SZ.v SZ.(bdim *^ bdim) })
@@ -97,6 +98,7 @@ let lemma_div_lt (a : nat) (b c: pos)
   : Lemma (requires (a < c * b))
           (ensures  (a / b < c)) = ()
 
+[@@CPrologue "__device__"]
 fn inner_loop
   (vv : sz{SZ.v vv <= SZ.v bdim - 1})
   (ga1_iidx : sz{SZ.v ga1_iidx <= (SZ.v bdim - 1) * SZ.v bdim})
@@ -137,6 +139,7 @@ fn inner_loop
   sum := U64.add_mod (U64.mul_mod ga1_val ga2_val) s;
 }
 
+[@@CPrologue "__device__"]
 fn outer_loop
   (iv: sz{SZ.v iv <= shared_tile - 1})
   (nthr: erased nat{nthr == SZ.v SZ.(bdim *^ bdim)})
