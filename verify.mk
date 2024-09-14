@@ -18,20 +18,35 @@ FSTAR_EXE := $(FSTAR_HOME)/bin/fstar.exe
 export FSTAR_HOME
 export KRML_HOME
 
-.b_fstar: $(shell find FStar/ocaml/ -type f)
+# Hack to print a newline in the $(error ...)
+define newline
+
+
+endef
+
+.b_fstar: $(shell find FStar/ocaml/ -type f) FStar/Makefile
 	@echo FSTAR
 	$(MAKE) -C FStar 1
 	@touch $@
 
-.b_karamel: $(shell find karamel/ -type f)
+FStar/Makefile:
+	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+
+.b_karamel: $(shell find karamel/ -type f) karamel/Makefile
 	@echo KRML
 	$(MAKE) FSTAR_HOME=$(PWD)/FStar -C karamel minimal
 	@touch $@
 
-.b_pulse: .b_fstar $(shell find pulse/ -type f)
+karamel/Makefile:
+	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+
+.b_pulse: .b_fstar $(shell find pulse/ -type f) pulse/Makefile
 	@echo PULSE
 	$(MAKE) FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml
 	@touch $@
+
+pulse/Makefile:
+	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
