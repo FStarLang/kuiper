@@ -1,7 +1,8 @@
-#include "GPU_MatMul_Tile.h"
+#include "GPU_MatMulTile.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #define N 1024
 
@@ -73,8 +74,12 @@ int main()
 	// printf("M1\n"); pr(m1); printf("\n");
 	// printf("M2\n"); pr(m2); printf("\n");
 
-	u64 *m3 = TIME(GPU_MatMul_Tile_main(m1, m2), NULL);
-/
+	u64 *m3 = TIME(GPU_MatMulTile_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMulTile_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMulTile_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMulTile_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMulTile_main(m1, m2), NULL);
+
 	// u64 *m3_naive = TIME(naive_mul(m1, m2), NULL);
 
 	u64 *m3_cpu = TIME(cpu_mul(m1, m2), NULL);

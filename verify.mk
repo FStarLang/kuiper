@@ -173,7 +173,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 TESTS+=GPU_Example1
 TESTS+=GPU_DotProduct2
 TESTS+=GPU_MatMul
-# TESTS+=GPU_MatMulTile
+TESTS+=GPU_MatMulTile
 TESTS+=GPU_BasicFloat
 TESTS+=GPU_AtomicReduce
 TESTS+=GPU_HReduceU32Plus

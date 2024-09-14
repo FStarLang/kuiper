@@ -74,6 +74,10 @@ int main()
 	// printf("M2\n"); pr(m2); printf("\n");
 
 	u64 *m3 = TIME(GPU_MatMul_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMul_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMul_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMul_main(m1, m2), NULL);
+	free (m3); m3 = TIME(GPU_MatMul_main(m1, m2), NULL);
 
 	// u64 *m3_naive = TIME(naive_mul(m1, m2), NULL);
 
