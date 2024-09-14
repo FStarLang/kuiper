@@ -23,7 +23,7 @@ void pr(u64 *m) {
 
 u64 * naive_mul(u64 *m1, u64 *m2)
 {
-	u64 *m3 = (u64*)malloc(rows * columns * sizeof m3[0]);
+	u64 *m3 = (u64*)calloc(rows * columns, sizeof m3[0]);
 	int i, j, k;
 	for (i = 0; i < rows; i++) {
 		for (j = 0; j < columns; j++) {
@@ -39,7 +39,7 @@ u64 * naive_mul(u64 *m1, u64 *m2)
 
 u64 * cpu_mul(u64 *m1, u64 *m2)
 {
-	u64 *m3 = (u64*)malloc(rows * columns * sizeof m3[0]);
+	u64 *m3 = (u64*)calloc(rows * columns, sizeof m3[0]);
 	int i, j, k;
 	for (i = 0; i < rows; i++) {
 		for (k = 0; k < shared; k++) {
