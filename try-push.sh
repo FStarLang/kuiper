@@ -16,8 +16,8 @@ for p in FStar karamel pulse; do
 	#         br=master
 	# fi
 
-	echo "$ git push origin HEAD:gpu"
-	git push origin HEAD:gpu
+	echo "$ git push -f origin HEAD:gpu"
+	git push -f origin HEAD:gpu
 
 	popd
 done
