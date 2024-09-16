@@ -38,12 +38,14 @@ let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
 [@@ CPrologue "__device__"]
 noextract inline_for_extraction
 let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
-  SZ.rem tid (spow2 i) = 0sz
+  // SZ.rem tid (spow2 i) = 0sz
+  sizet_and tid SZ.(spow2 i -^ 1sz) = 0sz
 
 let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
   Lemma (sdiv_pow2 i tid <==> div_pow2 (SZ.v i) (SZ.v tid))
         [SMTPat (sdiv_pow2 i tid)]
-= calc (==) {
+= sizet_and_div_pow2 tid (spow2 i) i;
+  calc (==) {
     SZ.v (SZ.rem tid (spow2 i));
     == {}
     SZ.v tid - ((SZ.v tid / SZ.v (spow2 i)) * SZ.v (spow2 i));
@@ -160,7 +162,11 @@ fn mk_barrier_pre
   }
 }
 
-[@@ CPrologue "__device__"]
+// KrmlPrivate is essentially a "noextract". F* usually adds it
+// automatically to any definition that does not appear in the fsti,
+// but we have disable that since it interoperates poorly with pulse
+// (due to splicing).
+[@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
@@ -205,12 +211,13 @@ fn iteration
 
   // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 
-  let middle : sz = smin (tid +^ spow2 it) nth;
+  let nextid = tid +^ spow2 it;
+
   (* We do not use end_ in extracted code, so we can use a nat and erase it
   so there are no traces in the extracted C. *)
   let end_   : erased nat = hide (min (tid + 2 * pow2 it) nth);
 
-  if (tid +^ spow2 it <^ nth) {
+  if (nextid <^ nth) {
     bigstar_if_elim #_ #0
       #nth (tid + pow2 it)
       (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
@@ -229,31 +236,31 @@ fn iteration
       assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
       if_elim_true _;
 
-      unfold (gpu_pts_to_slice_sum r tid middle vv);
-      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid middle vv s);
-      with s. assert (gpu_pts_to_slice_sum_inner r tid middle vv s);
+      unfold (gpu_pts_to_slice_sum r tid nextid vv);
+      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid nextid vv s);
+      with s. assert (gpu_pts_to_slice_sum_inner r tid nextid vv s);
       ();
-      unfold (gpu_pts_to_slice_sum_inner r tid middle vv s);
-      unfold (gpu_pts_to_slice_sum r middle end_ vv);
-      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r middle end_ vv s);
+      unfold (gpu_pts_to_slice_sum_inner r tid nextid vv s);
+      unfold (gpu_pts_to_slice_sum r nextid end_ vv);
+      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
       unfold gpu_pts_to_slice_sum_inner;
 
-      let s1 = gpu_array_read #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid;
-      let s2 = gpu_array_read #ety #(SZ.v nth) #(SZ.v middle) #end_ r middle;
+      let s1 = gpu_array_read #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid;
+      let s2 = gpu_array_read #ety #(SZ.v nth) #(SZ.v nextid) #end_ r nextid;
       let s = op s1 s2;
-      // sum_seq_lemma vv tid middle end_;
+      // sum_seq_lemma vv tid nextid end_;
       
       // lemma_seq_fold_left_sum neu op s1 s2;
-      assert (pure (s1 == sum (Seq.slice vv tid middle)));
-      assert (pure (s2 == sum (Seq.slice vv middle end_)));
-      lem_append_slice vv tid middle end_;
-      sum_lemma (Seq.slice vv tid middle) (Seq.slice vv middle end_);
+      assert (pure (s1 == sum (Seq.slice vv tid nextid)));
+      assert (pure (s2 == sum (Seq.slice vv nextid end_)));
+      lem_append_slice vv tid nextid end_;
+      sum_lemma (Seq.slice vv tid nextid) (Seq.slice vv nextid end_);
       assert (pure (s == sum (Seq.slice vv tid end_)));
       
       // assert (pure ( s == sum_seq vv tid end_ ));
-      gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v middle) r tid s;
+      gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid s;
 
-      gpu_slice_concat #ety #(SZ.v nth) r tid middle end_;
+      gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
       with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
       // assert (pure (Seq.index seq 0 == s));
       fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
@@ -284,7 +291,7 @@ fn iteration
   }
 }
 
-[@@ CPrologue "__device__"]
+[@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
@@ -325,7 +332,7 @@ fn reduce
       pts_to n it **
       mbarrier_tok nth (barrier_matrix nth a s) it tid **
       if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
-      pure (c == (pow2 it < nth) /\ SZ.v it < 31)
+      pure (c == (pow2 it < nth) /\ SZ.v it < 32)
   {
     let it = !n <: nat;
     iteration nth a s tid it;
@@ -342,7 +349,6 @@ fn reduce
 }
 
 [@@ CPrologue "__global__"]
-inline_for_extraction
 fn k_reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array ety nth)
