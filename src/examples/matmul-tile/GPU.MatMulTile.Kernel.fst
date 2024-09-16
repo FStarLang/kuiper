@@ -98,7 +98,8 @@ let lemma_div_lt (a : nat) (b c: pos)
   : Lemma (requires (a < c * b))
           (ensures  (a / b < c)) = ()
 
-[@@CPrologue "__device__"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
+inline_for_extraction
 fn inner_loop
   (vv : sz{SZ.v vv <= SZ.v bdim - 1})
   (ga1_iidx : sz{SZ.v ga1_iidx <= (SZ.v bdim - 1) * SZ.v bdim})
@@ -139,7 +140,8 @@ fn inner_loop
   sum := U64.add_mod (U64.mul_mod ga1_val ga2_val) s;
 }
 
-[@@CPrologue "__device__"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
+inline_for_extraction
 fn outer_loop
   (iv: sz{SZ.v iv <= shared_tile - 1})
   (nthr: erased nat{nthr == SZ.v SZ.(bdim *^ bdim)})
