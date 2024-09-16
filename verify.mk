@@ -149,7 +149,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--krmloutput $@							\
 		$(call SRC_FILE_FOR_CHECKED,$<)
 
-$(OUTDIR)/%.c: $(OUTDIR)/%.krml | .b_karamel
+$(OUTDIR)/%.c: $(OUTDIR)/%.krml .b_karamel
 	$(call msg,"KRML")
 	@# Awful substitution here to get the module name, turning something like
 	@# out/GPU_DotProduct2.krml into GPU.DotProduct2
