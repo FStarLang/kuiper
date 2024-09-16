@@ -161,17 +161,13 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "GPU.Array.gpu_memcpy_host_to_device"->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
-    EApp (EQualified ([], "MUST"), [
-      EApp (EQualified ([], "cudaMemcpy"), [ cb ga; cb a; bytesize; cudaMemcpyHostToDevice ])
-    ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb ga; cb a; bytesize; cudaMemcpyHostToDevice ])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Array.gpu_memcpy_device_to_host"->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
-    EApp (EQualified ([], "MUST"), [
-      EApp (EQualified ([], "cudaMemcpy"), [ cb a; cb ga; bytesize; cudaMemcpyDeviceToHost ])
-    ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb a; cb ga; bytesize; cudaMemcpyDeviceToHost ])
 
   (******** ATOMIC OPS ********)
 
