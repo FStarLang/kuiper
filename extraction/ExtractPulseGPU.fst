@@ -82,6 +82,11 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   let cb = translate_expr env in
   match e.expr with
 
+  (******** SIZET, missing from F* ********)
+  | MLE_App ({ expr = MLE_Name p } , [ x; y ])
+    when string_of_mlpath p = "GPU.SizeT.sizet_and" ->
+    EApp (EOp (BAnd, SizeT), [ cb x; cb y ])
+
   (******** PREDEFINED VARS ********)
 
   | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
