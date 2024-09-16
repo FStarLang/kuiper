@@ -13,7 +13,7 @@ val contributions
   (v_done : seq bool)
   (v_a : seq u64{Seq.length v_done >= Seq.length v_a})
   (v_r : u64) (acc : u64)
-: Tot prop (decreases Seq.length v_a)
+: Tot prop
 
 val inv_p
       (nn: nat)
