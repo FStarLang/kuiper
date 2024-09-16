@@ -704,7 +704,7 @@ let rec bigstar_except_equiv_emp
 = if m = n then ()
   else bigstar_except_equiv_emp #u1 (m+1) n f (Set.remove m s)
 
-#push-options "--query_stats --ifuel 0 --z3rlimit_factor 16 --fuel 2"
+#push-options "--ifuel 0 --z3rlimit_factor 16 --fuel 2"
 #restart-solver
 let rec bigstar_except_equiv_split
   (#u1: int)
