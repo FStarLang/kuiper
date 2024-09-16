@@ -291,11 +291,12 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [
         _pre;
         _post;
-        { expr = MLE_Fun (_, body) }
+        { expr = MLE_Fun (_, body) };
+        _epoch
       ])
-    when string_of_mlpath p = "GPU.Kernel.launch_kernel_1" ->
+    when string_of_mlpath p = "GPU.Kernel.launch_kernel_1_async" ->
     let hd, args = head_and_args body in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "PULSE_KCALL") in
+    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "PULSE_KCALL_ASYNC") in
     (* Filter out unit arguments. Not great, not sure why they remain *)
     let args' = List.filter (fun a -> match a.expr with
                                     | MLE_Const MLC_Unit -> false
@@ -331,6 +332,13 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
                         @ args')
     in
     cb e'
+
+  | MLE_App ({ expr = MLE_Name p }, [
+        _unit;
+        _epoch
+      ])
+    when string_of_mlpath p = "GPU.Kernel.sync" ->
+    EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   | _ -> raise NotSupportedByKrmlExtension
 

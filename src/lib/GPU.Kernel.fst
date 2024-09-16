@@ -134,6 +134,57 @@ fn kernel_1_as_n
   k ()
 }
 
+let epoch_live (n:nat) : slprop = magic ()
+let epoch_done (n:nat) : slprop = magic ()
+
+ghost
+fn get_epoch ()
+  requires emp
+  returns e : erased nat
+  ensures epoch_live e
+{ admit (); }
+
+fn sync () (#e:erased nat)
+  requires epoch_live e
+  ensures
+    exists* e'.
+      epoch_live e' ** epoch_done e **
+      pure (e' >= e)
+{ admit (); }
+
+ghost
+fn done_lower (e f :nat)
+  requires epoch_done e ** pure (f <= e)
+  ensures  epoch_done e ** epoch_done f
+{ admit (); }
+
+fn launch_kernel_1_async
+  (#pre #post : slprop)
+  (k : unit ->
+    stt unit (gpu ** pre) (fun _ -> gpu ** post)
+  )
+  (#e : erased nat)
+  requires cpu ** epoch_live e ** pre
+  ensures
+    exists* e'.
+      cpu ** epoch_live e' ** pledge0 (epoch_done e) post **
+      pure (e' >= e)
+{ admit (); }
+
+// fn launch_kernel_1
+//   (#pre #post : slprop)
+//   (k : unit ->
+//     stt unit (gpu ** pre) (fun _ -> gpu ** post)
+//   )
+//   requires cpu ** pre
+//   ensures  cpu ** post
+// {
+//   bigstar_single_intro 0 (fun (i: nat { 0 <= i /\ i < 1 }) -> pre);
+//   launch_kernel_n 1sz (fun etid -> kernel_1_as_n #pre #post k etid);
+//   bigstar_single_elim #0;
+// }
+
+inline_for_extraction
 fn launch_kernel_1
   (#pre #post : slprop)
   (k : unit ->
@@ -142,7 +193,15 @@ fn launch_kernel_1
   requires cpu ** pre
   ensures  cpu ** post
 {
-  bigstar_single_intro 0 (fun (i: nat { 0 <= i /\ i < 1 }) -> pre);
-  launch_kernel_n 1sz (fun etid -> kernel_1_as_n #pre #post k etid);
-  bigstar_single_elim #0;
+  let e = get_epoch ();
+  launch_kernel_1_async #pre #post k #e;
+  unfold pledge0;
+  sync ();
+  with e'. assert (epoch_done e');
+  done_lower e' e;
+  redeem_pledge emp_inames (epoch_done e) post;
+  drop_ (epoch_done e);
+  drop_ (epoch_done e');
+  with e''. assert (epoch_live e'');
+  drop_ (epoch_live e'');
 }

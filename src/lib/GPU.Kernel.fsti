@@ -9,6 +9,7 @@ open GPU.Base
 open GPU.Barrier.RPM
 open FStar.Mul
 module SZ = FStar.SizeT
+open Pulse.Lib.Pledge
 
 val shmem_tok
   (#a:Type u#0)
@@ -93,6 +94,40 @@ fn launch_kernel_n
   requires cpu ** bigstar #u1 0 (SZ.v nblk) pre
   ensures  cpu ** bigstar #u1 0 (SZ.v nblk) post
 
+val epoch_live (n:nat) : slprop
+val epoch_done (n:nat) : slprop
+
+ghost
+fn get_epoch ()
+  requires emp
+  returns e : erased nat
+  ensures epoch_live e
+
+fn sync () (#e:erased nat)
+  requires epoch_live e
+  ensures
+    exists* e'.
+      epoch_live e' ** epoch_done e **
+      pure (e' >= e)
+
+ghost
+fn done_lower (e f :nat)
+  requires epoch_done e ** pure (f <= e)
+  ensures  epoch_done e ** epoch_done f
+
+fn launch_kernel_1_async
+  (#pre #post : slprop)
+  (k : unit ->
+    stt unit (gpu ** pre) (fun _ -> gpu ** post)
+  )
+  (#e : erased nat)
+  requires cpu ** epoch_live e ** pre
+  ensures
+    exists* e'.
+      cpu ** epoch_live e' ** pledge0 (epoch_done e) post **
+      pure (e' >= e)
+
+inline_for_extraction
 fn launch_kernel_1
   (#pre #post : slprop)
   (k : unit ->

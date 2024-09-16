@@ -739,17 +739,18 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                              FStar_Extraction_ML_Syntax.MLE_Fun
                              (uu___3, body);
                            FStar_Extraction_ML_Syntax.mlty = uu___4;
-                           FStar_Extraction_ML_Syntax.loc = uu___5;_}::[])
+                           FStar_Extraction_ML_Syntax.loc = uu___5;_}::_epoch::[])
            when
            let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___6 = "GPU.Kernel.launch_kernel_1" ->
+           uu___6 = "GPU.Kernel.launch_kernel_1_async" ->
            let uu___6 = head_and_args body in
            (match uu___6 with
             | (hd, args) ->
                 let kcall =
                   FStar_Extraction_ML_Syntax.with_ty
                     FStar_Extraction_ML_Syntax.ml_unit_ty
-                    (FStar_Extraction_ML_Syntax.MLE_Name ([], "PULSE_KCALL")) in
+                    (FStar_Extraction_ML_Syntax.MLE_Name
+                       ([], "PULSE_KCALL_ASYNC")) in
                 let args' =
                   FStar_Compiler_List.filter
                     (fun a ->
@@ -847,10 +848,23 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                   FStar_Extraction_ML_Syntax.with_ty
                     FStar_Extraction_ML_Syntax.ml_unit_ty uu___7 in
                 cb e')
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            _unit::_epoch::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "GPU.Kernel.sync" ->
+           FStar_Extraction_Krml.EApp
+             ((FStar_Extraction_Krml.EQualified ([], "cudaDeviceSynchronize")),
+               [FStar_Extraction_Krml.EUnit])
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___550 : unit) =
+let (uu___559 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
