@@ -1,12 +1,5 @@
 module GPU.HReduceF64Plus
 
-(* This module is specialized to U64 and addition.
-
-The only admits are a boring fact about associativity of add_mod (unsure why
-it's not already trivial in F* ) and lack of overflow of the iteration counter.
-This last thing should fall out from the fact that any the size of an array must
-fit in a sizet, and the log of that size even more so. *)
-
 #lang-pulse
 
 open GPU
