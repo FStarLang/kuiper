@@ -12,13 +12,7 @@
   ],
   "include_dirs": [
     ".cache",
-    "pulse/lib/pulse",
-    "pulse/lib/pulse/core",
-    "pulse/lib/pulse/lib",
-    "pulse/lib/pulse/lib/class",
-    "src/lib",
-    "src/examples",
-    "src/examples/matmul",
-    "src/examples/matmul-tile"
+    "pulse",
+    "src"
   ]
 }

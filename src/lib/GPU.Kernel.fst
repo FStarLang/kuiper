@@ -10,12 +10,12 @@ open GPU.Barrier.RPM
 open FStar.Mul
 module SZ = FStar.SizeT
 
-val shmem_tok
+let shmem_tok
   (#a:Type u#0)
   {| GPU.Sized.sized a |}
   (#sz:nat)
   (ar:gpu_array a sz)
-: slprop
+: slprop = magic ()
 
 fn obtain_shmem
   (#a:Type u#0)
@@ -25,6 +25,7 @@ fn obtain_shmem
   requires shmem_tok ear
   returns  ar : gpu_array a sz
   ensures  pure (reveal ear == ar)
+    { admit () }
 
 (* f<<<nblk, nthr, smem_sz>>>(...); *)
 fn launch_kernel_n_m_sync
@@ -50,6 +51,7 @@ fn launch_kernel_n_m_sync
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
+{ admit (); }
 
 (* f<<<nblk, nthr>>>(...); *)
 fn launch_kernel_n_m_barrier
@@ -66,6 +68,7 @@ fn launch_kernel_n_m_barrier
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
+{ admit (); }
 
 (* f<<<nblk, nthr>>>(...); *)
 fn launch_kernel_n_m
@@ -80,6 +83,24 @@ fn launch_kernel_n_m
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
+{ admit (); }
+
+(* f<<<nblk, 1>>>(...); *)
+// Private
+fn kernel_n_as_n_m
+  (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
+  (#pre #post : (tid:nat{ 0 <= tid /\ tid < SZ.v nblk } -> slprop))
+  (k :
+    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
+    stt unit (gpu ** thread_id etid ** pre (thread_index etid))
+             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
+  )
+  (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz })
+  requires gpu ** thread_id etid ** pre (thread_index etid)
+  ensures  gpu ** thread_id etid ** post (thread_index etid)
+{
+  k etid;
+}
 
 fn launch_kernel_n
   (#u1: erased int)
@@ -92,6 +113,26 @@ fn launch_kernel_n
   )
   requires cpu ** bigstar #u1 0 (SZ.v nblk) pre
   ensures  cpu ** bigstar #u1 0 (SZ.v nblk) post
+{
+  rewrite (bigstar #u1 0 (SZ.v nblk) pre) as (bigstar #u1 0 (SZ.v nblk * 1) pre);
+  launch_kernel_n_m #u1 nblk 1sz #pre #post
+    (fun etid -> kernel_n_as_n_m nblk #pre #post k etid);
+  rewrite (bigstar #u1 0 (SZ.v nblk * 1) post) as (bigstar #u1 0 (SZ.v nblk) post);
+}
+
+(* f<<<1, 1>>>(...); *)
+// Private
+fn kernel_1_as_n
+  (#pre #post : slprop)
+  (k : unit ->
+    stt unit (gpu ** pre) (fun _ -> gpu ** post)
+  )
+  (etid:tid_t { gdim_x etid == 1sz /\ bdim_x etid == 1sz })
+  requires gpu ** thread_id etid ** pre
+  ensures  gpu ** thread_id etid ** post
+{
+  k ()
+}
 
 fn launch_kernel_1
   (#pre #post : slprop)
@@ -100,3 +141,8 @@ fn launch_kernel_1
   )
   requires cpu ** pre
   ensures  cpu ** post
+{
+  bigstar_single_intro 0 (fun (i: nat { 0 <= i /\ i < 1 }) -> pre);
+  launch_kernel_n 1sz (fun etid -> kernel_1_as_n #pre #post k etid);
+  bigstar_single_elim #0;
+}
