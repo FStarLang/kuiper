@@ -56,3 +56,7 @@ val div_pow2_lemma_2 (it tid: nat):
 val shift_left_1_n (n:pos) (s:nat{s < n})
 : Lemma (UInt.shift_left #n 1 s == pow2 s)
         [SMTPat (UInt.shift_left #n 1 s)]
+
+val add_mod_assoc (#n:nat) (a b c : UInt.uint_t n)
+: Lemma (UInt.add_mod a (UInt.add_mod b c) == UInt.add_mod (UInt.add_mod a b) c)
+        [SMTPat (UInt.add_mod a (UInt.add_mod b c))]

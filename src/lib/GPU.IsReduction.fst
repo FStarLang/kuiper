@@ -37,6 +37,7 @@ let ac_eq_foldl
   (#a:Type) (z : a) (f : a -> a -> a) (s : seq a) (r : a)
   : Lemma (requires is_comm_semigroup z f /\ is_reduction z f s r)
           (ensures r == GPU.Seq.Common.seq_fold_left f z s)
+          [SMTPat (is_reduction z f s r)]
 = let pf : squash (is_reduction z f s r) = () in
   Squash.bind_squash pf (fun pf -> __ac_eq_foldl z f s r pf)
     <: squash (r == GPU.Seq.Common.seq_fold_left f z s)

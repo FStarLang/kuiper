@@ -13,6 +13,10 @@ module U64 = FStar.UInt64
 
 module HR = GPU.HReduceU64Plus
 
+let u64_comm_semigroup ()
+: squash (is_comm_semigroup HR.neu HR.op)
+= ()
+
 #set-options "--z3rlimit 20"
 
 let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
@@ -116,7 +120,7 @@ fn main
   (#_: squash (Seq.length v1 = dp2_size /\ Seq.length v2 = dp2_size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  dp: u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == HR.sum (pmul v1 v2))
+  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))
 {
   let ar = A.alloc #u64 0UL dp2_size;
 
@@ -194,6 +198,11 @@ fn main
   gpu_array_free gr;
 
   let dp = ar.(0sz);
+
+  (* Finally, ensure that the reduction must be sum *)
+  u64_comm_semigroup ();
+  IsReduction.ac_eq_foldl HR.neu HR.op (pmul v1 v2) dp;
+
   A.free ar;
   dp
 }

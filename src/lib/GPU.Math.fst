@@ -94,3 +94,22 @@ let shift_left_1_n (n:pos) (s:nat{s < n}) :
     == { M.small_mod (pow2 s) (pow2 n) }
     pow2 s;
   }
+
+let add_mod_assoc (#n:nat) (a b c : UInt.uint_t n)
+: Lemma (UInt.add_mod a (UInt.add_mod b c) == UInt.add_mod (UInt.add_mod a b) c)
+        [SMTPat (UInt.add_mod a (UInt.add_mod b c))]
+= calc (==) {
+    UInt.add_mod a (UInt.add_mod b c);
+    == {}
+    UInt.add_mod a  ((b + c) % pow2 n);
+    == {}
+    (a + ((b + c) % pow2 n)) % pow2 n;
+    == { M.lemma_mod_add_distr a (b + c) (pow2 n) }
+    (a + (b + c)) % pow2 n;
+    == {}
+    (c + (a + b)) % pow2 n;
+    == { M.lemma_mod_add_distr c (a + b) (pow2 n) }
+    (c + ((a + b) % pow2 n)) % pow2 n;
+    == {}
+    UInt.add_mod (UInt.add_mod a b) c;
+  }

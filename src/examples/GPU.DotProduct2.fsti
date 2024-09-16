@@ -18,11 +18,15 @@ let pmul (s1 s2: seq u64)
   = Seq.init_ghost (Seq.length s1)
       (fun i -> U64.mul_mod (Seq.index s1 i) (Seq.index s2 i))
 
+let sum = GPU.Seq.Common.seq_fold_left HR.op HR.neu
+// NB: HR.op=U64.add_mod, HR.neu=U64.zero, but the brittle
+// SMT encoding breaks if we use that instead of exactly the same term
+// as appears in HR
+
 fn main
   (a1 a2: array u64)
   (v1 v2: erased (seq u64))
   (#_: squash (Seq.length v1 = dp2_size /\ Seq.length v2 = dp2_size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  dp: u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == HR.sum (pmul v1 v2))
-
+  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))
