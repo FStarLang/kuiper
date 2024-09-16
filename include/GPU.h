@@ -27,19 +27,15 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 	}
 }
 
-#define PULSE_KCALL(foo, nblk, nthr, ...)					\
-	do {									\
-		foo<<<nblk,nthr>>>(__VA_ARGS__);				\
-		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);	\
-		cudaDeviceSynchronize();					\
-	} while (0)
-
 #define PULSE_KCALL_SHMEM(foo, nblk, nthr, e_size, cnt, ...)			\
 	do {									\
 		foo<<<nblk, nthr, ((e_size) * (cnt))>>>(__VA_ARGS__);		\
 		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);	\
 		cudaDeviceSynchronize();					\
 	} while (0)
+
+#define PULSE_KCALL(foo, nblk, nthr, ...)					\
+	PULSE_KCALL_SHMEM(foo, nblk, nthr, 0, 0, __VA_ARGS__)
 
 #define PULSE_SHMEM()							\
 	({								\
