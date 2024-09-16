@@ -5,6 +5,10 @@ open FStar.Seq
 
 let is_permutation (#a:Type) (s1 s2 :seq a) : prop = magic()
 
+let lemma_Singl z f r =
+  let pf : is_reduction z f seq![r] r = Singl r in
+  Squash.return_squash pf
+
 let rec __ac_eq_foldl
   (#a:Type) (z : a) (f : a -> a -> a) (s : seq a) (r : a)
   (pf : is_reduction z f s r)
@@ -44,3 +48,16 @@ let assoc_uniq_reduction
 = ac_eq_foldl z f xs r1;
   ac_eq_foldl z f xs r2;
   ()
+
+(* Again, quite terrible to write. *)
+let op_is_reduction
+  (#a:Type) (z:a) (f : a -> a -> a)
+  (s1 : seq a) (r1 : a)
+  (s2 : seq a) (r2 : a)
+: Lemma (requires is_reduction z f s1 r1 /\ is_reduction z f s2 r2)
+        (ensures is_reduction z f (s1 `Seq.append` s2) (f r1 r2))
+= Squash.bind_squash () (fun pf1 ->
+  Squash.bind_squash () (fun pf2 ->
+  let pf = Split s1 s2 r1 r2 pf1 pf2 in
+  Squash.return_squash pf))
+    <: squash (is_reduction z f (s1 `Seq.append` s2) (f r1 r2))

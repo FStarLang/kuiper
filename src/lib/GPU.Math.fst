@@ -50,6 +50,39 @@ let rec div_pow2_lemma (i j tid: nat):
       M.mod_mult_exact tid (pow2 (j - 1)) 2
   )
 
+val lemma_div_exact: a:int -> p:pos -> Lemma
+  (a % p = 0 <==> a = p * (a / p))
+let lemma_div_exact a p = ()
+
+let div_pow2_lemma_2 (it tid: nat):
+  Lemma (
+    (not (div_pow2 (it + 1) (tid + pow2 it)) && div_pow2 it (tid + pow2 it))
+    <==>
+    div_pow2 (it + 1) tid
+  ) =
+    calc (<==>) {
+      (not (div_pow2 (it + 1) (tid + pow2 it))) && div_pow2 it (tid + pow2 it) <: prop;
+      <==> {}
+      (tid + pow2 it)                       % (2 * pow2 it) <> 0 && (tid + pow2 it) % pow2 it = 0 <: prop;
+      <==> { FStar.Math.Lemmas.lemma_div_mod_plus tid 1 (pow2 it) }
+      (tid + pow2 it)                       % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
+      <==> { lemma_div_exact tid (pow2 it) }
+      (pow2 it * (tid / pow2 it) + pow2 it) % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
+      <==> { FStar.Math.Lemmas.distributivity_add_right (pow2 it) (tid / pow2 it) 1 }
+      (pow2 it * (tid / pow2 it + 1))       % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
+      <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it + 1) (pow2 it) 2 }
+      pow2 it * ((tid / pow2 it + 1) % 2)                   <> 0 && tid % pow2 it = 0 <: prop;
+      <==> {}
+      pow2 it * ((tid / pow2 it) % 2)                        = 0 && tid % pow2 it = 0 <: prop;
+      <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it) (pow2 it) 2 }
+      (pow2 it * (tid / pow2 it)) % (2 * pow2 it)            = 0 && tid % pow2 it = 0 <: prop;
+      <==> { lemma_div_exact tid (pow2 it) }
+      tid % (2 * pow2 it)                                    = 0 && tid % pow2 it = 0 <: prop;
+      <==> { div_pow2_lemma it (it + 1) tid }
+      div_pow2 (it + 1) tid;
+    }
+
+
 let shift_left_1_n (n:pos) (s:nat{s < n}) :
   Lemma (UInt.shift_left #n 1 s == pow2 s) =
   calc (==) {

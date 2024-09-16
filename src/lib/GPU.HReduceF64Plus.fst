@@ -1,13 +1,6 @@
 module GPU.HReduceF64Plus
 #set-options "--z3rlimit 10"
 
-(* This module is specialized to U64 and addition.
-
-The only admits are a boring fact about associativity of add_mod (unsure why
-it's not already trivial in F* ) and lack of overflow of the iteration counter.
-This last thing should fall out from the fact that any the size of an array must
-fit in a sizet, and the log of that size even more so. *)
-
 #lang-pulse
 
 open GPU
@@ -18,15 +11,6 @@ open GPU.Seq.Common
 module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
-
-let op_assoc () : Lemma (is_associative op) = admit() // not true for floats
-let op_neu () : Lemma (is_neutral_for neu op) = admit()
-let op_monoid () : Lemma (is_monoid neu op) = op_assoc (); op_neu ()
-
-(* same, also the op_monoid does not (cannot?) have a pattern. *)
-let sum_lemma (s1 s2 : seq ety) : Lemma (sum (s1 `Seq.append` s2) == op (sum s1) (sum s2)) =
-  op_monoid();
-  lemma_seq_fold_left_sum neu op s1 s2
 
 [@@ CPrologue "__device__"]
 noextract inline_for_extraction
@@ -66,38 +50,6 @@ let barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: 
   if_ (from = to + pow2 it)
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
-
-val lemma_div_exact: a:int -> p:pos -> Lemma
-  (a % p = 0 <==> a = p * (a / p))
-let lemma_div_exact a p = ()
-
-let div_pow2_lemma_2 (it tid: nat):
-  Lemma (
-    (not (div_pow2 (it + 1) (tid + pow2 it)) && div_pow2 it (tid + pow2 it))
-    <==>
-    div_pow2 (it + 1) tid
-  ) =
-    calc (<==>) {
-      (not (div_pow2 (it + 1) (tid + pow2 it))) && div_pow2 it (tid + pow2 it) <: prop;
-      <==> {}
-      (tid + pow2 it)                       % (2 * pow2 it) <> 0 && (tid + pow2 it) % pow2 it = 0 <: prop;
-      <==> { FStar.Math.Lemmas.lemma_div_mod_plus tid 1 (pow2 it) }
-      (tid + pow2 it)                       % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
-      <==> { lemma_div_exact tid (pow2 it) }
-      (pow2 it * (tid / pow2 it) + pow2 it) % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
-      <==> { FStar.Math.Lemmas.distributivity_add_right (pow2 it) (tid / pow2 it) 1 }
-      (pow2 it * (tid / pow2 it + 1))       % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
-      <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it + 1) (pow2 it) 2 }
-      pow2 it * ((tid / pow2 it + 1) % 2)                   <> 0 && tid % pow2 it = 0 <: prop;
-      <==> {}
-      pow2 it * ((tid / pow2 it) % 2)                        = 0 && tid % pow2 it = 0 <: prop;
-      <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it) (pow2 it) 2 }
-      (pow2 it * (tid / pow2 it)) % (2 * pow2 it)            = 0 && tid % pow2 it = 0 <: prop;
-      <==> { lemma_div_exact tid (pow2 it) }
-      tid % (2 * pow2 it)                                    = 0 && tid % pow2 it = 0 <: prop;
-      <==> { div_pow2_lemma it (it + 1) tid }
-      div_pow2 (it + 1) tid;
-    }
 
 ghost fn fold_barrier_matrix_true
   (nth : nat)
@@ -235,45 +187,38 @@ fn iteration
       assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
       if_elim_true _;
 
-      unfold (gpu_pts_to_slice_sum r tid nextid vv);
-      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid nextid vv s);
-      with s. assert (gpu_pts_to_slice_sum_inner r tid nextid vv s);
-      ();
-      unfold (gpu_pts_to_slice_sum_inner r tid nextid vv s);
-      unfold (gpu_pts_to_slice_sum r nextid end_ vv);
-      if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
-      unfold gpu_pts_to_slice_sum_inner;
+      (**)unfold (gpu_pts_to_slice_sum r tid nextid vv);
+      (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid nextid vv s);
+      (**)unfold gpu_pts_to_slice_sum_inner;
+      let s1 = gpu_array_read #_ #_ #tid #nextid r tid;
+      (**)assert (pure (squash (is_reduction neu op (Seq.slice vv tid nextid) s1)));
 
-      let s1 = gpu_array_read #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid;
-      let s2 = gpu_array_read #ety #(SZ.v nth) #(SZ.v nextid) #end_ r nextid;
+      (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
+      (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
+      (**)unfold gpu_pts_to_slice_sum_inner;
+      let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
+      (**)assert (pure (squash (is_reduction neu op (Seq.slice vv nextid end_) s2)));
+
       let s = op s1 s2;
-      // sum_seq_lemma vv tid nextid end_;
+      (**)lem_append_slice vv tid nextid end_;
+      (**)assert (pure (squash (is_reduction neu op (Seq.slice vv tid end_) s)));
       
-      // lemma_seq_fold_left_sum neu op s1 s2;
-      assert (pure (s1 == sum (Seq.slice vv tid nextid)));
-      assert (pure (s2 == sum (Seq.slice vv nextid end_)));
-      lem_append_slice vv tid nextid end_;
-      sum_lemma (Seq.slice vv tid nextid) (Seq.slice vv nextid end_);
-      assert (pure (s == sum (Seq.slice vv tid end_)));
-      
-      // assert (pure ( s == sum_seq vv tid end_ ));
       gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid s;
 
-      gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
-      with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
-      // assert (pure (Seq.index seq 0 == s));
-      fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
-      if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
-      fold (gpu_pts_to_slice_sum r tid end_ vv);
-      if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
-      rewrite
-        if_ true (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv))
-      as
-        if_ (div_pow2 (SZ.v it + 1) (SZ.v tid))
-          (gpu_pts_to_slice_sum r
-              (SZ.v tid)
-              (min (SZ.v tid + pow2 (SZ.v it + 1)) (SZ.v nth))
-              (reveal vv));
+      (**)gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
+      (**)with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
+      (**)fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
+      (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
+      (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
+      (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
+      (**)rewrite
+      (**)  if_ true (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv))
+      (**)as
+      (**)  if_ (div_pow2 (SZ.v it + 1) (SZ.v tid))
+      (**)    (gpu_pts_to_slice_sum r
+      (**)        (SZ.v tid)
+      (**)        (min (SZ.v tid + pow2 (SZ.v it + 1)) (SZ.v nth))
+      (**)        (reveal vv));
       ();
     } else {
       if_elim_false _;
@@ -318,9 +263,8 @@ fn reduce
   (**)with ss. assert (gpu_pts_to_array_slice a tid (tid+1) ss);
   (**) gpu_pts_to_slice_ref a tid (tid+1);
   (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
-  assert (pure (sum seq![reveal v0] == add Float64.zero v0));
-  op_neu();
-  assert (pure (add Float64.zero v0 == v0));
+  assert (pure (squash (is_reduction neu op seq![reveal v0] v0)));
+  assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![reveal v0])); // sucks
   (**)fold (gpu_pts_to_slice_sum_inner #nth a tid (tid+1) s ss);
   (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner #nth a tid (tid + pow2 0) s ss);
   (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);

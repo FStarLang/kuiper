@@ -45,6 +45,13 @@ val div_pow2_lemma (i j tid: nat):
     (requires i < j)
     (ensures (div_pow2 j tid) ==> (div_pow2 i tid))
 
+val div_pow2_lemma_2 (it tid: nat):
+  Lemma (
+    (not (div_pow2 (it + 1) (tid + pow2 it)) && div_pow2 it (tid + pow2 it))
+    <==>
+    div_pow2 (it + 1) tid
+  )
+
 (* This proves that 1<<n == pow2 n for every machine int *)
 val shift_left_1_n (n:pos) (s:nat{s < n})
 : Lemma (UInt.shift_left #n 1 s == pow2 s)
