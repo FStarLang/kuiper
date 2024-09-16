@@ -72,6 +72,9 @@ let get_sizet (e : mlexpr) : mlexpr =
   | MLE_Record (_, _, [(_, sz)]) -> sz
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
+let _MUST (e : expr) : expr =
+    EApp (EQualified ([], "MUST"), [e])
+
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
@@ -113,9 +116,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ r; _v ])
     when string_of_mlpath p = "GPU.Ref.gpu_free" ->
-    EApp (EQualified ([], "MUST"), [
-      EApp (EQualified ([], "cudaFree"), [cb r])
-    ])
+    _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
 
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e; _perm; _v ])
     when string_of_mlpath p = "GPU.Ref.gpu_read" ->
@@ -128,16 +129,12 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: gr :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Ref.gpu_memcpy_host_to_device"->
     let sz : mlexpr = get_sizet sz in
-    EApp (EQualified ([], "MUST"), [
-      EApp (EQualified ([], "cudaMemcpy"), [ cb gr; cb r; cb sz ; cudaMemcpyHostToDevice ])
-    ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb gr; cb r; cb sz ; cudaMemcpyHostToDevice ])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: gr :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Ref.gpu_memcpy_device_to_host"->
     let sz : mlexpr = get_sizet sz in
-    EApp (EQualified ([], "MUST"), [
-      EApp (EQualified ([], "cudaMemcpy"), [ cb r; cb gr; cb sz; cudaMemcpyDeviceToHost ])
-    ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb r; cb gr; cb sz; cudaMemcpyDeviceToHost ])
 
   (******** ARRAY ********)
 
@@ -150,9 +147,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: v :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_free" ->
-    EApp (EQualified ([], "MUST"), [
-      EApp (EQualified ([], "cudaFree"), [cb r])
-    ])
+    _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: f :: idx :: s :: [])
     when string_of_mlpath p = "GPU.Array.gpu_array_read" ->
