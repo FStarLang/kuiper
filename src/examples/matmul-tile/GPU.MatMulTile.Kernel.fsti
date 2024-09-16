@@ -102,7 +102,7 @@ fn kernel
   (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
   (nblk : erased sz { SZ.v nblk == SZ.v SZ.(rows_tile *^ columns_tile) })
   (nthr : erased sz { SZ.v nthr == SZ.v SZ.(bdim *^ bdim) })
-  (smem_sz : sz { SZ.v smem_sz == 2 * SZ.v nthr })
+  (smem_sz : erased nat { smem_sz == 2 * SZ.v nthr })
   (ear: erased (gpu_array u64 smem_sz))
   (etid : tid_t { gdim_x etid == nthr /\ bdim_x etid == nblk })
   requires gpu

@@ -212,7 +212,7 @@ fn kernel
   (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
   (nblk : erased sz { SZ.v nblk == SZ.v SZ.(rows_tile *^ columns_tile) })
   (nthr : erased sz { SZ.v nthr == SZ.v SZ.(bdim *^ bdim) })
-  (smem_sz : sz { SZ.v smem_sz == 2 * SZ.v nthr })
+  (smem_sz : erased nat { smem_sz == 2 * SZ.v nthr })
   (ear: erased (gpu_array u64 smem_sz))
   (etid : tid_t { gdim_x etid == nthr /\ bdim_x etid == nblk })
   requires gpu
@@ -244,7 +244,7 @@ fn kernel
   assert (pure (SZ.v trow < SZ.v bdim /\ SZ.v tcol < SZ.v bdim));
 
   let smem_idx1 = 2sz *^ tid;
-  let smem_idx2 = 2sz *^ tid +^ 1sz;
+  let smem_idx2 = smem_idx1 +^ 1sz;
 
   let mut i = 0sz;
   let mut sum = 0UL;
@@ -284,7 +284,7 @@ fn kernel
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx1 v1;
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx2 v2;
 
-    outer_loop iv (SZ.v nthr) (SZ.v smem_sz) ar (SZ.v tid) tcol trow sum;
+    outer_loop iv (SZ.v nthr) smem_sz ar (SZ.v tid) tcol trow sum;
     ()
   };
   fold Barrier.shared_pre nthr (2 * shared_tile) ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid));

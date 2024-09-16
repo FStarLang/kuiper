@@ -2,28 +2,25 @@ module GPU.Kernel
 #lang-pulse
 
 open Pulse.Lib.Pervasives
-open FStar.Tactics.V2
-open FStar.Seq
 open Pulse.Lib.BigStar
 open GPU.SizeT
 open GPU.Array
 open GPU.Base
 open GPU.Barrier.RPM
 open FStar.Mul
-module U32 = FStar.UInt32
 module SZ = FStar.SizeT
 
 val shmem_tok
   (#a:Type u#0)
   {| GPU.Sized.sized a |}
-  (#sz:SZ.t)
+  (#sz:nat)
   (ar:gpu_array a sz)
 : slprop
 
 fn obtain_shmem
   (#a:Type u#0)
   {| GPU.Sized.sized a |}
-  (#sz:SZ.t)
+  (#sz : erased nat)
   (ear : erased (gpu_array a sz))
   requires shmem_tok ear
   returns  ar : gpu_array a sz
