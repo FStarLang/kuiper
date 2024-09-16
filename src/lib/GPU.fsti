@@ -17,6 +17,7 @@ include GPU.SizeT
 include GPU.Conditional
 include GPU.IntAliases
 include GPU.AtomicOps
+include GPU.Functions
 
 include Pulse.Lib.GhostReference { ref as gref, pts_to as gref_pts_to }
 

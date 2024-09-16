@@ -1,22 +1,46 @@
 module GPU.IsReduction
 
-open FStar.List.Tot
+open GPU.Functions
+open FStar.Seq
 
-let assoc (#a:Type) (f : a -> a -> a) : prop =
-  forall x y z. f (f x y) z == f x (f y z)
+let is_permutation (#a:Type) (s1 s2 :seq a) : prop = magic()
 
-type is_reduction (#a:Type0) (f : a -> a -> a) : (xs : list a) -> (r : a) -> Type0 =
-  | Singl :
-    r:a ->
-    is_reduction f [r] r
-  | Split :
-    s1:list a -> s2:list a -> r1:a -> r2:a ->
-    is_reduction f s1 r1 -> is_reduction f s2 r2 ->
-    is_reduction f (s1 @ s2) (f r1 r2)
-  
+let rec __ac_eq_foldl
+  (#a:Type) (z : a) (f : a -> a -> a) (s : seq a) (r : a)
+  (pf : is_reduction z f s r)
+  : Lemma (requires is_comm_semigroup z f)
+          (ensures r == GPU.Seq.Common.seq_fold_left f z s)
+          (decreases pf)
+= match pf with
+  | Emp -> ()
+  | Singl r -> ()
+  | Split s1 s2 r1 r2 pf1 pf2 ->
+    let _ = __ac_eq_foldl z f s1 r1 pf1 in
+    let _ = __ac_eq_foldl z f s2 r2 pf2 in
+    (* Prove *)
+    assume (f (GPU.Seq.Common.seq_fold_left f z s1) (GPU.Seq.Common.seq_fold_left f z s2)
+             ==
+           GPU.Seq.Common.seq_fold_left f z s);
+    ()
+  | Perm s1 s2 r perm pf' ->
+    admit();
+    let _ = __ac_eq_foldl z f s1 r pf' in
+    ()
+
+(* We should really make this easier in F*, it's just grabbing the proof of is_reduction and
+making it concrete to call the lemma above. *)
+let ac_eq_foldl
+  (#a:Type) (z : a) (f : a -> a -> a) (s : seq a) (r : a)
+  : Lemma (requires is_comm_semigroup z f /\ is_reduction z f s r)
+          (ensures r == GPU.Seq.Common.seq_fold_left f z s)
+= let pf : squash (is_reduction z f s r) = () in
+  Squash.bind_squash pf (fun pf -> __ac_eq_foldl z f s r pf)
+    <: squash (r == GPU.Seq.Common.seq_fold_left f z s)
+
 let assoc_uniq_reduction 
-  (#a:Type) (f : a -> a -> a) (xs : list a) (r1 r2 : a)
-  (pf1 : is_reduction f xs r1) (pf2 : is_reduction f xs r2)
-: Lemma (requires assoc f)
+  (#a:Type) (z:a) (f : a -> a -> a) (xs : seq a) (r1 r2 : a)
+: Lemma (requires is_comm_semigroup z f /\ is_reduction z f xs r1 /\ is_reduction z f xs r2)
         (ensures r1 == r2)
-= admit()
+= ac_eq_foldl z f xs r1;
+  ac_eq_foldl z f xs r2;
+  ()
