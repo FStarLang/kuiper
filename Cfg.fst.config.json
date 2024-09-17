@@ -8,10 +8,10 @@
     "--ext", "__unrefine",
     "--ext", "context_pruning",
     "--ext", "no_krml_private",
-    "--ext", "krml_inline_all"
+    "--ext", "krml_inline_all",
+    "--cache_dir", ".cache"
   ],
   "include_dirs": [
-    ".cache",
     "pulse",
     "src"
   ]
