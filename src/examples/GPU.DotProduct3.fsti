@@ -5,7 +5,7 @@ module GPU.DotProduct3
 open GPU
 module A = Pulse.Lib.Array
 module U64 = FStar.UInt64
-module HR = GPU.HReduceU64Plus
+module HR = GPU.HReduceOptU64Plus
 
 (* calling it size means name resolution confusion with GPU.Sized.size *)
 let dp2_size : sz = 1024sz
