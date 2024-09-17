@@ -5,7 +5,7 @@ module GPU.MatMul.Kernel
 open GPU
 module SZ = FStar.SizeT
 
-#set-options "--z3rlimit 20"
+#set-options "--z3rlimit 40"
 
 // NOTE: rows is actually unused in the extraced code. Erasing
 // it involves some changes all around.
