@@ -155,7 +155,7 @@ $(OUTDIR)/%.c: $(OUTDIR)/%.krml .b_karamel
 	@# out/GPU_DotProduct2.krml into GPU.DotProduct2
 	$(Q)MOD=$$(echo $< | sed 's,.*/,,' | sed 's/.krml$$//' | sed 's/_/./g') && \
 	$(KRML) \
-		-bundle "$${MOD}=$${MOD}.*" \
+		-bundle "$${MOD}=*" \
 		-tmpdir $(OUTDIR) $<
 
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
