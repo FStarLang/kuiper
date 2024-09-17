@@ -106,24 +106,6 @@ let shared_post (nth: nat) (sr gr : gpu_array ety nth) (s : erased (seq ety))
     kpost nth sr s tid **
     (exists* it. mbarrier_tok nth (barrier_matrix nth sr gr s) it tid)
 
-[@@ CPrologue "__device__"]
-noextract inline_for_extraction
-fn fixup
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
-  (a : gpu_array ety nth)
-  (#s :  erased (seq ety))
-  (#_: squash (Seq.length s == nth))
-  (ar: gpu_array ety nth)
-  (tid : sz { SZ.v tid < nth })
-  requires gpu **
-    (exists* s. gpu_pts_to_array_slice a (SZ.v tid) (SZ.v tid + 1) s) **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth ar a s) it tid ** pure (pow2 it >= nth /\ (it > 0 ==> pow2 (it - 1) < nth))) **
-    kpost nth ar s tid
-  ensures
-    gpu **
-    shared_post nth ar a s tid **
-    kpost nth a s tid
-
 [@@ CPrologue "__global__"]
 inline_for_extraction
 fn k_reduce

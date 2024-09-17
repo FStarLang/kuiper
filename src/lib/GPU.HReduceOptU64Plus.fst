@@ -501,7 +501,7 @@ fn fixup
   (ar: gpu_array ety nth)
   (tid : sz { SZ.v tid < nth })
   requires gpu **
-    (exists* s. gpu_pts_to_array_slice a (SZ.v tid) (SZ.v tid + 1) s) **
+    gpu_pts_to_array_slice a (SZ.v tid) (SZ.v tid + 1) seq![Seq.index s (SZ.v tid)] **
     (exists* it. mbarrier_tok nth (barrier_matrix nth ar a s) it tid ** pure (pow2 it >= nth /\ (it > 0 ==> pow2 (it - 1) < nth))) **
     kpost nth ar s tid
   ensures
