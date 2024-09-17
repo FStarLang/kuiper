@@ -196,6 +196,7 @@ TESTS+=GPU_HReduceU64Plus
 TESTS+=GPU_HReduceF32Plus
 TESTS+=GPU_HReduceF64Plus
 TESTS+=GPU_ArrayReversal
+TESTS+=GPU_Async1
 
 extraction-targets: \
 	out/GPU_DotProduct.o \
