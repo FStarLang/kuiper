@@ -1,28 +1,28 @@
 {
-  "fstar_exe": "fstar.exe",
+  "fstar_exe": "../FStar/bin/fstar.exe",
   "options": [
     "--query_cache",
     "--lax",
     "--MLish",
     "--cache_dir",
-    "${FSTAR_HOME}/src/.cache.boot"
+    "../FStar/src/.cache.boot"
   ],
   "include_dirs": [
     ".",
-    "${FSTAR_HOME}/src/basic",
-    "${FSTAR_HOME}/src/class",
-    "${FSTAR_HOME}/src/data",
-    "${FSTAR_HOME}/src/extraction",
-    "${FSTAR_HOME}/src/fstar",
-    "${FSTAR_HOME}/src/parser",
-    "${FSTAR_HOME}/src/prettyprint",
-    "${FSTAR_HOME}/src/reflection",
-    "${FSTAR_HOME}/src/smtencoding",
-    "${FSTAR_HOME}/src/syntax",
-    "${FSTAR_HOME}/src/syntax/print",
-    "${FSTAR_HOME}/src/tactics",
-    "${FSTAR_HOME}/src/tosyntax",
-    "${FSTAR_HOME}/src/typechecker",
-    "${FSTAR_HOME}/src/tests"
+    "../FStar/src/basic",
+    "../FStar/src/class",
+    "../FStar/src/data",
+    "../FStar/src/extraction",
+    "../FStar/src/fstar",
+    "../FStar/src/parser",
+    "../FStar/src/prettyprint",
+    "../FStar/src/reflection",
+    "../FStar/src/smtencoding",
+    "../FStar/src/syntax",
+    "../FStar/src/syntax/print",
+    "../FStar/src/tactics",
+    "../FStar/src/tosyntax",
+    "../FStar/src/typechecker",
+    "../FStar/src/tests"
   ]
 }
