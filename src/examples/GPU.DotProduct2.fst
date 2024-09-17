@@ -13,9 +13,15 @@ module U64 = FStar.UInt64
 
 module HR = GPU.HReduceU64Plus
 
+// flaky
+#push-options "--retry 5"
 let u64_comm_semigroup ()
 : squash (is_comm_semigroup HR.neu HR.op)
-= ()
+= assert (is_commutative HR.op);
+  assert (is_associative HR.op);
+  assert (is_neutral_for HR.neu HR.op);
+  ()
+#pop-options
 
 #set-options "--z3rlimit 20"
 
