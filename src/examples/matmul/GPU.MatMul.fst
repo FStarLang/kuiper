@@ -9,30 +9,26 @@ module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
 module Defs = GPU.MatMul.Defs
 
-[@@pulse_unfold]
-let matmul_single = Defs.matmul_single Defs.rows Defs.shared Defs.columns
-[@@pulse_unfold]
-let matmul = Defs.matmul Defs.rows Defs.shared Defs.columns
-
 ghost
 fn setup
-  (size: sz { size == SZ.(Defs.rows *^ Defs.columns) })
-  (ga1 : gpu_array u64 (Defs.rows * Defs.shared))
-  (ga2 : gpu_array u64 (Defs.shared * Defs.columns))
+  (rows: szp) (shared: szp) (columns: szp{rows * columns < pow2 64})
+  (size: sz { size == SZ.(rows *^ columns) })
+  (ga1 : gpu_array u64 (rows * shared))
+  (ga2 : gpu_array u64 (shared * columns))
   (gr  : gpu_array u64 size)
-  (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
+  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
   requires gpu_pts_to_array gr 's **
            gpu_pts_to_array ga1 v1 **
            gpu_pts_to_array ga2 v2
   ensures  bigstar 0 size (fun i ->
-             Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size i)
+             Defs.kpre rows shared columns ga1 ga2 gr #v1 #v2 size i)
 {
   // Sharing the input matrices (splitting permissions)
-  fold Defs.gpu_pts_to_matrix Defs.rows   Defs.shared  ga1 1 v1;
-  fold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
-  Defs.gpu_matrix_share_underspec #_ #1 Defs.rows   Defs.shared  ga1 size v1;
-  Defs.gpu_matrix_share_underspec #_ #2 Defs.shared Defs.columns ga2 size v2;
+  fold Defs.gpu_pts_to_matrix rows   shared  ga1 1 v1;
+  fold Defs.gpu_pts_to_matrix shared columns ga2 1 v2;
+  Defs.gpu_matrix_share_underspec #_ #1 rows   shared  ga1 size v1;
+  Defs.gpu_matrix_share_underspec #_ #2 shared columns ga2 size v2;
 
   // Sharing the output matrix (splitting each cell)
   gpu_pts_to_ref gr; (* obtain length v == size *)
@@ -46,11 +42,11 @@ fn setup
   ghost
   fn aux (i:nat{0 <= i /\ i < size})
     requires
-      Defs.gpu_pts_to_matrix Defs.rows   Defs.shared  ga1 size v1 **
-      Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 size v2 **
+      Defs.gpu_pts_to_matrix rows   shared  ga1 size v1 **
+      Defs.gpu_pts_to_matrix shared columns ga2 size v2 **
       gpu_pts_to_array_slice gr i (i + 1) seq!['s `Seq.index` i]
     ensures
-      Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 size i
+      Defs.kpre rows shared columns ga1 ga2 gr #v1 #v2 size i
   {
     ()
   };
@@ -59,58 +55,68 @@ fn setup
 }
 
 fn main
+  (rows shared columns : szp)
   (a1 a2: array u64)
-  (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
-  requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
+  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
+  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  requires
+    cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 **
+    pure (
+      rows * shared < pow2 64 /\
+      shared * columns < pow2 64 /\
+      rows * columns < pow2 64 /\
+      rows * columns < max_blocks
+    )
+    // ^ Some of these could be ommited if we had some "core" pure inference from slprops.
+    // Since we have a1 |-> v1, the length of v1 must fit, etc.
   returns  ar: array u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)
+  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (Defs.matmul rows shared columns v1 v2)
 {
   open FStar.SizeT;
-  let size = Defs.rows *^ Defs.columns;
+  let size = rows *^ columns;
   let ar = Pulse.Lib.Array.alloc 0UL size;
 
-  let ga1 = gpu_array_alloc #u64 (Defs.rows *^ Defs.shared);
-  let ga2 = gpu_array_alloc #u64 (Defs.shared *^ Defs.columns);
+  let ga1 = gpu_array_alloc #u64 (rows *^ shared);
+  let ga2 = gpu_array_alloc #u64 (shared *^ columns);
 
-  GPU.Array.gpu_memcpy_host_to_device ga1 a1 (Defs.rows *^ Defs.shared);
-  GPU.Array.gpu_memcpy_host_to_device ga2 a2 (Defs.shared *^ Defs.columns);
+  GPU.Array.gpu_memcpy_host_to_device ga1 a1 (rows *^ shared);
+  GPU.Array.gpu_memcpy_host_to_device ga2 a2 (shared *^ columns);
 
   let gr = gpu_array_alloc #u64 size;
 
-  setup size ga1 ga2 gr v1 v2;
+  setup rows shared columns size ga1 ga2 gr v1 v2;
 
   launch_kernel_n #0
     size
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpre Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size) tid)
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpost Defs.rows Defs.shared Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size) tid)
-    (fun etid -> Defs.kernel ga1 ga2 gr (hide size) etid);
+    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpre rows shared columns ga1 ga2 gr #v1 #v2 (SZ.v size) tid)
+    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpost rows shared columns ga1 ga2 gr #v1 #v2 (SZ.v size) tid)
+    (fun etid -> Defs.kernel rows shared columns ga1 ga2 gr (hide size) etid);
 
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
 
-  (**)Defs.gpu_matrix_unshare_underspec #_ #_ Defs.rows Defs.shared ga1 size v1;
-  (**)Defs.gpu_matrix_unshare_underspec #_ #_ Defs.shared Defs.columns ga2 size v2;
-  (**)unfold Defs.gpu_pts_to_matrix Defs.rows Defs.shared ga1 1 v1;
-  (**)unfold Defs.gpu_pts_to_matrix Defs.shared Defs.columns ga2 1 v2;
+  (**)Defs.gpu_matrix_unshare_underspec #_ #_ rows shared ga1 size v1;
+  (**)Defs.gpu_matrix_unshare_underspec #_ #_ shared columns ga2 size v2;
+  (**)unfold Defs.gpu_pts_to_matrix rows shared ga1 1 v1;
+  (**)unfold Defs.gpu_pts_to_matrix shared columns ga2 1 v2;
 
   ghost
   fn aux1 (i:nat{0 <= i /\ i < size})
     // FIXME: need to explicit about slice sizes here
     requires
-      gpu_pts_to_array_slice #_ #(SZ.v Defs.rows * SZ.v Defs.columns) gr i (i + 1)
-            seq![Defs.matmul_single Defs.rows Defs.shared Defs.columns
-                   v1 v2 (i / Defs.columns) (i % Defs.columns) Defs.shared]
+      gpu_pts_to_array_slice #_ #(SZ.v rows * SZ.v columns) gr i (i + 1)
+            seq![Defs.matmul_single rows shared columns
+                   v1 v2 (i / columns) (i % columns) shared]
     ensures
       gpu_pts_to_array_slice #_ #size gr i (i + 1)
-            seq![Seq.index (Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2) i]
+            seq![Seq.index (Defs.matmul rows shared columns v1 v2) i]
   {
-    Defs.lemma_matmul_index Defs.rows Defs.shared Defs.columns v1 v2 i;
+    Defs.lemma_matmul_index rows shared columns v1 v2 i;
     () (* cf. issue #181 in Pulse *)
   };
   bigstar_map #0 #0 #0 #size aux1;
 
-  (**)gpu_array_unslice_1 #0 #_ #size gr #_ #(Defs.matmul Defs.rows Defs.shared Defs.columns v1 v2);
+  (**)gpu_array_unslice_1 #0 #_ #size gr #_ #(Defs.matmul rows shared columns v1 v2);
 
   GPU.Array.gpu_memcpy_device_to_host ar gr size;
 

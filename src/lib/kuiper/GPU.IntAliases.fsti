@@ -14,3 +14,4 @@ unfold type i16 = FStar.Int16.t
 unfold type i32 = FStar.Int32.t
 unfold type i64 = FStar.Int64.t
 unfold type sz  = FStar.SizeT.t
+unfold type szp = x:sz{FStar.SizeT.v x > 0}

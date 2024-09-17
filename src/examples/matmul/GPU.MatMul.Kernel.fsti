@@ -4,6 +4,9 @@ module GPU.MatMul.Kernel
 
 #push-options "--fuel 1 --ifuel 1"
 
+(* sigh. Need this to trigger dependency scan to look at fst. *)
+inline_for_extraction let x = 1
+
 open GPU
 
 module Impure = GPU.MatMul.Impure
@@ -53,22 +56,11 @@ let kpost (rows shared columns: nat)
   ** gpu_pts_to_array_slice r tid (tid+1) (seq![Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared])
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
-// TODO: un-hardcode
-[@@CPrologue "const"]
-inline_for_extraction
-let rows : sz = 1024sz // rows of ga1/r
-// assume val rows : nat
-[@@CPrologue "const"]
-inline_for_extraction
-let shared : sz = rows // columns of ga1, rows of ga2
 
-[@@CPrologue "const"]
-inline_for_extraction
-let columns : sz = rows // columns of ga2/r
 
 [@@CPrologue "__global__"]
 fn kernel
-  // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
+  (rows: sz) (shared: sz) (columns: sz{rows * columns < pow2 64})
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (r : gpu_array u64 (rows * columns))

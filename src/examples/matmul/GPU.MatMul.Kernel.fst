@@ -7,9 +7,11 @@ module SZ = FStar.SizeT
 
 #set-options "--z3rlimit 20"
 
+// NOTE: rows is actually unused in the extraced code. Erasing
+// it involves some changes all around.
 [@@CPrologue "__global__"]
 fn kernel
-  // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
+  (rows: sz) (shared: sz) (columns: sz{rows * columns < pow2 64})
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (r : gpu_array u64 (rows * columns))
@@ -54,6 +56,10 @@ fn kernel
 
     sum := U64.add_mod (U64.mul_mod v1 v2) s;
     i := SZ.add v 1sz;
+    assert (pure (trow < rows));
+    assert (pure (tcol < columns));
+    assert (pure (v+1 <= shared));
+    assert (pure ((trow + 1) <= rows /\ (trow + 1) * shared <= rows * shared)); // Pulse #214, sigh
     (**)Pure.matmul_single_lemma rows shared columns s1 s2 trow tcol (SZ.v (SZ.add v 1sz));
     ()
   };
