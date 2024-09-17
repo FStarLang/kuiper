@@ -218,8 +218,8 @@ fn main
   let ga1 = gpu_array_alloc #u64 dp2_size;
   let ga2 = gpu_array_alloc #u64 dp2_size;
 
-  GPU.Array.gpu_memcpy_host_to_device a1 ga1 dp2_size;
-  GPU.Array.gpu_memcpy_host_to_device a2 ga2 dp2_size;
+  GPU.Array.gpu_memcpy_host_to_device ga1 a1 dp2_size;
+  GPU.Array.gpu_memcpy_host_to_device ga2 a2 dp2_size;
   
   let gr = gpu_array_alloc #u64 dp2_size;
 

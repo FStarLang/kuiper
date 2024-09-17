@@ -109,28 +109,28 @@ fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (arr : array a)
-  (garr : gpu_array a sz)
+  (dst_garr : gpu_array a sz)
+  (src_arr : array a)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
   (#gv : erased (seq a))
-  requires cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R gv ** pure (SZ.v cnt == sz)
-  ensures  cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R v
+  requires cpu ** A.pts_to src_arr #f v ** gpu_pts_to_array dst_garr #1.0R gv ** pure (SZ.v cnt == sz)
+  ensures  cpu ** A.pts_to src_arr #f v ** gpu_pts_to_array dst_garr #1.0R v
         ** pure (Seq.length v == reveal sz)
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (arr : array a)
-  (garr : gpu_array a sz)
+  (dst_arr : array a)
+  (src_garr : gpu_array a sz)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
   (#gv : erased (seq a))
-  requires cpu ** A.pts_to arr #f v ** gpu_pts_to_array garr #1.0R gv ** pure (SZ.v cnt == sz)
-  ensures  cpu ** A.pts_to arr #f gv ** gpu_pts_to_array garr #1.0R gv
+  requires cpu ** A.pts_to dst_arr #f v  ** gpu_pts_to_array src_garr #1.0R gv ** pure (SZ.v cnt == sz)
+  ensures  cpu ** A.pts_to dst_arr #f gv ** gpu_pts_to_array src_garr #1.0R gv
         ** pure (Seq.length gv == reveal sz)
 
 let gpu_pts_to_array1

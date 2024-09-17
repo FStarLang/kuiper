@@ -62,21 +62,21 @@ fn gpu_write
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
-  (r  : ref a)
-  (gr : gpu_ref a)
+  (dst_gr : gpu_ref a)
+  (src_r  : ref a)
   (#f : perm)
   (#v : erased a)
   (#gv : erased a)
-  requires cpu ** pts_to r #1.0R v ** gpu_pts_to gr #f gv
-  ensures  cpu ** pts_to r #1.0R v ** gpu_pts_to gr #f v
+  requires cpu ** pts_to src_r #1.0R v ** gpu_pts_to dst_gr #f gv
+  ensures  cpu ** pts_to src_r #1.0R v ** gpu_pts_to dst_gr #f v
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
-  (r  : ref a)
-  (gr : gpu_ref a)
+  (dst_r  : ref a)
+  (src_gr : gpu_ref a)
   (#f : perm)
   (#v : erased a)
   (#gv : erased a)
-  requires cpu ** pts_to r #1.0R v ** gpu_pts_to gr #f gv
-  ensures  cpu ** pts_to r #1.0R gv ** gpu_pts_to gr #f gv
+  requires cpu ** pts_to dst_r #1.0R v  ** gpu_pts_to src_gr #f gv
+  ensures  cpu ** pts_to dst_r #1.0R gv ** gpu_pts_to src_gr #f gv

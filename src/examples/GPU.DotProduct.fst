@@ -87,8 +87,8 @@ fn main (_:unit)
   let ga1 = gpu_array_alloc #u32 m_size;
   let ga2 = gpu_array_alloc #u32 m_size;
 
-  GPU.Array.gpu_memcpy_host_to_device a1 ga1 m_size;
-  GPU.Array.gpu_memcpy_host_to_device a2 ga2 m_size;
+  GPU.Array.gpu_memcpy_host_to_device ga1 a1 m_size;
+  GPU.Array.gpu_memcpy_host_to_device ga2 a2 m_size;
   
   let gr = gpu_array_alloc #u32 m_size;
   

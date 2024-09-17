@@ -33,8 +33,8 @@ fn swap_via_gpu
 {
   let gr1 = gpu_alloc0 #t #{size = d.size} ();
   let gr2 = gpu_alloc0 #t #{size = d.size} ();
-  GPU.Ref.gpu_memcpy_host_to_device #t #{size = d.size} r1 gr1;
-  GPU.Ref.gpu_memcpy_host_to_device #t #{size = d.size} r2 gr2;
+  GPU.Ref.gpu_memcpy_host_to_device #t #{size = d.size} gr1 r1;
+  GPU.Ref.gpu_memcpy_host_to_device #t #{size = d.size} gr2 r2;
   launch_kernel_1 (fun () -> kswap #t gr1 gr2 #v1 #v2);
   GPU.Ref.gpu_memcpy_device_to_host #t #{size = d.size} r1 gr1;
   GPU.Ref.gpu_memcpy_device_to_host #t #{size = d.size} r2 gr2;

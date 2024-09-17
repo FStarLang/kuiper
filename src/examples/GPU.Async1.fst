@@ -25,7 +25,7 @@ fn galloc (x : u64)
   let r  = Box.alloc #u64 x;
   let gr = gpu_alloc0 #u64 ();
   Box.to_ref_pts_to r;
-  GPU.Ref.gpu_memcpy_host_to_device (Box.box_to_ref r) gr;
+  GPU.Ref.gpu_memcpy_host_to_device gr (Box.box_to_ref r);
   Box.to_box_pts_to r;
   Box.free r;
   gr

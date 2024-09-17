@@ -87,7 +87,7 @@ fn reduce
 {
   let r = alloc 0uL;
   let gr = gpu_alloc0 #u64 ();
-  Ref.gpu_memcpy_host_to_device r gr #_ #_ #_;
+  Ref.gpu_memcpy_host_to_device gr r;
 
   with v. assert (pts_to r v);
   assert (pure (v == 0uL));

@@ -292,7 +292,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  ty::[]);
               FStar_Extraction_ML_Syntax.mlty = uu___3;
               FStar_Extraction_ML_Syntax.loc = uu___4;_},
-            sz::r::gr::f::v::gv::[])
+            sz::dst_gr::src_r::f::v::gv::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Ref.gpu_memcpy_host_to_device" ->
@@ -300,9 +300,9 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            let uu___5 =
              let uu___6 =
                let uu___7 =
-                 let uu___8 = cb gr in
+                 let uu___8 = cb dst_gr in
                  let uu___9 =
-                   let uu___10 = cb r in
+                   let uu___10 = cb src_r in
                    let uu___11 =
                      let uu___12 = cb sz1 in
                      [uu___12; cudaMemcpyHostToDevice] in
@@ -324,7 +324,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  ty::[]);
               FStar_Extraction_ML_Syntax.mlty = uu___3;
               FStar_Extraction_ML_Syntax.loc = uu___4;_},
-            sz::r::gr::f::v::gv::[])
+            sz::dst_r::src_gr::f::v::gv::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Ref.gpu_memcpy_device_to_host" ->
@@ -332,9 +332,9 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            let uu___5 =
              let uu___6 =
                let uu___7 =
-                 let uu___8 = cb r in
+                 let uu___8 = cb dst_r in
                  let uu___9 =
-                   let uu___10 = cb gr in
+                   let uu___10 = cb src_gr in
                    let uu___11 =
                      let uu___12 = cb sz1 in
                      [uu___12; cudaMemcpyDeviceToHost] in
@@ -453,7 +453,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  ty::[]);
               FStar_Extraction_ML_Syntax.mlty = uu___3;
               FStar_Extraction_ML_Syntax.loc = uu___4;_},
-            sz::elen::a::ga::cnt::f::v::gv::[])
+            sz::elen::dst_ga::src_a::cnt::f::v::gv::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Array.gpu_memcpy_host_to_device" ->
@@ -471,9 +471,9 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            let uu___5 =
              let uu___6 =
                let uu___7 =
-                 let uu___8 = cb ga in
+                 let uu___8 = cb dst_ga in
                  let uu___9 =
-                   let uu___10 = cb a in
+                   let uu___10 = cb src_a in
                    [uu___10; bytesize; cudaMemcpyHostToDevice] in
                  uu___8 :: uu___9 in
                ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),
@@ -492,7 +492,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  ty::[]);
               FStar_Extraction_ML_Syntax.mlty = uu___3;
               FStar_Extraction_ML_Syntax.loc = uu___4;_},
-            sz::elen::a::ga::cnt::f::v::gv::[])
+            sz::elen::dst_a::src_ga::cnt::f::v::gv::[])
            when
            let uu___5 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___5 = "GPU.Array.gpu_memcpy_device_to_host" ->
@@ -510,9 +510,9 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
            let uu___5 =
              let uu___6 =
                let uu___7 =
-                 let uu___8 = cb a in
+                 let uu___8 = cb dst_a in
                  let uu___9 =
-                   let uu___10 = cb ga in
+                   let uu___10 = cb src_ga in
                    [uu___10; bytesize; cudaMemcpyDeviceToHost] in
                  uu___8 :: uu___9 in
                ((FStar_Extraction_Krml.EQualified ([], "cudaMemcpy")),

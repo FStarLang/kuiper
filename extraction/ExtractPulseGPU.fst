@@ -131,15 +131,15 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "GPU.Ref.gpu_write" ->
     EBufWrite (cb e1, zero_for_deref, cb e2)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: gr :: f :: v :: gv :: [])
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: dst_gr :: src_r :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Ref.gpu_memcpy_host_to_device"->
     let sz : mlexpr = get_sizet sz in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb gr; cb r; cb sz ; cudaMemcpyHostToDevice ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; cb sz ; cudaMemcpyHostToDevice ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: gr :: f :: v :: gv :: [])
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: dst_r :: src_gr :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Ref.gpu_memcpy_device_to_host"->
     let sz : mlexpr = get_sizet sz in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb r; cb gr; cb sz; cudaMemcpyDeviceToHost ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; cb sz; cudaMemcpyDeviceToHost ])
 
   (******** ARRAY ********)
 
@@ -162,17 +162,17 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "GPU.Array.gpu_array_write" ->
     EBufWrite (cb r, cb idx, cb v)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_ga :: src_a :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Array.gpu_memcpy_host_to_device"->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb ga; cb a; bytesize; cudaMemcpyHostToDevice ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: a :: ga :: cnt :: f :: v :: gv :: [])
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "GPU.Array.gpu_memcpy_device_to_host"->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb a; cb ga; bytesize; cudaMemcpyDeviceToHost ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
   (******** ATOMIC OPS ********)
 

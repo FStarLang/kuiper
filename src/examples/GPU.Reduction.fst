@@ -85,7 +85,7 @@ fn copy_to_gpu
   ensures  cpu ** A.pts_to a v ** GA.gpu_pts_to_array ga v
 {
   let ga = gpu_array_alloc #t #d sz;
-  gpu_memcpy_host_to_device a ga sz;
+  gpu_memcpy_host_to_device ga a sz;
   ga
 }
 
