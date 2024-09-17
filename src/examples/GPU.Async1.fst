@@ -31,8 +31,6 @@ fn galloc (x : u64)
   gr
 }
 
-#set-options "--print_implicits --print_universes"// --ugly"
-
 fn gread (gr : gpu_ref u64) (#v0 : erased u64)
   requires cpu ** gpu_pts_to gr v0
   returns  v : u64
@@ -83,30 +81,23 @@ fn main (_:unit)
   launch_kernel_1_async (fun () -> kernel r6);
 
   sync();
-  
+
   redeem1 _ _ _;
   redeem1 _ _ _;
   redeem1 _ _ _;
   redeem1 _ _ _;
   redeem1 _ _ _;
   redeem1 _ _ _;
- 
+
   drop_ (epoch_done _);
   drop_ (epoch_live _);
 
-  let v1 = gread r1; 
-  let v2 = gread r2;
-  let v3 = gread r3;
-  let v4 = gread r4;
-  let v5 = gread r5;
-  let v6 = gread r6;
-
-  gpu_free r1;
-  gpu_free r2;
-  gpu_free r3;
-  gpu_free r4;
-  gpu_free r5;
-  gpu_free r6;
+  let v1 = gread r1; gpu_free r1;
+  let v2 = gread r2; gpu_free r2;
+  let v3 = gread r3; gpu_free r3;
+  let v4 = gread r4; gpu_free r4;
+  let v5 = gread r5; gpu_free r5;
+  let v6 = gread r6; gpu_free r6;
 
   let v = v1 +^ v2 +^ v3 +^ v4 +^ v5 +^ v6;
   assert (pure (UInt64.v v == 2 + 3 + 4 + 5 + 6 + 7));
