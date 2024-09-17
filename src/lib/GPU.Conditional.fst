@@ -196,7 +196,7 @@ let bigstar_if_intro
   (m: nat)
   (n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
-  (p: nat -> slprop)
+  (p: (i: nat { m <= i /\ i < n }) -> slprop)
   : stt_ghost unit emp_inames
       (requires p x)
       (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)))
