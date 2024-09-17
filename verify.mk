@@ -187,6 +187,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 
 TESTS+=GPU_Example1
 TESTS+=GPU_DotProduct2
+TESTS+=GPU_DotProduct3
 TESTS+=GPU_MatMul
 TESTS+=GPU_MatMulTile
 TESTS+=GPU_BasicFloat
@@ -202,6 +203,7 @@ extraction-targets: \
 	out/GPU_DotProduct.o \
 	out/GPU_Example1.exe \
 	out/GPU_DotProduct2.exe \
+	out/GPU_DotProduct3.exe \
 	out/GPU_Reduction.cu \
 	out/GPU_InnerGhostLem.cu \
 	out/GPU_Polymorphism0.cu \
