@@ -63,11 +63,6 @@ fn teardown
   admit();
 }
 
-// #push-options "--debug SMTFail --split_queries always" // --print_implicits"
-
-// #set-options "--ext pulse:trace=1"
-//  --debug SMTFail --split_queries always"
-
 fn reduce
   (n : sz)
   (a : gpu_array u64 n)
@@ -96,21 +91,21 @@ fn reduce
 
   // assert (gpu_pts_to gr #1.0R 0uL);
   
-  
   // pack (x,y) as p?
   // let p = (x, y);
   // rewrite each x as p._1;
   // rewrite each y as p._2;
   // pack Inl x as o;
 
-
-
   let i_done = setup n a gr;
   let i = (i_done)._1;
   let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
-  rewrite each i_done as (i, done) by (tadmit ());
+  rewrite each i_done as (i, done) by (tadmit());
   // New fancy syntax, does not extract
   // let Mktuple2 i done = setup n a gr;
+  // The problem is essentially https://github.com/FStarLang/pulse/issues/93.
+  // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
+  // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
 
   W.elim_with_pure (Seq.length done == SZ.v n) _; 
 
