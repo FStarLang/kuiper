@@ -11,7 +11,7 @@ module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-module HR = GPU.HReduceOptU64Plus
+module HR = GPU.HReduceU64Plus
 
 #set-options "--z3rlimit 20"
 
@@ -34,14 +34,14 @@ let shared_pre (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (it: nat) (tid:nat{tid < nth})
   : slprop =
     gpu_pts_to_array1 sr tid **
-    mbarrier_tok nth (HR.barrier_matrix nth sr gr (pmul s1 s2)) it tid
+    mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid
 
 [@@pulse_unfold]
 let shared_post (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     if_ (tid = 0) (HR.gpu_pts_to_slice_sum sr 0 nth (pmul s1 s2)) **
-    (exists* it. mbarrier_tok nth (HR.barrier_matrix nth sr gr (pmul s1 s2)) it tid)
+    (exists* it. mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid)
 
 // #set-options "--ext pulse:env_on_err=1"
 
@@ -150,7 +150,7 @@ fn kernel
   rewrite each s' as seq![vm <: u64];
   
   (* Reduction *)
-  HR.reduce nth ar r #dot_v #() etid;
+  HR.reduce nth ar #dot_v #() etid;
   
   fixup nth ar r s1 s2 tid;
   fold (kpost nth ga1 ga2 r s1 s2 tid);
@@ -195,11 +195,15 @@ ghost fn setup
   requires block_setup nthr ** (exists* v. gpu_pts_to_array #u64 #nthr ear #1.0R v)
   ensures  block_setup nthr ** bigstar 0 nthr (fun tid -> shared_pre nthr ear gr s1 s2 0 tid)
 {
-  mk_mbarrier nthr (HR.barrier_matrix nthr ear gr (pmul s1 s2));
+  mk_mbarrier nthr (HR.barrier_matrix nthr ear (pmul s1 s2));
   gpu_array_slice_1_underspec ear;
-  bigstar_zip 0 nthr (gpu_pts_to_array1 ear) (mbarrier_tok nthr (HR.barrier_matrix nthr ear gr (pmul s1 s2)) 0);
+  bigstar_zip 0 nthr (gpu_pts_to_array1 ear) (mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0);
   ()
 }
+
+let u64_comm_semigroup ()
+: squash (is_comm_semigroup HR.neu HR.op)
+= ()
 
 fn main
   (a1 a2: array u64)
@@ -207,7 +211,7 @@ fn main
   (#_: squash (Seq.length v1 = dp2_size /\ Seq.length v2 = dp2_size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  dp: u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == HR.sum (pmul v1 v2))
+  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))
 {
   let ar = A.alloc #u64 0UL dp2_size;
 
@@ -289,6 +293,11 @@ fn main
   gpu_array_free gr;
 
   let dp = ar.(0sz);
+
+  (* Finally, ensure that the reduction must be sum *)
+  u64_comm_semigroup ();
+  IsReduction.ac_eq_foldl HR.neu HR.op (pmul v1 v2) dp;
+
   A.free ar;
   dp
 }
