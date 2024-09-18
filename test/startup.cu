@@ -1,4 +1,4 @@
-#include "Kuiper.h"
+#include "kuiper.h"
 
 int main()
 {
