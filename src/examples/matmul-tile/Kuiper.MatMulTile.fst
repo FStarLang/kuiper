@@ -184,6 +184,12 @@ fn main
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** (exists* vr. A.pts_to ar vr)
 {
   open FStar.SizeT;
+
+  dassert (rows %^ bdim = 0sz);
+  dassert (columns %^ bdim = 0sz);
+  dassert (shared %^ bdim = 0sz);
+  // dassert (bdim < pow2 30);
+
   let rows_tile = div rows bdim;
   let columns_tile = SZ.div columns bdim;
   mul_pow2 30 30; // sigh
