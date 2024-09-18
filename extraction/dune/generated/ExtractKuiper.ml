@@ -112,6 +112,34 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                 FStar_Extraction_ML_Syntax.MLE_Name p;
               FStar_Extraction_ML_Syntax.mlty = uu___1;
               FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            x::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "Kuiper.Assert.dassert" ->
+           let uu___3 =
+             let uu___4 = let uu___5 = cb x in [uu___5] in
+             ((FStar_Extraction_Krml.EQualified ([], "KPR_ASSERT")), uu___4) in
+           FStar_Extraction_Krml.EApp uu___3
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
+            x::[])
+           when
+           let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
+           uu___3 = "Kuiper.Assert.dguard" ->
+           let uu___3 =
+             let uu___4 = let uu___5 = cb x in [uu___5] in
+             ((FStar_Extraction_Krml.EQualified ([], "KPR_GUARD")), uu___4) in
+           FStar_Extraction_Krml.EApp uu___3
+       | FStar_Extraction_ML_Syntax.MLE_App
+           ({
+              FStar_Extraction_ML_Syntax.expr =
+                FStar_Extraction_ML_Syntax.MLE_Name p;
+              FStar_Extraction_ML_Syntax.mlty = uu___1;
+              FStar_Extraction_ML_Syntax.loc = uu___2;_},
             x::y::[])
            when
            let uu___3 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
@@ -864,7 +892,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___559 : unit) =
+let (uu___573 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

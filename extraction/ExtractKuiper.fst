@@ -82,6 +82,15 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   let cb = translate_expr env in
   match e.expr with
 
+  (******** ASSERTIONS ********)
+  | MLE_App ({ expr = MLE_Name p } , [ x ])
+    when string_of_mlpath p = "Kuiper.Assert.dassert" ->
+    EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
+  
+  | MLE_App ({ expr = MLE_Name p } , [ x ])
+    when string_of_mlpath p = "Kuiper.Assert.dguard" ->
+    EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
+
   (******** SIZET, missing from F* ********)
   | MLE_App ({ expr = MLE_Name p } , [ x; y ])
     when string_of_mlpath p = "Kuiper.SizeT.sizet_and" ->

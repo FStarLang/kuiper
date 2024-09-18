@@ -51,6 +51,28 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 		a;							\
 	})
 
+#define KPR_GUARD(b)								\
+	do {									\
+		if (!(b)) {							\
+			fprintf(stderr, "*** ABORTING ***\n");			\
+			fprintf(stderr, "This guard failed: %s\n", #b);		\
+			abort();						\
+		}								\
+	} while(0)
+
+#ifndef NDEBUG
+#define KPR_ASSERT(b)								\
+	do {									\
+		if (!(b)) {							\
+			fprintf(stderr, "*** ABORTING ***\n");			\
+			fprintf(stderr, "This guard failed: %s\n", #b);		\
+			abort();						\
+		}								\
+	} while(0)
+#else
+#define KPR_ASSERT(b)
+#endif
+
 #define MUST(e)								\
 	__MUST(e, #e, __FILE__, __LINE__)
 
