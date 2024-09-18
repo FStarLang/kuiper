@@ -5,6 +5,10 @@ module GPU.MatMulTile.Kernel
 #push-options "--fuel 1 --ifuel 1"
 
 open GPU
+open GPU.Math
+
+(* trigger crossing the fsti *)
+inline_for_extraction let x = 1
 
 module Impure = GPU.MatMul.Impure
 module Pure = GPU.MatMul.Pure
@@ -55,62 +59,53 @@ let kpost (rows shared columns: nat)
   ** gpu_pts_to_array1 r tid
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
+let permute (rows_tile columns_tile bdim: pos)
+: GTot (permutation (i: nat { 0 <= i /\ i < rows_tile * columns_tile * bdim * bdim }))
+= Layout4.titi_permutation bdim bdim rows_tile columns_tile
 
-// TODO: un-hardcode
-[@@CPrologue "const"]
-inline_for_extraction
-let bdim : sz = 32sz // rows/columns of tiles
-
-[@@CPrologue "const"]
-inline_for_extraction
-let rows_tile : sz = 32sz // rows of ga1/r (in tiles)
-
-[@@CPrologue "const"]
-inline_for_extraction
-let shared_tile : sz = rows_tile // columns of ga1, rows of ga2 (in tiles)
-
-[@@CPrologue "const"]
-inline_for_extraction
-let columns_tile : sz = rows_tile // columns of ga2/r (in tiles)
-
-[@@CPrologue "const"]
-inline_for_extraction
-let rows : sz = SZ.(rows_tile *^ bdim) // rows of ga1/r
-
-[@@CPrologue "const"]
-inline_for_extraction
-let shared : sz = SZ.(shared_tile *^ bdim) // columns of ga1, rows of ga2
-
-[@@CPrologue "const"]
-inline_for_extraction
-let columns : sz = SZ.(columns_tile *^ bdim) // columns of ga2/r
-
-let permute(): GTot (permutation (i: nat { 0 <= i /\ i < SZ.(rows_tile *^ columns_tile) * SZ.(bdim *^ bdim) })) = Layout4.titi_permutation bdim bdim rows_tile columns_tile
-
-let tid_to_idx (tid: nat { 0 <= tid /\ tid < rows * columns })
-  : GTot (tid: nat { 0 <= tid /\ tid < rows * columns })
-  = assert (SZ.(rows_tile *^ columns_tile) * SZ.(bdim *^ bdim) == rows * columns);
-    (permute()).f tid
+let tid_to_idx
+  (rows shared columns : pos)
+  (bdim: pos{bdim /? rows /\ bdim /? columns})
+  (tid: nat { 0 <= tid /\ tid < rows * columns })
+: GTot (tid: nat { 0 <= tid /\ tid < rows * columns })
+= calc (==) {
+    (rows / bdim) * (columns / bdim) * bdim * bdim;
+    == { admit() } // fixme, boring proof (we have divisibility)
+    rows * columns;
+  };
+  lemma_divides_exact rows bdim;
+  lemma_divides_exact columns bdim;
+  assert (rows / bdim >= 1);
+  assert (columns / bdim >= 1);
+  let r = (permute (rows / bdim) (columns / bdim) bdim).f tid in
+  r
 
 [@@CPrologue "__global__"]
 fn kernel
-  // (rows: nat) (shared: nat { shared < pow2 16 }) (columns: nat)
+  (rows shared columns : szp)
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (r : gpu_array u64 (rows * columns))
   (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
   (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
-  (nblk : erased sz { SZ.v nblk == SZ.v SZ.(rows_tile *^ columns_tile) })
-  (nthr : erased sz { SZ.v nthr == SZ.v SZ.(bdim *^ bdim) })
+  (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
+  (nthr : erased sz { SZ.v nthr == bdim * bdim
+                     /\ SZ.v nblk * SZ.v nthr == rows * columns
+                     /\ 2 * (shared / bdim) >= 0
+                     })
+  (* ^ 2nd and 3rd conjunct above just to help verifying this spec, sigh. *)
   (smem_sz : erased nat { smem_sz == 2 * SZ.v nthr })
   (ear: erased (gpu_array u64 smem_sz))
-  (etid : tid_t { gdim_x etid == nthr /\ bdim_x etid == nblk })
+  (etid : tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
   requires gpu
     ** thread_id etid
     ** shmem_tok ear
     ** Barrier.shared_pre nthr 0 ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr) (tid_to_idx (thread_index etid))
+    ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr)
+         (tid_to_idx rows shared columns bdim (thread_index etid))
   ensures  gpu
     ** thread_id etid
-    ** Barrier.shared_pre nthr (2 * columns_tile) ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr) (tid_to_idx (thread_index etid))
+    ** Barrier.shared_pre nthr (2 * (shared / bdim)) ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
+    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr)
+         (tid_to_idx rows shared columns bdim (thread_index etid))

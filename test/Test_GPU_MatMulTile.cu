@@ -77,7 +77,7 @@ int main()
 	u64 *m3 = NULL;
 	for (int laps = 0; laps < 10; laps++) {
 		free (m3);
-		m3 = TIME(GPU_MatMulTile_main(m1, m2), NULL);
+		m3 = TIME(GPU_MatMulTile_main(N, N, N, 32, m1, m2), NULL);
 	}
 
 	u64 *m3_cpu = TIME(cpu_mul(m1, m2), NULL);

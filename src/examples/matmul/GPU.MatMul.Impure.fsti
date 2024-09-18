@@ -47,10 +47,19 @@ fn gpu_matrix_read
   (#s: erased (seq a) { Seq.length s == rows * columns })
   (row: sz{SZ.v row < rows})
   (col: sz{SZ.v col < columns})
-  requires gpu ** gpu_pts_to_matrix rows columns ga shared s
+  requires
+    gpu **
+    gpu_pts_to_matrix rows columns ga shared s
   returns v: a
   // TODO: is the assert here opaque?
-  ensures gpu ** gpu_pts_to_matrix rows columns ga shared s ** pure (assert ((SZ.v row + 1) * columns <= rows * columns); v == Seq.index s (row * columns + SZ.v col))
+  ensures (
+    assert ((SZ.v row + 1) * columns <= rows * columns);
+    gpu **
+    gpu_pts_to_matrix rows columns ga shared s **
+    pure (
+      v == Seq.index s (row * columns + SZ.v col)
+    )
+  )
 {
   open FStar.SizeT;
   assume (pure (forall (x:nat). SizeT.fits x)); // CHEATING overflow

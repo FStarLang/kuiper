@@ -16,10 +16,13 @@ let lemma_div_sub1 (x: int) (z: pos): Lemma ((z * x - 1) / z == x - 1) = ()
 let lemma_multiply_defn (dims: seq pos):
     Lemma (multiply dims == (if len dims = 0 then 1 else dims.[0] * multiply (pop_l dims)._2)) = ()
 
+#push-options "--z3rlimit 20"
 let lemma_ews_defn (outs: seq nat) (dims: seq pos { len dims == len outs }):
     Lemma (elementwise_smaller outs dims == (if len dims = 0 then true else
         outs.[0] < dims.[0] && elementwise_smaller (pop_l outs)._2 (pop_l dims)._2))
-        [SMTPat (elementwise_smaller outs dims)] = ()
+        [SMTPat (elementwise_smaller outs dims)]
+= ()
+#pop-options
 
 let push_ews
     (dims: seq pos{len dims > 0})
@@ -82,6 +85,7 @@ let lemma_mult_idx (dims: seq pos { len dims <> 0 })
 /// 2nd / 2 core functions, combines dimensions into an index.
 /// Notice again that the last dimension isn't really used since in that
 /// case `new_idx == 0`, though again it gets us the `idx < multiply dims` post.
+#push-options "--z3rlimit 10 --retry 5" // flaky
 let rec join_from_dims (dims: seq pos) (outs: seq nat { len dims == len outs /\ elementwise_smaller outs dims }):
     Tot (idx: nat { idx < multiply dims }) (decreases len dims) =
     if len dims = 0 then 0 else
@@ -90,6 +94,7 @@ let rec join_from_dims (dims: seq pos) (outs: seq nat { len dims == len outs /\ 
         let new_idx = join_from_dims tail_dims tail_outs in
         lemma_mult_idx dims out new_idx;
         new_idx * dim + out
+#pop-options
 
 /// The inductive proof revolves around the fact that `a = (a / b) * b + a % b`
 let rec inverse_fwd (dims: seq pos) (idx: nat { idx < multiply dims }):
