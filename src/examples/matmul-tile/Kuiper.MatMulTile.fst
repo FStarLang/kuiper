@@ -20,7 +20,7 @@ let lemma_nonneg_mul (x y : int)
 ghost
 fn setup
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 32})
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : erased sz { SZ.v nthr == bdim * bdim
                      /\ SZ.v nblk * SZ.v nthr == rows * columns
@@ -91,7 +91,7 @@ fn setup
 ghost
 fn breakdown
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 32})
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
   (nblk : sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : sz { SZ.v nthr == bdim * bdim
                      /\ SZ.v nblk * SZ.v nthr == rows * columns
@@ -200,6 +200,17 @@ fn main
   assert (pure (pow2 60 < pow2 64)); // trivial
   assert (pure (SZ.fits (bdim * bdim)));
   let nthr = bdim *^ bdim;
+
+  let _ = calc (==) {
+    nblk * nthr;
+    == {}
+    ((rows / bdim) * (columns / bdim)) * (bdim * bdim);
+    == { magic() } // just associativity, sigh
+    (rows / bdim) * (columns / bdim) * bdim * bdim;
+    == { magic () } // fixme, boring proof (we have divisibility)
+    rows * columns;
+  };
+
   assert (pure (SZ.fits (nblk * nthr)));
   let size = nblk *^ nthr;
   let ar = Pulse.Lib.Array.alloc 0UL size;
@@ -214,15 +225,6 @@ fn main
 
   let gr = gpu_array_alloc #u64 size;
 
-  let _ = calc (==) {
-    nblk * nthr;
-    == {}
-    ((rows / bdim) * (columns / bdim)) * (bdim * bdim);
-    == { magic() } // just associativity, sigh
-    (rows / bdim) * (columns / bdim) * bdim * bdim;
-    == { magic () } // fixme, boring proof (we have divisibility)
-    rows * columns;
-  };
   assert (pure (nblk * nthr == rows * columns));
 
   setup rows shared columns bdim (hide nblk) (hide nthr) ga1 ga2 gr v1 v2;

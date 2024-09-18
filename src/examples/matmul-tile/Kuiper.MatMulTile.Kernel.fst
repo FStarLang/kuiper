@@ -120,7 +120,7 @@ let lemma_div_lt (a : nat) (b c: pos)
 inline_for_extraction
 fn inner_loop
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim < pow2 32})
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim < pow2 30})
   (vv : sz{SZ.v vv < SZ.v bdim})
   (ga1_iidx : sz{SZ.v ga1_iidx <= (SZ.v bdim - 1) * SZ.v bdim})
   (ga2_iidx : sz{SZ.v ga2_iidx < SZ.v bdim})
@@ -169,7 +169,7 @@ fn inner_loop
 inline_for_extraction
 fn outer_loop
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 32})
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
   (iv: sz{iv <= shared/bdim - 1})
   (nthr: erased nat{nthr == bdim * bdim})
   (smem_sz: erased nat{smem_sz == 2 * nthr})
@@ -200,6 +200,8 @@ fn outer_loop
   bigstar_map #0 #0 #0 #nthr #_ #_ (fun from -> Barrier.transfer_barrier_mm nthr smem_sz ar (2*iv) from tid);
 
   // Do stuff
+  assert (pure (trow < bdim));
+  assert (pure (trow * bdim <= bdim * bdim));
   assert (pure (SZ.fits (trow * bdim)));
   let ga1_iidx = trow *^ bdim;
   let ga2_iidx = tcol;
@@ -238,7 +240,7 @@ let lemma_nonneg_mul (x y : int)
 [@@CPrologue "__global__"]
 fn kernel
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 32})
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (r : gpu_array u64 (rows * columns))
