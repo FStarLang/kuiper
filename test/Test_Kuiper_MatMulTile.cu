@@ -52,9 +52,12 @@ u64 * cpu_mul(u64 *m1, u64 *m2)
 	return m3;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	int i, j;
+	
+	int tilesize = argc > 1 ? atoi(argv[1]) : 32;
+	printf("Tilesize = %d\n", tilesize); fflush(stdout);
 
 	u64 *m1, *m2;
 	m1 = (u64*)malloc(rows * shared * sizeof m1[0]);
@@ -75,9 +78,11 @@ int main()
 	// printf("M2\n"); pr(m2); printf("\n");
 
 	u64 *m3 = NULL;
-	for (int laps = 0; laps < 10; laps++) {
+	for (int laps = 0; laps < 6; laps++) {
 		free (m3);
-		m3 = TIME(Kuiper_MatMulTile_main(N, N, N, 32, m1, m2), NULL);
+		float t;
+		m3 = TIME(Kuiper_MatMulTile_main(N, N, N, tilesize, m1, m2), &t);
+		printf("Estimated GIOPS = %f\n", 2 * rows * shared * columns / t / 1e9); fflush(stdout);
 	}
 
 	u64 *m3_cpu = TIME(cpu_mul(m1, m2), NULL);
