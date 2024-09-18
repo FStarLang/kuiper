@@ -1,3 +1,0 @@
-module GPU.Scalars
-
-(* Placeholder *)

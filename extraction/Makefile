@@ -15,7 +15,7 @@ include ../pulse/share/pulse/Makefile.locate-fstar
 OUTPUT_DIRECTORY = $(CURDIR)/dune/generated
 FSTAR_C=$(RUNLIM) $(FSTAR_EXE) $(SIL) $(FSTAR_BOOT_OPTIONS)
 
-EXTRACT_FILES=ExtractPulseGPU.ml
+EXTRACT_FILES=ExtractKuiper.ml
 
 # This refreshes the ML file, from the fst file.
 extract: $(addprefix $(OUTPUT_DIRECTORY)/,$(EXTRACT_FILES))

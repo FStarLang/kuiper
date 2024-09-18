@@ -3,7 +3,7 @@ module Idea.BigStar.Extensionality
 #lang-pulse
 
 open Pulse.Lib.Pervasives
-open GPU
+open Kuiper
 open Pulse.Lib.BigStar
 
 assume val f : int -> slprop

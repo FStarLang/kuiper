@@ -80,7 +80,7 @@ FSTAR_NOPLUG := $(FSTAR_EXE)				\
 
 FSTAR := $(FSTAR_NOPLUG) --load_cmxs pulse
 
-GPUH := $(realpath include/GPU.h)
+GPUH := $(realpath include/kuiper.h)
 
 KRML := $(KRML_HOME)/krml				\
 	-add-early-include '"$(GPUH)"'			\
@@ -144,7 +144,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
-		--extract "+GPU"						\
+		--extract "+Kuiper"						\
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
 		$(call SRC_FILE_FOR_CHECKED,$<)
@@ -152,7 +152,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 $(OUTDIR)/%.c: $(OUTDIR)/%.krml .b_karamel
 	$(call msg,"KRML")
 	@# Awful substitution here to get the module name, turning something like
-	@# out/GPU_DotProduct2.krml into GPU.DotProduct2
+	@# out/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 	$(Q)MOD=$$(echo $< | sed 's,.*/,,' | sed 's/.krml$$//' | sed 's/_/./g') && \
 	$(KRML) \
 		-bundle "$${MOD}=*" \
@@ -185,30 +185,30 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(call msg,"ACCEPT")
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
-TESTS+=GPU_Example1
-TESTS+=GPU_DotProduct2
-TESTS+=GPU_DotProduct3
-TESTS+=GPU_MatMul
-TESTS+=GPU_MatMulTile
-TESTS+=GPU_BasicFloat
-TESTS+=GPU_AtomicReduce
-TESTS+=GPU_HReduceU32Plus
-TESTS+=GPU_HReduceU64Plus
-TESTS+=GPU_HReduceF32Plus
-TESTS+=GPU_HReduceF64Plus
-TESTS+=GPU_ArrayReversal
-TESTS+=GPU_Async1
+TESTS+=Kuiper_Example1
+TESTS+=Kuiper_DotProduct2
+TESTS+=Kuiper_DotProduct3
+TESTS+=Kuiper_MatMul
+TESTS+=Kuiper_MatMulTile
+TESTS+=Kuiper_BasicFloat
+TESTS+=Kuiper_AtomicReduce
+TESTS+=Kuiper_HReduceU32Plus
+TESTS+=Kuiper_HReduceU64Plus
+TESTS+=Kuiper_HReduceF32Plus
+TESTS+=Kuiper_HReduceF64Plus
+TESTS+=Kuiper_ArrayReversal
+TESTS+=Kuiper_Async1
 
 extraction-targets: \
-	out/GPU_DotProduct.o \
-	out/GPU_Example1.exe \
-	out/GPU_DotProduct2.exe \
-	out/GPU_DotProduct3.exe \
-	out/GPU_Reduction.cu \
-	out/GPU_InnerGhostLem.cu \
-	out/GPU_Polymorphism0.cu \
-	out/GPU_Polymorphism1.cu \
-	out/GPU_AtomicReduce.cu \
+	out/Kuiper_DotProduct.o \
+	out/Kuiper_Example1.exe \
+	out/Kuiper_DotProduct2.exe \
+	out/Kuiper_DotProduct3.exe \
+	out/Kuiper_Reduction.cu \
+	out/Kuiper_InnerGhostLem.cu \
+	out/Kuiper_Polymorphism0.cu \
+	out/Kuiper_Polymorphism1.cu \
+	out/Kuiper_AtomicReduce.cu \
 	$(patsubst %,out/%.exe,$(TESTS))
 
 .PHONY: test

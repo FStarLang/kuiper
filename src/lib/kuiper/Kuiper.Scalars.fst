@@ -1,0 +1,3 @@
+module Kuiper.Scalars
+
+(* Placeholder *)
