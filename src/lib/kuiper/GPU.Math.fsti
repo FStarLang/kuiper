@@ -2,6 +2,8 @@ module GPU.Math
 
 open FStar.Mul
 
+include Kuiper.Divides
+
 let rec log2 (n:pos) : GTot (r:nat{r < n}) =
   if n = 1 then 0 else 1 + log2 (n / 2)
 

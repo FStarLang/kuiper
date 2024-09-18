@@ -46,6 +46,7 @@ val bidx_x : (etid:tid_t) -> (r:SZ.t { r < gdim_x etid })
 val bdim_x : tid_t -> (r:SZ.t { 0 < r /\ r <= max_threads })
 (* Which thread am I in? *)
 val tidx_x : (etid:tid_t) -> (r:SZ.t { r < bdim_x etid })
+(* ^^ FIXME: Shouldn't all of these be Ghost, and returning a nat? *)
 
 let thread_index (n: tid_t): GTot (i: nat { i < SZ.v (gdim_x n) * SZ.v (bdim_x n) }) = (
   assert ((bidx_x n + 1) * bdim_x n <= gdim_x n * bdim_x n);
