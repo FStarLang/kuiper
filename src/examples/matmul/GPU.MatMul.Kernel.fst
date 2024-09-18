@@ -5,9 +5,9 @@ module GPU.MatMul.Kernel
 open GPU
 module SZ = FStar.SizeT
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 20"
 
-// NOTE: rows is actually unused in the extraced code. Erasing
+// NOTE: rows is actually unused in the extracted code. Erasing
 // it involves some changes all around.
 [@@CPrologue "__global__"]
 fn kernel
@@ -18,7 +18,7 @@ fn kernel
   (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
   (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
   (nth : erased sz { SZ.v nth == SZ.v SZ.(rows *^ columns) })
-  (etid : erased tid_t { gdim_x etid == nth /\ bdim_x etid == 1sz })
+  (etid : erased tid_t { gdim_x etid == SZ.v nth /\ bdim_x etid == 1 })
   requires gpu
     ** thread_id etid
     ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)

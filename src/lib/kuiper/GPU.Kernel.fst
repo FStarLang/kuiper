@@ -46,8 +46,8 @@ fn launch_kernel_n_m_sync
 
   (k :
     (ar: erased (gpu_array a smem_sz)) -> (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
-    stt unit (         gpu ** thread_id etid ** shmem_tok ar ** shared_pre ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid **                 shared_post ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid)) ** post (thread_index etid))
+    stt unit (         gpu ** thread_id etid ** shmem_tok ar ** shared_pre ar (bidx_x etid) (tidx_x etid) ** pre (thread_index etid))
+             (fun _ -> gpu ** thread_id etid **                 shared_post ar (bidx_x etid) (tidx_x etid) ** post (thread_index etid))
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post

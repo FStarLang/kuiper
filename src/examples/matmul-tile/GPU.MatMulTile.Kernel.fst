@@ -25,7 +25,7 @@ fn calc_idxs
   (bdim : szp { bdim /? rows /\ bdim /? columns})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : erased sz { SZ.v nthr == bdim * bdim /\ SZ.v nblk * SZ.v nthr == rows * columns })
-  (etid : tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
+  (etid : tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == SZ.v nthr })
   requires
     thread_id etid
   returns
@@ -252,16 +252,16 @@ fn kernel
   (* ^ 2nd and 3rd conjunct above just to help verifying this spec, sigh. *)
   (smem_sz : erased nat { smem_sz == 2 * SZ.v nthr })
   (ear: erased (gpu_array u64 smem_sz))
-  (etid : tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
+  (etid : tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == SZ.v nthr })
   requires gpu
     ** thread_id etid
     ** shmem_tok ear
-    ** Barrier.shared_pre nthr 0 ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
+    ** Barrier.shared_pre nthr 0 ear (bidx_x etid) (tidx_x etid)
     ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr)
          (tid_to_idx rows shared columns bdim (thread_index etid))
   ensures  gpu
     ** thread_id etid
-    ** Barrier.shared_pre nthr (2 * (shared / bdim)) ear (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid))
+    ** Barrier.shared_pre nthr (2 * (shared / bdim)) ear (bidx_x etid) (tidx_x etid)
     ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr)
          (tid_to_idx rows shared columns bdim (thread_index etid))
 {
@@ -340,7 +340,7 @@ fn kernel
     outer_loop rows shared columns bdim iv (SZ.v nthr) smem_sz ar (SZ.v tid) tcol trow sum;
     ()
   };
-  fold Barrier.shared_pre nthr (2 * shared_tile) ar (SZ.v (bidx_x etid)) (SZ.v (tidx_x etid));
+  fold Barrier.shared_pre nthr (2 * shared_tile) ar (bidx_x etid) (tidx_x etid);
 
   let s = !sum;
   unfold gpu_pts_to_array1 r (tid_to_idx rows shared columns bdim (thread_index etid));

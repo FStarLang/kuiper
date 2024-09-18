@@ -32,7 +32,7 @@ fn kernel
   (size : sz { SZ.v size == SZ.v nblk })
   (ga1 ga2 : gpu_array elem_t size)
   (r : gpu_array elem_t size)
-  (etid : erased tid_t { gdim_x etid == nblk /\ bdim_x etid == 1ul })
+  (etid : erased tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == 1 })
   requires gpu ** thread_id etid ** kpre size ga1 ga2 r (thread_index etid)
   ensures  gpu ** thread_id etid ** kpost size ga1 ga2 r (thread_index etid)
 {

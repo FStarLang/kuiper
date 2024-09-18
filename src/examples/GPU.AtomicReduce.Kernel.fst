@@ -79,7 +79,7 @@ fn kernel
   (done : erased (seq (gref bool)){Seq.length done == reveal nn})
   (i : iname)
   (v_a : erased (seq u64))
-  (etid : tid_t { SZ.v (gdim_x etid) == reveal nn /\ SZ.v (bdim_x etid) == 1sz})
+  (etid : tid_t { gdim_x etid == reveal nn /\ bdim_x etid == 1})
   requires gpu ** thread_id etid ** kpre  (SZ.v nn) a v_a r done i (thread_index etid)
   ensures  gpu ** thread_id etid ** kpost (SZ.v nn) a v_a r done i (thread_index etid)
 {
@@ -124,7 +124,7 @@ fn done_lemma
   (done : erased (seq (gref bool)){Seq.length done == reveal nn})
   (i : iname)
   (v_a : erased (seq u64))
-  (etid : tid_t { gdim_x etid == 1sz /\ SZ.v (bdim_x etid) == reveal nn})
+  (etid : tid_t { gdim_x etid == 1 /\ bdim_x etid == reveal nn})
   requires gpu ** bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
   ensures  
     gpu **
