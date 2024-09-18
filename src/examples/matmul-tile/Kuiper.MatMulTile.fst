@@ -161,13 +161,14 @@ let stupid_mul_mono (x y z w : nat)
 =
   ()
 
-let stupid_divides (x:nat) (y:pos)
+#push-options "--retry 5" //sad
+let stupid_divides (x:nat) (y:nonzero)
 : Lemma (x/y <= x)
   [SMTPat (x/y)]
-=
-  admit() // prove
+= ()
+#pop-options
 
-#set-options "--z3rlimit 20"
+#push-options "--z3rlimit 20"
 fn main
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
@@ -258,3 +259,4 @@ fn main
 
   ar
 }
+#pop-options
