@@ -15,6 +15,8 @@ let rec log2_mono n m =
 
 let pow2_mono n m = M.pow2_le_compat m n
 
+let mul_pow2 n m = M.pow2_plus n m
+
 let lemma_log2_le1 (n:pos) (m : nat) : Lemma (log2 n < m ==> n <= pow2 m) =
   calc (==>) {
     log2 n < m <: prop;

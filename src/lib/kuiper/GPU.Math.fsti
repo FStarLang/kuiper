@@ -25,6 +25,9 @@ val pow2_mono (n m : nat)
         (ensures  pow2 n <= pow2 m)
         [SMTPat (pow2 n); SMTPat (pow2 m)]
 
+val mul_pow2 (n m : nat)
+: Lemma (ensures pow2 n * pow2 m == pow2 (n + m))
+
 (* Note the strict < on the left. It is not true that
 log2 n == m ==> n <= pow2 m *)
 val lemma_log2_le1 (n:pos) (m:nat)
