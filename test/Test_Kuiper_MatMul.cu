@@ -3,41 +3,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define N 1024
-
-const size_t rows = N;
-const size_t shared = N;
-const size_t columns = N;
-
 typedef uint64_t u64;
 
-void pr(u64 *m) {
-	int i,j ;
-	for (i = 0; i < N; i++) {
-		for (j = 0; j < N; j++) {
-			printf("%lu ", m[i * 16+ j]);
-		}
-		printf("\n");
-	}
-}
-
-u64 * naive_mul(u64 *m1, u64 *m2)
-{
-	u64 *m3 = (u64*)calloc(rows * columns, sizeof m3[0]);
-	int i, j, k;
-	for (i = 0; i < rows; i++) {
-		for (j = 0; j < columns; j++) {
-			u64 sum = 0;
-			for (k = 0; k < shared; k++) {
-				sum += m1[i * shared + k] * m2[k * columns + j];
-			}
-			m3[i * columns + j] = sum;
-		}
-	}
-	return m3;
-}
-
-u64 * cpu_mul(u64 *m1, u64 *m2)
+u64 * cpu_mul(size_t rows, size_t shared, size_t columns, u64 *m1, u64 *m2)
 {
 	u64 *m3 = (u64*)calloc(rows * columns, sizeof m3[0]);
 	int i, j, k;
@@ -51,9 +19,31 @@ u64 * cpu_mul(u64 *m1, u64 *m2)
 	return m3;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	int i, j;
+	int laps = 5;
+	size_t rows = 2048;
+	size_t shared = 2048;
+	size_t columns = 2048;
+	bool check = true;
+
+	if (argc != 1 && argc != 6) {
+		printf("Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
+		return 1;
+	}
+
+	laps = atoi(argv[1]);
+	rows = atoi(argv[2]);
+	shared = atoi(argv[3]);
+	columns = atoi(argv[4]);
+	check = atoi(argv[5]) != 0;
+
+	printf ("Laps = %d\n", laps);
+	printf ("Rows = %lu\n", rows);
+	printf ("Shared = %lu\n", shared);
+	printf ("Columns = %lu\n", columns);
+	printf ("Check = %d\n", check);
 
 	u64 *m1, *m2;
 	m1 = (u64*)malloc(rows * shared * sizeof m1[0]);
@@ -69,9 +59,6 @@ int main()
 			m2[i * columns + j] = i+j;
 		}
 	}
-	
-	// printf("M1\n"); pr(m1); printf("\n");
-	// printf("M2\n"); pr(m2); printf("\n");
 
 	u64 *m3 = NULL;
 	for (int laps = 0; laps < 10; laps++) {
@@ -79,17 +66,14 @@ int main()
 		m3 = TIME(Kuiper_MatMul_main(rows, shared, columns, m1, m2), NULL);
 	}
 
-	u64 *m3_cpu = TIME(cpu_mul(m1, m2), NULL);
-
-	// printf("M3\n"); pr(m3); printf("\n");
-	// printf("M3 CPU\n"); pr(m3); printf("\n");
-	
-	// check
-	for (i = 0; i < rows; i++) {
-		for (j = 0; j < columns; j++) {
-			if (m3[i * columns + j] != m3_cpu[i * columns + j]) {
-				printf("Error at %d %d: %lu != %lu\n", i, j, m3[i * columns + j], m3_cpu[i * columns + j]);
-				return 1;
+	if (check) {
+		u64 *m3_cpu = TIME(cpu_mul(rows, shared, columns, m1, m2), NULL);
+		for (i = 0; i < rows; i++) {
+			for (j = 0; j < columns; j++) {
+				if (m3[i * columns + j] != m3_cpu[i * columns + j]) {
+					printf("Error at %d %d: %lu != %lu\n", i, j, m3[i * columns + j], m3_cpu[i * columns + j]);
+					return 1;
+				}
 			}
 		}
 	}
