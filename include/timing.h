@@ -11,7 +11,7 @@ static inline float __tdiff(struct timespec t1, struct timespec t2)
 }
 
 /* Setear a 0 para no ver el parallel factor */
-static int time_par = 1;
+static int time_par = 0;
 
 #define __TIME(s, expr, v) ({						\
 		struct timespec __t1p, __t2p;				\

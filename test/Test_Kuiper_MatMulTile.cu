@@ -32,14 +32,14 @@ int main(int argc, char **argv)
 	if (argc != 1 && argc != 7) {
 		printf("Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n", argv[0]);
 		return 1;
+	} else if (argc == 7) {
+		laps = atoi(argv[1]);
+		rows = atoi(argv[2]);
+		shared = atoi(argv[3]);
+		columns = atoi(argv[4]);
+		tile = atoi(argv[5]);
+		check = atoi(argv[6]) != 0;
 	}
-
-	laps = atoi(argv[1]);
-	rows = atoi(argv[2]);
-	shared = atoi(argv[3]);
-	columns = atoi(argv[4]);
-	tile = atoi(argv[5]);
-	check = atoi(argv[6]) != 0;
 
 	printf ("Laps = %d\n", laps);
 	printf ("Rows = %lu\n", rows);
@@ -64,9 +64,11 @@ int main(int argc, char **argv)
 	}
 
 	u64 *m3 = NULL;
-	for (int laps = 0; laps < 10; laps++) {
+	for (int l = 0; l < laps; l++) {
+		float t;
 		free (m3);
-		m3 = TIME(Kuiper_MatMulTile_main(rows, shared, columns, tile, m1, m2), NULL);
+		m3 = TIME(Kuiper_MatMulTile_main(rows, shared, columns, tile, m1, m2), &t);
+		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 
 	if (check) {

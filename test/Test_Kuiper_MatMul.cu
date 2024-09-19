@@ -31,13 +31,13 @@ int main(int argc, char **argv)
 	if (argc != 1 && argc != 6) {
 		printf("Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
 		return 1;
+	} else if (argc == 6) {
+		laps = atoi(argv[1]);
+		rows = atoi(argv[2]);
+		shared = atoi(argv[3]);
+		columns = atoi(argv[4]);
+		check = atoi(argv[5]) != 0;
 	}
-
-	laps = atoi(argv[1]);
-	rows = atoi(argv[2]);
-	shared = atoi(argv[3]);
-	columns = atoi(argv[4]);
-	check = atoi(argv[5]) != 0;
 
 	printf ("Laps = %d\n", laps);
 	printf ("Rows = %lu\n", rows);
@@ -61,9 +61,11 @@ int main(int argc, char **argv)
 	}
 
 	u64 *m3 = NULL;
-	for (int laps = 0; laps < 10; laps++) {
+	for (int l = 0; l < laps; l++) {
+		float t;
 		free (m3);
-		m3 = TIME(Kuiper_MatMul_main(rows, shared, columns, m1, m2), NULL);
+		m3 = TIME(Kuiper_MatMul_main(rows, shared, columns, m1, m2), &t);
+		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 
 	if (check) {

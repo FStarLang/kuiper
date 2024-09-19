@@ -1,2 +1,7 @@
-Tilesize = 32
+Laps = 5
+Rows = 2048
+Shared = 2048
+Columns = 2048
+Tile = 32
+Check = 1
 OK
