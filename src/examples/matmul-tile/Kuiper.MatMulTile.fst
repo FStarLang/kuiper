@@ -5,6 +5,7 @@ module Kuiper.MatMulTile
 
 open Kuiper
 open Kuiper.Math
+open Pulse.Lib.Pledge
 
 module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
@@ -24,26 +25,35 @@ let stupid_divides (x:nat) (y:nonzero)
 = ()
 #pop-options
 
-#push-options "--z3rlimit 20"
-fn main
+fn g_mul_async
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
-  (a1 a2: array u64)
-  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
-  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
+  (ga1 : gpu_array u64 (rows * shared))
+  (ga2 : gpu_array u64 (shared * columns))
+  (gr  : gpu_array u64 (rows * columns))
+  (#v1 : erased (seq u64) { Seq.length v1 == rows * shared })
+  (#v2 : erased (seq u64) { Seq.length v2 == shared * columns })
+  (#v3 : erased (seq u64) { Seq.length v3 == rows * columns })
+  (#e : erased nat)
   requires
     cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
+    epoch_live e **
+    gpu_pts_to_array ga1 v1 **
+    gpu_pts_to_array ga2 v2 **
+    gpu_pts_to_array gr  v3 **
     pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
-  returns  ar: array u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** (exists* vr. A.pts_to ar vr)
+  ensures
+    exists* e'.
+      cpu **
+      epoch_live e' **
+      pure (e' >= e) **
+      pledge0 (epoch_done e') (
+        gpu_pts_to_array ga1 v1 **
+        gpu_pts_to_array ga2 v2 **
+        (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+      )
 {
   open FStar.SizeT;
-
-  dassert (rows %^ bdim = 0sz);
-  dassert (columns %^ bdim = 0sz);
-  dassert (shared %^ bdim = 0sz);
   // dassert (bdim < pow2 30);
 
   let rows_tile = div rows bdim;
@@ -58,7 +68,6 @@ fn main
   assert (pure (SZ.fits (rows_tile * columns_tile)));
   let nblk = rows_tile *^ columns_tile;
 
-  assume (pure (bdim * bdim < pow2 60)); // trivial
   assert (pure (pow2 60 < pow2 64)); // trivial
   assert (pure (SZ.fits (bdim * bdim)));
   let nthr = bdim *^ bdim;
@@ -75,29 +84,19 @@ fn main
 
   assert (pure (SZ.fits (nblk * nthr)));
   let size = nblk *^ nthr;
-  let ar = Pulse.Lib.Array.alloc 0UL size;
 
   assert (pure (SZ.fits (rows * shared)));
-  let ga1 = gpu_array_alloc #u64 (rows *^ shared);
   assert (pure (SZ.fits (shared * columns)));
-  let ga2 = gpu_array_alloc #u64 (shared *^ columns);
-
-  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 (rows *^ shared);
-  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 (shared *^ columns);
-
-  let gr = gpu_array_alloc #u64 size;
-
   assert (pure (nblk * nthr == rows * columns));
 
   Prep.setup rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
- 
+
   assume (pure (rows_tile * columns_tile <= rows * columns));
 
   assume (pure (nblk <= max_threads)); // make sure to prove
-  assume (pure (nthr <= max_threads));
 
   let smem_sz = 2sz *^ nthr;
-  launch_kernel_n_m_shmem #0
+  launch_kernel_n_m_shmem_async #0
     nblk
     nthr
     #(fun (tid: nat {0 <= tid /\ tid < (nblk * nthr)} ) ->
@@ -113,8 +112,97 @@ fn main
     (Barrier.block_setup_ghost nthr smem_sz)
     (fun ear etid -> Kernel.kernel rows shared columns bdim ga1 ga2 gr #v1 #v2 (hide nblk) (hide nthr) smem_sz ear etid);
 
-  Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
 
+  ghost
+  fn aux ()
+    requires
+      bigstar 0 (nblk * nthr) (fun i ->
+        Kernel.kpost rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))
+    ensures
+      gpu_pts_to_array ga1 v1 **
+      gpu_pts_to_array ga2 v2 **
+      (exists* vr. gpu_pts_to_array gr vr)
+  {
+    Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
+  };
+  unfold pledge0;
+  rewrite_pledge _ _ aux; // (fun _ -> Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2);
+  fold pledge0;
+}
+
+fn g_mul
+  (rows shared columns : szp)
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
+  (ga1 : gpu_array u64 (rows * shared))
+  (ga2 : gpu_array u64 (shared * columns))
+  (gr  : gpu_array u64 (rows * columns))
+  (#v1 : erased (seq u64) { Seq.length v1 == rows * shared })
+  (#v2 : erased (seq u64) { Seq.length v2 == shared * columns })
+  (#v3 : erased (seq u64) { Seq.length v3 == rows * columns })
+  requires
+    cpu **
+    gpu_pts_to_array ga1 v1 **
+    gpu_pts_to_array ga2 v2 **
+    gpu_pts_to_array gr  v3 **
+    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+  ensures
+    cpu **
+    gpu_pts_to_array ga1 v1 **
+    gpu_pts_to_array ga2 v2 **
+    (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+{
+  let e = get_epoch ();
+  g_mul_async rows shared columns bdim ga1 ga2 gr #v1 #v2 #v3 #e;
+  unfold pledge0;
+  sync ();
+  with e'. assert (epoch_done e');
+  redeem_pledge emp_inames (epoch_done e') _;
+  drop_ (epoch_done e');
+  drop_ (epoch_live _);
+}
+
+#push-options "--z3rlimit 20"
+fn main
+  (rows shared columns : szp)
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
+  (a1 a2: array u64)
+  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
+  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  requires
+    cpu **
+    A.pts_to a1 v1 **
+    A.pts_to a2 v2 **
+    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+  returns  ar: array u64
+  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** (exists* vr. A.pts_to ar vr)
+{
+  open FStar.SizeT;
+  dassert (rows %^ bdim = 0sz);
+  dassert (columns %^ bdim = 0sz);
+  dassert (shared %^ bdim = 0sz);
+
+  let size = rows *^ columns;
+
+  assert (pure (SZ.fits (rows * shared)));
+  let ga1 = gpu_array_alloc #u64 (rows *^ shared);
+  assert (pure (SZ.fits (shared * columns)));
+  let ga2 = gpu_array_alloc #u64 (shared *^ columns);
+
+  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 (rows *^ shared);
+  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 (shared *^ columns);
+
+  let gr = gpu_array_alloc #u64 size;
+
+  (**)
+  with v3. assert (gpu_pts_to_array gr v3);
+  unfold (gpu_pts_to_array gr v3);
+  gpu_pts_to_slice_ref gr 0 _;
+  fold (gpu_pts_to_array gr v3);
+  (**)
+
+  g_mul rows shared columns bdim ga1 ga2 gr;
+
+  let ar = Pulse.Lib.Array.alloc 0UL size;
   Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
 
   gpu_array_free ga1;
