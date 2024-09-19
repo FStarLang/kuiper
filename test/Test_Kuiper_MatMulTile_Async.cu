@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 	if (argc != 1 && argc != 5) {
 		printf("Usage: %s [<laps> <nn> <tile> <check>]\n", argv[0]);
 		return 1;
-	} else if (argc == 7) {
+	} else if (argc == 5) {
 		laps = atoi(argv[1]);
 		nn = atoi(argv[2]);
 		tile = atoi(argv[3]);
