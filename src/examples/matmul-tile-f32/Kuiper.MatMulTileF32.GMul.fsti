@@ -9,6 +9,7 @@ open Pulse.Lib.Pledge
 
 module SZ   = FStar.SizeT
 
+inline_for_extraction
 fn g_mul_async
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
@@ -37,6 +38,7 @@ fn g_mul_async
         (exists* vr. gpu_pts_to_array gr vr) // no functional spec
       )
 
+inline_for_extraction
 fn g_mul
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})

@@ -1,2 +1,2 @@
 bench:
-	nvcc -I . runner.cu sgemm.cu -o $@ -lcublas
+	nvcc -O3 -I . runner.cu sgemm.cu -o $@ -lcublas

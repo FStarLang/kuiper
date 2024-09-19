@@ -43,6 +43,7 @@ fn recall_array_len
 }
 
 
+inline_for_extraction
 fn g_mul_async
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
@@ -151,6 +152,7 @@ fn g_mul_async
   fold pledge0;
 }
 
+inline_for_extraction
 fn g_mul
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})

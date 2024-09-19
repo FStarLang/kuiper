@@ -172,11 +172,11 @@ $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 
 %.o: %.cu include/*.h
 	$(call msg,"NVCC")
-	$(Q)nvcc -O3 -o $@ -c $<
+	$(Q)nvcc $(CFLAGS) -O3 -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	$(call msg,"NVCC")
-	$(Q)nvcc -O3 -I include -I $(OUTDIR) -o $@ $^
+	$(Q)nvcc $(CFLAGS) -O3 -I include -I $(OUTDIR) -o $@ $^
 
 $(OUTDIR)/startup.exe: test/startup.cu
 	$(call msg,"NVCC")

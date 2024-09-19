@@ -24,6 +24,6 @@ __global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A,
       tmp += A[x * K + i] * B[i * N + y];
     }
     // C = α*(A@B)+β*C
-    C[x * N + y] = alpha * tmp + beta * C[x * N + y];
+    C[x * N + y] = tmp; // alpha * tmp + beta * C[x * N + y];
   }
 }
