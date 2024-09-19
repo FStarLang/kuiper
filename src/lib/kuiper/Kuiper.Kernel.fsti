@@ -124,7 +124,7 @@ fn launch_kernel_1_async
   requires cpu ** epoch_live e ** pre
   ensures
     exists* e'.
-      cpu ** epoch_live e' ** pledge0 (epoch_done e) post **
+      cpu ** epoch_live e' ** pledge0 (epoch_done e') post **
       pure (e' >= e)
 
 inline_for_extraction

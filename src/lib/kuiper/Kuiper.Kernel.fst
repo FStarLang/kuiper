@@ -193,15 +193,12 @@ fn launch_kernel_1
   requires cpu ** pre
   ensures  cpu ** post
 {
-  let e = get_epoch ();
-  launch_kernel_1_async #pre #post k #e;
+  let _ = get_epoch ();
+  launch_kernel_1_async #pre #post k;
   unfold pledge0;
   sync ();
   with e'. assert (epoch_done e');
-  done_lower e' e;
-  redeem_pledge emp_inames (epoch_done e) post;
-  drop_ (epoch_done e);
+  redeem_pledge emp_inames (epoch_done e') post;
   drop_ (epoch_done e');
-  with e''. assert (epoch_live e'');
-  drop_ (epoch_live e'');
+  drop_ (epoch_live _);
 }
