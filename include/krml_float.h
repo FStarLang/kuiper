@@ -6,6 +6,7 @@
 #define   Kuiper_Float32_zero       0.0
 #define   Kuiper_Float32_add(x,y)   ((x)+(y))
 #define   Kuiper_Float32_sub(x,y)   ((x)-(y))
+#define   Kuiper_Float32_mul(x,y)   ((x)*(y))
 #define   Kuiper_Float32_neg(x)     (-(x))
 #define   Kuiper_Float32_div(x,y)   ((x)/(y))
 #define   Kuiper_Float32_rem(x,y)   ((x)%(y))
@@ -15,6 +16,7 @@
 #define   Kuiper_Float64_zero       0.0
 #define   Kuiper_Float64_add(x,y)   ((x)+(y))
 #define   Kuiper_Float64_sub(x,y)   ((x)-(y))
+#define   Kuiper_Float64_mul(x,y)   ((x)*(y))
 #define   Kuiper_Float64_neg(x)     (-(x))
 #define   Kuiper_Float64_div(x,y)   ((x)/(y))
 #define   Kuiper_Float64_rem(x,y)   ((x)%(y))
