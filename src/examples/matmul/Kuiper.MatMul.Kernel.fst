@@ -28,7 +28,7 @@ fn kernel
 {
   open FStar.SizeT;
 
-  let tid = block_idx_x () <: u32;
+  let tid = block_idx_x ();
   let tid : sz = SZ.uint32_to_sizet tid;
 
   (* r[tid] = TODO *)
@@ -51,10 +51,10 @@ fn kernel
   {
     let v = !i;
     let s = !sum;
-    let v1 = Impure.gpu_matrix_read #_ #rows #shared ga1 #(SZ.v nth) #s1 trow v;
-    let v2 = Impure.gpu_matrix_read #_ #shared #columns ga2 #(SZ.v nth) #s2 v tcol;
+    let v1 = Impure.gpu_matrix_read ga1 #(SZ.v nth) trow v;
+    let v2 = Impure.gpu_matrix_read ga2 #(SZ.v nth) v tcol;
 
-    sum := U64.add_mod (U64.mul_mod v1 v2) s;
+    sum := U64.(add_mod (mul_mod v1 v2) s);
     i := SZ.add v 1sz;
     assert (pure (trow < rows));
     assert (pure (tcol < columns));
@@ -65,7 +65,7 @@ fn kernel
   };
 
   let s = !sum;
-  gpu_array_write #u64 #(rows * columns) #(SZ.v tid) #(SZ.v tid + 1) r tid s;
+  gpu_array_write #_ #_ #(tid) #(tid + 1) r tid s; // r[tid] = s
 
   with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
   (**)Seq.lemma_eq_intro v seq![s];
