@@ -172,11 +172,11 @@ $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 
 %.o: %.cu include/*.h
 	$(call msg,"NVCC")
-	$(Q)nvcc -o $@ -c $<
+	$(Q)nvcc -O3 -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	$(call msg,"NVCC")
-	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
+	$(Q)nvcc -O3 -I include -I $(OUTDIR) -o $@ $^
 
 $(OUTDIR)/startup.exe: test/startup.cu
 	$(call msg,"NVCC")
@@ -199,6 +199,7 @@ TESTS+=Kuiper_DotProduct2
 TESTS+=Kuiper_DotProduct3
 TESTS+=Kuiper_MatMul
 TESTS+=Kuiper_MatMulTile
+TESTS+=Kuiper_MatMulTileF32
 TESTS+=Kuiper_BasicFloat
 TESTS+=Kuiper_AtomicReduce
 TESTS+=Kuiper_HReduceU32Plus

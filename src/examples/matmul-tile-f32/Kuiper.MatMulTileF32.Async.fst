@@ -1,0 +1,114 @@
+module Kuiper.MatMulTileF32.Async
+#lang-pulse
+
+#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
+
+open Kuiper
+open Kuiper.Math
+
+module A    = Pulse.Lib.Array
+module SZ   = FStar.SizeT
+module Kernel = Kuiper.MatMulTileF32.Kernel
+module Barrier = Kuiper.MatMulTileF32.Barrier
+module Prep = Kuiper.MatMulTileF32.Prep
+module GMul = Kuiper.MatMulTileF32.GMul
+open Pulse.Lib.Pledge
+
+let stupid_mul_mono (x y z w : nat)
+: Lemma (requires x <= z /\ y <= w) (ensures x * y <= z * w)
+=
+  ()
+
+#push-options "--retry 5" //sad
+let stupid_divides (x:nat) (y:nonzero)
+: Lemma (x/y <= x)
+  [SMTPat (x/y)]
+= ()
+#pop-options
+
+[@@allow_ambiguous]
+ghost
+fn redeem1 (e e' : erased nat) (post : slprop)
+  requires epoch_done e' ** pledge0 (epoch_done e) post ** pure (e' >= e)
+  ensures  epoch_done e' ** post
+{
+  done_lower e' e;
+  unfold pledge0;
+  redeem_pledge _ _ _;
+  drop_ (epoch_done e);
+}
+
+#push-options "--z3rlimit 20"
+(* Computes (a1*a2)*(a3*a4) *)
+fn main
+  (nn : szp)
+  (bdim : szp { bdim /? nn /\ bdim <= 32})
+  (a1 a2 a3 a4 : array f32)
+  (v1 v2 v3 v4 : erased (seq f32))
+  requires
+    cpu **
+    A.pts_to a1 v1 **
+    A.pts_to a2 v2 **
+    A.pts_to a3 v3 **
+    A.pts_to a4 v4 **
+    pure (SZ.fits (nn * nn))
+  returns
+    ar : array f32
+  ensures 
+    cpu **
+    A.pts_to a1 v1 **
+    A.pts_to a2 v2 **
+    A.pts_to a3 v3 **
+    A.pts_to a4 v4 **
+    (exists* vr. A.pts_to ar vr) // no functional spec
+{
+  open FStar.SizeT;
+  dassert (nn %^ bdim = 0sz);
+
+  let size = nn *^ nn ;
+
+  assert (pure (SZ.fits (nn * nn)));
+  let ga1 = gpu_array_alloc #f32 size;
+  let ga2 = gpu_array_alloc #f32 size;
+  let ga3 = gpu_array_alloc #f32 size;
+  let ga4 = gpu_array_alloc #f32 size;
+
+  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 size;
+  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 size;
+  Kuiper.Array.gpu_memcpy_host_to_device ga3 a3 size;
+  Kuiper.Array.gpu_memcpy_host_to_device ga4 a4 size;
+
+  let gt1  = gpu_array_alloc #f32 size;
+  let gt2  = gpu_array_alloc #f32 size;
+
+  get_epoch();
+
+  GMul.g_mul_async nn nn nn bdim ga1 ga2 gt1;
+  GMul.g_mul_async nn nn nn bdim ga3 ga4 gt2;
+  sync();
+  (**) redeem1 _ _ _;
+  (**) redeem1 _ _ _;
+  (**) drop_ (epoch_done _);
+  gpu_array_free ga1;
+  gpu_array_free ga2;
+  gpu_array_free ga3;
+  gpu_array_free ga4;
+
+  let gr = gpu_array_alloc #f32 size;
+  GMul.g_mul_async nn nn nn bdim gt1 gt2 gr;
+  sync();
+  (**) redeem1 _ _ _;
+  (**) drop_ (epoch_done _);
+  gpu_array_free gt1;
+  gpu_array_free gt2;
+
+  let ar = Pulse.Lib.Array.alloc Kuiper.Float32.zero size;
+
+  Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
+  gpu_array_free gr;
+  
+  drop_ (epoch_live _);
+
+  ar
+}
+#pop-options
