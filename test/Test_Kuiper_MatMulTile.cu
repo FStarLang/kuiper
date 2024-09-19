@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 		free (m3);
 		float t;
 		m3 = TIME(Kuiper_MatMulTile_main(N, N, N, tilesize, m1, m2), &t);
-		printf("Estimated GIOPS = %f\n", 2 * rows * shared * columns / t / 1e9); fflush(stdout);
+		fprintf(stderr, "Estimated GIOPS = %f\n", 2 * rows * shared * columns / t / 1e9);
 	}
 
 	u64 *m3_cpu = TIME(cpu_mul(m1, m2), NULL);
