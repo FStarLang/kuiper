@@ -1,4 +1,4 @@
-# Pulse for GPU verification
+# Kuiper - Pulse for GPU verification
 
 Instructions from pulse-sandbox:
 
