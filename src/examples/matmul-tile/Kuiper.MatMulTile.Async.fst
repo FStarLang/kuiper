@@ -11,7 +11,7 @@ module SZ   = FStar.SizeT
 module Kernel = Kuiper.MatMulTile.Kernel
 module Barrier = Kuiper.MatMulTile.Barrier
 module Prep = Kuiper.MatMulTile.Prep
-module GMul = Kuiper.MatMulTile.GMul
+module GMul = Kuiper.MatMulTile.Async.GMul
 open Pulse.Lib.Pledge
 
 let stupid_mul_mono (x y z w : nat)

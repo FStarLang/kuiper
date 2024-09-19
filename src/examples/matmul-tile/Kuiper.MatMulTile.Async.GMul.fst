@@ -1,4 +1,4 @@
-module Kuiper.MatMulTile.GMul
+module Kuiper.MatMulTile.Async.GMul
 #lang-pulse
 
 #set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
