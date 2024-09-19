@@ -7,6 +7,7 @@ include Pulse.Lib.BigStar
 
 include FStar.Seq { seq, lseq, cons, empty }
 
+include Kuiper.Epoch
 include Kuiper.Assert
 include Kuiper.Base
 include Kuiper.Ref

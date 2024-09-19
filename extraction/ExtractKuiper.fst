@@ -225,15 +225,16 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         _shared_pre;
         _shared_post;
         _setup;
-        { expr = MLE_Fun (_, body) }
+        { expr = MLE_Fun (_, body) };
+        _epoch
       ])
-    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n_m_shmem" ->
+    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n_m_shmem_async" ->
     let hd, args = head_and_args body in
     (* Filter out unit arguments. Not great, not sure why they remain *)
     let args' = List.filter (fun a -> match a.expr with
                                       | MLE_Const MLC_Unit -> false
                                       | _ -> true) args in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL_SHMEM") in
+    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL_SHMEM_ASYNC") in
     let e_size = get_sizet sized_a in
     let e' =
       with_ty ml_unit_ty <|

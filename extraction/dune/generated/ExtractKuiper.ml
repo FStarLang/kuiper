@@ -650,10 +650,10 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
               FStar_Extraction_ML_Syntax.expr =
                 FStar_Extraction_ML_Syntax.MLE_Fun (uu___3, body);
               FStar_Extraction_ML_Syntax.mlty = uu___4;
-              FStar_Extraction_ML_Syntax.loc = uu___5;_}::[])
+              FStar_Extraction_ML_Syntax.loc = uu___5;_}::_epoch::[])
            when
            let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___6 = "Kuiper.Kernel.launch_kernel_n_m_shmem" ->
+           uu___6 = "Kuiper.Kernel.launch_kernel_n_m_shmem_async" ->
            let uu___6 = head_and_args body in
            (match uu___6 with
             | (hd, args) ->
@@ -668,7 +668,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                   FStar_Extraction_ML_Syntax.with_ty
                     FStar_Extraction_ML_Syntax.ml_unit_ty
                     (FStar_Extraction_ML_Syntax.MLE_Name
-                       ([], "KPR_KCALL_SHMEM")) in
+                       ([], "KPR_KCALL_SHMEM_ASYNC")) in
                 let e_size = get_sizet sized_a in
                 let e' =
                   FStar_Extraction_ML_Syntax.with_ty
@@ -892,7 +892,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___573 : unit) =
+let (uu___574 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr
