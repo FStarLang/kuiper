@@ -113,7 +113,7 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 # Dependencies come from .depend. We still need this rule.
 %.checked: | .b_fstar .b_pulse
 	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) $<
+	$(Q)$(FSTAR) --already_cached '*' $<
 	@touch -c $@
 
 $(PLUGIN).cmxs: $(FSTAR_EXE)
