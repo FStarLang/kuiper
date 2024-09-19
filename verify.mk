@@ -200,6 +200,7 @@ TESTS+=Kuiper_DotProduct3
 TESTS+=Kuiper_MatMul
 TESTS+=Kuiper_MatMulTile
 TESTS+=Kuiper_MatMulTileF32
+TESTS+=Kuiper_MatMulTile_Async
 TESTS+=Kuiper_BasicFloat
 TESTS+=Kuiper_AtomicReduce
 TESTS+=Kuiper_HReduceU32Plus
