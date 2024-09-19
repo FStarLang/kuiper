@@ -28,7 +28,7 @@ fn obtain_shmem
     { admit () }
 
 (* f<<<nblk, nthr, smem_sz>>>(...); *)
-fn launch_kernel_n_m_sync
+fn launch_kernel_n_m_shmem
   (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })

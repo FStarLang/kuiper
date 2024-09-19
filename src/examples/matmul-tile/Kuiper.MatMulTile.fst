@@ -97,7 +97,7 @@ fn main
   assume (pure (nthr <= max_threads));
 
   let smem_sz = 2sz *^ nthr;
-  launch_kernel_n_m_sync #0
+  launch_kernel_n_m_shmem #0
     nblk
     nthr
     #(fun (tid: nat {0 <= tid /\ tid < (nblk * nthr)} ) ->

@@ -248,7 +248,7 @@ fn main
     bigstar 0 (1 * SZ.v dp2_size)
       (kpre dp2_size ga1 ga2 gr v1 v2);
 
-  launch_kernel_n_m_sync #0 1sz dp2_size
+  launch_kernel_n_m_shmem #0 1sz dp2_size
     #(kpre dp2_size ga1 ga2 gr v1 v2)
     #(kpost dp2_size ga1 ga2 gr v1 v2)
     u64

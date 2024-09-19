@@ -95,7 +95,7 @@ fn main
   let perm: erased (permutation (i: erased nat{0 <= i /\ i < (SZ.v nblk * SZ.v nthr)})) = Defs.mapping_fixed;
   bigstar_permute #0 #0 #(SZ.v nblk * SZ.v nthr) #(Defs.kpre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size)) perm;
 
-  launch_kernel_n_m_sync #0
+  launch_kernel_n_m_shmem #0
     nblk
     nthr
     #(fun (tid: nat {0 <= tid /\ tid < (SZ.v nblk * SZ.v nthr)} ) -> Defs.kpre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (SZ.v size) (Defs.mapping_fixed.f tid))

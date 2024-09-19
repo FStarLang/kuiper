@@ -653,7 +653,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
               FStar_Extraction_ML_Syntax.loc = uu___5;_}::[])
            when
            let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
-           uu___6 = "Kuiper.Kernel.launch_kernel_n_m_sync" ->
+           uu___6 = "Kuiper.Kernel.launch_kernel_n_m_shmem" ->
            let uu___6 = head_and_args body in
            (match uu___6 with
             | (hd, args) ->
