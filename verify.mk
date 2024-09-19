@@ -72,13 +72,13 @@ FSTAR_FLAGS += --ext no_krml_private
 FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 
-FSTAR_NOPLUG := $(FSTAR_EXE)				\
+FSTAR_NOPLUG = $(FSTAR_EXE)				\
 	$(SIL)						\
 	--include pulse					\
 	--include src					\
 	$(FSTAR_FLAGS)
 
-FSTAR := $(FSTAR_NOPLUG) --load_cmxs pulse
+FSTAR = $(FSTAR_NOPLUG) --load_cmxs pulse
 
 GPUH := $(realpath include/kuiper.h)
 
@@ -115,6 +115,11 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 	@$(call msg,"CHECK")
 	$(Q)$(FSTAR) --already_cached '*' $<
 	@touch -c $@
+
+# What the hell is going on!? This verifies fine locally from a clean
+# build, but not on CI. Does the SMT encoding depend in any way on the machine,
+# like filepaths? Anyway, bump the rlimit.
+.cache/FStar.UInt.fst.checked: FSTAR_FLAGS+=--z3rlimit_factor 2
 
 $(PLUGIN).cmxs: $(FSTAR_EXE)
 	+$(MAKE) -C extraction build
