@@ -19,50 +19,50 @@ let lemma_nonneg_mul (x y : int)
 
 ghost
 fn setup
-  (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
-  (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
-  (nthr : erased sz { SZ.v nthr == bdim * bdim
-                     /\ SZ.v nblk * SZ.v nthr == rows * columns
+  (rows shared columns : pos)
+  (bdim : pos { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
+  (nblk : nat { nblk == (rows / bdim) * (columns / bdim) })
+  (nthr : nat { nthr == bdim * bdim
+                     /\ nblk * nthr == rows * columns
                      /\ 2 * (shared / bdim) >= 0
                      })
   (* ^ 2nd and 3rd conjunct above just to help verifying this spec, sigh. *)
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
-  (gr  : gpu_array u64 (SZ.v nblk * SZ.v nthr))
-  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
-  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  (gr  : gpu_array u64 (nblk * nthr))
+  (v1 : seq u64 { Seq.length v1 == rows * shared })
+  (v2 : seq u64 { Seq.length v2 == shared * columns })
   (#s : seq u64)
   requires gpu_pts_to_array gr s **
            gpu_pts_to_array ga1 v1 **
            gpu_pts_to_array ga2 v2
-  ensures  bigstar 0 (SZ.v nblk * SZ.v nthr) (fun i ->
-             Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (SZ.v nblk * SZ.v nthr)
+  ensures  bigstar 0 (nblk * nthr) (fun i ->
+             Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr)
                (Kernel.tid_to_idx rows shared columns bdim i))
 {
   // Sharing the input matrices (splitting permissions)
   fold Defs.gpu_pts_to_matrix rows   shared  ga1 1 v1;
   fold Defs.gpu_pts_to_matrix shared columns ga2 1 v2;
-  Defs.gpu_matrix_share_underspec #_ #1 rows   shared  ga1 (SZ.v nblk * SZ.v nthr) v1;
-  Defs.gpu_matrix_share_underspec #_ #2 shared columns ga2 (SZ.v nblk * SZ.v nthr) v2;
+  Defs.gpu_matrix_share_underspec #_ #1 rows   shared  ga1 (nblk * nthr) v1;
+  Defs.gpu_matrix_share_underspec #_ #2 shared columns ga2 (nblk * nthr) v2;
 
   // Sharing the output matrix (splitting each cell)
   gpu_pts_to_ref gr; (* obtain length v == (nblk * nthr) *)
   gpu_array_slice_1 #4 gr;
 
   // Join resources into a single bigstar
-  bigstar_zip #1 #2 #3 0 (SZ.v nblk * SZ.v nthr) _ _;
-  bigstar_zip #3 #4 #0 0 (SZ.v nblk * SZ.v nthr) _ _;
+  bigstar_zip #1 #2 #3 0 (nblk * nthr) _ _;
+  bigstar_zip #3 #4 #0 0 (nblk * nthr) _ _;
 
   // Rewrite inside the bigstar
   ghost
-  fn aux (i:nat{0 <= i /\ i < (SZ.v nblk * SZ.v nthr)})
+  fn aux (i:nat{0 <= i /\ i < (nblk * nthr)})
     requires
-      Defs.gpu_pts_to_matrix rows   shared  ga1 (SZ.v nblk * SZ.v nthr) v1 **
-      Defs.gpu_pts_to_matrix shared columns ga2 (SZ.v nblk * SZ.v nthr) v2 **
+      Defs.gpu_pts_to_matrix rows   shared  ga1 (nblk * nthr) v1 **
+      Defs.gpu_pts_to_matrix shared columns ga2 (nblk * nthr) v2 **
       gpu_pts_to_array_slice gr i (i + 1) seq![s `Seq.index` i]
     ensures
-      Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (SZ.v nblk * SZ.v nthr) i
+      Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) i
   {
     fold gpu_pts_to_array1 gr i;
     ()
@@ -72,38 +72,38 @@ fn setup
     == { magic() } // fixme, boring proof (we have divisibility)
     rows * columns;
   };
-  bigstar_map #_ #_ #0 #(SZ.v nblk * SZ.v nthr) aux;
-  lemma_nonneg_mul (SZ.v nblk) (SZ.v nthr);
+  bigstar_map #_ #_ #0 #(nblk * nthr) aux;
+  lemma_nonneg_mul (nblk) (nthr);
   lemma_divides_exact rows bdim;
   lemma_divides_exact columns bdim;
   assert (pure (rows / bdim >= 1));
   assert (pure (columns / bdim >= 1));
-  bigstar_permute #0 #0 #(SZ.v nblk * SZ.v nthr) #_ (Kernel.permute (rows/bdim) (columns/bdim) bdim);
-  ghost fn rewrite_permute_to_fn (i: nat {0 <= i /\ i < (SZ.v nblk * SZ.v nthr)})
-    requires Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (SZ.v nblk * SZ.v nthr) ((Kernel.permute (rows/bdim) (columns/bdim) bdim).f i)
-    ensures  Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (SZ.v nblk * SZ.v nthr) (Kernel.tid_to_idx rows shared columns bdim i)
+  bigstar_permute #0 #0 #(nblk * nthr) #_ (Kernel.permute (rows/bdim) (columns/bdim) bdim);
+  ghost fn rewrite_permute_to_fn (i: nat {0 <= i /\ i < (nblk * nthr)})
+    requires Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) ((Kernel.permute (rows/bdim) (columns/bdim) bdim).f i)
+    ensures  Kernel.kpre rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i)
   {
     ()
   };
-  bigstar_map #0 #0 #0 #(SZ.v nblk * SZ.v nthr) (fun i -> rewrite_permute_to_fn i);
+  bigstar_map #0 #0 #0 #(nblk * nthr) (fun i -> rewrite_permute_to_fn i);
   ()
 }
 
 ghost
 fn breakdown
-  (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
-  (nblk : sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
-  (nthr : sz { SZ.v nthr == bdim * bdim
-                     /\ SZ.v nblk * SZ.v nthr == rows * columns
+  (rows shared columns : pos)
+  (bdim : pos { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})
+  (nblk : nat { nblk == (rows / bdim) * (columns / bdim) })
+  (nthr : nat { nthr == bdim * bdim
+                     /\ nblk * nthr == rows * columns
                      /\ 2 * (shared / bdim) >= 0
                      })
   (* ^ 2nd and 3rd conjunct above just to help verifying this spec, sigh. *)
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (gr  : gpu_array u64 (nblk * nthr))
-  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
-  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  (v1 : seq u64 { Seq.length v1 == rows * shared })
+  (v2 : seq u64 { Seq.length v2 == shared * columns })
   requires
     bigstar 0 (nblk * nthr) (fun i ->
       Kernel.kpost rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))
@@ -112,7 +112,7 @@ fn breakdown
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2
 {
-  lemma_nonneg_mul (SZ.v nblk) (SZ.v nthr);
+  lemma_nonneg_mul nblk nthr;
   lemma_divides_exact rows bdim;
   lemma_divides_exact columns bdim;
   let _ = calc (==) {

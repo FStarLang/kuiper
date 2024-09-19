@@ -89,7 +89,7 @@ fn main
 
   assert (pure (nblk * nthr == rows * columns));
 
-  Prep.setup rows shared columns bdim (hide nblk) (hide nthr) ga1 ga2 gr v1 v2;
+  Prep.setup rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
  
   assume (pure (rows_tile * columns_tile <= rows * columns));
 
