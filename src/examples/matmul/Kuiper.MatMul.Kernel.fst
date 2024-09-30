@@ -21,10 +21,10 @@ fn kernel
   (etid : erased tid_t { gdim_x etid == SZ.v nth /\ bdim_x etid == 1 })
   requires gpu
     ** thread_id etid
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
+    ** kpre rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
   ensures  gpu
     ** thread_id etid
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
+    ** kpost rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
 {
   open FStar.SizeT;
 
@@ -67,7 +67,7 @@ fn kernel
   let s = !sum;
   gpu_array_write #_ #_ #(tid) #(tid + 1) r tid s; // r[tid] = s
 
-  with #v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
+  with v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
   (**)Seq.lemma_eq_intro v seq![s];
   (**)rewrite gpu_pts_to_array_slice r tid (tid + 1) v
     as gpu_pts_to_array_slice r tid (tid + 1) seq![s];

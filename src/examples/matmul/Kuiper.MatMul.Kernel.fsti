@@ -31,8 +31,8 @@ let kpre (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
   (r: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) )
-  (#s2: erased (seq u64))
+  (s1: erased (seq u64) )
+  (s2: erased (seq u64))
   (nth: erased nat { reveal nth == rows * columns })
   (tid : nat{ tid < rows * columns})
   : slprop
@@ -45,8 +45,8 @@ let kpost (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
   (r: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
+  (s1: erased (seq u64) {Seq.length s1 == rows * shared})
+  (s2: erased (seq u64) {Seq.length s2 == shared * columns})
   (nth: erased nat { reveal nth == rows * columns })
   (tid : nat {  tid < rows * columns })
   : slprop
@@ -70,7 +70,7 @@ fn kernel
   (etid : erased tid_t { gdim_x etid == SZ.v nth /\ bdim_x etid == 1 })
   requires gpu
     ** thread_id etid
-    ** kpre rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
+    ** kpre rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
   ensures  gpu
     ** thread_id etid
-    ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nth) (thread_index etid)
+    ** kpost rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
