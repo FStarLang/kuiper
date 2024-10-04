@@ -45,14 +45,14 @@ fn kernel
        pure (0 <= shared /\ b == (SZ.v v < shared) /\ SZ.v v <= shared /\ SZ.v v >= 0) **
        pts_to i v **
        gpu **
-       pts_to sum (Pure.matmul_single rows shared columns s1 s2 trow tcol (SZ.v v))
-       ** Impure.gpu_pts_to_matrix #u64 rows shared ga1 (SZ.v nth) s1
-       ** Impure.gpu_pts_to_matrix #u64 shared columns ga2 (SZ.v nth) s2
+       pts_to sum (P.matmul_single rows shared columns s1 s2 trow tcol (SZ.v v))
+       ** I.gpu_pts_to_matrix #u64 rows shared ga1 (SZ.v nth) s1
+       ** I.gpu_pts_to_matrix #u64 shared columns ga2 (SZ.v nth) s2
   {
     let v = !i;
     let s = !sum;
-    let v1 = Impure.gpu_matrix_read ga1 #(SZ.v nth) trow v;
-    let v2 = Impure.gpu_matrix_read ga2 #(SZ.v nth) v tcol;
+    let v1 = I.gpu_matrix_read ga1 #(SZ.v nth) trow v;
+    let v2 = I.gpu_matrix_read ga2 #(SZ.v nth) v tcol;
 
     sum := U64.(add_mod (mul_mod v1 v2) s);
     i := SZ.add v 1sz;
@@ -60,7 +60,7 @@ fn kernel
     assert (pure (tcol < columns));
     assert (pure (v+1 <= shared));
     assert (pure ((trow + 1) <= rows /\ (trow + 1) * shared <= rows * shared)); // Pulse #214, sigh
-    (**)Pure.matmul_single_lemma rows shared columns s1 s2 trow tcol (SZ.v (SZ.add v 1sz));
+    (**)P.matmul_single_lemma rows shared columns s1 s2 trow tcol (SZ.v (SZ.add v 1sz));
     ()
   };
 

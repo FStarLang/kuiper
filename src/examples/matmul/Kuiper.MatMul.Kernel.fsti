@@ -9,8 +9,9 @@ inline_for_extraction let x = 1
 
 open Kuiper
 
-module Impure = Kuiper.MatMul.Impure
-module Pure = Kuiper.MatMul.Pure
+module I = Kuiper.MatMul.Impure
+module P = Kuiper.MatMul.Pure
+
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
@@ -25,8 +26,8 @@ let kpre (rows shared columns: nat)
   (tid : nat{ tid < rows * columns})
   : slprop
   =
-  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
-  ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
+  I.gpu_pts_to_matrix rows shared ga1 nth s1
+  ** I.gpu_pts_to_matrix shared columns ga2 nth s2
   ** (exists* sr. gpu_pts_to_array_slice r tid (tid+1) sr)
 
 [@@pulse_unfold]
@@ -40,9 +41,9 @@ let kpost (rows shared columns: nat)
   (tid : nat {  tid < rows * columns })
   : slprop
   =
-  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
-  ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-  ** gpu_pts_to_array_slice r tid (tid+1) (seq![Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared])
+  I.gpu_pts_to_matrix rows shared ga1 nth s1
+  ** I.gpu_pts_to_matrix shared columns ga2 nth s2
+  ** gpu_pts_to_array_slice r tid (tid+1) (seq![P.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared])
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 [@@CPrologue "__global__"]
