@@ -78,7 +78,8 @@ fn main
     )
     // ^ Some of these could be ommited if we had some "core" pure inference from slprops.
     // Since we have a1 |-> v1, the length of v1 must fit, etc.
-  returns  ar: array u64
+  returns
+    ar: array u64
   ensures
     A.pts_to ar (P.matmul rows shared columns v1 v2)
 {
@@ -86,11 +87,14 @@ fn main
   let size = rows *^ columns;
   let ar = Pulse.Lib.Array.alloc 0UL size;
 
-  let ga1 = gpu_array_alloc #u64 (rows *^ shared);
-  let ga2 = gpu_array_alloc #u64 (shared *^ columns);
+  let rs = rows *^ shared;
+  let sc = shared *^ columns;
 
-  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 (rows *^ shared);
-  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 (shared *^ columns);
+  let ga1 = gpu_array_alloc #u64 rs;
+  let ga2 = gpu_array_alloc #u64 sc;
+
+  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 rs;
+  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 sc;
 
   let gr = gpu_array_alloc #u64 size;
 
