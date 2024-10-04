@@ -7,7 +7,10 @@ open Kuiper
 
 module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
-module Defs = Kuiper.MatMul.Defs
+
+module P = Kuiper.MatMul.Pure
+module I = Kuiper.MatMul.Impure
+module K = Kuiper.MatMul.Kernel
 
 ghost
 fn setup
@@ -22,13 +25,13 @@ fn setup
            gpu_pts_to_array ga1 v1 **
            gpu_pts_to_array ga2 v2
   ensures  bigstar 0 size (fun i ->
-             Defs.kpre rows shared columns ga1 ga2 gr v1 v2 size i)
+             K.kpre rows shared columns ga1 ga2 gr v1 v2 size i)
 {
   // Sharing the input matrices (splitting permissions)
-  fold Defs.gpu_pts_to_matrix rows   shared  ga1 1 v1;
-  fold Defs.gpu_pts_to_matrix shared columns ga2 1 v2;
-  Defs.gpu_matrix_share_underspec #_ #1 rows   shared  ga1 size v1;
-  Defs.gpu_matrix_share_underspec #_ #2 shared columns ga2 size v2;
+  fold I.gpu_pts_to_matrix rows   shared  ga1 1 v1;
+  fold I.gpu_pts_to_matrix shared columns ga2 1 v2;
+  I.gpu_matrix_share_underspec #_ #1 rows   shared  ga1 size v1;
+  I.gpu_matrix_share_underspec #_ #2 shared columns ga2 size v2;
 
   // Sharing the output matrix (splitting each cell)
   gpu_pts_to_ref gr; (* obtain length v == size *)
@@ -42,11 +45,11 @@ fn setup
   ghost
   fn aux (i:nat{0 <= i /\ i < size})
     requires
-      Defs.gpu_pts_to_matrix rows   shared  ga1 size v1 **
-      Defs.gpu_pts_to_matrix shared columns ga2 size v2 **
+      I.gpu_pts_to_matrix rows   shared  ga1 size v1 **
+      I.gpu_pts_to_matrix shared columns ga2 size v2 **
       gpu_pts_to_array_slice gr i (i + 1) seq!['s `Seq.index` i]
     ensures
-      Defs.kpre rows shared columns ga1 ga2 gr v1 v2 size i
+      K.kpre rows shared columns ga1 ga2 gr v1 v2 size i
   {
     ()
   };
@@ -72,7 +75,7 @@ fn main
   returns  ar: array u64
   ensures
     cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 **
-    A.pts_to ar (Defs.matmul rows shared columns v1 v2)
+    A.pts_to ar (P.matmul rows shared columns v1 v2)
 {
   open FStar.SizeT;
   let size = rows *^ columns;
@@ -90,29 +93,29 @@ fn main
 
   launch_kernel_n #0
     size
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpre rows shared columns ga1 ga2 gr v1 v2 (SZ.v size) tid)
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> Defs.kpost rows shared columns ga1 ga2 gr v1 v2 (SZ.v size) tid)
-    (fun etid -> Defs.kernel rows shared columns ga1 ga2 gr (hide size) etid);
+    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpre rows shared columns ga1 ga2 gr v1 v2 (SZ.v size) tid)
+    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpost rows shared columns ga1 ga2 gr v1 v2 (SZ.v size) tid)
+    (fun etid -> K.kernel rows shared columns ga1 ga2 gr (hide size) etid);
 
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
 
-  (**)Defs.gpu_matrix_unshare_underspec rows shared ga1 size v1;
-  (**)Defs.gpu_matrix_unshare_underspec shared columns ga2 size v2;
-  (**)unfold Defs.gpu_pts_to_matrix rows shared ga1 1 v1;
-  (**)unfold Defs.gpu_pts_to_matrix shared columns ga2 1 v2;
+  (**)I.gpu_matrix_unshare_underspec rows shared ga1 size v1;
+  (**)I.gpu_matrix_unshare_underspec shared columns ga2 size v2;
+  (**)unfold I.gpu_pts_to_matrix rows shared ga1 1 v1;
+  (**)unfold I.gpu_pts_to_matrix shared columns ga2 1 v2;
 
   ghost
   fn aux1 (i:nat{0 <= i /\ i < size})
     requires
       gpu_pts_to_array_slice gr i (i + 1)
-            seq![Defs.matmul_single rows shared columns
+            seq![P.matmul_single rows shared columns
                    v1 v2 (i / columns) (i % columns) shared]
     ensures
       gpu_pts_to_array_slice gr i (i + 1)
-            seq![Defs.matmul rows shared columns v1 v2 @! i]
+            seq![P.matmul rows shared columns v1 v2 @! i]
   {
-    Defs.lemma_matmul_index rows shared columns v1 v2 i;
+    P.lemma_matmul_index rows shared columns v1 v2 i;
     () (* cf. issue #181 in Pulse *)
   };
   bigstar_map #0 #0 #0 #size aux1;
