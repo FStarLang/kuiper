@@ -77,10 +77,10 @@ fn main
   Kuiper.Array.gpu_memcpy_host_to_device ga3 a3 size;
   Kuiper.Array.gpu_memcpy_host_to_device ga4 a4 size;
 
-  let gt1  = gpu_array_alloc #u64 size;
-  let gt2  = gpu_array_alloc #u64 size;
+  let gt1 = gpu_array_alloc #u64 size;
+  let gt2 = gpu_array_alloc #u64 size;
 
-  get_epoch();
+  (**)get_epoch();
 
   GMul.g_mul_async nn nn nn bdim ga1 ga2 gt1;
   GMul.g_mul_async nn nn nn bdim ga3 ga4 gt2;
@@ -106,7 +106,7 @@ fn main
   Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
   gpu_array_free gr;
   
-  drop_ (epoch_live _);
+  (**)drop_ (epoch_live _);
 
   ar
 }

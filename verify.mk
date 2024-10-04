@@ -230,6 +230,7 @@ extraction-targets: \
 	out/Kuiper_Polymorphism1.cu \
 	out/Kuiper_AtomicReduce.cu \
 	out/Kuiper_Mul.cu \
+	out/Kuiper_MatMulTileF32_Async.cu \
 	$(patsubst %,out/%.exe,$(TESTS))
 
 .PHONY: test
