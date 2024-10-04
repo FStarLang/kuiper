@@ -69,6 +69,7 @@ fn g_mul_async
   let nblk = rows_tile *^ columns_tile;
 
   assert (pure (pow2 60 < pow2 64)); // trivial
+  assert (pure (bdim * bdim <= 1024));
   assert (pure (SZ.fits (bdim * bdim)));
   let nthr = bdim *^ bdim;
 
@@ -95,6 +96,7 @@ fn g_mul_async
 
   assume (pure (nblk <= max_threads)); // make sure to prove
 
+  assert (pure (2 * nthr <= 2048));
   let smem_sz = 2sz *^ nthr;
   launch_kernel_n_m_shmem_async #0
     nblk
