@@ -24,3 +24,5 @@ include Kuiper.Functions
 include Pulse.Lib.GhostReference { ref as gref, pts_to as gref_pts_to }
 
 include Kuiper.Seq.Common { op_At_Bang }
+
+include Kuiper.Len { len }
