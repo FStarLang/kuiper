@@ -15,3 +15,8 @@ val lemma_divides_mod (x:pos) (y : int)
 val lemma_divides_exact (x:pos) (y:int)
   : Lemma (x /? y <==> x * (y/x) == y)
           [SMTPat (x /? y)]
+
+val lemma_divides_le (x : nat) (y : pos)
+  : Lemma (requires x /? y)
+          (ensures x <= y)
+          [SMTPat (x /? y)]

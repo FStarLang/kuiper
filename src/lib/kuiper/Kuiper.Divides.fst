@@ -36,3 +36,9 @@ let lemma_divides_exact (x:pos) (y:int)
   : Lemma (x /? y <==> x * (y/x) == y)
 = lemma_divides_mod1 x y;
   Classical.move_requires (M.lemma_div_exact y) x
+
+let lemma_divides_le (x : nat) (y : pos)
+  : Lemma (requires x /? y)
+          (ensures x <= y)
+          [SMTPat (x /? y)]
+= ()

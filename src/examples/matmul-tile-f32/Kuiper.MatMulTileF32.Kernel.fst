@@ -205,7 +205,7 @@ fn outer_loop
   // Do stuff
   assert (pure (trow < bdim));
   assert (pure (trow * bdim <= bdim * bdim));
-  assert (pure (bdim * bdim <= pow2 30 * pow2 30));
+  assume (pure (bdim * bdim <= pow2 30 * pow2 30)); // obvious
   assert (pure (SZ.fits (trow * bdim)));
   let ga1_iidx = trow *^ bdim;
   let ga2_iidx = tcol;

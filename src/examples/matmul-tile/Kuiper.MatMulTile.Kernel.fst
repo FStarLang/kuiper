@@ -7,8 +7,10 @@ open Kuiper.Barrier.RPM
 open FStar.SizeT
 module SZ = FStar.SizeT
 
-#set-options "--z3rlimit 60"
-// #push-options "--fuel 1 --ifuel 1"
+module I = Kuiper.MatMul.Impure
+
+#set-options "--z3rlimit 20"
+#set-options "--fuel 1 --ifuel 1"
 
 // #push-options "--print_implicits --print_bound_var_types"
 // #push-options "--debug SMTFail"
@@ -22,7 +24,7 @@ let lemma_nat_times_nat (a b: nat)
 inline_for_extraction noextract
 fn calc_idxs
   (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns})
+  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim < pow2 30})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : erased sz { SZ.v nthr == bdim * bdim /\ SZ.v nblk * SZ.v nthr == rows * columns })
   (etid : tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == SZ.v nthr })
@@ -36,12 +38,11 @@ fn calc_idxs
           SZ.v idxs._2 < rows /\
           SZ.v idxs._3 < columns)
 {
-  assume (pure False);
+  assume (pure False); // fixme.. proofs too brittle to work with
   let tid = thread_idx_x () <: u32;
   let tid : sz = SZ.uint32_to_sizet tid;
   let trow = SZ.div tid bdim;
   let tcol = SZ.rem tid bdim;
-  assume (pure (SZ.v trow < SZ.v bdim /\ SZ.v tcol < SZ.v bdim));
   
   let columns_tile = SZ.div columns bdim;
   let rows_tile = SZ.div rows bdim;
@@ -50,14 +51,11 @@ fn calc_idxs
   let bid : sz = SZ.uint32_to_sizet bid;
   let brow = SZ.div bid columns_tile;
   let bcol = SZ.rem bid columns_tile;
-  assume (pure (SZ.v brow < rows/bdim /\ SZ.v bcol < columns/bdim));
 
   lemma_divides_exact columns bdim;
+  assert (pure (bdim * columns_tile == columns));
   assert (pure (columns_tile * bdim == columns));
-  assume (pure (brow * bdim * columns_tile * bdim <= rows * columns));
   assert (pure (SZ.fits (brow * bdim)));
-  assume (pure (SZ.fits (brow * bdim * columns_tile)));
-  assume (pure (SZ.fits (brow * bdim * columns_tile * bdim)));
   let brow_idx = brow *^ bdim *^ columns_tile *^ bdim;
   let trow_idx = trow *^ bdim *^ columns_tile;
   let bcol_idx = bcol *^ bdim;
@@ -86,7 +84,7 @@ fn calc_idxs
   let bcol_bdim = bcol *^ bdim;
   let row : sz = brow_bdim +^ trow;
   let col : sz = bcol_bdim +^ tcol;
-
+  
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v brow) (SZ.v rows_tile - 1);
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v bcol) (SZ.v columns_tile - 1);
   // assert (pure (SZ.v row <= (SZ.v rows_tile - 1) * SZ.v bdim + (SZ.v bdim - 1)));
@@ -235,6 +233,8 @@ let lemma_nonneg_mul (x y : int)
           (ensures x * y >= 0)
 = ()
 
+#set-options "--z3rlimit 60"
+
 [@@CPrologue "__global__"]
 fn kernel
   (rows shared columns : szp)
@@ -261,6 +261,8 @@ fn kernel
     ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr)
          (tid_to_idx rows shared columns bdim (thread_index etid))
 {
+  assert (pure (thread_index etid < SZ.v nblk * SZ.v nthr ));
+  assert (pure (SZ.v nblk * SZ.v nthr == rows * columns));
   assert (pure (thread_index etid < rows * columns));
   assert (pure (rows * columns >= 0));
 
@@ -297,8 +299,8 @@ fn kernel
        pts_to i iv **
        gpu
        ** (exists* sumv. pts_to sum sumv)
-       ** Impure.gpu_pts_to_matrix #u64 rows shared ga1 (SZ.v nblk * SZ.v nthr) s1
-       ** Impure.gpu_pts_to_matrix #u64 shared columns ga2 (SZ.v nblk * SZ.v nthr) s2
+       ** I.gpu_pts_to_matrix #u64 rows shared ga1 (SZ.v nblk * SZ.v nthr) s1
+       ** I.gpu_pts_to_matrix #u64 shared columns ga2 (SZ.v nblk * SZ.v nthr) s2
        ** (exists* s. gpu_pts_to_array_slice ar (2 * tid) (2 * tid + 2) s)
        ** mbarrier_tok (SZ.v nthr) (Barrier.barrier_mm (SZ.v nthr) ar) (2*iv) tid
   {
@@ -330,8 +332,8 @@ fn kernel
     // SZ.fits_at_least_16 (SZ.v v_bdim + SZ.v trow);
     assert (pure (SZ.v row < SZ.v rows /\ SZ.v col < SZ.v columns));
 
-    let v1 = Impure.gpu_matrix_read #_ #rows #shared ga1 #(SZ.v nblk * SZ.v nthr) #s1 row (v_bdim +^ tcol);
-    let v2 = Impure.gpu_matrix_read #_ #shared #columns ga2 #(SZ.v nblk * SZ.v nthr) #s2 (v_bdim +^ trow) col;
+    let v1 = I.gpu_matrix_read #_ #rows #shared ga1 #(SZ.v nblk * SZ.v nthr) #s1 row (v_bdim +^ tcol);
+    let v2 = I.gpu_matrix_read #_ #shared #columns ga2 #(SZ.v nblk * SZ.v nthr) #s2 (v_bdim +^ trow) col;
     
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx1 v1;
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx2 v2;
