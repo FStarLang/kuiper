@@ -18,18 +18,6 @@ module U64 = FStar.UInt64
 module Layout4 = Kuiper.MatMulTileF32.Layout4
 
 [@@pulse_unfold]
-let kpre_pair (rows shared columns: nat)
-  (ga1: gpu_array f32 (rows * shared))
-  (ga2: gpu_array f32 (shared * columns))
-  (#s1: erased (seq f32))
-  (#s2: erased (seq f32))
-  (nthr: erased nat { nthr > 0 })
-  : slprop
-  =
-  Impure.gpu_pts_to_matrix rows shared ga1 nthr s1
-  ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
-
-[@@pulse_unfold]
 let kpre (rows shared columns: nat)
   (ga1: gpu_array f32 (rows * shared))
   (ga2: gpu_array f32 (shared * columns))
@@ -40,7 +28,8 @@ let kpre (rows shared columns: nat)
   (tid : nat{ tid < rows * columns})
   : slprop
   =
-  kpre_pair rows shared columns ga1 ga2 #s1 #s2 nthr
+  Impure.gpu_pts_to_matrix rows shared ga1 nthr s1
+  ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
   ** gpu_pts_to_array1 r tid
 
 [@@pulse_unfold]

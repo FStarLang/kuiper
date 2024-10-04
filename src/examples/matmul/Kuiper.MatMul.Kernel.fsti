@@ -15,18 +15,6 @@ module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
 [@@pulse_unfold]
-let kpre_pair (rows shared columns: nat)
-  (ga1: gpu_array u64 (rows * shared))
-  (ga2: gpu_array u64 (shared * columns))
-  (#s1: erased (seq u64))
-  (#s2: erased (seq u64))
-  (nth: erased nat { nth > 0 })
-  : slprop
-  =
-  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
-  ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
-
-[@@pulse_unfold]
 let kpre (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
@@ -37,7 +25,8 @@ let kpre (rows shared columns: nat)
   (tid : nat{ tid < rows * columns})
   : slprop
   =
-  kpre_pair rows shared columns ga1 ga2 #s1 #s2 nth
+  Impure.gpu_pts_to_matrix rows shared ga1 nth s1
+  ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
   ** (exists* sr. gpu_pts_to_array_slice r tid (tid+1) sr)
 
 [@@pulse_unfold]
@@ -55,8 +44,6 @@ let kpost (rows shared columns: nat)
   ** Impure.gpu_pts_to_matrix shared columns ga2 nth s2
   ** gpu_pts_to_array_slice r tid (tid+1) (seq![Pure.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared])
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
-
-
 
 [@@CPrologue "__global__"]
 fn kernel
