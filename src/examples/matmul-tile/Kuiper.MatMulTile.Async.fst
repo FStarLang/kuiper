@@ -1,8 +1,6 @@
 module Kuiper.MatMulTile.Async
 #lang-pulse
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
-
 open Kuiper
 open Kuiper.Math
 
@@ -13,18 +11,6 @@ module Barrier = Kuiper.MatMulTile.Barrier
 module Prep = Kuiper.MatMulTile.Prep
 module GMul = Kuiper.MatMulTile.Async.GMul
 open Pulse.Lib.Pledge
-
-let stupid_mul_mono (x y z w : nat)
-: Lemma (requires x <= z /\ y <= w) (ensures x * y <= z * w)
-=
-  ()
-
-#push-options "--retry 5" //sad
-let stupid_divides (x:nat) (y:nonzero)
-: Lemma (x/y <= x)
-  [SMTPat (x/y)]
-= ()
-#pop-options
 
 [@@allow_ambiguous]
 ghost
@@ -38,11 +24,10 @@ fn redeem1 (e e' : erased nat) (post : slprop)
   drop_ (epoch_done e);
 }
 
-#push-options "--z3rlimit 20"
 (* Computes (a1*a2)*(a3*a4) *)
 fn main
   (nn : szp)
-  (bdim : szp { bdim /? nn /\ bdim <= 32})
+  (bdim : szp {bdim /? nn /\ bdim <= 32})
   (a1 a2 a3 a4 : array u64)
   (v1 v2 v3 v4 : erased (seq u64))
   preserves
@@ -64,7 +49,7 @@ fn main
   open FStar.SizeT;
   dassert (nn %^ bdim = 0sz);
 
-  let size = nn *^ nn ;
+  let size = nn *^ nn;
 
   assert (pure (SZ.fits (nn * nn)));
   let ga1 = gpu_array_alloc #u64 size;
@@ -110,4 +95,3 @@ fn main
 
   ar
 }
-#pop-options
