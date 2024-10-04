@@ -46,7 +46,6 @@ let kpost (rows shared columns: nat)
   Impure.gpu_pts_to_matrix rows shared ga1 nthr s1
   ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
   ** gpu_pts_to_array1 r tid
-  // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
 let permute (rows_tile columns_tile bdim: pos)
 : GTot (permutation (i: nat { 0 <= i /\ i < rows_tile * columns_tile * bdim * bdim }))
@@ -59,7 +58,7 @@ let tid_to_idx
 : GTot (tid: nat { 0 <= tid /\ tid < rows * columns })
 = calc (==) {
     (rows / bdim) * (columns / bdim) * bdim * bdim;
-    == { admit() } // fixme, boring proof (we have divisibility)
+    == { () }
     rows * columns;
   };
   lemma_divides_exact rows bdim;

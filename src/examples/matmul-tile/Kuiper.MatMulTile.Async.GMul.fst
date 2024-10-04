@@ -35,7 +35,7 @@ fn recall_array_len
     gpu_pts_to_array a v
   ensures
     gpu_pts_to_array a v **
-    pure (len v == alen)
+    pure (len v == alen /\ SZ.fits alen)
 {
   unfold (gpu_pts_to_array a v);
   gpu_pts_to_slice_ref a 0 _;
@@ -58,8 +58,7 @@ fn g_mul_async
     epoch_live e **
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    gpu_pts_to_array gr  v3
   ensures
     exists* e'.
       cpu **
@@ -75,7 +74,6 @@ fn g_mul_async
   recall_array_len ga1;
   recall_array_len ga2;
   recall_array_len gr;
-  // dassert (bdim < pow2 30);
 
   let rows_tile = div rows bdim;
   let columns_tile = SZ.div columns bdim;
@@ -89,7 +87,8 @@ fn g_mul_async
   assert (pure (SZ.fits (rows_tile * columns_tile)));
   let nblk = rows_tile *^ columns_tile;
 
-  assert (pure (pow2 60 < pow2 64)); // trivial
+  assert (pure (bdim * bdim <= 32 * 32));
+  assert (pure (SZ.fits 1024));
   assert (pure (SZ.fits (bdim * bdim)));
   let nthr = bdim *^ bdim;
 
@@ -166,8 +165,7 @@ fn g_mul
     cpu **
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    gpu_pts_to_array gr  v3
   ensures
     cpu **
     gpu_pts_to_array ga1 v1 **
