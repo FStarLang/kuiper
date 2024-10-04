@@ -21,11 +21,13 @@ fn setup
   (gr  : gpu_array u64 size)
   (v1: erased (seq u64))
   (v2: erased (seq u64))
-  requires gpu_pts_to_array gr 's **
-           gpu_pts_to_array ga1 v1 **
-           gpu_pts_to_array ga2 v2
-  ensures  bigstar 0 size (fun i ->
-             K.kpre rows shared columns ga1 ga2 gr v1 v2 size i)
+  requires
+    gpu_pts_to_array gr 's **
+    gpu_pts_to_array ga1 v1 **
+    gpu_pts_to_array ga2 v2
+  ensures
+    bigstar 0 size (fun i ->
+      K.kpre rows shared columns ga1 ga2 gr v1 v2 size i)
 {
   (* recall *)
   gpu_pts_to_ref ga1; gpu_pts_to_ref ga2;
