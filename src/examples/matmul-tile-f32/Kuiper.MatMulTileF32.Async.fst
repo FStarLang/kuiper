@@ -1,8 +1,6 @@
 module Kuiper.MatMulTileF32.Async
 #lang-pulse
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
-
 open Kuiper
 open Kuiper.Math
 
@@ -13,18 +11,6 @@ module Barrier = Kuiper.MatMulTileF32.Barrier
 module Prep = Kuiper.MatMulTileF32.Prep
 module GMul = Kuiper.MatMulTileF32.GMul
 open Pulse.Lib.Pledge
-
-let stupid_mul_mono (x y z w : nat)
-: Lemma (requires x <= z /\ y <= w) (ensures x * y <= z * w)
-=
-  ()
-
-#push-options "--retry 5" //sad
-let stupid_divides (x:nat) (y:pos)
-: Lemma (x/y <= x)
-  [SMTPat (x/y)]
-= ()
-#pop-options
 
 [@@allow_ambiguous]
 ghost
@@ -38,23 +24,21 @@ fn redeem1 (e e' : erased nat) (post : slprop)
   drop_ (epoch_done e);
 }
 
-#push-options "--z3rlimit 20"
 (* Computes (a1*a2)*(a3*a4) *)
 fn main
   (nn : szp)
   (bdim : szp)
   (a1 a2 a3 a4 : array f32)
-  (v1 v2 v3 v4 : erased (seq f32))
   preserves
     cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
-    A.pts_to a3 v3 **
-    A.pts_to a4 v4
+    A.pts_to a1 'v1 **
+    A.pts_to a2 'v2 **
+    A.pts_to a3 'v3 **
+    A.pts_to a4 'v4
   requires
     pure (bdim /? nn /\ bdim <= 32 /\ SZ.fits (nn * nn) /\
-          len v1 == nn * nn /\ len v2 == nn * nn /\
-          len v3 == nn * nn /\ len v4 == nn * nn)
+          len 'v1 == nn * nn /\ len 'v2 == nn * nn /\
+          len 'v3 == nn * nn /\ len 'v4 == nn * nn)
   returns
     ar : array f32
   ensures 
@@ -109,4 +93,3 @@ fn main
 
   ar
 }
-#pop-options
