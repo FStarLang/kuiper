@@ -11,7 +11,7 @@ module SZ = FStar.SizeT
 val contributions
   (nn : nat)
   (v_done : seq bool)
-  (v_a : seq u64{Seq.length v_done >= Seq.length v_a})
+  (v_a : seq u64{len v_done >= len v_a})
   (v_r : u64) (acc : u64)
 : Tot prop
 
@@ -29,7 +29,7 @@ let kpre
   (a : gpu_array u64 nn)
   (v_a : seq u64)
   (r : gpu_ref u64)
-  (done : seq (gref bool){Seq.length done == Ghost.reveal nn})
+  (done : seq (gref bool){len done == Ghost.reveal nn})
   (i:iname)
   (tid : nat{0 <= tid /\ tid < nn})
 =
@@ -42,7 +42,7 @@ let kpost
   (a : gpu_array u64 nn)
   (v_a : seq u64)
   (r : gpu_ref u64)
-  (done : seq (gref bool){Seq.length done == Ghost.reveal nn})
+  (done : seq (gref bool){len done == Ghost.reveal nn})
   (i:iname)
   (tid : nat{0 <= tid /\ tid < nn})
 =
@@ -55,7 +55,7 @@ fn kernel
   (n: erased SZ.t)
   (a : gpu_array u64 (SZ.v n))
   (r : gpu_ref u64)
-  (done : erased (seq (gref bool)){Seq.length done == reveal n})
+  (done : erased (seq (gref bool)){len done == reveal n})
   (i : iname)
   (v_a : erased (seq u64))
   (etid : tid_t { gdim_x etid == SZ.v n /\ bdim_x etid == 1 })
@@ -67,7 +67,7 @@ fn done_lemma
   (nn: erased nat)
   (a : gpu_array u64 nn)
   (r : gpu_ref u64)
-  (done : erased (seq (gref bool)){Seq.length done == reveal nn})
+  (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
   (v_a : erased (seq u64))
   (etid : tid_t { gdim_x etid == 1 /\ bdim_x etid == reveal nn})

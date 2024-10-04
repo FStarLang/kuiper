@@ -23,8 +23,8 @@ ghost
 fn setup
   (size: sz { size == SZ.(Defs.rows *^ Defs.columns) })
   (ga1 : gpu_array u64 (Defs.rows * Defs.shared)) (ga2 : gpu_array u64 (Defs.shared * Defs.columns)) (gr : gpu_array u64 size)
-  (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq u64) { len v1 == Defs.rows * Defs.shared })
+  (v2: erased (seq u64) { len v2 == Defs.shared * Defs.columns })
   requires cpu ** (exists* s. gpu_pts_to_array gr s) ** gpu_pts_to_array ga1 v1 ** gpu_pts_to_array ga2 v2
   ensures cpu ** bigstar 0 size (Defs.kpre Defs.shared Defs.rows Defs.columns ga1 ga2 gr #v1 #v2 (hide (SZ.v size)))
 {
@@ -46,7 +46,7 @@ fn setup
        (fun i -> Defs.fold_pre_pair Defs.rows Defs.shared Defs.columns ga1 ga2 #v1 #v2 size i);
 
   with #f v. assert (gpu_pts_to_array gr #f v);
-  assume (pure (Seq.length v == size)); // FIXME
+  assume (pure (len v == size)); // FIXME
 
   (**)gpu_array_slice_1 #4 #_ gr #f #v;
   (**)bigstar_zip #3 #4 #5 0 size _ _;
@@ -58,8 +58,8 @@ fn setup
 
 fn main
   (a1 a2: array u64)
-  (v1: erased (seq u64) { Seq.length v1 == Defs.rows * Defs.shared })
-  (v2: erased (seq u64) { Seq.length v2 == Defs.shared * Defs.columns })
+  (v1: erased (seq u64) { len v1 == Defs.rows * Defs.shared })
+  (v2: erased (seq u64) { len v2 == Defs.shared * Defs.columns })
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns ar: array u64
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** A.pts_to ar (matmul v1 v2)

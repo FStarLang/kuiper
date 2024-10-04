@@ -87,7 +87,7 @@ fn block_setup_ghost
 
   // assert (pure ((multiply seq![2 <: pos; bdim; bdim] <: int) == (2 * bdim * bdim <: int)));
   // gpu_pts_to_ref ar #v;
-  // assert (pure (FStar.Seq.length v = 2 * bdim * bdim /\ (get_dims (from_dims seq![2 <: pos; bdim; bdim])) == seq![2 <: pos; bdim; bdim]));
+  // assert (pure (FStar.len v = 2 * bdim * bdim /\ (get_dims (from_dims seq![2 <: pos; bdim; bdim])) == seq![2 <: pos; bdim; bdim]));
   // let vv: mseq (get_dims (from_dims seq![2 <: pos; bdim; bdim])) u64 = v;
   // gpu_matrix_from_array seq![2 <: pos; bdim; bdim] ar;
 
@@ -98,8 +98,8 @@ fn block_setup_ghost
   // let s1d: FStar.Seq.seq (erased pos & pos) = from_dims seq![2 <: pos; bdim; bdim];
   // let s2d: FStar.Seq.seq (erased pos & pos) = seq![(hide (2 <: pos), (bdim * bdim <: pos)); (hide (bdim <: pos), (bdim <: pos)); (hide (bdim <: pos), (1 <: pos))];
   // assert (pure (s1d.[0] == s2d.[0] /\ s1d.[1] == s2d.[1] /\ s1d.[2] == s2d.[2]));
-  // assert (pure (FStar.Seq.length s1d == 3 /\ FStar.Seq.length s2d == 3));
-  // assert (pure (forall (i:nat{i < FStar.Seq.length s1d}). i == 0 \/ i == 1 \/ i == 2));
+  // assert (pure (FStar.len s1d == 3 /\ FStar.len s2d == 3));
+  // assert (pure (forall (i:nat{i < FStar.len s1d}). i == 0 \/ i == 1 \/ i == 2));
   // FStar.Seq.lemma_eq_intro s1d s2d;
 
   // gpu_matrix_slice_permission #u64 #(from_dims seq![2 <: pos; bdim <: pos; bdim <: pos]) ar_split 0 #vv seq![(bdim <: pos); (bdim <: pos)];
@@ -217,7 +217,7 @@ fn block_setup_ghost
 }
 
 // bdim_shared == shared / tdim_y
-// let split_input_a2 (shared: pos) (bidx_x: nat) (tdim_x bdim_x tdim_y bdim_shared: pos) (a2: seq u64 { FStar.Seq.length a2 == tdim_y * bdim_shared * tdim_x * bdim_x  }): seq (seq u64)
+// let split_input_a2 (shared: pos) (bidx_x: nat) (tdim_x bdim_x tdim_y bdim_shared: pos) (a2: seq u64 { FStar.len a2 == tdim_y * bdim_shared * tdim_x * bdim_x  }): seq (seq u64)
 //   = FStar.Seq.init bdim_shared (fun bidx_y -> FStar.Seq.init (tdim_x * tdim_y) (fun tidx -> ))
 
 // let shared_post (nthr : sz { 0 < nthr /\ nthr <= max_threads }) (ar: gpu_array u64 SZ.(2sz *^ nthr)) (i: nat { 0 <= i /\ i < nthr }): slprop =

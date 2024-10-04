@@ -8,8 +8,8 @@ module U64 = FStar.UInt64
 #push-options "--retry 2" 
 let matmul_single_lemma
   (rows shared columns: nat)
-  (s1 : seq u64 { Seq.length s1 == rows * shared })
-  (s2 : seq u64 { Seq.length s2 == shared * columns })
+  (s1 : seq u64 { len s1 == rows * shared })
+  (s2 : seq u64 { len s2 == shared * columns })
   (row: nat{row < rows}) (col: nat{col < columns}) (to: nat)
     : Lemma
       (requires (0 < to /\ to <= shared))
@@ -22,8 +22,8 @@ let matmul_single_lemma
 
 private let matmul_single_at
   (rows shared columns: nat)
-  (s1 : seq u64 { Seq.length s1 == rows * shared })
-  (s2 : seq u64 { Seq.length s2 == shared * columns })
+  (s1 : seq u64 { len s1 == rows * shared })
+  (s2 : seq u64 { len s2 == shared * columns })
   (idx: nat{idx < rows * columns})
   : GTot u64
 =
@@ -33,16 +33,16 @@ private let matmul_single_at
 
 let matmul
   (rows shared columns: nat)
-  (s1 : seq u64 { Seq.length s1 == rows * shared })
-  (s2 : seq u64 { Seq.length s2 == shared * columns })
-: GTot (sr: seq u64 { Seq.length sr == rows * columns })
+  (s1 : seq u64 { len s1 == rows * shared })
+  (s2 : seq u64 { len s2 == shared * columns })
+: GTot (sr: seq u64 { len sr == rows * columns })
 =
   Seq.init_ghost (rows * columns) (matmul_single_at rows shared columns s1 s2)
 
 let lemma_matmul_index
   (rows shared columns: nat)
-  (s1: (seq u64){ Seq.length s1 == rows * shared })
-  (s2 : (seq u64){ Seq.length s2 == shared * columns })
+  (s1: (seq u64){ len s1 == rows * shared })
+  (s2 : (seq u64){ len s2 == shared * columns })
   (idx: nat{idx < rows * columns})
 : Lemma (
     Seq.index (matmul rows shared columns s1 s2) idx

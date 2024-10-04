@@ -19,8 +19,8 @@ fn setup
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (gr  : gpu_array u64 size)
-  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
-  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  (v1: erased (seq u64) { len v1 == rows * shared })
+  (v2: erased (seq u64) { len v2 == shared * columns })
   requires gpu_pts_to_array gr 's **
            gpu_pts_to_array ga1 v1 **
            gpu_pts_to_array ga2 v2
@@ -60,10 +60,13 @@ fn setup
 fn main
   (rows shared columns : szp)
   (a1 a2: array u64)
-  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
-  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  (v1: erased (seq u64) { len v1 == rows * shared })
+  (v2: erased (seq u64) { len v2 == shared * columns })
+  preserves
+    cpu **
+    A.pts_to a1 v1 **
+    A.pts_to a2 v2
   requires
-    cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 **
     pure (
       rows * shared < pow2 64 /\
       shared * columns < pow2 64 /\
@@ -74,7 +77,6 @@ fn main
     // Since we have a1 |-> v1, the length of v1 must fit, etc.
   returns  ar: array u64
   ensures
-    cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 **
     A.pts_to ar (P.matmul rows shared columns v1 v2)
 {
   open FStar.SizeT;

@@ -28,14 +28,14 @@ let stupid_divides (x:nat) (y:nonzero)
 ghost
 fn recall_array_len
   (#t:Type0)
-  (#len : nat)
-  (a : gpu_array t len)
+  (#alen : nat)
+  (a : gpu_array t alen)
   (#v : Seq.seq t)
   requires
     gpu_pts_to_array a v
   ensures
     gpu_pts_to_array a v **
-    pure (Seq.length v == len)
+    pure (len v == alen)
 {
   unfold (gpu_pts_to_array a v);
   gpu_pts_to_slice_ref a 0 _;

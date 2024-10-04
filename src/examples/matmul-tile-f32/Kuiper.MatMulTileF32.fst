@@ -31,9 +31,9 @@ fn g_mul_async
   (ga1 : gpu_array f32 (rows * shared))
   (ga2 : gpu_array f32 (shared * columns))
   (gr  : gpu_array f32 (rows * columns))
-  (#v1 : erased (seq f32) { Seq.length v1 == rows * shared })
-  (#v2 : erased (seq f32) { Seq.length v2 == shared * columns })
-  (#v3 : erased (seq f32) { Seq.length v3 == rows * columns })
+  (#v1 : erased (seq f32) { len v1 == rows * shared })
+  (#v2 : erased (seq f32) { len v2 == shared * columns })
+  (#v3 : erased (seq f32) { len v3 == rows * columns })
   (#e : erased nat)
   requires
     cpu **
@@ -138,9 +138,9 @@ fn g_mul
   (ga1 : gpu_array f32 (rows * shared))
   (ga2 : gpu_array f32 (shared * columns))
   (gr  : gpu_array f32 (rows * columns))
-  (#v1 : erased (seq f32) { Seq.length v1 == rows * shared })
-  (#v2 : erased (seq f32) { Seq.length v2 == shared * columns })
-  (#v3 : erased (seq f32) { Seq.length v3 == rows * columns })
+  (#v1 : erased (seq f32) { len v1 == rows * shared })
+  (#v2 : erased (seq f32) { len v2 == shared * columns })
+  (#v3 : erased (seq f32) { len v3 == rows * columns })
   requires
     cpu **
     gpu_pts_to_array ga1 v1 **
@@ -168,8 +168,8 @@ fn main
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
   (a1 a2: array f32)
-  (v1: erased (seq f32) { Seq.length v1 == rows * shared })
-  (v2: erased (seq f32) { Seq.length v2 == shared * columns })
+  (v1: erased (seq f32) { len v1 == rows * shared })
+  (v2: erased (seq f32) { len v2 == shared * columns })
   requires
     cpu **
     A.pts_to a1 v1 **

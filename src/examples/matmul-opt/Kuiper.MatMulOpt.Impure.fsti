@@ -21,7 +21,7 @@ val gpu_matrix_share_underspec
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
   (shared: erased pos)
-  (s: erased (seq a) { Seq.length s == rows * columns })
+  (s: erased (seq a) { len s == rows * columns })
 : stt_ghost
     unit
     emp_inames
@@ -34,7 +34,7 @@ val gpu_matrix_unshare_underspec
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
   (shared: erased pos)
-  (s: erased (seq a) { Seq.length s == rows * columns })
+  (s: erased (seq a) { len s == rows * columns })
 : stt_ghost
     unit
     emp_inames
@@ -46,7 +46,7 @@ fn gpu_matrix_read
   (#rows #columns: sz)
   (ga : gpu_array a (rows * columns))
   (#shared: erased pos)
-  (#s: erased (seq a) { Seq.length s == rows * columns })
+  (#s: erased (seq a) { len s == rows * columns })
   (row: sz{SZ.v row < rows})
   (col: sz{SZ.v col < columns})
   requires gpu ** gpu_pts_to_matrix rows columns ga shared s

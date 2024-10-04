@@ -245,8 +245,8 @@ fn kernel
   (ga1 : gpu_array f32 (rows * shared))
   (ga2 : gpu_array f32 (shared * columns))
   (r : gpu_array f32 (rows * columns))
-  (#s1: erased (seq f32) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq f32) {Seq.length s2 == shared * columns})
+  (#s1: erased (seq f32) {len s1 == rows * shared})
+  (#s2: erased (seq f32) {len s2 == shared * columns})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : erased sz { SZ.v nthr == bdim * bdim
                      /\ SZ.v nblk * SZ.v nthr == rows * columns

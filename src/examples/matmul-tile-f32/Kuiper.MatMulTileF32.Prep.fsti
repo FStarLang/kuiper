@@ -22,8 +22,8 @@ fn setup
   (ga1 : gpu_array f32 (rows * shared))
   (ga2 : gpu_array f32 (shared * columns))
   (gr  : gpu_array f32 (nblk * nthr))
-  (v1 : seq f32 { Seq.length v1 == rows * shared })
-  (v2 : seq f32 { Seq.length v2 == shared * columns })
+  (v1 : seq f32 { len v1 == rows * shared })
+  (v2 : seq f32 { len v2 == shared * columns })
   (#s : seq f32)
   requires gpu_pts_to_array gr s **
            gpu_pts_to_array ga1 v1 **
@@ -46,8 +46,8 @@ fn breakdown
   (ga1 : gpu_array f32 (rows * shared))
   (ga2 : gpu_array f32 (shared * columns))
   (gr  : gpu_array f32 (nblk * nthr))
-  (v1 : seq f32 { Seq.length v1 == rows * shared })
-  (v2 : seq f32 { Seq.length v2 == shared * columns })
+  (v1 : seq f32 { len v1 == rows * shared })
+  (v2 : seq f32 { len v2 == shared * columns })
   requires
     bigstar 0 (nblk * nthr) (fun i ->
       Kernel.kpost rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))

@@ -13,9 +13,9 @@ module Set = FStar.FiniteSet.Base
 module SZ = FStar.SizeT
 
 noextract
-let index_flip (#a:Type) (s:seq a) (i:nat { i < Seq.length s }) = Seq.index s (Seq.length s - i - 1 <: nat)
+let index_flip (#a:Type) (s:seq a) (i:nat { i < len s }) = Seq.index s (Seq.length s - i - 1 <: nat)
 noextract
-let reverse_spec (#a:Type) (s:seq a) = Seq.init (Seq.length s) (fun i -> index_flip s i)
+let reverse_spec (#a:Type) (s:seq a) : GTot _ = Seq.init (len s) (fun i -> index_flip s i)
 
 noextract
 let partition_range (n:nat { n % 2 == 0 })
@@ -75,7 +75,7 @@ fn explode_cells
   (#sz:nat)
   (arr : gpu_array a sz)
   (#f : perm)
-  (#s:seq a { Seq.length s == sz })
+  (#s:seq a { len s == sz })
 requires
   gpu_pts_to_array arr #f s
 ensures
@@ -105,7 +105,7 @@ fn implode_cells
   (#sz:nat)
   (arr : gpu_array a sz)
   (#f : perm)
-  (#s:seq a { Seq.length s == sz })
+  (#s:seq a { len s == sz })
 requires
   bigstar 0 sz (fun (i:idx 0 sz) -> gpu_pts_to_cell arr #f i (Seq.index s i))
 ensures
@@ -136,7 +136,7 @@ fn partition_cells
   (#size:sz { size % 2sz == 0sz })
   (arr : gpu_array a size)
   (#f : perm)
-  (#s:seq a { Seq.length s == SZ.v size })
+  (#s:seq a { len s == SZ.v size })
 requires
   bigstar 0 size (fun i ->
     gpu_pts_to_cell arr #f i (Seq.index s i))
@@ -185,7 +185,7 @@ fn partition_cells_inv
   (#size:sz { size % 2sz == 0sz })
   (arr : gpu_array a size)
   (#f : perm)
-  (#s:seq a { Seq.length s == SZ.v size })
+  (#s:seq a { len s == SZ.v size })
 requires
   bigstar 0 (SZ.v (size `div` 2sz)) (fun i ->
     gpu_pts_to_cell arr #f i (Seq.index s i) **
@@ -283,7 +283,7 @@ fn kernel
   (#ty:Type0)
   (size:sz)
   (a:gpu_array ty size)
-  (#s:erased (Seq.seq ty) { Seq.length s == SZ.v size })
+  (#s:erased (Seq.seq ty) { len s == SZ.v size })
   (etid:tid_t { gdim_x etid == size `div` 2sz /\ bdim_x etid == 1sz }) //thread_index etid < SZ.v size / 2 })
 requires
   gpu **
@@ -308,7 +308,7 @@ fn reverse
     (#ty:Type0)
     (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
     (a:gpu_array ty size)
-    (#s: erased (FStar.Seq.seq ty) { Seq.length s == SZ.v size })
+    (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
 requires
   cpu **
   gpu_pts_to_array a s

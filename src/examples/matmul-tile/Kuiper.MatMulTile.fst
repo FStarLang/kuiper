@@ -31,8 +31,8 @@ fn main
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
   (a1 a2: array u64)
-  (v1: erased (seq u64) { Seq.length v1 == rows * shared })
-  (v2: erased (seq u64) { Seq.length v2 == shared * columns })
+  (v1: erased (seq u64) { len v1 == rows * shared })
+  (v2: erased (seq u64) { len v2 == shared * columns })
   requires
     cpu **
     A.pts_to a1 v1 **

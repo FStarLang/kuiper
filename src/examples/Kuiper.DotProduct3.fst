@@ -16,14 +16,14 @@ module HR = Kuiper.HReduceU64Plus
 #set-options "--z3rlimit 20"
 
 let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2) **
     if_ (tid = 0) (exists* sr. gpu_pts_to_array #u64 #nth r sr)
 
 let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2) **
@@ -31,14 +31,14 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
 
 [@@pulse_unfold]
 let shared_pre (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (it: nat) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth )) (it: nat) (tid:nat{tid < nth})
   : slprop =
     gpu_pts_to_array1 sr tid **
     mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid
 
 [@@pulse_unfold]
 let shared_post (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     if_ (tid = 0) (HR.gpu_pts_to_slice_sum sr 0 nth (pmul s1 s2)) **
     (exists* it. mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid)
@@ -52,7 +52,7 @@ fn fixup
   (ar: gpu_array u64 nth)
   (r: gpu_array u64 nth)
   (s1 s2: erased (seq u64))
-  (#_: squash (Seq.length s1 = nth /\ Seq.length s2 = nth))
+  (#_: squash (len s1 = nth /\ len s2 = nth))
   (tid: SZ.t { SZ.v tid < nth })
   requires gpu **
     if_ (SZ.v tid = 0) (exists* sr. gpu_pts_to_array r sr) **
@@ -106,7 +106,7 @@ fn kernel
   (ga1 ga2 : gpu_array u64 nth)
   (r : gpu_array u64 nth)
   (#s1 #s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth ))
+  (#_: squash ( len s1 == nth /\ len s2 == nth ))
   (ear: erased (gpu_array u64 nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
@@ -144,7 +144,7 @@ fn kernel
   with s'. assert (gpu_pts_to_array_slice ar tid (tid+1) s');
   assert (pure (vm == Seq.index dot_v tid));
   assert (pure (Seq.index s' 0 == vm));
-  assert (pure (Seq.length s' == 1));
+  assert (pure (len s' == 1));
   Kuiper.Seq.Common.lem_one_elem s' vm; (* oof *)
   assert (pure (s' == seq![vm <: u64])); (* the freaking refinement made this very difficult. *)
   rewrite each s' as seq![vm <: u64];
@@ -158,14 +158,14 @@ fn kernel
   ()
 }
 
-let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { Seq.length v == nth }) (_: nat): slprop =
+let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { len v == nth }) (_: nat): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int nth) v
 
 ghost
 fn share_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array u64 nth)
-  (#v: erased (seq u64) { reveal (Seq.length v) == nth })
+  (#v: erased (seq u64) { reveal (len v) == nth })
   requires gpu_pts_to_array ga #1.0R v
   ensures  bigstar 0 nth (shared_array #nth ga #v)
 {
@@ -178,7 +178,7 @@ ghost
 fn gather_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array u64 nth)
-  (#v: erased (seq u64) { reveal (Seq.length v) == nth })
+  (#v: erased (seq u64) { reveal (len v) == nth })
   requires bigstar 0 nth (shared_array #nth ga #v)
   ensures  gpu_pts_to_array ga #1.0R v
 {
@@ -191,7 +191,7 @@ ghost fn setup
   (bid: SZ.t)
   (gr: gpu_array u64 nthr)
   (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nthr /\ Seq.length s2 == nthr ))
+  (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
   requires block_setup nthr ** (exists* v. gpu_pts_to_array #u64 #nthr ear #1.0R v)
   ensures  block_setup nthr ** bigstar 0 nthr (fun tid -> shared_pre nthr ear gr s1 s2 0 tid)
 {
@@ -208,7 +208,7 @@ let u64_comm_semigroup ()
 fn main
   (a1 a2: array u64)
   (v1 v2: erased (seq u64))
-  (#_: squash (Seq.length v1 = dp2_size /\ Seq.length v2 = dp2_size))
+  (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  dp: u64
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))

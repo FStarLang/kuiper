@@ -15,6 +15,10 @@ instance has_len_seq (a:Type) : has_len (Seq.seq a) = {
   len = Seq.length; (* Why don't I have to eta these two...? I guess it's fine since it's a primitive effect? *)
 }
 
+instance has_len_lseq (a:Type) (n : nat) : has_len (Seq.lseq a n) = {
+  len = Seq.length;
+}
+
 instance has_len_erased (a:Type) (_ : has_len a) : has_len (Ghost.erased a) = {
   len = (fun x -> len (Ghost.reveal x));
 }

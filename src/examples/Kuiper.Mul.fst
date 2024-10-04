@@ -9,8 +9,6 @@ module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-unfold let len = Seq.length
-
 unfold let op_String_Access = Seq.index
 
 let smul (s1 : seq u64) (s2 : seq u64 { len s2 == len s1 })

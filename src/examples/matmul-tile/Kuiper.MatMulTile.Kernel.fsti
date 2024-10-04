@@ -48,8 +48,8 @@ let kpost (rows shared columns: nat)
   (ga1: gpu_array u64 (rows * shared))
   (ga2: gpu_array u64 (shared * columns))
   (r: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
+  (#s1: erased (seq u64) {len s1 == rows * shared})
+  (#s2: erased (seq u64) {len s2 == shared * columns})
   (nthr: erased nat { nthr > 0 })
   (tid : nat {  tid < rows * columns })
   : slprop
@@ -87,8 +87,8 @@ fn kernel
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (r : gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {Seq.length s1 == rows * shared})
-  (#s2: erased (seq u64) {Seq.length s2 == shared * columns})
+  (#s1: erased (seq u64) {len s1 == rows * shared})
+  (#s2: erased (seq u64) {len s2 == shared * columns})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : erased sz { SZ.v nthr == bdim * bdim
                      /\ SZ.v nblk * SZ.v nthr == rows * columns

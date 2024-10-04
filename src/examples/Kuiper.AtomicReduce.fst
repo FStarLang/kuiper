@@ -27,7 +27,7 @@ fn setup
   ensures
     (match i_done with | (i, done) ->
     cpu
-    ** W.with_pure (Seq.length done == SZ.v n) (fun _ ->
+    ** W.with_pure (len done == SZ.v n) (fun _ ->
        bigstar 0 (SZ.v n) (fun tid ->
         gref_pts_to (done @! tid) #0.5R false **
         inv i (inv_p (SZ.v n) a v_a r done))
@@ -50,7 +50,7 @@ fn teardown
   requires
     emp
     ** cpu
-    ** pure (Seq.length done == SZ.v n) 
+    ** pure (len done == SZ.v n) 
     ** bigstar 0 (SZ.v n) (fun tid ->
         gref_pts_to (done @! tid) #0.5R true **
         inv i (inv_p (SZ.v n) a v_a r done))
@@ -107,7 +107,7 @@ fn reduce
   // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
   // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
 
-  W.elim_with_pure (Seq.length done == SZ.v n) _; 
+  W.elim_with_pure (len done == SZ.v n) _; 
 
   assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
 

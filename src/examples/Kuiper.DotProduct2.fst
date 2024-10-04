@@ -26,14 +26,14 @@ let u64_comm_semigroup ()
 #set-options "--z3rlimit 20"
 
 let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2) **
     gpu_pts_to_array1 r tid
 
 let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
     ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2) **
@@ -47,7 +47,7 @@ fn kernel
   (ga1 ga2 : gpu_array u64 nth)
   (r : gpu_array u64 nth)
   (#s1 #s2: erased (seq u64))
-  (#_: squash ( Seq.length s1 == nth /\ Seq.length s2 == nth ))
+  (#_: squash ( len s1 == nth /\ len s2 == nth ))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **
@@ -82,7 +82,7 @@ fn kernel
   with s'. assert (gpu_pts_to_array_slice r tid (tid+1) s');
   assert (pure (vm == Seq.index dot_v tid));
   assert (pure (Seq.index s' 0 == vm));
-  assert (pure (Seq.length s' == 1));
+  assert (pure (len s' == 1));
   Kuiper.Seq.Common.lem_one_elem s' vm; (* oof *)
   assert (pure (s' == seq![vm <: u64])); (* the freaking refinement made this very difficult. *)
   rewrite each s' as seq![vm <: u64];
@@ -93,14 +93,14 @@ fn kernel
   fold (kpost nth ga1 ga2 r s1 s2 tid);
 }
 
-let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { Seq.length v == nth }) (_: nat): slprop =
+let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { len v == nth }) (_: nat): slprop =
   gpu_pts_to_array ga #(1.0R /. Real.of_int nth) v
 
 ghost
 fn share_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array u64 nth)
-  (#v: erased (seq u64) { reveal (Seq.length v) == nth })
+  (#v: erased (seq u64) { reveal (len v) == nth })
   requires gpu_pts_to_array ga #1.0R v
   ensures  bigstar 0 nth (shared_array #nth ga #v)
 {
@@ -113,7 +113,7 @@ ghost
 fn gather_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array u64 nth)
-  (#v: erased (seq u64) { reveal (Seq.length v) == nth })
+  (#v: erased (seq u64) { reveal (len v) == nth })
   requires bigstar 0 nth (shared_array #nth ga #v)
   ensures  gpu_pts_to_array ga #1.0R v
 {
@@ -123,7 +123,7 @@ fn gather_array
 fn main
   (a1 a2: array u64)
   (v1 v2: erased (seq u64))
-  (#_: squash (Seq.length v1 = dp2_size /\ Seq.length v2 = dp2_size))
+  (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
   requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
   returns  dp: u64
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))

@@ -54,7 +54,7 @@ let barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: 
 ghost fn fold_barrier_matrix_true
   (nth : nat)
   (r: gpu_array ety nth)
-  (v: seq ety { Seq.length v == nth })
+  (v: seq ety { len v == nth })
   (it: nat)
   (tid: nat { tid <= nth /\ tid >= pow2 it })
   (to: nat)
@@ -69,7 +69,7 @@ ghost fn fold_barrier_matrix_true
 ghost fn fold_barrier_matrix_false
   (nth : nat)
   (r: gpu_array ety nth)
-  (v: seq ety { Seq.length v == nth })
+  (v: seq ety { len v == nth })
   (it: nat)
   (tid: nat { tid <= nth /\ tid < pow2 it })
   (to: nat { to <= nth })
@@ -89,7 +89,7 @@ fn mk_barrier_pre
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array ety nth)
   (vv: erased (seq ety))
-  (#_: squash (Seq.length vv == nth))
+  (#_: squash (len vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
   requires if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
@@ -123,7 +123,7 @@ fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array ety nth)
   (vv: erased (seq ety))
-  (#_: squash (Seq.length vv == nth))
+  (#_: squash (len vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
   requires gpu
@@ -134,7 +134,7 @@ fn iteration
     ** if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv)
 {
   open FStar.SizeT;
-  assert (pure (Seq.length vv = nth));
+  assert (pure (len vv = nth));
 
   case_split (div_pow2 (it + 1) tid) (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
   if_flatten #(div_pow2 (it + 1) tid);
@@ -241,7 +241,7 @@ fn reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
-  (#_: squash (Seq.length s == nth))
+  (#_: squash (len s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **
@@ -299,7 +299,7 @@ fn k_reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
-  (#_: squash (Seq.length s == nth))
+  (#_: squash (len s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **

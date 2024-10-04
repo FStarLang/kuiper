@@ -12,7 +12,7 @@ let barrier_mm_share
     (n: nat)
     (s1 s2: seq (seq u64))
     (ar: gpu_array u64 (2 * n))
-    (it: nat { it < Seq.length s1 /\ it < Seq.length s2 })
+    (it: nat { it < len s1 /\ it < len s2 })
     (from: nat { 0 <= from /\ from < n })
     (to: nat { 0 <= to /\ to < n })
     : slprop
@@ -34,14 +34,14 @@ let barrier_mm_gather
 
 let barrier_mm
     (n: nat)
-    (s1 s2: seq (seq u64)) //  { Seq.length i == n }))
+    (s1 s2: seq (seq u64)) //  { len i == n }))
     (ar: gpu_array u64 (2 * n))
     (it: nat)
     (from: nat { 0 <= from /\ from < n })
     (to: nat { 0 <= to /\ to < n })
     : slprop
 =
-  if (it / 2 < Seq.length s1 && it / 2 < Seq.length s2)
+  if (it / 2 < len s1 && it / 2 < len s2)
   then (cond (it % 2 = 0) (barrier_mm_share n s1 s2 ar (it / 2) from to) (barrier_mm_gather n ar (it / 2) from to))
   else emp
 

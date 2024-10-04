@@ -19,7 +19,7 @@ fn gpu_matrix_share_underspec
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
   (shared: erased nat{shared > 0})
-  (s: erased (seq a) { Seq.length s == rows * columns })
+  (s: erased (seq a) { len s == rows * columns })
   requires gpu_pts_to_matrix #a rows columns ga 1 s
   ensures bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s)
 
@@ -30,7 +30,7 @@ fn gpu_matrix_unshare_underspec
   (rows columns: nat)
   (ga : gpu_array a (rows * columns))
   (shared: erased nat{shared > 0})
-  (s: erased (seq a) { Seq.length s == rows * columns })
+  (s: erased (seq a) { len s == rows * columns })
   requires bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s)
   ensures  gpu_pts_to_matrix #a rows columns ga 1 s
 
@@ -44,7 +44,7 @@ fn gpu_matrix_read
   (#rows #columns: sz)
   (ga : gpu_array a (rows * columns))
   (#shared: erased nat{shared > 0})
-  (#s: erased (seq a) { Seq.length s == rows * columns })
+  (#s: erased (seq a) { len s == rows * columns })
   (row: sz{SZ.v row < rows})
   (col: sz{SZ.v col < columns})
   requires
@@ -83,7 +83,7 @@ fn gpu_matrix_read_u64
   (#rows #columns: sz)
   (ga : gpu_array u64 (rows * columns))
   (#shared: erased nat{shared > 0})
-  (#s: erased (seq u64) { Seq.length s == rows * columns })
+  (#s: erased (seq u64) { len s == rows * columns })
   (row: sz{SZ.v row < rows})
   (col: sz{SZ.v col < columns})
   requires gpu ** gpu_pts_to_matrix rows columns ga shared s

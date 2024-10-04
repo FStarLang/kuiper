@@ -100,7 +100,7 @@ fn reduce
   requires cpu
         ** A.pts_to a v
         ** pure (size > 0 /\
-                 Seq.length v == size)
+                 len v == size)
   returns  r : t
   ensures  cpu ** (exists* v'. A.pts_to a v')
 {
@@ -110,7 +110,7 @@ fn reduce
   gpu_memcpy_device_to_host a ga size;
   gpu_array_free ga;
   with v'. assert (A.pts_to a v');
-  assert (pure (Seq.length v' > 0));
+  assert (pure (len v' > 0));
   let r = Pulse.Lib.Array.op_Array_Access #t a 0sz #1.0R #v';
   r
 }
@@ -124,7 +124,7 @@ fn reduce_F32
   requires cpu
         ** A.pts_to a v
         ** pure (size > 0 /\
-                 Seq.length v == size)
+                 len v == size)
   returns  r : f32
   ensures  cpu ** (exists* v'. A.pts_to a v')
 {

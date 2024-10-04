@@ -73,8 +73,8 @@ fn main (_:unit)
   while (let v = !i; (v `SZ.op_Less_Hat` m_size))
      invariant b.
        exists* v. pts_to i v **
-       (exists* s. A.pts_to a1 s ** pure (Seq.length s == size)) **
-       (exists* s. A.pts_to a2 s ** pure (Seq.length s == size)) **
+       (exists* s. A.pts_to a1 s ** pure (len s == size)) **
+       (exists* s. A.pts_to a2 s ** pure (len s == size)) **
        pure (b == (SZ.v v < size))
   {
     let v = !i;
@@ -156,7 +156,7 @@ fn main (_:unit)
      invariant b. exists* vi vpsum.
        pts_to i vi **
        pts_to psum vpsum  **
-       (exists* s. A.pts_to ar s ** pure (Seq.length s == size)) **
+       (exists* s. A.pts_to ar s ** pure (len s == size)) **
        pure (b == (SZ.v vi < size))
   {
     let vi = !i;
