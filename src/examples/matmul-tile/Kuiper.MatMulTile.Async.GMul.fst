@@ -1,7 +1,7 @@
 module Kuiper.MatMulTile.Async.GMul
 #lang-pulse
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
+#set-options "--fuel 1 --ifuel 1 --z3rlimit 60"
 
 open Kuiper
 open Kuiper.Math
