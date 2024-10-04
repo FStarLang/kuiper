@@ -1,8 +1,6 @@
 module Kuiper.MatMul
 #lang-pulse
 
-#push-options "--fuel 1 --ifuel 1"
-
 open Kuiper
 
 module A    = Pulse.Lib.Array

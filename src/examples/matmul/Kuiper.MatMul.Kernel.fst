@@ -55,7 +55,8 @@ fn kernel
     let v1 = I.gpu_matrix_read ga1 trow v;
     let v2 = I.gpu_matrix_read ga2 v tcol;
 
-    sum := U64.((v1 *%^ v2) +%^ s);
+    (* Using U64.(...) works but warns on every client (?) *)
+    sum := FStar.UInt64.((v1 *%^ v2) +%^ s);
     i := SZ.add v 1sz;
     assert (pure (trow < rows));
     assert (pure (tcol < columns));
