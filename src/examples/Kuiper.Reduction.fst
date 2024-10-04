@@ -63,7 +63,7 @@ fn k_reduce_and_set
   (#v : erased (seq tt))
   ()
   requires gpu ** (GA.gpu_pts_to_array a v ** pure (size > 0))
-  ensures  gpu ** (exists* v'. GA.gpu_pts_to_array a v')
+  ensures  gpu ** (exists* v'. GA.gpu_pts_to_array a v' ** pure (Seq.length v' == size))
 {
   let r = k_reduce size a;
   unfold (gpu_pts_to_array a v);
@@ -79,7 +79,7 @@ fn copy_to_gpu
   {| d : sized t |}
   (sz : sz)
   (a : A.array t)
-  (#v : erased (seq t))
+  (#v : erased (seq t){len v == reveal sz})
   requires cpu ** A.pts_to a v
   returns  ga : GA.gpu_array t sz
   ensures  cpu ** A.pts_to a v ** GA.gpu_pts_to_array ga v

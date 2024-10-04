@@ -50,10 +50,11 @@ fn main
     A.pts_to a1 v1 **
     A.pts_to a2 v2 **
     A.pts_to a3 v3 **
-    A.pts_to a4 v4 **
-    pure (bdim /? nn /\ bdim <= 32)
+    A.pts_to a4 v4
   requires
-    pure (SZ.fits (nn * nn))
+    pure (bdim /? nn /\ bdim <= 32 /\ SZ.fits (nn * nn) /\
+          len v1 == nn * nn /\ len v2 == nn * nn /\
+          len v3 == nn * nn /\ len v4 == nn * nn)
   returns
     ar : array f32
   ensures 

@@ -174,7 +174,11 @@ fn main
     cpu **
     A.pts_to a1 v1 **
     A.pts_to a2 v2 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    pure (SZ.fits (rows * columns) /\
+          SZ.fits (rows * shared) /\
+          SZ.fits (shared * columns) /\
+          len v1 == rows * shared /\
+          len v2 == shared * columns)
   returns  ar: array f32
   ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** (exists* vr. A.pts_to ar vr)
 {

@@ -45,22 +45,21 @@ fn main
   (bdim : szp { bdim /? nn /\ bdim <= 32})
   (a1 a2 a3 a4 : array u64)
   (v1 v2 v3 v4 : erased (seq u64))
-  requires
+  preserves
     cpu **
     A.pts_to a1 v1 **
     A.pts_to a2 v2 **
     A.pts_to a3 v3 **
-    A.pts_to a4 v4 **
-    pure (SZ.fits (nn * nn))
+    A.pts_to a4 v4
+  requires
+    pure (bdim /? nn /\ bdim <= 32 /\ SZ.fits (nn * nn) /\
+          len v1 == nn * nn /\ len v2 == nn * nn /\
+          len v3 == nn * nn /\ len v4 == nn * nn)
   returns
     ar : array u64
   ensures 
-    cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
-    A.pts_to a3 v3 **
-    A.pts_to a4 v4 **
-    (exists* vr. A.pts_to ar vr) // no functional spec
+    exists* vr.
+      A.pts_to ar vr // no functional spec
 {
   open FStar.SizeT;
   dassert (nn %^ bdim = 0sz);
