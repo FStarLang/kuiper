@@ -23,11 +23,11 @@ fn main (_:unit)
   let gr = gpu_alloc0 #f32 ();
 
   Box.to_ref_pts_to r;
-  Kuiper.Ref.gpu_memcpy_host_to_device gr (Box.box_to_ref r);
+  Kuiper.Ref.gpu_memcpy_host_to_device gr r;
 
-  launch_kernel_1 (fun () -> kernel gr #(hide zero));
+  launch_kernel_1 (fun () -> kernel gr);
 
-  Kuiper.Ref.gpu_memcpy_device_to_host (Box.box_to_ref r) gr;
+  Kuiper.Ref.gpu_memcpy_device_to_host r gr;
   Box.to_box_pts_to r;
 
   let v = Pulse.Lib.Box.(!r);
