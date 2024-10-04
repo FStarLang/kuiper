@@ -26,3 +26,6 @@ include Pulse.Lib.GhostReference { ref as gref, pts_to as gref_pts_to }
 include Kuiper.Seq.Common { op_At_Bang }
 
 include Kuiper.Len { len }
+
+[@@coercion; pulse_unfold]
+unfold let kpr_box_to_ref  (#a:Type0) (b:Pulse.Lib.Box.box a) : Pulse.Lib.Reference.ref a = Pulse.Lib.Box.box_to_ref b
