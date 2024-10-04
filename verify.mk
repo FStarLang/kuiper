@@ -61,6 +61,13 @@ OUTDIR   := out
 # Without .cmxs extension
 PLUGIN=extraction/dune/_build/default/gpuextr
 
+ifneq ($(D),)
+FSTAR_DEBUG := --debug $D
+endif
+ifneq ($(O),)
+OTHERFLAGS += $O
+endif
+
 FSTAR_FLAGS += --cache_checked_modules
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
@@ -72,6 +79,7 @@ FSTAR_FLAGS += --ext context_pruning
 FSTAR_FLAGS += --ext no_krml_private
 FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
+FSTAR_FLAGS += $(FSTAR_DEBUG)
 
 FSTAR_NOPLUG = $(FSTAR_EXE)				\
 	$(SIL)						\
