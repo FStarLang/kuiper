@@ -1,7 +1,7 @@
 module Kuiper.MatMulTileF32.GMul
 #lang-pulse
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
+#set-options "--fuel 1 --ifuel 1 --z3rlimit 60"
 
 open Kuiper
 open Kuiper.Math
@@ -117,6 +117,8 @@ fn g_mul_async
 
   assume (pure (nblk <= max_threads)); // make sure to prove
 
+  assert (pure (SZ.v nthr <= 1024));
+  assert (pure (2 * SZ.v nthr <= 2048));
   let smem_sz = 2sz *^ nthr;
   launch_kernel_n_m_shmem_async #0
     nblk
