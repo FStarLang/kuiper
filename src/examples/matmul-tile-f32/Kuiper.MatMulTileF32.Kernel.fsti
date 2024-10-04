@@ -10,8 +10,9 @@ open Kuiper.Math
 (* trigger crossing the fsti *)
 inline_for_extraction let x = 1
 
-module Impure = Kuiper.MatMul.Impure
-module Pure = Kuiper.MatMul.Pure
+module P = Kuiper.MatMul.Pure
+module I = Kuiper.MatMul.Impure
+
 module Barrier = Kuiper.MatMulTileF32.Barrier
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
@@ -28,8 +29,8 @@ let kpre (rows shared columns: nat)
   (tid : nat{ tid < rows * columns})
   : slprop
   =
-  Impure.gpu_pts_to_matrix rows shared ga1 nthr s1
-  ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
+  I.gpu_pts_to_matrix rows shared ga1 nthr s1
+  ** I.gpu_pts_to_matrix shared columns ga2 nthr s2
   ** gpu_pts_to_array1 r tid
 
 [@@pulse_unfold]
@@ -43,8 +44,8 @@ let kpost (rows shared columns: nat)
   (tid : nat {  tid < rows * columns })
   : slprop
   =
-  Impure.gpu_pts_to_matrix rows shared ga1 nthr s1
-  ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
+  I.gpu_pts_to_matrix rows shared ga1 nthr s1
+  ** I.gpu_pts_to_matrix shared columns ga2 nthr s2
   ** gpu_pts_to_array1 r tid
   // ** (exists* s. gpu_pts_to_array_slice r tid (tid+1) s)
 
