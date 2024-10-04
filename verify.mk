@@ -27,6 +27,7 @@ endef
 .b_fstar: $(shell find FStar/ocaml/ -type f) FStar/Makefile
 	@echo FSTAR
 	$(MAKE) -C FStar 1
+	@mkdir -p FStar/ulib/.cache
 	@touch $@
 
 FStar/Makefile:
