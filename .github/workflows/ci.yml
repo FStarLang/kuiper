@@ -63,11 +63,6 @@ jobs:
           eval $(opam env)
           make -skj$(nproc) -Otarget ci
 
-      - name: Run CI Makefile rule
-        run: |
-          eval $(opam env)
-          make -skj$(nproc) -Otarget ci
-
       - name: Make artifact with output
         if: ${{ always () }}
         uses: actions/upload-artifact@master
