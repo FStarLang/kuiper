@@ -20,7 +20,7 @@ let stupid_mul_mono (x y z w : nat)
   ()
 
 #push-options "--retry 5" //sad
-let stupid_divides (x:nat) (y:nonzero)
+let stupid_divides (x:nat) (y:pos)
 : Lemma (x/y <= x)
   [SMTPat (x/y)]
 = ()
@@ -42,25 +42,23 @@ fn redeem1 (e e' : erased nat) (post : slprop)
 (* Computes (a1*a2)*(a3*a4) *)
 fn main
   (nn : szp)
-  (bdim : szp { bdim /? nn /\ bdim <= 32})
+  (bdim : szp)
   (a1 a2 a3 a4 : array f32)
   (v1 v2 v3 v4 : erased (seq f32))
-  requires
+  preserves
     cpu **
     A.pts_to a1 v1 **
     A.pts_to a2 v2 **
     A.pts_to a3 v3 **
     A.pts_to a4 v4 **
+    pure (bdim /? nn /\ bdim <= 32)
+  requires
     pure (SZ.fits (nn * nn))
   returns
     ar : array f32
   ensures 
-    cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
-    A.pts_to a3 v3 **
-    A.pts_to a4 v4 **
-    (exists* vr. A.pts_to ar vr) // no functional spec
+    exists* vr.
+      A.pts_to ar vr // no functional spec
 {
   open FStar.SizeT;
   dassert (nn %^ bdim = 0sz);
@@ -89,13 +87,12 @@ fn main
   (**) redeem1 _ _ _;
   (**) redeem1 _ _ _;
   (**) drop_ (epoch_done _);
-  gpu_array_free ga1;
   gpu_array_free ga2;
   gpu_array_free ga3;
   gpu_array_free ga4;
+  (* do not free ga1, we reuse it for the result. *)
 
-  let gr = gpu_array_alloc #f32 size;
-  GMul.g_mul_async nn nn nn bdim gt1 gt2 gr;
+  GMul.g_mul_async nn nn nn bdim gt1 gt2 ga1;
   sync();
   (**) redeem1 _ _ _;
   (**) drop_ (epoch_done _);
@@ -104,8 +101,8 @@ fn main
 
   let ar = Pulse.Lib.Array.alloc Kuiper.Float32.zero size;
 
-  Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
-  gpu_array_free gr;
+  Kuiper.Array.gpu_memcpy_device_to_host ar ga1 size;
+  gpu_array_free ga1;
   
   drop_ (epoch_live _);
 
