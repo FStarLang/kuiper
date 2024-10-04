@@ -55,10 +55,6 @@ fn gpu_write
   requires gpu ** (exists* v0. gpu_pts_to r #1.0R v0)
   ensures  gpu ** gpu_pts_to r #1.0R v
 
-// FIXME: the order of arguments is stupid. Choose
-// either source/destination on left/right, not
-// the device
-
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}

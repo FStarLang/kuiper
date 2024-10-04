@@ -35,7 +35,7 @@ fn recall_array_len
     gpu_pts_to_array a v
   ensures
     gpu_pts_to_array a v **
-    pure (len v == alen)
+    pure (len v == alen /\ SZ.fits alen)
 {
   unfold (gpu_pts_to_array a v);
   gpu_pts_to_slice_ref a 0 _;
@@ -59,8 +59,7 @@ fn g_mul_async
     epoch_live e **
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    gpu_pts_to_array gr  v3
   ensures
     exists* e'.
       cpu **
@@ -113,7 +112,7 @@ fn g_mul_async
 
   Prep.setup rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
 
-  assume (pure (rows_tile * columns_tile <= rows * columns));
+  // assume (pure (rows_tile * columns_tile <= rows * columns));
 
   assume (pure (nblk <= max_threads)); // make sure to prove
 
@@ -168,8 +167,7 @@ fn g_mul
     cpu **
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    gpu_pts_to_array gr  v3
   ensures
     cpu **
     gpu_pts_to_array ga1 v1 **

@@ -8,9 +8,9 @@ open Kuiper
 module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
 
-module P = Kuiper.MatMul.Pure
-module I = Kuiper.MatMul.Impure
 module K = Kuiper.MatMul.Kernel
+module I = Kuiper.MatMul.Impure
+module P = Kuiper.MatMul.Pure
 
 ghost
 fn setup
@@ -19,14 +19,17 @@ fn setup
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (gr  : gpu_array u64 size)
-  (v1: erased (seq u64) { len v1 == rows * shared })
-  (v2: erased (seq u64) { len v2 == shared * columns })
+  (v1: erased (seq u64))
+  (v2: erased (seq u64))
   requires gpu_pts_to_array gr 's **
            gpu_pts_to_array ga1 v1 **
            gpu_pts_to_array ga2 v2
   ensures  bigstar 0 size (fun i ->
              K.kpre rows shared columns ga1 ga2 gr v1 v2 size i)
 {
+  (* recall *)
+  gpu_pts_to_ref ga1; gpu_pts_to_ref ga2;
+
   // Sharing the input matrices (splitting permissions)
   fold I.gpu_pts_to_matrix rows   shared  ga1 1 v1;
   fold I.gpu_pts_to_matrix shared columns ga2 1 v2;

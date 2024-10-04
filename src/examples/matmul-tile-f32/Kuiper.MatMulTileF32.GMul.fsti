@@ -25,8 +25,7 @@ fn g_mul_async
     epoch_live e **
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    gpu_pts_to_array gr  v3
   ensures
     exists* e'.
       cpu **
@@ -52,8 +51,7 @@ fn g_mul
     cpu **
     gpu_pts_to_array ga1 v1 **
     gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
-    pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
+    gpu_pts_to_array gr  v3
   ensures
     cpu **
     gpu_pts_to_array ga1 v1 **

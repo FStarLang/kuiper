@@ -22,7 +22,7 @@ fn gpu_matrix_share_underspec
   requires gpu_pts_to_matrix #a rows columns ga 1 s
   ensures bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s)
 {
-  admit();
+  admit(); (* TODO: this is just splitting permissions and should have a model. *)
 }
 
 ghost
@@ -36,5 +36,5 @@ fn gpu_matrix_unshare_underspec
   requires bigstar #uid 0 shared (fun _ -> gpu_pts_to_matrix #a rows columns ga shared s)
   ensures  gpu_pts_to_matrix #a rows columns ga 1 s
 {
-  admit();
+  admit(); (* TODO: this is just splitting permissions and should have a model. *)
 }
