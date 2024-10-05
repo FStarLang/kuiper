@@ -6,6 +6,7 @@ open Kuiper.Array
 
 [@@fundeps [1]; pulse_unfold]
 class pts_to (p r :Type) = {
+  [@@@pulse_unfold]
   ( |-> ) : p -> r -> Tot slprop;
 }
 
@@ -33,4 +34,10 @@ instance has_pts_to_arr_e (a:Type) : pts_to (array a) (Ghost.erased (Seq.seq a))
 unfold
 instance has_pts_to_gpu_arr (a:Type) (sz : _) : pts_to (gpu_array a sz) (Seq.seq a) = {
   ( |-> ) = (fun r v -> Kuiper.gpu_pts_to_array r v);
+}
+
+[@@pulse_unfold]
+unfold
+instance has_pts_to_gpu_arr_e (a:Type) (sz : _) : pts_to (gpu_array a sz) (Ghost.erased (Seq.seq a)) = {
+  ( |-> ) = (fun r v -> Kuiper.gpu_pts_to_array r (Ghost.reveal v));
 }
