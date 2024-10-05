@@ -38,7 +38,7 @@ let inv_p
   exists* (v_done:
     seq bool {len v_done >= len done /\ len v_done >= len v_a})
     v_r.
-    ((gpu_pts_to_array a v_a ** gpu_pts_to r v_r) **
+    ((a |-> v_a) ** (r |-> v_r) **
     bigstar 0 (len done) (fun i -> gref_pts_to (done @! i) #0.5R (v_done @! i))) **
     pure (contributions nn v_done v_a v_r 0uL)
 
@@ -128,8 +128,8 @@ fn done_lemma
   requires gpu ** bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
   ensures  
     gpu **
-    Kuiper.Ref.gpu_pts_to r (Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed
-    gpu_pts_to_array a v_a
+    (r |-> Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed
+    (a |-> v_a)
 
 {
   admit();

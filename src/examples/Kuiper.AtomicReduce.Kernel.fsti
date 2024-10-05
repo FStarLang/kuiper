@@ -74,5 +74,5 @@ fn done_lemma
   requires gpu ** bigstar 0 nn (fun tid -> kpost nn a v_a r done i tid)
   ensures  
     gpu **
-    Kuiper.Ref.gpu_pts_to r (Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed
-    gpu_pts_to_array a v_a
+    (r |-> Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed
+    (a |-> v_a)

@@ -11,9 +11,8 @@ inline_for_extraction noextract
 fn kswap
   (#t : Type0)
   (r1 r2 : gpu_ref t)
-  (#v1 #v2 : erased t)
-  requires gpu ** (gpu_pts_to r1 v1 ** gpu_pts_to r2 v2)
-  ensures  gpu ** (gpu_pts_to r1 v2 ** gpu_pts_to r2 v1)
+  requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
+  ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
   let v1 = gpu_read r1;
   let v2 = gpu_read r2;
@@ -27,20 +26,18 @@ module F32 = Kuiper.Float32
 [@@CPrologue "__global__"]
 fn kswap_U64
   (r1 r2 : gpu_ref u64)
-  (#v1 #v2 : erased _)
-  requires gpu ** (gpu_pts_to r1 v1 ** gpu_pts_to r2 v2)
-  ensures  gpu ** (gpu_pts_to r1 v2 ** gpu_pts_to r2 v1)
+  requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
+  ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
-  kswap r1 r2 #v1 #v2
+  kswap r1 r2
 }
 
 [@@CPrologue "__global__"]
 fn kswap_F32
   (r1 r2 : gpu_ref f32)
-  (#v1 #v2 : erased _)
-  requires gpu ** (gpu_pts_to r1 v1 ** gpu_pts_to r2 v2)
-  ensures  gpu ** (gpu_pts_to r1 v2 ** gpu_pts_to r2 v1)
+  requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
+  ensures  gpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
-  kswap r1 r2 #v1 #v2
+  kswap r1 r2
 }
 

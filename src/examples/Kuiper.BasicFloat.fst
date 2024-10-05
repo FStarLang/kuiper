@@ -7,8 +7,8 @@ open Pulse.Lib
 
 [@@CPrologue "__global__"]
 fn kernel (r : gpu_ref f32) (#v : erased f32)
-  requires gpu ** gpu_pts_to r v
-  ensures  gpu ** (exists* v'. gpu_pts_to r v')
+  requires gpu ** (r |-> v)
+  ensures  gpu ** (exists* v'. r |-> v')
 {
   let v = gpu_read r;
   gpu_write r (add v one);

@@ -10,8 +10,8 @@ module U64 = FStar.UInt64
 
 [@@CPrologue "__global__"]
 fn kernel (r : gpu_ref u64) (#v : erased u64)
-  requires gpu ** gpu_pts_to r v
-  ensures  gpu ** gpu_pts_to r (U64.add_underspec v 1uL)
+  requires gpu ** (r |-> v)
+  ensures  gpu ** (r |-> U64.add_underspec v 1uL)
 {
   let v = gpu_read r;
   gpu_write r (U64.add_underspec v 1uL);
@@ -20,7 +20,7 @@ fn kernel (r : gpu_ref u64) (#v : erased u64)
 fn galloc (x : u64)
   requires cpu
   returns  r : gpu_ref u64
-  ensures  cpu ** gpu_pts_to r x
+  ensures  cpu ** (r |-> x)
 {
   let r  = Box.alloc #u64 x;
   let gr = gpu_alloc0 #u64 ();
@@ -32,9 +32,9 @@ fn galloc (x : u64)
 }
 
 fn gread (gr : gpu_ref u64) (#v0 : erased u64)
-  requires cpu ** gpu_pts_to gr v0
+  requires cpu ** (gr |-> v0)
   returns  v : u64
-  ensures  cpu ** gpu_pts_to gr v ** pure (v == v0)
+  ensures  cpu ** (gr |-> v) ** pure (v == v0)
 {
   let r = Box.alloc #u64 0uL;
   Box.to_ref_pts_to r;

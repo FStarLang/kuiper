@@ -20,7 +20,7 @@ fn setup
   requires
     cpu **
     gpu_pts_to_array a #f v_a **
-    gpu_pts_to r #1.0R 0uL **
+    (r |-> 0uL) **
     pure (SZ.v n <= 1024)
   returns 
     i_done : iname & erased (seq (gref bool))
@@ -57,7 +57,7 @@ fn teardown
   ensures
     cpu **
     gpu_pts_to_array a #f v_a **
-    gpu_pts_to r #1.0R (Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) **
+    (r |-> Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) **
     pure (SZ.v n <= 1024)
 {
   admit();
