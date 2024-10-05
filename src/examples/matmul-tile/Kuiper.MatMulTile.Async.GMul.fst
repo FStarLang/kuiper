@@ -30,9 +30,9 @@ fn recall_array_len
   (a : gpu_array t alen)
   (#v : Seq.seq t)
   requires
-    gpu_pts_to_array a v
+    a |-> v
   ensures
-    gpu_pts_to_array a v **
+    (a |-> v) **
     pure (len v == alen /\ SZ.fits alen)
 {
   unfold (gpu_pts_to_array a v);
@@ -43,15 +43,15 @@ fn recall_array_len
 fn g_mul_async
   (rows shared columns : szp)
   (bdim : szp )
-  (ga1 : gpu_array u64 (rows * shared))
-  (ga2 : gpu_array u64 (shared * columns))
-  (gr  : gpu_array u64 (rows * columns))
+  (ga : gpu_array u64 (rows * shared))
+  (gb : gpu_array u64 (shared * columns))
+  (gr : gpu_array u64 (rows * columns))
   requires
     cpu **
     epoch_live 'e0 **
-    gpu_pts_to_array ga1 'v1 **
-    gpu_pts_to_array ga2 'v2 **
-    gpu_pts_to_array gr  'v3 **
+    (ga |-> 'va) **
+    (gb |-> 'vb) **
+    (gr |-> 'vr) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
     exists* e1.
@@ -59,14 +59,14 @@ fn g_mul_async
       epoch_live e1 **
       pure (e1 >= 'e0) **
       pledge0 (epoch_done e1) (
-        gpu_pts_to_array ga1 'v1 **
-        gpu_pts_to_array ga2 'v2 **
-        (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+        (ga |-> 'va) **
+        (gb |-> 'vb) **
+        (exists* vr. gr |-> vr) // no functional spec
       )
 {
   open FStar.SizeT;
-  recall_array_len ga1;
-  recall_array_len ga2;
+  recall_array_len ga;
+  recall_array_len gb;
   recall_array_len gr;
 
   let rows_tile = div rows bdim;
@@ -103,7 +103,7 @@ fn g_mul_async
   assert (pure (SZ.fits (shared * columns)));
   assert (pure (nblk * nthr == rows * columns));
 
-  Prep.setup rows shared columns bdim nblk nthr ga1 ga2 gr 'v1 'v2;
+  Prep.setup rows shared columns bdim nblk nthr ga gb gr 'va 'vb;
 
   assume (pure (rows_tile * columns_tile <= rows * columns));
 
@@ -116,30 +116,30 @@ fn g_mul_async
     nblk
     nthr
     #(fun (tid: nat {0 <= tid /\ tid < (nblk * nthr)} ) ->
-       Kernel.kpre rows shared columns ga1 ga2 gr #'v1 #'v2 (nblk * nthr)
+       Kernel.kpre rows shared columns ga gb gr #'va #'vb (nblk * nthr)
          (Kernel.tid_to_idx rows shared columns bdim tid))
     #(fun (tid: nat {0 <= tid /\ tid < (nblk * nthr)} ) ->
-       Kernel.kpost rows shared columns ga1 ga2 gr #'v1 #'v2 (nblk * nthr)
+       Kernel.kpost rows shared columns ga gb gr #'va #'vb (nblk * nthr)
          (Kernel.tid_to_idx rows shared columns bdim tid))
     u64
     smem_sz
     #(Barrier.shared_pre nthr 0)
     #(Barrier.shared_pre nthr (2 * (shared / bdim)))
     (Barrier.block_setup_ghost nthr smem_sz)
-    (fun ear etid -> Kernel.kernel rows shared columns bdim ga1 ga2 gr #'v1 #'v2 (hide nblk) (hide nthr) smem_sz ear etid);
+    (fun ear etid -> Kernel.kernel rows shared columns bdim ga gb gr #'va #'vb (hide nblk) (hide nthr) smem_sz ear etid);
 
 
   ghost
   fn aux ()
     requires
       bigstar 0 (nblk * nthr) (fun i ->
-        Kernel.kpost rows shared columns ga1 ga2 gr #'v1 #'v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))
+        Kernel.kpost rows shared columns ga gb gr #'va #'vb (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))
     ensures
-      gpu_pts_to_array ga1 'v1 **
-      gpu_pts_to_array ga2 'v2 **
-      (exists* vr. gpu_pts_to_array gr vr)
+      (ga |-> 'va) **
+      (gb |-> 'vb) **
+      (exists* vr. gr |-> vr)
   {
-    Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr 'v1 'v2;
+    Prep.breakdown rows shared columns bdim nblk nthr ga gb gr 'va 'vb;
   };
   unfold pledge0;
   rewrite_pledge _ _ aux; // (fun _ -> Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2);
@@ -147,28 +147,23 @@ fn g_mul_async
 }
 
 fn g_mul
-  (rows shared columns : szp)
-  (bdim : szp)
-  (ga1 : gpu_array u64 (rows * shared))
-  (ga2 : gpu_array u64 (shared * columns))
-  (gr  : gpu_array u64 (rows * columns))
+  (rows shared columns bdim : szp)
+  (ga : gpu_array u64 (rows * shared))
+  (gb : gpu_array u64 (shared * columns))
+  (gr : gpu_array u64 (rows * columns))
+  preserves
+    cpu ** (ga |-> 'va) ** (gb |-> 'vb)
   requires
-    cpu **
-    gpu_pts_to_array ga1 'v1 **
-    gpu_pts_to_array ga2 'v2 **
-    gpu_pts_to_array gr  'v3 **
+    (gr |-> 'vr) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
-    cpu **
-    gpu_pts_to_array ga1 'v1 **
-    gpu_pts_to_array ga2 'v2 **
-    (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+    (exists* vr. gr |-> vr) // no functional spec
 {
-  recall_array_len ga1;
-  recall_array_len ga2;
+  recall_array_len ga;
+  recall_array_len gb;
   recall_array_len gr;
   let e0 = get_epoch ();
-  g_mul_async rows shared columns bdim ga1 ga2 gr;
+  g_mul_async rows shared columns bdim ga gb gr;
   unfold pledge0;
   sync ();
   with e1. assert (epoch_done e1);

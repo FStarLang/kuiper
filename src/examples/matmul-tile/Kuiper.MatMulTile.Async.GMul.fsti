@@ -5,6 +5,7 @@ module Kuiper.MatMulTile.Async.GMul
 
 open Kuiper
 open Kuiper.Divides
+open Kuiper.PtsTo
 open Pulse.Lib.Pledge
 
 inline_for_extraction let x = ()
@@ -15,15 +16,15 @@ inline_for_extraction
 fn g_mul_async
   (rows shared columns : szp)
   (bdim : szp)
-  (ga1 : gpu_array u64 (rows * shared))
-  (ga2 : gpu_array u64 (shared * columns))
+  (ga : gpu_array u64 (rows * shared))
+  (gb : gpu_array u64 (shared * columns))
   (gr  : gpu_array u64 (rows * columns))
   requires
     cpu **
     epoch_live 'e0 **
-    gpu_pts_to_array ga1 'v1 **
-    gpu_pts_to_array ga2 'v2 **
-    gpu_pts_to_array gr  'v3 **
+    (ga |-> 'va) **
+    (gb |-> 'vb) **
+    (gr |-> 'vr) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
     exists* e1.
@@ -31,26 +32,21 @@ fn g_mul_async
       epoch_live e1 **
       pure (e1 >= 'e0) **
       pledge0 (epoch_done e1) (
-        gpu_pts_to_array ga1 'v1 **
-        gpu_pts_to_array ga2 'v2 **
-        (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+        (ga |-> 'va) **
+        (gb |-> 'vb) **
+        (exists* vr. gr |-> vr) // no functional spec
       )
 
 inline_for_extraction
 fn g_mul
-  (rows shared columns : szp)
-  (bdim : szp)
-  (ga1 : gpu_array u64 (rows * shared))
-  (ga2 : gpu_array u64 (shared * columns))
-  (gr  : gpu_array u64 (rows * columns))
+  (rows shared columns bdim : szp)
+  (ga : gpu_array u64 (rows * shared))
+  (gb : gpu_array u64 (shared * columns))
+  (gr : gpu_array u64 (rows * columns))
+  preserves
+    cpu ** (ga |-> 'va) ** (gb |-> 'vb)
   requires
-    cpu **
-    gpu_pts_to_array ga1 'v1 **
-    gpu_pts_to_array ga2 'v2 **
-    gpu_pts_to_array gr  'v3 **
+    (gr |-> 'vr) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
-    cpu **
-    gpu_pts_to_array ga1 'v1 **
-    gpu_pts_to_array ga2 'v2 **
-    (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+    (exists* vr. gr |-> vr) // no functional spec
