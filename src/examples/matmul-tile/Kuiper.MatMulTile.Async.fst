@@ -29,17 +29,16 @@ fn main
   (nn : szp)
   (bdim : szp {bdim /? nn /\ bdim <= 32})
   (a1 a2 a3 a4 : array u64)
-  (v1 v2 v3 v4 : erased (seq u64))
   preserves
     cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
-    A.pts_to a3 v3 **
-    A.pts_to a4 v4
+    A.pts_to a1 'v1 **
+    A.pts_to a2 'v2 **
+    A.pts_to a3 'v3 **
+    A.pts_to a4 'v4
   requires
     pure (bdim /? nn /\ bdim <= 32 /\ SZ.fits (nn * nn) /\
-          len v1 == nn * nn /\ len v2 == nn * nn /\
-          len v3 == nn * nn /\ len v4 == nn * nn)
+          len 'v1 == nn * nn /\ len 'v2 == nn * nn /\
+          len 'v3 == nn * nn /\ len 'v4 == nn * nn)
   returns
     ar : array u64
   ensures 
@@ -73,13 +72,12 @@ fn main
   (**) redeem1 _ _ _;
   (**) redeem1 _ _ _;
   (**) drop_ (epoch_done _);
-  gpu_array_free ga1;
   gpu_array_free ga2;
   gpu_array_free ga3;
   gpu_array_free ga4;
+  (* do not free ga1, we reuse it for the result. *)
 
-  let gr = gpu_array_alloc #u64 size;
-  GMul.g_mul_async nn nn nn bdim gt1 gt2 gr;
+  GMul.g_mul_async nn nn nn bdim gt1 gt2 ga1;
   sync();
   (**) redeem1 _ _ _;
   (**) drop_ (epoch_done _);
@@ -88,8 +86,8 @@ fn main
 
   let ar = Pulse.Lib.Array.alloc 0UL size;
 
-  Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
-  gpu_array_free gr;
+  Kuiper.Array.gpu_memcpy_device_to_host ar ga1 size;
+  gpu_array_free ga1;
   
   (**)drop_ (epoch_live _);
 
