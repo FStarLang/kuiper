@@ -11,6 +11,12 @@ verify-all:
 test:
 	+$(MAKE) -f verify.mk test
 
+.PHONY: reboot
+reboot:
+	FSTAR_HOME=$(pwd)/FStar && cd FStar/ && $(MAKE) clean && $(MAKE) 1 && $(MAKE) bootstrap ADMIT=1
+	FSTAR_HOME=$(pwd)/FStar && cd pulse/ && $(MAKE) clean && $(MAKE) boot-checker OTHERFLAGS='--admit_smt_queries true'
+
+
 .PHONY: echo-fstar
 echo-fstar:
 	+$(MAKE) -f verify.mk $@
