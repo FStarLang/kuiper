@@ -1,11 +1,7 @@
 module Kuiper.MatMulTile.Async.GMul
 #lang-pulse
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
-
 open Kuiper
-open Kuiper.Divides
-open Kuiper.PtsTo
 open Pulse.Lib.Pledge
 
 inline_for_extraction let x = ()

@@ -2,17 +2,16 @@ module Kuiper.Example1
 
 #lang-pulse
 
-open Pulse.Lib
-open Pulse.Lib.Pervasives
 open Kuiper
+module Box = Pulse.Lib.Box
 
 module U64 = FStar.UInt64
 
 [@@CPrologue "__global__"]
 fn kernel (r : gpu_ref u64) (#v : erased u64)
   preserves gpu
-  requires gpu_pts_to r v
-  ensures  gpu_pts_to r (U64.add_mod v 1uL)
+  requires r |-> v
+  ensures  r |-> U64.add_mod v 1uL
 {
   let v = gpu_read r;
   gpu_write r (U64.add_mod v 1uL);

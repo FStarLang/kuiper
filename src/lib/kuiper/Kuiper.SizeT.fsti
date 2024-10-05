@@ -36,3 +36,9 @@ This is very specialized. *)
 val sizet_and_div_pow2 (x:SZ.t) (y:SZ.t) (n:nat)
   : Lemma (requires SZ.v y == pow2 n)
           (ensures SZ.v (sizet_and x SZ.(y -^ 1sz)) == SZ.v x % (pow2 n))
+
+(* This can be assumed to skip overflow checking locally. *)
+val sizet_does_not_overflow : prop
+
+val overflow_lem () : Lemma (sizet_does_not_overflow ==> (forall n. SZ.fits n))
+

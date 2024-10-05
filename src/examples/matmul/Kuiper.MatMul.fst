@@ -98,7 +98,7 @@ fn main
 
   let gr = gpu_array_alloc #u64 size;
 
-  setup rows shared columns size ga1 ga2 gr v1 v2;
+  (**)setup rows shared columns size ga1 ga2 gr v1 v2;
 
   launch_kernel_n #0
     size
