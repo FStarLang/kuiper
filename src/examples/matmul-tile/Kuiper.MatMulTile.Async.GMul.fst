@@ -1,4 +1,5 @@
 module Kuiper.MatMulTile.Async.GMul
+#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
 #lang-pulse
 
 open Kuiper
@@ -92,7 +93,7 @@ fn g_mul_async
     ((rows / bdim) * (columns / bdim)) * (bdim * bdim);
     == { magic() } // just associativity, sigh
     (rows / bdim) * (columns / bdim) * bdim * bdim;
-    == { magic () } // fixme, boring proof (we have divisibility)
+    == { magic() } // fixme, boring proof (we have divisibility)
     rows * columns;
   };
 
@@ -103,7 +104,7 @@ fn g_mul_async
   assert (pure (SZ.fits (shared * columns)));
   assert (pure (nblk * nthr == rows * columns));
 
-  Prep.setup rows shared columns bdim nblk nthr ga gb gr 'va 'vb;
+  Prep.setup rows shared columns bdim nblk nthr ga gb gr;
 
   assume (pure (rows_tile * columns_tile <= rows * columns));
 
@@ -139,7 +140,7 @@ fn g_mul_async
       (gb |-> 'vb) **
       (exists* vr. gr |-> vr)
   {
-    Prep.breakdown rows shared columns bdim nblk nthr ga gb gr 'va 'vb;
+    Prep.breakdown rows shared columns bdim nblk nthr ga gb gr;
   };
   unfold pledge0;
   rewrite_pledge _ _ aux; // (fun _ -> Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2);

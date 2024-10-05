@@ -101,11 +101,11 @@ fn share_array
   (#nth : nat { nth <> 0 })
   (ga : gpu_array u64 nth)
   (#v: erased (seq u64) { reveal (len v) == nth })
-  requires gpu_pts_to_array ga #1.0R v
+  requires ga |-> v
   ensures  bigstar 0 nth (shared_array #nth ga #v)
 {
   rewrite gpu_pts_to_array ga #1.0R v
-    as gpu_pts_to_array ga #(1.0R /. of_int 1) v;
+       as gpu_pts_to_array ga #(1.0R /. of_int 1) v;
   admit();
 }
 
@@ -115,7 +115,7 @@ fn gather_array
   (ga : gpu_array u64 nth)
   (#v: erased (seq u64) { reveal (len v) == nth })
   requires bigstar 0 nth (shared_array #nth ga #v)
-  ensures  gpu_pts_to_array ga #1.0R v
+  ensures  ga |-> v
 {
   admit();
 }
@@ -124,9 +124,13 @@ fn main
   (a1 a2: array u64)
   (v1 v2: erased (seq u64))
   (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
-  requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
+  preserves
+    cpu **
+    (a1 |-> v1) **
+    (a2 |-> v2)
+  requires emp
   returns  dp: u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))
+  ensures  pure (dp == sum (pmul v1 v2))
 {
   let ar = A.alloc #u64 0UL dp2_size;
 

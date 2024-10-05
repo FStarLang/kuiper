@@ -18,13 +18,13 @@ module U64 = FStar.UInt64
 module Layout4 = Kuiper.MatMulTile.Layout4
 
 [@@pulse_unfold]
-let kpre (rows shared columns: nat)
-  (ga1: gpu_array u64 (rows * shared))
-  (ga2: gpu_array u64 (shared * columns))
-  (r: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) )
-  (#s2: erased (seq u64))
-  (nthr: erased nat { nthr > 0 })
+let kpre (rows shared columns : nat)
+  (ga1 : gpu_array u64 (rows * shared))
+  (ga2 : gpu_array u64 (shared * columns))
+  (r : gpu_array u64 (rows * columns))
+  (#s1 : erased (seq u64))
+  (#s2 : erased (seq u64))
+  (nthr : erased nat { nthr > 0 })
   (tid : nat{ tid < rows * columns})
   : slprop
   =
@@ -33,13 +33,13 @@ let kpre (rows shared columns: nat)
   ** gpu_pts_to_array1 r tid
 
 [@@pulse_unfold]
-let kpost (rows shared columns: nat)
-  (ga1: gpu_array u64 (rows * shared))
-  (ga2: gpu_array u64 (shared * columns))
-  (r: gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {len s1 == rows * shared})
-  (#s2: erased (seq u64) {len s2 == shared * columns})
-  (nthr: erased nat { nthr > 0 })
+let kpost (rows shared columns : nat)
+  (ga1 : gpu_array u64 (rows * shared))
+  (ga2 : gpu_array u64 (shared * columns))
+  (r : gpu_array u64 (rows * columns))
+  (#s1 : erased (seq u64))
+  (#s2 : erased (seq u64))
+  (nthr : erased nat { nthr > 0 })
   (tid : nat {  tid < rows * columns })
   : slprop
   =
@@ -47,15 +47,15 @@ let kpost (rows shared columns: nat)
   ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
   ** gpu_pts_to_array1 r tid
 
-let permute (rows_tile columns_tile bdim: pos)
-: GTot (permutation (i: nat { 0 <= i /\ i < rows_tile * columns_tile * bdim * bdim }))
+let permute (rows_tile columns_tile bdim : pos)
+: GTot (permutation (i : nat { 0 <= i /\ i < rows_tile * columns_tile * bdim * bdim }))
 = Layout4.titi_permutation bdim bdim rows_tile columns_tile
 
 let tid_to_idx
   (rows shared columns : pos)
-  (bdim: pos{bdim /? rows /\ bdim /? columns})
-  (tid: nat { 0 <= tid /\ tid < rows * columns })
-: GTot (tid: nat { 0 <= tid /\ tid < rows * columns })
+  (bdim : pos{bdim /? rows /\ bdim /? columns})
+  (tid : nat { 0 <= tid /\ tid < rows * columns })
+: GTot (tid : nat { 0 <= tid /\ tid < rows * columns })
 = calc (==) {
     (rows / bdim) * (columns / bdim) * bdim * bdim;
     == { () }
@@ -75,8 +75,8 @@ fn kernel
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
   (r : gpu_array u64 (rows * columns))
-  (#s1: erased (seq u64) {len s1 == rows * shared})
-  (#s2: erased (seq u64) {len s2 == shared * columns})
+  (#s1 : erased (seq u64) {len s1 == rows * shared})
+  (#s2 : erased (seq u64) {len s2 == shared * columns})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
   (nthr : erased sz { SZ.v nthr == bdim * bdim
                      /\ SZ.v nblk * SZ.v nthr == rows * columns
@@ -84,7 +84,7 @@ fn kernel
                      })
   (* ^ 2nd and 3rd conjunct above just to help verifying this spec, sigh. *)
   (smem_sz : erased nat { smem_sz == 2 * SZ.v nthr })
-  (ear: erased (gpu_array u64 smem_sz))
+  (ear : erased (gpu_array u64 smem_sz))
   (etid : tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == SZ.v nthr })
   requires gpu
     ** thread_id etid

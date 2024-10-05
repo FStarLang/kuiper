@@ -14,27 +14,25 @@ ghost
 fn setup
   (rows: szp) (shared: szp) (columns: szp{rows * columns < pow2 64})
   (size: sz { SZ.v size == rows * columns })
-  (ga1 : gpu_array u64 (rows * shared))
-  (ga2 : gpu_array u64 (shared * columns))
-  (gr  : gpu_array u64 size)
-  (v1: erased (seq u64))
-  (v2: erased (seq u64))
+  (ga : gpu_array u64 (rows * shared))
+  (gb : gpu_array u64 (shared * columns))
+  (gr : gpu_array u64 size)
   requires
-    gpu_pts_to_array gr 's **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2
+    (gr |-> 's) **
+    (ga |-> 'va) **
+    (gb |-> 'vb)
   ensures
     bigstar 0 size (fun i ->
-      K.kpre rows shared columns ga1 ga2 gr v1 v2 size i)
+      K.kpre rows shared columns ga gb gr 'va 'vb size i)
 {
   (* recall *)
-  gpu_pts_to_ref ga1; gpu_pts_to_ref ga2;
+  gpu_pts_to_ref ga; gpu_pts_to_ref gb;
 
   // Sharing the input matrices (splitting permissions)
-  fold I.gpu_pts_to_matrix rows   shared  ga1 1 v1;
-  fold I.gpu_pts_to_matrix shared columns ga2 1 v2;
-  I.gpu_matrix_share_underspec #_ #1 rows   shared  ga1 size v1;
-  I.gpu_matrix_share_underspec #_ #2 shared columns ga2 size v2;
+  fold I.gpu_pts_to_matrix rows   shared  ga 1 'va;
+  fold I.gpu_pts_to_matrix shared columns gb 1 'vb;
+  I.gpu_matrix_share_underspec #_ #1 rows   shared  ga size 'va;
+  I.gpu_matrix_share_underspec #_ #2 shared columns gb size 'vb;
 
   // Sharing the output matrix (splitting each cell)
   gpu_pts_to_ref gr; (* obtain length v == size *)
@@ -48,11 +46,11 @@ fn setup
   ghost
   fn aux (i:nat{0 <= i /\ i < size})
     requires
-      I.gpu_pts_to_matrix rows   shared  ga1 size v1 **
-      I.gpu_pts_to_matrix shared columns ga2 size v2 **
+      I.gpu_pts_to_matrix rows   shared  ga size 'va **
+      I.gpu_pts_to_matrix shared columns gb size 'vb **
       gpu_pts_to_array_slice gr i (i + 1) seq!['s `Seq.index` i]
     ensures
-      K.kpre rows shared columns ga1 ga2 gr v1 v2 size i
+      K.kpre rows shared columns ga gb gr 'va 'vb size i
   {
     ()
   };
@@ -60,29 +58,44 @@ fn setup
   bigstar_eta();
 }
 
+#set-options "--print_implicits --print_universes"
+
+
+let test_t =
+  (a : array u64) ->
+  (vv : erased (seq u64)) ->
+  stt_ghost
+    (x : seq u64 {len x == len vv})
+    emp_inames
+    (a |-> vv)
+    (fun x -> a |-> vv)
+
 fn main
   (rows shared columns : szp)
-  (a1 a2: array u64)
-  (v1: erased (seq u64) { len v1 == rows * shared })
-  (v2: erased (seq u64) { len v2 == shared * columns })
+  (a b : array u64)
+  (#va #vb : erased (seq u64))
   preserves
     cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2
+    (a |-> va) **
+    (b |-> vb)
   requires
     pure (
-      rows * shared < pow2 64 /\
-      shared * columns < pow2 64 /\
+      len va == rows * shared /\
+      len vb == shared * columns /\
       rows * columns < pow2 64 /\
       rows * columns < max_blocks
     )
     // ^ Some of these could be ommited if we had some "core" pure inference from slprops.
     // Since we have a1 |-> v1, the length of v1 must fit, etc.
   returns
-    ar: array u64
+    ar: (_ : array u64
+        { len va == rows * shared /\ len vb == shared * columns })
+        (* ^ This refinement just a hack to check the post. *)
   ensures
-    A.pts_to ar (P.matmul rows shared columns v1 v2)
+    A.pts_to ar (P.matmul rows shared columns va vb)
 {
+  Pulse.Lib.Array.pts_to_len a;
+  Pulse.Lib.Array.pts_to_len b;
   open FStar.SizeT;
   let size = rows *^ columns;
   let ar = Pulse.Lib.Array.alloc 0UL size;
@@ -90,41 +103,41 @@ fn main
   let rs = rows *^ shared;
   let sc = shared *^ columns;
 
-  let ga1 = gpu_array_alloc #u64 rs;
-  let ga2 = gpu_array_alloc #u64 sc;
+  let ga = gpu_array_alloc #u64 rs;
+  let gb = gpu_array_alloc #u64 sc;
 
-  Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 rs;
-  Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 sc;
+  Kuiper.Array.gpu_memcpy_host_to_device ga a rs;
+  Kuiper.Array.gpu_memcpy_host_to_device gb b sc;
 
   let gr = gpu_array_alloc #u64 size;
 
-  (**)setup rows shared columns size ga1 ga2 gr v1 v2;
+  (**)setup rows shared columns size ga gb gr;
 
   launch_kernel_n #0
     size
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpre rows shared columns ga1 ga2 gr v1 v2 (SZ.v size) tid)
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpost rows shared columns ga1 ga2 gr v1 v2 (SZ.v size) tid)
-    (fun etid -> K.kernel rows shared columns ga1 ga2 gr (hide size) etid);
+    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpre  rows shared columns ga gb gr va vb (SZ.v size) tid)
+    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpost rows shared columns ga gb gr va vb (SZ.v size) tid)
+    (fun etid -> K.kernel rows shared columns ga gb gr (hide size) etid);
 
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;
 
-  (**)I.gpu_matrix_unshare_underspec rows shared ga1 size v1;
-  (**)I.gpu_matrix_unshare_underspec shared columns ga2 size v2;
-  (**)unfold I.gpu_pts_to_matrix rows shared ga1 1 v1;
-  (**)unfold I.gpu_pts_to_matrix shared columns ga2 1 v2;
+  (**)I.gpu_matrix_unshare_underspec rows shared ga size va;
+  (**)I.gpu_matrix_unshare_underspec shared columns gb size vb;
+  (**)unfold I.gpu_pts_to_matrix rows shared ga 1 va;
+  (**)unfold I.gpu_pts_to_matrix shared columns gb 1 vb;
 
   ghost
   fn aux1 (i:nat{0 <= i /\ i < size})
     requires
       gpu_pts_to_array_slice gr i (i + 1)
             seq![P.matmul_single rows shared columns
-                   v1 v2 (i / columns) (i % columns) shared]
+                   va vb (i / columns) (i % columns) shared]
     ensures
       gpu_pts_to_array_slice gr i (i + 1)
-            seq![P.matmul rows shared columns v1 v2 @! i]
+            seq![P.matmul rows shared columns va vb @! i]
   {
-    P.lemma_matmul_index rows shared columns v1 v2 i;
+    P.lemma_matmul_index rows shared columns va vb i;
     () (* cf. issue #181 in Pulse *)
   };
   bigstar_map #0 #0 #0 #size aux1;
@@ -133,8 +146,8 @@ fn main
 
   Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
 
-  gpu_array_free ga1;
-  gpu_array_free ga2;
+  gpu_array_free ga;
+  gpu_array_free gb;
   gpu_array_free gr;
 
   ar

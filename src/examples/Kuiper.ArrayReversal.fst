@@ -309,12 +309,12 @@ fn reverse
     (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
     (a:gpu_array ty size)
     (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
+preserves
+  cpu
 requires
-  cpu **
-  gpu_pts_to_array a s
+  a |-> s
 ensures
-  cpu **
-  gpu_pts_to_array a (reverse_spec s)
+  a |-> reverse_spec s
 {
   explode_cells a;
   partition_cells a;
