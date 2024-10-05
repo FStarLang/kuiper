@@ -9,7 +9,7 @@ module SZ = FStar.SizeT
 
 module I = Kuiper.MatMul.Impure
 
-#set-options "--z3rlimit 20"
+#set-options "--z3rlimit 40"
 #set-options "--fuel 1 --ifuel 1"
 
 // #push-options "--print_implicits --print_bound_var_types"
@@ -197,7 +197,7 @@ fn outer_loop
   // Do stuff
   assert (pure (trow < bdim));
   assert (pure (trow * bdim <= bdim * bdim));
-  assert (pure (bdim * bdim <= pow2 30 * pow2 30));
+  assert (pure (bdim * bdim < pow2 30 * pow2 30));
   assert (pure (SZ.fits (trow * bdim)));
   let ga1_iidx = trow *^ bdim;
   let ga2_iidx = tcol;
