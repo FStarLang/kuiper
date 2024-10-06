@@ -21,6 +21,15 @@ let lemma_pos_times_pos (a b: pos)
 let lemma_nat_times_nat (a b: nat)
   : Lemma (a * b >= 0) = ()
 
+let lemma_sq_mono (a b : nat)
+: Lemma (a <= b <==> a * a <= b * b)
+        [SMTPat (a * a); SMTPat (b * b)]
+= ()
+let lemma_sq_mono' (a b : nat)
+: Lemma (a < b <==> a * a < b * b)
+        [SMTPat (a * a); SMTPat (b * b)]
+= ()
+
 inline_for_extraction noextract
 fn calc_idxs
   (rows shared columns : szp)
@@ -198,6 +207,7 @@ fn outer_loop
   assert (pure (trow < bdim));
   Math.Lemmas.lemma_mult_lt_right bdim trow bdim; // sigh
   assert (pure (trow * bdim <= bdim * bdim));
+  assert (pure (bdim < pow2 30));
   assert (pure (bdim * bdim < pow2 30 * pow2 30));
   assert (pure (SZ.fits (trow * bdim)));
   let ga1_iidx = trow *^ bdim;
@@ -272,8 +282,9 @@ fn kernel
     ((rows / bdim) * (columns / bdim)) * (bdim * bdim);
     == { magic() } // ac...
     ((rows / bdim) * bdim) * ((columns / bdim) * bdim);
-    == { lemma_divides_exact bdim rows;
-         lemma_divides_exact bdim columns }
+    == { lemma_divides_exact bdim rows }
+    rows * ((columns / bdim) * bdim);
+    == { lemma_divides_exact bdim columns }
     rows * columns;
   };
   assert (pure (thread_index etid < SZ.v nblk * SZ.v nthr ));
