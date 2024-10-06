@@ -13,8 +13,8 @@ test:
 
 .PHONY: reboot
 reboot:
-	FSTAR_HOME=$(pwd)/FStar && cd FStar/ && $(MAKE) clean && $(MAKE) 1 && $(MAKE) bootstrap ADMIT=1
-	FSTAR_HOME=$(pwd)/FStar && cd pulse/ && $(MAKE) clean && $(MAKE) boot-checker OTHERFLAGS='--admit_smt_queries true'
+	FSTAR_HOME=$(CURDIR)/FStar && cd FStar/ && $(MAKE) 1 && $(MAKE) bootstrap ADMIT=1
+	FSTAR_HOME=$(CURDIR)/FStar && cd pulse/ && $(MAKE) boot-checker OTHERFLAGS='--admit_smt_queries true'
 
 
 .PHONY: echo-fstar
