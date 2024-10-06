@@ -233,7 +233,8 @@ let lemma_nonneg_mul (x y : int)
           (ensures x * y >= 0)
 = ()
 
-#set-options "--z3rlimit 60"
+#set-options "--z3rlimit 5"
+#restart-solver (* proof below very brittle *)
 
 [@@CPrologue "__global__"]
 fn kernel
@@ -261,6 +262,9 @@ fn kernel
     ** kpost rows shared columns ga1 ga2 r #s1 #s2 (SZ.v nblk * SZ.v nthr)
          (tid_to_idx rows shared columns bdim (thread_index etid))
 {
+  assert (pure (thread_index etid < gdim_x etid * bdim_x etid));
+  assert (pure (gdim_x etid = SZ.v nblk));
+  assert (pure (bdim_x etid = SZ.v nthr));
   assert (pure (thread_index etid < SZ.v nblk * SZ.v nthr ));
   assert (pure (SZ.v nblk * SZ.v nthr == rows * columns));
   assert (pure (thread_index etid < rows * columns));

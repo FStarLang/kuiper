@@ -78,10 +78,7 @@ fn kernel
   (#s1 : erased (seq u64) {len s1 == rows * shared})
   (#s2 : erased (seq u64) {len s2 == shared * columns})
   (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
-  (nthr : erased sz { SZ.v nthr == bdim * bdim
-                     /\ SZ.v nblk * SZ.v nthr == rows * columns
-                     /\ 2 * (shared / bdim) >= 0
-                     })
+  (nthr : erased sz { SZ.v nthr == bdim * bdim })
   (* ^ 2nd and 3rd conjunct above just to help verifying this spec, sigh. *)
   (smem_sz : erased nat { smem_sz == 2 * SZ.v nthr })
   (ear : erased (gpu_array u64 smem_sz))
