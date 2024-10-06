@@ -196,6 +196,7 @@ fn outer_loop
 
   // Do stuff
   assert (pure (trow < bdim));
+  Math.Lemmas.lemma_mult_lt_right bdim trow bdim; // sigh
   assert (pure (trow * bdim <= bdim * bdim));
   assert (pure (bdim * bdim < pow2 30 * pow2 30));
   assert (pure (SZ.fits (trow * bdim)));
@@ -265,6 +266,16 @@ fn kernel
   assert (pure (thread_index etid < gdim_x etid * bdim_x etid));
   assert (pure (gdim_x etid = SZ.v nblk));
   assert (pure (bdim_x etid = SZ.v nthr));
+  let _ = calc (==) {
+    SZ.v nblk * SZ.v nthr;
+    == {}
+    ((rows / bdim) * (columns / bdim)) * (bdim * bdim);
+    == { magic() } // ac...
+    ((rows / bdim) * bdim) * ((columns / bdim) * bdim);
+    == { lemma_divides_exact bdim rows;
+         lemma_divides_exact bdim columns }
+    rows * columns;
+  };
   assert (pure (thread_index etid < SZ.v nblk * SZ.v nthr ));
   assert (pure (SZ.v nblk * SZ.v nthr == rows * columns));
   assert (pure (thread_index etid < rows * columns));
