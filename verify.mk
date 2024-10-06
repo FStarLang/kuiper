@@ -81,13 +81,11 @@ FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
-FSTAR_NOPLUG = $(FSTAR_EXE)				\
+FSTAR = $(FSTAR_EXE)				\
 	$(SIL)						\
 	--include pulse					\
 	--include src					\
 	$(FSTAR_FLAGS)
-
-FSTAR = $(FSTAR_NOPLUG) --load_cmxs pulse
 
 GPUH := $(realpath include/kuiper.h)
 
@@ -158,7 +156,13 @@ SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
 $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
+	@# NOTE: loading pulse.cmxs not really required since we will parse
+	@# these files again, triggering the autoload. But we should not do that,
+	@# and instead just start from the .checked file, and in that case we need
+	@# to specify the plugin manually here, or leave a breadcrumb stating it should
+	@# loaded for extraction too.
 	$(Q)$(FSTAR) --codegen krml 						\
+		--load_cmxs pulse						\
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
