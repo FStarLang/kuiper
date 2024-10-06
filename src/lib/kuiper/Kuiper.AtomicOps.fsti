@@ -4,6 +4,7 @@ module Kuiper.AtomicOps
 
 open FStar.Ghost
 open Pulse.Lib.Core
+open Pulse.Class.PtsTo
 open Kuiper.Base
 open Kuiper.Ref
 open Kuiper.PtsTo
