@@ -23,12 +23,12 @@ fn kernel (#size : erased nat)
   (s1 s2 : (s: erased (seq u64) { len s == size }))
   (etid : erased tid_t { gdim_x etid * bdim_x etid == size })
   requires gpu ** thread_id etid ** 
-    gpu_pts_to_array a1 #(1.0R /. Real.of_int size) s1 **
-    gpu_pts_to_array a2 #(1.0R /. Real.of_int size) s2 **
+    pts_to a1 #(1.0R /. Real.of_int size) s1 **
+    pts_to a2 #(1.0R /. Real.of_int size) s2 **
     gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) 's
   ensures  gpu ** thread_id etid ** 
-    gpu_pts_to_array a1 #(1.0R /. Real.of_int size) s1 **
-    gpu_pts_to_array a2 #(1.0R /. Real.of_int size) s2 **
+    pts_to a1 #(1.0R /. Real.of_int size) s1 **
+    pts_to a2 #(1.0R /. Real.of_int size) s2 **
     gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
 {
   let id = thread_idx_all ();

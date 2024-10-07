@@ -31,10 +31,10 @@ fn main
   (a1 a2 a3 a4 : array f32)
   preserves
     cpu **
-    A.pts_to a1 'v1 **
-    A.pts_to a2 'v2 **
-    A.pts_to a3 'v3 **
-    A.pts_to a4 'v4
+    (a1 |-> 'v1) **
+    (a2 |-> 'v2) **
+    (a3 |-> 'v3) **
+    (a4 |-> 'v4)
   requires
     pure (bdim /? nn /\ bdim <= 32 /\ SZ.fits (nn * nn) /\
           len 'v1 == nn * nn /\ len 'v2 == nn * nn /\
@@ -43,7 +43,7 @@ fn main
     ar : array f32
   ensures 
     exists* vr.
-      A.pts_to ar vr // no functional spec
+      ar |-> vr // no functional spec
 {
   open FStar.SizeT;
   dassert (nn %^ bdim = 0sz);

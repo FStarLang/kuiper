@@ -38,9 +38,9 @@ fn g_mul_async
   requires
     cpu **
     epoch_live e **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
+    (ga1 |-> v1) **
+    (ga2 |-> v2) **
+    (gr  |-> v3) **
     pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
   ensures
     exists* e'.
@@ -48,9 +48,9 @@ fn g_mul_async
       epoch_live e' **
       pure (e' >= e) **
       pledge0 (epoch_done e') (
-        gpu_pts_to_array ga1 v1 **
-        gpu_pts_to_array ga2 v2 **
-        (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+        (ga1 |-> v1) **
+        (ga2 |-> v2) **
+        (exists* vr. gr |-> vr) // no functional spec
       )
 {
   open FStar.SizeT;
@@ -121,9 +121,9 @@ fn g_mul_async
       bigstar 0 (nblk * nthr) (fun i ->
         Kernel.kpost rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))
     ensures
-      gpu_pts_to_array ga1 v1 **
-      gpu_pts_to_array ga2 v2 **
-      (exists* vr. gpu_pts_to_array gr vr)
+      (ga1 |-> v1) **
+      (ga2 |-> v2) **
+      (exists* vr. gr |-> vr)
   {
     Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
   };
@@ -143,15 +143,15 @@ fn g_mul
   (#v3 : erased (seq f32) { len v3 == rows * columns })
   requires
     cpu **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
+    (ga1 |-> v1) **
+    (ga2 |-> v2) **
+    (gr  |-> v3) **
     pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
   ensures
     cpu **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2 **
-    (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+    (ga1 |-> v1) **
+    (ga2 |-> v2) **
+    (exists* vr. gr |-> vr) // no functional spec
 {
   let e = get_epoch ();
   g_mul_async rows shared columns bdim ga1 ga2 gr #v1 #v2 #v3 #e;
@@ -170,17 +170,20 @@ fn main
   (a1 a2: array f32)
   (v1: erased (seq f32) { len v1 == rows * shared })
   (v2: erased (seq f32) { len v2 == shared * columns })
-  requires
+  preserves
     cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
+    (a1 |-> v1) **
+    (a2 |-> v2)
+  requires
     pure (SZ.fits (rows * columns) /\
           SZ.fits (rows * shared) /\
           SZ.fits (shared * columns) /\
           len v1 == rows * shared /\
           len v2 == shared * columns)
   returns  ar: array f32
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** (exists* vr. A.pts_to ar vr)
+  ensures
+    exists* vr.
+      ar |-> vr
 {
   open FStar.SizeT;
   dassert (rows %^ bdim = 0sz);
@@ -200,7 +203,7 @@ fn main
   let gr = gpu_array_alloc #f32 size;
 
   (**)
-  with v3. assert (gpu_pts_to_array gr v3);
+  with v3. assert (gr |-> v3);
   unfold (gpu_pts_to_array gr v3);
   gpu_pts_to_slice_ref gr 0 _;
   fold (gpu_pts_to_array gr v3);

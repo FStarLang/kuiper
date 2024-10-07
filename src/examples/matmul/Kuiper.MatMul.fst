@@ -92,7 +92,7 @@ fn main
         { len va == rows * shared /\ len vb == shared * columns })
         (* ^ This refinement just a hack to check the post. *)
   ensures
-    A.pts_to ar (P.matmul rows shared columns va vb)
+    ar |-> P.matmul rows shared columns va vb
 {
   Pulse.Lib.Array.pts_to_len a;
   Pulse.Lib.Array.pts_to_len b;

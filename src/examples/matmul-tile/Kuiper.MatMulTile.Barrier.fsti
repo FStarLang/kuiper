@@ -79,7 +79,7 @@ fn block_setup_ghost
   (smem_sz : sz { SZ.v smem_sz == 2 * nthr })
   (ar: gpu_array u64 smem_sz)
   (bid: sz)
-  requires block_setup nthr ** (exists* v. gpu_pts_to_array #u64 #smem_sz ar #1.0R v)
+  requires block_setup nthr ** (exists* v. ar |-> v)
   ensures block_setup nthr ** bigstar 0 nthr (shared_pre nthr 0 ar bid)
 {
   admit();

@@ -24,9 +24,10 @@ fn k_reduce
   (size : sz)
   (a : gpu_array tt size)
   (#v : erased (seq tt))
-  requires gpu ** GA.gpu_pts_to_array a v ** pure (size > 0)
+  preserves gpu ** (a |-> v)
+  requires pure (size > 0)
   returns  r : tt
-  ensures  gpu ** GA.gpu_pts_to_array a v
+  ensures  emp
 {
   let mut i = 0sz;
   let mut r : tt = zero #tt #d;
@@ -37,8 +38,8 @@ fn k_reduce
       exists* vi vr.
         gpu ** // infer automatically
         GA.gpu_pts_to_array_slice a 0 (SZ.v size) v ** // infer automatically
-        Pulse.Lib.Reference.pts_to i vi **
-        Pulse.Lib.Reference.pts_to r vr **
+        (i |-> vi) **
+        (r |-> vr) **
         pure (b == (vi <^ size))
   {
     let vi = !i;
@@ -62,8 +63,9 @@ fn k_reduce_and_set
   (a : gpu_array tt size)
   (#v : erased (seq tt))
   ()
-  requires gpu ** (GA.gpu_pts_to_array a v ** pure (size > 0))
-  ensures  gpu ** (exists* v'. GA.gpu_pts_to_array a v' ** pure (Seq.length v' == size))
+  preserves gpu
+  requires ((a |-> v) ** pure (size > 0))
+  ensures  (exists* v'. (a |-> v') ** pure (Seq.length v' == size))
 {
   let r = k_reduce size a;
   unfold (gpu_pts_to_array a v);
@@ -80,9 +82,10 @@ fn copy_to_gpu
   (sz : sz)
   (a : A.array t)
   (#v : erased (seq t){len v == reveal sz})
-  requires cpu ** A.pts_to a v
+  preserves cpu ** (a |-> v)
+  requires emp
   returns  ga : GA.gpu_array t sz
-  ensures  cpu ** A.pts_to a v ** GA.gpu_pts_to_array ga v
+  ensures  ga |-> v
 {
   let ga = gpu_array_alloc #t #d sz;
   gpu_memcpy_host_to_device ga a sz;
@@ -97,19 +100,22 @@ fn reduce
   (a : array t)
   (size : sz)
   (#v : erased (seq t))
-  requires cpu
-        ** A.pts_to a v
-        ** pure (size > 0 /\
-                 len v == size)
+  preserves cpu
+  requires
+    (a |-> v) **
+    pure (size > 0 /\
+          len v == size)
   returns  r : t
-  ensures  cpu ** (exists* v'. A.pts_to a v')
+  ensures 
+    exists* v'.
+      a |-> v'
 {
   let ga = copy_to_gpu size a;
   launch_kernel_1
     (k_reduce_and_set #t #d size ga #v);
   gpu_memcpy_device_to_host a ga size;
   gpu_array_free ga;
-  with v'. assert (A.pts_to a v');
+  with v'. assert (a |-> v');
   assert (pure (len v' > 0));
   let r = Pulse.Lib.Array.op_Array_Access #t a 0sz #1.0R #v';
   r
@@ -122,11 +128,11 @@ fn reduce_F32
   (size : sz)
   (#v : erased (seq f32))
   requires cpu
-        ** A.pts_to a v
+        ** (a |-> v)
         ** pure (size > 0 /\
                  len v == size)
   returns  r : f32
-  ensures  cpu ** (exists* v'. A.pts_to a v')
+  ensures  cpu ** (exists* v'. a |-> v')
 {
   reduce #f32 a size
 }

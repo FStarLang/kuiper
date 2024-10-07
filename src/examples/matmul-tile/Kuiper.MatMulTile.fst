@@ -33,13 +33,14 @@ fn main
   (a1 a2: array u64)
   (v1: erased (seq u64) { len v1 == rows * shared })
   (v2: erased (seq u64) { len v2 == shared * columns })
-  requires
+  preserves
     cpu **
-    A.pts_to a1 v1 **
-    A.pts_to a2 v2 **
+    (a1 |-> v1) **
+    (a2 |-> v2)
+  requires
     pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
   returns  ar: array u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** (exists* vr. A.pts_to ar vr)
+  ensures  (exists* vr. ar |-> vr)
 {
   open FStar.SizeT;
   dassert (rows %^ bdim = 0sz);
@@ -59,7 +60,7 @@ fn main
   let gr = gpu_array_alloc #u64 size;
 
   (**)
-  with v3. assert (gpu_pts_to_array gr v3);
+  with v3. assert (gr |-> v3);
   unfold (gpu_pts_to_array gr v3);
   gpu_pts_to_slice_ref gr 0 _;
   fold (gpu_pts_to_array gr v3);

@@ -31,10 +31,11 @@ fn recall_array_len
   (#alen : nat)
   (a : gpu_array t alen)
   (#v : Seq.seq t)
+  preserves
+    a |-> v
   requires
-    gpu_pts_to_array a v
+    emp
   ensures
-    gpu_pts_to_array a v **
     pure (len v == alen /\ SZ.fits alen)
 {
   unfold (gpu_pts_to_array a v);
@@ -58,18 +59,18 @@ fn g_mul_async
     cpu
   requires
     epoch_live e **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
+    (ga1 |-> v1) **
+    (ga2 |-> v2) **
+    (gr  |-> v3) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
     exists* e'.
       epoch_live e' **
       pure (e' >= e) **
       pledge0 (epoch_done e') (
-        gpu_pts_to_array ga1 v1 **
-        gpu_pts_to_array ga2 v2 **
-        (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+        (ga1 |-> v1) **
+        (ga2 |-> v2) **
+        (exists* vr. gr |-> vr) // no functional spec
       )
 {
   open FStar.SizeT;
@@ -90,6 +91,7 @@ fn g_mul_async
   assert (pure (SZ.fits (rows_tile * columns_tile)));
   let nblk = rows_tile *^ columns_tile;
 
+  assert (pure (bdim * bdim <= pow2 60));
   assert (pure (pow2 60 < pow2 64)); // trivial
   assert (pure (SZ.fits (bdim * bdim)));
   let nthr = bdim *^ bdim;
@@ -143,9 +145,9 @@ fn g_mul_async
       bigstar 0 (nblk * nthr) (fun i ->
         Kernel.kpost rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) (Kernel.tid_to_idx rows shared columns bdim i))
     ensures
-      gpu_pts_to_array ga1 v1 **
-      gpu_pts_to_array ga2 v2 **
-      (exists* vr. gpu_pts_to_array gr vr)
+      (ga1 |-> v1) **
+      (ga2 |-> v2) **
+      (exists* vr. gr |-> vr)
   {
     Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
   };
@@ -166,13 +168,13 @@ fn g_mul
   (#v3 : erased (seq f32))
   preserves
     cpu **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2
+    (ga1 |-> v1) **
+    (ga2 |-> v2)
   requires
-    gpu_pts_to_array gr  v3 **
+    (gr |-> v3) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
-    (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+    (exists* vr. gr |-> vr) // no functional spec
 {
   recall_array_len ga1;
   recall_array_len ga2;

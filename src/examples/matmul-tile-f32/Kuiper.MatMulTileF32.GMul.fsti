@@ -24,18 +24,18 @@ fn g_mul_async
     cpu
   requires
     epoch_live e **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2 **
-    gpu_pts_to_array gr  v3 **
+    (ga1 |-> v1) **
+    (ga2 |-> v2) **
+    (gr  |-> v3) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
     exists* e'.
       epoch_live e' **
       pure (e' >= e) **
       pledge0 (epoch_done e') (
-        gpu_pts_to_array ga1 v1 **
-        gpu_pts_to_array ga2 v2 **
-        (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+        (ga1 |-> v1) **
+        (ga2 |-> v2) **
+        (exists* vr. gr |-> vr) // no functional spec
       )
 
 inline_for_extraction
@@ -50,10 +50,10 @@ fn g_mul
   (#v3 : erased (seq f32))
   preserves
     cpu **
-    gpu_pts_to_array ga1 v1 **
-    gpu_pts_to_array ga2 v2
+    (ga1 |-> v1) **
+    (ga2 |-> v2)
   requires
-    gpu_pts_to_array gr  v3 **
+    (gr |-> v3) **
     pure (bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32)
   ensures
-    (exists* vr. gpu_pts_to_array gr vr) // no functional spec
+    (exists* vr. gr |-> vr) // no functional spec

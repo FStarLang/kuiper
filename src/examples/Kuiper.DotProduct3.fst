@@ -209,9 +209,10 @@ fn main
   (a1 a2: array u64)
   (v1 v2: erased (seq u64))
   (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
-  requires cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2
+  preserves cpu ** (a1 |-> v1) ** (a2 |-> v2)
+  requires emp
   returns  dp: u64
-  ensures  cpu ** A.pts_to a1 v1 ** A.pts_to a2 v2 ** pure (dp == sum (pmul v1 v2))
+  ensures  pure (dp == sum (pmul v1 v2))
 {
   let ar = A.alloc #u64 0UL dp2_size;
 

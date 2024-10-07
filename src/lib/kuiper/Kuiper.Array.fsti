@@ -120,12 +120,12 @@ fn gpu_memcpy_host_to_device
   (#gv : erased (seq a))
   requires
     cpu **
-    A.pts_to src_arr #f v **
+    pts_to src_arr #f v **
     gpu_pts_to_array dst_garr #1.0R gv **
     pure (SZ.v cnt == sz /\ (Pulse.Lib.Array.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
     cpu **
-    A.pts_to src_arr #f v **
+    pts_to src_arr #f v **
     gpu_pts_to_array dst_garr #1.0R v **
     pure (Seq.length v == reveal sz)
 
@@ -141,12 +141,12 @@ fn gpu_memcpy_device_to_host
   (#gv : erased (seq a))
   requires
     cpu **
-    A.pts_to dst_arr #f v **
+    pts_to dst_arr #f v **
     gpu_pts_to_array src_garr #1.0R gv **
     pure (SZ.v cnt == sz /\ (Pulse.Lib.Array.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
     cpu **
-    A.pts_to dst_arr #f gv **
+    pts_to dst_arr #f gv **
     gpu_pts_to_array src_garr #1.0R gv **
     pure (Seq.length gv == reveal sz)
 
