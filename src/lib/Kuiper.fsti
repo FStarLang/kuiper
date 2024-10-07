@@ -28,3 +28,15 @@ include Kuiper.PtsTo
 
 [@@coercion; pulse_unfold]
 unfold let kpr_box_to_ref  (#a:Type0) (b:Pulse.Lib.Box.box a) : Pulse.Lib.Reference.ref a = Pulse.Lib.Box.box_to_ref b
+
+[@@coercion; pulse_unfold]
+unfold let i2r (i:int) : real = Real.of_int i
+
+[@@coercion; pulse_unfold]
+unfold let ei2r (i:erased int) : real = Real.of_int i
+
+[@@coercion; pulse_unfold]
+unfold let en2r (i:erased nat) : real = Real.of_int i
+
+[@@coercion; pulse_unfold]
+unfold let sz2r (i:sz) : real = Real.of_int i
