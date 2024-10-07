@@ -9,7 +9,7 @@ module SZ = FStar.SizeT
 
 module I = Kuiper.MatMul.Impure
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 60"
 #set-options "--fuel 1 --ifuel 1"
 
 // #push-options "--print_implicits --print_bound_var_types"
@@ -32,13 +32,16 @@ let lemma_sq_mono' (a b : nat)
 
 inline_for_extraction noextract
 fn calc_idxs
-  (rows shared columns : szp)
-  (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim < pow2 30})
-  (nblk : erased sz { SZ.v nblk == (rows / bdim) * (columns / bdim) })
-  (nthr : erased sz { SZ.v nthr == bdim * bdim /\ SZ.v nblk * SZ.v nthr == rows * columns })
-  (etid : tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == SZ.v nthr })
+  (rows shared columns bdim : szp)
+  (nblk nthr : erased sz)
+  (etid : tid_t)
+  (#_ : squash (bdim /? rows /\ bdim /? columns /\
+                SZ.v nblk == (rows / bdim) * (columns / bdim) /\
+                SZ.v nthr == bdim * bdim /\ SZ.v nblk * SZ.v nthr == rows * columns /\
+                gdim_x etid == SZ.v nblk /\ bdim_x etid == SZ.v nthr))
   requires
-    thread_id etid
+    thread_id etid **
+    pure (bdim < pow2 30)
   returns
     idxs: (SZ.t & SZ.t & SZ.t)
   ensures
@@ -136,14 +139,12 @@ fn inner_loop
   (it: erased nat{it % 2 <> 0})
   (tid: erased nat{tid < nthr})
   (sum : ref u64)
+  preserves gpu **
+    bigstar 0 nthr (Barrier.barrier_mm nthr ar it tid)
   requires
-    gpu **
-    (exists* sumv. pts_to sum sumv) **
-    bigstar 0 nthr (Barrier.barrier_mm nthr ar it tid)
+    (exists* sumv. sum |-> sumv)
   ensures
-    gpu **
-    (exists* sumv. pts_to sum sumv) **
-    bigstar 0 nthr (Barrier.barrier_mm nthr ar it tid)
+    (exists* sumv. sum |-> sumv)
 {
   assume (pure (forall n. SZ.fits n)); // cheating overflow, this is all in bounds, but the proofs are way too brittle
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v vv) (SZ.v bdim - 1);
@@ -182,14 +183,16 @@ fn outer_loop
   (tcol: sz{SZ.v tcol < SZ.v bdim})
   (trow: sz{SZ.v trow < SZ.v bdim})
   (sum: ref u64)
-  requires gpu
-       ** (exists* sumv. pts_to sum sumv)
-       ** (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s)
-       ** mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv) tid
-  ensures gpu
-       ** (exists* sumv. pts_to sum sumv)
-       ** (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s)
-       ** mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv + 2) tid
+  preserves 
+    gpu
+  requires
+    (exists* sumv. sum |-> sumv) **
+    (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s) **
+    mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv) tid
+  ensures
+    (exists* sumv. sum |-> sumv) **
+    (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s) **
+    mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv + 2) tid
 {
   lemma_div_pos 1.0R nthr; // 1.0R /. nthr >. 0.0R
 
@@ -238,7 +241,7 @@ fn outer_loop
   gpu_slice_gather_underspec #0 #u64 #smem_sz ar #1.0R (2 * tid) (2 * tid + 2) nthr;
 }
 
-#set-options "--z3rlimit 15 --retry 3"
+#set-options "--z3rlimit 20 --retry 3"
 #restart-solver (* proof below very brittle *)
 
 let lemma_nonneg_mul (x y : int)
@@ -247,6 +250,7 @@ let lemma_nonneg_mul (x y : int)
 = ()
 
 #restart-solver (* proof below very brittle *)
+#set-options "--split_queries always" // BAD
 
 [@@CPrologue "__global__"]
 fn kernel
@@ -293,7 +297,7 @@ fn kernel
   assert (pure (thread_index etid < rows * columns));
   assert (pure (rows * columns >= 0));
 
-  let idxs = calc_idxs rows shared columns bdim nblk nthr etid;
+  let idxs = calc_idxs rows shared columns bdim nblk nthr etid #();
   let idx = idxs._1;
   let row = idxs._2;
   let col = idxs._3;

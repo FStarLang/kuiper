@@ -5,7 +5,7 @@ module Kuiper.MatMul.Kernel
 open Kuiper
 module SZ = FStar.SizeT
 
-#set-options "--z3rlimit 60"
+#set-options "--z3rlimit 20 --retry 5"
 
 // NOTE : rows is actually unused in the extracted code. But, erasing
 // it involves some changes all around.
