@@ -53,35 +53,38 @@ val lemma_div_exact: a:int -> p:pos -> Lemma
   (a % p = 0 <==> a = p * (a / p))
 let lemma_div_exact a p = ()
 
-#push-options "--z3rlimit 20"
-let div_pow2_lemma_2 (it tid: nat):
-  Lemma (
-    ~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it)
-    <==>
-    div_pow2 (it + 1) tid
-  ) =
-    calc (<==>) {
-      (~(div_pow2 (it + 1) (tid + pow2 it))) /\ div_pow2 it (tid + pow2 it);
-      <==> {}
-      (tid + pow2 it)                       % (2 * pow2 it) <> 0 /\ (tid + pow2 it) % pow2 it = 0;
-      <==> { FStar.Math.Lemmas.lemma_div_mod_plus tid 1 (pow2 it) }
-      (tid + pow2 it)                       % (2 * pow2 it) <> 0 /\ tid % pow2 it = 0;
-      <==> { lemma_div_exact tid (pow2 it) }
-      (pow2 it * (tid / pow2 it) + pow2 it) % (2 * pow2 it) <> 0 /\ tid % pow2 it = 0;
-      <==> { FStar.Math.Lemmas.distributivity_add_right (pow2 it) (tid / pow2 it) 1 }
-      (pow2 it * (tid / pow2 it + 1))       % (2 * pow2 it) <> 0 /\ tid % pow2 it = 0;
-      <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it + 1) (pow2 it) 2 }
-      pow2 it * ((tid / pow2 it + 1) % 2)                   <> 0 /\ tid % pow2 it = 0;
-      <==> {}
-      pow2 it * ((tid / pow2 it) % 2)                        = 0 /\ tid % pow2 it = 0;
-      <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it) (pow2 it) 2 }
-      (pow2 it * (tid / pow2 it)) % (2 * pow2 it)            = 0 /\ tid % pow2 it = 0;
-      <==> { lemma_div_exact tid (pow2 it) }
-      tid % (2 * pow2 it)                                    = 0 /\ tid % pow2 it = 0;
-      <==> { div_pow2_lemma it (it + 1) tid }
-      div_pow2 (it + 1) tid;
-    }
-#pop-options
+let div_pow2_lemma_3 (n tid: nat)
+: Lemma (div_pow2 n tid <==> div_pow2 n (tid + pow2 n))
+= M.modulo_addition_lemma tid (pow2 n) 1;
+  assert (tid % pow2 n == (tid + pow2 n) % pow2 n);
+  ()
+
+let div_pow2_lemma_4 (n tid: nat)
+: Lemma (requires div_pow2 n tid)
+        (ensures  div_pow2 (n + 1) tid <==> ~(div_pow2 (n + 1) (tid + pow2 n)))
+=
+  assert (tid % pow2 n == 0);
+  let k = get_factor (pow2 n) tid in
+  assert (tid == k * pow2 n);
+  assert (tid % pow2 (n+1) == (k * pow2 n) % (pow2 n * 2));
+  M.modulo_scale_lemma k (pow2 n) 2;
+  M.modulo_scale_lemma (k+1) (pow2 n) 2;
+  assert (tid % pow2 (n+1) == 0 \/ tid % pow2 (n+1) == pow2 n);
+  assert (tid % pow2 (n+1) == 0 ==> (tid + pow2 n) % pow2 (n+1) == pow2 n);
+  assert (tid % pow2 (n+1) == pow2 n ==> (tid + pow2 n) % pow2 (n+1) == 0);
+  ()
+
+let div_pow2_lemma_2 (it tid : nat)
+  : Lemma (
+      ~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it)
+      <==>
+      div_pow2 (it + 1) tid
+    )
+  =
+  div_pow2_lemma_3 it tid;
+  FStar.Classical.move_requires (div_pow2_lemma_4 it) tid;
+  div_pow2_lemma it (it + 1) tid;
+  ()
 
 let shift_left_1_n (n:pos) (s:nat{s < n}) :
   Lemma (UInt.shift_left #n 1 s == pow2 s) =

@@ -41,10 +41,14 @@ val lemma_log2_le2 (n:pos) (m:nat)
 let min (a b: int) : GTot int =
   if a < b then a else b
 
-(* x is a multiple of 2^i. This is in GTot bool instead of prop to
+(* x is a multiple of 2^i. Or: x has i zeroes at the end of its
+binary repr.
+
+This is in GTot bool instead of prop to
 use if_ and friends, but it coincides exactly with `pow2 i /? x`. We
-state in the refinement to automatically use all SMTPats about /?. *)
-let div_pow2 (i x : nat) : GTot (b:bool{b <==> pow2 i /? x}) =
+state in the refinement to automatically use all SMTPats about /?.
+*)
+let div_pow2 (i:nat) (x:nat) : GTot (b:bool{b <==> pow2 i /? x}) =
   (x % pow2 i) = 0
 
 val div_pow2_lemma (i j tid: nat):
@@ -52,12 +56,21 @@ val div_pow2_lemma (i j tid: nat):
     (requires i < j)
     (ensures  div_pow2 j tid ==> div_pow2 i tid)
 
-val div_pow2_lemma_2 (it tid: nat):
-  Lemma (
-    (~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it))
-    <==>
-    div_pow2 (it + 1) tid
-  )
+(* Adding 2^n does not affect having n zeroes. *)
+val div_pow2_lemma_3 (n tid: nat)
+  : Lemma (div_pow2 n tid <==> div_pow2 n (tid + pow2 n))
+
+(* If tid has n zeroes, then either tid or tid+2^n has n+1 zeroes, and not both. *)
+val div_pow2_lemma_4 (n tid: nat)
+  : Lemma (requires div_pow2 n tid)
+          (ensures  div_pow2 (n + 1) tid <==> ~(div_pow2 (n + 1) (tid + pow2 n)))
+
+val div_pow2_lemma_2 (it tid: nat)
+  : Lemma (
+      ~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it)
+      <==>
+      div_pow2 (it + 1) tid
+    )
 
 (* This proves that 1<<n == pow2 n for every machine int *)
 val shift_left_1_n (n:pos) (s:nat{s < n})
