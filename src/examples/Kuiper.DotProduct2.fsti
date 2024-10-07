@@ -28,9 +28,7 @@ fn main
   (v1 v2: erased (seq u64))
   (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
   preserves
-    cpu **
-    (a1 |-> v1) **
-    (a2 |-> v2)
+    cpu ** (a1 |-> v1) ** (a2 |-> v2)
   requires emp
-  returns  dp: u64
-  ensures  pure (dp == sum (pmul v1 v2))
+  returns  r : u64
+  ensures  pure (r == sum (pmul v1 v2))
