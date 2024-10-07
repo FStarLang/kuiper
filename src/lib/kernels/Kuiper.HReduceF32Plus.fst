@@ -189,13 +189,12 @@ fn iteration
 
       (**)unfold (gpu_pts_to_slice_sum r tid nextid vv);
       (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid nextid vv s);
-      (**)unfold gpu_pts_to_slice_sum_inner;
       let s1 = gpu_array_read #_ #_ #tid #nextid r tid;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv tid nextid) s1)));
 
       (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
       (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
-      (**)unfold gpu_pts_to_slice_sum_inner;
+      // (**)unfold gpu_pts_to_slice_sum_inner;
       let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv nextid end_) s2)));
 
@@ -207,7 +206,7 @@ fn iteration
 
       (**)gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
       (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
-      (**)fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
+      // (**)fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
       (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
       (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
       (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
@@ -237,22 +236,20 @@ fn iteration
 
 [@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
-fn reduce
+fn reducea
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : erased tid_t { gdim_x etid == 1ul /\ bdim_x etid == nth })
+  preserves gpu ** thread_id etid
   requires
-    gpu **
-    thread_id etid **
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
     kpre nth a s (thread_index etid)
   ensures 
-    gpu **
-    thread_id etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost nth a s (thread_index etid)
+    exists* it.
+      mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid) **
+      kpost nth a s (thread_index etid)
 {
   let tid = thread_idx_x ();
   let tid : sz = SZ.uint32_to_sizet tid;
@@ -261,12 +258,12 @@ fn reduce
   let mut n = 0sz;
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
-  (**) gpu_pts_to_slice_ref a tid (tid+1);
+  (**)gpu_pts_to_slice_ref a _ _;
   (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
   assert (pure (squash (is_reduction neu op seq![reveal v0] v0)));
   assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![reveal v0])); // sucks
-  (**)fold (gpu_pts_to_slice_sum_inner #nth a tid (tid+1) s ss);
   (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner #nth a tid (tid + pow2 0) s ss);
+  admit();
   (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
 
@@ -284,14 +281,6 @@ fn reduce
     iteration nth a s tid it;
     n := it +^ 1sz;
   };
-  
-  (**)let it = !n;
-  (**)FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
-
-  if (tid = 0sz) {
-    (**)if_elim_true (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s);
-    (**)if_intro_true (gpu_pts_to_slice_sum a 0 nth s);
-  }
 }
 
 [@@ CPrologue "__global__"]

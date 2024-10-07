@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include "Kuiper_HReduceU32Plus.h"
 
 /* It would be nicer to write a purely-Pulse test. */
@@ -24,7 +25,7 @@ int main()
 	MUST(cudaMemcpy(a, ga, siz * sizeof(uint32_t), cudaMemcpyDeviceToHost));
 	MUST(cudaFree(ga));
 
-	printf("%lu\n", a[0]);
+	printf("%" PRIu32 "\n", a[0]);
 	free(a);
 
 	return 0;

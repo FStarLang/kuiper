@@ -21,6 +21,7 @@ inline_for_extraction noextract let neu : ety = F32.zero
 
 (* Ownership of array r between i and j. The first value of that slice
 is the reduction of all the values in the (original) slice v. *)
+[@@pulse_unfold]
 let gpu_pts_to_slice_sum_inner
   (#sz:nat)
   (r : gpu_array ety sz)
@@ -34,6 +35,7 @@ let gpu_pts_to_slice_sum_inner
            len s = j - i /\
            squash (is_reduction neu op (Seq.slice v i j) (Seq.index s 0))) // SQUASH VERY IMPORTANT!!
 
+(* Not easy to mark this unfold as it has a lambda (in the exists) *)
 let gpu_pts_to_slice_sum
   (#sz:nat)
   ([@@@equate_strict] r: gpu_array ety sz)
