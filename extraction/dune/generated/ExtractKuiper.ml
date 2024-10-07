@@ -300,7 +300,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
                  uu___3);
               FStar_Extraction_ML_Syntax.mlty = uu___4;
               FStar_Extraction_ML_Syntax.loc = uu___5;_},
-            e11::e2::[])
+            e11::e2::_v0::[])
            when
            let uu___6 = FStar_Extraction_ML_Syntax.string_of_mlpath p in
            uu___6 = "Kuiper.Ref.gpu_write" ->
@@ -892,7 +892,7 @@ let (gpu_translate_expr : FStar_Extraction_Krml.translate_expr_t) =
        | uu___1 ->
            FStar_Compiler_Effect.raise
              FStar_Extraction_Krml.NotSupportedByKrmlExtension)
-let (uu___574 : unit) =
+let (uu___0 : unit) =
   FStar_Extraction_Krml.register_pre_translate_type_without_decay
     gpu_translate_type_without_decay;
   FStar_Extraction_Krml.register_pre_translate_expr gpu_translate_expr

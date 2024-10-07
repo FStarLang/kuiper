@@ -34,47 +34,54 @@ let gpu_pts_to_array
 =
   gpu_pts_to_slice x #f 0 sz v
 
-val gpu_pts_to_slice_ref
+[@@pulse_unfold]
+unfold
+instance has_pts_to_gpu_arr (a:Type) (sz : _) : has_pts_to (gpu_array a sz) (Seq.seq a) = {
+  pts_to = gpu_pts_to_array;
+}
+
+ghost
+fn gpu_pts_to_slice_ref
   (#a:Type u#0)
   (#sz:nat)
   (#f : perm)
   (x:gpu_array a sz)
   (i:nat) (j:nat)
   (#v : seq a)
-  : stt_ghost unit emp_inames
-      (gpu_pts_to_slice x #f i j v)
-      (fun _ -> gpu_pts_to_slice x #f i j v **
-                pure (i <= j /\ j <= sz /\ Seq.length v == (j-i)
-                            /\ SZ.fits (Seq.length v)
-                ))
+  preserves gpu_pts_to_slice x #f i j v
+  requires emp
+  ensures  pure (i <= j /\ j <= sz /\ Seq.length v == (j-i) /\ SZ.fits (Seq.length v))
 
-val gpu_pts_to_ref
+ghost
+fn gpu_pts_to_ref
   (#a:Type u#0)
   (#sz:nat)
   (#f : perm)
   (x:gpu_array a sz)
   (#v : seq a)
-  : stt_ghost unit emp_inames
-      (gpu_pts_to_array x #f v)
-      (fun _ -> gpu_pts_to_array x #f v ** pure (Seq.length v == sz /\ SZ.fits sz))
+  preserves pts_to x #f v
+  requires emp
+  ensures  pure (Seq.length v == sz /\ SZ.fits sz)
 
 noextract
 fn gpu_array_alloc
   (#a : Type u#0)
   {| sized a |}
   (sz : SZ.t)
-  requires cpu
+  preserves cpu
+  requires emp
   returns  x : gpu_array a (SZ.v sz)
-  ensures  cpu **
-            (exists* (s:seq a). gpu_pts_to_array x #1.0R s ** pure (Seq.length s == sz))
+  ensures
+    exists* (s:seq a). (x |-> s) ** pure (Seq.length s == sz)
 
 fn gpu_array_free
   (#a:Type u#0)
   (#sz:erased nat)
   (r : gpu_array a sz)
   (#v : erased (seq a))
-  requires cpu ** gpu_pts_to_array r #1.0R v
-  ensures  cpu
+  preserves cpu
+  requires r |-> v
+  ensures  emp
 
 [@@noextract_to "krml"]
 atomic
@@ -87,10 +94,10 @@ fn gpu_array_read
   (#f:perm)
   (idx : SZ.t {i <= SZ.v idx /\ SZ.v idx < j})
   (#s : erased (seq a))
-  requires gpu ** gpu_pts_to_slice #a #sz r #f i j s
+  preserves gpu ** gpu_pts_to_slice #a #sz r #f i j s
+  requires emp
   returns  x:a
-  ensures  gpu ** gpu_pts_to_slice #a #sz r #f i j s **
-            pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
+  ensures  pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
                   x == Seq.index s (SZ.v idx - i))
 
 [@@noextract_to "krml"]
@@ -103,9 +110,9 @@ fn gpu_array_write
   (idx : SZ.t{i <= SZ.v idx /\ SZ.v idx < j})
   (v : a)
   (#s : erased (seq a))
-  requires gpu ** gpu_pts_to_slice #a #sz r #1.0R i j s
-  ensures  gpu **
-            (exists* (s':seq a). gpu_pts_to_slice #a #sz r #1.0R i j s' **
+  preserves gpu
+  requires gpu_pts_to_slice #a #sz r #1.0R i j s
+  ensures  (exists* (s':seq a). gpu_pts_to_slice #a #sz r #1.0R i j s' **
               pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
                     s' == Seq.upd s (SZ.v idx - i) v))
 
@@ -119,15 +126,14 @@ fn gpu_memcpy_host_to_device
   (#f : perm)
   (#v : erased (seq a))
   (#gv : erased (seq a))
-  requires
+  preserves
     cpu **
-    pts_to src_arr #f v **
-    gpu_pts_to_array dst_garr #1.0R gv **
+    pts_to src_arr #f v
+  requires
+    (dst_garr |-> gv) **
     pure (SZ.v cnt == sz /\ (Pulse.Lib.Array.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
-    cpu **
-    pts_to src_arr #f v **
-    gpu_pts_to_array dst_garr #1.0R v **
+    (dst_garr |-> v) **
     pure (Seq.length v == reveal sz)
 
 fn gpu_memcpy_device_to_host
@@ -140,15 +146,14 @@ fn gpu_memcpy_device_to_host
   (#f : perm)
   (#v : erased (seq a))
   (#gv : erased (seq a))
-  requires
+  preserves
     cpu **
-    pts_to dst_arr #f v **
-    gpu_pts_to_array src_garr #1.0R gv **
+    pts_to src_garr #f gv
+  requires
+    (dst_arr |-> v) **
     pure (SZ.v cnt == sz /\ (Pulse.Lib.Array.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
-    cpu **
-    pts_to dst_arr #f gv **
-    gpu_pts_to_array src_garr #1.0R gv **
+    (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
 
 (* Not making this unfold as it appears under bigstars. Maybe
@@ -171,7 +176,7 @@ val gpu_array_slice_1
 : stt_ghost
     unit
     emp_inames
-    (gpu_pts_to_array arr #f v)
+    (pts_to arr #f v)
     (fun _ -> bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) (Seq.cons (Seq.index v i) Seq.empty)))
 
 val gpu_array_unslice_1
@@ -184,7 +189,7 @@ val gpu_array_unslice_1
     unit
     emp_inames
     (bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) (Seq.cons (Seq.index v i) Seq.empty)))
-    (fun _ -> gpu_pts_to_array arr #f v)
+    (fun _ -> pts_to arr #f v)
 
 val gpu_array_slice_1_underspec
   (#[exact (`0)] uid: int) (#a:Type u#0)
@@ -195,7 +200,7 @@ val gpu_array_slice_1_underspec
 : stt_ghost
     unit
     emp_inames
-    (gpu_pts_to_array arr #f v)
+    (pts_to arr #f v)
     (fun _ -> bigstar #uid 0 sz (gpu_pts_to_array1 arr #f))
 
 val gpu_array_unslice_1_underspec
@@ -207,7 +212,7 @@ val gpu_array_unslice_1_underspec
     unit
     emp_inames
     (bigstar #uid 0 sz (gpu_pts_to_array1 arr #f))
-    (fun _ -> exists* v. gpu_pts_to_array arr #f v)
+    (fun _ -> exists* v. pts_to arr #f v)
 
 val gpu_slice_concat
   (#a:Type u#0)

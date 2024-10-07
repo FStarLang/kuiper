@@ -59,7 +59,6 @@ fn kernel
   (**)fold (kpost size ga1 ga2 r (thread_index etid));
 }
 
-
 fn main (_:unit)
   requires cpu ** pure SZ.fits_u32
   ensures  cpu

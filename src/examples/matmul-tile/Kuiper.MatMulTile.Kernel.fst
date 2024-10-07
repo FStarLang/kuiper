@@ -238,13 +238,14 @@ fn outer_loop
   gpu_slice_gather_underspec #0 #u64 #smem_sz ar #1.0R (2 * tid) (2 * tid + 2) nthr;
 }
 
+#set-options "--z3rlimit 15 --retry 3"
+#restart-solver (* proof below very brittle *)
 
 let lemma_nonneg_mul (x y : int)
   : Lemma (requires x >= 0 /\ y >= 0)
           (ensures x * y >= 0)
 = ()
 
-#set-options "--z3rlimit 15"
 #restart-solver (* proof below very brittle *)
 
 [@@CPrologue "__global__"]

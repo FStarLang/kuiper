@@ -16,13 +16,20 @@ val gpu_pts_to
   (v : a)
 : slprop
 
+[@@pulse_unfold]
+unfold
+instance has_pts_to_gpu_ref (a:Type) : has_pts_to (gpu_ref a) a = {
+  pts_to = gpu_pts_to;
+}
+
 fn gpu_alloc0
   (#a:Type u#0)
   {| sized a |}
   ()
-  requires cpu
+  preserves cpu
+  requires emp
   returns  x : gpu_ref a
-  ensures  cpu ** (exists* (v:a). gpu_pts_to x #1.0R v)
+  ensures  exists* (v:a). x |-> v
 
 // fn gpu_alloc
 //   (#a:Type u#0)
@@ -35,44 +42,41 @@ fn gpu_alloc0
 fn gpu_free
   (#a:Type u#0)
   (r : gpu_ref a)
-  (#v : erased a)
-  requires cpu ** gpu_pts_to r #1.0R v
-  ensures  cpu
+  preserves cpu
+  requires r |-> 'v
+  ensures emp
 
 fn gpu_read
   (#a:Type u#0)
   (r : gpu_ref a)
   (#f : perm)
   (#v0 : erased a)
-  requires gpu ** gpu_pts_to r #f v0
+  preserves gpu ** pts_to r #f v0
+  requires emp
   returns  v : a
-  ensures  gpu ** gpu_pts_to r #f v0 ** pure (v == reveal v0)
+  ensures  pure (v == reveal v0)
 
 fn gpu_write
   (#a:Type u#0)
   (r : gpu_ref a)
   (v : a)
-  requires gpu ** (exists* v0. gpu_pts_to r #1.0R v0)
-  ensures  gpu ** gpu_pts_to r #1.0R v
+  requires gpu ** (r |-> 'v0)
+  ensures  gpu ** (r |-> v)
 
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (dst_gr : gpu_ref a)
   (src_r  : ref a)
-  (#f : perm)
-  (#v : erased a)
-  (#gv : erased a)
-  requires cpu ** pts_to src_r #1.0R v ** gpu_pts_to dst_gr #f gv
-  ensures  cpu ** pts_to src_r #1.0R v ** gpu_pts_to dst_gr #f v
+  preserves cpu ** (pts_to src_r #'f 'v)
+  requires dst_gr |-> 'gv
+  ensures  dst_gr |-> 'v
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (dst_r  : ref a)
   (src_gr : gpu_ref a)
-  (#f : perm)
-  (#v : erased a)
-  (#gv : erased a)
-  requires cpu ** pts_to dst_r #1.0R v  ** gpu_pts_to src_gr #f gv
-  ensures  cpu ** pts_to dst_r #1.0R gv ** gpu_pts_to src_gr #f gv
+  preserves cpu ** (pts_to src_gr #'f 'gv)
+  requires dst_r |-> 'v
+  ensures  dst_r |-> 'gv

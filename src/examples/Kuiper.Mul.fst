@@ -53,3 +53,27 @@ fn kernel (#size : erased nat)
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[thread_index etid]];
   ()
 }
+
+(*
+fn main
+  (size : sz)
+  (a1 a2 ar : array u64)
+  (s1 s2 : erased (seq u64))
+  (#_ : squash (len s1 == size /\ len s2 == size))
+  preserves
+    cpu **
+    (a1 |-> s1) **
+    (a2 |-> s2)
+  requires
+    ar |-> 's
+  ensures
+    ar |-> smul s1 s2
+{
+  let ga1 = copy_to_gpu size a1;
+  let ga2 = copy_to_gpu size a2;
+  let gr = gpu_array_alloc #u64 size;
+  // launch_kernel_n size (kernel ga1 ga2 gar);
+  admit();
+  // let ar = copy_from_gpu 0ul gr;
+  // ar
+}

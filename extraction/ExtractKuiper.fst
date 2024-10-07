@@ -136,7 +136,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "Kuiper.Ref.gpu_read" ->
     EBufRead (cb e, zero_for_deref)
 
-  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e1; e2 ])
+  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e1; e2; _v0 ])
     when string_of_mlpath p = "Kuiper.Ref.gpu_write" ->
     EBufWrite (cb e1, zero_for_deref, cb e2)
 
