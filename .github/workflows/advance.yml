@@ -24,6 +24,11 @@ jobs:
         run: |
           echo "HOME=/home/vscode" >> $GITHUB_ENV
           echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
+        
+      - name: Configure git
+        run: |
+          git config user.name "Actions bot"
+          git config user.email "none@none"
 
       - run: ./try-rebase.sh
 
