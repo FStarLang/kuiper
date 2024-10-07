@@ -32,7 +32,7 @@ let pts_to_slice
 [@@ CPrologue "__global__"]
 fn kernel (#size : erased nat)
   (a1 a2 ar : gpu_array u64 size)
-  (s1 s2 : seq u64)
+  (s1 s2 : erased (seq u64))
   (etid : erased tid_t)
   (#_ : squash (len s1 == size /\ len s2 == size /\ gdim_x etid * bdim_x etid == size))
   preserves
@@ -45,7 +45,6 @@ fn kernel (#size : erased nat)
     pts_to_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
 {
   let id = thread_idx_all ();
-
   let v1 = gpu_array_read #_ #_ #0 #size a1 id;
   let v2 = gpu_array_read #_ #_ #0 #size a2 id;
   let v = U64.(v1 *%^ v2);

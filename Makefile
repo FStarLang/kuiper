@@ -1,10 +1,7 @@
 include .common.mk
 
 .PHONY: all
-all: verify-all
-
-.PHONY: verify-all
-verify-all:
+all:
 	+$(MAKE) -f verify.mk all
 
 .PHONY: test
