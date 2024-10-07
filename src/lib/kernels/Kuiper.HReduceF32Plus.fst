@@ -236,13 +236,14 @@ fn iteration
 
 [@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
-fn reducea
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+fn reduce
+  (nth : szp { nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
-  (#_: squash (len s == nth))
+  (#_ : squash (len s == nth))
   (etid : erased tid_t { gdim_x etid == 1ul /\ bdim_x etid == nth })
-  preserves gpu ** thread_id etid
+  preserves
+    gpu ** thread_id etid
   requires
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
     kpre nth a s (thread_index etid)
@@ -258,26 +259,22 @@ fn reducea
   let mut n = 0sz;
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
-  (**)gpu_pts_to_slice_ref a _ _;
-  (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
-  assert (pure (squash (is_reduction neu op seq![reveal v0] v0)));
-  assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![reveal v0])); // sucks
+  assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
   (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner #nth a tid (tid + pow2 0) s ss);
-  admit();
   (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
 
   open FStar.SizeT;
   while (let it = !n; (spow2 it <^ nth))
     invariant c.
-    exists* (it:sz).
-      gpu **
-      pts_to n it **
-      mbarrier_tok nth (barrier_matrix nth a s) it tid **
-      if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
-      pure (c == (pow2 it < nth) /\ SZ.v it < 32)
+      exists* (it:sz).
+        gpu **
+        pts_to n it **
+        mbarrier_tok nth (barrier_matrix nth a s) it tid **
+        if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
+        pure (c == (pow2 it < nth) /\ SZ.v it < 32)
   {
-    let it = !n <: nat;
+    let it = !n;
     iteration nth a s tid it;
     n := it +^ 1sz;
   };
@@ -285,7 +282,7 @@ fn reducea
 
 [@@ CPrologue "__global__"]
 fn k_reduce
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+  (nth : szp { nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))

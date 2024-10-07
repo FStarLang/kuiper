@@ -56,28 +56,28 @@ let lemma_div_exact a p = ()
 #push-options "--z3rlimit 20"
 let div_pow2_lemma_2 (it tid: nat):
   Lemma (
-    (not (div_pow2 (it + 1) (tid + pow2 it)) && div_pow2 it (tid + pow2 it))
+    ~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it)
     <==>
     div_pow2 (it + 1) tid
   ) =
     calc (<==>) {
-      (not (div_pow2 (it + 1) (tid + pow2 it))) && div_pow2 it (tid + pow2 it) <: prop;
+      (~(div_pow2 (it + 1) (tid + pow2 it))) /\ div_pow2 it (tid + pow2 it);
       <==> {}
-      (tid + pow2 it)                       % (2 * pow2 it) <> 0 && (tid + pow2 it) % pow2 it = 0 <: prop;
+      (tid + pow2 it)                       % (2 * pow2 it) <> 0 /\ (tid + pow2 it) % pow2 it = 0;
       <==> { FStar.Math.Lemmas.lemma_div_mod_plus tid 1 (pow2 it) }
-      (tid + pow2 it)                       % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
+      (tid + pow2 it)                       % (2 * pow2 it) <> 0 /\ tid % pow2 it = 0;
       <==> { lemma_div_exact tid (pow2 it) }
-      (pow2 it * (tid / pow2 it) + pow2 it) % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
+      (pow2 it * (tid / pow2 it) + pow2 it) % (2 * pow2 it) <> 0 /\ tid % pow2 it = 0;
       <==> { FStar.Math.Lemmas.distributivity_add_right (pow2 it) (tid / pow2 it) 1 }
-      (pow2 it * (tid / pow2 it + 1))       % (2 * pow2 it) <> 0 && tid % pow2 it = 0 <: prop;
+      (pow2 it * (tid / pow2 it + 1))       % (2 * pow2 it) <> 0 /\ tid % pow2 it = 0;
       <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it + 1) (pow2 it) 2 }
-      pow2 it * ((tid / pow2 it + 1) % 2)                   <> 0 && tid % pow2 it = 0 <: prop;
+      pow2 it * ((tid / pow2 it + 1) % 2)                   <> 0 /\ tid % pow2 it = 0;
       <==> {}
-      pow2 it * ((tid / pow2 it) % 2)                        = 0 && tid % pow2 it = 0 <: prop;
+      pow2 it * ((tid / pow2 it) % 2)                        = 0 /\ tid % pow2 it = 0;
       <==> { FStar.Math.Lemmas.modulo_scale_lemma (tid / pow2 it) (pow2 it) 2 }
-      (pow2 it * (tid / pow2 it)) % (2 * pow2 it)            = 0 && tid % pow2 it = 0 <: prop;
+      (pow2 it * (tid / pow2 it)) % (2 * pow2 it)            = 0 /\ tid % pow2 it = 0;
       <==> { lemma_div_exact tid (pow2 it) }
-      tid % (2 * pow2 it)                                    = 0 && tid % pow2 it = 0 <: prop;
+      tid % (2 * pow2 it)                                    = 0 /\ tid % pow2 it = 0;
       <==> { div_pow2_lemma it (it + 1) tid }
       div_pow2 (it + 1) tid;
     }

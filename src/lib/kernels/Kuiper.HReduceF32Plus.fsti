@@ -33,7 +33,7 @@ let gpu_pts_to_slice_sum_inner
   ** pure (i < j /\ j <= sz /\
            len v = sz /\
            len s = j - i /\
-           squash (is_reduction neu op (Seq.slice v i j) (Seq.index s 0))) // SQUASH VERY IMPORTANT!!
+           squash (is_reduction neu op (Seq.slice v i j) (s @! 0))) // SQUASH VERY IMPORTANT!!
 
 (* Not easy to mark this unfold as it has a lambda (in the exists) *)
 let gpu_pts_to_slice_sum
@@ -69,17 +69,17 @@ fn reduce
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))
   (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  preserves
+    gpu ** thread_id etid
   requires
-    gpu **
-    thread_id etid **
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
     kpre nth a s (thread_index etid)
   ensures 
-    gpu **
-    thread_id etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost nth a s (thread_index etid)
+    exists* it.
+      mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid) **
+      kpost nth a s (thread_index etid)
 
+(* NB: cannot use 'preserves' as we depend on the shape of pre/post *)
 [@@ CPrologue "__global__"]
 inline_for_extraction
 fn k_reduce

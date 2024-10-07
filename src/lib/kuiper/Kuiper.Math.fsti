@@ -29,7 +29,7 @@ val mul_pow2 (n m : nat)
 : Lemma (ensures pow2 n * pow2 m == pow2 (n + m))
 
 (* Note the strict < on the left. It is not true that
-log2 n == m ==> n <= pow2 m *)
+log2 n == m ==> n <= pow2 m (e.g. n=3, m=1) *)
 val lemma_log2_le1 (n:pos) (m:nat)
 : Lemma (log2 n < m ==> n <= pow2 m)
   [SMTPat (log2 n); SMTPat (pow2 m)]
@@ -50,11 +50,11 @@ let div_pow2 (i x : nat) : GTot (b:bool{b <==> pow2 i /? x}) =
 val div_pow2_lemma (i j tid: nat):
   Lemma
     (requires i < j)
-    (ensures (div_pow2 j tid) ==> (div_pow2 i tid))
+    (ensures  div_pow2 j tid ==> div_pow2 i tid)
 
 val div_pow2_lemma_2 (it tid: nat):
   Lemma (
-    (not (div_pow2 (it + 1) (tid + pow2 it)) && div_pow2 it (tid + pow2 it))
+    (~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it))
     <==>
     div_pow2 (it + 1) tid
   )
