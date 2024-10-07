@@ -90,7 +90,7 @@ FSTAR = $(FSTAR_EXE)				\
 GPUH := $(realpath include/kuiper.h)
 
 KRML := $(KRML_HOME)/krml				\
-	-add-early-include '"$(GPUH)"'			\
+	-add-early-include '<kuiper.h>'			\
 	-fc++-compat					\
 	-fcast-allocations				\
 	-skip-compilation				\
@@ -183,17 +183,21 @@ $(OUTDIR)/%.c: $(OUTDIR)/%.krml .b_karamel
 $(OUTDIR)/%.cu: $(OUTDIR)/%.c
 	@ln -sf $(realpath $<) $@
 
+NVCC_FLAGS += -O3
+NVCC_FLAGS += -I include
+NVCC_FLAGS += -I out # needed for files in test/ only..
+
 %.o: %.cu include/*.h
 	$(call msg,"NVCC")
-	$(Q)nvcc $(CFLAGS) -O3 -o $@ -c $<
+	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
-	$(call msg,"NVCC")
-	$(Q)nvcc $(CFLAGS) -O3 -I include -I $(OUTDIR) -o $@ $^
+	$(call msg,"NVLD")
+	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
 
 $(OUTDIR)/startup.exe: test/startup.cu
 	$(call msg,"NVCC")
-	$(Q)nvcc -I include -I $(OUTDIR) -o $@ $^
+	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_FLAGS) -o $@ $^
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 	$< > $@
@@ -226,8 +230,6 @@ TESTS+=Kuiper_Async1
 extraction-targets: \
 	out/Kuiper_DotProduct.o \
 	out/Kuiper_Example1.exe \
-	out/Kuiper_DotProduct2.exe \
-	out/Kuiper_DotProduct3.exe \
 	out/Kuiper_Reduction.cu \
 	out/Kuiper_InnerGhostLem.cu \
 	out/Kuiper_Polymorphism0.cu \
