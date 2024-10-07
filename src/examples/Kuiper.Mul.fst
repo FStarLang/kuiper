@@ -44,12 +44,12 @@ fn kernel (#size : erased nat)
   ensures
     pts_to_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
 {
-  let id = thread_idx_all ();
-  let v1 = gpu_array_read #_ #_ #0 #size a1 id;
-  let v2 = gpu_array_read #_ #_ #0 #size a2 id;
+  let tid = thread_idx_all ();
+  let v1 = gpu_array_read #_ #_ #0 #size a1 tid;
+  let v2 = gpu_array_read #_ #_ #0 #size a2 tid;
   let v = U64.(v1 *%^ v2);
-  gpu_array_write #_ #_ #id #(id + 1) ar id v;
-  (**)with sr. assert gpu_pts_to_slice ar id (id + 1) sr;
+  gpu_array_write #_ #_ #tid #(tid + 1) ar tid v;
+  (**)with sr. assert pts_to_slice ar tid (tid + 1) sr;
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[thread_index etid]];
   ()
 }
