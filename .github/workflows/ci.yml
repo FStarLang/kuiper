@@ -16,11 +16,6 @@ jobs:
       options: --gpus all
     defaults:
       run:
-        # Setting the default shell to bash. This is not only more standard,
-        # but also makes sure that we run with -o pipefail, so we can safely
-        # pipe data (such as | tee LOG) without missing out on failures
-        # and getting false positives. If you want to change the default shell,
-        # keep in mind you need a way to handle this.
         shell: bash
     steps:
       - run: |

@@ -1,0 +1,35 @@
+name: Advance submodules
+
+on:
+  # Only manually triggered
+  workflow_dispatch:
+  schedule:
+    # every midnight UTC
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, X64, cuda]
+    container:
+      image: mtzguido/pulse-cuda-devcontainer
+      options: --gpus all
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Setup HOME and PATH
+        run: |
+          echo "HOME=/home/vscode" >> $GITHUB_ENV
+          echo "PATH=/home/vscode/bin:$PATH" >> $GITHUB_ENV
+
+      - run: ./try-rebase.sh
+
+      - name: Test the build
+        run: |
+          eval $(opam env)
+          make -skj$(nproc) ci
+
+      - run: ./try-push.sh
