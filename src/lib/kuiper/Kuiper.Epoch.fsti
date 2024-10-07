@@ -14,5 +14,6 @@ fn get_epoch ()
 
 ghost
 fn done_lower (e f :nat)
-  requires epoch_done e ** pure (f <= e)
-  ensures  epoch_done e ** epoch_done f
+  preserves epoch_done e
+  requires pure (f <= e)
+  ensures  epoch_done f

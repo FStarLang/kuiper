@@ -41,8 +41,10 @@ val lemma_log2_le2 (n:pos) (m:nat)
 let min (a b: int) : GTot int =
   if a < b then a else b
 
-(* x is a multiple of 2^i *)
-let div_pow2 (i x : nat) : GTot bool =
+(* x is a multiple of 2^i. This is in GTot bool instead of prop to
+use if_ and friends, but it coincides exactly with `pow2 i /? x`. We
+state in the refinement to automatically use all SMTPats about /?. *)
+let div_pow2 (i x : nat) : GTot (b:bool{b <==> pow2 i /? x}) =
   (x % pow2 i) = 0
 
 val div_pow2_lemma (i j tid: nat):

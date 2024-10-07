@@ -244,7 +244,7 @@ let lemma_nonneg_mul (x y : int)
           (ensures x * y >= 0)
 = ()
 
-#set-options "--z3rlimit 5"
+#set-options "--z3rlimit 15"
 #restart-solver (* proof below very brittle *)
 
 [@@CPrologue "__global__"]
