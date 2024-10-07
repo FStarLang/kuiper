@@ -80,6 +80,7 @@ FSTAR_FLAGS += --ext no_krml_private
 FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
+FSTAR_FLAGS += -f # prevent stupid caching
 
 FSTAR = $(FSTAR_EXE)				\
 	$(SIL)						\
