@@ -18,15 +18,15 @@ module HR = Kuiper.HReduceU64Plus
 let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
-    (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1 **
-    gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2) **
+    (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
+    gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
     if_ (tid = 0) (exists* sr. gpu_pts_to_array #u64 #nth r sr)
 
 let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
-    ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1 **
-    gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2) **
+    ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
+    gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
     if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2)))
 
 [@@pulse_unfold]
@@ -125,13 +125,13 @@ fn kernel
   let tid : sz = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r s1 s2 tid);
 
-  (**)unfold (gpu_pts_to_array #u64 #(SZ.v nth) ga1 #(1.0R /. Real.of_int nth) s1);
+  (**)unfold (gpu_pts_to_array #u64 #(SZ.v nth) ga1 #(1.0R /. nth) s1);
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
-  (**)fold (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. Real.of_int nth) s1);
+  (**)fold (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1);
 
-  (**)unfold (gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2);
+  (**)unfold (gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2);
   let v2 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
-  (**)fold (gpu_pts_to_array #u64 #nth ga2 #(1.0R /. Real.of_int nth) s2);
+  (**)fold (gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2);
   
   let vm = U64.mul_mod v1 v2;
   (**)let dot_v = hide (pmul s1 s2);
@@ -159,7 +159,7 @@ fn kernel
 }
 
 let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { len v == nth }) (_: nat): slprop =
-  gpu_pts_to_array ga #(1.0R /. Real.of_int nth) v
+  gpu_pts_to_array ga #(1.0R /. nth) v
 
 ghost
 fn share_array
@@ -265,8 +265,8 @@ fn main
         (bigstar 0 (1 * SZ.v dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 i));
   (**)assume
         (bigstar 0 dp2_size
-          (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. Real.of_int dp2_size) v1 **
-                    gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. Real.of_int dp2_size) v2) **
+          (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. dp2_size) v1 **
+                    gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. dp2_size) v2) **
                     if_ (i = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
         ));
   

@@ -23,25 +23,25 @@ fn kernel (#size : erased nat)
   (s1 s2 : (s: erased (seq u64) { len s == size }))
   (etid : erased tid_t { gdim_x etid * bdim_x etid == size })
   requires gpu ** thread_id etid ** 
-    pts_to a1 #(1.0R /. Real.of_int size) s1 **
-    pts_to a2 #(1.0R /. Real.of_int size) s2 **
+    pts_to a1 #(1.0R /. size) s1 **
+    pts_to a2 #(1.0R /. size) s2 **
     gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) 's
   ensures  gpu ** thread_id etid ** 
-    pts_to a1 #(1.0R /. Real.of_int size) s1 **
-    pts_to a2 #(1.0R /. Real.of_int size) s2 **
+    pts_to a1 #(1.0R /. size) s1 **
+    pts_to a2 #(1.0R /. size) s2 **
     gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
 {
   let id = thread_idx_all ();
   
-  (**)unfold gpu_pts_to_array a1 #(1.0R /. Real.of_int size) s1;
+  (**)unfold gpu_pts_to_array a1 #(1.0R /. size) s1;
   let v1 = gpu_array_read #_ #_ #0 #size a1 id;
-  (**)fold gpu_pts_to_array a1 #(1.0R /. Real.of_int size) s1;
+  (**)fold gpu_pts_to_array a1 #(1.0R /. size) s1;
 
-  (**)unfold gpu_pts_to_array a2 #(1.0R /. Real.of_int size) s2;
+  (**)unfold gpu_pts_to_array a2 #(1.0R /. size) s2;
   let v2 = gpu_array_read #_ #_ #0 #size a2 id;
-  (**)fold gpu_pts_to_array a2 #(1.0R /. Real.of_int size) s2;
+  (**)fold gpu_pts_to_array a2 #(1.0R /. size) s2;
 
-  let v = U64.mul_mod v1 v2;
+  let v = U64.(v1 *%^ v2);
   gpu_array_write #_ #_ #id #(id + 1) ar id v;
   (**)with sr. assert gpu_pts_to_array_slice ar id (id + 1) sr;
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[thread_index etid]];

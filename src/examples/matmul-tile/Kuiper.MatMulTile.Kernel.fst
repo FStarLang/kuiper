@@ -114,7 +114,7 @@ let sz_mult (x y: SZ.t) : Pure SZ.t
 
 let lemma_div_pos (a: real) (i: int)
   : Lemma (requires (a >. 0.0R /\ i > 0))
-          (ensures (a /. Real.of_int i >. 0.0R)) = ()
+          (ensures (a /. i >. 0.0R)) = ()
 
 let lemma_mod_lt (a : nat) (b : pos)
   : Lemma (a % b <= b - 1) = ()
@@ -155,13 +155,13 @@ fn inner_loop
 
   bigstar_extract #0 0 nthr _ ga1_idx;
   unfold Barrier.barrier_mm nthr ar it tid ga1_idx;
-  let ga1_val = gpu_array_read #_ #_ #(2 * ga1_idx) #(2 * ga1_idx + 2) ar #(1.0R /. Real.of_int nthr) (2sz *^ ga1_idx);
+  let ga1_val = gpu_array_read #_ #_ #(2 * ga1_idx) #(2 * ga1_idx + 2) ar #(1.0R /. nthr) (2sz *^ ga1_idx);
   fold Barrier.barrier_mm nthr ar it tid ga1_idx;
   bigstar_compose #0 0 nthr _ ga1_idx;
 
   bigstar_extract #0 0 nthr _ ga2_idx;
   unfold Barrier.barrier_mm nthr ar it tid ga2_idx;
-  let ga2_val = gpu_array_read #_ #_ #(2 * ga2_idx) #(2 * ga2_idx + 2) ar #(1.0R /. Real.of_int nthr) (2sz *^ ga2_idx +^ 1sz);
+  let ga2_val = gpu_array_read #_ #_ #(2 * ga2_idx) #(2 * ga2_idx + 2) ar #(1.0R /. nthr) (2sz *^ ga2_idx +^ 1sz);
   fold Barrier.barrier_mm nthr ar it tid ga2_idx;
   bigstar_compose #0 0 nthr _ ga2_idx;
 
@@ -191,7 +191,7 @@ fn outer_loop
        ** (exists* s. gpu_pts_to_array_slice ar (2 * tid) (2 * tid + 2) s)
        ** mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv + 2) tid
 {
-  lemma_div_pos 1.0R nthr; // 1.0R /. Real.of_int nthr >. 0.0R
+  lemma_div_pos 1.0R nthr; // 1.0R /. nthr >. 0.0R
 
   FStar.Math.Lemmas.cancel_mul_mod (SZ.v iv) 2;
   FStar.Math.Lemmas.lemma_mod_plus 1 (SZ.v iv) 2;

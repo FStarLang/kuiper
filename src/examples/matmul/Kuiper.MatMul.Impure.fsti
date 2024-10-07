@@ -10,7 +10,7 @@ module U64 = FStar.UInt64
 module SZ = FStar.SizeT
 
 let gpu_pts_to_matrix #a (rows columns : nat) (ga : gpu_array a (rows * columns)) (shared : erased nat{shared > 0}) (s : erased (seq a)): slprop =
-  gpu_pts_to_array ga #(1.0R /. Real.of_int shared) s
+  gpu_pts_to_array ga #(1.0R /. shared) s
 
 ghost
 fn gpu_matrix_share_underspec
@@ -66,12 +66,12 @@ fn gpu_matrix_read
   open FStar.SizeT;
   unfold gpu_pts_to_matrix rows columns ga shared s;
   Kuiper.Array.gpu_pts_to_ref ga #s;
-  unfold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
+  unfold gpu_pts_to_array ga #(Real.one /. shared) s;
   // TODO : strange that commenting this out causes an error
   assert (pure ((row + 1) * columns <= rows * columns));
   let idx = row *^ columns +^ col;
   let v = gpu_array_read #_ #_ #0 #(rows * columns) ga idx;
-  fold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
+  fold gpu_pts_to_array ga #(Real.one /. shared) s;
   fold gpu_pts_to_matrix rows columns ga shared s;
   v
 }
@@ -101,12 +101,12 @@ fn gpu_matrix_read_u64
 {
   open FStar.SizeT;
   unfold gpu_pts_to_matrix rows columns ga shared s;
-  unfold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
+  unfold gpu_pts_to_array ga #(Real.one /. shared) s;
   // TODO : strange that commenting this out causes an error
   assert (pure ((row + 1) * columns <= rows * columns));
   let idx = row *^ columns +^ col;
   let v = gpu_array_read #_ #_ #0 #(rows * columns) ga idx;
-  fold gpu_pts_to_array ga #(Real.one /. Real.of_int shared) s;
+  fold gpu_pts_to_array ga #(Real.one /. shared) s;
   fold gpu_pts_to_matrix rows columns ga shared s;
   v
 }
