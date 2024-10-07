@@ -31,7 +31,6 @@ fn k_reduce
 {
   let mut i = 0sz;
   let mut r : tt = zero #tt #d;
-  unfold (gpu_pts_to_array a v);
 
   while (let vi = !i; (FStar.SizeT.op_Less_Hat vi size))
     invariant b.
@@ -49,7 +48,6 @@ fn k_reduce
     let vr' = add vr v;
     r := vr';
   };
-  fold (gpu_pts_to_array a v);
   !r
 }
 
@@ -68,10 +66,8 @@ fn k_reduce_and_set
   ensures  (exists* v'. (a |-> v') ** pure (Seq.length v' == size))
 {
   let r = k_reduce size a;
-  unfold (gpu_pts_to_array a v);
   gpu_array_write #tt #(SZ.v size) #0 #(SZ.v size) a 0sz r;
   with v'. assert (gpu_pts_to_slice a 0 (SZ.v size) v');
-  fold (gpu_pts_to_array a v');
 }
 
 inline_for_extraction noextract

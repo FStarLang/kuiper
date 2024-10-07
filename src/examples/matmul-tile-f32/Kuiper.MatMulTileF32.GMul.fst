@@ -38,9 +38,7 @@ fn recall_array_len
   ensures
     pure (len v == alen /\ SZ.fits alen)
 {
-  unfold (gpu_pts_to_array a v);
   gpu_pts_to_slice_ref a 0 _;
-  fold (gpu_pts_to_array a v);
 }
 
 

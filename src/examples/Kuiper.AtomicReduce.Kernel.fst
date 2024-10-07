@@ -98,9 +98,7 @@ fn kernel
         pure (v == v_a @! SZ.v tid)
     {
       unfold inv_p;
-      unfold gpu_pts_to_array a v_a;
       let rr = gpu_array_read #u64 #(SZ.v nn) #0 #(SZ.v nn) a tid;
-      fold (gpu_pts_to_array a v_a);
       fold inv_p;
       rr
     };

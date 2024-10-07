@@ -61,9 +61,7 @@ fn main
 
   (**)
   with v3. assert (gr |-> v3);
-  unfold (gpu_pts_to_array gr v3);
   gpu_pts_to_slice_ref gr 0 _;
-  fold (gpu_pts_to_array gr v3);
   (**)
 
   GMul.g_mul rows shared columns bdim ga1 ga2 gr;

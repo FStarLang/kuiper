@@ -64,13 +64,8 @@ fn kernel
   let tid : sz = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r s1 s2 tid);
 
-  (**)unfold (gpu_pts_to_array #u64 #(SZ.v nth) ga1 #(1.0R /. nth) s1);
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
-  (**)fold (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1);
-
-  (**)unfold (gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2);
   let v2 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
-  (**)fold (gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2);
   
   let vm = U64.mul_mod v1 v2;
   (**)let dot_v = hide (pmul s1 s2);
@@ -198,7 +193,6 @@ fn main
   if_elim_true _;
   unfold HR.gpu_pts_to_slice_sum_inner;
   with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
-  fold (gpu_pts_to_array #u64 #dp2_size gr #1.0R res);
 
   // TODO: don't copy whole array
   Kuiper.Array.gpu_memcpy_device_to_host ar gr dp2_size;
