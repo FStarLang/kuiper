@@ -65,7 +65,7 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 	do {									\
 		if (!(b)) {							\
 			fprintf(stderr, "*** ABORTING ***\n");			\
-			fprintf(stderr, "This guard failed: %s\n", #b);		\
+			fprintf(stderr, "This assertion failed: %s\n", #b);	\
 			abort();						\
 		}								\
 	} while(0)
