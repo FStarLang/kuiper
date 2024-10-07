@@ -48,7 +48,7 @@ fn setup
     requires
       I.gpu_pts_to_matrix rows   shared  ga size 'va **
       I.gpu_pts_to_matrix shared columns gb size 'vb **
-      gpu_pts_to_array_slice gr i (i + 1) seq!['s `Seq.index` i]
+      gpu_pts_to_slice gr i (i + 1) seq!['s `Seq.index` i]
     ensures
       K.kpre rows shared columns ga gb gr 'va 'vb size i
   {
@@ -130,11 +130,11 @@ fn main
   ghost
   fn aux1 (i:nat{0 <= i /\ i < size})
     requires
-      gpu_pts_to_array_slice gr i (i + 1)
+      gpu_pts_to_slice gr i (i + 1)
             seq![P.matmul_single rows shared columns
                    va vb (i / columns) (i % columns) shared]
     ensures
-      gpu_pts_to_array_slice gr i (i + 1)
+      gpu_pts_to_slice gr i (i + 1)
             seq![P.matmul rows shared columns va vb @! i]
   {
     P.lemma_matmul_index rows shared columns va vb i;

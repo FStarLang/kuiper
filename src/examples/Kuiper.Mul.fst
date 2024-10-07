@@ -17,6 +17,18 @@ let smul (s1 : seq u64) (s2 : seq u64 { len s2 == len s1 })
 
 #lang-pulse
 
+[@@pulse_unfold]
+unfold
+let pts_to_slice
+  (#a:Type u#0)
+  (#sz:nat)
+  (x:gpu_array a sz)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (i:nat) (j:nat)
+  (v : seq a)
+: slprop
+= gpu_pts_to_slice #a #sz x #f i j v
+
 [@@ CPrologue "__global__"]
 fn kernel (#size : erased nat)
   (a1 a2 ar : gpu_array u64 size)
@@ -28,23 +40,17 @@ fn kernel (#size : erased nat)
     pts_to a1 #(1.0R /. size) s1 **
     pts_to a2 #(1.0R /. size) s2
   requires
-    gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) 's
+    pts_to_slice ar (thread_index etid) (thread_index etid + 1) 's
   ensures
-    gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
+    pts_to_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
 {
   let id = thread_idx_all ();
-  
-  (**)unfold gpu_pts_to_array a1 #(1.0R /. size) s1;
+
   let v1 = gpu_array_read #_ #_ #0 #size a1 id;
-  (**)fold gpu_pts_to_array a1 #(1.0R /. size) s1;
-
-  (**)unfold gpu_pts_to_array a2 #(1.0R /. size) s2;
   let v2 = gpu_array_read #_ #_ #0 #size a2 id;
-  (**)fold gpu_pts_to_array a2 #(1.0R /. size) s2;
-
   let v = U64.(v1 *%^ v2);
   gpu_array_write #_ #_ #id #(id + 1) ar id v;
-  (**)with sr. assert gpu_pts_to_array_slice ar id (id + 1) sr;
+  (**)with sr. assert gpu_pts_to_slice ar id (id + 1) sr;
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[thread_index etid]];
   ()
 }

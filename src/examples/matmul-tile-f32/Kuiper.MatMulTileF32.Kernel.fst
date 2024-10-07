@@ -183,11 +183,11 @@ fn outer_loop
   (sum: ref f32)
   requires gpu
        ** (exists* sumv. pts_to sum sumv)
-       ** (exists* s. gpu_pts_to_array_slice ar (2 * tid) (2 * tid + 2) s)
+       ** (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s)
        ** mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv) tid
   ensures gpu
        ** (exists* sumv. pts_to sum sumv)
-       ** (exists* s. gpu_pts_to_array_slice ar (2 * tid) (2 * tid + 2) s)
+       ** (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s)
        ** mbarrier_tok nthr (Barrier.barrier_mm nthr ar) (2*iv + 2) tid
 {
   lemma_div_pos 1.0R nthr; // 1.0R /. nthr >. 0.0R
@@ -306,7 +306,7 @@ fn kernel
        ** (exists* sumv. pts_to sum sumv)
        ** I.gpu_pts_to_matrix #f32 rows shared ga1 (SZ.v nblk * SZ.v nthr) s1
        ** I.gpu_pts_to_matrix #f32 shared columns ga2 (SZ.v nblk * SZ.v nthr) s2
-       ** (exists* s. gpu_pts_to_array_slice ar (2 * tid) (2 * tid + 2) s)
+       ** (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s)
        ** mbarrier_tok (SZ.v nthr) (Barrier.barrier_mm (SZ.v nthr) ar) (2*iv) tid
   {
     let iv = !i;

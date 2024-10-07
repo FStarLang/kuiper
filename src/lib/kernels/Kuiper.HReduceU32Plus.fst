@@ -206,7 +206,7 @@ fn iteration
       gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid s;
 
       (**)gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
-      (**)with seq. assert (gpu_pts_to_array_slice r tid end_ seq);
+      (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
       (**)fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
       (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
       (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
@@ -260,7 +260,7 @@ fn reduce
   (* Reduction *)
   let mut n = 0sz;
 
-  (**)with ss. assert (gpu_pts_to_array_slice a tid (tid+1) ss);
+  (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
   (**) gpu_pts_to_slice_ref a tid (tid+1);
   (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
   assert (pure (squash (is_reduction neu op seq![reveal v0] v0)));

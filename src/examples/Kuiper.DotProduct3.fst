@@ -78,13 +78,13 @@ fn fixup
     unfold gpu_pts_to_array r cv;
     gpu_array_write #u64 #nth #0 #nth r 0sz vv;
     
-    with v1. assert (gpu_pts_to_array_slice ar 0 nth v1);
+    with v1. assert (gpu_pts_to_slice ar 0 nth v1);
     // assert (pure (Seq.index v1 0 == HR.sum dot_v));
     fold HR.gpu_pts_to_slice_sum_inner #nth ar 0 nth dot_v v1;
     if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #nth ar 0 nth dot_v v);
     fold HR.gpu_pts_to_slice_sum ar 0 nth dot_v;
 
-    with v2. assert (gpu_pts_to_array_slice r 0 nth v2);
+    with v2. assert (gpu_pts_to_slice r 0 nth v2);
     fold HR.gpu_pts_to_slice_sum_inner #nth r 0 nth dot_v v2;
     if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #nth r 0 nth dot_v v);
     fold HR.gpu_pts_to_slice_sum r 0 nth dot_v;
@@ -141,7 +141,7 @@ fn kernel
   gpu_array_write #u64 #(SZ.v nth) #(SZ.v tid) #(hide (SZ.v tid+1)) ar tid vm;
   
   (* sigh... this is terrible. It's a one element sequence. *)
-  with s'. assert (gpu_pts_to_array_slice ar tid (tid+1) s');
+  with s'. assert (gpu_pts_to_slice ar tid (tid+1) s');
   assert (pure (vm == Seq.index dot_v tid));
   assert (pure (Seq.index s' 0 == vm));
   assert (pure (len s' == 1));
@@ -283,7 +283,7 @@ fn main
   unfold HR.gpu_pts_to_slice_sum;
   if_elim_true _;
   unfold HR.gpu_pts_to_slice_sum_inner;
-  with res. assert (gpu_pts_to_array_slice gr 0 dp2_size res);
+  with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
   fold (gpu_pts_to_array #u64 #dp2_size gr #1.0R res);
 
   // TODO: don't copy whole array

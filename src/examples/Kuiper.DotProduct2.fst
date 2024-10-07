@@ -79,7 +79,7 @@ fn kernel
   gpu_array_write #u64 #(SZ.v nth) #(SZ.v tid) #(hide (SZ.v tid+1)) r tid vm;
   
   (* sigh... this is terrible. It's a one element sequence. *)
-  with s'. assert (gpu_pts_to_array_slice r tid (tid+1) s');
+  with s'. assert (gpu_pts_to_slice r tid (tid+1) s');
   assert (pure (vm == Seq.index dot_v tid));
   assert (pure (Seq.index s' 0 == vm));
   assert (pure (len s' == 1));
@@ -197,7 +197,7 @@ fn main
   unfold HR.gpu_pts_to_slice_sum;
   if_elim_true _;
   unfold HR.gpu_pts_to_slice_sum_inner;
-  with res. assert (gpu_pts_to_array_slice gr 0 dp2_size res);
+  with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
   fold (gpu_pts_to_array #u64 #dp2_size gr #1.0R res);
 
   // TODO: don't copy whole array

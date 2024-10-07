@@ -69,10 +69,10 @@ fn kernel
   let s = !sum;
   gpu_array_write #_ #_ #tid #(tid + 1) r tid s; // r[tid] = s
 
-  with v. assert (gpu_pts_to_array_slice r tid (tid + 1) v);
+  with v. assert (gpu_pts_to_slice r tid (tid + 1) v);
   (**)Seq.lemma_eq_intro v seq![s];
-  (**)rewrite gpu_pts_to_array_slice r tid (tid + 1) v
-    as gpu_pts_to_array_slice r tid (tid + 1) seq![s];
+  (**)rewrite gpu_pts_to_slice r tid (tid + 1) v
+    as gpu_pts_to_slice r tid (tid + 1) seq![s];
 
   ()
 }

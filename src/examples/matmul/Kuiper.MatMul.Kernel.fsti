@@ -28,7 +28,7 @@ let kpre (rows shared columns : nat)
   =
   I.gpu_pts_to_matrix rows shared ga1 nth s1
   ** I.gpu_pts_to_matrix shared columns ga2 nth s2
-  ** (exists* sr. gpu_pts_to_array_slice r tid (tid+1) sr)
+  ** (exists* sr. gpu_pts_to_slice r tid (tid+1) sr)
 
 [@@pulse_unfold]
 let kpost (rows shared columns : nat)
@@ -43,7 +43,7 @@ let kpost (rows shared columns : nat)
   =
   I.gpu_pts_to_matrix rows shared ga1 nth s1
   ** I.gpu_pts_to_matrix shared columns ga2 nth s2
-  ** gpu_pts_to_array_slice r tid (tid+1)
+  ** gpu_pts_to_slice r tid (tid+1)
       seq![P.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared]
 
 [@@CPrologue "__global__"]

@@ -28,7 +28,7 @@ let gpu_pts_to_slice_sum_inner
   (v : seq ety)
   (s : seq ety)
 : slprop
-= gpu_pts_to_array_slice r i j s
+= gpu_pts_to_slice r i j s
   ** pure (i < j /\ j <= sz /\
            len v = sz /\
            len s = j - i /\
@@ -51,7 +51,7 @@ val barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: 
 let kpre (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))
   (#_: squash (len s == nth)) (tid:nat{tid < nth})
   : slprop =
-    gpu_pts_to_array_slice a tid (tid+1) seq![Seq.index s tid]
+    gpu_pts_to_slice a tid (tid+1) seq![Seq.index s tid]
 
 [@@pulse_unfold]
 let kpost (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))

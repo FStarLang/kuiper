@@ -66,7 +66,7 @@ let gpu_pts_to_cell
   (i:nat)
   (v:a)
 : slprop
-= exists* s. gpu_pts_to_array_slice arr #f i (i+1) s **
+= exists* s. gpu_pts_to_slice arr #f i (i+1) s **
              pure (s `Seq.equal` Seq.create 1 v)
 
 ghost
@@ -85,7 +85,7 @@ ensures
   ghost
   fn slice_to_cell (i:nat { 0 <= i /\ i < sz })
   requires
-    gpu_pts_to_array_slice arr #f i (i+1) seq![Seq.index s i]
+    gpu_pts_to_slice arr #f i (i+1) seq![Seq.index s i]
   ensures
     gpu_pts_to_cell arr #f i (Seq.index s i)
   {
@@ -93,7 +93,7 @@ ensures
   };
   bigstar_map
     #_ #_ #0 #sz
-    #(fun i -> gpu_pts_to_array_slice arr #f i (i+1) seq![Seq.index s i])
+    #(fun i -> gpu_pts_to_slice arr #f i (i+1) seq![Seq.index s i])
     #(fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
     slice_to_cell;
 }
@@ -116,16 +116,16 @@ ensures
   requires
     gpu_pts_to_cell arr #f i (Seq.index s i)
   ensures
-    gpu_pts_to_array_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i]
+    gpu_pts_to_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i]
   {
     unfold (gpu_pts_to_cell arr #f i (Seq.index s i));
-    with s'. assert (gpu_pts_to_array_slice arr #f i (i+1) s');
+    with s'. assert (gpu_pts_to_slice arr #f i (i+1) s');
     assert pure (reveal s' `Seq.equal` seq![Seq.index (reveal s) i]);
   };
   bigstar_map
     #_ #_ #0 #sz
     #(fun (i:idx 0 sz) -> gpu_pts_to_cell arr #f i (Seq.index s i))
-    #(fun i -> gpu_pts_to_array_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i])
+    #(fun i -> gpu_pts_to_slice arr #f i (Prims.op_Addition i 1) seq![Seq.index s i])
     cell_to_slice;
   gpu_array_unslice_1 arr #f #s
 }

@@ -37,7 +37,7 @@ fn k_reduce
     invariant b.
       exists* vi vr.
         gpu ** // infer automatically
-        GA.gpu_pts_to_array_slice a 0 (SZ.v size) v ** // infer automatically
+        GA.gpu_pts_to_slice a 0 (SZ.v size) v ** // infer automatically
         (i |-> vi) **
         (r |-> vr) **
         pure (b == (vi <^ size))
@@ -70,7 +70,7 @@ fn k_reduce_and_set
   let r = k_reduce size a;
   unfold (gpu_pts_to_array a v);
   gpu_array_write #tt #(SZ.v size) #0 #(SZ.v size) a 0sz r;
-  with v'. assert (gpu_pts_to_array_slice a 0 (SZ.v size) v');
+  with v'. assert (gpu_pts_to_slice a 0 (SZ.v size) v');
   fold (gpu_pts_to_array a v');
 }
 

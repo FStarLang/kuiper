@@ -60,7 +60,7 @@ fn setup
     requires
       I.gpu_pts_to_matrix rows   shared  ga1 (nblk * nthr) v1 **
       I.gpu_pts_to_matrix shared columns ga2 (nblk * nthr) v2 **
-      gpu_pts_to_array_slice gr i (i + 1) seq![s `Seq.index` i]
+      gpu_pts_to_slice gr i (i + 1) seq![s `Seq.index` i]
     ensures
       K.kpre rows shared columns ga1 ga2 gr #v1 #v2 (nblk * nthr) i
   {
