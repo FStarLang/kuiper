@@ -20,15 +20,16 @@ let smul (s1 : seq u64) (s2 : seq u64 { len s2 == len s1 })
 [@@ CPrologue "__global__"]
 fn kernel (#size : erased nat)
   (a1 a2 ar : gpu_array u64 size)
-  (s1 s2 : (s: erased (seq u64) { len s == size }))
-  (etid : erased tid_t { gdim_x etid * bdim_x etid == size })
-  requires gpu ** thread_id etid ** 
+  (s1 s2 : seq u64)
+  (etid : erased tid_t)
+  (#_ : squash (len s1 == size /\ len s2 == size /\ gdim_x etid * bdim_x etid == size))
+  preserves
+    gpu ** thread_id etid **
     pts_to a1 #(1.0R /. size) s1 **
-    pts_to a2 #(1.0R /. size) s2 **
+    pts_to a2 #(1.0R /. size) s2
+  requires
     gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) 's
-  ensures  gpu ** thread_id etid ** 
-    pts_to a1 #(1.0R /. size) s1 **
-    pts_to a2 #(1.0R /. size) s2 **
+  ensures
     gpu_pts_to_array_slice ar (thread_index etid) (thread_index etid + 1) seq![(smul s1 s2).[thread_index etid]]
 {
   let id = thread_idx_all ();
