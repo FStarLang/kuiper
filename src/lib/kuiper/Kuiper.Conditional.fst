@@ -160,8 +160,6 @@ ghost fn if_flatten (#b1 #b2: bool) (#p: slprop)
 
 // BIGSTAR
 
-#push-options "--print_implicits --print_bound_var_types"
-
 ghost fn bigstar_if_elim
   (#u1 : int)
   (#m: nat)
@@ -177,8 +175,8 @@ ghost fn bigstar_if_elim
 }
 
 ghost
-fn __bigstar_if_intro
-  (#u1 : int)
+fn bigstar_if_intro
+  (#[Tactics.exact (`0)]u1 : int)
   (m: nat)
   (n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
@@ -190,14 +188,3 @@ fn __bigstar_if_intro
   rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
        as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)));
 }
-
-let bigstar_if_intro
-  (#[exact (`0)]u1 : int)
-  (m: nat)
-  (n : nat {m <= n})
-  (x : nat { m <= x /\ x < n })
-  (p: (i: nat { m <= i /\ i < n }) -> slprop)
-  : stt_ghost unit emp_inames
-      (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)))
-  = __bigstar_if_intro #u1 m n x p

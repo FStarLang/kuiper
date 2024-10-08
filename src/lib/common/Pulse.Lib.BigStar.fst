@@ -141,20 +141,19 @@ let bigstar_extensionality_lem
 
 
 ghost
-fn __bigstar_extensionality
-    (#u1: int)
-    (m : nat)
-    (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> slprop))
-    (g: (i: nat{m <= i /\ i < n} -> slprop))
-    (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
+fn bigstar_extensionality
+  (#[exact (`0)] u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
+  (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n g
 {
   bigstar_congr #u1 #u1 m n m n f g (fun j -> h (m+j));
   ();
 }
-let bigstar_extensionality #u1 m n = __bigstar_extensionality #u1 m n
 
 ghost
 fn bigstar_eta
@@ -256,8 +255,9 @@ ghost fn bigstar_zs_elim
   rewrite bigstar #u1 m m f as emp;
 }
 
-ghost fn __bigstar_zs_intro
-  (# u1 : int)
+ghost
+fn bigstar_zs_intro
+  (#[exact (`0)] u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < m} -> slprop))
   requires emp
@@ -265,9 +265,9 @@ ghost fn __bigstar_zs_intro
 {
   rewrite emp as bigstar #u1 m m f;
 }
-let bigstar_zs_intro #u = __bigstar_zs_intro #u
 
-ghost fn bigstar_single_elim
+ghost
+fn bigstar_single_elim
   (#u1 : int)
   (#m : nat)
   (#f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
@@ -278,8 +278,9 @@ ghost fn bigstar_single_elim
   bigstar_zs_elim #u1;
 }
 
-ghost fn __bigstar_single_intro
-  (# u1 : int)
+ghost
+fn bigstar_single_intro
+  (#[exact (`0)] u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
   requires f m
@@ -288,7 +289,6 @@ ghost fn __bigstar_single_intro
   bigstar_zs_intro #u1 (m+1) f;
   bigstar_push #u1 m (m+1) f;
 }
-let bigstar_single_intro #u = __bigstar_single_intro #u
 
 ghost fn rec bigstar_emp_elim
   (#u1 : int)
@@ -307,8 +307,8 @@ ghost fn rec bigstar_emp_elim
 }
 
 ghost
-fn rec __bigstar_emp_intro
-  (#u1 : int)
+fn rec bigstar_emp_intro
+  (#[exact (`0)] u1 : int)
   (m : nat)
   (n : nat {m <= n})
   requires emp
@@ -318,11 +318,10 @@ fn rec __bigstar_emp_intro
   if (m = n) {
     rewrite emp as bigstar #u1 m n (fun _ -> emp);
   } else {
-    __bigstar_emp_intro #u1 (m+1) n;
+    bigstar_emp_intro #u1 (m+1) n;
     bigstar_push #u1 m n (fun _ -> emp);
   }
 }
-let bigstar_emp_intro #u1 m n = __bigstar_emp_intro #u1 m n
 
 
 
@@ -359,9 +358,9 @@ fn rec bigstar_map'
 }
 
 ghost
-fn __bigstar_map
+fn bigstar_map
   (#u1 : int)
-  (#u2 : int)
+  (#[exact (`0)]u2 : int)
   (#m : nat)
   (#n : nat {m <= n})
   (#f: (i: nat{m <= i /\ i < n} -> slprop))
@@ -376,7 +375,6 @@ fn __bigstar_map
   bigstar_map' #u1 #u2 #m #n #m #n #f #g stt;
   bigstar_uneta ();
 }
-let bigstar_map #u1 #u2 = __bigstar_map #u1 #u2
 
 let lemma_eq
   (#u2 : int)
@@ -390,7 +388,8 @@ let lemma_eq
   Lemma (f i m1 ** bigstar #u2 (m1 + 1) n1 (fun (j: nat{(m1 + 1) <= j /\ j < n1}) -> f i j) == f i m1 ** bigstar #u2 (m1 + 1) n1 (fun (j: nat{(m1 + 1) <= j /\ j < n1}) -> f i j))
   = ()
 
-ghost fn rec bigstar_commute
+ghost
+fn rec bigstar_commute
   (#u1 #u2 : int)
   (m0 : nat)
   (n0 : nat {m0 <= n0})
@@ -454,12 +453,13 @@ fn rec bigstar_zip'
 }
 
 ghost
-fn __bigstar_zip
-    (#u1 #u2 #u3 : int)
-    (m : nat)
-    (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> slprop))
-    (g: (i: nat{m <= i /\ i < n} -> slprop))
+fn bigstar_zip
+  (#u1 #u2 : int)
+  (#[exact (`0)]u3 : int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u1 m n f ** bigstar #u2 m n g
   ensures  bigstar #u3 m n (fun (i: nat { m <= i /\ i < n }) -> f i ** g i)
 {
@@ -467,7 +467,6 @@ fn __bigstar_zip
   bigstar_eta () #u2;
   bigstar_zip' #u1 #u2 #u3 #m #n m n f g;
 }
-let bigstar_zip #u1 #u2 #u3 = __bigstar_zip #u1 #u2 #u3
 
 ghost
 fn rec bigstar_unzip'
@@ -499,18 +498,19 @@ fn rec bigstar_unzip'
 }
 
 ghost
-fn __bigstar_unzip
-    (#u1 #u2 #u3 : int)
-    (m : nat)
-    (n : nat {m <= n})
-    (f: (i: nat{m <= i /\ i < n} -> slprop))
-    (g: (i: nat{m <= i /\ i < n} -> slprop))
+fn bigstar_unzip
+  (#[exact (`0)]u1 : int)
+  (#[exact (`0)]u2 : int)
+  (#u3 : int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
   requires bigstar #u3 m n (fun i -> f i ** g i)
   ensures  bigstar #u1 m n f ** bigstar #u2 m n g
 {
   bigstar_unzip' #u1 #u2 #u3 #m #n m n f g;
 }
-let bigstar_unzip #u1 #u2 #u3 = __bigstar_unzip #u1 #u2 #u3
 
 // Bigstar cond
 
@@ -569,8 +569,8 @@ ghost fn cond_rewrite_bool_2
 }
 
 ghost
-fn __bigstar_if_intro
-  (#u1 : int)
+fn bigstar_if_intro
+  (#[exact (`0)]u1 : int)
   (m: nat)
   (n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
@@ -591,19 +591,6 @@ fn __bigstar_if_intro
     (fun (i: nat { (x + 1) <= i /\ i < n }) -> cond_rewrite_bool false (i = x) #(p (i <: nat)) #emp);
   bigstar_compose #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp) x;
 }
-
-let bigstar_if_intro
-  (#[exact (`0)]u1 : int)
-  (m: nat)
-  (n : nat {m <= n})
-  (x : nat { m <= x /\ x < n })
-  (p: (i: nat { m <= i /\ i < n }) -> slprop)
-  : stt_ghost unit emp_inames
-      (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
-  = __bigstar_if_intro #u1 m n x p
-
-// #push-options "--print_implicits --print_bound_var_types"
 
 ghost fn bigstar_permute
   (#u1 : int)
@@ -632,24 +619,31 @@ ghost fn bigstar_permute
   // bigstar 0 n (fun i -> f (p.f i))
 }
 
-let bigstar_flatten
+ghost
+fn bigstar_flatten
   (#u1 #u2 : int)
   (#n1 : nat)
   (#n2 : nat)
   (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
-  : stt_ghost unit emp_inames
-      (bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i)))
-      (fun _ -> bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))) = admit() // TODO
+  requires bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
+  ensures  bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
+{
+  admit(); // TODO
+}
 
-let bigstar_exists
+(* Axiom of choice. *)
+ghost
+fn bigstar_exists
   (#a : Type0) // TODO: arbitrary type doesn't work here?
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
   (#f: a -> (i: nat{m <= i /\ i < n} -> slprop))
-  : stt_ghost unit emp_inames
-      (bigstar #u1 m n (fun i -> exists* (x: a). f x i))
-      (fun _ -> exists* (x: (i:nat { m <= i /\ i < n }) -> a). bigstar #u1 m n (fun i -> f (x i) i)) = admit() // TODO
+  requires bigstar #u1 m n (fun i -> exists* (x: a). f x i)
+  ensures  exists* (xf : (i: nat{m <= i /\ i < n} -> a)). bigstar #u1 m n (fun i -> f (xf i) i)
+{
+  admit();
+}
 
 module Set = FStar.FiniteSet.Base
 let rec bigstar_except
@@ -664,7 +658,6 @@ let rec bigstar_except
   else if Set.mem m s 
   then bigstar_except #u1 (m+1) n f (Set.remove m s)
   else f m ** bigstar_except #u1 (m+1) n f s
-    
 
 let rec bigstar_except_equiv'
   (#u1: int)

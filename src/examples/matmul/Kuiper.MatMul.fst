@@ -58,18 +58,6 @@ fn setup
   bigstar_eta();
 }
 
-#set-options "--print_implicits --print_universes"
-
-
-let test_t =
-  (a : array u64) ->
-  (vv : erased (seq u64)) ->
-  stt_ghost
-    (x : seq u64 {len x == len vv})
-    emp_inames
-    (a |-> vv)
-    (fun x -> a |-> vv)
-
 fn main
   (rows shared columns : szp)
   (a b : array u64)

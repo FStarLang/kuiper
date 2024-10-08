@@ -201,7 +201,7 @@ fn outer_loop
   assert (pure ((SZ.v iv * 2) % 2 == 0 /\ (1 + SZ.v iv * 2) % 2 <> 0));
 
   // Share smem permission with all threads
-  gpu_slice_share_underspec #0 #u64 #smem_sz ar #1.0R (2 * tid) (2 * tid + 2) nthr;
+  gpu_slice_share_underspec #0 #u64 #smem_sz ar (2 * tid) (2 * tid + 2) nthr;
   bigstar_map #0 #0 #0 #nthr #_ #_ (Barrier.fold_barrier_mm_even nthr smem_sz ar (2*iv) tid);
   mbarrier_wait #nthr #(Barrier.barrier_mm nthr ar) #(2 * SZ.v iv) #tid;
   bigstar_map #0 #0 #0 #nthr #_ #_ (fun from -> Barrier.transfer_barrier_mm nthr smem_sz ar (2*iv) from tid);

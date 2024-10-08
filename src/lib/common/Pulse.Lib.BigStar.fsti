@@ -63,16 +63,16 @@ val bigstar_extensionality_lem
   (h: ((i: nat{m <= i /\ i < n}) -> slprop_equiv (f i) (g i)))
   : Lemma (slprop_equiv (bigstar #u1 m n f) (bigstar #u2 m n g))
 
-val bigstar_extensionality
+ghost
+fn bigstar_extensionality
   (#[exact (`0)] u1: int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> slprop))
   (g: (i: nat{m <= i /\ i < n} -> slprop))
   (h: ((i: nat{m <= i /\ i < n}) -> squash (f i == g i)))
-  : stt_ghost unit emp_inames
-      (requires bigstar #u1 m n f)
-      (ensures fun _ -> bigstar #u1 m n g)
+  requires bigstar #u1 m n f
+  ensures  bigstar #u1 m n g
 
 ghost
 fn bigstar_eta
@@ -133,13 +133,13 @@ fn bigstar_zs_elim
   requires bigstar #u1 m m f
   ensures  emp
 
-val bigstar_zs_intro
+ghost
+fn bigstar_zs_intro
   (#[exact (`0)] u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < m} -> slprop))
-  : stt_ghost unit emp_inames
-      (requires emp)
-      (ensures  fun _ -> bigstar #u1 m m f)
+  requires emp
+  ensures  bigstar #u1 m m f
 
 ghost
 fn bigstar_single_elim
@@ -149,13 +149,13 @@ fn bigstar_single_elim
   requires bigstar #u1 m (m+1) f
   ensures  f m
 
-val bigstar_single_intro
+ghost
+fn bigstar_single_intro
   (#[exact (`0)] u1 : int)
   (m : nat)
   (f: (i: nat{m <= i /\ i < (m+1)} -> slprop))
-  : stt_ghost unit emp_inames
-      (requires f m)
-      (ensures  fun _ -> bigstar #u1 m (m+1) f)
+  requires f m
+  ensures  bigstar #u1 m (m+1) f
 
 ghost
 fn bigstar_emp_elim
@@ -165,16 +165,16 @@ fn bigstar_emp_elim
   requires bigstar #u1 m n (fun _ -> emp)
   ensures  emp
 
-val bigstar_emp_intro
+ghost
+fn rec bigstar_emp_intro
   (#[exact (`0)] u1 : int)
   (m : nat)
   (n : nat {m <= n})
-  : stt_ghost unit emp_inames
-      (requires emp)
-      (ensures  fun _ -> bigstar #u1 m n (fun _ -> emp))
+  requires emp
+  ensures  bigstar #u1 m n (fun _ -> emp)
 
-// No meta args in pulse syntax, so F* val for now
-val bigstar_map
+ghost
+fn bigstar_map
   (#u1 : int)
   (#[exact (`0)]u2 : int)
   (#m : nat)
@@ -184,11 +184,11 @@ val bigstar_map
   (stt: ((i: nat{m <= i /\ i < n}) -> stt_ghost unit emp_inames
             (f i)
             (fun _ -> g i)))
-: stt_ghost unit emp_inames
-            (bigstar #u1 m n f)
-            (fun _ -> bigstar #u2 m n g)
+  requires bigstar #u1 m n f
+  ensures  bigstar #u2 m n g
 
-ghost fn bigstar_commute
+ghost
+fn bigstar_commute
   (#u1 #u2 : int)
   (m0 : nat)
   (n0 : nat {m0 <= n0})
@@ -198,22 +198,20 @@ ghost fn bigstar_commute
   requires bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> f i j))
   ensures  bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j))
 
-// No meta args in pulse syntax, so F* val for now
 [@@allow_ambiguous]
-val bigstar_zip
+ghost
+fn bigstar_zip
   (#u1 #u2 : int)
   (#[exact (`0)]u3 : int)
   (m : nat)
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> slprop))
   (g: (i: nat{m <= i /\ i < n} -> slprop))
-: stt_ghost unit
-            emp_inames
-            (bigstar #u1 m n f ** bigstar #u2 m n g)
-            (fun _ -> bigstar #u3 m n (fun i -> f i ** g i))
+  requires bigstar #u1 m n f ** bigstar #u2 m n g
+  ensures  bigstar #u3 m n (fun (i: nat { m <= i /\ i < n }) -> f i ** g i)
 
-// No meta args in pulse syntax, so F* val for now
-val bigstar_unzip
+ghost
+fn bigstar_unzip
   (#[exact (`0)]u1 : int)
   (#[exact (`0)]u2 : int)
   (#u3 : int)
@@ -221,12 +219,11 @@ val bigstar_unzip
   (n : nat {m <= n})
   (f: (i: nat{m <= i /\ i < n} -> slprop))
   (g: (i: nat{m <= i /\ i < n} -> slprop))
-: stt_ghost unit
-            emp_inames
-            (bigstar #u3 m n (fun i -> f i ** g i))
-            (fun _ -> bigstar #u1 m n f ** bigstar #u2 m n g)
+  requires bigstar #u3 m n (fun i -> f i ** g i)
+  ensures  bigstar #u1 m n f ** bigstar #u2 m n g
 
-ghost fn bigstar_if_elim
+ghost
+fn bigstar_if_elim
   (#u1 : int)
   (#m: nat)
   (#n : nat {m <= n})
@@ -235,15 +232,15 @@ ghost fn bigstar_if_elim
   requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp)
   ensures  p x
 
-val bigstar_if_intro
+ghost
+fn bigstar_if_intro
   (#[exact (`0)]u1 : int)
   (m: nat)
   (n : nat {m <= n})
   (x : nat { m <= x /\ x < n })
   (p: (i: nat { m <= i /\ i < n }) -> slprop)
-  : stt_ghost unit emp_inames
-      (requires p x)
-      (ensures  fun _ -> bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
+  requires p x
+  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp)
 
 class permutation (a:Type) = {
    f          : a -> a;
@@ -258,7 +255,8 @@ instance perm_inv (#a:Type) (p: permutation a) : permutation a = {
   proof = fun x y -> p.proof y x
 }
 
-ghost fn bigstar_permute
+ghost
+fn bigstar_permute
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
@@ -267,7 +265,8 @@ ghost fn bigstar_permute
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
 
-ghost fn bigstar_exists
+ghost
+fn bigstar_exists
   (#a : Type0) // TODO: arbitrary type doesn't work here?
   (#u1 : int)
   (#m : nat)
@@ -276,8 +275,8 @@ ghost fn bigstar_exists
   requires bigstar #u1 m n (fun i -> exists* (x: a). f x i)
   ensures  exists* (x: (i:nat { m <= i /\ i < n }) -> a). bigstar #u1 m n (fun i -> f (x i) i)
 
-
-ghost fn bigstar_flatten
+ghost
+fn bigstar_flatten
   (#u1 #u2 : int)
   (#n1 : nat)
   (#n2 : nat)
