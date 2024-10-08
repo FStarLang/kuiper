@@ -6,17 +6,16 @@ while read msg; do
   if ! echo "$msg" | grep -q '^{'; then
     continue
   fi
-  if [ x$(echo "$msg" | jq .level) == 'x"Error"' ]; then
-    file=$(echo "$msg" | jq .range.def.file_name)
-    line=$(echo "$msg" | jq .range.def.start_pos.line)
-    endLine=$(echo "$msg" | jq .range.def.end_pos.line)
-    body=$(echo "$msg" | jq .msg | tr -d '\n')
-    echo "::error file=$file,line=$line,endLine=$endLine::$body"
-  elif [ x$(echo "$msg" | jq .level) == 'x"Warning"' ]; then
-    file=$(echo "$msg" | jq .range.def.file_name)
-    line=$(echo "$msg" | jq .range.def.start_pos.line)
-    endLine=$(echo "$msg" | jq .range.def.end_pos.line)
-    body=$(echo "$msg" | jq .msg | tr -d '\n')
-    echo "::warning file=$file,line=$line,endLine=$endLine::$body"
+  level=$(jq .level <<< $msg)
+  file=$(jq -r .range.def.file_name <<< $msg)
+  file=$(realpath --relative-to=. "${file}")
+  line=$(jq .range.def.start_pos.line <<< $msg)
+  endLine=$(jq .range.def.end_pos.line <<< $msg)
+  body=$(cat <<< $msg | jq '.msg | join (". ")' | tr '\n' ' ')
+  if [ "${level}" == "Error" ]; then
+    glevel=error
+  elif [ "${level}" == "Warning" ]; then
+    glevel=warning
   fi
+  echo "::${glevel} file=$file,line=$line,endLine=$endLine::$body"
 done
