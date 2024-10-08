@@ -51,7 +51,8 @@ let barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: 
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
 
-ghost fn fold_barrier_matrix_true
+ghost
+fn fold_barrier_matrix_true
   (nth : nat)
   (r: gpu_array ety nth)
   (v: seq ety { len v == nth })
@@ -66,7 +67,8 @@ ghost fn fold_barrier_matrix_true
   fold (barrier_matrix nth r v it tid to);
 }
 
-ghost fn fold_barrier_matrix_false
+ghost
+fn fold_barrier_matrix_false
   (nth : nat)
   (r: gpu_array ety nth)
   (v: seq ety { len v == nth })

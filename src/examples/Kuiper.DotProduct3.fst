@@ -179,7 +179,8 @@ fn gather_array
   admit();
 }
 
-ghost fn setup
+ghost
+fn setup
   (nthr: SZ.t { 0 < SZ.v nthr /\ SZ.v nthr <= 1024 })
   (ear: gpu_array u64 nthr)
   (bid: SZ.t)

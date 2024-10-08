@@ -27,7 +27,8 @@ let bigstar_defn (#uid : int) (m : nat) (n : nat {m <= n}) (f : (i:nat { m <= i 
   = assert (bigstar #uid m n f == (if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
         by (T.trefl())
 
-ghost fn bigstar_pop
+ghost
+fn bigstar_pop
   (#u1 : int)
   (#m : nat)
   (#n : nat {m < n})
@@ -40,7 +41,8 @@ ghost fn bigstar_pop
       as  (                       f m ** bigstar #u1 (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i));
 }
 
-ghost fn bigstar_push
+ghost
+fn bigstar_push
   (#u1 : int)
   (m : nat)
   (n : nat {m < n})
@@ -198,7 +200,8 @@ fn bigstar_rw_congr
   ();
 }
 
-ghost fn rec bigstar_extract
+ghost
+fn rec bigstar_extract
     (#u1 : int)
     (m : nat)
     (n : nat {m <= n})
@@ -219,7 +222,8 @@ ghost fn rec bigstar_extract
   }
 }
 
-ghost fn rec bigstar_compose
+ghost
+fn rec bigstar_compose
     (#u1 : int)
     (m : nat)
     (n : nat {m <= n})
@@ -245,7 +249,8 @@ ghost fn rec bigstar_compose
   }
 }
 
-ghost fn bigstar_zs_elim
+ghost
+fn bigstar_zs_elim
   (#u1 : int)
   (#m : nat)
   (#f: (i: nat{m <= i /\ i < m} -> slprop))
@@ -290,7 +295,8 @@ fn bigstar_single_intro
   bigstar_push #u1 m (m+1) f;
 }
 
-ghost fn rec bigstar_emp_elim
+ghost
+fn rec bigstar_emp_elim
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})
@@ -514,7 +520,8 @@ fn bigstar_unzip
 
 // Bigstar cond
 
-ghost fn with_pure
+ghost
+fn with_pure
   (#p #q: slprop)
   (b: prop)
   (op: unit -> stt_ghost unit emp_inames (p ** pure b) (fun _ -> q))
@@ -525,7 +532,8 @@ ghost fn with_pure
   op ();
 }
 
-ghost fn bigstar_if_elim
+ghost
+fn bigstar_if_elim
   (#u1 : int)
   (#m: nat)
   (#n : nat {m <= n})
@@ -547,7 +555,8 @@ ghost fn bigstar_if_elim
   elim_cond_true (x = x) (p x) emp;
 }
 
-ghost fn cond_rewrite_bool
+ghost
+fn cond_rewrite_bool
   (b1 b2: bool)
   (#p #q: slprop)
   (#_: squash (b1 == b2))
@@ -557,7 +566,8 @@ ghost fn cond_rewrite_bool
   ()
 }
 
-ghost fn cond_rewrite_bool_2
+ghost
+fn cond_rewrite_bool_2
   (b1 b2: bool)
   (#p #q: slprop)
   (#pf: unit -> squash (b1 <==> b2))
@@ -592,7 +602,8 @@ fn bigstar_if_intro
   bigstar_compose #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp) x;
 }
 
-ghost fn bigstar_permute
+ghost
+fn bigstar_permute
   (#u1 : int)
   (#m : nat)
   (#n : nat {m <= n})

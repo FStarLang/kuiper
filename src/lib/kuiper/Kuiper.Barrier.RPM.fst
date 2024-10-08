@@ -33,7 +33,8 @@ fn mk_mbarrier_proof
 }
 
 // TODO: remove
-ghost fn fold_mbarrier_tok
+ghost
+fn fold_mbarrier_tok
   (#n:nat)
   (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
   (b : B.barrier n)
