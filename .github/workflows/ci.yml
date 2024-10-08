@@ -19,6 +19,7 @@ jobs:
         shell: bash
     steps:
       - run: |
+          sudo apt install jq
           whoami
           id
           env
