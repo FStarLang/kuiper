@@ -41,4 +41,4 @@ ARG OCAML_VERSION=4.14.1
 RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing
 RUN opam option depext-run-installs=true
 ENV OPAMYES=1
-RUN opam install --yes batteries zarith stdint yojson dune menhir menhirLib pprint sedlex ppxlib process ppx_deriving ppx_deriving_yojson memtrace visitors uucp wasm fix
+RUN opam install --yes batteries zarith stdint yojson dune menhir menhirLib pprint sedlex ppxlib process ppx_deriving ppx_deriving_yojson memtrace visitors uucp wasm fix mtime
