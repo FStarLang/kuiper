@@ -27,6 +27,7 @@ $(OUTPUT_DIRECTORY)/%.ml: %.fst
 	$(call msg, "EXTRACT", $(notdir $@))
 	$(Q)$(BENCHMARK_PRE) $(FSTAR_C) $< \
 		   --odir "$(OUTPUT_DIRECTORY)" \
+		   --MLish_effect FStarC.Compiler.Effect \
 		   --codegen OCaml \
 		   --extract_module $(basename $(notdir $<))
 	chmod -x $@

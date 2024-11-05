@@ -1,22 +1,22 @@
 module ExtractKuiper
 
-friend FStar.Extraction.Krml
-open FStar.Extraction.Krml
+friend FStarC.Extraction.Krml
+open FStarC.Extraction.Krml
 
 open FStar
-open FStar.Compiler
-open FStar.Compiler.Effect
+open FStarC.Compiler
+open FStarC.Compiler.Effect
 open FStar.List.Tot
-open FStar.Extraction
-open FStar.Extraction.ML
-open FStar.Extraction.ML.Syntax
-open FStar.Const
+open FStarC.Extraction
+open FStarC.Extraction.ML
+open FStarC.Extraction.ML.Syntax
+open FStarC.Const
 
-open FStar.Class.Show
+open FStarC.Class.Show
 
 exception Failed of string
 
-module BU = FStar.Compiler.Util
+module BU = FStarC.Compiler.Util
 
 let flatten_app e =
   let rec aux args e =
@@ -314,8 +314,8 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let e' =
       with_ty ml_unit_ty <|
         MLE_App (kcall, [ hd;
-                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStar.Const.Int32)));
-                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStar.Const.Int32))) ]
+                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStarC.Const.Int32)));
+                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStarC.Const.Int32))) ]
                         @ args')
     in
     cb e'
@@ -338,7 +338,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
       with_ty ml_unit_ty <|
         MLE_App (kcall, [ hd;
                           nthr;
-                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStar.Const.Int32))) ]
+                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStarC.Const.Int32))) ]
                         @ args')
     in
     cb e'
