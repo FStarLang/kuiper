@@ -10,12 +10,10 @@ include .common.mk
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
-# We DO NOT read FSTAR_HOME externally.
-FSTAR_HOME=$(PWD)/FStar
-KRML_HOME=$(PWD)/karamel
-FSTAR_EXE := $(FSTAR_HOME)/bin/fstar.exe
+KRML_HOME := $(CURDIR)/karamel
+FSTAR_EXE := $(CURDIR)/FStar/out/bin/fstar.exe
 
-export FSTAR_HOME
+export FSTAR_EXE
 export KRML_HOME
 
 # Hack to print a newline in the $(error ...)
@@ -24,10 +22,9 @@ define newline
 
 endef
 
-.b_fstar: $(shell find FStar/ocaml/ -type f) FStar/Makefile
+.b_fstar: $(shell find FStar/src -type f) FStar/Makefile
 	@echo FSTAR
-	$(MAKE) -C FStar 1
-	@mkdir -p FStar/ulib/.cache
+	$(MAKE) -C FStar ADMIT=1
 	@touch $@
 
 FStar/Makefile:
@@ -35,7 +32,9 @@ FStar/Makefile:
 
 .b_karamel: $(shell find karamel/ -type f) karamel/Makefile
 	@echo KRML
-	$(MAKE) FSTAR_HOME=$(PWD)/FStar -C karamel minimal
+	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
+	@# is minimal enough?
+	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel FSTAR_EXE=$(FSTAR_EXE) ADMIT=1 minimal
 	@touch $@
 
 karamel/Makefile:
@@ -43,7 +42,7 @@ karamel/Makefile:
 
 .b_pulse: .b_fstar $(shell find pulse/ -type f) pulse/Makefile
 	@echo PULSE
-	$(MAKE) FSTAR_HOME=$(PWD)/FStar -C pulse/src build-ocaml
+	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) KRML_HOME=$(KRML_HOME) ADMIT=1
 	@touch $@
 
 pulse/Makefile:
@@ -59,7 +58,7 @@ CACHEDIR := .cache
 OUTDIR   := out
 
 # Without .cmxs extension
-PLUGIN=extraction/dune/_build/default/gpuextr
+PLUGIN=extraction/dune/_build/default/kuiper_extr
 
 ifneq ($(D),)
 FSTAR_DEBUG := --debug $D
@@ -81,9 +80,9 @@ FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
-FSTAR = $(FSTAR_EXE)				\
+FSTAR = $(FSTAR_EXE)					\
 	$(SIL)						\
-	--include pulse					\
+	--include pulse/out/lib/pulse			\
 	--include src					\
 	$(FSTAR_FLAGS)
 

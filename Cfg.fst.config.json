@@ -11,7 +11,7 @@
     "--cache_dir", ".cache"
   ],
   "include_dirs": [
-    "pulse",
+    "pulse/out/lib/pulse",
     "src"
   ]
 }

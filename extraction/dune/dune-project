@@ -1,8 +1,8 @@
 (lang dune 3.2)
-(name gpuextr)
+(name kuiper_extr)
 (generate_opam_files false)
 (using menhir 2.1)
 (package
-  (name gpuextr)
-  (synopsis "Extracton plugin for GPU DSL")
+  (name kuiper_extr)
+  (synopsis "Extracton plugin for Kuiper DSL")
 )

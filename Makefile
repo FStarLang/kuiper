@@ -8,12 +8,6 @@ all:
 test:
 	+$(MAKE) -f verify.mk test
 
-.PHONY: reboot
-reboot:
-	FSTAR_HOME=$(CURDIR)/FStar && cd FStar/ && $(MAKE) 1 && $(MAKE) bootstrap ADMIT=1
-	FSTAR_HOME=$(CURDIR)/FStar && cd pulse/ && $(MAKE) boot-checker OTHERFLAGS='--admit_smt_queries true'
-
-
 .PHONY: echo-fstar
 echo-fstar:
 	+$(MAKE) -f verify.mk $@
