@@ -86,6 +86,8 @@ fn kernel
   assume (pure (len v_a == reveal nn));
   let tid = thread_idx_all ();
   rewrite each thread_index etid as SZ.v tid;
+  later_credit_buy 1;
+  later_credit_buy 1;
   (* Read array at idx *)
   let v =
     with_invariants i
@@ -94,23 +96,28 @@ fn kernel
         gpu **
         thread_id etid **
         gref_pts_to (done @! tid) #0.5R false **
-        inv_p (SZ.v nn) a v_a r done **
-        pure (v == v_a @! SZ.v tid)
+        later (inv_p (SZ.v nn) a v_a r done) **
+        pure (v == v_a @! SZ.v tid) **
+        later_credit 1
     {
+      later_elim _;
       unfold inv_p;
       let rr = gpu_array_read #u64 #(SZ.v nn) #0 #(SZ.v nn) a tid;
       fold inv_p;
+      later_intro (inv_p (SZ.v nn) a v_a r done);
       rr
     };
   (* Fetch and add into result cell. *)
   with_invariants i
   {
+    later_elim _;
     unfold inv_p;
     gpu_faa_u64 r v;
     bigstar_ghost_upd_lemma done _ _ ;
     assume (pure False); (* FIXME *)
     rewrite each SZ.v tid as thread_index etid;
     fold inv_p;
+    later_intro (inv_p (SZ.v nn) a v_a r done);
   }
 }
 
