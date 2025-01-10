@@ -1,5 +1,8 @@
 include .common.mk
 
+.PHONY: .force
+.force:
+
 # I HATE MAKE!
 .SUFFIXES:
 .PRECIOUS: out/%.c
@@ -22,7 +25,7 @@ define newline
 
 endef
 
-.b_fstar: $(shell find FStar/src -type f) FStar/Makefile
+.fstar.touch: $(shell find FStar/src FStar/ulib -type f) FStar/Makefile
 	@echo FSTAR
 	$(MAKE) -C FStar ADMIT=1
 	@touch $@
@@ -30,7 +33,7 @@ endef
 FStar/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
-.b_karamel: $(shell find karamel/ -type f) karamel/Makefile
+.krml.touch: .fstar.touch $(shell find karamel/ -type f)
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
 	@# is minimal enough?
@@ -40,9 +43,9 @@ FStar/Makefile:
 karamel/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
-.b_pulse: .b_fstar $(shell find pulse/ -type f) pulse/Makefile
+.pulse.touch: .fstar.touch $(shell find pulse/ -type f) pulse/Makefile
 	@echo PULSE
-	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) KRML_HOME=$(KRML_HOME) ADMIT=1
+	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) ADMIT=1
 	@touch $@
 
 pulse/Makefile:
@@ -117,7 +120,12 @@ include .depend
 verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
-%.checked: | .b_fstar .b_pulse
+%.checked: | .fstar.touch
+	@$(call msg,"CHECK")
+	$(Q)$(FSTAR) --already_cached '*' $<
+	@touch -c $@
+
+$(CACHEDIR)/Kuiper.%.checked: | .fstar.touch .pulse.touch
 	@$(call msg,"CHECK")
 	$(Q)$(FSTAR) --already_cached '*' $<
 	@touch -c $@
@@ -144,7 +152,7 @@ echo-krml:
 
 # NB: The dependency analysis needs to parse the files, so it needs
 # the Pulse plugin
-.depend: $(ROOTS) .b_fstar .b_pulse
+.depend: $(ROOTS) .fstar.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --dep full $(ROOTS) --output_deps_to $@
 
