@@ -5,7 +5,6 @@ include .common.mk
 
 # I HATE MAKE!
 .SUFFIXES:
-.PRECIOUS: out/%.c
 .PRECIOUS: out/%.cu
 .PRECIOUS: out/%.o
 .PRECIOUS: out/%.output
@@ -60,9 +59,6 @@ ROOTS := $(call FILTER_OUT,MatMulOpt,$(ROOTS))
 CACHEDIR := .cache
 OUTDIR   := out
 
-# Without .cmxs extension
-PLUGIN=extraction/dune/_build/default/kuiper_extr
-
 ifneq ($(D),)
 FSTAR_DEBUG := --debug $D
 endif
@@ -97,6 +93,7 @@ KRML := $(KRML_HOME)/krml				\
 	-fcast-allocations				\
 	-skip-compilation				\
 	-skip-makefiles					\
+	-cuda						\
 	$(if $(V), -verbose,-silent)			\
 	-drop Prims					\
 	-minimal					\
@@ -139,8 +136,12 @@ $(CACHEDIR)/Kuiper.%.checked: | .fstar.touch .pulse.touch
 # rename themwould add Pulse but we have some modules in the Pulse namespace here.
 .cache/FStar.%.checked: FSTAR_FLAGS+=--admit_smt_queries true
 
-$(PLUGIN).cmxs: $(FSTAR_EXE)
+# Without .cmxs extension
+PLUGIN=extraction/dune/_build/default/kuiper_extr
+
+.plugin.touch: .fstar.touch $(shell find extraction -type f)
 	+$(MAKE) -C extraction build
+	touch $@
 
 .PHONY: echo-fstar
 echo-fstar:
@@ -158,18 +159,10 @@ echo-krml:
 
 SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
 
-# FIXME: find a way to invalidate when plugin changes. The added dependency below does
-# not do that.
-$(OUTDIR)/%.krml: | $(PLUGIN).cmxs
+$(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
-	@# NOTE: loading pulse.cmxs not really required since we will parse
-	@# these files again, triggering the autoload. But we should not do that,
-	@# and instead just start from the .checked file, and in that case we need
-	@# to specify the plugin manually here, or leave a breadcrumb stating it should
-	@# loaded for extraction too.
 	$(Q)$(FSTAR) --codegen krml 						\
-		--load_cmxs pulse						\
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
@@ -178,7 +171,7 @@ $(OUTDIR)/%.krml: | $(PLUGIN).cmxs
 		--krmloutput $@							\
 		$(call SRC_FILE_FOR_CHECKED,$<)
 
-$(OUTDIR)/%.c: $(OUTDIR)/%.krml .b_karamel
+$(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	@# Awful substitution here to get the module name, turning something like
 	@# out/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
@@ -186,9 +179,6 @@ $(OUTDIR)/%.c: $(OUTDIR)/%.krml .b_karamel
 	$(KRML) \
 		-bundle "$${MOD}=*" \
 		-tmpdir $(OUTDIR) $<
-
-$(OUTDIR)/%.cu: $(OUTDIR)/%.c
-	@ln -sf $(realpath $<) $@
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
