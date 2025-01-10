@@ -57,11 +57,7 @@ jobs:
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)
-          make -skj$(nproc) -Otarget ci OTHERFLAGS='--message_format json' |& tee LOG
-
-      - name: Emit warnings/errors if any
-        if: ${{ always () }}
-        run: cat LOG | ./scripts/format_for_github_actions.sh
+          make -skj$(nproc) -Otarget ci |& tee LOG
 
       - name: Make artifact with output
         if: ${{ always () }}
