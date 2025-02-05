@@ -4,8 +4,8 @@ friend FStarC.Extraction.Krml
 open FStarC.Extraction.Krml
 
 open FStar
-open FStarC.Compiler
-open FStarC.Compiler.Effect
+open FStarC
+open FStarC.Effect
 open FStar.List.Tot
 open FStarC.Extraction
 open FStarC.Extraction.ML
@@ -16,7 +16,7 @@ open FStarC.Class.Show
 
 exception Failed of string
 
-module BU = FStarC.Compiler.Util
+module BU = FStarC.Util
 
 let flatten_app e =
   let rec aux args e =
