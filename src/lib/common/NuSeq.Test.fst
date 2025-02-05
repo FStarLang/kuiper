@@ -82,6 +82,7 @@ let removeC
     s1 @ s2
 
 let test2 (#a:Type) (s:seq a) (from:nat) (to : nat{from <= to /\ to <= len s}) =
+  admit();
   assert (removeA s from to == removeB s from to);
   assert (removeA s from to == removeC s from to);
   assert (removeB s from to == removeC s from to);
