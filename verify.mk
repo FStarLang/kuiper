@@ -94,7 +94,7 @@ KRML := $(KRML_HOME)/krml				\
 	-skip-compilation				\
 	-skip-makefiles					\
 	-cuda						\
-	$(if $(V), -verbose,-silent)			\
+	$(if $(V),-verbose,-silent)			\
 	-drop Prims					\
 	-minimal					\
 	-warn-error -2@4-10@18
@@ -153,9 +153,9 @@ echo-krml:
 
 # NB: The dependency analysis needs to parse the files, so it needs
 # the Pulse plugin
-.depend: $(ROOTS) .fstar.touch .pulse.touch
+.depend: $(ROOTS) .fstar.touch .krml.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --dep full $(ROOTS) --output_deps_to $@
+	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,Pulse,LowStar,Prims' --dep full $(ROOTS) --output_deps_to $@
 
 SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
 
