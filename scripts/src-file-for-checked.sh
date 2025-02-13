@@ -3,5 +3,6 @@
 set -eu
 
 CHK=$1
+CHK=${CHK//\//\\\/} # escape slashes
 
-cat .depend | sed -n 's,^'"$1"': \([^\\]*\)\\$,\1,p'
+cat .depend | sed -n "/^$CHK: \\\\$/{n;s,^[[:space:]]*\([^\\ ]*\) \\\\$,\1,p}"
