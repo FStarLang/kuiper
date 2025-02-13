@@ -6,6 +6,11 @@ on:
     - _**
   pull_request:
   workflow_dispatch:
+    inputs:
+      debug:
+        description: Enable debug output
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -54,10 +59,16 @@ jobs:
           nvcc -I include/ -o out/startup.exe test/startup.cu
           ./out/startup.exe
 
+      - name: Set debug mode
+        if: ${{ inputs.debug }}
+        run: |
+          echo "V=1" >>$GITHUB_ENV
+          echo "OTHERFLAGS=-d" >>$GITHUB_ENV
+
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)
-          make V=1 -skj$(nproc) -Otarget ci |& tee LOG
+          make -kj$(nproc) -Otarget ci |& tee LOG
 
       - name: Make artifact with output
         if: ${{ always () }}
@@ -76,7 +87,7 @@ jobs:
           done || true
 
       - name: Make artifact with failed state
-        if: ${{ failure () }}
+        if: ${{ always () && inputs.debug }}
         uses: actions/upload-artifact@master
         with:
           name: all
