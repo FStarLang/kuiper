@@ -157,7 +157,6 @@ echo-krml:
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,Pulse,LowStar,Prims' --dep full $(ROOTS) --output_deps_to $@
 
-SRC_FILE_FOR_CHECKED = $(shell ./scripts/src-file-for-checked.sh $(1))
 
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!
@@ -169,7 +168,7 @@ $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 		--extract "+Kuiper"						\
 		--odir $(shell dirname $@)					\
 		--krmloutput $@							\
-		$(call SRC_FILE_FOR_CHECKED,$<)
+		$<
 
 $(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
