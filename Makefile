@@ -27,3 +27,8 @@ watch:
 		$(MAKE) ;\
 		inotifywait -qre close_write .; \
 	done
+
+clean:
+	rm -rf out
+	rm -rf .cache
+	git submodule foreach git clean -Xf
