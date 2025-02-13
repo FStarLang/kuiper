@@ -112,7 +112,7 @@ fn kernel
   {
     later_elim _;
     unfold inv_p;
-    gpu_faa_u64 r v;
+    let _ = gpu_faa_u64 r v;
     bigstar_ghost_upd_lemma done _ _ ;
     assume (pure False); (* FIXME *)
     rewrite each SZ.v tid as thread_index etid;
