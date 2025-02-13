@@ -57,7 +57,7 @@ jobs:
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)
-          make -skj$(nproc) -Otarget ci |& tee LOG
+          make V=1 -skj$(nproc) -Otarget ci |& tee LOG
 
       - name: Make artifact with output
         if: ${{ always () }}
@@ -74,3 +74,11 @@ jobs:
             cat "$i"
             echo "::endgroup::"
           done || true
+
+      - name: Make artifact with failed state
+        if: ${{ failure () }}
+        uses: actions/upload-artifact@master
+        with:
+          name: all
+          include-hidden-files: true
+          path: '**'
