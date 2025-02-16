@@ -32,3 +32,4 @@ clean:
 	rm -rf out
 	rm -rf .cache
 	git submodule foreach git clean -Xf
+	rm -f .*.touch
