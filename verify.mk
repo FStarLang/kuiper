@@ -66,7 +66,6 @@ ifneq ($(O),)
 OTHERFLAGS += $O
 endif
 
-FSTAR_FLAGS += --cache_checked_modules
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
 FSTAR_FLAGS += --cmi
@@ -119,12 +118,12 @@ verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
 # Dependencies come from .depend. We still need this rule.
 %.checked: | .fstar.touch
 	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) --already_cached '*' $<
+	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
 	@touch -c $@
 
 $(CACHEDIR)/Kuiper.%.checked: | .fstar.touch .pulse.touch
 	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) --already_cached '*' $<
+	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
 	@touch -c $@
 
 # What the hell is going on!? This verifies fine locally from a clean
@@ -155,7 +154,7 @@ echo-krml:
 # the Pulse plugin
 .depend: $(ROOTS) .fstar.touch .krml.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,Pulse,LowStar,Prims' --dep full $(ROOTS) --output_deps_to $@
+	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,Pulse,LowStar,Prims' --dep full $(ROOTS) -o $@
 
 
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
@@ -166,8 +165,7 @@ $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 		--extract "-*" 							\
 		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
 		--extract "+Kuiper"						\
-		--odir $(shell dirname $@)					\
-		--krmloutput $@							\
+		-o $@								\
 		$<
 
 $(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
