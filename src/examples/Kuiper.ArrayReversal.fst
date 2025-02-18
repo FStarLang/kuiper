@@ -61,9 +61,9 @@ let disjoint_partitions_range (n:nat { n % 2 == 0 })
 let gpu_pts_to_cell
   (#a:Type0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  ([@@@mkey] arr : gpu_array a sz)
   (#f : perm)
-  (i:nat)
+  ([@@@mkey] i:nat)
   (v:a)
 : slprop
 = exists* s. gpu_pts_to_slice arr #f i (i+1) s **
@@ -297,11 +297,16 @@ ensures
    gpu_pts_to_cell a #1.0R (SZ.v size - thread_index etid - 1sz) (index_flip (reverse_spec s) (thread_index etid)))
 {
   let idx = Kuiper.Base.thread_idx_all ();
+  rewrite each thread_index etid as idx;
   let idx' = (size - idx - 1sz);
+  rewrite each (SZ.v size - SZ.v idx - 1) as idx';
   let uu = read_cell a idx;
   let vv = read_cell a idx';
   write_cell a idx vv;
   write_cell a idx' uu;
+  rewrite each SZ.v idx' as (SZ.v size - SZ.v idx - 1);
+  rewrite each SZ.v idx  as thread_index etid;
+  ()
 }
 
 fn reverse

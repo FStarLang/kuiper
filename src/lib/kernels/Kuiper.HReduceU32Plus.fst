@@ -182,7 +182,7 @@ fn iteration
     div_pow2_lemma_2 it tid;
     combine
       b
-      (gpu_pts_to_slice_sum r (tid + pow2 it) (min (tid + pow2 it + pow2 it) nth) vv)
+      (gpu_pts_to_slice_sum r nextid (min (tid + pow2 it + pow2 it) nth) vv)
       _;
       
     if b {
@@ -191,13 +191,11 @@ fn iteration
 
       (**)unfold (gpu_pts_to_slice_sum r tid nextid vv);
       (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid nextid vv s);
-      (**)unfold gpu_pts_to_slice_sum_inner;
       let s1 = gpu_array_read #_ #_ #tid #nextid r tid;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv tid nextid) s1)));
 
       (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
       (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
-      (**)unfold gpu_pts_to_slice_sum_inner;
       let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv nextid end_) s2)));
 
@@ -258,6 +256,7 @@ fn reduce
 {
   let tid = thread_idx_x ();
   let tid : sz = SZ.uint32_to_sizet tid;
+  rewrite each thread_index etid as tid;
 
   (* Reduction *)
   let mut n = 0sz;
@@ -286,14 +285,6 @@ fn reduce
     iteration nth a s tid it;
     n := it +^ 1sz;
   };
-  
-  (**)let it = !n;
-  (**)FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
-
-  if (tid = 0sz) {
-    (**)if_elim_true (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s);
-    (**)if_intro_true (gpu_pts_to_slice_sum a 0 nth s);
-  }
 }
 
 [@@ CPrologue "__global__"]

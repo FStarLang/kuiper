@@ -202,7 +202,6 @@ fn main
     assert if_ cond pred;
   if_elim_true pred;
 
-  unfold HR.gpu_pts_to_slice_sum_inner;
   with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
 
   // TODO: don't copy whole array

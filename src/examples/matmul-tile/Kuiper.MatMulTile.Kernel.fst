@@ -126,22 +126,6 @@ let lemma_div_lt (a : nat) (b c: pos)
   : Lemma (requires (a < c * b))
           (ensures  (a / b < c)) = ()
 
-#set-options "--print_implicits"
-
-assume val foo : int -> int -> slprop
-
-[@@pulse_unfold]
-let blah (v1 : int) = exists* (v:int). foo v1 v
-
-ghost
-fn test (v1 v2 : int)
-  requires pure (v1 == v2) ** blah v1
-  ensures  blah v2
-{
-  admit();
-  rewrite each foo v1 as foo v2;
-}
-
 [@@CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn inner_loop
@@ -164,7 +148,7 @@ fn inner_loop
 {
   assume (pure (forall n. SZ.fits n)); // cheating overflow, this is all in bounds, but the proofs are way too brittle
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v vv) (SZ.v bdim - 1);
-  
+
   let ga1_idx = ga1_iidx +^ vv;
   assert (pure (SZ.fits (bdim * bdim)));
   let ga2_idx = ga2_iidx +^ (vv *^ bdim);
@@ -173,10 +157,13 @@ fn inner_loop
   bigstar_extract #0 0 nthr _ ga1_idx;
   unfold Barrier.barrier_mm nthr ar it tid ga1_idx;
   unfold Barrier.barrier_mm_perm;
-  rewrite each Barrier.ifeven #int (reveal #nat it) (reveal #nat tid) (SZ.v ga1_idx) as ga1_idx;
 
   let ga1_val = gpu_array_read #_ #_ #(2 * ga1_idx) #(2 * ga1_idx + 2) ar #(1.0R /. nthr) (2sz *^ ga1_idx);
+  // rewrite each Barrier.ifeven it tid (SZ.v ga1_idx) 
+  //           as (SZ.v ga1_idx);
+
   fold Barrier.barrier_mm nthr ar it tid ga1_idx;
+
   bigstar_compose #0 0 nthr _ ga1_idx;
 
   bigstar_extract #0 0 nthr _ ga2_idx;
@@ -256,6 +243,7 @@ fn outer_loop
   // Send smem permission back to single thread
   mbarrier_wait #nthr #(Barrier.barrier_mm nthr ar) #(2 * SZ.v iv + 1) #tid;
   bigstar_map #0 #0 #0 #nthr #_ #_ (fun from -> Barrier.transfer_barrier_mm nthr smem_sz ar (2*iv + 1) from tid);
+  admit(); //fixme, failed inference below?
   bigstar_map #0 #0 #0 #nthr #_ #_ (Barrier.unfold_barrier_mm_even nthr smem_sz ar (2*iv + 2) tid);
   gpu_slice_gather_underspec #0 #u64 #smem_sz ar #1.0R (2 * tid) (2 * tid + 2) nthr;
 }
@@ -321,6 +309,7 @@ fn kernel
   let row = idxs._2;
   let col = idxs._3;
   let ar = obtain_shmem ear;
+  rewrite each ear as ar;
   
   let shared_tile = shared `SZ.div` bdim;
 

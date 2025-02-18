@@ -11,7 +11,8 @@
     "--cache_dir", ".cache"
   ],
   "include_dirs": [
-    "pulse/out/lib/pulse",
+    "pulse/build/ocaml/installed/lib/pulse",
+    "pulse/lib",
     "src"
   ]
 }

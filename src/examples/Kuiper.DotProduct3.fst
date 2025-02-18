@@ -63,6 +63,7 @@ fn fixup
 {
   let dot_v = hide (pmul s1 s2);
   if (tid = 0sz) {
+    rewrite each (SZ.v tid = 0) as true;
     if_elim_true (exists* sr. gpu_pts_to_array r sr);
 
     // Duplicate
@@ -70,7 +71,6 @@ fn fixup
 
     unfold HR.gpu_pts_to_slice_sum;
     if_elim_true (exists* v. HR.gpu_pts_to_slice_sum_inner ar 0 nth dot_v v);
-    unfold HR.gpu_pts_to_slice_sum_inner;
 
     let vv = gpu_array_read #u64 #nth #0 #nth ar 0sz;
     with cv. assert (gpu_pts_to_array r cv);
@@ -88,8 +88,8 @@ fn fixup
     if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #nth r 0 nth dot_v v);
     fold HR.gpu_pts_to_slice_sum r 0 nth dot_v;
 
-    if_intro_true (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2));
-    if_intro_true (HR.gpu_pts_to_slice_sum ar 0 nth (pmul s1 s2));
+    if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2));
+    if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum ar 0 nth (pmul s1 s2));
   } else {
     rewrite each (SZ.v tid = 0) as false;
     if_elim_false (exists* sr. gpu_pts_to_array r sr);
@@ -152,6 +152,7 @@ fn kernel
   ()
 }
 
+unfold
 let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { len v == nth }) (_: nat): slprop =
   gpu_pts_to_array ga #(1.0R /. nth) v
 
@@ -277,7 +278,6 @@ fn main
 
   unfold HR.gpu_pts_to_slice_sum;
   if_elim_true _;
-  unfold HR.gpu_pts_to_slice_sum_inner;
   with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
 
   // TODO: don't copy whole array

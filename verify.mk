@@ -44,7 +44,7 @@ karamel/Makefile:
 
 .pulse.touch: .fstar.touch $(shell find pulse/ -type f) pulse/Makefile
 	@echo PULSE
-	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) ADMIT=1
+	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) ADMIT=1 plugin
 	@touch $@
 
 pulse/Makefile:
@@ -80,7 +80,8 @@ FSTAR_FLAGS += $(FSTAR_DEBUG)
 
 FSTAR = $(FSTAR_EXE)					\
 	$(SIL)						\
-	--include pulse/out/lib/pulse			\
+	--include pulse/build/ocaml/installed/lib/pulse	\
+	--include pulse/lib				\
 	--include src					\
 	$(FSTAR_FLAGS)
 
@@ -154,7 +155,7 @@ echo-krml:
 # the Pulse plugin
 .depend: $(ROOTS) .fstar.touch .krml.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,Pulse,LowStar,Prims' --dep full $(ROOTS) -o $@
+	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@
 
 
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch

@@ -276,6 +276,7 @@ fn kernel
   let row = idxs._2;
   let col = idxs._3;
   let ar = obtain_shmem ear;
+  rewrite each ear as ar;
   
   let shared_tile = shared `SZ.div` bdim;
 

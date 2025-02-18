@@ -37,7 +37,8 @@ let gpu_pts_to_slice_sum_inner
 let gpu_pts_to_slice_sum
   (#sz:nat)
   ([@@@mkey] r: gpu_array ety sz)
-  (i j:nat)
+  ([@@@mkey] i : nat)
+  (j:nat)
   (v: seq ety)
 : slprop
 = if_ (i < j && j <= sz) (exists* s. gpu_pts_to_slice_sum_inner #sz r i j v s)

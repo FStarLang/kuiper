@@ -28,6 +28,11 @@ fn if_intro_true (p: slprop)
   ensures  if_ true p
 
 ghost
+fn if_intro_true' (b:bool) (p: slprop)
+  requires pure b ** p
+  ensures  if_ b p
+
+ghost
 fn if_intro_false (p: slprop)
   requires emp
   ensures  if_ false p

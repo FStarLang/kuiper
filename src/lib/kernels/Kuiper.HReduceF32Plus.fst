@@ -182,7 +182,7 @@ fn iteration
     div_pow2_lemma_2 it tid;
     combine
       b
-      (gpu_pts_to_slice_sum r (tid + pow2 it) (min (tid + pow2 it + pow2 it) nth) vv)
+      (gpu_pts_to_slice_sum r nextid (min (tid + pow2 it + pow2 it) nth) vv)
       _;
 
     if b {
@@ -256,6 +256,7 @@ fn reduce
 {
   let tid = thread_idx_x ();
   let tid : sz = SZ.uint32_to_sizet tid;
+  rewrite each thread_index etid as tid;
 
   (* Reduction *)
   let mut n = 0sz;
