@@ -72,6 +72,7 @@ jobs:
 
       - name: Make artifact with output
         if: ${{ always () }}
+        continue-on-error: true
         uses: actions/upload-artifact@master
         with:
           name: output
@@ -89,6 +90,7 @@ jobs:
       - name: Make artifact with failed state
         if: ${{ always () && inputs.debug }}
         uses: actions/upload-artifact@master
+        continue-on-error: true
         with:
           name: all
           include-hidden-files: true
