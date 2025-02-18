@@ -74,6 +74,7 @@ FSTAR_FLAGS += --odir $(OUTDIR)
 FSTAR_FLAGS += --cmi
 FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
+FSTAR_FLAGS += --ext kuiper
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext context_pruning
 FSTAR_FLAGS += --ext no_krml_private
