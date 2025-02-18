@@ -113,10 +113,6 @@ void INFO ()
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
 
-#define FStar_Pervasives_Native___proj__Mktuple3__item___1(i) ((i).fst)
-#define FStar_Pervasives_Native___proj__Mktuple3__item___2(i) ((i).snd)
-#define FStar_Pervasives_Native___proj__Mktuple3__item___3(i) ((i).thd)
-
 /* Fix in extraction, why is extract_as not kicking in? */
 #define Pulse_Lib_Core_later_credit_buy(x) 
 
