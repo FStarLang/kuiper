@@ -10,9 +10,6 @@ module SZ = FStar.SizeT
 module P = Kuiper.MatMul.Pure
 module I = Kuiper.MatMul.Impure
 
-#set-options "--z3rlimit 40"
-#push-options "--fuel 1 --ifuel 1"
-
 // #push-options "--print_implicits --print_bound_var_types"
 // #push-options "--debug SMTFail"
 
@@ -236,11 +233,8 @@ fn outer_loop
 }
 
 
-let lemma_nonneg_mul (x y : int)
-  : Lemma (requires x >= 0 /\ y >= 0)
-          (ensures x * y >= 0)
-= ()
-
+#push-options "--z3rlimit 60 --fuel 1 --ifuel 1"
+#set-options "--print_implicits --ugly"
 [@@CPrologue "__global__"]
 fn kernel
   (rows shared columns : szp)
@@ -310,7 +304,9 @@ fn kernel
        ** (exists* s. gpu_pts_to_slice ar (2 * tid) (2 * tid + 2) s)
        ** mbarrier_tok (SZ.v nthr) (Barrier.barrier_mm (SZ.v nthr) ar) (2*iv) tid
   {
+    with eiv. assert i |-> eiv;
     let iv = !i;
+    rewrite each eiv as iv; (* silly *)
     i := SZ.add iv 1sz;
     FStar.Math.Lemmas.cancel_mul_mod (SZ.v iv) 2;
 
@@ -327,7 +323,7 @@ fn kernel
     Math.Lemmas.lemma_mult_lt_right (SZ.v bdim) (SZ.v iv) (shared/bdim);
     assert (pure (SZ.v iv * bdim < (shared/bdim) * bdim));
     assert (pure (SZ.v iv * SZ.v bdim < SZ.v shared));
-    lemma_nonneg_mul (SZ.v iv) (SZ.v bdim); // ridiculous to have to call this
+    Kuiper.Math.Silly.lemma_nonneg_mul (SZ.v iv) (SZ.v bdim); // ridiculous to have to call this
     SizeT.fits_lte (SZ.v iv * SZ.v bdim) (SZ.v shared);
     assert (pure (SZ.fits (iv * bdim)));
     
@@ -345,6 +341,9 @@ fn kernel
     gpu_array_write #f32 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx2 v2;
 
     outer_loop rows shared columns bdim iv (SZ.v nthr) smem_sz ar (SZ.v tid) tcol trow sum;
+    Kuiper.Math.Silly.two_times_succ (SZ.v iv); // silly
+    rewrite each (2 `Prims.op_Multiply` SZ.v iv + 2) as (2 * (SZ.v iv + 1));
+    (* FIXME!!!!!!!! Using * fails to syntactically match because it's an alias!!!  *)
     ()
   };
   fold Barrier.shared_pre nthr (2 * shared_tile) ar (bidx_x etid) (tidx_x etid);
@@ -356,3 +355,4 @@ fn kernel
   
   ()
 }
+#pop-options

@@ -2,13 +2,9 @@ module Kuiper.MatMulTileF32.Barrier
 
 #lang-pulse
 
-// #push-options "--log_queries"
-
 open Kuiper
 open Kuiper.Barrier.RPM
 module SZ = FStar.SizeT
-
-#push-options "--fuel 8 --ifuel 8"
 
 // let lemma_pos (x: pos): Lemma (0 < x * x) [SMTPat (x * x)] = ()
 

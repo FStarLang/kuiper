@@ -14,22 +14,6 @@ module I = Kuiper.MatMul.Impure
 
 // #push-options "--print_implicits --print_bound_var_types"
 // #push-options "--debug SMTFail"
-
-let lemma_pos_times_pos (a b: pos)
-  : Lemma (a * b > 0) = ()
-
-let lemma_nat_times_nat (a b: nat)
-  : Lemma (a * b >= 0) = ()
-
-let lemma_sq_mono (a b : nat)
-: Lemma (a <= b <==> a * a <= b * b)
-        [SMTPat (a * a); SMTPat (b * b)]
-= ()
-let lemma_sq_mono' (a b : nat)
-: Lemma (a < b <==> a * a < b * b)
-        [SMTPat (a * a); SMTPat (b * b)]
-= ()
-
 inline_for_extraction noextract
 fn calc_idxs
   (rows shared columns bdim : szp)
@@ -84,7 +68,7 @@ fn calc_idxs
   // assert (pure (SZ.v brow_idx + SZ.v trow_bcol_tcol_idx < rows_tile * bdim * columns_tile * bdim));
   let idx : sz = brow_idx +^ trow_bcol_tcol_idx;
 
-  lemma_nat_times_nat (SZ.v bid) (SZ.v nthr);
+  Kuiper.Math.Silly.lemma_nat_times_nat (SZ.v bid) (SZ.v nthr);
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v nthr) (SZ.v bid) (SZ.v nblk - 1);
   // assert (pure (SZ.v bid * SZ.v nthr <= (SZ.v nblk - 1) * SZ.v nthr));
   FStar.Math.Lemmas.distributivity_sub_left (SZ.v nblk) 1 (SZ.v nthr);
@@ -251,11 +235,6 @@ fn outer_loop
 #set-options "--z3rlimit 20 --retry 3"
 #restart-solver (* proof below very brittle *)
 
-let lemma_nonneg_mul (x y : int)
-  : Lemma (requires x >= 0 /\ y >= 0)
-          (ensures x * y >= 0)
-= ()
-
 #restart-solver (* proof below very brittle *)
 #set-options "--split_queries always" // BAD
 
@@ -360,7 +339,7 @@ fn kernel
     Math.Lemmas.lemma_mult_lt_right (SZ.v bdim) (SZ.v iv) (shared/bdim);
     assert (pure (SZ.v iv * bdim < (shared/bdim) * bdim));
     assert (pure (SZ.v iv * SZ.v bdim < SZ.v shared));
-    lemma_nonneg_mul (SZ.v iv) (SZ.v bdim); // ridiculous to have to call this
+    Kuiper.Math.Silly.lemma_nonneg_mul (SZ.v iv) (SZ.v bdim); // ridiculous to have to call this
     SizeT.fits_lte (SZ.v iv * SZ.v bdim) (SZ.v shared);
     assert (pure (SZ.fits (iv * bdim)));
     
@@ -378,6 +357,8 @@ fn kernel
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx2 v2;
 
     outer_loop rows shared columns bdim iv (SZ.v nthr) smem_sz ar (SZ.v tid) tcol trow sum;
+    Kuiper.Math.Silly.two_times_succ (SZ.v iv); // silly
+    rewrite each (2 `Prims.op_Multiply` SZ.v iv + 2) as (2 * (SZ.v iv + 1));
     ()
   };
   fold Barrier.shared_pre nthr (2 * shared_tile) ar (bidx_x etid) (tidx_x etid);

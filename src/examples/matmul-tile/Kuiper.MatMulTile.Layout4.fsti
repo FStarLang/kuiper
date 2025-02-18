@@ -62,7 +62,8 @@ let elementwise_smaller_4 (outs: seq nat) (dims: seq pos { len dims == len outs 
           //                                      /\ outs.[2] < dims.[2] /\ outs.[3] < dims.[3])
           (ensures  elementwise_smaller outs dims) = admit()
 
-#push-options "--z3cliopt 'smt.arith.nl=false'"
+// brittle and seems to fail in 4.13.3
+#push-options "--z3cliopt 'smt.arith.nl=false' --z3version 4.8.5"
 
 instance titi_permutation (tcols trows bcols brows: pos) : permutation (i: nat { i < tcols * trows * bcols * brows }) = {
     f = thread_id_to_idx tcols trows bcols brows;
@@ -115,4 +116,5 @@ instance titi_permutation (tcols trows bcols brows: pos) : permutation (i: nat {
     )
 }
 
+#pop-options
 #pop-options
