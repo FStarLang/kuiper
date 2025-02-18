@@ -4,25 +4,10 @@
     "--query_cache",
     "--lax",
     "--MLish",
-    "--cache_dir",
-    "../FStar/src/.cache.boot"
+    "--MLish_effect", "FStarC.Effect",
+    "--with_fstarc"
   ],
   "include_dirs": [
-    ".",
-    "../FStar/src/basic",
-    "../FStar/src/class",
-    "../FStar/src/data",
-    "../FStar/src/extraction",
-    "../FStar/src/fstar",
-    "../FStar/src/parser",
-    "../FStar/src/prettyprint",
-    "../FStar/src/reflection",
-    "../FStar/src/smtencoding",
-    "../FStar/src/syntax",
-    "../FStar/src/syntax/print",
-    "../FStar/src/tactics",
-    "../FStar/src/tosyntax",
-    "../FStar/src/typechecker",
-    "../FStar/src/tests"
+    "../FStar/src"
   ]
 }
