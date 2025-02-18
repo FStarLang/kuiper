@@ -7,9 +7,6 @@ for p in FStar karamel pulse; do
 		git remote add upstream https://github.com/FStarLang/$p
 	fi
 
-	echo "$ git remote update"
-	git remote update
-
 	# if [ $p == pulse ]; then
 	#         br=main
 	# else
