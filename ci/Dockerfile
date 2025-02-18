@@ -29,6 +29,11 @@ RUN wget -nv https://github.com/Z3Prover/z3/releases/download/Z3-4.8.5/z3-4.8.5-
  && cp z3-4.8.5-x64-ubuntu-16.04/bin/z3 /usr/local/bin/z3-4.8.5 \
  && rm -r z3-4.8.5-*
 
+RUN wget -nv https://github.com/Z3Prover/z3/releases/download/z3-4.13.3/z3-4.13.3-x64-glibc-2.35.zip \
+ && unzip z3-4.13.3-x64-glibc-2.35.zip \
+ && cp z3-4.13.3-x64-glibc-2.35/bin/z3 /usr/local/bin/z3-4.13.3 \
+ && rm -r z3-4.13.3-*
+
 # Create a new user and give them sudo rights
 ARG USER=vscode
 RUN useradd -d /home/$USER -s /bin/bash -m $USER
