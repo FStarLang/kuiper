@@ -65,6 +65,9 @@ endif
 ifneq ($(O),)
 OTHERFLAGS += $O
 endif
+ifneq ($(ADMIT),)
+OTHERFLAGS += --admit_smt_queries true
+endif
 
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
