@@ -4,6 +4,7 @@
     "--query_cache",
     "--load_cmxs", "pulse",
     "--warn_error", "-249",
+    "--z3version", "4.13.3",
     "--ext", "kuiper",
     "--ext", "__unrefine",
     "--ext", "context_pruning",
