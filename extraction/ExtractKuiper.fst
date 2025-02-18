@@ -211,13 +211,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     ECast (EApp (EQualified ([], "KPR_SHMEM"), [EUnit]),
            TBuf (translate_type env ty))
 
-  (******** FIXME!!! Compat since arrays are now stack-allocated. Do nothing OK? ********)
-
-  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ r; _v ])
-    when string_of_mlpath p = "Pulse.Lib.Array.Core.free" ->
-    EUnit
-    (* _MUST <| EApp (EQualified ([], "cudaFree"), [cb r]) *)
-
   (******** KERNEL CALLS ********)
 
   | MLE_App ({ expr = MLE_Name p }, [

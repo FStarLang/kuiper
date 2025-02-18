@@ -4,6 +4,7 @@ module Kuiper.DotProduct
 
 open Kuiper
 module A = Pulse.Lib.Array
+module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 
@@ -69,9 +70,9 @@ fn main (_:unit)
   requires cpu ** pure SZ.fits_u32
   ensures  cpu
 {
-  let a1 = A.alloc #elem_t 0ul m_size;
-  let a2 = A.alloc #elem_t 0ul m_size;
-  let ar = A.alloc #elem_t 0ul m_size;
+  let a1 = V.alloc #elem_t 0ul m_size;
+  let a2 = V.alloc #elem_t 0ul m_size;
+  let ar = V.alloc #elem_t 0ul m_size;
 
   let mut i = 0sz;
 
@@ -171,9 +172,9 @@ fn main (_:unit)
     i := SZ.add vi 1sz;
   };
   
-  A.free a1;
-  A.free a2;
-  A.free ar;
+  V.free a1;
+  V.free a2;
+  V.free ar;
 
   ()
 }

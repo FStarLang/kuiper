@@ -28,7 +28,7 @@ fn redeem1 (e e' : erased nat) (post : slprop)
 fn main
   (nn : szp)
   (bdim : szp {bdim /? nn /\ bdim <= 32})
-  (a1 a2 a3 a4 : array u64)
+  (a1 a2 a3 a4 : vec u64)
   preserves
     cpu **
     (a1 |-> 'v1) **
@@ -40,7 +40,7 @@ fn main
           len 'v1 == nn * nn /\ len 'v2 == nn * nn /\
           len 'v3 == nn * nn /\ len 'v4 == nn * nn)
   returns
-    ar : array u64
+    ar : vec u64
   ensures 
     exists* vr.
       ar |-> vr // no functional spec
@@ -84,7 +84,7 @@ fn main
   gpu_array_free gt1;
   gpu_array_free gt2;
 
-  let ar = Pulse.Lib.Array.alloc 0UL size;
+  let ar = Pulse.Lib.Vec.alloc 0UL size;
 
   Kuiper.Array.gpu_memcpy_device_to_host ar ga1 size;
   gpu_array_free ga1;

@@ -167,7 +167,7 @@ fn g_mul
 fn main
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
-  (a1 a2: array f32)
+  (a1 a2: vec f32)
   (v1: erased (seq f32) { len v1 == rows * shared })
   (v2: erased (seq f32) { len v2 == shared * columns })
   preserves
@@ -180,7 +180,7 @@ fn main
           SZ.fits (shared * columns) /\
           len v1 == rows * shared /\
           len v2 == shared * columns)
-  returns  ar: array f32
+  returns  ar : vec f32
   ensures
     exists* vr.
       ar |-> vr
@@ -209,7 +209,7 @@ fn main
 
   g_mul rows shared columns bdim ga1 ga2 gr;
 
-  let ar = Pulse.Lib.Array.alloc Kuiper.Float32.zero size;
+  let ar = Pulse.Lib.Vec.alloc Kuiper.Float32.zero size;
   Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
 
   gpu_array_free ga1;

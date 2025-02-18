@@ -2,6 +2,7 @@ module Kuiper.Array
 
 #lang-pulse
 
+open Pulse.Lib.Vec
 open Pulse
 open Pulse.Lib.BigStar
 open FStar.Tactics.V2
@@ -123,7 +124,7 @@ fn gpu_memcpy_host_to_device
   {| sized a |}
   (#sz : erased nat)
   (dst_garr : gpu_array a sz)
-  (src_arr : array a)
+  (src_arr : vec a)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
@@ -133,7 +134,7 @@ fn gpu_memcpy_host_to_device
     pts_to src_arr #f v
   requires
     (dst_garr |-> gv) **
-    pure (SZ.v cnt == sz /\ (Pulse.Lib.Array.length src_arr == sz \/ Seq.length v == reveal sz))
+    pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
     (dst_garr |-> v) **
     pure (Seq.length v == reveal sz)
@@ -142,7 +143,7 @@ fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (dst_arr : array a)
+  (dst_arr : vec a)
   (src_garr : gpu_array a sz)
   (cnt : SZ.t)
   (#f : perm)
@@ -153,7 +154,7 @@ fn gpu_memcpy_device_to_host
     pts_to src_garr #f gv
   requires
     (dst_arr |-> v) **
-    pure (SZ.v cnt == sz /\ (Pulse.Lib.Array.length dst_arr == sz \/ Seq.length v == reveal sz))
+    pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
     (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)

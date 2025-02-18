@@ -57,10 +57,10 @@ fn setup
   bigstar_map #_ #_ #0 #size aux;
   bigstar_eta();
 }
-
+#set-options "--debug SMTFail"
 fn main
   (rows shared columns : szp)
-  (a b : array u64)
+  (a b : vec u64)
   (#va #vb : erased (seq u64))
   preserves
     cpu **
@@ -76,17 +76,19 @@ fn main
     // ^ Some of these could be ommited if we had some "core" pure inference from slprops.
     // Since we have a1 |-> v1, the length of v1 must fit, etc.
   returns
-    ar: (_ : array u64
+    ar: (_ : vec u64
         { len va == rows * shared /\ len vb == shared * columns })
         (* ^ This refinement just a hack to check the post. *)
   ensures
     ar |-> P.matmul rows shared columns va vb
 {
-  Pulse.Lib.Array.pts_to_len a;
-  Pulse.Lib.Array.pts_to_len b;
   open FStar.SizeT;
+  Pulse.Lib.Vec.pts_to_len a;
+  assert (pure (SZ.fits (rows * shared)));
+  Pulse.Lib.Vec.pts_to_len b;
+  assert (pure (SZ.fits (shared * columns)));
   let size = rows *^ columns;
-  let ar = Pulse.Lib.Array.alloc 0UL size;
+  let ar = Pulse.Lib.Vec.alloc 0UL size;
 
   let rs = rows *^ shared;
   let sc = shared *^ columns;

@@ -21,7 +21,7 @@ let pmul (s1 s2: seq u64)
 let sum = Kuiper.Seq.Common.seq_fold_left HR.op HR.neu
 
 fn main
-  (a1 a2: array u64)
+  (a1 a2: vec u64)
   (v1 v2: erased (seq u64))
   (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
   preserves cpu ** (a1 |-> v1) ** (a2 |-> v2)

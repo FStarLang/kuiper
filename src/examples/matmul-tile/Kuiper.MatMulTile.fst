@@ -30,7 +30,7 @@ let stupid_divides (x:nat) (y:nonzero)
 fn main
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
-  (a1 a2: array u64)
+  (a1 a2: vec u64)
   (v1: erased (seq u64) { len v1 == rows * shared })
   (v2: erased (seq u64) { len v2 == shared * columns })
   preserves
@@ -39,7 +39,7 @@ fn main
     (a2 |-> v2)
   requires
     pure (SZ.fits (rows * columns) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * columns))
-  returns  ar: array u64
+  returns  ar: vec u64
   ensures  (exists* vr. ar |-> vr)
 {
   open FStar.SizeT;
@@ -66,7 +66,7 @@ fn main
 
   GMul.g_mul rows shared columns bdim ga1 ga2 gr;
 
-  let ar = Pulse.Lib.Array.alloc 0UL size;
+  let ar = Pulse.Lib.Vec.alloc 0UL size;
   Kuiper.Array.gpu_memcpy_device_to_host ar gr size;
 
   gpu_array_free ga1;

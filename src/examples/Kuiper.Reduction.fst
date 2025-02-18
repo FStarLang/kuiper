@@ -76,7 +76,7 @@ fn copy_to_gpu
   (#t:Type0)
   {| d : sized t |}
   (sz : sz)
-  (a : A.array t)
+  (a : vec t)
   (#v : erased (seq t){len v == reveal sz})
   preserves cpu ** (a |-> v)
   requires emp
@@ -93,7 +93,7 @@ inline_for_extraction noextract
 fn reduce
   (#t : Type0)
   {| d : simple_scalar t |}
-  (a : array t)
+  (a : vec t)
   (size : sz)
   (#v : erased (seq t))
   preserves cpu
@@ -113,14 +113,14 @@ fn reduce
   gpu_array_free ga;
   with v'. assert (a |-> v');
   assert (pure (len v' > 0));
-  let r = Pulse.Lib.Array.op_Array_Access #t a 0sz #1.0R #v';
+  let r = a.(0sz);
   r
 }
 
 (*
 
 fn reduce_F32
-  (a : array f32)
+  (a : vec f32)
   (size : sz)
   (#v : erased (seq f32))
   requires cpu
