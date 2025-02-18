@@ -92,7 +92,7 @@ fn calc_idxs
   // assert (pure ((SZ.v columns_tile - 1) * SZ.v bdim + (SZ.v bdim - 1) == SZ.v columns - 1));
   // assert (pure (SZ.v row < SZ.v rows /\ SZ.v col < SZ.v columns));
 
-  Mktuple3 idx row col
+  (idx, row, col)
 }
 
 let sz_mult (x y: SZ.t) : Pure SZ.t
@@ -283,10 +283,7 @@ fn kernel
   assert (pure (thread_index etid < rows * columns));
   assert (pure (rows * columns >= 0));
 
-  let idxs = calc_idxs rows shared columns bdim nblk nthr etid #();
-  let idx = idxs._1;
-  let row = idxs._2;
-  let col = idxs._3;
+  let idx, row, col = calc_idxs rows shared columns bdim nblk nthr etid #();
   let ar = obtain_shmem ear;
   rewrite each ear as ar;
   
