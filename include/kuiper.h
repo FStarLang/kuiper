@@ -113,7 +113,4 @@ void INFO ()
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
 
-/* Fix in extraction, why is extract_as not kicking in? */
-#define Pulse_Lib_Core_later_credit_buy(x) 
-
 #endif
