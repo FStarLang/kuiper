@@ -126,6 +126,22 @@ let lemma_div_lt (a : nat) (b c: pos)
   : Lemma (requires (a < c * b))
           (ensures  (a / b < c)) = ()
 
+#set-options "--print_implicits"
+
+assume val foo : int -> int -> slprop
+
+[@@pulse_unfold]
+let blah (v1 : int) = exists* (v:int). foo v1 v
+
+ghost
+fn test (v1 v2 : int)
+  requires pure (v1 == v2) ** blah v1
+  ensures  blah v2
+{
+  admit();
+  rewrite each foo v1 as foo v2;
+}
+
 [@@CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn inner_loop
@@ -156,6 +172,9 @@ fn inner_loop
 
   bigstar_extract #0 0 nthr _ ga1_idx;
   unfold Barrier.barrier_mm nthr ar it tid ga1_idx;
+  unfold Barrier.barrier_mm_perm;
+  rewrite each Barrier.ifeven #int (reveal #nat it) (reveal #nat tid) (SZ.v ga1_idx) as ga1_idx;
+
   let ga1_val = gpu_array_read #_ #_ #(2 * ga1_idx) #(2 * ga1_idx + 2) ar #(1.0R /. nthr) (2sz *^ ga1_idx);
   fold Barrier.barrier_mm nthr ar it tid ga1_idx;
   bigstar_compose #0 0 nthr _ ga1_idx;

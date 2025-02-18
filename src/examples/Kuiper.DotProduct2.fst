@@ -25,6 +25,7 @@ let u64_comm_semigroup ()
 
 #set-options "--z3rlimit 20"
 
+[@@no_mkeys]
 let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
@@ -32,6 +33,7 @@ let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
     gpu_pts_to_array1 r tid
 
+[@@no_mkeys]
 let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
@@ -81,13 +83,17 @@ fn kernel
   Kuiper.Seq.Common.lem_one_elem s' vm; (* oof *)
   assert (pure (s' == seq![vm <: u64])); (* the freaking refinement made this very difficult. *)
   rewrite each s' as seq![vm <: u64];
-  
+
   (* Reduction *)
+  rewrite each SZ.v tid as thread_index etid;
   Kuiper.HReduceU64Plus.reduce nth r #dot_v #() etid;
-  
+  rewrite each thread_index etid as SZ.v tid;
+  rewrite each dot_v as pmul s1 s2;
+
   fold (kpost nth ga1 ga2 r s1 s2 tid);
 }
 
+[@@pulse_unfold] // reconsider
 let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { len v == nth }) (_: nat): slprop =
   gpu_pts_to_array ga #(1.0R /. nth) v
 
@@ -190,7 +196,12 @@ fn main
   bigstar_if_elim #_ #0 #dp2_size 0 (fun _ -> HR.gpu_pts_to_slice_sum #dp2_size gr 0 dp2_size (pmul v1 v2));
 
   unfold HR.gpu_pts_to_slice_sum;
-  if_elim_true _;
+
+  (* There's a single if_ and the condition is true *)
+  with cond pred.
+    assert if_ cond pred;
+  if_elim_true pred;
+
   unfold HR.gpu_pts_to_slice_sum_inner;
   with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
 

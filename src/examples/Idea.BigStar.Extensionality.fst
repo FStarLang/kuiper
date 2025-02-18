@@ -44,8 +44,8 @@ let bigstar' = bigstar
 (* Or: *)
 let equate_arg_via (_:'a) : unit = ()
 val bigstar''
-  ([@@@ equate_strict] m : nat)
-  ([@@@ equate_strict] n : nat {m <= n})
+  ([@@@ mkey] m : nat)
+  ([@@@ mkey] n : nat {m <= n})
   ([@@@ equate_arg_via bigstar_equiv] f : (i:nat { m <= i /\ i < n } -> slprop))
   : slprop
 let bigstar'' = bigstar

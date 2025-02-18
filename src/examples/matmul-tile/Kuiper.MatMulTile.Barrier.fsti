@@ -20,52 +20,75 @@ let barrier_mm_perm
     : slprop
 = exists* s. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * single) (2 * single + 2) s
 
+let ifeven (#[@@@unrefine]a:Type) (i:int) (x y : a) : a =
+  if i % 2 = 0 then x else y
+
 let barrier_mm
     (nthr: nat)
     (ar: gpu_array u64 (2 * nthr))
     (it: nat)
-    (from: nat { 0 <= from /\ from < nthr })
-    (to: nat { 0 <= to /\ to < nthr })
+    (from: int { 0 <= from /\ from < nthr })
+    (to: int { 0 <= to /\ to < nthr })
     : slprop
-= barrier_mm_perm nthr ar (if (it % 2 = 0) then from else to)
+= barrier_mm_perm nthr ar (ifeven #int it from to) // FIXME: seems unrefine does not kick in properly here
 
 ghost
 fn transfer_barrier_mm (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array u64 smem_sz) (it: nat) (from to: (i: nat { 0 <= i /\ i < nthr }))
-  requires Barrier.barrier_mm nthr ar it from to
-  ensures  Barrier.barrier_mm nthr ar (it + 1) to from
+  requires barrier_mm nthr ar it       from to
+  ensures  barrier_mm nthr ar (it + 1) to from
 {
   unfold Barrier.barrier_mm nthr ar it from to;
+  rewrite each ifeven it     from to
+            as ifeven (it+1) to from;
   fold Barrier.barrier_mm nthr ar (it + 1) to from;
 }
 
 ghost
 fn unfold_barrier_mm_odd (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array u64 smem_sz) (it: nat{it % 2 <> 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
-  requires Barrier.barrier_mm nthr ar it from to
-  ensures exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * to) (2 * to + 2) v
+  requires barrier_mm nthr ar it from to
+  returns  s : seq u64
+  ensures  gpu_pts_to_slice ar #(1.0R /. nthr) (2 * to) (2 * to + 2) s
 {
-  unfold Barrier.barrier_mm nthr ar it from to;
+  unfold barrier_mm nthr ar it from to;
+  unfold barrier_mm_perm;
+  rewrite each ifeven it from to as to;
+  with s.
+    assert gpu_pts_to_slice ar #(1.0R /. nthr) (2 * to) (2 * to + 2) s;
+  s
 }
+
 ghost
 fn fold_barrier_mm_odd (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array u64 smem_sz) (it: nat{it % 2 <> 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
   requires exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * to) (2 * to + 2) v
   ensures Barrier.barrier_mm nthr ar it from to
 {
-  fold Barrier.barrier_mm nthr ar it from to;
+  rewrite each to as ifeven it from to;
+  fold barrier_mm_perm;
+  fold barrier_mm nthr ar it from to;
 }
 
 ghost
 fn unfold_barrier_mm_even (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array u64 smem_sz) (it: nat{it % 2 == 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
   requires Barrier.barrier_mm nthr ar it from to
-  ensures exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * from) (2 * from + 2) v
+  returns  s : seq u64
+  ensures  gpu_pts_to_slice ar #(1.0R /. nthr) (2 * from) (2 * from + 2) s
 {
-  unfold Barrier.barrier_mm nthr ar it from to;
+  unfold barrier_mm nthr ar it from to;
+  unfold barrier_mm_perm;
+  rewrite each ifeven it from to as from;
+  with s.
+    assert gpu_pts_to_slice ar #(1.0R /. nthr) (2 * from) (2 * from + 2) s;
+  s
 }
+
 ghost
 fn fold_barrier_mm_even (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array u64 smem_sz) (it: nat{it % 2 == 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
   requires exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * from) (2 * from + 2) v
   ensures Barrier.barrier_mm nthr ar it from to
 {
-  fold Barrier.barrier_mm nthr ar it from to;
+  rewrite each from as ifeven it from to;
+  fold barrier_mm_perm;
+  fold barrier_mm nthr ar it from to;
 }
 
 let shared_pre

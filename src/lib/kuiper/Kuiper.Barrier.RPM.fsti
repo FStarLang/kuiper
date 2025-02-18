@@ -8,6 +8,7 @@ open Kuiper.Base
 module B = Kuiper.Barrier
 module SZ = FStar.SizeT
 
+[@@no_mkeys]
 val mbarrier_tok
   (n:nat)
   (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))

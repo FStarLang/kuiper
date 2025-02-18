@@ -563,7 +563,7 @@ fn cond_rewrite_bool
   requires cond b1 p q
   ensures  cond b2 p q
 {
-  ()
+  rewrite each b1 as b2;
 }
 
 ghost
@@ -575,7 +575,7 @@ fn cond_rewrite_bool_2
   ensures  cond b2 p q
 {
   pf ();
-  ()
+  rewrite each b1 as b2;
 }
 
 ghost

@@ -7,9 +7,9 @@ open FStar.Tactics.V2
 open FStar.Mul
 
 val bigstar
-  (#[exact (`0)][@@@equate_strict] uid: int)
-  ([@@@equate_strict] m : nat)
-  ([@@@equate_strict] n : nat {m <= n})
+  (#[exact (`0)][@@@mkey] uid: int)
+  ([@@@mkey] m : nat)
+  ([@@@mkey] n : nat {m <= n})
   (f : (i:nat { m <= i /\ i < n } -> slprop))
 : Tot slprop
 

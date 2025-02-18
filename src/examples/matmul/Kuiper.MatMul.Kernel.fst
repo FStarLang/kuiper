@@ -30,6 +30,7 @@ fn kernel
 
   let tid = block_idx_x ();
   let tid : sz = SZ.uint32_to_sizet tid;
+  rewrite each thread_index etid as tid;
 
   (* r[tid] = TODO *)
   let trow = SZ.div tid columns;
@@ -72,7 +73,7 @@ fn kernel
   with v. assert (gpu_pts_to_slice r tid (tid + 1) v);
   (**)Seq.lemma_eq_intro v seq![s];
   (**)rewrite gpu_pts_to_slice r tid (tid + 1) v
-    as gpu_pts_to_slice r tid (tid + 1) seq![s];
+    as gpu_pts_to_slice r (thread_index etid) (thread_index etid + 1) seq![s];
 
   ()
 }

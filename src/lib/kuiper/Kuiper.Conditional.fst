@@ -12,7 +12,9 @@ ghost
 fn if_rewrite_bool (b1 b2: bool) (#_: squash (b1 == b2)) (p: slprop)
   requires if_ b1 p
   ensures  if_ b2 p
-{ () }
+{
+  rewrite each b1 as b2;
+}
 
 ghost
 fn if_rewrite (#b: bool) (#p1 p2: slprop) (#e: (squash b -> squash (p1 == p2)))
@@ -22,8 +24,10 @@ fn if_rewrite (#b: bool) (#p1 p2: slprop) (#e: (squash b -> squash (p1 == p2)))
   if b {
     e ();
     rewrite each p1 as p2;
+    rewrite if_ true p2 as if_ b p2;
+    ();
   } else {
-    ()
+    rewrite if_ false p1 as if_ b p2;
   }
 }
 
@@ -106,10 +110,12 @@ fn combine (b: bool) (p1 p2: slprop)
     if_elim_true p1;
     if_elim_true p2;
     if_intro_true (p1 ** p2);
+    rewrite if_ true (p1 ** p2) as if_ b (p1 ** p2);
   } else {
     if_elim_false p1;
     if_elim_false p2;
     if_intro_false (p1 ** p2);
+    rewrite if_ false (p1 ** p2) as if_ b (p1 ** p2);
   }
 }
 
@@ -144,9 +150,11 @@ fn if_map (#b: bool) (#p #q: slprop) (f: unit -> (stt_ghost unit emp_inames (p) 
     if_elim_true p;
     f ();
     if_intro_true q;
+    rewrite if_ true q as if_ b q;
   } else {
     if_elim_false p;
     if_intro_false q;
+    rewrite if_ false q as if_ b q;
   }
 }
 
@@ -160,13 +168,16 @@ fn if_flatten (#b1 #b2: bool) (#p: slprop)
     if b2 {
       if_elim_true  p;
       if_intro_true p;
+      rewrite if_ true p as if_ (b1 && b2) p;
     } else {
       if_elim_false p;
       if_intro_false p;
+      rewrite if_ false p as if_ (b1 && b2) p;
     }
   } else {
     if_elim_false (if_ b2 p);
     if_intro_false p;
+    rewrite if_ false p as if_ (b1 && b2) p;
   }
 }
 

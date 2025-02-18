@@ -36,7 +36,7 @@ let gpu_pts_to_slice_sum_inner
 
 let gpu_pts_to_slice_sum
   (#sz:nat)
-  ([@@@equate_strict] r: gpu_array ety sz)
+  ([@@@mkey] r: gpu_array ety sz)
   (i j:nat)
   (v: seq ety)
 : slprop

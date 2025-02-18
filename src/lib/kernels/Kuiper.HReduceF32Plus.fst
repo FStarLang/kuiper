@@ -141,7 +141,7 @@ fn iteration
   case_split (div_pow2 (it + 1) tid) (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
   if_flatten #(div_pow2 (it + 1) tid);
   if_flatten #(not (div_pow2 (it + 1) tid));
-  
+
   div_pow2_lemma it (it + 1) tid;
   rewrite (if_ (div_pow2 (it + 1) tid && div_pow2 it tid)
             (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv))
@@ -176,7 +176,7 @@ fn iteration
       (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
 
     let b = sdiv_pow2 (it +^ 1sz) tid;
-    
+
     rewrite each (div_pow2 (SZ.v it + 1) (SZ.v tid)) as b;
 
     div_pow2_lemma_2 it tid;
@@ -184,7 +184,7 @@ fn iteration
       b
       (gpu_pts_to_slice_sum r (tid + pow2 it) (min (tid + pow2 it + pow2 it) nth) vv)
       _;
-      
+
     if b {
       assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
       if_elim_true _;
@@ -203,7 +203,7 @@ fn iteration
       let s = op s1 s2;
       (**)lem_append_slice vv tid nextid end_;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv tid end_) s)));
-      
+
       gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid s;
 
       (**)gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
@@ -249,7 +249,7 @@ fn reduce
   requires
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
     kpre nth a s (thread_index etid)
-  ensures 
+  ensures
     exists* it.
       mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid) **
       kpost nth a s (thread_index etid)

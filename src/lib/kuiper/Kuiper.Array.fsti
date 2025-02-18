@@ -14,12 +14,14 @@ module SZ = FStar.SizeT
 
 val gpu_array (a:Type u#0) (sz:nat) : Type u#0
 
+(* x is the base pointer, this gives permission in [i,j) *)
 val gpu_pts_to_slice
   (#a:Type u#0)
   (#sz:nat)
-  (x:gpu_array a sz)
+  ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
-  (i:nat) (j:nat)
+  ([@@@mkey] i : nat)
+  (j : nat)
   (v : seq a)
 : slprop
 
@@ -27,7 +29,7 @@ val gpu_pts_to_slice
 let gpu_pts_to_array
   (#a:Type u#0)
   (#sz:nat)
-  (x:gpu_array a sz)
+  ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   (v : seq a)
 : slprop

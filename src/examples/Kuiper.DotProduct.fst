@@ -37,9 +37,10 @@ fn kernel
   ensures  gpu ** thread_id etid ** kpost size ga1 ga2 r (thread_index etid)
 {
   let id = thread_idx_all ();
+  rewrite each thread_index etid as id;
   (* r[id] = ga1[id] * ga2[id] *)
 
-  (**)unfold (kpre size ga1 ga2 r (thread_index etid));
+  (**)unfold (kpre size ga1 ga2 r id);
 
   (**)unfold (gpu_pts_to_array1 ga1 id);
   (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
@@ -56,7 +57,12 @@ fn kernel
   (**)fold (gpu_pts_to_array1 r id);
   (**)fold (gpu_pts_to_array1 ga1 id);
   (**)fold (gpu_pts_to_array1 ga2 id);
-  (**)fold (kpost size ga1 ga2 r (thread_index etid));
+  (**)fold (kpost size ga1 ga2 r id);
+  (* FIXME: rewrite each doesn't do anything. *)
+  // rewrite each SZ.v id as thread_index etid;
+  rewrite kpost size ga1 ga2 r id
+       as kpost size ga1 ga2 r (thread_index etid);
+  ()
 }
 
 fn main (_:unit)

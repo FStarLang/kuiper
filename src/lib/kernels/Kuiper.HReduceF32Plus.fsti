@@ -38,8 +38,9 @@ let gpu_pts_to_slice_sum_inner
 (* Not easy to mark this unfold as it has a lambda (in the exists) *)
 let gpu_pts_to_slice_sum
   (#sz:nat)
-  ([@@@equate_strict] r: gpu_array ety sz)
-  (i j:nat)
+  ([@@@mkey] r: gpu_array ety sz)
+  ([@@@mkey]i : nat)
+  (j : nat)
   (v: seq ety)
 : slprop
 = if_ (i < j && j <= sz) (exists* s. gpu_pts_to_slice_sum_inner #sz r i j v s)
@@ -74,7 +75,7 @@ fn reduce
   requires
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
     kpre nth a s (thread_index etid)
-  ensures 
+  ensures
     exists* it.
       mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid) **
       kpost nth a s (thread_index etid)
