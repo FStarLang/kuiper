@@ -48,6 +48,9 @@ let gpu_translate_type_without_decay : translate_type_without_decay_t = fun env 
     ->
       TBuf (translate_type_without_decay env arg)
 
+  | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float32.t") -> TInt Float
+  | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float64.t") -> TInt Double
+
   | _ -> raise NotSupportedByKrmlExtension
 
 let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
@@ -119,6 +122,58 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p } , [u1;u2;u3;u4])
     when string_of_mlpath p = "Kuiper.Barrier.RPM.mbarrier_wait" ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
+
+  (******** FLOAT ARITHMETIC *******)
+
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float32.add" ->
+    EApp (EOp (Add, Float), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float32.sub" ->
+    EApp (EOp (Sub, Float), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float32.mul" ->
+    EApp (EOp (Mult, Float), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float32.div" ->
+    EApp (EOp (Div, Float), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float32.rem" ->
+    EApp (EOp (Mod, Float), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x ])
+    when string_of_mlpath p = "Kuiper.Float32.neg" ->
+    EApp (EOp (Sub, Float), [EConstant (Float, "0.0f"); cb x])
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float32.zero" ->
+    EConstant (Float, "0.0f")
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float32.one" ->
+    EConstant (Float, "1.0f")
+
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float64.add" ->
+    EApp (EOp (Add, Double), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float64.sub" ->
+    EApp (EOp (Sub, Double), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float64.mul" ->
+    EApp (EOp (Mult, Double), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float64.div" ->
+    EApp (EOp (Div, Double), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float64.rem" ->
+    EApp (EOp (Mod, Double), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x ])
+    when string_of_mlpath p = "Kuiper.Float64.neg" ->
+    EApp (EOp (Sub, Double), [EConstant (Double, "0.0l"); cb x])
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float64.zero" ->
+    EConstant (Double, "0.0l")
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float64.one" ->
+    EConstant (Double, "1.0l")
 
   (******** REFERENCES ********)
 
