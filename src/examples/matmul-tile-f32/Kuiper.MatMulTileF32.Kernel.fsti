@@ -10,12 +10,10 @@ open Kuiper.Math
 (* trigger crossing the fsti *)
 inline_for_extraction let x = 1
 
-module P = Kuiper.MatMul.Pure
 module I = Kuiper.MatMul.Impure
 
 module Barrier = Kuiper.MatMulTileF32.Barrier
 module SZ = FStar.SizeT
-module U64 = FStar.UInt64
 module Layout4 = Kuiper.MatMulTileF32.Layout4
 
 [@@pulse_unfold]

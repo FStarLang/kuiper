@@ -1,7 +1,6 @@
 module Kuiper.Mul
 
 open Kuiper
-module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
 unfold let op_String_Access = Seq.index

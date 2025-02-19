@@ -6,7 +6,6 @@ module Kuiper.MatMul.Impure
 
 open Kuiper
 
-module U64 = FStar.UInt64
 module SZ = FStar.SizeT
 
 let gpu_pts_to_matrix #a (rows columns : nat) (ga : gpu_array a (rows * columns)) (shared : erased nat{shared > 0}) (s : erased (seq a)): slprop =

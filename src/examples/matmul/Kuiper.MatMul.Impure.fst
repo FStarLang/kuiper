@@ -6,9 +6,7 @@ open FStar.Mul
 open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 open Kuiper
-module U64 = FStar.UInt64
 
-module SZ = FStar.SizeT
 open FStar.SizeT
 
 ghost

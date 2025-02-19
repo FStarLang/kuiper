@@ -2,11 +2,11 @@ module Kuiper.MatMulTile.Async.GMul
 #set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
 #lang-pulse
 
+module SZ = FStar.SizeT
 open Kuiper
 open Kuiper.Math
 open Pulse.Lib.Pledge
 
-module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
 module Kernel = Kuiper.MatMulTile.Kernel
 module Barrier = Kuiper.MatMulTile.Barrier

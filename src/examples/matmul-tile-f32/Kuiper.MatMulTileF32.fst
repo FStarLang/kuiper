@@ -7,7 +7,6 @@ open Kuiper
 open Kuiper.Math
 open Pulse.Lib.Pledge
 
-module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
 module Kernel = Kuiper.MatMulTileF32.Kernel
 module Barrier = Kuiper.MatMulTileF32.Barrier

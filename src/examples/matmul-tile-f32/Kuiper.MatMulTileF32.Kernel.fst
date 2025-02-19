@@ -7,7 +7,6 @@ open Kuiper.Barrier.RPM
 open FStar.SizeT
 module SZ = FStar.SizeT
 
-module P = Kuiper.MatMul.Pure
 module I = Kuiper.MatMul.Impure
 
 // #push-options "--print_implicits --print_bound_var_types"

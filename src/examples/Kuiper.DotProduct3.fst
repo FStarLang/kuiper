@@ -6,10 +6,8 @@ open Kuiper
 open Kuiper.Barrier.RPM
 open Kuiper.Math
 
-module A = Pulse.Lib.Array
 module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
-module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
 module HR = Kuiper.HReduceU64Plus

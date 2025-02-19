@@ -40,8 +40,6 @@ fn swap_via_gpu
   gpu_free gr2;
 }
 
-module U64 = FStar.UInt64
-module F32 = Kuiper.Float32
 
 [@@CPrologue "__global__"]
 fn kswap_U64

@@ -6,7 +6,6 @@ open Pulse.Lib.Pledge
 
 inline_for_extraction let x = ()
 
-module SZ = FStar.SizeT
 
 inline_for_extraction
 fn g_mul_async

@@ -13,7 +13,6 @@ module I = Kuiper.MatMul.Impure
 module P = Kuiper.MatMul.Pure
 
 module SZ = FStar.SizeT
-module U64 = FStar.UInt64
 
 [@@pulse_unfold]
 let kpre (rows shared columns : nat)

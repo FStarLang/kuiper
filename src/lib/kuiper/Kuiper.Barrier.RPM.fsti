@@ -5,7 +5,6 @@ module Kuiper.Barrier.RPM
 open Pulse
 open Pulse.Lib.BigStar
 open Kuiper.Base
-module B = Kuiper.Barrier
 module SZ = FStar.SizeT
 
 [@@no_mkeys]

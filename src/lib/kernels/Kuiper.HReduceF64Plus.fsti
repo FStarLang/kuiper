@@ -8,7 +8,6 @@ open Kuiper.Math
 open Kuiper.Seq.Common
 open Kuiper.IsReduction
 
-module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module F64 = Kuiper.Float64
 

@@ -3,7 +3,6 @@ module Kuiper.DotProduct
 #lang-pulse
 
 open Kuiper
-module A = Pulse.Lib.Array
 module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32

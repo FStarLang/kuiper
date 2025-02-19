@@ -20,8 +20,6 @@ fn kswap
   gpu_write r2 v1;
 }
 
-module U64 = FStar.UInt64
-module F32 = Kuiper.Float32
 
 [@@CPrologue "__global__"]
 fn kswap_U64

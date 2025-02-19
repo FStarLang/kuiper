@@ -4,11 +4,7 @@ module Kuiper.MatMulTileF32.Async
 open Kuiper
 open Kuiper.Math
 
-module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
-module Kernel = Kuiper.MatMulTileF32.Kernel
-module Barrier = Kuiper.MatMulTileF32.Barrier
-module Prep = Kuiper.MatMulTileF32.Prep
 module GMul = Kuiper.MatMulTileF32.GMul
 open Pulse.Lib.Pledge
 

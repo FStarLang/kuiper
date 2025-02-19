@@ -7,7 +7,6 @@ open FStar.Tactics.V2
 open FStar.Mul
 open FStar.FunctionalExtensionality
 open Pulse.Lib.PartitionRange
-module SZ = FStar.SizeT
 module T = FStar.Tactics.V2
 
 let narrow (m:nat) (n:nat{ m < n }) (f: (i:nat { m <= i /\ i < n }) -> slprop)

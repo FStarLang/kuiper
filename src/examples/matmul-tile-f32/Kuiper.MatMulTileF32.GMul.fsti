@@ -7,7 +7,6 @@ open Kuiper
 open Kuiper.Divides
 open Pulse.Lib.Pledge
 
-module SZ   = FStar.SizeT
 
 inline_for_extraction
 fn g_mul_async

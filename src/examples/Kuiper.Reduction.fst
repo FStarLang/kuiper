@@ -9,9 +9,7 @@ open Kuiper.Barrier.RPM
 open FStar.SizeT { op_Less_Hat }
 
 module GA = Kuiper.Array
-module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
-module U32 = FStar.UInt32
 
 let size : sz = 1024sz
 

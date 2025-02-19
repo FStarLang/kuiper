@@ -6,7 +6,6 @@ module Kuiper.MatMulTileF32.Prep
 open Kuiper
 open Kuiper.Math
 
-module SZ   = FStar.SizeT
 module Kernel = Kuiper.MatMulTileF32.Kernel
 
 ghost

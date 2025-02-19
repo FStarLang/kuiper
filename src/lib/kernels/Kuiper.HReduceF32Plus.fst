@@ -8,7 +8,6 @@ open Kuiper.Barrier.RPM
 open Kuiper.Math
 open Kuiper.Seq.Common
 
-module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 

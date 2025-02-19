@@ -11,10 +11,8 @@ open Kuiper.Math
 inline_for_extraction let x = 1
 
 module Impure = Kuiper.MatMul.Impure
-module Pure = Kuiper.MatMul.Pure
 module Barrier = Kuiper.MatMulTile.Barrier
 module SZ = FStar.SizeT
-module U64 = FStar.UInt64
 module Layout4 = Kuiper.MatMulTile.Layout4
 
 [@@pulse_unfold]

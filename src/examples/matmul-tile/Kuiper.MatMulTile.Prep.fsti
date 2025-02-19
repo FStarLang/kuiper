@@ -5,7 +5,6 @@ module Kuiper.MatMulTile.Prep
 open Kuiper
 open Kuiper.Math
 
-module SZ = FStar.SizeT
 module K  = Kuiper.MatMulTile.Kernel
 
 ghost

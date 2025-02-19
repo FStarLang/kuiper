@@ -10,7 +10,6 @@ open FStar.Seq
 open Kuiper.Base
 open Kuiper.Sized
 
-module A = Pulse.Lib.Array
 module SZ = FStar.SizeT
 
 val gpu_array (a:Type u#0) (sz:nat) : Type u#0

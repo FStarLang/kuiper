@@ -4,11 +4,7 @@ module Kuiper.MatMulTile.Async
 open Kuiper
 open Kuiper.Math
 
-module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
-module Kernel = Kuiper.MatMulTile.Kernel
-module Barrier = Kuiper.MatMulTile.Barrier
-module Prep = Kuiper.MatMulTile.Prep
 module GMul = Kuiper.MatMulTile.Async.GMul
 open Pulse.Lib.Pledge
 

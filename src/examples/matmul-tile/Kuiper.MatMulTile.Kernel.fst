@@ -2,6 +2,7 @@ module Kuiper.MatMulTile.Kernel
 
 #lang-pulse
 
+module U64 = FStar.UInt64
 open Kuiper
 open Kuiper.Barrier.RPM
 open FStar.SizeT

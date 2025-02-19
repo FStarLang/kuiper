@@ -3,7 +3,6 @@ module Kuiper.MatMul
 
 open Kuiper
 
-module A    = Pulse.Lib.Array
 module SZ   = FStar.SizeT
 
 module K = Kuiper.MatMul.Kernel

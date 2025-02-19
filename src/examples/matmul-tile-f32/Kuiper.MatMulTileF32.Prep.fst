@@ -6,11 +6,7 @@ module Kuiper.MatMulTileF32.Prep
 open Kuiper
 open Kuiper.Math
 
-module A    = Pulse.Lib.Array
-module SZ   = FStar.SizeT
-module Barrier = Kuiper.MatMulTileF32.Barrier
 
-module P = Kuiper.MatMul.Pure
 module I = Kuiper.MatMul.Impure
 module K = Kuiper.MatMulTileF32.Kernel
 

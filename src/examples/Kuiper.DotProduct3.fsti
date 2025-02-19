@@ -3,7 +3,6 @@ module Kuiper.DotProduct3
 #lang-pulse
 
 open Kuiper
-module A = Pulse.Lib.Array
 module U64 = FStar.UInt64
 module HR = Kuiper.HReduceU64Plus
 
