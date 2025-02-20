@@ -38,7 +38,7 @@ jobs:
 
       - run: |
           ./try-rebase.sh
-          if ! git diff --quiet then
+          if ! git diff --quiet; then
             echo MOVED=1 >>$GITHUB_ENV
           else
             echo MOVED=0 >>$GITHUB_ENV
