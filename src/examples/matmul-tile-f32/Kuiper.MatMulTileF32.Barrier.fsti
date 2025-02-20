@@ -27,41 +27,41 @@ let barrier_mm
 
 ghost
 fn transfer_barrier_mm (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array f32 smem_sz) (it: nat) (from to: (i: nat { 0 <= i /\ i < nthr }))
-  requires Barrier.barrier_mm nthr ar it from to
-  ensures  Barrier.barrier_mm nthr ar (it + 1) to from
+  requires barrier_mm nthr ar it from to
+  ensures  barrier_mm nthr ar (it + 1) to from
 {
-  unfold Barrier.barrier_mm nthr ar it from to;
-  fold Barrier.barrier_mm nthr ar (it + 1) to from;
+  unfold barrier_mm nthr ar it from to;
+  fold barrier_mm nthr ar (it + 1) to from;
 }
 
 ghost
 fn unfold_barrier_mm_odd (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array f32 smem_sz) (it: nat{it % 2 <> 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
-  requires Barrier.barrier_mm nthr ar it from to
+  requires barrier_mm nthr ar it from to
   ensures exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * to) (2 * to + 2) v
 {
-  unfold Barrier.barrier_mm nthr ar it from to;
+  unfold barrier_mm nthr ar it from to;
 }
 ghost
 fn fold_barrier_mm_odd (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array f32 smem_sz) (it: nat{it % 2 <> 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
   requires exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * to) (2 * to + 2) v
-  ensures Barrier.barrier_mm nthr ar it from to
+  ensures barrier_mm nthr ar it from to
 {
-  fold Barrier.barrier_mm nthr ar it from to;
+  fold barrier_mm nthr ar it from to;
 }
 
 ghost
 fn unfold_barrier_mm_even (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array f32 smem_sz) (it: nat{it % 2 == 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
-  requires Barrier.barrier_mm nthr ar it from to
+  requires barrier_mm nthr ar it from to
   ensures exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * from) (2 * from + 2) v
 {
-  unfold Barrier.barrier_mm nthr ar it from to;
+  unfold barrier_mm nthr ar it from to;
 }
 ghost
 fn fold_barrier_mm_even (nthr: nat) (smem_sz : nat{smem_sz == 2 * nthr}) (ar: gpu_array f32 smem_sz) (it: nat{it % 2 == 0}) (from to: (i: nat { 0 <= i /\ i < nthr }))
   requires exists* v. gpu_pts_to_slice ar #(1.0R /. nthr) (2 * from) (2 * from + 2) v
-  ensures Barrier.barrier_mm nthr ar it from to
+  ensures barrier_mm nthr ar it from to
 {
-  fold Barrier.barrier_mm nthr ar it from to;
+  fold barrier_mm nthr ar it from to;
 }
 
 let shared_pre
