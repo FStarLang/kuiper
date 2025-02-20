@@ -31,6 +31,11 @@ jobs:
           git config user.name "Actions bot"
           git config user.email "none@none"
 
+      - name: Get submodules
+        run: |
+          git submodule init
+          git submodule update
+
       - run: ./try-rebase.sh
 
       - name: Test the build
