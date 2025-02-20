@@ -113,7 +113,13 @@ KRML := $(KRML_HOME)/krml				\
 # something in the include), and verify-all can refer to ALL_CHECKED_FILES,
 # which is empty before including .depend. Sigh.
 all: verify-all extraction-targets
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),echo-fstar)
+ifneq ($(MAKECMDGOALS),echo-krml)
 include .depend
+endif
+endif
+endif
 # verify-all: $(ALL_CHECKED_FILES)
 	# ^ This is a bit excessive since it will traverse interfaces and
 	# add them too. Instead, I'm using this expression below to turn the

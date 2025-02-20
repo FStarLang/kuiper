@@ -1,20 +1,7 @@
 {
-  "fstar_exe": "FStar/bin/fstar.exe",
+  "fstar_exe": "./fstar.sh",
   "options": [
-    "--query_cache",
-    "--load_cmxs", "pulse",
-    "--warn_error", "-249",
-    "--z3version", "4.13.3",
-    "--ext", "kuiper",
-    "--ext", "__unrefine",
-    "--ext", "context_pruning",
-    "--ext", "no_krml_private",
-    "--ext", "krml_inline_all",
-    "--cache_dir", ".cache"
   ],
   "include_dirs": [
-    "pulse/build/ocaml/installed/lib/pulse",
-    "pulse/lib",
-    "src"
   ]
 }
