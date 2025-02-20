@@ -28,8 +28,8 @@ jobs:
         
       - name: Configure git
         run: |
-          git config user.name "Actions bot"
-          git config user.email "none@none"
+          git config --global user.name "Actions bot"
+          git config --global user.email "none@none"
 
       - name: Get submodules
         run: |
