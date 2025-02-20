@@ -4,8 +4,8 @@ on:
   # Only manually triggered
   workflow_dispatch:
   schedule:
-    # every midnight UTC
-    - cron: '0 0 * * *'
+    # every three hours
+    - cron: '0 /3 * * *'
 
 jobs:
   build:
