@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eux
+
 for p in FStar karamel pulse; do
 	pushd $p
 	if ! git remote | grep -q upstream; then
