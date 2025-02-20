@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   schedule:
     # every three hours
-    - cron: '0 /3 * * *'
+    - cron: '0 */3 * * *'
 
 jobs:
   build:
@@ -36,11 +36,21 @@ jobs:
           git submodule init
           git submodule update
 
-      - run: ./try-rebase.sh
+      - run: |
+          ./try-rebase.sh
+          if ! git diff --quiet then
+            echo MOVED=1 >>$GITHUB_ENV
+          else
+            echo MOVED=0 >>$GITHUB_ENV
+          fi
 
       - name: Test the build
+        if: ${{ env.MOVED == '1' }}
         run: |
           eval $(opam env)
           make -skj$(nproc) ci
 
-      - run: ./try-push.sh
+      - name: Push updated state
+        if: ${{ env.MOVED == '1' }}
+        run: |
+          ./try-push.sh
