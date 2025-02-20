@@ -66,6 +66,7 @@ let tid_to_idx
   assert (rows / bdim >= 1);
   assert (columns / bdim >= 1);
   let r = (permute (rows / bdim) (columns / bdim) bdim).f tid in
+  assume (r <= rows * columns); // fixme
   r
 
 [@@CPrologue "__global__"]
