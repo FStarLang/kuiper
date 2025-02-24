@@ -62,7 +62,7 @@ void Kuiper_DotProduct_main(void)
   while (i < Kuiper_DotProduct_m_size)
   {
     size_t vi = i;
-    psum = psum + ar[vi];
+    psum += ar[vi];
     i = vi + (size_t)1U;
   }
   KRML_HOST_FREE(a1);

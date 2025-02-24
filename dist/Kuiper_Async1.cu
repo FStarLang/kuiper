@@ -11,7 +11,7 @@ __global__
 
 void Kuiper_Async1_kernel(uint64_t *r)
 {
-  *r = *r + 1ULL;
+  *r += 1ULL;
 }
 
 uint64_t *Kuiper_Async1_galloc(uint64_t x)

@@ -11,7 +11,7 @@ __global__
 
 void Kuiper_BasicFloat_kernel(float_t *r)
 {
-  *r = *r + (float_t)1.0f;
+  *r += (float_t)1.0f;
 }
 
 float_t Kuiper_BasicFloat_main(void)

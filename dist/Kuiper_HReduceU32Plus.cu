@@ -22,7 +22,7 @@ void Kuiper_HReduceU32Plus_k_reduce(size_t nth, uint32_t *a)
     size_t nextid = tid1 + (size_t)(1U << (uint32_t)it);
     if (nextid < nth)
       if ((tid1 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        a[tid1] = a[tid1] + a[nextid];
+        a[tid1] += a[nextid];
     n = it + (size_t)1U;
   }
 }

@@ -24,7 +24,7 @@ void Kuiper_DotProduct2_kernel(size_t nth, uint64_t *ga1, uint64_t *ga2, uint64_
     size_t nextid = tid3 + (size_t)(1U << (uint32_t)it);
     if (nextid < nth)
       if ((tid3 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        r[tid3] = r[tid3] + r[nextid];
+        r[tid3] += r[nextid];
     n = it + (size_t)1U;
   }
 }
