@@ -35,3 +35,7 @@ clean:
 
 clean-full: clean
 	git submodule foreach git clean -Xf
+
+dist: all
+	rm -f dist/*
+	cp out/*.cu dist
