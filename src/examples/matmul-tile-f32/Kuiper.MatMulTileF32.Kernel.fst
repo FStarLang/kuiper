@@ -9,9 +9,6 @@ module SZ = FStar.SizeT
 
 module I = Kuiper.MatMul.Impure
 
-// #push-options "--print_implicits --print_bound_var_types"
-// #push-options "--debug SMTFail"
-
 let lemma_pos_times_pos (a b: pos)
   : Lemma (a * b > 0) = ()
 

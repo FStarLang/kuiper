@@ -13,8 +13,6 @@ module I = Kuiper.MatMul.Impure
 #set-options "--z3rlimit 60"
 #set-options "--fuel 1 --ifuel 1"
 
-// #push-options "--print_implicits --print_bound_var_types"
-// #push-options "--debug SMTFail"
 inline_for_extraction noextract
 fn calc_idxs
   (rows shared columns bdim : szp)

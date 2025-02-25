@@ -56,7 +56,7 @@ fn setup
   bigstar_map #_ #_ #0 #size aux;
   bigstar_eta();
 }
-#set-options "--debug SMTFail"
+
 fn main
   (rows shared columns : szp)
   (a b : vec u64)

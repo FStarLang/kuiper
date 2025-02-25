@@ -34,7 +34,7 @@ clean:
 	rm -f .*.touch
 
 clean-full: clean
-	git submodule foreach git clean -Xf
+	git submodule foreach git clean -xf
 
 dist: all
 	rm -f dist/*

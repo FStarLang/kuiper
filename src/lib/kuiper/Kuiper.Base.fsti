@@ -8,7 +8,6 @@ open FStar.Seq
 open Pulse.Lib.BigStar
 open Kuiper.SizeT
 open FStar.Mul
-module U32 = FStar.UInt32
 module SZ = FStar.SizeT
 
 type mode_t = | CPU | GPU
