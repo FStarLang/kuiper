@@ -24,3 +24,12 @@ let lemma_sq_mono (a b : nat)
 let lemma_sq_mono' (a b : nat)
 : Lemma (a < b <==> a * a < b * b)
 = ()
+
+let stupid_mul_mono (x y z w : nat)
+: Lemma (requires x <= z /\ y <= w)
+        (ensures x * y <= z * w)
+= ()
+
+let stupid_divides (x:nat) (y:nonzero)
+: Lemma (x/y <= x)
+= ()

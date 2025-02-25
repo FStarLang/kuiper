@@ -12,18 +12,6 @@ module Kernel = Kuiper.MatMulTile.Kernel
 module Barrier = Kuiper.MatMulTile.Barrier
 module Prep = Kuiper.MatMulTile.Prep
 
-let stupid_mul_mono (x y z w : nat)
-: Lemma (requires x <= z /\ y <= w) (ensures x * y <= z * w)
-=
-  ()
-
-#push-options "--retry 5" // sad
-let stupid_divides (x:nat) (y:pos)
-: Lemma (x/y <= x)
-  [SMTPat (x/y)]
-= ()
-#pop-options
-
 ghost
 fn recall_array_len
   (#t:Type0)
@@ -75,7 +63,7 @@ fn g_mul_async
   assert (pure (rows_tile <= rows));
   assert (pure (columns_tile <= columns));
   assert (pure (SZ.fits (rows * columns)));
-  stupid_mul_mono rows_tile columns_tile rows columns;
+  Kuiper.Math.Silly.stupid_mul_mono rows_tile columns_tile rows columns;
   assert (pure (rows_tile * columns_tile <= rows * columns));
   assert (pure (SZ.fits (rows_tile * columns_tile)));
   let nblk = rows_tile *^ columns_tile;

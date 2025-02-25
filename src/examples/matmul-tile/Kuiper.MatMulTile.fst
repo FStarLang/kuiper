@@ -10,18 +10,6 @@ open Pulse.Lib.Pledge
 module SZ   = FStar.SizeT
 module GMul = Kuiper.MatMulTile.Async.GMul
 
-let stupid_mul_mono (x y z w : nat)
-: Lemma (requires x <= z /\ y <= w) (ensures x * y <= z * w)
-=
-  ()
-
-#push-options "--retry 5" //sad
-let stupid_divides (x:nat) (y:nonzero)
-: Lemma (x/y <= x)
-  [SMTPat (x/y)]
-= ()
-#pop-options
-
 #push-options "--z3rlimit 20"
 fn main
   (rows shared columns : szp)
