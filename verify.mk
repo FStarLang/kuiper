@@ -138,15 +138,6 @@ $(CACHEDIR)/Kuiper.%.checked: | .fstar.touch .pulse.touch
 	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
 	@touch -c $@
 
-# What the hell is going on!? This verifies fine locally from a clean
-# build, but not on CI. Does the SMT encoding depend in any way on the machine,
-# like filepaths? Anyway, bump the rlimit.
-# -.cache/FStar.UInt.fst.checked: FSTAR_FLAGS+=--z3rlimit_factor 2
-# That didn't help. To help with it, we do not verify anything from F*.
-# I would add Pulse but we have some modules in the Pulse namespace here,
-# rename themwould add Pulse but we have some modules in the Pulse namespace here.
-.cache/FStar.%.checked: FSTAR_FLAGS+=--admit_smt_queries true
-
 # Without .cmxs extension
 PLUGIN=extraction/dune/_build/default/kuiper_extr
 
