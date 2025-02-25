@@ -12,20 +12,20 @@ module SZ = FStar.SizeT
 // it involves some changes all around.
 [@@CPrologue "__global__"]
 fn kernel
-  (rows : sz) (shared : sz) (columns : sz{rows * columns < pow2 64})
-  (ga1 : gpu_array u64 (rows * shared))
+  (rows : erased sz) (shared : sz) (columns : sz{reveal rows * columns < pow2 64})
+  (ga1 : gpu_array u64 (reveal rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
-  (r : gpu_array u64 (rows * columns))
-  (#s1 : erased (seq u64) {len s1 == rows * shared})
+  (r : gpu_array u64 (reveal rows * columns))
+  (#s1 : erased (seq u64) {len s1 == reveal rows * shared})
   (#s2 : erased (seq u64) {len s2 == shared * columns})
-  (nth : erased sz { SZ.v nth == rows * columns })
+  (nth : erased sz { SZ.v nth == reveal rows * columns })
   (etid : erased tid_t { gdim_x etid == SZ.v nth /\ bdim_x etid == 1 })
   requires gpu
     ** thread_id etid
-    ** kpre rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
+    ** kpre (reveal rows) shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
   ensures  gpu
     ** thread_id etid
-    ** kpost rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
+    ** kpost (reveal rows) shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
 {
   open FStar.SizeT;
 
@@ -37,7 +37,7 @@ fn kernel
   let tcol = SZ.rem tid columns;
   // assert (pure (0 <= trow /\ trow < rows /\ 0 <= tcol /\ tcol < columns));
 
-  assume (pure (SZ.fits (rows * columns))); // fixme, should come from ref
+  assume (pure (SZ.fits (reveal (reveal rows) * columns))); // fixme, should come from ref
   let mut i = 0sz;
   let mut sum = 0UL;
 
@@ -47,23 +47,24 @@ fn kernel
        pure (0 <= shared /\ b == (SZ.v v < shared) /\ v <= shared /\ v >= 0) **
        pts_to i v **
        gpu **
-       pts_to sum (P.matmul_single rows shared columns s1 s2 trow tcol v)
-       ** I.gpu_pts_to_matrix #u64 rows shared ga1 (SZ.v nth) s1
+       pts_to sum (P.matmul_single (reveal rows) shared columns s1 s2 trow tcol v)
+       ** I.gpu_pts_to_matrix #u64 (reveal rows) shared ga1 (SZ.v nth) s1
        ** I.gpu_pts_to_matrix #u64 shared columns ga2 (SZ.v nth) s2
   {
     let v = !i;
     let s = !sum;
-    let v1 = I.gpu_matrix_read ga1 trow v;
-    let v2 = I.gpu_matrix_read ga2 v tcol;
+    (* Why doesn't this just work? *)
+    let v1 = I.gpu_matrix_read #_ #_ #shared ga1 trow v;
+    let v2 = I.gpu_matrix_read #_ #(hide shared) #columns ga2 v tcol;
 
     (* Using U64.(...) works but warns on every client (?) *)
     sum := FStar.UInt64.((v1 *%^ v2) +%^ s);
     i := SZ.add v 1sz;
-    assert (pure (trow < rows));
+    assert (pure (trow < (reveal rows)));
     assert (pure (tcol < columns));
     assert (pure (v+1 <= shared));
-    assert (pure ((trow + 1) <= rows /\ (trow + 1) * shared <= rows * shared)); // Pulse #214
-    (**)P.matmul_single_lemma rows shared columns s1 s2 trow tcol (v + 1);
+    assert (pure ((trow + 1) <= (reveal rows) /\ (trow + 1) * shared <= (reveal rows) * shared)); // Pulse #214
+    (**)P.matmul_single_lemma (reveal rows) shared columns s1 s2 trow tcol (v + 1);
     ()
   };
 

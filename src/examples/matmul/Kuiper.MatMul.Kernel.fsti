@@ -47,17 +47,17 @@ let kpost (rows shared columns : nat)
 
 [@@CPrologue "__global__"]
 fn kernel
-  (rows : sz) (shared : sz) (columns : sz{rows * columns < pow2 64})
-  (ga1 : gpu_array u64 (rows * shared))
+  (rows : erased sz) (shared : sz) (columns : sz{reveal rows * columns < pow2 64})
+  (ga1 : gpu_array u64 (reveal rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
-  (r : gpu_array u64 (rows * columns))
-  (#s1 : erased (seq u64) {len s1 == rows * shared})
+  (r : gpu_array u64 (reveal rows * columns))
+  (#s1 : erased (seq u64) {len s1 == reveal rows * shared})
   (#s2 : erased (seq u64) {len s2 == shared * columns})
-  (nth : erased sz { SZ.v nth == rows * columns })
+  (nth : erased sz { SZ.v nth == reveal rows * columns })
   (etid : erased tid_t { gdim_x etid == SZ.v nth /\ bdim_x etid == 1 })
   requires gpu
     ** thread_id etid
-    ** kpre rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
+    ** kpre (reveal rows) shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
   ensures  gpu
     ** thread_id etid
-    ** kpost rows shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)
+    ** kpost (reveal rows) shared columns ga1 ga2 r s1 s2 (SZ.v nth) (thread_index etid)

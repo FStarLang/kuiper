@@ -106,7 +106,7 @@ fn main
     size
     #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpre  rows shared columns ga gb gr va vb (SZ.v size) tid)
     #(fun (tid: nat {0 <= tid /\ tid < size} ) -> K.kpost rows shared columns ga gb gr va vb (SZ.v size) tid)
-    (fun etid -> K.kernel rows shared columns ga gb gr (hide size) etid);
+    (fun etid -> K.kernel (hide rows) shared columns ga gb gr (hide size) etid);
 
   (**)bigstar_unzip 0 size _ _;
   (**)bigstar_unzip 0 size _ _;

@@ -343,8 +343,8 @@ fn kernel
     // SZ.fits_at_least_16 (SZ.v v_bdim + SZ.v trow);
     assert (pure (SZ.v row < SZ.v rows /\ SZ.v col < SZ.v columns));
 
-    let v1 = I.gpu_matrix_read #_ #rows #shared ga1 #(SZ.v nblk * SZ.v nthr) #s1 row (v_bdim +^ tcol);
-    let v2 = I.gpu_matrix_read #_ #shared #columns ga2 #(SZ.v nblk * SZ.v nthr) #s2 (v_bdim +^ trow) col;
+    let v1 = I.gpu_matrix_read #_ #(hide rows)   #shared ga1 #(SZ.v nblk * SZ.v nthr) #s1 row (v_bdim +^ tcol);
+    let v2 = I.gpu_matrix_read #_ #(hide shared) #columns ga2 #(SZ.v nblk * SZ.v nthr) #s2 (v_bdim +^ trow) col;
     
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx1 v1;
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx2 v2;

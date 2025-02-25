@@ -29,9 +29,9 @@ let kpost (size: sz) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slpr
 [@@CPrologue "__global__"]
 fn kernel
   (#nblk : erased sz { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
-  (size : sz { SZ.v size == SZ.v nblk })
-  (ga1 ga2 : gpu_array elem_t size)
-  (r : gpu_array elem_t size)
+  (size : erased sz { SZ.v size == SZ.v nblk })
+  (ga1 ga2 : gpu_array elem_t (reveal size))
+  (r : gpu_array elem_t (reveal size))
   (etid : erased tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == 1 })
   requires gpu ** thread_id etid ** kpre size ga1 ga2 r (thread_index etid)
   ensures  gpu ** thread_id etid ** kpost size ga1 ga2 r (thread_index etid)
@@ -44,15 +44,15 @@ fn kernel
 
   (**)unfold (gpu_pts_to_array1 ga1 id);
   (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
-  let v1 = gpu_array_read #_ #size #id #(id+1) ga1 id;
+  let v1 = gpu_array_read #_ #(reveal size) #id #(id+1) ga1 id;
 
   (**)unfold (gpu_pts_to_array1 ga2 id);
-  let v2 = gpu_array_read #_ #size #id #(id+1) ga2 id;
+  let v2 = gpu_array_read #_ #(reveal size) #id #(id+1) ga2 id;
 
   let v = v1 `U32.mul_underspec` v2;
 
   (**)unfold (gpu_pts_to_array1 r id);
-  gpu_array_write #_ #size #id #(id+1) r id v;
+  gpu_array_write #_ #(reveal size) #id #(id+1) r id v;
 
   (**)fold (gpu_pts_to_array1 r id);
   (**)fold (gpu_pts_to_array1 ga1 id);
@@ -126,7 +126,7 @@ fn main (_:unit)
 
   launch_kernel_n nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
-    (fun etid -> kernel #(hide nthr) m_size ga1 ga2 gr etid);
+    (fun etid -> kernel #(hide nthr) (hide m_size) ga1 ga2 gr etid);
 
   rewrite
     (bigstar 0 (SZ.v nthr)  (kpost m_size ga1 ga2 gr))

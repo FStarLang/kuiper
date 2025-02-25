@@ -42,34 +42,35 @@ fn gpu_matrix_unshare_underspec
 inline_for_extraction noextract
 fn gpu_matrix_read
   (#a :Type0)
-  (#rows #columns : sz)
-  (ga : gpu_array a (rows * columns))
+  (#rows : erased sz) (* This is only needed for spec *)
+  (#columns : sz)     (* but this one we need to compute indices... *)
+  (ga : gpu_array a (reveal rows * reveal columns))
   (#shared : erased nat{shared > 0})
-  (#s : erased (seq a) { len s == rows * columns })
-  (row : sz{SZ.v row < rows})
+  (#s : erased (seq a) { len s == reveal rows * columns })
+  (row : sz{SZ.v row < reveal rows})
   (col : sz{SZ.v col < columns})
   requires
     gpu **
-    gpu_pts_to_matrix rows columns ga shared s
+    gpu_pts_to_matrix (reveal rows) columns ga shared s
   returns v : a
   // TODO : is the assert here opaque?
   ensures (
-    assert ((SZ.v row + 1) * columns <= rows * columns);
+    assert ((SZ.v row + 1) * columns <= reveal rows * columns);
     gpu **
-    gpu_pts_to_matrix rows columns ga shared s **
+    gpu_pts_to_matrix (reveal rows) columns ga shared s **
     pure (
       v == Seq.index s (row * columns + SZ.v col)
     )
   )
 {
   open FStar.SizeT;
-  unfold gpu_pts_to_matrix rows columns ga shared s;
+  unfold gpu_pts_to_matrix (reveal rows) columns ga shared s;
   Kuiper.Array.gpu_pts_to_ref ga #s;
   // TODO : strange that commenting this out causes an error
-  assert (pure ((row + 1) * columns <= rows * columns));
+  assert (pure ((row + 1) * columns <= reveal rows * columns));
   let idx = row *^ columns +^ col;
-  let v = gpu_array_read #_ #_ #0 #(rows * columns) ga idx;
-  fold gpu_pts_to_matrix rows columns ga shared s;
+  let v = gpu_array_read #_ #_ #0 #(reveal rows * columns) ga idx;
+  fold gpu_pts_to_matrix (reveal rows) columns ga shared s;
   v
 }
 
