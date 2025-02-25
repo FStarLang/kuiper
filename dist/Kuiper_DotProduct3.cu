@@ -30,7 +30,7 @@ void Kuiper_DotProduct3_kernel(size_t nth, uint64_t *ga1, uint64_t *ga2, uint64_
     n = it + (size_t)1U;
   }
   if (tid == (size_t)0U)
-    r[0U] = ar[0U];
+    *r = *ar;
 }
 
 uint64_t Kuiper_DotProduct3_main(uint64_t *a1, uint64_t *a2)
@@ -56,7 +56,7 @@ uint64_t Kuiper_DotProduct3_main(uint64_t *a1, uint64_t *a2)
   MUST(cudaFree(ga1));
   MUST(cudaFree(ga2));
   MUST(cudaFree(gr));
-  uint64_t dp = ar[0U];
+  uint64_t dp = *ar;
   KRML_HOST_FREE(ar);
   return dp;
 }

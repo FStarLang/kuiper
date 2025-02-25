@@ -18,7 +18,7 @@ uint64_t Kuiper_Example1_main(void)
 {
   uint64_t *r = (uint64_t *)KRML_HOST_MALLOC(sizeof (uint64_t));
   if (r != NULL)
-    r[0U] = 1ULL;
+    *r = 1ULL;
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U);
   MUST(cudaMemcpy(gr, r, (size_t)8U, cudaMemcpyHostToDevice));
   KPR_KCALL_ASYNC(Kuiper_Example1_kernel, 1U, 1U, gr);

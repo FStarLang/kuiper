@@ -49,7 +49,7 @@ uint64_t Kuiper_DotProduct2_main(uint64_t *a1, uint64_t *a2)
   MUST(cudaFree(ga1));
   MUST(cudaFree(ga2));
   MUST(cudaFree(gr));
-  uint64_t dp = ar[0U];
+  uint64_t dp = *ar;
   KRML_HOST_FREE(ar);
   return dp;
 }

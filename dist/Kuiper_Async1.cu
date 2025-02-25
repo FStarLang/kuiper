@@ -18,7 +18,7 @@ uint64_t *Kuiper_Async1_galloc(uint64_t x)
 {
   uint64_t *r = (uint64_t *)KRML_HOST_MALLOC(sizeof (uint64_t));
   if (r != NULL)
-    r[0U] = x;
+    *r = x;
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U);
   MUST(cudaMemcpy(gr, r, (size_t)8U, cudaMemcpyHostToDevice));
   KRML_HOST_FREE(r);
