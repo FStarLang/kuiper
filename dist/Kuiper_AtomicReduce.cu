@@ -11,9 +11,9 @@ __global__
 
 static void kernel(uint64_t *a, uint64_t *r)
 {
-  uint32_t bid = blockIdx_x();
-  uint32_t bdim = blockDim_x();
-  atomic_add_u64(r, a[(size_t)bid * (size_t)bdim + (size_t)threadIdx_x()]);
+  size_t bid = blockIdx_x();
+  size_t bdim = blockDim_x();
+  atomic_add_u64(r, a[bid * bdim + threadIdx_x()]);
 }
 
 uint64_t Kuiper_AtomicReduce_reduce(size_t n, uint64_t *a)

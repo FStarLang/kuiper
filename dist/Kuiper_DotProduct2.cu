@@ -13,18 +13,18 @@ __global__
 
 void Kuiper_DotProduct2_kernel(size_t nth, uint64_t *ga1, uint64_t *ga2, uint64_t *r)
 {
-  size_t tid1 = (size_t)threadIdx_x();
-  r[tid1] = ga1[tid1] * ga2[tid1];
-  size_t tid3 = (size_t)threadIdx_x();
+  size_t tid = threadIdx_x();
+  r[tid] = ga1[tid] * ga2[tid];
+  size_t tid1 = threadIdx_x();
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < nth)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid3 + (size_t)(1U << (uint32_t)it);
+    size_t nextid = tid1 + (size_t)(1U << (uint32_t)it);
     if (nextid < nth)
-      if ((tid3 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        r[tid3] += r[nextid];
+      if ((tid1 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        r[tid1] += r[nextid];
     n = it + (size_t)1U;
   }
 }

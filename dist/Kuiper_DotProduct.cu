@@ -19,9 +19,9 @@ __global__
 void Kuiper_DotProduct_kernel(size_t size, uint32_t *ga1, uint32_t *ga2, uint32_t *r)
 {
   KRML_MAYBE_UNUSED_VAR(size);
-  uint32_t bid = blockIdx_x();
-  uint32_t bdim = blockDim_x();
-  size_t id = (size_t)bid * (size_t)bdim + (size_t)threadIdx_x();
+  size_t bid = blockIdx_x();
+  size_t bdim = blockDim_x();
+  size_t id = bid * bdim + threadIdx_x();
   r[id] = ga1[id] * ga2[id];
 }
 

@@ -13,9 +13,9 @@ static void
 kernel(size_t rows, size_t shared, size_t columns, uint64_t *ga1, uint64_t *ga2, uint64_t *r)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
-  size_t tid1 = (size_t)blockIdx_x();
-  size_t trow = tid1 / columns;
-  size_t tcol = tid1 % columns;
+  size_t tid = blockIdx_x();
+  size_t trow = tid / columns;
+  size_t tcol = tid % columns;
   size_t i = (size_t)0U;
   uint64_t sum = 0ULL;
   while (i < shared)
@@ -24,7 +24,7 @@ kernel(size_t rows, size_t shared, size_t columns, uint64_t *ga1, uint64_t *ga2,
     sum += ga1[trow * shared + v] * ga2[v * columns + tcol];
     i = v + (size_t)1U;
   }
-  r[tid1] = sum;
+  r[tid] = sum;
 }
 
 uint64_t

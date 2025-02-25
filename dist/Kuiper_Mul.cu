@@ -11,9 +11,9 @@ __global__
 
 void Kuiper_Mul_kernel(uint64_t *a1, uint64_t *a2, uint64_t *ar)
 {
-  uint32_t bid = blockIdx_x();
-  uint32_t bdim = blockDim_x();
-  size_t tid = (size_t)bid * (size_t)bdim + (size_t)threadIdx_x();
+  size_t bid = blockIdx_x();
+  size_t bdim = blockDim_x();
+  size_t tid = bid * bdim + threadIdx_x();
   ar[tid] = a1[tid] * a2[tid];
 }
 

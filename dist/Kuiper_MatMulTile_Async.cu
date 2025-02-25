@@ -21,23 +21,23 @@ kernel(
 )
 {
   KRML_MAYBE_UNUSED_VAR(rows);
-  size_t tid10 = (size_t)threadIdx_x();
-  size_t trow0 = tid10 / bdim;
-  size_t tcol0 = tid10 % bdim;
+  size_t tid0 = threadIdx_x();
+  size_t trow0 = tid0 / bdim;
+  size_t tcol0 = tid0 % bdim;
   size_t columns_tile = columns / bdim;
-  size_t bid1 = (size_t)blockIdx_x();
-  size_t brow = bid1 / columns_tile;
-  size_t bcol = bid1 % columns_tile;
+  size_t bid = blockIdx_x();
+  size_t brow = bid / columns_tile;
+  size_t bcol = bid % columns_tile;
   size_t
   idx = brow * bdim * columns_tile * bdim + trow0 * bdim * columns_tile + bcol * bdim + tcol0;
   size_t row = brow * bdim + trow0;
   size_t col = bcol * bdim + tcol0;
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t shared_tile = shared / bdim;
-  size_t tid1 = (size_t)threadIdx_x();
-  size_t trow = tid1 / bdim;
-  size_t tcol = tid1 % bdim;
-  size_t smem_idx1 = (size_t)2U * tid1;
+  size_t tid = threadIdx_x();
+  size_t trow = tid / bdim;
+  size_t tcol = tid % bdim;
+  size_t smem_idx1 = (size_t)2U * tid;
   size_t smem_idx2 = smem_idx1 + (size_t)1U;
   size_t i = (size_t)0U;
   uint64_t sum = 0ULL;

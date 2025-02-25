@@ -11,9 +11,9 @@ __global__
 
 void Kuiper_ArrayReversal_kernel__uint64_t(size_t size, uint64_t *a)
 {
-  uint32_t bid = blockIdx_x();
-  uint32_t bdim = blockDim_x();
-  size_t idx = (size_t)bid * (size_t)bdim + (size_t)threadIdx_x();
+  size_t bid = blockIdx_x();
+  size_t bdim = blockDim_x();
+  size_t idx = bid * bdim + threadIdx_x();
   size_t idx_ = size - idx - (size_t)1U;
   uint64_t uu = a[idx];
   a[idx] = a[idx_];
