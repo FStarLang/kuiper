@@ -36,8 +36,7 @@ fn calc_idxs
           SZ.v idxs._3 < columns)
 {
   assume (pure False);
-  let tid = thread_idx_x () <: u32;
-  let tid : sz = SZ.uint32_to_sizet tid;
+  let tid = thread_idx_x ();
   let trow = SZ.div tid bdim;
   let tcol = SZ.rem tid bdim;
   assume (pure (SZ.v trow < SZ.v bdim /\ SZ.v tcol < SZ.v bdim));
@@ -45,8 +44,7 @@ fn calc_idxs
   let columns_tile = SZ.div columns bdim;
   let rows_tile = SZ.div rows bdim;
 
-  let bid = block_idx_x () <: u32;
-  let bid : sz = SZ.uint32_to_sizet bid;
+  let bid = block_idx_x ();
   let brow = SZ.div bid columns_tile;
   let bcol = SZ.rem bid columns_tile;
   assume (pure (SZ.v brow < rows/bdim /\ SZ.v bcol < columns/bdim));
@@ -270,8 +268,7 @@ fn kernel
   
   let shared_tile = shared `SZ.div` bdim;
 
-  let tid = thread_idx_x () <: u32;
-  let tid : sz = SZ.uint32_to_sizet tid;
+  let tid = thread_idx_x ();
   assert (pure (SZ.v tid < SZ.v bdim * SZ.v bdim));
   let trow : sz = SZ.div tid bdim;
   let tcol : sz = SZ.rem tid bdim;

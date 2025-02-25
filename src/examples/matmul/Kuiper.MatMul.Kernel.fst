@@ -30,7 +30,6 @@ fn kernel
   open FStar.SizeT;
 
   let tid = block_idx_x ();
-  let tid : sz = SZ.uint32_to_sizet tid;
   rewrite each thread_index etid as tid;
 
   (* r[tid] = TODO *)

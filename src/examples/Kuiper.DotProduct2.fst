@@ -60,7 +60,6 @@ fn kernel
     kpost nth ga1 ga2 r s1 s2 (thread_index etid)
 {
   let tid = thread_idx_x ();
-  let tid : sz = SZ.uint32_to_sizet tid;
   (**)unfold (kpre nth ga1 ga2 r s1 s2 tid);
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;

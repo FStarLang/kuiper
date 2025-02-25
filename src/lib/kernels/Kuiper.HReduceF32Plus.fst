@@ -254,7 +254,6 @@ fn reduce
       kpost nth a s (thread_index etid)
 {
   let tid = thread_idx_x ();
-  let tid : sz = SZ.uint32_to_sizet tid;
   rewrite each thread_index etid as tid;
 
   (* Reduction *)
