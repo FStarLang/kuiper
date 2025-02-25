@@ -332,8 +332,6 @@ fn kernel
 
     outer_loop rows shared columns bdim iv (SZ.v nthr) smem_sz ar (SZ.v tid) tcol trow sum;
     Kuiper.Math.Silly.two_times_succ (SZ.v iv); // silly
-    rewrite each (2 `Prims.op_Multiply` SZ.v iv + 2) as (2 * (SZ.v iv + 1));
-    (* FIXME!!!!!!!! Using * fails to syntactically match because it's an alias!!!  *)
     ()
   };
   fold Barrier.shared_pre nthr (2 * shared_tile) ar (bidx_x etid) (tidx_x etid);
