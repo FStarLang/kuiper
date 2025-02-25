@@ -57,11 +57,7 @@ kernel(
     {
       size_t vv = j;
       j = vv + (size_t)1U;
-      sum =
-        ar[(size_t)2U
-        * (ga1_iidx + vv)]
-        * ar[(size_t)2U * (ga2_iidx + vv * bdim) + (size_t)1U]
-        + sum;
+      sum += ar[(size_t)2U * (ga1_iidx + vv)] * ar[(size_t)2U * (ga2_iidx + vv * bdim) + (size_t)1U];
     }
     __syncthreads();
   }

@@ -21,7 +21,7 @@ kernel(size_t rows, size_t shared, size_t columns, uint64_t *ga1, uint64_t *ga2,
   while (i < shared)
   {
     size_t v = i;
-    sum = ga1[trow * shared + v] * ga2[v * columns + tcol] + sum;
+    sum += ga1[trow * shared + v] * ga2[v * columns + tcol];
     i = v + (size_t)1U;
   }
   r[tid1] = sum;
