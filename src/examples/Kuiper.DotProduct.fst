@@ -58,10 +58,6 @@ fn kernel
   (**)fold (gpu_pts_to_array1 ga1 id);
   (**)fold (gpu_pts_to_array1 ga2 id);
   (**)fold (kpost size ga1 ga2 r id);
-  (* FIXME: rewrite each doesn't do anything. *)
-  // rewrite each SZ.v id as thread_index etid;
-  rewrite kpost size ga1 ga2 r id
-       as kpost size ga1 ga2 r (thread_index etid);
   ()
 }
 
@@ -108,14 +104,6 @@ fn main (_:unit)
   (**)bigstar_zip #1 #2 #1 0 (SZ.v m_size) _ _;
   (**)bigstar_zip #1 #3 #0 0 (SZ.v m_size) _ _;
 
-  (**)rewrite
-    (bigstar 0 (SZ.v m_size)
-      (fun i -> (gpu_pts_to_array1 ga1 i **
-                 gpu_pts_to_array1 ga2 i) **
-                 gpu_pts_to_array1 gr i))
-  as
-    (bigstar 0 (SZ.v m_size) (fun i -> kpre m_size ga1 ga2 gr i));
-
   (**)bigstar_uneta ();
 
   assert (pure (SZ.v m_size == SZ.v nthr));
@@ -135,13 +123,6 @@ fn main (_:unit)
 
   (**)bigstar_eta ();
 
-  rewrite
-    (bigstar 0 (SZ.v m_size) (fun i -> kpre m_size ga1 ga2 gr i))
-  as
-    (bigstar 0 (SZ.v m_size)
-      (fun i -> gpu_pts_to_array1 ga1 i **
-                gpu_pts_to_array1 ga2 i **
-                gpu_pts_to_array1 gr i));
   (**)bigstar_unzip 0 (SZ.v m_size) _ _;
   (**)bigstar_unzip 0 (SZ.v m_size) _ _;
   

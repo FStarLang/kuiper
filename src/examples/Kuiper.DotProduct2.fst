@@ -147,15 +147,6 @@ fn main
   // Boring combination of resources
   (**)bigstar_zip 0 dp2_size (shared_array ga1) (shared_array ga2);
   (**)bigstar_zip 0 dp2_size _ (gpu_pts_to_array1 gr);
-  (**)rewrite
-    (bigstar 0 dp2_size
-      (fun i -> ((shared_array #dp2_size ga1 #v1 i **
-                 shared_array #dp2_size ga2 #v2 i) **
-                 gpu_pts_to_array1 gr i)))
-  as
-    (bigstar 0 dp2_size (fun i -> kpre dp2_size ga1 ga2 gr v1 v2 i))
-    by tadmit ();
-  (**)bigstar_uneta ();
 
   rewrite
     bigstar 0 dp2_size
@@ -170,16 +161,15 @@ fn main
     #(HR.barrier_matrix dp2_size gr (pmul v1 v2))
     (fun etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 etid);
 
-  (**)bigstar_eta ();
-  // TODO:
-  (**)drop_
-        (bigstar 0 (1 * SZ.v dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 i));
-  (**)assume
-        (bigstar 0 dp2_size
-          (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. dp2_size) v1 **
-                    gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. dp2_size) v2) **
-                    if_ (i = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
-        ));
+  (* Unfold kpost under the star, would be nice to automate as long as that's tractable. *)
+  rewrite
+    bigstar 0 (1 * SZ.v dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 i)
+  as
+    bigstar 0 dp2_size
+     (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. dp2_size) v1 **
+               gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. dp2_size) v2) **
+               if_ (i = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
+    );
   
   (**)bigstar_unzip 0 dp2_size _ _;
   (**)bigstar_unzip 0 dp2_size _ _;

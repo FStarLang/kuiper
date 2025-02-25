@@ -34,6 +34,5 @@ fn kernel (#size : erased nat)
   gpu_array_write #_ #_ #tid #(tid + 1) ar tid v;
   (**)with sr. assert gpu_pts_to_slice ar tid (tid + 1) sr;
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[thread_index etid]];
-  rewrite each FStar.SizeT.v tid as thread_index etid;
   ()
 }

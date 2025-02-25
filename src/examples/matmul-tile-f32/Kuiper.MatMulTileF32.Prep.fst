@@ -131,8 +131,6 @@ fn breakdown
     // f x == y <==> g y == x
     let double: (j: nat{ 0 <= j /\ j < (nblk * nthr) }) = perm.f once;
     assert (pure (double == i));
-    rewrite (gpu_pts_to_array1 gr (perm.f (K.tid_to_idx rows shared columns bdim i)))
-         as (gpu_pts_to_array1 gr i);
     ()
   };
   admit();
