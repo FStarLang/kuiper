@@ -60,18 +60,28 @@ jobs:
           git reset
 
       - name: Push updated state, since there's no diff
-        if: ${{ env.MOVED == '1' && env.DISCHANGE == '0' }}
+        if: ${{ env.MOVED == '1' && env.DISTCHANGE == '0' }}
         run: |
           # Use the token so we can push to these repos.
           for dir in FStar karamel pulse; do
+            pushd $dir
+            echo "in $(pwd)"
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
+            echo R=$R
+            echo before
+            git remote -v
             git remote set-url origin https://${{secrets.ADVANCE_GH_TOKEN}}@github.com/$R
+            echo after
+            git remote -v
+            popd
           done
           ./try-push.sh
 
       - name: Make a PR! There's a diff to review.
-        if: ${{ env.MOVED == '1' && env.DISCHANGE == '1' }}
-        run:
+        if: ${{ env.MOVED == '1' && env.DISTCHANGE == '1' }}
+        run: |
+          git status
+          git diff
           # TODO, just fail for now.
           exit 1
           # git add . && git commit -m "Bump modules (dist changed)."
