@@ -9,10 +9,8 @@
 
 __global__
 
-static void
-kernel(size_t rows, size_t shared, size_t columns, uint64_t *ga1, uint64_t *ga2, uint64_t *r)
+static void kernel(size_t shared, size_t columns, uint64_t *ga1, uint64_t *ga2, uint64_t *r)
 {
-  KRML_MAYBE_UNUSED_VAR(rows);
   size_t tid = blockIdx_x();
   size_t trow = tid / columns;
   size_t tcol = tid % columns;
@@ -40,7 +38,7 @@ uint64_t
   MUST(cudaMemcpy(ga, a, (size_t)8U * rs, cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gb, b, (size_t)8U * sc, cudaMemcpyHostToDevice));
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * size);
-  KPR_KCALL(kernel, size, 1U, rows, shared, columns, ga, gb, gr);
+  KPR_KCALL(kernel, size, 1U, shared, columns, ga, gb, gr);
   MUST(cudaMemcpy(ar, gr, (size_t)8U * size, cudaMemcpyDeviceToHost));
   MUST(cudaFree(ga));
   MUST(cudaFree(gb));

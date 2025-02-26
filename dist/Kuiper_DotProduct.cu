@@ -16,9 +16,8 @@ size_t Kuiper_DotProduct_uint32_to_sizet(uint32_t x)
 
 __global__
 
-void Kuiper_DotProduct_kernel(size_t size, uint32_t *ga1, uint32_t *ga2, uint32_t *r)
+void Kuiper_DotProduct_kernel(uint32_t *ga1, uint32_t *ga2, uint32_t *r)
 {
-  KRML_MAYBE_UNUSED_VAR(size);
   size_t bid = blockIdx_x();
   size_t bdim = blockDim_x();
   size_t id = bid * bdim + threadIdx_x();
@@ -46,13 +45,7 @@ void Kuiper_DotProduct_main(void)
   MUST(cudaMemcpy(ga1, a1, (size_t)4U * Kuiper_DotProduct_m_size, cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(ga2, a2, (size_t)4U * Kuiper_DotProduct_m_size, cudaMemcpyHostToDevice));
   uint32_t *gr = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * Kuiper_DotProduct_m_size);
-  KPR_KCALL(Kuiper_DotProduct_kernel,
-    Kuiper_DotProduct_m_size,
-    1U,
-    Kuiper_DotProduct_m_size,
-    ga1,
-    ga2,
-    gr);
+  KPR_KCALL(Kuiper_DotProduct_kernel, Kuiper_DotProduct_m_size, 1U, ga1, ga2, gr);
   MUST(cudaMemcpy(ar, gr, (size_t)4U * Kuiper_DotProduct_m_size, cudaMemcpyDeviceToHost));
   MUST(cudaFree(ga1));
   MUST(cudaFree(ga2));
