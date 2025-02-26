@@ -89,7 +89,7 @@ fn kernel
   fold (kpost nth ga1 ga2 r s1 s2 tid);
 }
 
-[@@pulse_unfold] // reconsider
+unfold // reconsider
 let shared_array (#nth : nat { nth <> 0 }) (ga : gpu_array u64 nth) (#v: seq u64 { len v == nth }) (_: nat): slprop =
   gpu_pts_to_array ga #(1.0R /. nth) v
 

@@ -20,7 +20,7 @@ inline_for_extraction noextract let neu : ety = F32.zero
 
 (* Ownership of array r between i and j. The first value of that slice
 is the reduction of all the values in the (original) slice v. *)
-[@@pulse_unfold]
+unfold
 let gpu_pts_to_slice_sum_inner
   (#sz:nat)
   (r : gpu_array ety sz)
@@ -49,13 +49,13 @@ let gpu_pts_to_slice_sum
 val barrier_matrix (nth: nat) (r : gpu_array ety nth) (v: seq ety) (it from to: nat)
   : slprop
 
-[@@pulse_unfold]
+unfold
 let kpre (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))
   (#_: squash (len s == nth)) (tid:nat{tid < nth})
   : slprop =
     gpu_pts_to_slice a tid (tid+1) seq![Seq.index s tid]
 
-[@@pulse_unfold]
+unfold
 let kpost (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))
   (#_: squash (len s == nth)) (tid:nat{tid < nth})
   : slprop =

@@ -16,7 +16,6 @@ val gpu_pts_to
   (v : a)
 : slprop
 
-[@@pulse_unfold]
 unfold
 instance has_pts_to_gpu_ref (a:Type) : has_pts_to (gpu_ref a) a = {
   pts_to = gpu_pts_to;

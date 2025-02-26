@@ -28,14 +28,12 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
     if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2)))
 
-[@@pulse_unfold]
 let shared_pre (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (it: nat) (tid:nat{tid < nth})
   : slprop =
     gpu_pts_to_array1 sr tid **
     mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid
 
-[@@pulse_unfold]
 let shared_post (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
   : slprop =
@@ -119,6 +117,7 @@ fn kernel
     shared_post nth ear r s1 s2 (thread_index etid) **
     kpost nth ga1 ga2 r s1 s2 (thread_index etid)
 {
+  unfold shared_pre;
   let tid = thread_idx_x ();
   (**)unfold (kpre nth ga1 ga2 r s1 s2 tid);
 

@@ -14,7 +14,7 @@ module P = Kuiper.MatMul.Pure
 
 module SZ = FStar.SizeT
 
-[@@pulse_unfold]
+unfold
 let kpre (rows shared columns : nat)
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
@@ -29,7 +29,7 @@ let kpre (rows shared columns : nat)
   ** I.gpu_pts_to_matrix shared columns ga2 nth s2
   ** (exists* sr. gpu_pts_to_slice r tid (tid+1) sr)
 
-[@@pulse_unfold]
+unfold
 let kpost (rows shared columns : nat)
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))

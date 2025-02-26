@@ -15,7 +15,7 @@ module Barrier = Kuiper.MatMulTile.Barrier
 module SZ = FStar.SizeT
 module Layout4 = Kuiper.MatMulTile.Layout4
 
-[@@pulse_unfold]
+unfold
 let kpre (rows shared columns : nat)
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))
@@ -30,7 +30,7 @@ let kpre (rows shared columns : nat)
   ** Impure.gpu_pts_to_matrix shared columns ga2 nthr s2
   ** gpu_pts_to_array1 r tid
 
-[@@pulse_unfold]
+unfold
 let kpost (rows shared columns : nat)
   (ga1 : gpu_array u64 (rows * shared))
   (ga2 : gpu_array u64 (shared * columns))

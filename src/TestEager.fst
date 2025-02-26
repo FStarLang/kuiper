@@ -5,7 +5,7 @@ open Pulse.Nolib
 
 assume val foo : int -> int -> slprop
 
-[@@pulse_unfold]
+unfold
 let blah (v1 : int) = exists* (v:int). foo v1 v
 
 ghost

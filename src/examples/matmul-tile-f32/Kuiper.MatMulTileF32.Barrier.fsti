@@ -8,7 +8,7 @@ module SZ = FStar.SizeT
 
 // let lemma_pos (x: pos): Lemma (0 < x * x) [SMTPat (x * x)] = ()
 
-[@@pulse_unfold]
+unfold
 let barrier_mm_perm
     (nthr: nat)
     (ar: gpu_array f32 (2 * nthr))

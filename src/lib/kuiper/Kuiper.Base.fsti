@@ -15,11 +15,11 @@ type mode_t = | CPU | GPU
 val mode : mode_t -> slprop
 
 (* Token for being in CPU code *)
-[@@pulse_unfold]
+unfold
 let cpu : slprop = mode CPU
 
 (* Token for being in GPU code *)
-[@@pulse_unfold]
+unfold
 let gpu : slprop = mode GPU
 
 [@@erasable]

@@ -23,7 +23,7 @@ val inv_p
       (done: seq (gref bool))
 : Tot slprop
 
-[@@pulse_unfold]
+unfold
 let kpre
   (nn: nat)
   (a : gpu_array u64 nn)
@@ -36,7 +36,7 @@ let kpre
   gref_pts_to (done @! tid) #0.5R false  **
   inv i (inv_p nn a v_a r done)
 
-[@@pulse_unfold]
+unfold
 let kpost
   (nn: nat)
   (a : gpu_array u64 nn)

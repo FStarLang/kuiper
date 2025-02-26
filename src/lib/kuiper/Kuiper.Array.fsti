@@ -25,7 +25,7 @@ val gpu_pts_to_slice
   (v : seq a)
 : slprop
 
-[@@pulse_unfold]
+unfold
 let gpu_pts_to_array
   (#a:Type u#0)
   (#sz:nat)
@@ -36,7 +36,6 @@ let gpu_pts_to_array
 =
   gpu_pts_to_slice x #f 0 sz v
 
-[@@pulse_unfold]
 unfold
 instance has_pts_to_gpu_arr (a:Type) (sz : _) : has_pts_to (gpu_array a sz) (Seq.seq a) = {
   pts_to = gpu_pts_to_array;
