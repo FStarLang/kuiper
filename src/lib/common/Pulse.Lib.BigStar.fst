@@ -798,6 +798,7 @@ let rec bigstar_except_equiv_split
       }
     )
   )
+#pop-options
 
 let union_partitions_aux_split
     (#m #n #k : nat)

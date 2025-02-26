@@ -7,6 +7,7 @@ module Kuiper.AtomicReduce
 open Kuiper
 open Kuiper.AtomicReduce.Kernel
 
+module Box = Pulse.Lib.Box
 module SZ = FStar.SizeT
 module W = Pulse.Lib.WithPure
 
@@ -80,9 +81,11 @@ fn reduce
     gpu_pts_to_array a #f v_a **
     pure (r == Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a)
 {
-  let r = alloc 0uL;
+  let r = Box.alloc 0uL;
   let gr = gpu_alloc0 #u64 ();
+  Box.to_ref_pts_to r;
   Ref.gpu_memcpy_host_to_device gr r;
+  Box.to_box_pts_to r;
 
   with v. assert (pts_to r v);
   assert (pure (v == 0uL));
@@ -118,14 +121,14 @@ fn reduce
 
   teardown n a #f #v_a gr i done;
 
+  Box.to_ref_pts_to r;
   Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
-  
+
   Kuiper.Ref.gpu_free gr;
-  
+
   let v = !r;
-  // free r;
-  drop_ (pts_to r _); // cannot free, should use boxes and fix the library
-  // admit();
+  Box.to_box_pts_to r;
+  Box.free r;
   v
 }
 
