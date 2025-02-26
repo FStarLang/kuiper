@@ -22,12 +22,9 @@ fn galloc (x : u64)
   returns  r : gpu_ref u64
   ensures  cpu ** (r |-> x)
 {
-  let r  = Box.alloc #u64 x;
+  let mut r = x;
   let gr = gpu_alloc0 #u64 ();
-  Box.to_ref_pts_to r;
   Kuiper.Ref.gpu_memcpy_host_to_device gr r;
-  Box.to_box_pts_to r;
-  Box.free r;
   gr
 }
 
@@ -36,12 +33,9 @@ fn gread (gr : gpu_ref u64) (#v0 : erased u64)
   returns  v : u64
   ensures  cpu ** (gr |-> v) ** pure (v == v0)
 {
-  let r = Box.alloc #u64 0uL;
-  Box.to_ref_pts_to r;
+  let mut r = 0uL;
   Kuiper.Ref.gpu_memcpy_device_to_host r gr;
-  Box.to_box_pts_to r;
-  let v = Pulse.Lib.Box.(!r);
-  Box.free r;
+  let v = !r;
   v
 }
 

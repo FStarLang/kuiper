@@ -19,20 +19,17 @@ fn main (_:unit)
   returns  _ : f32
   ensures  cpu
 {
-  let r  = Box.alloc #f32 zero;
+  let mut r = zero #f32 #_;
   let gr = gpu_alloc0 #f32 ();
 
-  Box.to_ref_pts_to r;
   Kuiper.Ref.gpu_memcpy_host_to_device gr r;
 
   launch_kernel_1 (fun () -> kernel gr);
 
   Kuiper.Ref.gpu_memcpy_device_to_host r gr;
-  Box.to_box_pts_to r;
 
-  let v = Pulse.Lib.Box.(!r);
+  let v = !r;
 
   gpu_free gr;
-  Box.free r;
   v
 }

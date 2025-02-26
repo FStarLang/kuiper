@@ -7,7 +7,6 @@ module Kuiper.AtomicReduce
 open Kuiper
 open Kuiper.AtomicReduce.Kernel
 
-module Box = Pulse.Lib.Box
 module SZ = FStar.SizeT
 module W = Pulse.Lib.WithPure
 

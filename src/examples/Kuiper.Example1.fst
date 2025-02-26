@@ -3,7 +3,6 @@ module Kuiper.Example1
 #lang-pulse
 
 open Kuiper
-module Box = Pulse.Lib.Box
 
 module U64 = FStar.UInt64
 
@@ -23,22 +22,19 @@ fn main (_:unit)
   returns  _ : u64
   ensures emp
 {
-  let r  = Box.alloc #u64 1uL;
+  let mut r = 1uL;
   let gr = gpu_alloc0 #u64 ();
 
-  Box.to_ref_pts_to r;
   Kuiper.Ref.gpu_memcpy_host_to_device gr r;
 
   launch_kernel_1 (fun () -> kernel gr);
 
   Kuiper.Ref.gpu_memcpy_device_to_host r gr;
-  Box.to_box_pts_to r;
 
-  let v = Pulse.Lib.Box.(!r);
+  let v = !r;
 
   assert (pure (v == 2uL));
 
   gpu_free gr;
-  Box.free r;
   v
 }
