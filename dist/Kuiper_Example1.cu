@@ -16,17 +16,14 @@ void Kuiper_Example1_kernel(uint64_t *r)
 
 uint64_t Kuiper_Example1_main(void)
 {
-  uint64_t *r = (uint64_t *)KRML_HOST_MALLOC(sizeof (uint64_t));
-  if (r != NULL)
-    *r = 1ULL;
+  uint64_t r = 1ULL;
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U);
-  MUST(cudaMemcpy(gr, r, (size_t)8U, cudaMemcpyHostToDevice));
+  MUST(cudaMemcpy(gr, &r, (size_t)8U, cudaMemcpyHostToDevice));
   KPR_KCALL_ASYNC(Kuiper_Example1_kernel, 1U, 1U, gr);
   cudaDeviceSynchronize();
-  MUST(cudaMemcpy(r, gr, (size_t)8U, cudaMemcpyDeviceToHost));
-  uint64_t v = *r;
+  MUST(cudaMemcpy(&r, gr, (size_t)8U, cudaMemcpyDeviceToHost));
+  uint64_t v = r;
   MUST(cudaFree(gr));
-  KRML_HOST_FREE(r);
   return v;
 }
 

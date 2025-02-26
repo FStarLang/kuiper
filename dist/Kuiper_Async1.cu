@@ -16,22 +16,17 @@ void Kuiper_Async1_kernel(uint64_t *r)
 
 uint64_t *Kuiper_Async1_galloc(uint64_t x)
 {
-  uint64_t *r = (uint64_t *)KRML_HOST_MALLOC(sizeof (uint64_t));
-  if (r != NULL)
-    *r = x;
+  uint64_t r = x;
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U);
-  MUST(cudaMemcpy(gr, r, (size_t)8U, cudaMemcpyHostToDevice));
-  KRML_HOST_FREE(r);
+  MUST(cudaMemcpy(gr, &r, (size_t)8U, cudaMemcpyHostToDevice));
   return gr;
 }
 
 uint64_t Kuiper_Async1_gread(uint64_t *gr)
 {
-  uint64_t *r = (uint64_t *)KRML_HOST_CALLOC(1U, sizeof (uint64_t));
-  MUST(cudaMemcpy(r, gr, (size_t)8U, cudaMemcpyDeviceToHost));
-  uint64_t v = *r;
-  KRML_HOST_FREE(r);
-  return v;
+  uint64_t r = 0ULL;
+  MUST(cudaMemcpy(&r, gr, (size_t)8U, cudaMemcpyDeviceToHost));
+  return r;
 }
 
 uint64_t Kuiper_Async1_main(void)
