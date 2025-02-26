@@ -114,9 +114,7 @@ fn g_mul_async
   {
     Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2;
   };
-  unfold pledge0;
-  rewrite_pledge _ _ aux; // (fun _ -> Prep.breakdown rows shared columns bdim nblk nthr ga1 ga2 gr v1 v2);
-  fold pledge0;
+  rewrite_pledge _ _ aux;
 }
 
 fn g_mul

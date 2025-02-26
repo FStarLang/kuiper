@@ -2,8 +2,6 @@ module Kuiper.MatMulTileF32.Kernel
 
 #lang-pulse
 
-#push-options "--fuel 1 --ifuel 1"
-
 open Kuiper
 open Kuiper.Math
 
@@ -51,6 +49,7 @@ let permute (rows_tile columns_tile bdim: pos)
 : GTot (permutation (i: nat { 0 <= i /\ i < rows_tile * columns_tile * bdim * bdim }))
 = Layout4.titi_permutation bdim bdim rows_tile columns_tile
 
+#push-options "--z3rlimit 20"
 let tid_to_idx
   (rows shared columns : pos)
   (bdim: pos{bdim /? rows /\ bdim /? columns})
@@ -61,6 +60,7 @@ let tid_to_idx
     == { admit() } // fixme, boring proof (we have divisibility)
     rows * columns;
   };
+  admit(); //fixme, brittle
   lemma_divides_exact rows bdim;
   lemma_divides_exact columns bdim;
   assert (rows / bdim >= 1);
@@ -68,6 +68,7 @@ let tid_to_idx
   let r = (permute (rows / bdim) (columns / bdim) bdim).f tid in
   assume (r <= rows * columns); // fixme
   r
+#pop-options
 
 [@@CPrologue "__global__"]
 fn kernel

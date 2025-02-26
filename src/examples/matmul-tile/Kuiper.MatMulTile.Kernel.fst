@@ -127,7 +127,7 @@ fn inner_loop
   ensures
     (exists* sumv. sum |-> sumv)
 {
-  assume (pure (forall n. SZ.fits n)); // cheating overflow, this is all in bounds, but the proofs are way too brittle
+  assume (pure sizet_does_not_overflow); // cheating overflow, this is all in bounds, but the proofs are way too brittle
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v vv) (SZ.v bdim - 1);
 
   let ga1_idx = ga1_iidx +^ vv;

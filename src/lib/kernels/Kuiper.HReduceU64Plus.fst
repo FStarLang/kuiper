@@ -79,7 +79,6 @@ fn fold_barrier_matrix_false
 {
   assert (pure (tid < to + pow2 it /\ not (tid = to + pow2 it)));
   if_intro_false (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
-  // (tid = to + pow2 it)
   fold (barrier_matrix nth r v it tid to);
 }
 
@@ -286,7 +285,7 @@ fn reduce
 
 [@@ CPrologue "__global__"]
 fn k_reduce
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+  (nth : sz { nth `between` (1, 1024) })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))

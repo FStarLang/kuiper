@@ -43,3 +43,6 @@ val sizet_does_not_overflow : prop
 
 val overflow_lem () : Lemma (sizet_does_not_overflow ==> (forall n. SZ.fits n))
 
+unfold
+let between (n:int) (lohi: int * int)
+  : prop = lohi._1 <= n /\ n <= lohi._2
