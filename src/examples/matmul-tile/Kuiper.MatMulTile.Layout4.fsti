@@ -47,8 +47,7 @@ let idx_to_thread_id (tcols trows bcols brows: pos)
     (idx: nat { idx < tcols * trows * bcols * brows }):
     (tid: nat { tid < tcols * trows * bcols * brows }) =
     let dims_in = seq4 tcols bcols trows brows in
-    // What is going on?
-    assume (tcols * trows * bcols * brows == tcols * bcols * trows * brows);
+    assert (tcols * trows * bcols * brows == tcols * bcols * trows * brows);
     let coords_in = split_to_dims dims_in idx in
     lemma_permute_preserves_multiply dims_in;
     lemma_permute_preserves_lt coords_in dims_in;
