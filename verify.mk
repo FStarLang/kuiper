@@ -5,10 +5,10 @@ include .common.mk
 
 # I HATE MAKE!
 .SUFFIXES:
-.PRECIOUS: out/%.cu
-.PRECIOUS: out/%.o
-.PRECIOUS: out/%.output
-.PRECIOUS: out/%.exe
+.PRECIOUS: obj/%.cu
+.PRECIOUS: obj/%.o
+.PRECIOUS: obj/%.output
+.PRECIOUS: obj/%.exe
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
@@ -56,8 +56,8 @@ FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
 
 ROOTS := $(call FILTER_OUT,MatMulOpt,$(ROOTS))
 
-CACHEDIR := .cache
-OUTDIR   := out
+CACHEDIR := obj
+OUTDIR   := obj
 
 ifneq ($(D),)
 FSTAR_DEBUG := --debug $D
@@ -125,7 +125,7 @@ endif
 	# add them too. Instead, I'm using this expression below to turn the
 	# $(ROOTS) into .checked. I don't like this since it involves choosing
 	# the directory too and that is the job of --dep.
-verify-all: $(foreach f, $(ROOTS), .cache/$(notdir $(f)).checked)
+verify-all: $(foreach f, $(ROOTS), obj/$(notdir $(f)).checked)
 
 # Dependencies come from .depend. We still need this rule.
 %.checked: | .fstar.touch
@@ -174,7 +174,7 @@ $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 $(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	@# Awful substitution here to get the module name, turning something like
-	@# out/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
+	@# obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 	$(Q)MOD=$$(echo $< | sed 's,.*/,,' | sed 's/.krml$$//' | sed 's/_/./g') && \
 	$(KRML) \
 		-bundle "$${MOD}=*" \
@@ -182,7 +182,7 @@ $(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
-NVCC_FLAGS += -I out # needed for files in test/ only..
+NVCC_FLAGS += -I obj # needed for files in test/ only..
 
 %.o: %.cu include/*.h
 	$(call msg,"NVCC")
@@ -225,16 +225,16 @@ TESTS+=Kuiper_ArrayReversal
 TESTS+=Kuiper_Async1
 
 extraction-targets: \
-	out/Kuiper_DotProduct.o \
-	out/Kuiper_Example1.exe \
-	out/Kuiper_Reduction.cu \
-	out/Kuiper_InnerGhostLem.cu \
-	out/Kuiper_Polymorphism0.cu \
-	out/Kuiper_Polymorphism1.cu \
-	out/Kuiper_AtomicReduce.cu \
-	out/Kuiper_Mul.cu \
-	out/Kuiper_MatMulTileF32_Async.cu \
-	$(patsubst %,out/%.exe,$(TESTS))
+	obj/Kuiper_DotProduct.o \
+	obj/Kuiper_Example1.exe \
+	obj/Kuiper_Reduction.cu \
+	obj/Kuiper_InnerGhostLem.cu \
+	obj/Kuiper_Polymorphism0.cu \
+	obj/Kuiper_Polymorphism1.cu \
+	obj/Kuiper_AtomicReduce.cu \
+	obj/Kuiper_Mul.cu \
+	obj/Kuiper_MatMulTileF32_Async.cu \
+	$(patsubst %,obj/%.exe,$(TESTS))
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))

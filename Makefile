@@ -29,13 +29,12 @@ watch:
 	done
 
 clean:
-	rm -rf out
-	rm -rf .cache
+	rm -rf obj/
 	rm -f .*.touch
 
 clean-full: clean
-	git submodule foreach git clean -xf
+	git submodule foreach git clean -dXf
 
 dist: all
 	rm -f dist/*
-	cp out/*.cu dist
+	cp obj/*.cu dist
