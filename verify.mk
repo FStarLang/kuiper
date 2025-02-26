@@ -155,10 +155,9 @@ echo-krml:
 
 # NB: The dependency analysis needs to parse the files, so it needs
 # the Pulse plugin
-.depend: $(ROOTS) .fstar.touch .krml.touch .pulse.touch
+.depend: $(ROOTS) .fstar.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@
-
 
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!
