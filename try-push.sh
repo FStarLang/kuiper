@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eux
+
 for p in FStar karamel pulse; do
 	pushd $p
 
@@ -8,8 +10,6 @@ for p in FStar karamel pulse; do
 
 	popd
 done
-
-set -eux
 
 git add FStar karamel pulse
 git commit -m 'bump submodules'
