@@ -6,7 +6,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "krml_float.h"
 #include "atomics.h"
 
 #define blockIdx_x() blockIdx.x

@@ -31,7 +31,3 @@ EOF
 nvcc tmp.cu -o check_cuda.exe
 
 ./check_cuda.exe
-
-rm -f tmp.cu check_cuda.exe
-
-exit -0
