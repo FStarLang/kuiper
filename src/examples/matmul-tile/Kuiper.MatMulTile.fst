@@ -1,8 +1,6 @@
 module Kuiper.MatMulTile
 #lang-pulse
 
-#set-options "--fuel 1 --ifuel 1 --z3rlimit 40"
-
 open Kuiper
 open Kuiper.Math
 open Pulse.Lib.Pledge
@@ -10,7 +8,6 @@ open Pulse.Lib.Pledge
 module SZ   = FStar.SizeT
 module GMul = Kuiper.MatMulTile.Async.GMul
 
-#push-options "--z3rlimit 20"
 fn main
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim <= 32})
@@ -59,4 +56,3 @@ fn main
 
   ar
 }
-#pop-options
