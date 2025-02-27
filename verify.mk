@@ -102,6 +102,7 @@ KRML := $(KRML_HOME)/krml				\
 	$(if $(V),-verbose,-silent)			\
 	-drop Prims					\
 	-minimal					\
+	-header /dev/null				\
 	-warn-error -2@4-10@18
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
