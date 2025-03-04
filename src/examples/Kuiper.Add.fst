@@ -5,7 +5,6 @@ module Kuiper.Add
 #lang-pulse
 
 open Kuiper
-open Kuiper.Scalars
 
 inline_for_extraction
 fn incr (#t:Type0) {| simple_scalar t |}

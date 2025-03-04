@@ -32,11 +32,11 @@ endef
 FStar/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
-.krml.touch: .fstar.touch $(shell find karamel/ -type f)
+.krml.touch: $(shell find karamel/ -type f)
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
 	@# is minimal enough?
-	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel FSTAR_EXE=$(FSTAR_EXE) ADMIT=1 minimal
+	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel ADMIT=1 minimal
 	@touch $@
 
 karamel/Makefile:
@@ -160,24 +160,23 @@ echo-krml:
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@
 
+$(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
 	$(Q)$(FSTAR) --codegen krml 						\
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
-		--extract "$(subst _,.,$(patsubst $(OUTDIR)/%.krml,%,$@))"	\
+		--extract "$(MOD)"						\
 		--extract "+Kuiper"						\
 		-o $@								\
 		$<
 
+# Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
+$(OUTDIR)/%.cu: MOD=$(subst _,.,$(basename $(notdir $<)))
 $(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
-	@# Awful substitution here to get the module name, turning something like
-	@# obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
-	$(Q)MOD=$$(echo $< | sed 's,.*/,,' | sed 's/.krml$$//' | sed 's/_/./g') && \
-	$(KRML) \
-		-bundle "$${MOD}=*" \
+	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
 
 NVCC_FLAGS += -O3
