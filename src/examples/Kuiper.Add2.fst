@@ -14,8 +14,11 @@ fn padd (#t:Type0) {| simple_scalar t |}
   add x y;
 }
 
-let padd_f32 x = add #f32 #_ x
-let padd_u64 x = add #u64 #_ x
+(* FIXME: Eta-expanding with just x and not y
+   causes a karamel failure due to a partially
+   applied Add. Probably a pure F* issue. *)
+let padd_f32 x y = add #f32 #_ x y
+let padd_u64 x y = add #u64 #_ x y
 
 fn add_f32
   (x y : f32)
