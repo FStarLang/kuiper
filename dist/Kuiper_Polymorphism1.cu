@@ -2,6 +2,8 @@
 
 #include "Kuiper_Polymorphism1.h"
 
+__global__
+
 void Kuiper_Polymorphism1_kswap__uint64_t(uint64_t *r1, uint64_t *r2)
 {
   uint64_t v1 = *r1;
@@ -15,6 +17,8 @@ void Kuiper_Polymorphism1_kswap_U64(uint64_t *r1, uint64_t *r2)
 {
   Kuiper_Polymorphism1_kswap__uint64_t(r1, r2);
 }
+
+__global__
 
 void Kuiper_Polymorphism1_kswap__float_t(float_t *r1, float_t *r2)
 {

@@ -45,15 +45,12 @@ void Kuiper_Softmax_F32_k_pointwise_div(float_t *a, float_t d)
   a[i] /= d;
 }
 
-float_t Kuiper_Softmax_F32_arr_read_1(size_t len, float_t *a, size_t i)
+float_t Kuiper_Softmax_F32_arr_read_1(float_t *a)
 {
-  KRML_MAYBE_UNUSED_VAR(i);
-  KRML_CHECK_SIZE(sizeof (float_t), len);
-  float_t *ca = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * len);
+  float_t *ca = (float_t *)KRML_HOST_MALLOC(sizeof (float_t));
   if (ca != NULL)
-    for (uint32_t _i = 0U; _i < len; ++_i)
-      ca[_i] = (float_t)0.0f;
-  MUST(cudaMemcpy(ca, a, (size_t)4U * len, cudaMemcpyDeviceToHost));
+    *ca = (float_t)0.0f;
+  MUST(cudaMemcpy(ca, a, (size_t)4U, cudaMemcpyDeviceToHost));
   float_t x = *ca;
   KRML_HOST_FREE(ca);
   return x;
@@ -63,9 +60,9 @@ void Kuiper_Softmax_F32_softmax_gpu(size_t lena, float_t *a)
 {
   KPR_KCALL(Kuiper_Softmax_F32_k_pointwise_exp, lena, 1U, a);
   float_t *a_ = (float_t *)KPR_GPU_ALLOC((size_t)4U * lena);
-  MUST(cudaMemcpy(a_, a, (size_t)4U * lena, cudaMemcpyDeviceToHost));
+  MUST(cudaMemcpy(a_, a, (size_t)4U * lena, cudaMemcpyDeviceToDevice));
   reduce(lena, a_);
-  float_t avg = Kuiper_Softmax_F32_arr_read_1(lena, a_, (size_t)0U);
+  float_t avg = Kuiper_Softmax_F32_arr_read_1(a_);
   MUST(cudaFree(a_));
   KPR_KCALL(Kuiper_Softmax_F32_k_pointwise_div, lena, 1U, a, avg);
 }

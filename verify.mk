@@ -228,6 +228,7 @@ extraction-targets: \
 	obj/Kuiper_Example1.exe \
 	obj/Kuiper_DotProduct.o \
 	obj/Kuiper_DotProduct.exe \
+	obj/Kuiper_MatMulTileF32_Async.cu \
 	$(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst)))) \
 	$(patsubst %,obj/%.exe,$(TESTS))
 # ^ nasty
