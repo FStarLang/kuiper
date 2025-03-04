@@ -64,7 +64,7 @@ let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
 let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
-let cudaMemcpyDeviceToDevice = EQualified ([], "cudaMemcpyDeviceToHost")
+let cudaMemcpyDeviceToDevice = EQualified ([], "cudaMemcpyDeviceToDevice")
 
 let rec unmagic (e : mlexpr) : mlexpr =
   match e.expr with
