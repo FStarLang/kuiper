@@ -137,6 +137,33 @@ fn gpu_memcpy_host_to_device
     (dst_garr |-> v) **
     pure (Seq.length v == reveal sz)
 
+(* blit *)
+fn gpu_memcpy_host_to_device'
+  (#a:Type u#0)
+  {| sized a |}
+  (#dst_sz : erased nat)
+  (dst_garr : gpu_array a dst_sz)
+  (dst_off : SZ.t)
+  (#src_sz : erased nat)
+  (src_arr : vec a)
+  (src_off : SZ.t)
+  (cnt : SZ.t {
+    dst_off + cnt <= dst_sz /\
+          src_off + cnt <= src_sz
+
+  })
+  (#f : perm)
+  (#v : erased (seq a){ Seq.length v == src_sz })
+  (#gv : erased (seq a){ Seq.length gv == dst_sz })
+  preserves
+    cpu **
+    pts_to src_arr #f v
+  requires
+    (dst_garr |-> gv)
+  ensures
+    (dst_garr |-> Kuiper.Seq.Common.seq_blit gv dst_off v src_off cnt) **
+    pure (Seq.length v == reveal dst_sz)
+
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
@@ -156,6 +183,32 @@ fn gpu_memcpy_device_to_host
   ensures
     (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
+
+(* blit *)
+fn gpu_memcpy_device_to_host'
+  (#a:Type u#0)
+  {| sized a |}
+  (#dst_sz : erased nat)
+  (dst_arr : vec a)
+  (dst_off : SZ.t)
+  (#src_sz : erased nat)
+  (src_garr : gpu_array a src_sz)
+  (src_off : SZ.t)
+  (cnt : SZ.t {
+    dst_off + cnt <= dst_sz /\
+          src_off + cnt <= src_sz
+  })
+  (#f : perm)
+  (#v : erased (seq a){ Seq.length v == src_sz })
+  (#gv : erased (seq a){ Seq.length gv == dst_sz })
+  preserves
+    cpu **
+    pts_to src_garr #f v
+  requires
+    (dst_arr |-> gv)
+  ensures
+    (dst_arr |-> Kuiper.Seq.Common.seq_blit gv dst_off v src_off cnt) **
+    pure (Seq.length v == reveal dst_sz)
 
 fn gpu_memcpy_device_to_device
   (#a:Type u#0)

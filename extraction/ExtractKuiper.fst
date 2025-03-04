@@ -242,17 +242,47 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "Kuiper.Array.gpu_array_write" ->
     EBufWrite (cb r, cb idx, cb v)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_ga :: src_a :: cnt :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_host_to_device"->
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
+             sz :: _elen :: dst_ga :: src_a :: cnt :: f :: v :: gv :: [])
+    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_host_to_device" ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
+             sz :: _dst_sz :: dst_ga :: dst_off :: _src_sz :: src_a :: src_off :: cnt :: f :: v :: gv :: [])
+    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_host_to_device'" ->
+    let sz : expr = cb <| get_sizet sz in
+    let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
+    let dst_off = mul_by_sz (cb dst_off) in
+    let dst_ga = cb dst_ga in
+    let dst_ga = EBufSub (dst_ga, dst_off) in
+    let src_off = mul_by_sz (cb src_off) in
+    let src_a = cb src_a in
+    let src_a = EBufSub (src_a, src_off) in
+    let bytesize : expr = mul_by_sz (cb cnt) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
+             sz :: _elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_host"->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
+             sz :: _dst_sz :: dst_a :: dst_off :: _src_sz :: src_ga :: src_off :: cnt :: f :: v :: gv :: [])
+    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_host'" ->
+    let sz : expr = cb <| get_sizet sz in
+    let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
+    let dst_off = mul_by_sz (cb dst_off) in
+    let dst_ga = cb dst_a in
+    let dst_ga = EBufSub (dst_ga, dst_off) in
+    let src_off = mul_by_sz (cb src_off) in
+    let src_a = cb src_ga in
+    let src_a = EBufSub (src_a, src_off) in
+    let bytesize : expr = mul_by_sz (cb cnt) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
     when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_device"->
