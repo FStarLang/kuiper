@@ -5,10 +5,7 @@ include .common.mk
 
 # I HATE MAKE!
 .SUFFIXES:
-.PRECIOUS: obj/%.cu
-.PRECIOUS: obj/%.o
-.PRECIOUS: obj/%.output
-.PRECIOUS: obj/%.exe
+.SECONDARY:
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
@@ -225,18 +222,11 @@ TESTS+=Kuiper_Async1
 TESTS+=Kuiper_Softmax_F32
 
 extraction-targets: \
-	obj/Kuiper_DotProduct.o \
 	obj/Kuiper_Example1.exe \
-	obj/Kuiper_Reduction.cu \
-	obj/Kuiper_InnerGhostLem.cu \
-	obj/Kuiper_Polymorphism0.cu \
-	obj/Kuiper_Polymorphism1.cu \
-	obj/Kuiper_Add.cu \
-	obj/Kuiper_AtomicReduce.cu \
-	obj/Kuiper_Mul.cu \
-	obj/Kuiper_MatMulTileF32_Async.cu \
-	obj/Kuiper_Softmax_F32.cu \
+	obj/Kuiper_DotProduct.o \
+	$(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst)))) \
 	$(patsubst %,obj/%.exe,$(TESTS))
+# ^ nasty
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
