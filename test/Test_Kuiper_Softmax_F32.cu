@@ -15,7 +15,7 @@ int main(int argc, char **argv)
                 }
                 Kuiper_Softmax_F32_softmax(i, arr);
                 for (j = 0; j < i; j++) {
-                        printf("%f ", arr[j]);
+                        printf("%f,", arr[j]);
                 }
                 printf("\n");
         }
