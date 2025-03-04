@@ -140,7 +140,7 @@ fn iteration
   case_split (div_pow2 (it + 1) tid) (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
   if_flatten #(div_pow2 (it + 1) tid);
   if_flatten #(not (div_pow2 (it + 1) tid));
-  
+
   div_pow2_lemma it (it + 1) tid;
   rewrite (if_ (div_pow2 (it + 1) tid && div_pow2 it tid)
             (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv))
@@ -175,7 +175,7 @@ fn iteration
       (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv));
 
     let b = sdiv_pow2 (it +^ 1sz) tid;
-    
+
     rewrite each (div_pow2 (SZ.v it + 1) (SZ.v tid)) as b;
 
     div_pow2_lemma_2 it tid;
@@ -183,7 +183,7 @@ fn iteration
       b
       (gpu_pts_to_slice_sum r nextid (min (tid + pow2 it + pow2 it) nth) vv)
       _;
-      
+
     if b {
       assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
       if_elim_true _;
@@ -195,18 +195,19 @@ fn iteration
 
       (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
       (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
+      // (**)unfold gpu_pts_to_slice_sum_inner;
       let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv nextid end_) s2)));
 
       let s = op s1 s2;
       (**)lem_append_slice vv tid nextid end_;
       (**)assert (pure (squash (is_reduction neu op (Seq.slice vv tid end_) s)));
-      
+
       gpu_array_write #ety #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid s;
 
       (**)gpu_slice_concat #ety #(SZ.v nth) r tid nextid end_;
       (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
-      (**)fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
+      // (**)fold (gpu_pts_to_slice_sum_inner #nth r tid end_ vv seq);
       (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner #nth r tid end_ vv s);
       (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
       (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
@@ -236,22 +237,21 @@ fn iteration
 
 [@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
-fn reduce
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+fn d_reduce
+  (nth : szp { nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
-  (#_: squash (len s == nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (#_ : squash (len s == nth))
+  (etid : tid_t { gdim_x etid == 1ul /\ bdim_x etid == nth })
+  preserves
+    gpu ** thread_id etid
   requires
-    gpu **
-    thread_id etid **
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
     kpre nth a s (thread_index etid)
-  ensures 
-    gpu **
-    thread_id etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost nth a s (thread_index etid)
+  ensures
+    exists* it.
+      mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid) **
+      kpost nth a s (thread_index etid)
 {
   let tid = thread_idx_x ();
   rewrite each thread_index etid as tid;
@@ -260,11 +260,7 @@ fn reduce
   let mut n = 0sz;
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
-  (**) gpu_pts_to_slice_ref a tid (tid+1);
-  (**)let v0 : erased ety = Ghost.hide (Seq.index ss 0);
-  assert (pure (squash (is_reduction neu op seq![reveal v0] v0)));
-  assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![reveal v0])); // sucks
-  (**)fold (gpu_pts_to_slice_sum_inner #nth a tid (tid+1) s ss);
+  assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
   (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner #nth a tid (tid + pow2 0) s ss);
   (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
@@ -272,14 +268,14 @@ fn reduce
   open FStar.SizeT;
   while (let it = !n; (spow2 it <^ nth))
     invariant c.
-    exists* (it:sz).
-      gpu **
-      pts_to n it **
-      mbarrier_tok nth (barrier_matrix nth a s) it tid **
-      if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
-      pure (c == (pow2 it < nth) /\ SZ.v it < 32)
+      exists* (it:sz).
+        gpu **
+        pts_to n it **
+        mbarrier_tok nth (barrier_matrix nth a s) it tid **
+        if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
+        pure (c == (pow2 it < nth) /\ SZ.v it < 32)
   {
-    let it = !n <: nat;
+    let it = !n;
     iteration nth a s tid it;
     n := it +^ 1sz;
   };
@@ -287,11 +283,11 @@ fn reduce
 
 [@@ CPrologue "__global__"]
 fn k_reduce
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+  (nth : szp { nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **
     thread_id etid **
@@ -303,5 +299,42 @@ fn k_reduce
     (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
     kpost nth a s (thread_index etid)
 {
-  reduce nth a #s etid;
+  d_reduce nth a #s etid;
+}
+
+fn reduce
+  (lena : szp { lena < max_threads })
+  (a : gpu_array ety lena)
+  requires
+    cpu **
+    gpu_pts_to_array a 'va
+  ensures
+    cpu **
+    (exists* va'. gpu_pts_to_array a va') (* underspec *)
+{
+  gpu_pts_to_ref a; (* recall length, automate *)
+
+  Array.gpu_array_slice_1 a;
+
+  rewrite each SZ.v lena as (1 * SZ.v lena);
+
+  launch_kernel_n_m_barrier 1sz lena
+    #(kpre  lena a 'va)
+    #(kpost lena a 'va)
+    (fun etid -> k_reduce lena a etid);
+
+  bigstar_extract 0 (1 `op_Multiply` lena) (kpost lena a 'va) 0;
+  if_elim_true _;
+
+  unfold gpu_pts_to_slice_sum;
+  // if_elim_true _;
+  (* ^ Bad unification from matching, instead of trying to prove that the condition
+     of if_ p f is true (to match it with if_ true ?u) it picks ?u = if_ p f. *)
+  with pp ff. assert (if_ pp ff);
+  rewrite each pp as true;
+  if_elim_true _;
+  bigstar_emp_elim #_ #0 #0;
+  bigstar_emp_elim' #_ #1 #(1 `op_Multiply` lena) _;
+
+  ()
 }

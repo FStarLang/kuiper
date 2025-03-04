@@ -9,14 +9,14 @@ open Kuiper.Seq.Common
 open Kuiper.IsReduction
 
 module SZ = FStar.SizeT
-module F32 = Kuiper.Float32
+module F = Kuiper.Float32
 
 let size : sz = 1024sz
 
 (* no polymorphism, but at least keep the definitions here *)
-let ety = f32
-inline_for_extraction noextract let op  : ety -> ety -> ety = F32.add
-inline_for_extraction noextract let neu : ety = F32.zero
+let ety = F.t
+inline_for_extraction noextract let op  : ety -> ety -> ety = F.add
+inline_for_extraction noextract let neu : ety = F.zero
 
 (* Ownership of array r between i and j. The first value of that slice
 is the reduction of all the values in the (original) slice v. *)
@@ -63,12 +63,12 @@ let kpost (nth: nat) (a : gpu_array ety nth) (s : erased (seq ety))
 
 [@@ CPrologue "__device__"]
 inline_for_extraction
-fn reduce
+fn d_reduce
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   preserves
     gpu ** thread_id etid
   requires
@@ -87,7 +87,7 @@ fn k_reduce
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **
     thread_id etid **
@@ -98,3 +98,13 @@ fn k_reduce
     thread_id etid **
     (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
     kpost nth a s (thread_index etid)
+
+fn reduce
+  (lena : szp { lena < max_threads })
+  (a : gpu_array ety lena)
+  requires
+    cpu **
+    gpu_pts_to_array a 'va
+  ensures
+    cpu **
+    (exists* va'. gpu_pts_to_array a va') (* underspec *)

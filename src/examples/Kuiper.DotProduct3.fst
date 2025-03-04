@@ -141,7 +141,7 @@ fn kernel
   rewrite each s' as seq![vm <: u64];
   
   (* Reduction *)
-  HR.reduce nth ar #dot_v #() etid;
+  HR.d_reduce nth ar #dot_v #() etid;
   
   fixup nth ar r s1 s2 tid;
   fold (kpost nth ga1 ga2 r s1 s2 tid);

@@ -82,7 +82,7 @@ fn kernel
 
   (* Reduction *)
   rewrite each SZ.v tid as thread_index etid;
-  Kuiper.HReduceU64Plus.reduce nth r #dot_v #() etid;
+  Kuiper.HReduceU64Plus.d_reduce nth r #dot_v #() etid;
   rewrite each thread_index etid as SZ.v tid;
   rewrite each dot_v as pmul s1 s2;
 

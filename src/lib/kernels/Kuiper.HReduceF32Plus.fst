@@ -237,12 +237,12 @@ fn iteration
 
 [@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
-fn reduce
+fn d_reduce
   (nth : szp { nth <= 1024 })
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_ : squash (len s == nth))
-  (etid : erased tid_t { gdim_x etid == 1ul /\ bdim_x etid == nth })
+  (etid : tid_t { gdim_x etid == 1ul /\ bdim_x etid == nth })
   preserves
     gpu ** thread_id etid
   requires
@@ -287,7 +287,7 @@ fn k_reduce
   (a : gpu_array ety nth)
   (#s :  erased (seq ety))
   (#_: squash (len s == nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
   requires
     gpu **
     thread_id etid **
@@ -299,5 +299,42 @@ fn k_reduce
     (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
     kpost nth a s (thread_index etid)
 {
-  reduce nth a #s etid;
+  d_reduce nth a #s etid;
+}
+
+fn reduce
+  (lena : szp { lena < max_threads })
+  (a : gpu_array ety lena)
+  requires
+    cpu **
+    gpu_pts_to_array a 'va
+  ensures
+    cpu **
+    (exists* va'. gpu_pts_to_array a va') (* underspec *)
+{
+  gpu_pts_to_ref a; (* recall length, automate *)
+
+  Array.gpu_array_slice_1 a;
+
+  rewrite each SZ.v lena as (1 * SZ.v lena);
+
+  launch_kernel_n_m_barrier 1sz lena
+    #(kpre  lena a 'va)
+    #(kpost lena a 'va)
+    (fun etid -> k_reduce lena a etid);
+
+  bigstar_extract 0 (1 `op_Multiply` lena) (kpost lena a 'va) 0;
+  if_elim_true _;
+
+  unfold gpu_pts_to_slice_sum;
+  // if_elim_true _;
+  (* ^ Bad unification from matching, instead of trying to prove that the condition
+     of if_ p f is true (to match it with if_ true ?u) it picks ?u = if_ p f. *)
+  with pp ff. assert (if_ pp ff);
+  rewrite each pp as true;
+  if_elim_true _;
+  bigstar_emp_elim #_ #0 #0;
+  bigstar_emp_elim' #_ #1 #(1 `op_Multiply` lena) _;
+
+  ()
 }
