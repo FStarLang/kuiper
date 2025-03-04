@@ -47,6 +47,9 @@ karamel/Makefile:
 pulse/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
+.PHONY: prepare
+prepare: .fstar.touch .krml.touch .pulse.touch
+
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
 FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
