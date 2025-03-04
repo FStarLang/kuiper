@@ -428,6 +428,24 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "Kuiper.Kernel.sync" ->
     EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
+  (* Misc stuff missing from F*? *)
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt64.zero" -> EConstant (Krml.UInt64, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt64.one"  -> EConstant (Krml.UInt64, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt32.zero" -> EConstant (Krml.UInt32, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt32.one"  -> EConstant (Krml.UInt32, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt16.zero" -> EConstant (Krml.UInt16, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt16.one"  -> EConstant (Krml.UInt16, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt8.zero"  -> EConstant (Krml.UInt8, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.UInt8.one"   -> EConstant (Krml.UInt8, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int64.zero"  -> EConstant (Krml.Int64, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int64.one"   -> EConstant (Krml.Int64, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int32.zero"  -> EConstant (Krml.Int32, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int32.one"   -> EConstant (Krml.Int32, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int16.zero"  -> EConstant (Krml.Int16, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int16.one"   -> EConstant (Krml.Int16, "1")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int8.zero"   -> EConstant (Krml.Int8, "0")
+  | MLE_Name p when string_of_mlpath p = "FStar.Int8.one"    -> EConstant (Krml.Int8, "1")
+
   | _ -> raise NotSupportedByKrmlExtension
 
 let _ =
