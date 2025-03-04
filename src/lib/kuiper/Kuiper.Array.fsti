@@ -120,9 +120,12 @@ fn gpu_array_write
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
-  (#sz : erased nat)
-  (dst_garr : gpu_array a sz)
+  (#dst_sz : erased nat)
+  (dst_garr : gpu_array a dst_sz)
+  (dst_off : SZ.t)
+  (#src_sz : erased nat)
   (src_arr : vec a)
+  (src_off : SZ.t)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
@@ -132,10 +135,12 @@ fn gpu_memcpy_host_to_device
     pts_to src_arr #f v
   requires
     (dst_garr |-> gv) **
-    pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
+    pure (dst_off + cnt <= dst_sz /\
+          src_off + cnt <= src_sz
+    )
   ensures
-    (dst_garr |-> v) **
-    pure (Seq.length v == reveal sz)
+    (dst_garr |-> v) ** // wrong
+    pure (Seq.length v == reveal dst_sz)
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
