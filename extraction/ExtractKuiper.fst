@@ -125,12 +125,22 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   (******** FLOAT ARITHMETIC *******)
 
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float32.zero" ->
+    EConstant (Float, "0.0f")
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float32.one" ->
+    EConstant (Float, "1.0f")
+
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float32.add" ->
     EApp (EOp (Add, Float), [cb x; cb y])
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float32.sub" ->
     EApp (EOp (Sub, Float), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x ])
+    when string_of_mlpath p = "Kuiper.Float32.neg" ->
+    EApp (EOp (Sub, Float), [EConstant (Float, "0.0f"); cb x])
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float32.mul" ->
     EApp (EOp (Mult, Float), [cb x; cb y])
@@ -140,15 +150,17 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float32.rem" ->
     EApp (EOp (Mod, Float), [cb x; cb y])
+
   | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float32.neg" ->
-    EApp (EOp (Sub, Float), [EConstant (Float, "0.0f"); cb x])
+    when string_of_mlpath p = "Kuiper.Float32.exp" ->
+    EApp (EQualified ([], "exp"), [ cb x ])
+
   | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float32.zero" ->
-    EConstant (Float, "0.0f")
+    when string_of_mlpath p = "Kuiper.Float64.zero" ->
+    EConstant (Double, "0.0l")
   | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float32.one" ->
-    EConstant (Float, "1.0f")
+    when string_of_mlpath p = "Kuiper.Float64.one" ->
+    EConstant (Double, "1.0l")
 
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float64.add" ->
@@ -156,6 +168,9 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float64.sub" ->
     EApp (EOp (Sub, Double), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x ])
+    when string_of_mlpath p = "Kuiper.Float64.neg" ->
+    EApp (EOp (Sub, Double), [EConstant (Double, "0.0l"); cb x])
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float64.mul" ->
     EApp (EOp (Mult, Double), [cb x; cb y])
@@ -165,15 +180,10 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float64.rem" ->
     EApp (EOp (Mod, Double), [cb x; cb y])
+
   | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float64.neg" ->
-    EApp (EOp (Sub, Double), [EConstant (Double, "0.0l"); cb x])
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float64.zero" ->
-    EConstant (Double, "0.0l")
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float64.one" ->
-    EConstant (Double, "1.0l")
+    when string_of_mlpath p = "Kuiper.Float64.exp" ->
+    EApp (EQualified ([], "exp"), [ cb x ])
 
   (******** REFERENCES ********)
 

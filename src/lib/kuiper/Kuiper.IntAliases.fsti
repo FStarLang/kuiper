@@ -1,10 +1,11 @@
 module Kuiper.IntAliases
 
-include Kuiper.Float32 { float }
-include Kuiper.Float64 { double }
 
-unfold type f32 = float
-unfold type f64 = double
+unfold type f32 = Kuiper.Float32.t
+unfold type f64 = Kuiper.Float64.t
+unfold type float = f32
+unfold type double = f64
+
 unfold type u8  = FStar.UInt8.t
 unfold type u16 = FStar.UInt16.t
 unfold type u32 = FStar.UInt32.t
