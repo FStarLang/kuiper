@@ -166,6 +166,15 @@ fn bigstar_emp_elim
   ensures  emp
 
 ghost
+fn bigstar_emp_elim'
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (f : (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n f ** pure (forall x. f x == emp)
+  ensures  emp
+
+ghost
 fn rec bigstar_emp_intro
   (#[exact (`0)] u1 : int)
   (m : nat)

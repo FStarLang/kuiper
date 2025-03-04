@@ -295,6 +295,25 @@ fn bigstar_single_intro
 }
 
 ghost
+fn rec bigstar_emp_elim'
+  (#u1 : int)
+  (#m : nat)
+  (#n : nat {m <= n})
+  (f : (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n f ** pure (forall x. f x == emp)
+  ensures  emp
+  decreases (n-m)
+{
+  if (m = n) {
+    rewrite bigstar #u1 m n (fun _ -> emp) as emp;
+  } else {
+    bigstar_pop #u1;
+    bigstar_emp_elim' #u1 #(m+1) #n (fun x -> f x);
+    rewrite f m as emp;
+  }
+}
+
+ghost
 fn rec bigstar_emp_elim
   (#u1 : int)
   (#m : nat)
@@ -303,12 +322,7 @@ fn rec bigstar_emp_elim
   ensures  emp
   decreases (n-m)
 {
-  if (m = n) {
-    rewrite bigstar #u1 m n (fun _ -> emp) as emp;
-  } else {
-    bigstar_pop #u1;
-    bigstar_emp_elim #u1 #(m+1) #n;
-  }
+  bigstar_emp_elim' #u1 #m #n (fun _ -> emp);
 }
 
 ghost
