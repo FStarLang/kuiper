@@ -22,3 +22,8 @@ void Kuiper_HReduceU32Plus_k_reduce(size_t nth, uint32_t *a)
   }
 }
 
+void Kuiper_HReduceU32Plus_reduce(size_t lena, uint32_t *a)
+{
+  KPR_KCALL(Kuiper_HReduceU32Plus_k_reduce, (size_t)1U, lena, lena, a);
+}
+

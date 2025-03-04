@@ -22,3 +22,8 @@ void Kuiper_HReduceF64Plus_k_reduce(size_t nth, double_t *a)
   }
 }
 
+void Kuiper_HReduceF64Plus_reduce(size_t lena, double_t *a)
+{
+  KPR_KCALL(Kuiper_HReduceF64Plus_k_reduce, (size_t)1U, lena, lena, a);
+}
+
