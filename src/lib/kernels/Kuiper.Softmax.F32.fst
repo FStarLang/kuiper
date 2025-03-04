@@ -71,8 +71,10 @@ fn arr_read_1
   returns  x : f32
   ensures  cpu ** gpu_pts_to_array a #f 'va ** pure (Seq.length 'va > 0 /\ x == Seq.head 'va)
 {
-  let ca = Pulse.Lib.Vec.alloc #f32 F.zero len;
-  gpu_memcpy_device_to_host #f32 #_ ca a len;
+  gpu_pts_to_ref a; (* automate *)
+  let ca = Pulse.Lib.Vec.alloc #f32 F.zero 1sz;
+  (* FIXME: Need to give lenght of ca?!? *)
+  gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz a 0sz 1sz;
   let x = ca.(0sz);
   Pulse.Lib.Vec.free ca;
   x;
