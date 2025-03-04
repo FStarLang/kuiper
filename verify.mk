@@ -232,6 +232,7 @@ extraction-targets: \
 	obj/Kuiper_InnerGhostLem.cu \
 	obj/Kuiper_Polymorphism0.cu \
 	obj/Kuiper_Polymorphism1.cu \
+	obj/Kuiper_Add.cu \
 	obj/Kuiper_AtomicReduce.cu \
 	obj/Kuiper_Mul.cu \
 	obj/Kuiper_MatMulTileF32_Async.cu \
