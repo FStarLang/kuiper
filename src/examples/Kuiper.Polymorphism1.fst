@@ -4,11 +4,10 @@ module Kuiper.Polymorphism1
 
 #lang-pulse
 
-open Pulse
-open FStar.Mul
 open Kuiper
 
 // inline_for_extraction noextract
+[@@CPrologue "__global__"]
 fn kswap
   (#t : Type0)
   (r1 r2 : gpu_ref t)
@@ -29,13 +28,13 @@ fn swap_via_gpu
   requires cpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
   ensures  cpu ** (r1 |-> 'v2) ** (r2 |-> 'v1)
 {
-  let gr1 = gpu_alloc0 #t #{size = d.size} ();
-  let gr2 = gpu_alloc0 #t #{size = d.size} ();
-  Kuiper.Ref.gpu_memcpy_host_to_device #t #{size = d.size} gr1 r1;
-  Kuiper.Ref.gpu_memcpy_host_to_device #t #{size = d.size} gr2 r2;
-  launch_kernel_1 (fun () -> kswap #t gr1 gr2 #'v1 #'v2);
-  Kuiper.Ref.gpu_memcpy_device_to_host #t #{size = d.size} r1 gr1;
-  Kuiper.Ref.gpu_memcpy_device_to_host #t #{size = d.size} r2 gr2;
+  let gr1 = gpu_alloc0 #t ();
+  let gr2 = gpu_alloc0 #t ();
+  Kuiper.Ref.gpu_memcpy_host_to_device gr1 r1;
+  Kuiper.Ref.gpu_memcpy_host_to_device gr2 r2;
+  launch_kernel_1 (fun () -> kswap gr1 gr2);
+  Kuiper.Ref.gpu_memcpy_device_to_host r1 gr1;
+  Kuiper.Ref.gpu_memcpy_device_to_host r2 gr2;
   gpu_free gr1;
   gpu_free gr2;
 }
