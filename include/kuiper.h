@@ -35,7 +35,7 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 #define KPR_KCALL_SHMEM(foo, nblk, nthr, e_size, cnt, ...)			\
 	do {									\
 		KPR_KCALL_SHMEM_ASYNC(foo, nblk, nthr, e_size, cnt, __VA_ARGS__);\
-		cudaDeviceSynchronize();					\
+		__MUST(cudaDeviceSynchronize(), "kcall", __FILE__, __LINE__);	\
 	} while(0)
 
 #define KPR_KCALL_ASYNC(foo, nblk, nthr, ...)					\
