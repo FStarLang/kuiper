@@ -63,11 +63,10 @@ fn k_pointwise_div
 (* From the CPU, read one elements from a gpu array. EXTREMELY
 inefficient. We need a partial "splicing" memcpy. *)
 fn arr_read_1
-  (len : szp)
+  (len : erased nat)
   (a : gpu_array f32 len)
-  (i : sz { i < len })
   (#f : perm)
-  requires cpu ** gpu_pts_to_array a #f 'va
+  requires cpu ** gpu_pts_to_array a #f 'va ** pure (len > 0)
   returns  x : f32
   ensures  cpu ** gpu_pts_to_array a #f 'va ** pure (Seq.length 'va > 0 /\ x == Seq.head 'va)
 {
@@ -103,7 +102,7 @@ fn softmax_gpu
   let a' = Array.gpu_array_alloc #f32 lena;
   gpu_memcpy_device_to_device a' a lena;
   Kuiper.HReduceF32Plus.reduce lena a';
-  let avg = arr_read_1 (lena <: szp) (a' <: gpu_array f32 lena) 0sz;
+  let avg = arr_read_1 (lena <: szp) (a' <: gpu_array f32 lena);
   gpu_array_free a';
 
   (* Divide by average *)
