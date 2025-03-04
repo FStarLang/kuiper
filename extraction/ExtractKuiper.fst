@@ -64,6 +64,7 @@ let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
 let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
+let cudaMemcpyDeviceToDevice = EQualified ([], "cudaMemcpyDeviceToHost")
 
 let rec unmagic (e : mlexpr) : mlexpr =
   match e.expr with
@@ -215,6 +216,11 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let sz : mlexpr = get_sizet sz in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; cb sz; cudaMemcpyDeviceToHost ])
 
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: dst_gr :: src_r :: f :: v :: gv :: [])
+    when string_of_mlpath p = "Kuiper.Ref.gpu_memcpy_device_to_device"->
+    let sz : mlexpr = get_sizet sz in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; cb sz ; cudaMemcpyDeviceToDevice ])
+
   (******** ARRAY ********)
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: len :: [])
@@ -247,6 +253,13 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
+
+  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
+    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_device"->
+    let sz : mlexpr = get_sizet sz in
+    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
+
 
   (******** ATOMIC OPS ********)
 

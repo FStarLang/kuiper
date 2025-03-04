@@ -157,6 +157,27 @@ fn gpu_memcpy_device_to_host
     (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
 
+fn gpu_memcpy_device_to_device
+  (#a:Type u#0)
+  {| sized a |}
+  (#sz : erased nat)
+  (dst_arr : gpu_array a sz)
+  (src_garr : gpu_array a sz)
+  (cnt : SZ.t)
+  (#f : perm)
+  (#v : erased (seq a))
+  (#gv : erased (seq a))
+  preserves
+    cpu **
+    pts_to src_garr #f gv
+  requires
+    (dst_arr |-> v) **
+    pure (SZ.v cnt == sz /\ (Seq.length gv == sz \/ Seq.length v == sz))
+  ensures
+    (dst_arr |-> gv) **
+    pure (Seq.length gv == reveal sz)
+
+
 (* Not making this unfold as it appears under bigstars. Maybe
 pulse should only do weak unfolding. *)
 let gpu_pts_to_array1

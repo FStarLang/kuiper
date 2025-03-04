@@ -79,3 +79,12 @@ fn gpu_memcpy_device_to_host
   preserves cpu ** (pts_to src_gr #'f 'gv)
   requires dst_r |-> 'v
   ensures  dst_r |-> 'gv
+
+fn gpu_memcpy_device_to_device
+  (#a:Type u#0)
+  {| sized a |}
+  (dst_r  : gpu_ref a)
+  (src_gr : gpu_ref a)
+  preserves cpu ** (pts_to src_gr #'f 'gv)
+  requires dst_r |-> 'v
+  ensures  dst_r |-> 'gv
