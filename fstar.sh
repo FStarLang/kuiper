@@ -7,7 +7,7 @@ SNAME="$0"
 
 gcmd () {
 	cd $(dirname $0)
-	make -s echo-fstar
+	V=1 make -s echo-fstar
 }
 
 exec $(gcmd) "$@"
