@@ -223,6 +223,7 @@ TESTS+=Kuiper_HReduceF32Plus
 TESTS+=Kuiper_HReduceF64Plus
 TESTS+=Kuiper_ArrayReversal
 TESTS+=Kuiper_Async1
+TESTS+=Kuiper_Softmax_F32
 
 extraction-targets: \
 	obj/Kuiper_DotProduct.o \
@@ -234,6 +235,7 @@ extraction-targets: \
 	obj/Kuiper_AtomicReduce.cu \
 	obj/Kuiper_Mul.cu \
 	obj/Kuiper_MatMulTileF32_Async.cu \
+	obj/Kuiper_Softmax_F32.cu \
 	$(patsubst %,obj/%.exe,$(TESTS))
 
 .PHONY: test
