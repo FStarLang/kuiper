@@ -20,14 +20,9 @@ static void k_reduce(size_t nth, float_t *a)
   }
 }
 
-static void reduce(size_t lena, float_t *a)
-{
-  KPR_KCALL(k_reduce, (size_t)1U, lena, lena, a);
-}
-
 __global__
 
-void Kuiper_Softmax_F32_k_pointwise_exp(float_t *a)
+void Kuiper_Softmax_F32_k_pointwise_exp_f32(float_t *a)
 {
   size_t bid = blockIdx_x();
   size_t bdim = blockDim_x();
@@ -37,7 +32,7 @@ void Kuiper_Softmax_F32_k_pointwise_exp(float_t *a)
 
 __global__
 
-void Kuiper_Softmax_F32_k_pointwise_div(float_t *a, float_t d)
+void Kuiper_Softmax_F32_k_pointwise_div_f32(float_t *a, float_t d)
 {
   size_t bid = blockIdx_x();
   size_t bdim = blockDim_x();
@@ -45,33 +40,23 @@ void Kuiper_Softmax_F32_k_pointwise_div(float_t *a, float_t d)
   a[i] /= d;
 }
 
-float_t Kuiper_Softmax_F32_arr_read_1(float_t *a)
-{
-  float_t *ca = (float_t *)KRML_HOST_MALLOC(sizeof (float_t));
-  if (ca != NULL)
-    *ca = (float_t)0.0f;
-  MUST(cudaMemcpy(ca, a, (size_t)4U, cudaMemcpyDeviceToHost));
-  float_t x = *ca;
-  KRML_HOST_FREE(ca);
-  return x;
-}
-
-void Kuiper_Softmax_F32_softmax_gpu(size_t lena, float_t *a)
-{
-  KPR_KCALL(Kuiper_Softmax_F32_k_pointwise_exp, lena, 1U, a);
-  float_t *a_ = (float_t *)KPR_GPU_ALLOC((size_t)4U * lena);
-  MUST(cudaMemcpy(a_, a, (size_t)4U * lena, cudaMemcpyDeviceToDevice));
-  reduce(lena, a_);
-  float_t avg = Kuiper_Softmax_F32_arr_read_1(a_);
-  MUST(cudaFree(a_));
-  KPR_KCALL(Kuiper_Softmax_F32_k_pointwise_div, lena, 1U, a, avg);
-}
-
 void Kuiper_Softmax_F32_softmax(size_t lena, float_t *a)
 {
   float_t *ga = (float_t *)KPR_GPU_ALLOC((size_t)4U * lena);
   MUST(cudaMemcpy(ga, a, (size_t)4U * lena, cudaMemcpyHostToDevice));
-  Kuiper_Softmax_F32_softmax_gpu(lena, ga);
+  KPR_KCALL(Kuiper_Softmax_F32_k_pointwise_exp_f32, lena, 1U, ga);
+  float_t *a_ = (float_t *)KPR_GPU_ALLOC((size_t)4U * lena);
+  MUST(cudaMemcpy(a_, ga, (size_t)4U * lena, cudaMemcpyDeviceToDevice));
+  KPR_KCALL(k_reduce, (size_t)1U, lena, lena, a_);
+  float_t *ca = (float_t *)KRML_HOST_MALLOC(sizeof (float_t));
+  if (ca != NULL)
+    *ca = (float_t)0.0f;
+  MUST(cudaMemcpy(ca, a_, (size_t)4U, cudaMemcpyDeviceToHost));
+  float_t x = *ca;
+  KRML_HOST_FREE(ca);
+  float_t avg = x;
+  MUST(cudaFree(a_));
+  KPR_KCALL(Kuiper_Softmax_F32_k_pointwise_div_f32, lena, 1U, ga, avg);
   MUST(cudaMemcpy(a, ga, (size_t)4U * lena, cudaMemcpyDeviceToHost));
   MUST(cudaFree(ga));
 }
