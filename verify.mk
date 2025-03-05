@@ -86,7 +86,8 @@ FSTAR_FLAGS += $(FSTAR_DEBUG)
 FSTAR = $(FSTAR_EXE)					\
 	$(SIL)						\
 	--include pulse/build/ocaml/installed/lib/pulse	\
-	--include pulse/lib				\
+	--include pulse/lib/common			\
+	--include pulse/lib/pulse 			\
 	--include src					\
 	$(FSTAR_FLAGS)
 
