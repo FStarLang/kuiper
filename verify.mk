@@ -223,6 +223,7 @@ TESTS+=Kuiper_HReduceF64Plus
 TESTS+=Kuiper_ArrayReversal
 TESTS+=Kuiper_Async1
 TESTS+=Kuiper_Softmax_F32
+TESTS+=Kuiper_Softmax_F64
 
 extraction-targets: \
 	obj/Kuiper_Example1.exe \
