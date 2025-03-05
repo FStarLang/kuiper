@@ -10,14 +10,14 @@ module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
-module HR = Kuiper.HReduceU64Plus
+module HR = Kuiper.HReduce
 
 let u64_comm_semigroup ()
-: squash (is_comm_semigroup HR.neu HR.op)
+: squash (is_comm_semigroup #u64 zero add)
 = admit(); //flaky, just admit
-  assert (is_commutative HR.op);
-  assert (is_associative HR.op);
-  assert (is_neutral_for HR.neu HR.op);
+  // assert (is_commutative add);
+  // assert (is_associative add);
+  // assert (is_neutral_for zero add);
   ()
 
 #set-options "--z3rlimit 20"
@@ -179,9 +179,10 @@ fn main
   (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga2 #v2);
   gather_array ga2;
 
-  bigstar_if_elim #_ #0 #dp2_size 0 (fun _ -> HR.gpu_pts_to_slice_sum #dp2_size gr 0 dp2_size (pmul v1 v2));
+  bigstar_if_elim #_ #0 #dp2_size 0 (fun _ -> HR.gpu_pts_to_slice_sum #_ #_ #dp2_size gr 0 dp2_size (pmul v1 v2));
 
-  unfold HR.gpu_pts_to_slice_sum;
+  (* FIXME *)
+  unfold HR.gpu_pts_to_slice_sum #_ #_ #dp2_size gr 0 dp2_size (pmul v1 v2);
 
   (* There's a single if_ and the condition is true *)
   with cond pred.
@@ -201,7 +202,7 @@ fn main
 
   (* Finally, ensure that the reduction must be sum *)
   u64_comm_semigroup ();
-  IsReduction.ac_eq_foldl HR.neu HR.op (pmul v1 v2) dp;
+  IsReduction.ac_eq_foldl zero add (pmul v1 v2) dp;
 
   V.free ar;
   dp

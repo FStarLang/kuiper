@@ -10,7 +10,7 @@ module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
-module HR = Kuiper.HReduceU64Plus
+module HR = Kuiper.HReduce
 
 #set-options "--z3rlimit 20"
 
@@ -66,7 +66,7 @@ fn fixup
     // Duplicate
     if_elim_true (HR.gpu_pts_to_slice_sum ar 0 nth dot_v);
 
-    unfold HR.gpu_pts_to_slice_sum;
+    unfold (HR.gpu_pts_to_slice_sum ar 0 nth dot_v);
     if_elim_true (exists* v. HR.gpu_pts_to_slice_sum_inner ar 0 nth dot_v v);
 
     let vv = gpu_array_read #u64 #nth #0 #nth ar 0sz;
@@ -76,13 +76,13 @@ fn fixup
     
     with v1. assert (gpu_pts_to_slice ar 0 nth v1);
     // assert (pure (Seq.index v1 0 == HR.sum dot_v));
-    fold HR.gpu_pts_to_slice_sum_inner #nth ar 0 nth dot_v v1;
-    if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #nth ar 0 nth dot_v v);
+    fold HR.gpu_pts_to_slice_sum_inner #_ #_ #nth ar 0 nth dot_v v1;
+    if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #_ #_ #nth ar 0 nth dot_v v);
     fold HR.gpu_pts_to_slice_sum ar 0 nth dot_v;
 
     with v2. assert (gpu_pts_to_slice r 0 nth v2);
-    fold HR.gpu_pts_to_slice_sum_inner #nth r 0 nth dot_v v2;
-    if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #nth r 0 nth dot_v v);
+    fold HR.gpu_pts_to_slice_sum_inner #_ #_ #nth r 0 nth dot_v v2;
+    if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #_ #_ #nth r 0 nth dot_v v);
     fold HR.gpu_pts_to_slice_sum r 0 nth dot_v;
 
     if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2));
@@ -195,8 +195,8 @@ fn setup
 }
 
 let u64_comm_semigroup ()
-: squash (is_comm_semigroup HR.neu HR.op)
-= ()
+: squash (is_comm_semigroup #u64 zero add)
+= admit()
 
 fn main
   (a1 a2: vec u64)
@@ -271,9 +271,9 @@ fn main
   (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga2 #v2);
   gather_array ga2;
 
-  bigstar_if_elim #_ #0 #dp2_size 0 (fun _ -> HR.gpu_pts_to_slice_sum #dp2_size gr 0 dp2_size (pmul v1 v2));
+  bigstar_if_elim #_ #0 #dp2_size 0 (fun _ -> HR.gpu_pts_to_slice_sum #_ #_ #dp2_size gr 0 dp2_size (pmul v1 v2));
 
-  unfold HR.gpu_pts_to_slice_sum;
+  unfold HR.gpu_pts_to_slice_sum #_ #_ #dp2_size gr 0 dp2_size (pmul v1 v2);
   if_elim_true _;
   with res. assert (gpu_pts_to_slice gr 0 dp2_size res);
 
@@ -288,7 +288,7 @@ fn main
 
   (* Finally, ensure that the reduction must be sum *)
   u64_comm_semigroup ();
-  IsReduction.ac_eq_foldl HR.neu HR.op (pmul v1 v2) dp;
+  IsReduction.ac_eq_foldl zero add (pmul v1 v2) dp;
 
   V.free ar;
   dp

@@ -20,7 +20,7 @@ int main()
 
 	MUST(cudaMemcpy(ga, a, siz * sizeof(uint32_t), cudaMemcpyHostToDevice));
 
-	KPR_KCALL(Kuiper_HReduceU32Plus_k_reduce, 1, siz, siz, ga);
+	Kuiper_HReduceU32Plus_reduce(siz, ga);
 
 	MUST(cudaMemcpy(a, ga, siz * sizeof(uint32_t), cudaMemcpyDeviceToHost));
 	MUST(cudaFree(ga));

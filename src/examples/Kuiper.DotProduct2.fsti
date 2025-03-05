@@ -4,7 +4,6 @@ module Kuiper.DotProduct2
 
 open Kuiper
 module U64 = FStar.UInt64
-module HR = Kuiper.HReduceU64Plus
 
 (* calling it size means name resolution confusion with Kuiper.Sized.size *)
 let dp2_size : sz = 1024sz
@@ -17,7 +16,7 @@ let pmul (s1 s2: seq u64)
   = Seq.init_ghost (len s1)
       (fun i -> U64.mul_mod (Seq.index s1 i) (Seq.index s2 i))
 
-let sum = Kuiper.Seq.Common.seq_fold_left HR.op HR.neu
+let sum = Kuiper.Seq.Common.seq_fold_left #u64 add zero
 // NB: HR.op=U64.add_mod, HR.neu=U64.zero, but the brittle
 // SMT encoding breaks if we use that instead of exactly the same term
 // as appears in HR
