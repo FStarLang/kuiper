@@ -131,7 +131,7 @@ verify-all: $(foreach f, $(ROOTS), obj/$(notdir $(f)).checked)
 
 $(CACHEDIR)/%.checked: | .fstar.touch .pulse.touch
 	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
+	$(Q)$(FSTAR) $(if $(findstring pulse/,$<),--admit_smt_queries true,) --already_cached '*' -c $< -o $@
 	@touch -c $@
 
 # Without .cmxs extension
