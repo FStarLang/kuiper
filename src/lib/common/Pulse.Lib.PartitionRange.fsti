@@ -19,7 +19,7 @@ let select #m #n #k (p:partitions m n k) (i:nat{ i < k }) : idx_set m n = p i
 
 // The union of the partitions in p from [from, to)
 let rec union_partitions_aux #m #n #k
-      (p:partitions m n k) 
+      (p:partitions m n k)
       (from:nat)
       (to:nat{ from <= to /\ to <= k })
 : Tot (s:idx_set m n { forall (j:nat { from <= j /\ j < to }). select p j `Set.subset` s })
@@ -34,7 +34,7 @@ val union_partitions_split
     (mid:nat)
     (to:nat { from <= mid /\ mid <= to /\ to <= k})
 : Lemma
-    (ensures 
+    (ensures
       union_partitions_aux p from to `Set.equal`
      (union_partitions_aux p from mid `Set.union` union_partitions_aux p mid to))
 
@@ -42,7 +42,7 @@ val union_partitions_split
 let union_partitions #m #n #k (p:partitions m n k) = union_partitions_aux p 0 k
 
 // The set of all indices in the range [m, n)
-let rec range (m:nat) (n:nat { m <= n }) 
+let rec range (m:nat) (n:nat { m <= n })
 : Tot (s:idx_set m n { forall x. Set.mem x s <==> m <= x /\ x < n })
       (decreases n - m)
 = if m = n then Set.emptyset
@@ -99,12 +99,12 @@ val union_partitions_disjoint
     (to:nat { from <= mid /\ mid <= to /\ to <= k})
 : Lemma
   (ensures Set.disjoint (union_partitions_aux p from mid) (union_partitions_aux p mid to))
-  
+
 val union_cardinality_fact (#a:eqtype) (s1 s2:set a)
 : Lemma (ensures Set.cardinality (Set.union s1 s2) == Set.cardinality s1 + Set.cardinality s2 - Set.cardinality (Set.intersection s1 s2))
 
 val disjoint_cardinality_fact (#a:eqtype) (s1 s2:set a)
-: Lemma 
+: Lemma
   (requires Set.disjoint s1 s2)
   (ensures Set.cardinality (Set.intersection s1 s2) == 0)
 
@@ -112,7 +112,7 @@ val star_over_partition_singleton
   (#m:nat) (#n : nat { m <= n })
   (f: (idx m n -> slprop) )
   (x: idx m n)
-: Lemma 
+: Lemma
   (ensures star_over_partition f (Set.singleton x) == f x)
 
 val star_over_partition_split
@@ -120,14 +120,14 @@ val star_over_partition_split
   (f: (idx m n -> slprop) )
   (s0: idx_set m n)
   (s1: idx_set m n { Set.disjoint s0 s1 })
-: Lemma 
+: Lemma
   (ensures star_over_partition f (Set.union s0 s1) ==
            star_over_partition f s0 ** star_over_partition f s1)
-  
-val star_over_partition_reindex 
+
+val star_over_partition_reindex
       (m:nat)
       (n:nat {m < n})
-      (f: idx m n -> slprop) 
+      (f: idx m n -> slprop)
       (s: idx_set m n { forall x. Set.mem x s ==> m < x /\ x < n })
-: Lemma 
+: Lemma
   (ensures star_over_partition #m #n f s == star_over_partition #(m+1) #n f (s <: idx_set (m + 1) n))

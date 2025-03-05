@@ -26,7 +26,7 @@ let fits_sizet (x:nat)
 [@@coercion; pulse_unfold] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
 
 (* assumption, add to F*? *)
-val sizet_to_u32 (x: SZ.t) 
+val sizet_to_u32 (x: SZ.t)
   : Pure U32.t (requires FStar.UInt.fits (SZ.v x) 32)
                (ensures fun r -> U32.v r == SZ.v x)
 

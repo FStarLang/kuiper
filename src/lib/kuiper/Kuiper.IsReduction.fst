@@ -42,7 +42,7 @@ let ac_eq_foldl
   Squash.bind_squash pf (fun pf -> __ac_eq_foldl z f s r pf)
     <: squash (r == Kuiper.Seq.Common.seq_fold_left f z s)
 
-let assoc_uniq_reduction 
+let assoc_uniq_reduction
   (#a:Type) (z:a) (f : a -> a -> a) (xs : seq a) (r1 r2 : a)
 : Lemma (requires is_comm_semigroup z f /\ is_reduction z f xs r1 /\ is_reduction z f xs r2)
         (ensures r1 == r2)

@@ -11,7 +11,7 @@ let rec union_partitions_split
     (mid:nat)
     (to:nat { from <= mid /\ mid <= to /\ to <= k})
 : Lemma
-    (ensures 
+    (ensures
       union_partitions_aux p from to `Set.equal`
      (union_partitions_aux p from mid `Set.union` union_partitions_aux p mid to))
     (decreases (mid - from))
@@ -57,13 +57,13 @@ let rec union_partitions_disjoint
             Set.union (select p from) (union_partitions_aux p (from + 1) mid));
     union_partitions_elements p mid to
   )
-  
+
 let union_cardinality_fact (#a:eqtype) (s1 s2:set a)
 : Lemma (ensures Set.cardinality (Set.union s1 s2) == Set.cardinality s1 + Set.cardinality s2 - Set.cardinality (Set.intersection s1 s2))
 = ()
 
 let disjoint_cardinality_fact (#a:eqtype) (s1 s2:set a)
-: Lemma 
+: Lemma
   (requires Set.disjoint s1 s2)
   (ensures Set.cardinality (Set.intersection s1 s2) == 0)
 = ()
@@ -72,7 +72,7 @@ let star_over_partition_singleton
   (#m:nat) (#n : nat { m <= n })
   (f: (idx m n -> slprop) )
   (x: idx m n)
-: Lemma 
+: Lemma
   (ensures star_over_partition f (Set.singleton x) == f x)
 = slprop_equivs()
 
@@ -83,24 +83,24 @@ let rec star_over_partition_split
   (f: (idx m n -> slprop) )
   (s0: idx_set m n)
   (s1: idx_set m n { Set.disjoint s0 s1 })
-: Lemma 
+: Lemma
   (ensures star_over_partition f (Set.union s0 s1) ==
            star_over_partition f s0 ** star_over_partition f s1)
   (decreases (cardinality (Set.union s0 s1)))
 = if Set.cardinality (Set.union s0 s1) = 0
   then slprop_equivs()
-  else ( 
+  else (
     let x = Set.choose (Set.union s0 s1) in
     let s0_ = s0 in
     let s1_ = s1 in
     let aux (s0:idx_set m n { Set.mem x s0 }) (s1:idx_set m n)
-    : Lemma 
+    : Lemma
       (requires Set.union s0 s1 `Set.equal` Set.union s0_ s1_ /\ Set.disjoint s0 s1)
       (ensures star_over_partition f (Set.union s0 s1) ==
                star_over_partition f s0 ** star_over_partition f s1)
     = let s0' = Set.remove x s0 in
       assert (not (Set.mem x s1));
-      union_cardinality_fact s0' s1; 
+      union_cardinality_fact s0' s1;
       disjoint_cardinality_fact s0' s1;
       calc (==) {
         star_over_partition f (Set.union s0 s1);
@@ -141,13 +141,13 @@ let rec star_over_partition_split
     )
   )
 #pop-options
-  
-let rec star_over_partition_reindex 
+
+let rec star_over_partition_reindex
       (m:nat)
       (n:nat {m < n})
-      (f: idx m n -> slprop) 
+      (f: idx m n -> slprop)
       (s: idx_set m n { forall x. Set.mem x s ==> m < x /\ x < n })
-: Lemma 
+: Lemma
   (ensures star_over_partition #m #n f s == star_over_partition #(m+1) #n f (s <: idx_set (m + 1) n))
   (decreases cardinality s)
 = if Set.cardinality s = 0

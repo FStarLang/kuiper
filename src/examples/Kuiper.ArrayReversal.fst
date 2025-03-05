@@ -27,7 +27,7 @@ let star_over_partition_range (n:nat { n % 2 == 0 }) (f:idx 0 n -> slprop) (i:na
 : Lemma
   (ensures star_over_partition f (select (partition_range n) i) ==
             f i ** f (n - i - 1 <: nat))
-= slprop_equivs() 
+= slprop_equivs()
 
 noextract
 let partition_range_disjoint (n:nat { n % 2 == 0 })
@@ -144,30 +144,30 @@ ensures
   bigstar 0 (SZ.v (size `div` 2sz)) (fun i ->
     gpu_pts_to_cell arr #f i (Seq.index s i) **
     gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
-{ 
+{
   bigstar_partition size (size `div` 2sz)
     (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
     (disjoint_partitions_range size);
-  
+
   ghost
   fn star_over_partition_range
       (n:nat { n % 2 == 0 })
       (f:idx 0 n -> slprop)
       (i:nat { 0 <= i /\ i < n / 2 })
-  requires 
+  requires
     star_over_partition f (select (disjoint_partitions_range n) i)
   ensures
     f i ** f (n - i - 1 <: nat)
   {
     star_over_partition_range n f i;
-    rewrite 
+    rewrite
        (star_over_partition f (select (disjoint_partitions_range n) i))
     as (f i ** f (n - i - 1 <: nat))
   };
 
   bigstar_map
     #0 #_ #0 #(size `div` 2sz)
-    #(fun i -> 
+    #(fun i ->
       star_over_partition
         (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
         (select (disjoint_partitions_range size) i))
@@ -193,29 +193,29 @@ requires
 ensures
   bigstar 0 size (fun (i:idx 0 (SZ.v size)) ->
     gpu_pts_to_cell arr #f i (Seq.index s i))
-{ 
+{
   ghost
   fn star_over_partition_range_inv
       (n:nat { n % 2 == 0 })
       (f:idx 0 n -> slprop)
       (i:nat { 0 <= i /\ i < n / 2 })
-  requires 
+  requires
     f i ** f (n - i - 1 <: nat)
   ensures
     star_over_partition f (select (partition_range n) i)
   {
     star_over_partition_range n f i;
-    rewrite 
+    rewrite
         (f i ** f (n - i - 1 <: nat))
      as (star_over_partition f (select (partition_range n) i))
   };
- 
+
   bigstar_map
     #_ #_ #0 #(size `div` 2sz)
-    #(fun i -> 
+    #(fun i ->
       gpu_pts_to_cell arr #f i (Seq.index s i) **
       gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
-    #(fun i -> 
+    #(fun i ->
       star_over_partition
         (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
         (select (partition_range size) i))
@@ -324,11 +324,11 @@ ensures
   explode_cells a;
   partition_cells a;
   launch_kernel_n
-    (size `div` 2sz) 
-    #(fun tid -> 
+    (size `div` 2sz)
+    #(fun tid ->
       gpu_pts_to_cell a #1.0R tid (Seq.index s tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip s tid))
-    #(fun tid -> 
+    #(fun tid ->
       gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip (reverse_spec s) tid))
     (fun etid -> kernel size a #s etid);

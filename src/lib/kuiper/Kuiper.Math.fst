@@ -8,7 +8,7 @@ let rec lemma_log2_pow2 (n: nat) : Lemma (log2 (pow2 n) = n) =
 let rec lemma_pow2_log2 (n: pos) : Lemma (pow2 (log2 n) <= n) =
   if n > 1 then
     lemma_pow2_log2 (n / 2)
-  
+
 let rec log2_mono n m =
   if n > 1 && m > 1 then
     log2_mono (n/2) (m/2)

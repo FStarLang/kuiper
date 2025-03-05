@@ -22,7 +22,7 @@ fn setup
     gpu_pts_to_array a #f v_a **
     (r |-> 0uL) **
     pure (SZ.v n <= 1024)
-  returns 
+  returns
     i_done : iname & erased (seq (gref bool))
   ensures
     (match i_done with | (i, done) ->
@@ -50,7 +50,7 @@ fn teardown
   requires
     emp
     ** cpu
-    ** pure (len done == SZ.v n) 
+    ** pure (len done == SZ.v n)
     ** bigstar 0 (SZ.v n) (fun tid ->
         gref_pts_to (done @! tid) #0.5R true **
         inv i (inv_p (SZ.v n) a v_a r done))
@@ -75,7 +75,7 @@ fn reduce
     pure (SZ.v n > 0 /\ SZ.v n <= 1024)
   returns
     r : u64
-  ensures 
+  ensures
     cpu **
     gpu_pts_to_array a #f v_a **
     pure (r == Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a)
@@ -90,7 +90,7 @@ fn reduce
   assert (pure (n < max_blocks));
 
   // assert (gpu_pts_to gr #1.0R 0uL);
-  
+
   // pack (x,y) as p?
   // let p = (x, y);
   // rewrite each x as p._1;
@@ -107,7 +107,7 @@ fn reduce
   // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
   // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
 
-  W.elim_with_pure (len done == SZ.v n) _; 
+  W.elim_with_pure (len done == SZ.v n) _;
 
   assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
 

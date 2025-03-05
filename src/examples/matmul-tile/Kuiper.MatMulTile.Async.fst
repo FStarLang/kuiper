@@ -37,7 +37,7 @@ fn main
           len 'v3 == nn * nn /\ len 'v4 == nn * nn)
   returns
     ar : vec u64
-  ensures 
+  ensures
     exists* vr.
       ar |-> vr // no functional spec
 {
@@ -84,7 +84,7 @@ fn main
 
   Kuiper.Array.gpu_memcpy_device_to_host ar ga1 size;
   gpu_array_free ga1;
-  
+
   (**)drop_ (epoch_live _);
 
   ar

@@ -90,9 +90,9 @@ fn main (_:unit)
 
   Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 m_size;
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 m_size;
-  
+
   let gr = gpu_array_alloc #u32 m_size;
-  
+
   let nthr : sz = m_size;
 
   // Slicing the arrays
@@ -125,12 +125,12 @@ fn main (_:unit)
 
   (**)bigstar_unzip 0 (SZ.v m_size) _ _;
   (**)bigstar_unzip 0 (SZ.v m_size) _ _;
-  
+
   // Unslicing
   (**)gpu_array_unslice_1_underspec ga1;
   (**)gpu_array_unslice_1_underspec ga2;
   (**)gpu_array_unslice_1_underspec gr;
-  
+
   Kuiper.Array.gpu_memcpy_device_to_host ar gr m_size;
   gpu_array_free ga1;
   gpu_array_free ga2;
@@ -151,7 +151,7 @@ fn main (_:unit)
     psum := vpsum `U32.add_underspec` ri;
     i := SZ.add vi 1sz;
   };
-  
+
   V.free a1;
   V.free a2;
   V.free ar;

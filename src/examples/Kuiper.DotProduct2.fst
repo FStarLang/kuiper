@@ -64,13 +64,13 @@ fn kernel
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
   let v2 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
-  
+
   let vm = U64.mul_mod v1 v2;
   (**)let dot_v = hide (pmul s1 s2);
-  
+
   (**)unfold (gpu_pts_to_array1 r tid);
   gpu_array_write #u64 #(SZ.v nth) #(SZ.v tid) #(hide (SZ.v tid+1)) r tid vm;
-  
+
   (* sigh... this is terrible. It's a one element sequence. *)
   with s'. assert (gpu_pts_to_slice r tid (tid+1) s');
   assert (pure (vm == Seq.index dot_v tid));
@@ -136,7 +136,7 @@ fn main
 
   Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 dp2_size;
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 dp2_size;
-  
+
   let gr = gpu_array_alloc #u64 dp2_size;
 
   // Slicing the arrays
@@ -170,10 +170,10 @@ fn main
                gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. dp2_size) v2) **
                if_ (i = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
     );
-  
+
   (**)bigstar_unzip 0 dp2_size _ _;
   (**)bigstar_unzip 0 dp2_size _ _;
-  
+
   (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga1 #v1);
   gather_array ga1;
   (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga2 #v2);

@@ -37,7 +37,7 @@ let sliceA
   = let (_, s2) = split s from in
     let (s3, _) = split s2 (to - from) in
     s3
-    
+
 let sliceB
   (#a:Type)
   (s:seq a)

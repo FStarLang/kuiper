@@ -37,7 +37,7 @@ fn calc_idxs
   let tid = thread_idx_x ();
   let trow = SZ.div tid bdim;
   let tcol = SZ.rem tid bdim;
-  
+
   let columns_tile = SZ.div columns bdim;
   let rows_tile = SZ.div rows bdim;
 
@@ -77,13 +77,13 @@ fn calc_idxs
   let bcol_bdim = bcol *^ bdim;
   let row : sz = brow_bdim +^ trow;
   let col : sz = bcol_bdim +^ tcol;
-  
+
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v brow) (SZ.v rows_tile - 1);
   FStar.Math.Lemmas.lemma_mult_le_right (SZ.v bdim) (SZ.v bcol) (SZ.v columns_tile - 1);
   // assert (pure (SZ.v row <= (SZ.v rows_tile - 1) * SZ.v bdim + (SZ.v bdim - 1)));
   FStar.Math.Lemmas.distributivity_sub_left (SZ.v rows_tile) 1 (SZ.v bdim);
   // assert (pure ((SZ.v rows_tile - 1) * SZ.v bdim + (SZ.v bdim - 1) == SZ.v rows - SZ.v bdim + SZ.v bdim - 1));
-  
+
   // assert (pure (SZ.v col <= (SZ.v columns_tile - 1) * SZ.v bdim + (SZ.v bdim - 1)));
   FStar.Math.Lemmas.distributivity_sub_left (SZ.v columns_tile) 1 (SZ.v bdim);
   // assert (pure ((SZ.v columns_tile - 1) * SZ.v bdim + (SZ.v bdim - 1) == SZ.v columns - 1));
@@ -140,7 +140,7 @@ fn inner_loop
   unfold Barrier.barrier_mm_perm;
 
   let ga1_val = gpu_array_read #_ #_ #(2 * ga1_idx) #(2 * ga1_idx + 2) ar #(1.0R /. nthr) (2sz *^ ga1_idx);
-  // rewrite each Barrier.ifeven it tid (SZ.v ga1_idx) 
+  // rewrite each Barrier.ifeven it tid (SZ.v ga1_idx)
   //           as (SZ.v ga1_idx);
 
   fold Barrier.barrier_mm nthr ar it tid ga1_idx;
@@ -170,7 +170,7 @@ fn outer_loop
   (tcol: sz{SZ.v tcol < SZ.v bdim})
   (trow: sz{SZ.v trow < SZ.v bdim})
   (sum: ref u64)
-  preserves 
+  preserves
     gpu
   requires
     (exists* sumv. sum |-> sumv) **
@@ -283,7 +283,7 @@ fn kernel
   let idx, row, col = calc_idxs rows shared columns bdim nblk nthr etid #();
   let ar = obtain_shmem ear;
   rewrite each ear as ar;
-  
+
   let shared_tile = shared `SZ.div` bdim;
 
   let tid = thread_idx_x ();
@@ -323,7 +323,7 @@ fn kernel
     assert (pure (SZ.v iv * SZ.v bdim <= (SZ.v shared_tile - 1) * SZ.v bdim));
     // assert (pure (SZ.v shared_tile == 32 /\ SZ.v bdim == 32));
     // SZ.fits_at_least_16 (SZ.v iv * SZ.v bdim);
-    
+
     assert (pure (SZ.v iv < shared / bdim));
     assert (pure (bdim /? shared));
     assert (pure (bdim * (shared/bdim) == shared));
@@ -335,7 +335,7 @@ fn kernel
     Kuiper.Math.Silly.lemma_nonneg_mul (SZ.v iv) (SZ.v bdim); // ridiculous to have to call this
     SizeT.fits_lte (SZ.v iv * SZ.v bdim) (SZ.v shared);
     assert (pure (SZ.fits (iv * bdim)));
-    
+
     let v_bdim = SZ.mul iv bdim;
 
     assume (pure (SZ.v v_bdim + SZ.v tcol < shared /\ SZ.v v_bdim + SZ.v trow < shared));
@@ -345,7 +345,7 @@ fn kernel
 
     let v1 = I.gpu_matrix_read #_ #(hide rows)   #shared ga1 #(SZ.v nblk * SZ.v nthr) #s1 row (v_bdim +^ tcol);
     let v2 = I.gpu_matrix_read #_ #(hide shared) #columns ga2 #(SZ.v nblk * SZ.v nthr) #s2 (v_bdim +^ trow) col;
-    
+
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx1 v1;
     gpu_array_write #u64 #smem_sz #(SZ.v smem_idx1) #(SZ.v smem_idx1 + 2) ar smem_idx2 v2;
 
@@ -360,6 +360,6 @@ fn kernel
   unfold gpu_pts_to_array1 r (tid_to_idx rows shared columns bdim (thread_index etid));
   gpu_array_write #u64 #(rows * columns) #(SZ.v idx) #(SZ.v idx + 1) r idx s;
   fold gpu_pts_to_array1 r (tid_to_idx rows shared columns bdim (thread_index etid));
-  
+
   ()
 }

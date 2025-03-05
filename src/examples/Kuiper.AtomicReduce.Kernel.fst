@@ -131,7 +131,7 @@ fn done_lemma
   (v_a : erased (seq u64))
   (etid : tid_t { gdim_x etid == 1 /\ bdim_x etid == reveal nn})
   requires gpu ** bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
-  ensures  
+  ensures
     gpu **
     (r |-> Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed
     (a |-> v_a)

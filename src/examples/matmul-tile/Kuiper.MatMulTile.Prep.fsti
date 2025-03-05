@@ -21,7 +21,7 @@ fn setup
     (ga |-> 'va) **
     (gb |-> 'vb) **
     (gr |-> 'vr)
-  ensures 
+  ensures
     bigstar 0 (nblk * nthr) (fun i ->
       K.kpre rows shared columns ga gb gr #'va #'vb (nblk * nthr)
         (K.tid_to_idx rows shared columns bdim i))

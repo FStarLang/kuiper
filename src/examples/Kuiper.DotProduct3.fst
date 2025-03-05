@@ -73,7 +73,7 @@ fn fixup
     with cv. assert (gpu_pts_to_array r cv);
     gpu_pts_to_ref r;
     gpu_array_write #u64 #nth #0 #nth r 0sz vv;
-    
+
     with v1. assert (gpu_pts_to_slice ar 0 nth v1);
     // assert (pure (Seq.index v1 0 == HR.sum dot_v));
     fold HR.gpu_pts_to_slice_sum_inner #_ #_ #nth ar 0 nth dot_v v1;
@@ -123,14 +123,14 @@ fn kernel
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
   let v2 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
-  
+
   let vm = U64.mul_mod v1 v2;
   (**)let dot_v = hide (pmul s1 s2);
-  
+
   let ar = obtain_shmem ear;
   unfold gpu_pts_to_array1 ar tid;
   gpu_array_write #u64 #(SZ.v nth) #(SZ.v tid) #(hide (SZ.v tid+1)) ar tid vm;
-  
+
   (* sigh... this is terrible. It's a one element sequence. *)
   with s'. assert (gpu_pts_to_slice ar tid (tid+1) s');
   assert (pure (vm == Seq.index dot_v tid));
@@ -139,10 +139,10 @@ fn kernel
   Kuiper.Seq.Common.lem_one_elem s' vm; (* oof *)
   assert (pure (s' == seq![vm <: u64])); (* the freaking refinement made this very difficult. *)
   rewrite each s' as seq![vm <: u64];
-  
+
   (* Reduction *)
   HR.d_reduce nth ar #dot_v #() etid;
-  
+
   fixup nth ar r s1 s2 tid;
   fold (kpost nth ga1 ga2 r s1 s2 tid);
   fold (shared_post nth ear r s1 s2 tid);
@@ -214,7 +214,7 @@ fn main
 
   Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 dp2_size;
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 dp2_size;
-  
+
   let gr = gpu_array_alloc #u64 dp2_size;
 
   // Slicing the arrays
@@ -262,10 +262,10 @@ fn main
                     gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. dp2_size) v2) **
                     if_ (i = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
         ));
-  
+
   (**)bigstar_unzip 0 dp2_size _ _;
   (**)bigstar_unzip 0 dp2_size _ _;
-  
+
   (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga1 #v1);
   gather_array ga1;
   (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga2 #v2);

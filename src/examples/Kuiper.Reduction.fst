@@ -100,7 +100,7 @@ fn reduce
     pure (size > 0 /\
           len v == size)
   returns  r : t
-  ensures 
+  ensures
     exists* v'.
       a |-> v'
 {

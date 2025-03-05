@@ -26,7 +26,7 @@ let kpost #et (size: sz) (ga1 ga2 r : gpu_array et (SZ.v size)) (tid:nat) : slpr
 [@@CPrologue "__global__"]
 fn kernel
   (#et:Type0)
-  {| simple_scalar et |} 
+  {| simple_scalar et |}
   (#nblk : erased sz { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
   (size : erased sz { SZ.v size == SZ.v nblk })
   (ga1 ga2 : gpu_array et (reveal size))
@@ -93,9 +93,9 @@ fn main (#et:Type0) {| simple_scalar et |} (_:unit)
 
   Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 m_size;
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 m_size;
-  
+
   let gr = gpu_array_alloc #et m_size;
-  
+
   let nthr : sz = m_size;
 
   // Slicing the arrays
@@ -128,12 +128,12 @@ fn main (#et:Type0) {| simple_scalar et |} (_:unit)
 
   (**)bigstar_unzip 0 (SZ.v m_size) _ _;
   (**)bigstar_unzip 0 (SZ.v m_size) _ _;
-  
+
   // Unslicing
   (**)gpu_array_unslice_1_underspec ga1;
   (**)gpu_array_unslice_1_underspec ga2;
   (**)gpu_array_unslice_1_underspec gr;
-  
+
   Kuiper.Array.gpu_memcpy_device_to_host ar gr m_size;
   gpu_array_free ga1;
   gpu_array_free ga2;
@@ -154,7 +154,7 @@ fn main (#et:Type0) {| simple_scalar et |} (_:unit)
     psum := vpsum `add` ri;
     i := SZ.add vi 1sz;
   };
-  
+
   V.free a1;
   V.free a2;
   V.free ar;

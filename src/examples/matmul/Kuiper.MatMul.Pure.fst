@@ -5,7 +5,7 @@ module Kuiper.MatMul.Pure
 open FStar.Mul
 module U64 = FStar.UInt64
 
-#push-options "--retry 2" 
+#push-options "--retry 2"
 let matmul_single_lemma
   (rows shared columns : nat)
   (s1 : seq u64 { len s1 == rows * shared })

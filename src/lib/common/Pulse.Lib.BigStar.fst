@@ -603,14 +603,14 @@ fn bigstar_if_intro
 {
   intro_cond_true (p x) emp;
   bigstar_emp_intro #u1 m x;
-  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
+  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i)
     (fun (i: nat { m <= i /\ i < x }) -> intro_cond_false (p (i <: nat)) emp);
-  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i) 
+  bigstar_map #u1 #u1 #m #x #(fun _ -> emp) #(fun (i: nat { m <= i /\ i < x }) -> _ i)
     (fun (i: nat { m <= i /\ i < x }) -> cond_rewrite_bool false (i = x) #(p (i <: nat)) #emp);
   bigstar_emp_intro #u1 (x + 1) n;
-  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
+  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i)
     (fun (i: nat { (x + 1) <= i /\ i < n }) -> intro_cond_false (p (i <: nat)) emp);
-  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i) 
+  bigstar_map #u1 #u1 #(x + 1) #n #(fun _ -> emp) #(fun (i: nat { (x + 1) <= i /\ i < n }) -> _ i)
     (fun (i: nat { (x + 1) <= i /\ i < n }) -> cond_rewrite_bool false (i = x) #(p (i <: nat)) #emp);
   bigstar_compose #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp) x;
 }
@@ -679,7 +679,7 @@ let rec bigstar_except
 : Tot slprop (decreases n - m)
 = if m = n
   then emp
-  else if Set.mem m s 
+  else if Set.mem m s
   then bigstar_except #u1 (m+1) n f (Set.remove m s)
   else f m ** bigstar_except #u1 (m+1) n f s
 
@@ -732,7 +732,7 @@ let rec bigstar_except_equiv_split
   (s1: Set.set nat)
 : Lemma
   (requires Set.disjoint s0 s1)
-  (ensures 
+  (ensures
     bigstar_except #u1 m n f s1 ==
     star_over_partition f s0 **
     bigstar_except #u1 m n f (Set.union s0 s1))
@@ -826,7 +826,7 @@ let union_partitions_aux_split
      Set.disjoint (union_partitions_aux p from mid) (union_partitions_aux p mid to))
 = union_partitions_split p from mid to;
   union_partitions_disjoint p from mid to
-  
+
 
 let union_partitions_aux_step
     (#m #n #k : nat)
@@ -840,7 +840,7 @@ let union_partitions_aux_step
     select p to `Set.disjoint` union_partitions_aux p from to)
 = union_partitions_aux_split p from to (to + 1)
 
-let star_of_part_i #n #k (parts:disjoint_partitions 0 n k) (f:idx 0 n -> slprop) (i:idx 0 k) 
+let star_of_part_i #n #k (parts:disjoint_partitions 0 n k) (f:idx 0 n -> slprop) (i:idx 0 k)
 : slprop
 = star_over_partition f (select parts i)
 
@@ -917,7 +917,7 @@ let bigstar_partition_equiv_eta
   (==) {   bigstar_ext u1 u1 0 k (star_of_part_i parts f) (fun i -> star_over_partition f (select parts i)) }
     bigstar #u1 0 k (fun i -> star_over_partition f (select parts i));
 }
- 
+
 
 
 ghost
@@ -932,7 +932,7 @@ ensures
   bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i))
 {
   bigstar_partition_equiv_eta #0 n0 n1 f0 partition;
-  rewrite (bigstar #0 0 n0 f0) as 
+  rewrite (bigstar #0 0 n0 f0) as
           (bigstar 0 n1 (fun i -> star_over_partition f0 (select partition i)))
 }
 

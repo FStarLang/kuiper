@@ -4,7 +4,7 @@ class has_len (a:Type) = {
   len : a -> GTot nat;
 }
 
-(* These have to be exposed if we want to use them in specs. 
+(* These have to be exposed if we want to use them in specs.
 Ideally we could mark this module SMT-transparent. *)
 
 instance has_len_list (a:Type) : has_len (list a) = {

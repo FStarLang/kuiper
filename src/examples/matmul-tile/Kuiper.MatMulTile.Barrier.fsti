@@ -182,7 +182,7 @@ fn block_setup_ghost
   // assume (bigstar 0 bdim (fun i ->
   //           (exists* v1. gpu_pts_to_matrix (slice_matrix ar1 i bdim) (from_dims seq![bdim]) v1) **
   //           (exists* v2. gpu_pts_to_matrix (slice_matrix ar2 i bdim) (from_dims seq![bdim]) v2)));
-  
+
   // ghost fn slice_again (ari1 ari2: gpu_matrix u64)
   //   requires (exists* v1. gpu_pts_to_matrix ari1 (from_dims seq![bdim]) v1) **
   //            (exists* v2. gpu_pts_to_matrix ari2 (from_dims seq![bdim]) v2)
@@ -217,7 +217,7 @@ fn block_setup_ghost
   // // FStar.Seq.lemma_eq_intro (remove seq![2 <: pos; bdim; bdim] 0) seq![bdim; bdim];
   // // assert (pure (remove seq![2 <: pos; bdim; bdim] 0 == seq![bdim; bdim] /\ gpu_matrix u64 (remove seq![2 <: pos; bdim; bdim] 0) == gpu_matrix u64 seq![bdim; bdim]));
   // // let ar1 = slice_matrix ar_split 0 0 <: gpu_matrix u64 (remove seq![2 <: pos; bdim; bdim] 0);
-  
+
   // // let ar11 = (*coerce_eq ()*) ar1 <: gpu_matrix u64 seq![bdim; bdim];
 
   // ()

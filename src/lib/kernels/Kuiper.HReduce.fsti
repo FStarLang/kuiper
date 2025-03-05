@@ -58,7 +58,7 @@ let kpre
     gpu_pts_to_slice a tid (tid+1) seq![Seq.index s tid]
 
 unfold
-let kpost 
+let kpost
   (#et:Type0) {| simple_scalar et |}
   (nth: nat) (a : gpu_array et nth) (s : erased (seq et))
   (#_: squash (len s == nth)) (tid:nat{tid < nth})
@@ -92,7 +92,7 @@ val k_reduce (#et:Type0) {| simple_scalar et |} : k_reduce_ty et
 (* FIXME!!!!!!! Type must unfold or we get weird extracted C.
 e.g. this
   void ( *Kuiper_HReduceU64Plus2_reduce_u64(size_t lena, uint64_t *a))(size_t x0, uint64_t *x1)
-instead of 
+instead of
   void Kuiper_HReduceU64Plus2_reduce_u64(size_t lena, uint64_t *a)
 *)
 unfold
@@ -100,8 +100,8 @@ type reduce_ty (et:Type0) {| simple_scalar et |} =
   (lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena) ->
   (#va : erased (seq et)) ->
-  stt unit 
-  (requires 
+  stt unit
+  (requires
     cpu **
     gpu_pts_to_array a va)
   (ensures fun _ ->

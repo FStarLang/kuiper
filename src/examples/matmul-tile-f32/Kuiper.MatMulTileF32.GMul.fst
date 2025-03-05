@@ -147,7 +147,7 @@ fn g_mul
   (ga1 : gpu_array f32 (rows * shared))
   (ga2 : gpu_array f32 (shared * columns))
   (gr  : gpu_array f32 (rows * columns))
-  (#v1 : erased (seq f32)) 
+  (#v1 : erased (seq f32))
   (#v2 : erased (seq f32))
   (#v3 : erased (seq f32))
   preserves
