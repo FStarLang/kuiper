@@ -86,8 +86,6 @@ type k_reduce_ty (et:Type0) {| simple_scalar et |} =
 
 inline_for_extraction noextract
 val d_reduce (#et:Type0) {| simple_scalar et |} : k_reduce_ty et
-inline_for_extraction noextract
-val k_reduce (#et:Type0) {| simple_scalar et |} : k_reduce_ty et
 
 (* FIXME!!!!!!! Type must unfold or we get weird extracted C.
 e.g. this

@@ -288,28 +288,6 @@ fn d_reduce
 }
 
 inline_for_extraction noextract
-fn k_reduce
-  (#et:Type0) {| simple_scalar et |}
-  (nth : szp { nth <= 1024 })
-  (a : gpu_array et nth)
-  (#s :  erased (seq et))
-  (#_: squash (len s == nth))
-  (etid : tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
-  requires
-    gpu **
-    thread_id etid **
-    mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
-    kpre nth a s (thread_index etid)
-  ensures
-    gpu **
-    thread_id etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost nth a s (thread_index etid)
-{
-  d_reduce nth a #s etid;
-}
-
-inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| simple_scalar et |}
   (kk : k_reduce_ty et #_)
