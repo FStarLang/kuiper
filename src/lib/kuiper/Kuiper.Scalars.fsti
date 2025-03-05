@@ -42,6 +42,14 @@ class simple_scalar (t : Type) = {
 }
 
 inline_for_extraction
+class floating (t : Type) = {
+  [@@@FStar.Tactics.Typeclasses.tcinstance]
+  is_scalar : simple_scalar t;
+  div : t -> t -> t;
+  exp : t -> t;
+}
+
+inline_for_extraction
 instance _ : simple_scalar U8.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = U8.add_underspec;
@@ -92,6 +100,13 @@ instance _ : simple_scalar F32.t = {
 }
 
 inline_for_extraction
+instance _ : floating F32.t = {
+  is_scalar = FStar.Tactics.Typeclasses.solve;
+  div = F32.div;
+  exp = F32.exp;
+}
+
+inline_for_extraction
 instance _ : simple_scalar F64.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = F64.add;
@@ -99,4 +114,11 @@ instance _ : simple_scalar F64.t = {
   mul = F64.mul;
   zero = F64.zero;
   one = F64.one;
+}
+
+inline_for_extraction
+instance _ : floating F64.t = {
+  is_scalar = FStar.Tactics.Typeclasses.solve;
+  div = F64.div;
+  exp = F64.exp;
 }
