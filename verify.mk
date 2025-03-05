@@ -129,13 +129,7 @@ endif
 	# the directory too and that is the job of --dep.
 verify-all: $(foreach f, $(ROOTS), obj/$(notdir $(f)).checked)
 
-# Dependencies come from .depend. We still need this rule.
-%.checked: | .fstar.touch
-	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
-	@touch -c $@
-
-$(CACHEDIR)/Kuiper.%.checked: | .fstar.touch .pulse.touch
+$(CACHEDIR)/%.checked: | .fstar.touch .pulse.touch
 	@$(call msg,"CHECK")
 	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
 	@touch -c $@
