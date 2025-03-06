@@ -85,7 +85,7 @@ jobs:
           key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
 
       - name: Fake touchfile
-        if: ${{ steps.fstarcache.outputs.cache-hit = 'true' }}
+        if: ${{ steps.fstarcache.outputs.cache-hit == 'true' }}
         run: touch .fstar.touch
 
       - name: Build F*
