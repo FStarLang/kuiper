@@ -2,7 +2,7 @@ module Kuiper.Spec.MatMul
 
 let matmul_single_lemma
   (#et:Type) {| scalar et |}
-  (rows shared columns : nat)
+  (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
   (row : nat{row < rows})
@@ -11,9 +11,9 @@ let matmul_single_lemma
 : Lemma
   (requires (0 < to /\ to <= shared))
   (ensures (
-    matmul_single rows shared columns m1 m2 row col to ==
+    matmul_single m1 m2 row col to ==
     add
-      (matmul_single rows shared columns m1 m2 row col (to - 1))
+      (matmul_single m1 m2 row col (to - 1))
       (mul (macc m1 row (to-1)) (macc m2 (to-1) col))
   ))
   = ()
@@ -28,7 +28,7 @@ let matmul_single_at
 =
   let row = idx / columns in
   let col = idx % columns in
-  matmul_single rows shared columns m1 m2 row col shared
+  matmul_single m1 m2 row col shared
 
 let matmul
   (#et:Type) {| scalar et |}
@@ -45,5 +45,5 @@ let lemma_matmul_index
   (m2 : ematrix et shared columns)
   (i : nat{ i < rows })
   (j : nat{ j < columns })
-: Lemma (macc (matmul m1 m2) i j == matmul_single rows shared columns m1 m2 i j shared)
+: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j shared)
 = ()

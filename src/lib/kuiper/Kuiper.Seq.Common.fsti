@@ -30,6 +30,7 @@ val lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
 val lem_one_elem (#a:Type) (s : seq a) (v : a)
   : Lemma (requires length s == 1 /\ s @! 0 == v)
           (ensures s == seq![v])
+          [SMTPat (length s); SMTPat (seq![v])] // not sure this actually triggers
 
 let seq_replace
   (#a:Type)

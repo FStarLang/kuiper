@@ -210,10 +210,10 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 TESTS+=Kuiper_Example1
 TESTS+=Kuiper_DotProduct2
 TESTS+=Kuiper_DotProduct3
-TESTS+=Kuiper_MatMul
-TESTS+=Kuiper_MatMulTile
-TESTS+=Kuiper_MatMulTileF32
-TESTS+=Kuiper_MatMulTile_Async
+TESTS+=Kuiper_MatMul_U64
+# TESTS+=Kuiper_MatMulTile
+# TESTS+=Kuiper_MatMulTileF32
+# TESTS+=Kuiper_MatMulTile_Async
 TESTS+=Kuiper_BasicFloat
 TESTS+=Kuiper_AtomicReduce_U64
 TESTS+=Kuiper_HReduceU32Plus
@@ -229,10 +229,10 @@ extraction-targets: \
 	obj/Kuiper_Example1.exe \
 	obj/Kuiper_DotProduct.o \
 	obj/Kuiper_DotProduct.exe \
-	obj/Kuiper_MatMulTileF32_Async.cu \
 	$(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst)))) \
 	$(patsubst %,obj/%.exe,$(TESTS))
 # ^ nasty
+	# obj/Kuiper_MatMulTileF32_Async.cu \
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))

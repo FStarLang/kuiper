@@ -24,7 +24,6 @@ type k_pointwise_exp_ty
 inline_for_extraction noextract
 val k_pointwise_exp (#et : Type0) {| floating et |} : k_pointwise_exp_ty et
 
-(* we're underspecifying.. so these coincide. *)
 unfold
 type k_pointwise_div_ty
   (et:Type0) {| floating et |} =
@@ -66,7 +65,8 @@ val softmax_gpu (#et:Type0) {| floating et |}
   (kreduce : Kuiper.HReduce.k_reduce_ty et #_)
   : softmax_gpu_ty et
 
-unfold type softmax_ty (et : Type0) {| floating et |} =
+unfold
+type softmax_ty (et : Type0) {| floating et |} =
   (#lena : szp { lena < max_threads }) ->
   (a : Vec.lvec et lena) ->
   (#va : erased (seq et)) ->
