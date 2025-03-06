@@ -1,8 +1,5 @@
 module Kuiper.Spec.MatMul
 
-open FStar.Mul
-module U64 = FStar.UInt64
-
 let matmul_single_lemma
   (#et:Type) {| scalar et |}
   (rows shared columns : nat)
@@ -21,7 +18,7 @@ let matmul_single_lemma
   ))
   = ()
 
-private let matmul_single_at
+let matmul_single_at
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)

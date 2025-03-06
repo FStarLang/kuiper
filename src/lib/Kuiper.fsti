@@ -2,6 +2,9 @@ module Kuiper
 
 include FStar.Mul
 
+type natlt (b:int) = n:nat{n <  b}
+type natle (b:int) = n:nat{n <= b}
+
 include Pulse
 include Pulse.Lib.BigStar
 include Pulse.Lib.GhostReference { ref as gref, pts_to as gref_pts_to }

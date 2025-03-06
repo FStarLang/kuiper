@@ -1,19 +1,10 @@
 module Kuiper.Spec.MatMul
 
+(* NOTE: this is for an "exact" matmul, it does not provide
+any weak modulo-associativity spec. *)
+
 open Kuiper
-
-[@@erasable]
-noeq
-type ematrix (et:Type) (rows cols : nat) =
-  | M : s:(seq et){ len s == rows * cols } -> ematrix et rows cols
-
-(* Note: row major *)
-let macc (#et:Type) (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  (i : nat{ i < rows })
-  (j : nat{ j < cols })
-  : GTot et
-  = m.s @! (i * cols + j)
+open Kuiper.Matrix
 
 // computes
 // sum_{i=0}{to} m1[row][i] * m2[i][col]
@@ -32,7 +23,6 @@ let rec matmul_single
   =
   if reveal to = 0 then zero
   else (
-    // assert ((row + 1) <= rows /\ (row + 1) * shared <= rows * shared);
     add
       (matmul_single rows shared columns m1 m2 row col (to - 1))
       (mul (macc m1 row (to - 1))

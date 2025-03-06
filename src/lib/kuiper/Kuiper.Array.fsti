@@ -51,7 +51,7 @@ fn gpu_pts_to_slice_ref
   (#v : seq a)
   preserves gpu_pts_to_slice x #f i j v
   requires emp
-  ensures  pure (i <= j /\ j <= sz /\ Seq.length v == (j-i) /\ SZ.fits (Seq.length v))
+  ensures  pure (i <= j /\ j <= sz /\ Seq.length v == (j-i) /\ SZ.fits sz)
 
 ghost
 fn gpu_pts_to_ref
