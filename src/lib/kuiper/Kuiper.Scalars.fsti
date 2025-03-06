@@ -10,7 +10,6 @@ module I8  = FStar.Int8
 module I16 = FStar.Int16
 module I32 = FStar.Int32
 module I64 = FStar.Int64
-module SZ  = FStar.SizeT
 
 module F32 = Kuiper.Float32
 module F64 = Kuiper.Float64
@@ -25,7 +24,6 @@ inline_for_extraction instance _ : sized I32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized I64.t = { size = 8sz; }
 inline_for_extraction instance _ : sized F32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized F64.t = { size = 8sz; }
-inline_for_extraction instance _ : sized SZ.t  = { size = 8sz; }
 
 (* There are no scalar instances for signed ints, we do not have
 total unconditional operations on them. *)
