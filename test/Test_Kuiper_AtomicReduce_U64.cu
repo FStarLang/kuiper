@@ -1,4 +1,4 @@
-#include "Kuiper_AtomicReduce.h"
+#include "Kuiper_AtomicReduce_U64.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -28,7 +28,7 @@ int main()
 		u64 *aa = (uint64_t *)KPR_GPU_ALLOC(n * sizeof aa[0]);
 		MUST(cudaMemcpy(aa, a, n * 8U, cudaMemcpyHostToDevice));
 
-		u64 r = TIME(Kuiper_AtomicReduce_reduce(n, aa), NULL);
+		u64 r = TIME(Kuiper_AtomicReduce_U64_reduce(n, aa), NULL);
 		
 		cudaFree(aa);
 

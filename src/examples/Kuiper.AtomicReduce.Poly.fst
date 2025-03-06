@@ -1,26 +1,28 @@
-module Kuiper.AtomicReduce
+module Kuiper.AtomicReduce.Poly
 
 (* Reducing an array with some given operation. *)
 
 #lang-pulse
 
 open Kuiper
-open Kuiper.AtomicReduce.Kernel
+open Kuiper.Atomics
+open Kuiper.AtomicReduce.Poly.Kernel
 
 module SZ = FStar.SizeT
 module W = Pulse.Lib.WithPure
 
 ghost
 fn setup
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (n : sz)
-  (a : gpu_array u64 n)
+  (a : gpu_array et n)
   (#f : perm)
-  (#v_a : erased (seq u64))
-  (r : gpu_ref u64)
+  (#v_a : erased (seq et))
+  (r : gpu_ref et)
   requires
     cpu **
     gpu_pts_to_array a #f v_a **
-    (r |-> 0uL) **
+    (r |-> zero #et) **
     pure (SZ.v n <= 1024)
   returns
     i_done : iname & erased (seq (gref bool))
@@ -38,11 +40,12 @@ fn setup
 
 ghost
 fn teardown
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (n : sz)
-  (a : gpu_array u64 n)
+  (a : gpu_array et n)
   (#f : perm)
-  (#v_a : erased (seq u64))
-  (r : gpu_ref u64)
+  (#v_a : erased (seq et))
+  (r : gpu_ref et)
   (i : iname)
   (done : lseq (gref bool) (SZ.v n))
   // returns
@@ -57,35 +60,38 @@ fn teardown
   ensures
     cpu **
     gpu_pts_to_array a #f v_a **
-    (r |-> Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) **
+    (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a) **
     pure (SZ.v n <= 1024)
 {
   admit();
 }
 
+inline_for_extraction noextract
 fn reduce
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (k : kernel_ty et #_ #_)
   (n : sz)
-  (a : gpu_array u64 n)
+  (a : gpu_array et n)
   (#f : perm)
-  (#v_a : erased (seq u64))
+  (#v_a : erased (seq et))
   requires
     cpu **
     pure (f == 1.0R) **
     gpu_pts_to_array a #f v_a **
     pure (SZ.v n > 0 /\ SZ.v n <= 1024)
   returns
-    r : u64
+    r : et
   ensures
     cpu **
     gpu_pts_to_array a #f v_a **
-    pure (r == Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a)
+    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
-  let mut r = 0uL;
-  let gr = gpu_alloc0 #u64 ();
-  Ref.gpu_memcpy_host_to_device gr r;
+  let mut r = zero #et #_;
+  let gr = gpu_alloc0 #et ();
+  Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
 
   with v. assert (pts_to r v);
-  assert (pure (v == 0uL));
+  assert (pure (v == zero));
 
   assert (pure (n < max_blocks));
 
@@ -114,11 +120,11 @@ fn reduce
   launch_kernel_n #0 n
     #(kpre  (SZ.v n) a v_a gr done i)
     #(kpost (SZ.v n) a v_a gr done i)
-    (fun etid -> kernel (hide n) a gr done i v_a etid);
+    (fun etid -> k (hide n) a gr done i v_a etid);
 
   teardown n a #f #v_a gr i done;
 
-  Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
+  Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
 
   Kuiper.Ref.gpu_free gr;
 

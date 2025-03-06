@@ -1,4 +1,4 @@
-module Kuiper.AtomicReduce.Kernel
+module Kuiper.AtomicReduce.Poly.Kernel
 
 (* Reducing an array with some given operation. *)
 
@@ -9,10 +9,11 @@ open Kuiper
 module SZ = FStar.SizeT
 
 let rec contributions
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn : nat)
   (v_done : seq bool)
-  (v_a : seq u64{len v_done >= len v_a})
-  (v_r : u64) (acc : u64)
+  (v_a : seq et{len v_done >= len v_a})
+  (v_r : et) (acc : et)
 : Tot prop (decreases len v_a)
 =
   if len v_a = 0 then
@@ -23,24 +24,25 @@ let rec contributions
     let hd_done = Seq.head v_done in
     let tl_done = Seq.tail v_done in
     if hd_done then
-      contributions nn tl_done tl v_r (UInt64.add_mod hd acc)
+      contributions nn tl_done tl v_r (d.pure_op hd acc)
     else
       contributions nn tl_done tl v_r acc
 
 let inv_p
-      (nn: nat)
-      (a: gpu_array u64 nn)
-      (v_a: seq u64)
-      (r: gpu_ref u64)
-      (done: seq (gref bool))
-     =
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (nn: nat)
+  (a: gpu_array et nn)
+  (v_a: seq et)
+  (r: gpu_ref et)
+  (done: seq (gref bool))
+=
   // pure (len done == nn) **
   exists* (v_done:
     seq bool {len v_done >= len done /\ len v_done >= len v_a})
     v_r.
     ((a |-> v_a) ** (r |-> v_r) **
     bigstar 0 (len done) (fun i -> gref_pts_to (done @! i) #0.5R (v_done @! i))) **
-    pure (contributions nn v_done v_a v_r 0uL)
+    pure (contributions nn v_done v_a v_r zero)
 
 
 ghost
@@ -62,23 +64,26 @@ fn bigstar_ghost_upd_lemma
 
 assume
 val contributions_lemma
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
   (v_done : seq bool)
-  (v_a : seq u64{len v_done >= len v_a})
-  (v_r : u64) (acc : u64)
+  (v_a : seq et{len v_done >= len v_a})
+  (v_r : et) (acc : et)
   (tid : nat{tid < len v_a})
   : Lemma (requires contributions nn v_done v_a v_r acc /\ v_done @! tid == false)
-          (ensures  contributions nn (Seq.upd v_done tid true) v_a (UInt64.add_mod v_r (v_a @! tid)) acc)
-          [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (UInt64.add_mod v_r (v_a @! tid)) acc)]
+          (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op v_r (v_a @! tid)) acc)
+          [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op v_r (v_a @! tid)) acc)]
 
 [@@ CPrologue "__global__"]
+inline_for_extraction noextract
 fn kernel
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: erased SZ.t)
-  (a : gpu_array u64 (SZ.v nn))
-  (r : gpu_ref u64)
+  (a : gpu_array et (SZ.v nn))
+  (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
-  (v_a : erased (seq u64))
+  (v_a : erased (seq et))
   (etid : tid_t { gdim_x etid == reveal nn /\ bdim_x etid == 1})
   requires gpu ** thread_id etid ** kpre  (SZ.v nn) a v_a r done i (thread_index etid)
   ensures  gpu ** thread_id etid ** kpost (SZ.v nn) a v_a r done i (thread_index etid)
@@ -91,7 +96,7 @@ fn kernel
   (* Read array at idx *)
   let v =
     with_invariants i
-      returns v : u64
+      returns v : et
       ensures
         gpu **
         thread_id etid **
@@ -101,9 +106,9 @@ fn kernel
         later_credit 1
     {
       later_elim _;
-      unfold inv_p;
-      let rr = gpu_array_read #u64 #(SZ.v nn) #0 #(SZ.v nn) a tid;
-      fold inv_p;
+      unfold (inv_p (SZ.v nn) a v_a r done);
+      let rr = gpu_array_read #et #(SZ.v nn) #0 #(SZ.v nn) a tid;
+      fold (inv_p (SZ.v nn) a v_a r done);
       later_intro (inv_p (SZ.v nn) a v_a r done);
       rr
     };
@@ -111,31 +116,33 @@ fn kernel
   with_invariants i
   {
     later_elim _;
-    unfold inv_p;
-    let _ = gpu_faa_u64 r v;
+    unfold (inv_p (SZ.v nn) a v_a r done);
+    let _ = atomic_add r v;
     bigstar_ghost_upd_lemma done _ _ ;
     assume (pure False); (* FIXME *)
     rewrite each SZ.v tid as thread_index etid;
-    fold inv_p;
+    fold (inv_p (SZ.v nn) a v_a r done);
     later_intro (inv_p (SZ.v nn) a v_a r done);
   }
 }
 
 ghost
 fn done_lemma
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: erased nat)
-  (a : gpu_array u64 nn)
-  (r : gpu_ref u64)
+  (a : gpu_array et nn)
+  (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
-  (v_a : erased (seq u64))
+  (v_a : erased (seq et))
   (etid : tid_t { gdim_x etid == 1 /\ bdim_x etid == reveal nn})
-  requires gpu ** bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
+  requires
+    gpu **
+    bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
   ensures
     gpu **
-    (r |-> Kuiper.Seq.Common.seq_fold_left (fun x y -> UInt64.add_mod x y) 0uL v_a) ** // FIXME: eta needed
+    (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a) **
     (a |-> v_a)
-
 {
   admit();
 }

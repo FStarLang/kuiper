@@ -2,6 +2,7 @@ module Kuiper.AtomicOps
 
 #lang-pulse
 
+open FStar.Tactics.Typeclasses
 open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Class.PtsTo
@@ -9,7 +10,10 @@ open Kuiper.Base
 open Kuiper.Ref
 open Kuiper.IntAliases
 
-// fixme? No faa for signed ints, needs overflow check
+// fixme? No faa for signed ints, needs overflow check or wrapping
+// addition
+
+// TODO:
 
 noextract
 atomic
