@@ -51,7 +51,7 @@ jobs:
       - name: Get submodules
         run: |
           git submodule init
-          git submodule update
+          git submodule update --depth 1
 
       - name: Check CUDA
         run: ./scripts/check-cuda.sh
