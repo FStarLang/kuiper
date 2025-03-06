@@ -62,12 +62,10 @@ OUTDIR   := obj
 ifneq ($(D),)
 FSTAR_DEBUG := --debug $D
 endif
-ifneq ($(O),)
-OTHERFLAGS += $O
-endif
 ifneq ($(ADMIT),)
 OTHERFLAGS += --admit_smt_queries true
 endif
+OTHERFLAGS += $O
 
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
@@ -93,6 +91,8 @@ FSTAR = $(FSTAR_EXE)					\
 
 GPUH := $(realpath include/kuiper.h)
 
+KOTHERFLAGS += $(KO)
+
 KRML := $(KRML_HOME)/krml				\
 	-add-early-include '<kuiper.h>'			\
 	-fc++-compat					\
@@ -104,7 +104,8 @@ KRML := $(KRML_HOME)/krml				\
 	-drop Prims					\
 	-minimal					\
 	-header /dev/null				\
-	-warn-error -2@4-10@18
+	-warn-error -2@4-10@18				\
+	$(KOTHERFLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
