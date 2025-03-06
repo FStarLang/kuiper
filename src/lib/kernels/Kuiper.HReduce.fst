@@ -45,7 +45,7 @@ let smin (a b : sz): sz =
 // Barrier
 
 let barrier_matrix
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth : nat) (r : gpu_array et nth)
   (v : seq et)
   (it from to : nat)
@@ -57,7 +57,7 @@ let barrier_matrix
 
 ghost
 fn fold_barrier_matrix_true
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth : nat)
   (r: gpu_array et nth)
   (v: seq et { len v == nth })
@@ -74,7 +74,7 @@ fn fold_barrier_matrix_true
 
 ghost
 fn fold_barrier_matrix_false
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth : nat)
   (r: gpu_array et nth)
   (v: seq et { len v == nth })
@@ -94,7 +94,7 @@ fn fold_barrier_matrix_false
 
 ghost
 fn mk_barrier_pre
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array et nth)
   (vv: erased (seq et))
@@ -129,7 +129,7 @@ fn mk_barrier_pre
 [@@ CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn iteration
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (r : gpu_array et nth)
   (vv: erased (seq et))
@@ -244,7 +244,7 @@ fn iteration
 
 inline_for_extraction noextract
 fn d_reduce
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth : szp { nth <= 1024 })
   (a : gpu_array et nth)
   (#s :  erased (seq et))
@@ -289,7 +289,7 @@ fn d_reduce
 
 inline_for_extraction noextract
 fn reduce
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (kk : k_reduce_ty et #_)
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)

@@ -26,7 +26,7 @@ let kpost #et (size: sz) (ga1 ga2 r : gpu_array et (SZ.v size)) (tid:nat) : slpr
 [@@CPrologue "__global__"]
 fn kernel
   (#et:Type0)
-  {| simple_scalar et |}
+  {| scalar et |}
   (#nblk : erased sz { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
   (size : erased sz { SZ.v size == SZ.v nblk })
   (ga1 ga2 : gpu_array et (reveal size))
@@ -61,7 +61,7 @@ fn kernel
 }
 
 inline_for_extraction noextract
-fn main (#et:Type0) {| simple_scalar et |} (_:unit)
+fn main (#et:Type0) {| scalar et |} (_:unit)
   requires cpu ** pure SZ.fits_u32
   ensures  cpu
 {

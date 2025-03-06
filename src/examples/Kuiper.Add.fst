@@ -7,7 +7,7 @@ module Kuiper.Add
 open Kuiper
 
 inline_for_extraction
-fn incr (#t:Type0) {| simple_scalar t |}
+fn incr (#t:Type0) {| scalar t |}
   (x : t)
   returns t
 {

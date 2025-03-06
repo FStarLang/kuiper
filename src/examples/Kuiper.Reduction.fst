@@ -18,7 +18,7 @@ the result in the 0th index of the original array (overwriting that element). *)
 [@@CPrologue "__device__"]
 fn k_reduce
   (#tt : Type0)
-  {| d : simple_scalar tt |}
+  {| d : scalar tt |}
   (size : sz)
   (a : gpu_array tt size)
   (#v : erased (seq tt))
@@ -54,7 +54,7 @@ the result in the 0th index of the original array (overwriting that element). *)
 [@@CPrologue "__global__"]
 fn k_reduce_and_set
   (#tt : Type0)
-  {| d : simple_scalar tt |}
+  {| d : scalar tt |}
   (size : sz)
   (a : gpu_array tt size)
   (#v : erased (seq tt))
@@ -90,7 +90,7 @@ inline_for_extraction noextract
 [@@noextract_to "krml"]	
 fn reduce
   (#t : Type0)
-  {| d : simple_scalar t |}
+  {| d : scalar t |}
   (a : vec t)
   (size : sz)
   (#v : erased (seq t))

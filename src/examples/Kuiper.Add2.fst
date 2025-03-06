@@ -7,7 +7,7 @@ module Kuiper.Add2
 open Kuiper
 
 inline_for_extraction
-fn padd (#t:Type0) {| simple_scalar t |}
+fn padd (#t:Type0) {| scalar t |}
   (x y : t)
   returns t
 {

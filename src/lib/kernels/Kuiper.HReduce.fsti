@@ -16,7 +16,7 @@ let size : sz = 1024sz
 is the reduction of all the values in the (original) slice v. *)
 unfold
 let gpu_pts_to_slice_sum_inner
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (#sz:nat)
   (r : gpu_array et sz)
   (i j :nat)
@@ -31,7 +31,7 @@ let gpu_pts_to_slice_sum_inner
 
 (* Not easy to mark this unfold as it has a lambda (in the exists) *)
 let gpu_pts_to_slice_sum
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (#sz:nat)
   ([@@@mkey] r: gpu_array et sz)
   ([@@@mkey] i : nat)
@@ -43,7 +43,7 @@ let gpu_pts_to_slice_sum
 // Barrier
 
 val barrier_matrix
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth: nat) (r : gpu_array et nth)
   (v: seq et)
   (it from to: nat)
@@ -51,7 +51,7 @@ val barrier_matrix
 
 unfold
 let kpre
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth: nat) (a : gpu_array et nth) (s : erased (seq et))
   (#_: squash (len s == nth)) (tid:nat{tid < nth})
   : slprop =
@@ -59,14 +59,14 @@ let kpre
 
 unfold
 let kpost
-  (#et:Type0) {| simple_scalar et |}
+  (#et:Type0) {| scalar et |}
   (nth: nat) (a : gpu_array et nth) (s : erased (seq et))
   (#_: squash (len s == nth)) (tid:nat{tid < nth})
   : slprop =
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 nth s)
 
 unfold
-type k_reduce_ty (et:Type0) {| simple_scalar et |} =
+type k_reduce_ty (et:Type0) {| scalar et |} =
   (nth : szp { nth <= 1024 }) ->
   (a : gpu_array et nth) ->
   (#s :  erased (seq et)) ->
@@ -85,7 +85,7 @@ type k_reduce_ty (et:Type0) {| simple_scalar et |} =
     kpost nth a s (thread_index etid))
 
 inline_for_extraction noextract
-val d_reduce (#et:Type0) {| simple_scalar et |} : k_reduce_ty et
+val d_reduce (#et:Type0) {| scalar et |} : k_reduce_ty et
 
 (* FIXME!!!!!!! Type must unfold or we get weird extracted C.
 e.g. this
@@ -94,7 +94,7 @@ instead of
   void Kuiper_HReduceU64Plus2_reduce_u64(size_t lena, uint64_t *a)
 *)
 unfold
-type reduce_ty (et:Type0) {| simple_scalar et |} =
+type reduce_ty (et:Type0) {| scalar et |} =
   (lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena) ->
   (#va : erased (seq et)) ->
@@ -107,4 +107,4 @@ type reduce_ty (et:Type0) {| simple_scalar et |} =
     (exists* va'. gpu_pts_to_array a va'))
 
 inline_for_extraction noextract
-val reduce (#et:Type0) {| simple_scalar et |} (kk : k_reduce_ty et #_) : reduce_ty et
+val reduce (#et:Type0) {| scalar et |} (kk : k_reduce_ty et #_) : reduce_ty et

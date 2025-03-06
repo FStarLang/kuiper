@@ -27,11 +27,11 @@ inline_for_extraction instance _ : sized F32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized F64.t = { size = 8sz; }
 inline_for_extraction instance _ : sized SZ.t  = { size = 8sz; }
 
-(* There are no simple_scalar instances for signed ints, we do not have
+(* There are no scalar instances for signed ints, we do not have
 total unconditional operations on them. *)
 
 inline_for_extraction
-class simple_scalar (t : Type) = {
+class scalar (t : Type) = {
   [@@@FStar.Tactics.Typeclasses.tcinstance]
   is_sized : sized t;
   add : t -> t -> t;
@@ -44,13 +44,13 @@ class simple_scalar (t : Type) = {
 inline_for_extraction
 class floating (t : Type) = {
   [@@@FStar.Tactics.Typeclasses.tcinstance]
-  is_scalar : simple_scalar t;
+  is_scalar : scalar t;
   div : t -> t -> t;
   exp : t -> t;
 }
 
 inline_for_extraction
-instance _ : simple_scalar U8.t = {
+instance _ : scalar U8.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = U8.add_underspec;
   sub = U8.sub_underspec;
@@ -60,7 +60,7 @@ instance _ : simple_scalar U8.t = {
 }
 
 inline_for_extraction
-instance _ : simple_scalar U16.t = {
+instance _ : scalar U16.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = U16.add_underspec;
   sub = U16.sub_underspec;
@@ -70,7 +70,7 @@ instance _ : simple_scalar U16.t = {
 }
 
 inline_for_extraction
-instance _ : simple_scalar U32.t = {
+instance _ : scalar U32.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = U32.add_underspec;
   sub = U32.sub_underspec;
@@ -80,7 +80,7 @@ instance _ : simple_scalar U32.t = {
 }
 
 inline_for_extraction
-instance _ : simple_scalar U64.t = {
+instance _ : scalar U64.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = U64.add_underspec;
   sub = U64.sub_underspec;
@@ -90,7 +90,7 @@ instance _ : simple_scalar U64.t = {
 }
 
 inline_for_extraction
-instance _ : simple_scalar F32.t = {
+instance _ : scalar F32.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = F32.add;
   sub = F32.sub;
@@ -107,7 +107,7 @@ instance _ : floating F32.t = {
 }
 
 inline_for_extraction
-instance _ : simple_scalar F64.t = {
+instance _ : scalar F64.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
   add = F64.add;
   sub = F64.sub;
