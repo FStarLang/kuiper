@@ -126,7 +126,7 @@ jobs:
         uses: actions/cache/save@v4
         if: ${{ steps.pulsecache.outputs.cache-hit != 'true' }}
         with:
-          path: build/ocaml/installed/lib/pulse/pulse.cmxs
+          path: pulse/build/ocaml/installed/lib/pulse/pulse.cmxs
           key: pulse-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}-${{steps.fstarcommit.outputs.PULSECOMMIT}}
 
       - name: Run CI Makefile rule
