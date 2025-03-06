@@ -75,6 +75,9 @@ jobs:
           cd FStar
           C=$(git rev-parse HEAD)
           echo "FSTARCOMMIT=$C" >>"$GITHUB_OUTPUT"
+          cd ../pulse
+          C=$(git rev-parse HEAD)
+          echo "PULSECOMMIT=$C" >>"$GITHUB_OUTPUT"
 
       - name: Try fetch cached F*
         id: fstarcache
@@ -100,6 +103,31 @@ jobs:
         with:
           path: inst
           key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
+
+      - name: Try fetch cached Pulse plugin
+        id: pulsecache
+        if: ${{ inputs.nocache != 'true' && github.event_name != 'schedule' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: pulse/build/ocaml/installed/lib/pulse/pulse.cmxs
+          key: pulse-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}-${{steps.fstarcommit.outputs.PULSECOMMIT}}
+
+      - name: Fake touchfile
+        if: ${{ steps.pulsecache.outputs.cache-hit == 'true' }}
+        run: touch .pulse.touch
+
+      - name: Build F*
+        if: ${{ steps.pulsecache.outputs.cache-hit != 'true' }}
+        run: |
+          eval $(opam env)
+          make -j$(nproc) -f verify.mk .pulse.touch
+
+      - name: Save Pulse plugin
+        uses: actions/cache/save@v4
+        if: ${{ steps.pulsecache.outputs.cache-hit != 'true' }}
+        with:
+          path: build/ocaml/installed/lib/pulse/pulse.cmxs
+          key: pulse-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}-${{steps.fstarcommit.outputs.PULSECOMMIT}}
 
       - name: Run CI Makefile rule
         run: |
