@@ -144,7 +144,7 @@ jobs:
       - name: Spit out all CUDA files into action log
         if: ${{ always () }}
         run: |
-          for i in out/*.cu; do
+          for i in obj/*.cu; do
             echo "::group::$i"
             cat "$i"
             echo "::endgroup::"
