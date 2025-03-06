@@ -23,6 +23,7 @@ endef
 
 .fstar.touch: $(shell find FStar/src FStar/ulib -type f) FStar/Makefile
 	@echo FSTAR
+	$(MAKE) -C FStar ADMIT=1
 	$(MAKE) -C FStar ADMIT=1 PREFIX=$(CURDIR)/inst install
 	@touch $@
 
