@@ -10,7 +10,7 @@ include .common.mk
 MAKEFLAGS += --no-builtin-rules
 
 KRML_HOME := $(CURDIR)/karamel
-FSTAR_EXE := $(CURDIR)/FStar/out/bin/fstar.exe
+FSTAR_EXE := $(CURDIR)/inst/bin/fstar.exe
 
 export FSTAR_EXE
 export KRML_HOME
@@ -23,7 +23,7 @@ endef
 
 .fstar.touch: $(shell find FStar/src FStar/ulib -type f) FStar/Makefile
 	@echo FSTAR
-	$(MAKE) -C FStar ADMIT=1
+	$(MAKE) -C FStar ADMIT=1 PREFIX=$(CURDIR)/inst install
 	@touch $@
 
 FStar/Makefile:

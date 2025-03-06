@@ -11,6 +11,10 @@ on:
         description: Enable debug output
         type: boolean
         default: false
+      nocache:
+        description: Do not use stored cache
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -64,6 +68,33 @@ jobs:
         run: |
           echo "V=1" >>$GITHUB_ENV
           echo "OTHERFLAGS=-d" >>$GITHUB_ENV
+
+      - name: read F* commit
+        id: fstarcommit
+        run: |
+          cd FStar
+          C=$(git rev-parse HEAD)
+          echo "FSTARCOMMIT=$C" >>"$GITHUB_OUTPUT"
+
+      - name: Try fetch cached F*
+        id: fstarcache
+        if: ${{ inputs.nocache != 'true' && github.event_name != 'schedule' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: inst
+          key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
+
+      - name: Build F*
+        if: ${{ steps.fstarcache.outputs.cache-hit != 'true' }}
+        run: |
+          eval $(opam env)
+          make -f verify.mk .fstar.touch
+
+      - name: Save F*
+        uses: actions/cache/save@v4
+        with:
+          path: inst
+          key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
 
       - name: Run CI Makefile rule
         run: |
