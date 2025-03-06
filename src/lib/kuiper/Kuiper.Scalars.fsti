@@ -52,9 +52,9 @@ class floating (t : Type) = {
 inline_for_extraction
 instance _ : scalar U8.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
-  add = U8.add_underspec;
-  sub = U8.sub_underspec;
-  mul = U8.mul_underspec;
+  add = U8.add_mod;
+  sub = U8.sub_mod;
+  mul = U8.mul_mod;
   zero = U8.zero;
   one = U8.one;
 }
@@ -62,9 +62,9 @@ instance _ : scalar U8.t = {
 inline_for_extraction
 instance _ : scalar U16.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
-  add = U16.add_underspec;
-  sub = U16.sub_underspec;
-  mul = U16.mul_underspec;
+  add = U16.add_mod;
+  sub = U16.sub_mod;
+  mul = U16.mul_mod;
   zero = U16.zero;
   one = U16.one;
 }
@@ -72,9 +72,9 @@ instance _ : scalar U16.t = {
 inline_for_extraction
 instance _ : scalar U32.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
-  add = U32.add_underspec;
-  sub = U32.sub_underspec;
-  mul = U32.mul_underspec;
+  add = U32.add_mod;
+  sub = U32.sub_mod;
+  mul = U32.mul_mod;
   zero = U32.zero;
   one = U32.one;
 }
@@ -82,9 +82,9 @@ instance _ : scalar U32.t = {
 inline_for_extraction
 instance _ : scalar U64.t = {
   is_sized = FStar.Tactics.Typeclasses.solve;
-  add = U64.add_underspec;
-  sub = U64.sub_underspec;
-  mul = U64.mul_underspec;
+  add = U64.add_mod;
+  sub = U64.sub_mod;
+  mul = U64.mul_mod;
   zero = U64.zero;
   one = U64.one;
 }
