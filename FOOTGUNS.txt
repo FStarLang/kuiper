@@ -1,0 +1,5 @@
+- If an interface does not have anything `inline_for_extraction`,
+  it will not be traversed, and inlining will fail. I think this
+  even happens if the `inline_for_extraction` does appear but is
+  only on a Pulse definition. You can add
+  `inline_for_extraction let () = ()` to just force it.
