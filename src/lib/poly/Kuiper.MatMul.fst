@@ -267,21 +267,19 @@ fn matmul
   (#rows #shared #cols : szp) (* concrete args *)
   (a : vec et)
   (b : vec et)
-  (#sa : erased (seq et))
-  (#sb : erased (seq et))
+  (#sa : erased (seq et){ len sa == rows * shared })
+  (#sb : erased (seq et){ len sb == shared * cols })
   preserves
     cpu **
     (a |-> sa) **
     (b |-> sb)
   requires
     pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks) **
-    pure (len sa == rows * shared) **
-    pure (len sb == shared * cols)
+    pure (rows * cols <= max_blocks)
   returns
     c : vec et
   ensures
-    exists* sc. c |-> sc
+    (c |-> matrix_as_seq <| MS.matmul (seq_as_matrix rows shared sa) (seq_as_matrix shared cols sb))
 {
   let gA = M.gpu_matrix_alloc #et rows shared;
   let gB = M.gpu_matrix_alloc #et shared cols;
