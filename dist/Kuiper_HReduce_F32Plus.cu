@@ -1,12 +1,12 @@
 
 
-#include "Kuiper_HReduceU64Plus.h"
+#include "Kuiper_HReduce_F32Plus.h"
 
-size_t Kuiper_HReduceU64Plus_size = (size_t)1024U;
+size_t Kuiper_HReduce_F32Plus_size = (size_t)1024U;
 
 __global__
 
-void Kuiper_HReduceU64Plus_k_reduce(size_t nth, uint64_t *a)
+void Kuiper_HReduce_F32Plus_k_reduce(size_t nth, float_t *a)
 {
   size_t tid = threadIdx_x();
   size_t n = (size_t)0U;
@@ -22,8 +22,8 @@ void Kuiper_HReduceU64Plus_k_reduce(size_t nth, uint64_t *a)
   }
 }
 
-void Kuiper_HReduceU64Plus_reduce(size_t lena, uint64_t *a)
+void Kuiper_HReduce_F32Plus_reduce(size_t lena, float_t *a)
 {
-  KPR_KCALL(Kuiper_HReduceU64Plus_k_reduce, (size_t)1U, lena, lena, a);
+  KPR_KCALL(Kuiper_HReduce_F32Plus_k_reduce, (size_t)1U, lena, lena, a);
 }
 
