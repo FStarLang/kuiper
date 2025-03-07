@@ -1,4 +1,4 @@
-module Kuiper.AtomicReduce.Poly
+module Kuiper.AtomicReduce
 
 (* Reducing an array with some given operation. *)
 
@@ -6,9 +6,18 @@ module Kuiper.AtomicReduce.Poly
 
 open Kuiper
 open Kuiper.Atomics
-open Kuiper.AtomicReduce.Poly.Kernel
 
 module SZ = FStar.SizeT
+
+inline_for_extraction noextract
+val kernel_ty
+  (et : Type0) {| scalar et |} {| d : has_atomic_add et |} 
+  : Type0
+
+inline_for_extraction noextract
+val kernel
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  : kernel_ty et
 
 unfold
 type reduce_ty
