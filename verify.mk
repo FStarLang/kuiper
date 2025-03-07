@@ -222,6 +222,7 @@ TESTS+=Kuiper_HReduce_F32Plus
 TESTS+=Kuiper_HReduce_F64Plus
 TESTS+=Kuiper_ArrayReversal
 TESTS+=Kuiper_Async1
+TESTS+=Kuiper_Softmax_F16
 TESTS+=Kuiper_Softmax_F32
 TESTS+=Kuiper_Softmax_F64
 

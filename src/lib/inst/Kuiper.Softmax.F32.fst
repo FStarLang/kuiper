@@ -6,7 +6,7 @@ open Kuiper.Softmax
 
 [@@CPrologue "__global__"]
 val k_pointwise_exp_f32 : k_pointwise_exp_ty f32
-let k_pointwise_exp_f32 = k_pointwise_exp 
+let k_pointwise_exp_f32 = k_pointwise_exp
 
 [@@CPrologue "__global__"]
 val k_pointwise_div_f32 : k_pointwise_div_ty f32
