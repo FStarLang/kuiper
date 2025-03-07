@@ -83,41 +83,6 @@ let barrier_matrix
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
 
-ghost
-fn fold_barrier_matrix_true
-  (#et:Type0) {| scalar et |}
-  (nth : nat)
-  (r: gpu_array et nth)
-  (v: seq et { len v == nth })
-  (it: nat)
-  (tid: nat { tid <= nth /\ tid >= pow2 it })
-  (to: nat)
-  requires if_ (to = tid - pow2 it)
-             (if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
-               (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v))
-  ensures  barrier_matrix nth r v it tid to
-{
-  fold (barrier_matrix nth r v it tid to);
-}
-
-ghost
-fn fold_barrier_matrix_false
-  (#et:Type0) {| scalar et |}
-  (nth : nat)
-  (r: gpu_array et nth)
-  (v: seq et { len v == nth })
-  (it: nat)
-  (tid: nat { tid <= nth /\ tid < pow2 it })
-  (to: nat { to <= nth })
-  requires emp
-  ensures  barrier_matrix nth r v it tid to
-{
-  assert (pure (tid < to + pow2 it /\ not (tid = to + pow2 it)));
-  if_intro_false (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) v));
-  // (tid = to + pow2 it)
-  fold (barrier_matrix nth r v it tid to);
-}
-
 // #push-options "--print_implicits --print_bound_var_types"
 
 ghost
@@ -136,7 +101,6 @@ fn mk_barrier_pre
   open FStar.SizeT;
   if (tid >=^ spow2 it) {
     bigstar_if_intro 0 nth (tid - pow2 it) (fun _ -> if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid)) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
-    bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> _ i) (fold_barrier_matrix_true nth r vv it tid);
   } else {
     FStar.Math.Lemmas.modulo_lemma tid (spow2 it);
     FStar.Math.Lemmas.modulo_lemma 0 (spow2 (it +^ 1sz));
@@ -146,7 +110,6 @@ fn mk_barrier_pre
     if_elim_false _;
 
     bigstar_emp_intro 0 nth;
-    bigstar_map #_ #_ #0 #nth #(fun (i:nat { 0 <= i /\ i < nth }) -> emp) (fold_barrier_matrix_false nth r vv it tid);
   }
 }
 
