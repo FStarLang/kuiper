@@ -230,6 +230,7 @@ extraction-targets: \
 	obj/Kuiper_DotProduct.o \
 	obj/Kuiper_DotProduct.exe \
 	$(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst)))) \
+	$(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst)))) \
 	$(patsubst %,obj/%.exe,$(TESTS))
 # ^ nasty
 	# obj/Kuiper_MatMulTileF32_Async.cu \
