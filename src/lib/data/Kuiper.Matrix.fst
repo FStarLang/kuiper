@@ -252,6 +252,7 @@ fn gpu_matrix_write_cell
   assert (gpu_pts_to_slice gm idx (idx+1) seq![v1]);
   fold gpu_matrix_pts_to_cell gm i j v1;
 }
+
 ghost
 fn gpu_matrix_explode
   (#et:Type0)
