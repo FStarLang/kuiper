@@ -48,6 +48,7 @@ let gpu_translate_type_without_decay : translate_type_without_decay_t = fun env 
     ->
       TBuf (translate_type_without_decay env arg)
 
+  | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float16.t") -> TInt Half
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float32.t") -> TInt Float
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float64.t") -> TInt Double
 
@@ -125,6 +126,36 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
 
   (******** FLOAT ARITHMETIC *******)
+
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float16.zero" ->
+    EConstant (Half, "0.0f")
+  | MLE_Name p
+    when string_of_mlpath p = "Kuiper.Float16.one" ->
+    EConstant (Half, "1.0f")
+
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float16.add" ->
+    EApp (EOp (Add, Half), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float16.sub" ->
+    EApp (EOp (Sub, Half), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x ])
+    when string_of_mlpath p = "Kuiper.Float16.neg" ->
+    EApp (EOp (Sub, Half), [EConstant (Half, "0.0f"); cb x])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float16.mul" ->
+    EApp (EOp (Mult, Half), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float16.div" ->
+    EApp (EOp (Div, Half), [cb x; cb y])
+  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
+    when string_of_mlpath p = "Kuiper.Float16.rem" ->
+    EApp (EOp (Mod, Half), [cb x; cb y])
+
+  | MLE_App ({ expr = MLE_Name p }, [ x ])
+    when string_of_mlpath p = "Kuiper.Float16.exp" ->
+    EApp (EQualified ([], "_hexp"), [ cb x ])
 
   | MLE_Name p
     when string_of_mlpath p = "Kuiper.Float32.zero" ->

@@ -6,11 +6,13 @@ module U8  = FStar.UInt8
 module U16 = FStar.UInt16
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
+
 module I8  = FStar.Int8
 module I16 = FStar.Int16
 module I32 = FStar.Int32
 module I64 = FStar.Int64
 
+module F16 = Kuiper.Float16
 module F32 = Kuiper.Float32
 module F64 = Kuiper.Float64
 
@@ -22,6 +24,7 @@ inline_for_extraction instance _ : sized I8.t  = { size = 1sz; }
 inline_for_extraction instance _ : sized I16.t = { size = 2sz; }
 inline_for_extraction instance _ : sized I32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized I64.t = { size = 8sz; }
+inline_for_extraction instance _ : sized F16.t = { size = 2sz; }
 inline_for_extraction instance _ : sized F32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized F64.t = { size = 8sz; }
 
@@ -85,6 +88,23 @@ instance _ : scalar U64.t = {
   mul = U64.mul_mod;
   zero = U64.zero;
   one = U64.one;
+}
+
+inline_for_extraction
+instance _ : scalar F16.t = {
+  is_sized = FStar.Tactics.Typeclasses.solve;
+  add = F16.add;
+  sub = F16.sub;
+  mul = F16.mul;
+  zero = F16.zero;
+  one = F16.one;
+}
+
+inline_for_extraction
+instance _ : floating F16.t = {
+  is_scalar = FStar.Tactics.Typeclasses.solve;
+  div = F16.div;
+  exp = F16.exp;
 }
 
 inline_for_extraction

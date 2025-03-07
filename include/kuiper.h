@@ -6,6 +6,12 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <cuda_fp16.h>
+typedef half half_t; /* crutch */
+/* NOTE: making this a macro means it works in host/device, but we
+ * need a more scalable solution. */
+#define _hexp(f) (__float2half(exp(__half2float(f))))
+
 #include "atomics.h"
 
 #define blockIdx_x() blockIdx.x
