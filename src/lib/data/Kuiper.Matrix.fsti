@@ -10,8 +10,8 @@ noeq
 type ematrix (et:Type) (rows cols : nat) =
   | M : s:(seq et){ len s == rows * cols } -> ematrix et rows cols
 
-(* Note: row major (though this is erased, so not that important.
-Should we even expose it? *)
+(* Note: row major (though this is erased, so not that important).
+TODO: Define a better abstract matrix type, or use the one from F*'s library. *)
 let macc (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
   (i : nat{ i < rows })

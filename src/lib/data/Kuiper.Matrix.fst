@@ -32,8 +32,6 @@ fn gpu_matrix_alloc
   let gm = gpu_array_alloc #et (rows *^ cols);
   with s. assert (gpu_pts_to_array gm #1.0R s);
   let em = M #et #rows #cols s;
-  // let em = M <| seq![zero #et];
-  // assert (gpu_pts_to_array gm #1.0R em.s);
   fold (gpu_matrix_pts_to gm em);
   gm;
 }
