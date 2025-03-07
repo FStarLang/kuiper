@@ -28,6 +28,21 @@ fn arr_read_1
   x;
 }
 
+type k_pointwise_exp_ty
+  (et:Type0) {| floating et |} =
+  (#lena : erased nat) ->
+  (a : gpu_array et lena) ->
+  (etid : tid_t { gdim_x etid == reveal lena /\ bdim_x etid == 1 }) ->
+  stt unit
+  (requires
+    gpu **
+    thread_id etid **
+    gpu_pts_to_array1 a (thread_index etid))
+  (ensures fun _ ->
+    gpu **
+    thread_id etid **
+    gpu_pts_to_array1 a (thread_index etid))
+
 inline_for_extraction noextract
 fn k_pointwise_exp
   (#et : Type0) {| floating et |}
@@ -53,6 +68,22 @@ fn k_pointwise_exp
   fold gpu_pts_to_array1 a (thread_index etid);
   ()
 }
+
+type k_pointwise_div_ty
+  (et:Type0) {| floating et |} =
+  (#lena : erased nat) ->
+  (a : gpu_array et lena) ->
+  (d : et) ->
+  (etid : tid_t { gdim_x etid == reveal lena /\ bdim_x etid == 1 }) ->
+  stt unit
+  (requires
+    gpu **
+    thread_id etid **
+    gpu_pts_to_array1 a (thread_index etid))
+  (ensures fun _ ->
+    gpu **
+    thread_id etid **
+    gpu_pts_to_array1 a (thread_index etid))
 
 inline_for_extraction noextract
 fn k_pointwise_div

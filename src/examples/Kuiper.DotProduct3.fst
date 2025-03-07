@@ -11,6 +11,7 @@ module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
 module HR = Kuiper.HReduce
+friend Kuiper.HReduce (* use gpu_pts_to_slice, refactor ! *)
 
 #set-options "--z3rlimit 20"
 
