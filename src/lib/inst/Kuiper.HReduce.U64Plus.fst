@@ -1,4 +1,4 @@
-module Kuiper.HReduceF32Plus
+module Kuiper.HReduce.U64Plus
 
 #lang-pulse
 
