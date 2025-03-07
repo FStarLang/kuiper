@@ -83,8 +83,6 @@ let barrier_matrix
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v))
 
-// #push-options "--print_implicits --print_bound_var_types"
-
 ghost
 fn mk_barrier_pre
   (#et:Type0) {| scalar et |}
@@ -183,18 +181,6 @@ fn iteration
 
   mk_barrier_pre nth r vv tid it;
   mbarrier_wait #(SZ.v nth) #(barrier_matrix nth r vv) #(SZ.v it) #(SZ.v tid);
-
-  ghost fn aux (from : nat)
-    requires barrier_matrix nth r vv it from tid
-    ensures  if_ (from = tid + pow2 it) (
-               if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (
-                 gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv
-             ))
-  {
-    (* FIXME: bad crash if we just say 'unfold barrier_matrix' *)
-    unfold barrier_matrix nth r vv it from tid;
-  };
-  bigstar_map #_ #_ #0 #nth (fun (from: nat { 0 <= from /\ from < nth }) -> aux from );
 
   // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 
