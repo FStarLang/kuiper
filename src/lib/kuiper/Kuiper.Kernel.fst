@@ -31,7 +31,7 @@ fn obtain_shmem
   admit () (* primitive *)
 }
 
-fn sync () (#e:erased nat)
+fn sync () (#e:epoch_t)
   requires
     epoch_live e
   returns
@@ -64,7 +64,7 @@ fn launch_kernel_n_m_shmem_async
     stt unit (         gpu ** thread_id etid ** shmem_tok ar ** shared_pre ar (bidx_x etid) (tidx_x etid) ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid **                 shared_post ar (bidx_x etid) (tidx_x etid) ** post (thread_index etid))
   )
-  (#e : erased nat)
+  (#e : epoch_t)
   requires
     cpu **
     epoch_live e **
@@ -206,7 +206,7 @@ fn launch_kernel_n_async
     stt unit (gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
-  (#e : erased nat)
+  (#e : epoch_t)
   requires
     cpu **
     epoch_live e **
@@ -268,7 +268,7 @@ fn launch_kernel_1_async
   (k : unit ->
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
-  (#e : erased nat)
+  (#e : epoch_t)
   requires
     cpu **
     epoch_live e **
