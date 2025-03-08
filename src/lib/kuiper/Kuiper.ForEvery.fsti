@@ -12,6 +12,14 @@ val forevery
   (f : a -> slprop)
   : slprop
 
+(* We can use this... but eta matters, so for now at least,
+   let's just stick with forevery. *)
+unfold
+let ( forall+ )
+  (#a:Type) {| enumerable a |}
+  (f : a -> slprop)
+  : slprop = forevery a f
+
 ghost
 fn forevery_flatten
   (#a:Type0) {| enumerable a |}
