@@ -1,8 +1,5 @@
 /inst
 obj
-.depend
-dep.graph
-dep_filtered.graph
-dep_simpl.graph
-depgraph.pdf
+.depend*
+depend.pdf
 .*.touch

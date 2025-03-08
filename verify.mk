@@ -157,6 +157,15 @@ echo-krml:
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@
 
+
+depgraph: depend.pdf
+depend.pdf: .depend .force
+	$(call msg, "DEPEND GRAPH", $(SRC))
+	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(EXTRACT) $(DEPFLAGS) -o .depend.graph
+	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
+	dot -Tpdf -o $@ .depend.simpl
+	echo "Wrote $@"
+
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!

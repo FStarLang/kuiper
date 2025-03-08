@@ -23,6 +23,10 @@ echo-krml:
 ci:
 	+$(MAKE) -f verify.mk all test
 
+.PHONY: depgraph
+depgraph:
+	+$(MAKE) -f verify.mk depgraph
+
 .SUFFIXES:
 
 .PHONY: watch
