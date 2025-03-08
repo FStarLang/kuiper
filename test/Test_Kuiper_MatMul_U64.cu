@@ -23,9 +23,9 @@ int main(int argc, char **argv)
 {
 	int i, j;
 	int laps = 5;
-	size_t rows = 2048;
-	size_t shared = 2048;
-	size_t columns = 2048;
+	size_t rows = 1024;
+	size_t shared = 1024;
+	size_t columns = 1024;
 	bool check = true;
 
 	if (argc != 1 && argc != 6) {
