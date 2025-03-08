@@ -11,7 +11,6 @@ val t : Type0
 [@@noextract_to "krml"] val neg : t -> t
 [@@noextract_to "krml"] val mul : t -> t -> t
 [@@noextract_to "krml"] val div : t -> t -> t
-[@@noextract_to "krml"] val rem : t -> t -> t
 
 [@@noextract_to "krml"] val exp : t -> t
 

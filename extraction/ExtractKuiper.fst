@@ -149,9 +149,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float16.div" ->
     EApp (EOp (Div, Half), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float16.rem" ->
-    EApp (EOp (Mod, Half), [cb x; cb y])
 
   | MLE_App ({ expr = MLE_Name p }, [ x ])
     when string_of_mlpath p = "Kuiper.Float16.exp" ->
@@ -179,9 +176,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float32.div" ->
     EApp (EOp (Div, Float), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float32.rem" ->
-    EApp (EOp (Mod, Float), [cb x; cb y])
 
   | MLE_App ({ expr = MLE_Name p }, [ x ])
     when string_of_mlpath p = "Kuiper.Float32.exp" ->
@@ -209,9 +203,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float64.div" ->
     EApp (EOp (Div, Double), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float64.rem" ->
-    EApp (EOp (Mod, Double), [cb x; cb y])
 
   | MLE_App ({ expr = MLE_Name p }, [ x ])
     when string_of_mlpath p = "Kuiper.Float64.exp" ->
