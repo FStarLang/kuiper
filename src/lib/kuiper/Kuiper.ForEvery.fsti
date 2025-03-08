@@ -59,3 +59,19 @@ fn forevery_fromstar
     bigstar 0 (cardinal a) (fun i -> p (of_nat i))
   ensures
     forevery a p
+
+ghost
+fn forevery_unit_intro
+  (p : slprop)
+  requires
+    p
+  ensures
+    forevery unit (fun _ -> p)
+
+ghost
+fn forevery_unit_elim
+  (p : slprop)
+  requires
+    forevery unit (fun _ -> p)
+  ensures
+    p

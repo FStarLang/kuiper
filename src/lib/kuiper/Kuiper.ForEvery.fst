@@ -122,3 +122,33 @@ fn forevery_fromstar
 {
   fold forevery a p;
 }
+
+ghost
+fn forevery_unit_intro
+  (p : slprop)
+  requires
+    p
+  ensures
+    forevery unit (fun _ -> p)
+{
+  bigstar_single_intro #0 0 (fun _ -> p);
+  rewrite
+    bigstar 0 1 (fun _ -> p)
+  as
+    bigstar 0 (cardinal unit) (fun _ -> p);
+  fold forevery unit (fun _ -> p);
+  ();
+}
+
+ghost
+fn forevery_unit_elim
+  (p : slprop)
+  requires
+    forevery unit (fun _ -> p)
+  ensures
+    p
+{
+  unfold forevery unit (fun _ -> p);
+  rewrite each cardinal unit #_ as (0 + 1);
+  bigstar_single_elim #_ #_ #(fun _ -> p);
+}
