@@ -202,6 +202,7 @@ fn launch_kernel_n
 
 (* f<<<1, 1>>>(...); *)
 // Private
+inline_for_extraction noextract
 fn kernel_1_as_n
   (#pre #post : slprop)
   (k : unit ->
@@ -214,22 +215,50 @@ fn kernel_1_as_n
   k ()
 }
 
+inline_for_extraction noextract
 fn launch_kernel_1_async
   (#pre #post : slprop)
   (k : unit ->
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
   (#e : erased nat)
-  requires cpu ** epoch_live e ** pre
+  requires
+    cpu **
+    epoch_live e **
+    pre
+  returns
+    e' : epoch_t
   ensures
-    exists* e'.
-      cpu **
-      epoch_live e' **
-      pledge0 (epoch_done e') post **
-      pure (e' >= e)
-{ admit (); }
+    cpu **
+    epoch_live e' **
+    pledge0 (epoch_done e') post **
+    pure (e' >= e)
+{
+  // rewrite pre as forevery (natlt 1) (fun _ -> pre);
+  forevery_unit_intro pre;
+  forevery_iso Enumerable.bij_unit _;
+  let e' =
+    launch_kernel_n_async
+      1sz
+      #(fun _ -> pre)
+      #(fun _ -> post)
+      (kernel_1_as_n k);
+  ghost
+  fn aux ()
+    requires forevery (natlt 1) (fun _ -> post)
+    ensures  post
+  {
+    forevery_iso (Bijection.bij_sym Enumerable.bij_unit) _;
+    forevery_unit_elim post;
+  };
+  rewrite_pledge
+    (forevery (natlt 1) (fun _ -> post))
+    post
+    aux;
+  e'
+}
 
-inline_for_extraction
+inline_for_extraction noextract
 fn launch_kernel_1
   (#pre #post : slprop)
   (k : unit ->

@@ -144,13 +144,17 @@ fn launch_kernel_1_async
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
   (#e : erased nat)
-  requires cpu ** epoch_live e ** pre
+  requires
+    cpu **
+    epoch_live e **
+    pre
+  returns
+    e' : epoch_t
   ensures
-    exists* e'.
-      cpu **
-      epoch_live e' **
-      pledge0 (epoch_done e') post **
-      pure (e' >= e)
+    cpu **
+    epoch_live e' **
+    pledge0 (epoch_done e') post **
+    pure (e' >= e)
 
 inline_for_extraction
 fn launch_kernel_1
