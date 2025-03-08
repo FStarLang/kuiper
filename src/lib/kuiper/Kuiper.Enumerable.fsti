@@ -1,7 +1,7 @@
 module Kuiper.Enumerable
 
 #lang-pulse
-open Kuiper
+open Kuiper.Common
 open Kuiper.Bijection
 open FStar.Tactics.V2
 open FStar.Tactics.Typeclasses

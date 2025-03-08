@@ -1,7 +1,8 @@
-module Kuiper.Forevery
+module Kuiper.ForEvery
 
 #lang-pulse
-open Kuiper
+open Pulse
+open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
 

@@ -1,7 +1,7 @@
-module Kuiper.Forevery
+module Kuiper.ForEvery
 
 #lang-pulse
-open Kuiper
+open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
 open Pulse.Lib.BigStar
@@ -45,7 +45,7 @@ fn bigstar_permute'
   (#u1 : int)
   (#n : nat)
   (f : natlt n -> slprop)
-  (d : Kuiper.Bijection.bijection (natlt n) (natlt n))
+  (d : bijection (natlt n) (natlt n))
   requires bigstar #u1 0 n f
   ensures  bigstar #u1 0 n (fun i -> f (d.ff i))
 {
@@ -58,7 +58,7 @@ fn bigstar_permute''
   (#u1 : int)
   (#n : nat)
   (f : natlt n -> slprop)
-  (d : Kuiper.Bijection.bijection (natlt n) (natlt n))
+  (d : bijection (natlt n) (natlt n))
   requires bigstar #u1 0 n f
   ensures  bigstar #u1 0 n (fun i -> f (d.gg i))
 {
