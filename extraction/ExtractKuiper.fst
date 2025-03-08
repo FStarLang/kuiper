@@ -453,7 +453,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     cb e'
 
   | MLE_App ({ expr = MLE_Name p }, [
-        _uid;
         nthr;
         _pre;
         _post;

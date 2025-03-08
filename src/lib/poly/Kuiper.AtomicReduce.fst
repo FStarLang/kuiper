@@ -55,7 +55,7 @@ let kpre
   (r : gpu_ref et)
   (done : seq (gref bool){len done == Ghost.reveal nn})
   (i:iname)
-  (tid : nat{0 <= tid /\ tid < nn})
+  (tid : natlt nn)
 =
   gref_pts_to (done @! tid) #0.5R false  **
   inv i (inv_p nn a v_a r done)
@@ -69,7 +69,7 @@ let kpost
   (r : gpu_ref et)
   (done : seq (gref bool){len done == Ghost.reveal nn})
   (i:iname)
-  (tid : nat{0 <= tid /\ tid < nn})
+  (tid : natlt nn)
 =
   gref_pts_to (done @! tid) #0.5R true **
   inv i (inv_p nn a v_a r done)
@@ -301,10 +301,16 @@ fn reduce
 
   assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
 
-  launch_kernel_n #0 n
+  forevery_fromstar #(natlt (SZ.v n))
+    (kpre (SZ.v n) a v_a gr done i);
+
+  launch_kernel_n n
     #(kpre  (SZ.v n) a v_a gr done i)
     #(kpost (SZ.v n) a v_a gr done i)
     (fun etid -> k (hide n) a gr done i v_a etid);
+
+  forevery_tostar #(natlt (SZ.v n))
+    (kpost (SZ.v n) a v_a gr done i);
 
   teardown n a #f #v_a gr i done;
 

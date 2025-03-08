@@ -5,6 +5,7 @@ open Pulse
 open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
+open Pulse.Lib.BigStar
 
 val forevery
   (a:Type) {| enumerable a |}
@@ -32,3 +33,21 @@ fn forevery_iso
     forevery a p
   ensures
     forevery b (fun y -> p (bij.gg y))
+
+ghost
+fn forevery_tostar
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forevery a p
+  ensures
+    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+
+ghost
+fn forevery_fromstar
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+  ensures
+    forevery a p

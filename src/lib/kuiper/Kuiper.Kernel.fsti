@@ -1,9 +1,11 @@
 module Kuiper.Kernel
 #lang-pulse
 
+open Kuiper.Common
 open Pulse.Lib.Core
 open FStar.Ghost
 open Pulse.Lib.BigStar
+open Kuiper.ForEvery
 open Kuiper.SizeT
 open Kuiper.Array
 open Kuiper.Base
@@ -125,16 +127,15 @@ fn launch_kernel_n_m
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
 
 fn launch_kernel_n
-  (#u1: erased int)
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
-  (#pre #post : (tid:nat{ 0 <= tid /\ tid < SZ.v nblk } -> slprop))
+  (#pre #post : (natlt nblk -> slprop))
   (k :
     (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
     stt unit (gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
-  requires cpu ** bigstar #u1 0 (SZ.v nblk) pre
-  ensures  cpu ** bigstar #u1 0 (SZ.v nblk) post
+  requires cpu ** forevery (natlt nblk) pre
+  ensures  cpu ** forevery (natlt nblk) post
 
 fn launch_kernel_1_async
   (#pre #post : slprop)

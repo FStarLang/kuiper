@@ -115,9 +115,13 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   as
     (bigstar 0 (SZ.v nthr)  (kpre m_size ga1 ga2 gr));
 
+  forevery_fromstar #(natlt (SZ.v nthr)) (kpre m_size ga1 ga2 gr);
+
   launch_kernel_n nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
     (fun etid -> kernel #et #_ #(hide nthr) (hide m_size) ga1 ga2 gr etid);
+
+  forevery_tostar #(natlt (SZ.v nthr)) (kpre m_size ga1 ga2 gr);
 
   rewrite
     (bigstar 0 (SZ.v nthr)  (kpost m_size ga1 ga2 gr))
@@ -161,20 +165,3 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   ()
 }
-
-(* These do not extract due to the typeclass dictionaries
-   being passed explicitly in the krml. *)
-
-// fn main_u64 (_:unit)
-//   requires cpu ** pure SZ.fits_u32
-//   ensures  cpu
-// {
-//   main #u64 ();
-// }
-
-// fn main_f32 (_:unit)
-//   requires cpu ** pure SZ.fits_u32
-//   ensures  cpu
-// {
-//   main #f32 ();
-// }

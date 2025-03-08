@@ -9,6 +9,7 @@ include Pulse.Lib.Vec { vec, op_Array_Assignment, op_Array_Access }
 
 include FStar.Seq { seq, lseq, cons, empty }
 
+include Kuiper.ForEvery
 include Kuiper.Common
 include Kuiper.Epoch
 include Kuiper.Assert

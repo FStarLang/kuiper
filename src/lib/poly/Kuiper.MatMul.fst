@@ -20,8 +20,8 @@ let kpre
   (tid : nat{ tid < rows * cols })
   : slprop
   =
-  M.gpu_matrix_pts_to gA #f eA **
-  M.gpu_matrix_pts_to gB #f eB **
+  M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
+  M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
   (exists* v.
     M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v)
 
@@ -38,8 +38,8 @@ let kpost
   (tid : nat{ tid < rows * cols })
   : slprop
   =
-  M.gpu_matrix_pts_to gA #f eA **
-  M.gpu_matrix_pts_to gB #f eB **
+  M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
+  M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
   M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
     (MS.matmul_single eA eB (tid / cols) (tid % cols) shared)
 
@@ -55,7 +55,7 @@ type kernel_ty (et : Type0) {| scalar et |} =
   (#eA : M.ematrix et (reveal rows) shared) ->
   (#eB : M.ematrix et shared cols) ->
   (#f : perm) ->
-  (etid : erased tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 }) ->
+  (etid : tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 }) ->
   stt unit
   (requires
     gpu **
@@ -76,7 +76,7 @@ fn kernel
   (#eA : M.ematrix et (reveal rows) shared)
   (#eB : M.ematrix et shared cols)
   (#f : perm)
-  (etid : erased tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 })
+  (etid : tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 })
   requires gpu
     ** thread_id etid
     ** kpre gA gB gC eA eB f (thread_index etid)
@@ -107,8 +107,8 @@ fn kernel
         pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
         pts_to i vi **
         pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
-        M.gpu_matrix_pts_to gA #f eA **
-        M.gpu_matrix_pts_to gB #f eB **
+        M.gpu_matrix_pts_to gA #(f /. (reveal rows * cols)) eA **
+        M.gpu_matrix_pts_to gB #(f /. (reveal rows * cols)) eB **
         gpu
   {
     let vi = !i;
@@ -152,8 +152,7 @@ fn setup
     (gB |-> eB) **
     (gC |-> eC)
   ensures
-    bigstar 0 (rows * cols) (fun i ->
-      kpre gA gB gC eA eB (1.0R /. (rows * cols)) i)
+    forevery (natlt (rows * cols)) (kpre gA gB gC eA eB 1.0R)
 {
   // Sharing the input matrices (splitting permissions)
   M.gpu_matrix_share_n #_ #0 gA (rows * cols);
@@ -168,17 +167,19 @@ fn setup
 
   // Rewrite inside the bigstar
   ghost
-  fn aux (i:nat{0 <= i /\ i < rows * cols})
+  fn aux1 (i:nat{0 <= i /\ i < rows * cols})
     requires
       M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
       M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols))
     ensures
-      kpre gA gB gC eA eB (1.0R /. (rows * cols)) i
+      kpre gA gB gC eA eB 1.0R (Enumerable.of_nat #(natlt (rows * cols)) i)
   {
     ()
   };
-  bigstar_map #_ #_ #0 #(rows * cols) aux;
+  bigstar_map #_ #_ #0 #(rows * cols) aux1;
+
+  forevery_fromstar #(natlt (rows * cols)) (kpre gA gB gC eA eB 1.0R);
 }
 
 ghost
@@ -191,13 +192,17 @@ fn teardown
   (#eA : M.ematrix et rows shared)
   (#eB : M.ematrix et shared cols)
   requires
-    bigstar 0 (rows * cols) (fun i ->
-      kpost gA gB gC eA eB (1.0R /. (rows * cols)) i)
+    forevery (natlt (rows * cols))
+      (kpost gA gB gC eA eB 1.0R)
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> MS.matmul eA eB)
 {
+  forevery_tostar #(natlt (rows * cols)) (kpost gA gB gC eA eB 1.0R);
+  (* FIXME: the #_ is important. *)
+  rewrite each Enumerable.cardinal (natlt (op_Multiply rows cols)) #_ as (op_Multiply rows cols);
+
   bigstar_unzip 0 (rows * cols) _ _;
   bigstar_unzip 0 (rows * cols) _ _;
 
@@ -244,18 +249,13 @@ fn matmul_gpu
   open FStar.SizeT;
   setup gA gB gC;
 
-  let size = rows *^ cols;
-  rewrite each (SZ.v rows `op_Multiply` SZ.v cols) as SZ.v size;
-  (* ^ tedious, and op_Multiply not matching * is a huge footgun. *)
-
-  launch_kernel_n #0
-    size
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> kpre  gA gB gC eA eB (1.0R /. size) tid)
-    #(fun (tid: nat {0 <= tid /\ tid < size} ) -> kpost gA gB gC eA eB (1.0R /. size) tid)
-    (fun etid -> kk gA gB gC etid);
-
-  rewrite each SZ.v size as (SZ.v rows `op_Multiply` SZ.v cols);
-  (* again *)
+  (* FIXME: F* inference failure means we need to annotate pre/post (somewhat) *)
+  (* We also need eta due to the extraction rules looking for it. *)
+  launch_kernel_n
+    (rows *^ cols)
+    #(kpre  _ _ _ _ _ _)
+    #(kpost _ _ _ _ _ _)
+    (fun etid -> kk gA gB gC #eA #eB #1.0R etid);
 
   teardown gA gB gC;
 }

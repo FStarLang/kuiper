@@ -98,3 +98,27 @@ fn forevery_iso
   assert bigstar 0 (cardinal b) (fun i -> p (bij.gg (eb.bij.gg i)));
   fold forevery b (fun y -> p (bij.gg y));
 }
+
+ghost
+fn forevery_tostar
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forevery a p
+  ensures
+    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+{
+  unfold forevery a p;
+}
+
+ghost
+fn forevery_fromstar
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+  ensures
+    forevery a p
+{
+  fold forevery a p;
+}

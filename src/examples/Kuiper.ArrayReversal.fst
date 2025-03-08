@@ -323,6 +323,12 @@ ensures
 {
   explode_cells a;
   partition_cells a;
+
+  forevery_fromstar #(natlt (size `div` 2sz))
+    (fun tid ->
+      gpu_pts_to_cell a #1.0R tid (Seq.index s tid) **
+      gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip s tid));
+
   launch_kernel_n
     (size `div` 2sz)
     #(fun tid ->
@@ -332,6 +338,12 @@ ensures
       gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip (reverse_spec s) tid))
     (fun etid -> kernel size a #s etid);
+
+  forevery_tostar #(natlt (size `div` 2sz))
+    (fun tid ->
+      gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
+      gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip (reverse_spec s) tid));
+
   partition_cells_inv a;
   implode_cells a
 }

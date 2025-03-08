@@ -129,11 +129,23 @@ fn softmax_gpu
   // Fix by adding a match_via binder_attribute on the bigstar?
   (* Call exp on every element. *)
   Array.gpu_array_slice_1_underspec a;
-  launch_kernel_n #0
+
+  forevery_fromstar #(natlt lena)
+    (fun tid -> gpu_pts_to_array1 a tid);
+
+  launch_kernel_n
     lena
     #(fun tid -> gpu_pts_to_array1 a tid)
     #(gpu_pts_to_array1 a)
     (fun etid -> kexp #(SZ.v lena) a etid);
+
+  forevery_tostar #(natlt lena)
+    (gpu_pts_to_array1 a);
+  rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)
+       as bigstar 0 lena (gpu_pts_to_array1 a);
+
+  (* Reduce to sum. *)
+
   Array.gpu_array_unslice_1_underspec a;
 
   (* Compute average. Need swap space. *)
@@ -145,11 +157,17 @@ fn softmax_gpu
 
   (* Divide by average *)
   Array.gpu_array_slice_1_underspec a;
-  launch_kernel_n #0
+  forevery_fromstar #(natlt lena)
+    (fun tid -> gpu_pts_to_array1 a tid);
+  launch_kernel_n
     lena
     #(fun tid -> gpu_pts_to_array1 a tid)
     #(gpu_pts_to_array1 a)
      (fun etid -> kdiv #(SZ.v lena) a avg etid);
+  forevery_tostar #(natlt lena)
+    (gpu_pts_to_array1 a);
+  rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)
+       as bigstar 0 lena (gpu_pts_to_array1 a);
   Array.gpu_array_unslice_1_underspec a;
 
   ()
