@@ -20,10 +20,12 @@ inline_for_extraction instance _ : sized U8.t  = { size = 1sz; }
 inline_for_extraction instance _ : sized U16.t = { size = 2sz; }
 inline_for_extraction instance _ : sized U32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized U64.t = { size = 8sz; }
+
 inline_for_extraction instance _ : sized I8.t  = { size = 1sz; }
 inline_for_extraction instance _ : sized I16.t = { size = 2sz; }
 inline_for_extraction instance _ : sized I32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized I64.t = { size = 8sz; }
+
 inline_for_extraction instance _ : sized F16.t = { size = 2sz; }
 inline_for_extraction instance _ : sized F32.t = { size = 4sz; }
 inline_for_extraction instance _ : sized F64.t = { size = 8sz; }

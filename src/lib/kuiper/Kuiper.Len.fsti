@@ -1,5 +1,6 @@
 module Kuiper.Len
 
+(* This is just for specs, so we use GTot. *)
 class has_len (a:Type) = {
   len : a -> GTot nat;
 }
