@@ -1,6 +1,6 @@
 Laps = 5
-Rows = 2048
-Shared = 2048
-Columns = 2048
+Rows = 1024
+Shared = 1024
+Columns = 1024
 Check = 1
 OK
