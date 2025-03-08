@@ -3,17 +3,19 @@ module Kuiper.Epoch
 
 open Pulse
 
-val epoch_live (n:nat) : slprop
-val epoch_done (n:nat) : slprop
+type epoch_t = erased nat
+
+val epoch_live (n:epoch_t) : slprop
+val epoch_done (n:epoch_t) : slprop
 
 ghost
 fn get_epoch ()
   requires emp
-  returns e : erased nat
+  returns e : epoch_t
   ensures epoch_live e
 
 ghost
-fn done_lower (e f :nat)
+fn done_lower (e f : epoch_t)
   preserves epoch_done e
   requires pure (f <= e)
   ensures  epoch_done f
