@@ -53,7 +53,7 @@ let bij_sym (#a #b : Type) (d : a =~ b) : (b =~ a) =
   gg_ff = d.ff_gg;
 }
 
-let o f g = 
+let o f g =
   fun x -> f (g x)
 
 let bij_comp (#a #b #c : Type) (ab : a =~ b) (bc : b =~ c) : (a =~ c) =
@@ -68,10 +68,10 @@ let bij_prod (#a #b #c #d : Type) (ab : a =~ b) (cd : c =~ d) : (a & c =~ b & d)
 {
   ff = (fun (x, y) -> (ab.ff x, cd.ff y));
   gg = (fun (x, y) -> (ab.gg x, cd.gg y));
-  ff_gg = (fun x -> 
+  ff_gg = (fun x ->
     let (x1, x2) = x in
     ab.ff_gg x1; cd.ff_gg x2);
-  gg_ff = (fun x -> 
+  gg_ff = (fun x ->
     let (x1, x2) = x in
     ab.gg_ff x1; cd.gg_ff x2);
 }

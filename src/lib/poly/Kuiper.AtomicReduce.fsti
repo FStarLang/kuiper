@@ -11,7 +11,7 @@ module SZ = FStar.SizeT
 
 inline_for_extraction noextract
 val kernel_ty
-  (et : Type0) {| scalar et |} {| d : has_atomic_add et |} 
+  (et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   : Type0
 
 inline_for_extraction noextract

@@ -22,7 +22,7 @@ val barrier
    1) There is a barrier in scope
    2) We are thread 'tid' in the group
    3) We are in interation 'it'
-   
+
    p and q represent the pre- and postconditions
    to the barrier_wait for a given thread at a given iteration.
 *)
@@ -38,7 +38,7 @@ val barrier_tok
 (* Creating a barrier for n threads. Note how this is a
    ghost function!. The 'pf' argument is a proof, once and
    for all, that the resource passing in each barrier_wait is
-   correct, since it shows how all of the p's give all of the 
+   correct, since it shows how all of the p's give all of the
    q's at each iteration. *)
 ghost
 fn mk_barrier

@@ -8,7 +8,6 @@ open Kuiper.Math
 open Kuiper.Seq.Common
 open Kuiper.IsReduction
 
-module SZ = FStar.SizeT
 
 let size : sz = 1024sz
 

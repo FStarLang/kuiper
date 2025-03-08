@@ -50,7 +50,7 @@ let bijection_implies_equal_cardinal
   : Lemma (cardinal a == cardinal b)
   =
     let bij' : (natlt (cardinal a) =~ natlt (cardinal b)) =
-      bij_sym d1.bij `bij_comp` bij `bij_comp` d2.bij 
+      bij_sym d1.bij `bij_comp` bij `bij_comp` d2.bij
     in
     __bij_cardinal (cardinal a) (cardinal b) bij'
 
