@@ -134,25 +134,27 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     when string_of_mlpath p = "Kuiper.Float16.one" ->
     EConstant (Half, "1.0f")
 
+   (* Using operators worked locally but failed on CI, probably
+   depends on CUDA version. Just use the intrinsics. *)
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float16.add" ->
-    EApp (EOp (Add, Half), [cb x; cb y])
+    EApp (EQualified ([], "__hadd"), [cb x; cb y])
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float16.sub" ->
-    EApp (EOp (Sub, Half), [cb x; cb y])
+    EApp (EQualified ([], "__hsub"), [cb x; cb y])
   | MLE_App ({ expr = MLE_Name p }, [ x ])
     when string_of_mlpath p = "Kuiper.Float16.neg" ->
-    EApp (EOp (Sub, Half), [EConstant (Half, "0.0f"); cb x])
+    EApp (EQualified ([], "__hneg"), [cb x])
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float16.mul" ->
-    EApp (EOp (Mult, Half), [cb x; cb y])
+    EApp (EQualified ([], "__hmul"), [cb x; cb y])
   | MLE_App ({ expr = MLE_Name p }, [ x; y ])
     when string_of_mlpath p = "Kuiper.Float16.div" ->
-    EApp (EOp (Div, Half), [cb x; cb y])
+    EApp (EQualified ([], "__hdiv"), [cb x; cb y])
 
   | MLE_App ({ expr = MLE_Name p }, [ x ])
     when string_of_mlpath p = "Kuiper.Float16.exp" ->
-    EApp (EQualified ([], "_hexp"), [ cb x ])
+    EApp (EQualified ([], "__hexp"), [ cb x ])
 
   | MLE_Name p
     when string_of_mlpath p = "Kuiper.Float32.zero" ->
