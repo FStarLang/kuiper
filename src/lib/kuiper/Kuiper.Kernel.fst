@@ -1,7 +1,8 @@
 module Kuiper.Kernel
 #lang-pulse
 
-open Pulse.Lib.Pervasives
+open Pulse.Lib.Core
+open FStar.Ghost
 open Pulse.Lib.BigStar
 open Kuiper.SizeT
 open Kuiper.Array
