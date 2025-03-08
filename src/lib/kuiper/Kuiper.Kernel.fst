@@ -234,15 +234,9 @@ fn launch_kernel_1_async
     pledge0 (epoch_done e') post **
     pure (e' >= e)
 {
-  // rewrite pre as forevery (natlt 1) (fun _ -> pre);
   forevery_unit_intro pre;
   forevery_iso Enumerable.bij_unit _;
-  let e' =
-    launch_kernel_n_async
-      1sz
-      #(fun _ -> pre)
-      #(fun _ -> post)
-      (kernel_1_as_n k);
+  let e' = launch_kernel_n_async 1sz (kernel_1_as_n k);
   ghost
   fn aux ()
     requires forevery (natlt 1) (fun _ -> post)
