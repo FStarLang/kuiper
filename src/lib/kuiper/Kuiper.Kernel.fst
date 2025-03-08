@@ -316,3 +316,27 @@ fn launch_kernel_1
   drop_ (epoch_done e');
   drop_ (epoch_live _);
 }
+
+let lemma_mul_lt (a b: nat) (c: nat { a < c }) (d: nat { b <= d /\ d > 0 }): Lemma (a * b < c * d) = ()
+
+noextract inline_for_extraction
+fn thread_idx_all () (#n: tid_t)
+  preserves
+    thread_id n
+  requires
+    emp
+  returns
+    id : SZ.t
+  ensures
+    pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
+{
+  assert (pure (bidx_x n < 1024 * 1024 * 1024 /\ tidx_x n < 1024 /\ bdim_x n <= 1024));
+  lemma_mul_lt (bidx_x n) (bdim_x n) (1024 * 1024 * 1024) 1024;
+  assert (pure (bidx_x n * tidx_x n < 1024 * 1024 * 1024 * 1024 /\ bdim_x n <= 1024));
+  let bid = block_idx_x ();
+  let bdim = block_dim_x ();
+  let tid = thread_idx_x ();
+  open FStar.SizeT;
+  let r = (bid *^ bdim) +^ tid;
+  r
+}

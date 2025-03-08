@@ -201,3 +201,14 @@ fn launch_kernel_1
   )
   requires cpu ** pre
   ensures  cpu ** post
+
+noextract inline_for_extraction
+fn thread_idx_all () (#n: tid_t)
+  preserves
+    thread_id n
+  requires
+    emp
+  returns
+    id : SZ.t
+  ensures
+    pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
