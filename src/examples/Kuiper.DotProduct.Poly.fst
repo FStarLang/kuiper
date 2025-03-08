@@ -115,13 +115,15 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   as
     (bigstar 0 (SZ.v nthr)  (kpre m_size ga1 ga2 gr));
 
-  forevery_fromstar #(natlt (SZ.v nthr)) (kpre m_size ga1 ga2 gr);
+  forevery_fromstar #(natlt (SZ.v nthr))
+    (fun i -> kpre m_size ga1 ga2 gr i);
 
   launch_kernel_n nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
     (fun etid -> kernel #et #_ #(hide nthr) (hide m_size) ga1 ga2 gr etid);
 
-  forevery_tostar #(natlt (SZ.v nthr)) (kpre m_size ga1 ga2 gr);
+  forevery_tostar #(natlt (SZ.v nthr))
+    (fun i -> kpost m_size ga1 ga2 gr i);
 
   rewrite
     (bigstar 0 (SZ.v nthr)  (kpost m_size ga1 ga2 gr))

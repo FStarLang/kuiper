@@ -26,10 +26,9 @@ fn forevery_flatten
   (#b:Type0) {| enumerable b |}
   (f : a -> b -> slprop)
   requires
-    forevery a (fun x ->
-      forevery b (fun y -> f x y))
+    forall+ (x:a) (y:b). f x y
   ensures
-    forevery (a & b) (fun (x, y) -> f x y)
+    forall+ (xy : a & b). f xy._1 xy._2
 
 ghost
 fn forevery_iso
@@ -38,16 +37,16 @@ fn forevery_iso
   (bij : (a =~ b))
   (p : a -> slprop)
   requires
-    forevery a p
+    forall+ (x:a). p x
   ensures
-    forevery b (fun y -> p (bij.gg y))
+    forall+ (y:b). p (bij.gg y)
 
 ghost
 fn forevery_tostar
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop)
   requires
-    forevery a p
+    forall+ (x:a). p x
   ensures
     bigstar 0 (cardinal a) (fun i -> p (of_nat i))
 
@@ -58,7 +57,7 @@ fn forevery_fromstar
   requires
     bigstar 0 (cardinal a) (fun i -> p (of_nat i))
   ensures
-    forevery a p
+    forall+ (x:a). p x
 
 ghost
 fn forevery_unit_intro
@@ -66,12 +65,45 @@ fn forevery_unit_intro
   requires
     p
   ensures
-    forevery unit (fun _ -> p)
+    forall+ (_:unit). p
 
 ghost
 fn forevery_unit_elim
   (p : slprop)
   requires
-    forevery unit (fun _ -> p)
+    forall+ (_:unit). p
   ensures
     p
+
+(* SHOULD NOT BE NEEDED!
+   1) We should mark the p argument of forevery as extensional,
+      and have the checker do the work for us.
+   2) Using forall+, everything should be uniformly eta-expanded.
+ *)
+ghost
+fn forevery_eta
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forevery a p
+  ensures
+    forevery a (fun x -> p x)
+
+ghost
+fn forevery_uneta
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forevery a (fun x -> p x)
+  ensures
+    forevery a p
+
+ghost
+fn forevery_rw_size
+  (n1 : nat)
+  (n2 : nat{n1 == n2})
+  (#p : natlt n1 -> slprop)
+  requires
+    forall+ (i : natlt n1). p i
+  ensures
+    forall+ (i : natlt n2). p i

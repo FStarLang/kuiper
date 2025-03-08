@@ -152,7 +152,8 @@ fn setup
     (gB |-> eB) **
     (gC |-> eC)
   ensures
-    forevery (natlt (rows * cols)) (kpre gA gB gC eA eB 1.0R)
+    forall+ (rc : natlt (rows * cols)).
+      kpre gA gB gC eA eB 1.0R rc
 {
   // Sharing the input matrices (splitting permissions)
   M.gpu_matrix_share_n #_ #0 gA (rows * cols);
@@ -192,8 +193,8 @@ fn teardown
   (#eA : M.ematrix et rows shared)
   (#eB : M.ematrix et shared cols)
   requires
-    forevery (natlt (rows * cols))
-      (kpost gA gB gC eA eB 1.0R)
+    forall+ (rc : natlt (rows * cols)).
+      kpost gA gB gC eA eB 1.0R rc
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
@@ -249,13 +250,18 @@ fn matmul_gpu
   open FStar.SizeT;
   setup gA gB gC;
 
+  let size = rows *^ cols;
+  forevery_rw_size (rows * cols) size;
+
   (* FIXME: F* inference failure means we need to annotate pre/post (somewhat) *)
   (* We also need eta due to the extraction rules looking for it. *)
   launch_kernel_n
-    (rows *^ cols)
+    size
     #(kpre  _ _ _ _ _ _)
     #(kpost _ _ _ _ _ _)
     (fun etid -> kk gA gB gC #eA #eB #1.0R etid);
+
+  forevery_rw_size size (rows * cols);
 
   teardown gA gB gC;
 }

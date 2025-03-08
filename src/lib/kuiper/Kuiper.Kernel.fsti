@@ -127,6 +127,28 @@ fn launch_kernel_n_m
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
 
+fn launch_kernel_n_async
+  (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
+  (#pre #post : natlt nblk -> slprop)
+  (k :
+    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
+    stt unit (gpu ** thread_id etid ** pre (thread_index etid))
+             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
+  )
+  (#e : erased nat)
+  requires
+    cpu **
+    epoch_live e **
+    (forall+ (b : natlt nblk). pre b)
+  returns
+    e' : epoch_t
+  ensures
+    cpu **
+    epoch_live e' **
+    pledge0 (epoch_done e')
+      (forall+ (b : natlt nblk). post b) **
+    pure (e' >= e)
+
 fn launch_kernel_n
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : (natlt nblk -> slprop))
@@ -135,8 +157,12 @@ fn launch_kernel_n
     stt unit (gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
-  requires cpu ** forevery (natlt nblk) pre
-  ensures  cpu ** forevery (natlt nblk) post
+  requires
+    cpu **
+    (forall+ (b : natlt nblk). pre b)
+  ensures
+    cpu **
+    (forall+ (b : natlt nblk). post b)
 
 fn launch_kernel_1_async
   (#pre #post : slprop)

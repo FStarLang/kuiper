@@ -140,7 +140,7 @@ fn softmax_gpu
     (fun etid -> kexp #(SZ.v lena) a etid);
 
   forevery_tostar #(natlt lena)
-    (gpu_pts_to_array1 a);
+    (fun i -> gpu_pts_to_array1 a i);
   rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)
        as bigstar 0 lena (gpu_pts_to_array1 a);
 
@@ -165,7 +165,7 @@ fn softmax_gpu
     #(gpu_pts_to_array1 a)
      (fun etid -> kdiv #(SZ.v lena) a avg etid);
   forevery_tostar #(natlt lena)
-    (gpu_pts_to_array1 a);
+    (fun i -> gpu_pts_to_array1 a i);
   rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)
        as bigstar 0 lena (gpu_pts_to_array1 a);
   Array.gpu_array_unslice_1_underspec a;

@@ -150,7 +150,7 @@ fn kernel_n_as_n_m
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
   (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz })
-  requires gpu ** thread_id etid ** pre (thread_index etid)
+  requires gpu ** thread_id etid ** pre  (thread_index etid)
   ensures  gpu ** thread_id etid ** post (thread_index etid)
 {
   k etid;
@@ -168,13 +168,14 @@ fn launch_kernel_n_async
   requires
     cpu **
     epoch_live e **
-    forevery (natlt nblk) pre
+    (forall+ (b : natlt nblk). pre b)
   returns
     e' : epoch_t
   ensures
     cpu **
     epoch_live e' **
-    pledge0 (epoch_done e') (forevery (natlt nblk) post) **
+    pledge0 (epoch_done e')
+      (forall+ (b : natlt nblk). post b) **
     pure (e' >= e)
 {
   admit();
@@ -189,13 +190,17 @@ fn launch_kernel_n
     stt unit (gpu ** thread_id etid ** pre (thread_index etid))
              (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
   )
-  requires cpu ** forevery (natlt nblk) pre
-  ensures  cpu ** forevery (natlt nblk) post
+  requires
+    cpu **
+    (forall+ (b : natlt nblk). pre b)
+  ensures
+    cpu **
+    (forall+ (b : natlt nblk). post b)
 {
   get_epoch ();
   let e' = launch_kernel_n_async nblk #pre #post k;
   sync ();
-  redeem_pledge emp_inames (epoch_done e') (forevery (natlt nblk) post);
+  redeem_pledge emp_inames (epoch_done e') _;
   drop_ (epoch_done e');
   drop_ (epoch_live _);
 }

@@ -72,14 +72,14 @@ fn forevery_iso
   (bij : (a =~ b))
   (p : a -> slprop)
   requires
-    forevery a p
+    forall+ (x:a). p x
   ensures
-    forevery b (fun y -> p (bij.gg y))
+    forall+ (y:b). p (bij.gg y)
 {
   bijection_implies_equal_cardinal a b bij;
   assert (pure (cardinal a == cardinal b));
 
-  unfold forevery a p;
+  unfold forevery a (fun x -> p x);
   assert bigstar 0 (cardinal a) (fun i -> p (of_nat i));
 
   let bij_n : (natlt (cardinal a) =~ natlt (cardinal a)) =
@@ -104,11 +104,11 @@ fn forevery_tostar
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop)
   requires
-    forevery a p
+    forall+ (x:a). p x
   ensures
     bigstar 0 (cardinal a) (fun i -> p (of_nat i))
 {
-  unfold forevery a p;
+  unfold forevery a (fun x -> p x);
 }
 
 ghost
@@ -118,9 +118,9 @@ fn forevery_fromstar
   requires
     bigstar 0 (cardinal a) (fun i -> p (of_nat i))
   ensures
-    forevery a p
+    forall+ (x:a). p x
 {
-  fold forevery a p;
+  fold forevery a (fun x -> p x);
 }
 
 ghost
@@ -151,4 +151,47 @@ fn forevery_unit_elim
   unfold forevery unit (fun _ -> p);
   rewrite each cardinal unit #_ as (0 + 1);
   bigstar_single_elim #_ #_ #(fun _ -> p);
+}
+
+ghost
+fn forevery_eta
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forevery a p
+  ensures
+    forevery a (fun x -> p x)
+{
+  unfold forevery a p;
+  bigstar_eta ();
+  fold forevery a (fun x -> p x);
+  ();
+}
+
+ghost
+fn forevery_uneta
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forevery a (fun x -> p x)
+  ensures
+    forevery a p
+{
+  unfold forevery a (fun x -> p x);
+  bigstar_uneta ();
+  fold forevery a p;
+  ();
+}
+
+ghost
+fn forevery_rw_size
+  (n1 : nat)
+  (n2 : nat{n1 == n2})
+  (#p : natlt n1 -> slprop)
+  requires
+    forall+ (i : natlt n1). p i
+  ensures
+    forall+ (i : natlt n2). p i
+{
+  ()
 }
