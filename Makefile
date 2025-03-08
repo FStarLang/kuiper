@@ -46,3 +46,8 @@ clean-full: clean
 dist: all
 	rm -f dist/*
 	cp obj/*.cu dist
+
+.PHONY: maintenance
+maintenance:
+	./FStar/.scripts/remove_all_unused_opens.sh src
+	( cd src && git sed 's/ *$$//' )
