@@ -53,3 +53,28 @@ let bijection_implies_equal_cardinal
       bij_sym d1.bij `bij_comp` bij `bij_comp` d2.bij 
     in
     __bij_cardinal (cardinal a) (cardinal b) bij'
+
+
+(* sigh, need hoisting or proofs fail. *)
+let ff_unit_natlt1 : unit -> natlt 1 = fun _ -> 0
+let gg_unit_natlt1 : natlt 1 -> unit = fun _ -> ()
+
+let ff_gg_unit_natlt1 (x : natlt 1)
+  : Lemma (ff_unit_natlt1 (gg_unit_natlt1 x) == x)
+  = ()
+
+let gg_ff_unit_natlt1 (x : unit)
+  : Lemma (gg_unit_natlt1 (ff_unit_natlt1 x) == x)
+  = ()
+
+let bij_unit : bijection unit (natlt 1) = {
+  ff = ff_unit_natlt1;
+  gg = gg_unit_natlt1;
+  ff_gg = ff_gg_unit_natlt1;
+  gg_ff = gg_ff_unit_natlt1;
+}
+
+instance enumerable_unit : enumerable unit = {
+  _cardinal = 1;
+  bij = bij_unit;
+}
