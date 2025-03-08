@@ -296,7 +296,7 @@ ensures
   (gpu_pts_to_cell a #1.0R (thread_index etid) (Seq.index (reverse_spec s) (thread_index etid)) **
    gpu_pts_to_cell a #1.0R (SZ.v size - thread_index etid - 1sz) (index_flip (reverse_spec s) (thread_index etid)))
 {
-  let idx = Kuiper.Base.thread_idx_all ();
+  let idx = thread_idx_all ();
   rewrite each thread_index etid as idx;
   let idx' = (size - idx - 1sz);
   rewrite each (SZ.v size - SZ.v idx - 1) as idx';
