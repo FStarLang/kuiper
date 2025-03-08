@@ -70,6 +70,8 @@ val equal_defn_2 (#a:Type) (len : nat) (f1 : natlt len -> a) (f2 : natlt len -> 
           (ensures mk_seq len f1 == mk_seq_ghost len f2)
           [SMTPat (mk_seq len f1); SMTPat (mk_seq_ghost len f2)]
 
+#push-options "--warn_error -288"
 val as_mk_seq (#a:Type) (s : seq a)
   : Lemma (s == mk_seq (len s) (fun i -> s.[i]))
-  [SMTPat (has_type s (seq a))]
+  [SMTPat (has_type s (seq a))] // OK? Useful?
+#pop-options

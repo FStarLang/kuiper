@@ -31,10 +31,12 @@ let galois (#a #b : _) (d : a =~ b) (x:a) (y:b)
           [SMTPat (d.ff x); SMTPat (d.gg y)]
   = galois_nopat d x y
 
+#push-options "--warn_error -288"
 let galois_forall (#a #b : _) (d : a =~ b)
   : Lemma (forall (x:a) (y:b). d.ff x == y <==> x == d.gg y)
           [SMTPat (has_type d (a =~ b))] // OK? Useful?
   = Classical.forall_intro_2 (galois_nopat d)
+#pop-options
 
 let bij_self (a:Type) : (a =~ a) =
 {

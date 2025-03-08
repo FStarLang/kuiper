@@ -131,9 +131,14 @@ endif
 	# the directory too and that is the job of --dep.
 verify-all: $(foreach f, $(ROOTS), obj/$(notdir $(f)).checked)
 
+# Ignore some warnings from the Pulse library, it's out of scope for us.
+# Also admit queries, we just want a quick build and it's supposed to be
+# checked green by Pulse.
+PULSE_LIB_FLAGS := --admit_smt_queries true --warn_error -288
+
 $(CACHEDIR)/%.checked: | .fstar.touch .pulse.touch
 	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) $(if $(findstring pulse/,$<),--admit_smt_queries true,) --already_cached '*' -c $< -o $@
+	$(Q)$(FSTAR) $(if $(findstring pulse/,$<),$(PULSE_LIB_FLAGS)) --already_cached '*' -c $< -o $@
 	@touch -c $@
 
 # Without .cmxs extension
