@@ -17,7 +17,8 @@ void Kuiper_ArrayReversal_kernel__uint64_t(size_t size, uint64_t *a)
 
 void Kuiper_ArrayReversal_reverse__uint64_t(size_t size, uint64_t *a)
 {
-  KPR_KCALL(Kuiper_ArrayReversal_kernel__uint64_t, size / (size_t)2U, 1U, size, a);
+  KPR_KCALL_ASYNC(Kuiper_ArrayReversal_kernel__uint64_t, size / (size_t)2U, 1U, size, a);
+  cudaDeviceSynchronize();
 }
 
 void

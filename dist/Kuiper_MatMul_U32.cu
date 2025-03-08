@@ -41,7 +41,8 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(Kuiper_MatMul_U32_kernel_u32, rows * cols, 1U, shared, cols, gA, gB, gC);
+  KPR_KCALL_ASYNC(Kuiper_MatMul_U32_kernel_u32, rows * cols, 1U, shared, cols, gA, gB, gC);
+  cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));

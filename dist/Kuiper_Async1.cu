@@ -32,12 +32,12 @@ uint64_t Kuiper_Async1_main(void)
   uint64_t *r4 = Kuiper_Async1_galloc(4ULL);
   uint64_t *r5 = Kuiper_Async1_galloc(5ULL);
   uint64_t *r6 = Kuiper_Async1_galloc(6ULL);
-  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, 1U, 1U, r1);
-  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, 1U, 1U, r2);
-  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, 1U, 1U, r3);
-  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, 1U, 1U, r4);
-  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, 1U, 1U, r5);
-  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, 1U, 1U, r6);
+  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, (size_t)1U, 1U, r1);
+  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, (size_t)1U, 1U, r2);
+  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, (size_t)1U, 1U, r3);
+  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, (size_t)1U, 1U, r4);
+  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, (size_t)1U, 1U, r5);
+  KPR_KCALL_ASYNC(Kuiper_Async1_kernel, (size_t)1U, 1U, r6);
   cudaDeviceSynchronize();
   uint64_t v1 = Kuiper_Async1_gread(r1);
   MUST(cudaFree(r1));
