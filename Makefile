@@ -51,3 +51,4 @@ dist: all
 maintenance:
 	./FStar/.scripts/remove_all_unused_opens.sh src
 	( cd src && git sed 's/ *$$//' )
+	( cd src && ../scripts/find-pulse-noix.sh )
