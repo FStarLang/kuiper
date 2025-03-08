@@ -62,12 +62,13 @@ fn launch_kernel_n_m_shmem_async
     cpu **
     epoch_live e **
     bigstar #u1 0 (nblk * nthr) pre
+  returns
+    e' : epoch_t
   ensures
-    exists* e'.
-      cpu **
-      epoch_live e' **
-      pledge0 (epoch_done e') (bigstar #u1 0 (nblk * nthr) post) **
-      pure (e' >= e)
+    cpu **
+    epoch_live e' **
+    pledge0 (epoch_done e') (bigstar #u1 0 (nblk * nthr) post) **
+    pure (e' >= e)
 { admit (); }
 
 (* f<<<nblk, nthr, smem_sz>>>(...); *)
@@ -96,11 +97,9 @@ fn launch_kernel_n_m_shmem
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
 {
-  let _ = get_epoch ();
-  launch_kernel_n_m_shmem_async nblk nthr a smem_sz setup k;
-  unfold pledge0;
+  get_epoch ();
+  let e' = launch_kernel_n_m_shmem_async nblk nthr a smem_sz setup k;
   sync ();
-  with e'. assert (epoch_done e');
   redeem_pledge emp_inames (epoch_done e') _;
   drop_ (epoch_done e');
   drop_ (epoch_live _);
@@ -114,7 +113,7 @@ fn launch_kernel_n_m_barrier
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
   (#pre #post : (tid:nat{ tid < (nblk * nthr) } -> slprop))
 
-  (#p: (it:nat -> from: nat { 0 <= from /\ from < nthr } -> to: nat { 0 <= to /\ to < nthr } -> slprop))
+  (#p: rpm_t nthr)
   (k :
     (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
     stt unit (         gpu ** thread_id etid ** mbarrier_tok nthr p 0 (tidx_x etid) ** pre (thread_index etid))
@@ -122,7 +121,9 @@ fn launch_kernel_n_m_barrier
   )
   requires cpu ** bigstar #u1 0 (nblk * nthr) pre
   ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
-{ admit (); }
+{
+  admit(); // launch_kernel_n_m_shmem
+}
 
 (* f<<<nblk, nthr>>>(...); *)
 fn launch_kernel_n_m
@@ -266,9 +267,8 @@ fn launch_kernel_1
   requires cpu ** pre
   ensures  cpu ** post
 {
-  let _ = get_epoch ();
+  get_epoch ();
   launch_kernel_1_async #pre #post k;
-  unfold pledge0;
   sync ();
   with e'. assert (epoch_done e');
   redeem_pledge emp_inames (epoch_done e') post;

@@ -5,36 +5,58 @@ module Kuiper.Barrier.RPM
 open Pulse
 open Pulse.Lib.BigStar
 open Kuiper.Base
+open Kuiper.Common
 module SZ = FStar.SizeT
+
+let rpm_t (n:nat) =
+  it:nat ->
+  from: natlt n ->
+  to: natlt n ->
+  slprop
+
+let row
+  (#n:nat) (p : rpm_t n)
+  (it : nat)
+  (i : natlt n)
+  : slprop =
+  bigstar 0 n (fun j -> p it i j)
+
+let col
+  (#n:nat) (p : rpm_t n)
+  (it : nat)
+  (j : natlt n)
+  : slprop =
+  bigstar 0 n (fun i -> p it i j)
 
 [@@no_mkeys]
 val mbarrier_tok
   (n:nat)
-  (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (p : rpm_t n)
   (it : nat)
-  (tid : nat { 0 <= tid /\ tid < n })
+  (tid : natlt n)
   : slprop
 
 ghost
 fn mk_mbarrier
   (n: SZ.t { 0 < n /\ n <= max_threads })
-  (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (p : rpm_t n)
   requires block_setup n
   ensures  block_setup n ** bigstar 0 n (mbarrier_tok n p 0)
 
-// __syncthreads()
 fn mbarrier_wait
+  ()
   (#n : erased nat)
-  (#p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (#p : rpm_t n)
   (#it : erased nat)
-  (#tid : erased nat { tid < n })
-  requires mbarrier_tok n p  it    tid ** bigstar 0 n (p it tid)
-  ensures  mbarrier_tok n p (it+1) tid ** bigstar 0 n (fun (from: nat { 0 <= from /\ from < n }) -> p it from tid)
+  (#tid : erased (natlt n))
+  requires mbarrier_tok n p  it    tid ** row p it tid
+  ensures  mbarrier_tok n p (it+1) tid ** col p it tid
 
-ghost
-fn drop_mbarrier
-  (#n : nat)
-  (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
-  (#it: nat)
-  requires bigstar 0 n (mbarrier_tok n p it)
-  ensures  emp
+(* Same comment as drop_barrier in Kuiper.Barrier.fsti *)
+// ghost
+// fn drop_mbarrier
+//   (#n : nat)
+//   (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
+//   (#it: nat)
+//   requires bigstar 0 n (mbarrier_tok n p it)
+//   ensures  emp

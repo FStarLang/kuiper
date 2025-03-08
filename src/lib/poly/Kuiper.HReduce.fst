@@ -4,6 +4,7 @@ module Kuiper.HReduce
 
 open Kuiper
 open Kuiper.Barrier.RPM
+module RPM = Kuiper.Barrier.RPM
 open Kuiper.Math
 open Kuiper.Seq.Common
 
@@ -180,7 +181,9 @@ fn iteration
             (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv));
 
   mk_barrier_pre nth r vv tid it;
-  mbarrier_wait #(SZ.v nth) #(barrier_matrix nth r vv) #(SZ.v it) #(SZ.v tid);
+  fold RPM.row #nth (barrier_matrix nth r vv) it tid;
+  mbarrier_wait ();
+  unfold RPM.col #nth (barrier_matrix nth r vv) it tid;
 
   // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 

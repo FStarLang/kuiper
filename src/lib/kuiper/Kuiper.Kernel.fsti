@@ -64,12 +64,13 @@ fn launch_kernel_n_m_shmem_async
     cpu **
     epoch_live e **
     bigstar #u1 0 (nblk * nthr) pre
+  returns
+    e' : epoch_t
   ensures
-    exists* e'.
-      cpu **
-      epoch_live e' **
-      pledge0 (epoch_done e') (bigstar #u1 0 (nblk * nthr) post) **
-      pure (e' >= e)
+    cpu **
+    epoch_live e' **
+    pledge0 (epoch_done e') (bigstar #u1 0 (nblk * nthr) post) **
+    pure (e' >= e)
 
 (* f<<<nblk, nthr, smem_sz>>>(...); *)
 inline_for_extraction
@@ -104,7 +105,7 @@ fn launch_kernel_n_m_barrier
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
   (#pre #post : (tid:nat{ tid < (nblk * nthr) } -> slprop))
 
-  (#p: (it:nat -> from: nat { 0 <= from /\ from < nthr } -> to: nat { 0 <= to /\ to < nthr } -> slprop))
+  (#p: rpm_t nthr)
   (k :
     (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
     stt unit (         gpu ** thread_id etid ** mbarrier_tok nthr p 0 (tidx_x etid) ** pre (thread_index etid))

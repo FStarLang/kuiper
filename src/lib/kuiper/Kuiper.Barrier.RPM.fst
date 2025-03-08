@@ -11,79 +11,72 @@ open Kuiper.SizeT
 module SZ = FStar.SizeT
 
 let mbarrier_tok
-  (n:nat)
-  (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (n : nat)
+  (p : rpm_t n)
   (it : nat)
-  (tid : nat { 0 <= tid /\ tid < n })
-  : slprop = exists* b. B.barrier_tok #n
-    (fun it (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from))
-    (fun it (to : nat { 0 <= to /\ to < n }) -> bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> p it from to)) b it tid
+  (tid : natlt n)
+  : slprop
+  =
+  exists* b.
+    (* Trade a row of p for a column of p. *)
+    B.barrier_tok #n
+      (row p)
+      (col p)
+      b it tid
 
 ghost
 fn mk_mbarrier_proof
   (n : nat)
-  (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (p : rpm_t n)
   (it: nat)
-  requires bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from))
-  ensures  bigstar 0 n (fun (to : nat { 0 <= to /\ to < n }) -> bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> p it from to))
+  requires bigstar 0 n (row p it)
+  ensures  bigstar 0 n (col p it)
 {
-  bigstar_map #0 #0 #0 #n #(fun (from : nat { 0 <= from /\ from < n }) -> bigstar #0 0 n (p it from)) #_
-    (fun (from : nat { 0 <= from /\ from < n }) -> bigstar_eta _);
-  bigstar_commute #0 #0 0 n 0 n (fun (from : nat { 0 <= from /\ from < n }) -> fun (to : nat { 0 <= to /\ to < n }) -> p it from to);
-}
-
-// TODO: remove
-ghost
-fn fold_mbarrier_tok
-  (#n:nat)
-  (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
-  (b : B.barrier n)
-  (it : nat)
-  (tid : nat { 0 <= tid /\ tid < n })
-  requires B.barrier_tok #n
-    (fun it (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from))
-    (fun it (to : nat { 0 <= to /\ to < n }) -> bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> p it from to)) b it tid
-  ensures mbarrier_tok n p it tid
-{
-  fold (mbarrier_tok n p it tid)
+  (* very nice. *)
+  bigstar_commute 0 n 0 n (p it);
 }
 
 ghost
 fn mk_mbarrier
   (n: SZ.t { 0 < n /\ n <= max_threads })
-  (p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (p : rpm_t n)
   requires block_setup n
   ensures  block_setup n ** bigstar 0 n (mbarrier_tok n p 0)
 {
-  let b = B.mk_barrier n
-    (fun it (from : nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from))
-    (fun it (to : nat { 0 <= to /\ to < n }) -> bigstar 0 n (fun (from : nat { 0 <= from /\ from < n }) -> p it from to))
-    (mk_mbarrier_proof n p);
-  bigstar_map #0 #0 #0 #n (fold_mbarrier_tok #n p b 0);
+  let b = B.mk_barrier n (row p) (col p) (mk_mbarrier_proof n p);
+  (* Need to intro an exists in every component of the bigstar. *)
+  ghost
+  fn aux (i : natlt n)
+    requires B.barrier_tok #n (row p) (col p) b 0 i
+    ensures  mbarrier_tok n p 0 i
+  {
+    fold (mbarrier_tok n p 0 i);
+  };
+  bigstar_map #0 #0 #0 #n aux;
 }
 
-// __syncthreads()
 fn mbarrier_wait
+  ()
   (#n : erased nat)
-  (#p : (it:nat -> from: nat { 0 <= from /\ from < n } -> to: nat { 0 <= to /\ to < n } -> slprop))
+  (#p : rpm_t n)
   (#it : erased nat)
-  (#tid : erased nat { tid < n })
-  requires mbarrier_tok n p  it    tid ** bigstar 0 n (p it tid)
-  ensures  mbarrier_tok n p (it+1) tid ** bigstar 0 n (fun (from: nat { 0 <= from /\ from < n }) -> p it from tid)
+  (#tid : erased (natlt n))
+  requires mbarrier_tok n p  it    tid ** row p it tid
+  ensures  mbarrier_tok n p (it+1) tid ** col p it tid
 {
   unfold mbarrier_tok;
-  B.barrier_wait #n #(fun it (from: nat { 0 <= from /\ from < n }) -> bigstar 0 n (p it from)) #_ _;
-  fold (mbarrier_tok n p (it+1) tid);
+  B.barrier_wait #n _;
+  fold mbarrier_tok;
 }
 
-ghost
-fn drop_mbarrier
-  (#n : nat)
-  (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
-  (#it: nat)
-  requires bigstar 0 n (mbarrier_tok n p it)
-  ensures  emp
-{
-  (* should use drop_barrier.. but not a big deal really. *)
-  drop_ (bigstar 0 n (mbarrier_tok n p it))
-}
+// ghost
+// fn drop_mbarrier
+//   (#n : nat)
+//   (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
+//   (#it: nat)
+//   requires bigstar 0 n (mbarrier_tok n p it)
+//   ensures  emp
+// {
+//   (* should use drop_barrier.. but not a big deal really. *)
+//   drop_ (bigstar 0 n (mbarrier_tok n p it))
+// }
