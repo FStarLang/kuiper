@@ -34,12 +34,14 @@ jobs:
       - name: Get submodules
         run: |
           git submodule init
-          git submodule update
+          git submodule update --depth 1
 
       - run: |
           ./try-rebase.sh
           if ! git diff --quiet; then
             echo MOVED=1 >>$GITHUB_ENV
+            # git submodule foreach git remote update
+            # ^ Do we need this to be able to push later?
           else
             echo MOVED=0 >>$GITHUB_ENV
           fi
