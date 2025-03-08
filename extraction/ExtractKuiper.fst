@@ -456,9 +456,10 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         nthr;
         _pre;
         _post;
-        { expr = MLE_Fun (_, body) }
+        { expr = MLE_Fun (_, body) };
+        _epoch
       ])
-    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n" ->
+    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n_async" ->
     let hd, args = head_and_args body in
     (* Filter out unit arguments. Not great, not sure why they remain *)
     let args' = List.filter (fun a -> match a.expr with

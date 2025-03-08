@@ -33,10 +33,11 @@ fn obtain_shmem
 
 fn sync () (#e:erased nat)
   requires epoch_live e
+  returns
+    e' : epoch_t
   ensures
-    exists* e'.
-      epoch_live e' ** epoch_done e **
-      pure (e' >= e)
+    epoch_live e' ** epoch_done e **
+    pure (e' >= e)
 
 fn launch_kernel_n_m_shmem_async
   (#u1: erased int)

@@ -30,12 +30,12 @@ fn obtain_shmem
 
 fn sync () (#e:erased nat)
   requires epoch_live e
+  returns
+    e' : epoch_t
   ensures
-    exists* e'.
-      epoch_live e' ** epoch_done e **
-      pure (e' >= e)
+    epoch_live e' ** epoch_done e **
+    pure (e' >= e)
 { admit (); }
-
 
 fn launch_kernel_n_m_shmem_async
   (#u1: erased int)
@@ -156,6 +156,31 @@ fn kernel_n_as_n_m
   k etid;
 }
 
+fn launch_kernel_n_async
+  (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
+  (#pre #post : natlt nblk -> slprop)
+  (k :
+    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
+    stt unit (gpu ** thread_id etid ** pre (thread_index etid))
+             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
+  )
+  (#e : erased nat)
+  requires
+    cpu **
+    epoch_live e **
+    forevery (natlt nblk) pre
+  returns
+    e' : epoch_t
+  ensures
+    cpu **
+    epoch_live e' **
+    pledge0 (epoch_done e') (forevery (natlt nblk) post) **
+    pure (e' >= e)
+{
+  admit();
+}
+
+inline_for_extraction noextract
 fn launch_kernel_n
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : natlt nblk -> slprop)
@@ -167,11 +192,12 @@ fn launch_kernel_n
   requires cpu ** forevery (natlt nblk) pre
   ensures  cpu ** forevery (natlt nblk) post
 {
-  admit();
-  // rewrite (bigstar #u1 0 (SZ.v nblk) pre) as (bigstar #u1 0 (SZ.v nblk * 1) pre);
-  // launch_kernel_n_m #u1 nblk 1sz #pre #post
-  //   (fun etid -> kernel_n_as_n_m nblk #pre #post k etid);
-  // rewrite (bigstar #u1 0 (SZ.v nblk * 1) post) as (bigstar #u1 0 (SZ.v nblk) post);
+  get_epoch ();
+  let e' = launch_kernel_n_async nblk #pre #post k;
+  sync ();
+  redeem_pledge emp_inames (epoch_done e') (forevery (natlt nblk) post);
+  drop_ (epoch_done e');
+  drop_ (epoch_live _);
 }
 
 (* f<<<1, 1>>>(...); *)
