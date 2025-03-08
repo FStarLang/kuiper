@@ -116,19 +116,26 @@ fn mk_barrier_pre
 unfold
 let kpre
   (#et:Type0) {| scalar et |}
-  (nth: nat) (a : gpu_array et nth) (s : erased (seq et))
-  (#_: squash (len s == nth)) (tid:nat{tid < nth})
+  (nblk : nat) (nthr : nat)
+  (a : gpu_array et nthr) (s : erased (seq et))
+  (#_: squash (len s == nblk * nthr))
+  (bid : natlt nblk)
+  (tid : natlt nthr)
   : slprop =
-    gpu_pts_to_slice a tid (tid+1) seq![Seq.index s tid]
+    gpu_pts_to_slice a (bid * nthr + tid) (bid * nthr + tid +1) seq![Seq.index s (bid * nthr + tid)]
 
 unfold
 let kpost
   (#et:Type0) {| scalar et |}
-  (nth: nat) (a : gpu_array et nth) (s : erased (seq et))
-  (#_: squash (len s == nth)) (tid:nat{tid < nth})
+  (nblk : nat) (nthr : nat)
+  (a : gpu_array et nthr) (s : erased (seq et))
+  (#_: squash (len s == nblk * nthr))
+  (bid : natlt nblk)
+  (tid : natlt nthr)
   : slprop =
-    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 nth s)
+    if_ (bid = 0 && tid = 0) (gpu_pts_to_slice_sum a 0 (nblk * nthr) s)
 
+(* Note: there is only one block. *)
 type k_reduce_ty (et:Type0) {| scalar et |} =
   (nth : szp { nth <= 1024 }) ->
   (a : gpu_array et nth) ->
@@ -140,12 +147,12 @@ type k_reduce_ty (et:Type0) {| scalar et |} =
     gpu **
     thread_id etid **
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
-    kpre nth a s (thread_index etid))
+    kpre 1 nth a s 0 (thread_index etid))
   (ensures fun _ ->
     gpu **
     thread_id etid **
     (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost nth a s (thread_index etid))
+    kpost 1 nth a s 0 (thread_index etid))
 
 // KrmlPrivate is essentially a "noextract". F* usually adds it
 // automatically to any definition that does not appear in the fsti,
@@ -268,11 +275,11 @@ fn d_reduce
   requires
     gpu ** thread_id etid **
     mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
-    kpre nth a s (thread_index etid)
+    kpre 1 nth a s 0 (thread_index etid)
   ensures
     gpu ** thread_id etid **
     (exists* it.  mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost nth a s (thread_index etid)
+    kpost 1 nth a s 0 (thread_index etid)
 {
   let tid = thread_idx_x ();
   rewrite each thread_index etid as tid;
@@ -302,6 +309,44 @@ fn d_reduce
   };
 }
 
+ghost
+fn factor_array
+  (#et:Type0)
+  (len : pos)
+  (a : gpu_array et len)
+  (d1 d2 : nat)
+  (#va : seq et { Seq.length va == len /\ len == d1 * d2})
+  requires
+    gpu_pts_to_array a va
+  ensures
+    forall+ (i1:natlt d1) (i2:natlt d2).
+      gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
+{
+  open Kuiper.Enumerable;
+  Array.gpu_array_slice_1 a;
+  rewrite each len as cardinal (natlt len);
+  forevery_fromstar #(natlt len) (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
+  forevery_factor len d1 d2 _;
+  ();
+}
+
+ghost
+fn unfactor_array
+  (#et:Type0)
+  (len : pos)
+  (a : gpu_array et len)
+  (d1 d2 : nat)
+  (#va : seq et { Seq.length va == len /\ len == d1 * d2})
+  requires
+    forall+ (i1:natlt d1) (i2:natlt d2).
+      gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
+  ensures
+    gpu_pts_to_array a va
+{
+  (* everything above is clearly reversible *)
+  admit();
+}
+
 inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| scalar et |}
@@ -317,16 +362,17 @@ fn reduce
 {
   gpu_pts_to_ref a; (* recall length, automate *)
 
-  Array.gpu_array_slice_1 a;
-
-  rewrite each SZ.v lena as (1 * SZ.v lena);
+  factor_array lena a 1 lena;
 
   launch_kernel_n_m_barrier 1sz lena
-    #(kpre  lena a 'va)
-    #(kpost lena a 'va)
+    #(kpre  1 lena a 'va)
+    #(kpost 1 lena a 'va)
     (fun etid -> kk lena a etid);
 
-  bigstar_extract 0 (1 `op_Multiply` lena) (kpost lena a 'va) 0;
+  forevery_singleton_elim #(natlt 1) (fun bid -> forall+ (tid:natlt lena). kpost 1 lena a 'va bid tid);
+  forevery_tostar #(natlt lena) _;
+
+  bigstar_extract 0 lena (kpost 1 lena a 'va 0) 0;
   if_elim_true _;
 
   unfold (gpu_pts_to_slice_sum a 0 lena 'va);
@@ -337,7 +383,7 @@ fn reduce
   rewrite each pp as true;
   if_elim_true _;
   bigstar_emp_elim #_ #0 #0;
-  bigstar_emp_elim' #_ #1 #(1 `op_Multiply` lena) _;
+  bigstar_emp_elim' #_ #1 #lena _;
 
   ()
 }

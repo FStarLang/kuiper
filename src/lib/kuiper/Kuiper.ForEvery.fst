@@ -9,6 +9,40 @@ open Pulse.Lib.BigStar
 let forevery a p =
   bigstar 0 (cardinal a) (fun i -> p (of_nat i))
 
+let forevery_ext_lem
+  (#a:Type0) {| enumerable a |}
+  (f : a -> slprop)
+  (g : a -> slprop { forall x. f x == g x })
+  : Lemma (ensures (forall+ (x:a). f x) == (forall+ (x:a). g x))
+  = ()
+
+ghost
+fn forevery_ext
+  (#a:Type0) {| enumerable a |}
+  (f : a -> slprop)
+  (g : a -> slprop { forall x. f x == g x })
+  requires
+    forall+ (x:a). f x
+  ensures
+    forall+ (x:a). g x
+{
+  ();
+}
+
+ghost
+fn forevery_ext2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a -> b -> slprop)
+  (g : a -> b -> slprop { forall x y. f x y == g x y})
+  requires
+    forall+ (x:a) (y:b). f x y
+  ensures
+    forall+ (x:a) (y:b). g x y
+{
+  ();
+}
+
 ghost
 fn forevery_flatten
   (#a:Type0) {| enumerable a |}
@@ -31,6 +65,20 @@ fn forevery_flatten
   bigstar_map #_ #_ #0 #(cardinal a) aux1; // optional :-)
   bigstar_flatten #_ #_ #(cardinal a) #(cardinal b);
   fold forevery (a & b) (fun (x, y) -> f x y);
+}
+
+ghost
+fn forevery_unflatten
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a -> b -> slprop)
+  requires
+    forevery (a & b) (fun (x, y) -> f x y)
+  ensures
+    forevery a (fun x ->
+      forevery b (fun y -> f x y))
+{
+  admit(); // clearly true, fill in
 }
 
 let bij2perm (n:nat) (d : natlt n =~ natlt n)
@@ -124,6 +172,37 @@ fn forevery_fromstar
 }
 
 ghost
+fn forevery_singleton_intro
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop { cardinal a == 1 })
+  requires
+    p (of_nat 0)
+  ensures
+    forall+ (x:a). p x
+{
+  bigstar_single_intro #0 0 (fun x -> p (of_nat x));
+  rewrite
+    bigstar 0 1 (fun x -> p (of_nat x))
+  as
+    bigstar 0 (cardinal a) (fun x -> p (of_nat x));
+  fold forevery a (fun x -> p x);
+}
+
+ghost
+fn forevery_singleton_elim
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop { cardinal a == 1 })
+  requires
+    forall+ (x:a). p x
+  ensures
+    p (of_nat 0)
+{
+  unfold forevery a (fun x -> p x);
+  rewrite each cardinal a #_ as (0 + 1);
+  bigstar_single_elim #0 #0 #(fun x -> p (of_nat #a x));
+}
+
+ghost
 fn forevery_unit_intro
   (p : slprop)
   requires
@@ -131,13 +210,7 @@ fn forevery_unit_intro
   ensures
     forevery unit (fun _ -> p)
 {
-  bigstar_single_intro #0 0 (fun _ -> p);
-  rewrite
-    bigstar 0 1 (fun _ -> p)
-  as
-    bigstar 0 (cardinal unit) (fun _ -> p);
-  fold forevery unit (fun _ -> p);
-  ();
+  forevery_singleton_intro #unit (fun _ -> p);
 }
 
 ghost
@@ -148,9 +221,7 @@ fn forevery_unit_elim
   ensures
     p
 {
-  unfold forevery unit (fun _ -> p);
-  rewrite each cardinal unit #_ as (0 + 1);
-  bigstar_single_elim #_ #_ #(fun _ -> p);
+  forevery_singleton_elim #unit (fun _ -> p);
 }
 
 ghost
@@ -193,5 +264,38 @@ fn forevery_rw_size
   ensures
     forall+ (i : natlt n2). p i
 {
+  ()
+}
+
+ghost
+fn forevery_factor
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt n -> slprop)
+  requires
+    forall+ (i:natlt n). p i
+  ensures
+    forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
+{
+  open Kuiper.Bijection;
+  forevery_rw_size n (d1 * d2);
+  forevery_iso (bij_sym <| bij_nat_prod #d1 #d2) _;
+  forevery_unflatten #(natlt d1) #_ #(natlt d2) (fun i1 i2 -> p (i1 * d2 + i2));
+}
+
+ghost
+fn forevery_unfactor
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt n -> slprop)
+  requires
+    forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
+  ensures
+    forall+ (i:natlt n). p i
+{
+  open Kuiper.Bijection;
+  forevery_flatten #(natlt d1) #_ #(natlt d2) (fun i1 i2 -> p (i1 * d2 + i2));
+  forevery_iso (bij_nat_prod #d1 #d2) _;
+  forevery_rw_size (d1 * d2) n;
   ()
 }

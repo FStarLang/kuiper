@@ -25,7 +25,9 @@ let u64_comm_semigroup ()
 
 [@@no_mkeys]
 let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth ))
+  (_bid : natlt 1)
+  (tid:nat{tid < nth})
   : slprop =
     (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
@@ -33,11 +35,13 @@ let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
 
 [@@no_mkeys]
 let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
+  (#_: squash ( len s1 == nth /\ len s2 == nth ))
+  (_bid : natlt 1)
+  (tid:nat{tid < nth})
   : slprop =
     ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
-    if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2)))
+    if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nth) (pmul s1 s2)))
 
 // #set-options "--ext pulse:env_on_err=1"
 
@@ -53,15 +57,15 @@ fn kernel
     gpu **
     thread_id etid **
     mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) 0 (tidx_x etid) **
-    kpre nth ga1 ga2 r s1 s2 (thread_index etid)
+    kpre nth ga1 ga2 r s1 s2 0 (thread_index etid)
   ensures
     gpu **
     thread_id etid **
     (exists* it. mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) it (tidx_x etid)) **
-    kpost nth ga1 ga2 r s1 s2 (thread_index etid)
+    kpost nth ga1 ga2 r s1 s2 0 (thread_index etid)
 {
   let tid = thread_idx_x ();
-  (**)unfold (kpre nth ga1 ga2 r s1 s2 tid);
+  (**)unfold (kpre nth ga1 ga2 r s1 s2 0 tid);
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
   let v2 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
@@ -87,7 +91,7 @@ fn kernel
   rewrite each thread_index etid as SZ.v tid;
   rewrite each dot_v as pmul s1 s2;
 
-  fold (kpost nth ga1 ga2 r s1 s2 tid);
+  fold (kpost nth ga1 ga2 r s1 s2 0 tid);
 }
 
 unfold // reconsider
@@ -149,22 +153,46 @@ fn main
   (**)bigstar_zip 0 dp2_size (shared_array ga1) (shared_array ga2);
   (**)bigstar_zip 0 dp2_size _ (gpu_pts_to_array1 gr);
 
-  rewrite
+  assert
     bigstar 0 dp2_size
-      (kpre dp2_size ga1 ga2 gr v1 v2)
-  as
-    bigstar 0 (1 * SZ.v dp2_size)
-      (kpre dp2_size ga1 ga2 gr v1 v2);
+      (kpre dp2_size ga1 ga2 gr v1 v2 0);
 
-  launch_kernel_n_m_barrier #0 1sz dp2_size
+  forevery_fromstar
+    #(natlt dp2_size) (fun i -> kpre dp2_size ga1 ga2 gr v1 v2 0 i);
+
+  forevery_factor dp2_size 1 dp2_size _;
+
+  (* bid has to be zero. *)
+  forevery_ext2 #(natlt 1) #_ #(natlt dp2_size)
+    (fun bid tid -> kpre dp2_size ga1 ga2 gr v1 v2 0 (bid * dp2_size + tid))
+    (fun bid tid -> kpre dp2_size ga1 ga2 gr v1 v2 0 tid);
+
+  assert
+    forall+ (bid : natlt 1) (tid : natlt dp2_size).
+      kpre dp2_size ga1 ga2 gr v1 v2 bid tid;
+
+  launch_kernel_n_m_barrier 1sz dp2_size
     #(kpre dp2_size ga1 ga2 gr v1 v2)
     #(kpost dp2_size ga1 ga2 gr v1 v2)
     #(HR.barrier_matrix dp2_size gr (pmul v1 v2))
     (fun etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 etid);
 
+  assert
+    forall+ (bid : natlt 1) (tid : natlt dp2_size).
+      kpost dp2_size ga1 ga2 gr v1 v2 bid tid;
+
+  (* bid has to be zero. *)
+  forevery_ext2 #(natlt 1) #_ #(natlt dp2_size)
+    (fun bid tid -> kpost dp2_size ga1 ga2 gr v1 v2 0 tid)
+    (fun bid tid -> kpost dp2_size ga1 ga2 gr v1 v2 0 (bid * dp2_size + tid));
+
+  forevery_unfactor dp2_size 1 dp2_size _;
+
+  forevery_tostar #(natlt dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 0 i);
+
   (* Unfold kpost under the star, would be nice to automate as long as that's tractable. *)
   rewrite
-    bigstar 0 (1 * SZ.v dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 i)
+    bigstar 0 dp2_size (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 0 i)
   as
     bigstar 0 dp2_size
      (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. dp2_size) v1 **

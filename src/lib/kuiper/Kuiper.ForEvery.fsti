@@ -20,6 +20,33 @@ let ( forall+ )
   (f : a -> slprop)
   : slprop = forevery a f
 
+val forevery_ext_lem
+  (#a:Type0) {| enumerable a |}
+  (f : a -> slprop)
+  (g : a -> slprop { forall x. f x == g x })
+  : Lemma (ensures (forall+ (x:a). f x) == (forall+ (x:a). g x))
+
+ghost
+fn forevery_ext
+  (#a:Type0) {| enumerable a |}
+  (f : a -> slprop)
+  (g : a -> slprop { forall x. f x == g x })
+  requires
+    forall+ (x:a). f x
+  ensures
+    forall+ (x:a). g x
+
+ghost
+fn forevery_ext2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a -> b -> slprop)
+  (g : a -> b -> slprop { forall x y. f x y == g x y})
+  requires
+    forall+ (x:a) (y:b). f x y
+  ensures
+    forall+ (x:a) (y:b). g x y
+
 ghost
 fn forevery_flatten
   (#a:Type0) {| enumerable a |}
@@ -29,6 +56,16 @@ fn forevery_flatten
     forall+ (x:a) (y:b). f x y
   ensures
     forall+ (xy : a & b). f xy._1 xy._2
+
+ghost
+fn forevery_unflatten
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a -> b -> slprop)
+  requires
+    forall+ (xy : a & b). f xy._1 xy._2
+  ensures
+    forall+ (x:a) (y:b). f x y
 
 ghost
 fn forevery_iso
@@ -75,6 +112,24 @@ fn forevery_unit_elim
   ensures
     p
 
+ghost
+fn forevery_singleton_intro
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop { cardinal a == 1 })
+  requires
+    p (of_nat 0)
+  ensures
+    forall+ (x:a). p x
+
+ghost
+fn forevery_singleton_elim
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop { cardinal a == 1 })
+  requires
+    forall+ (x:a). p x
+  ensures
+    p (of_nat 0)
+
 (* SHOULD NOT BE NEEDED!
    1) We should mark the p argument of forevery as extensional,
       and have the checker do the work for us.
@@ -107,3 +162,23 @@ fn forevery_rw_size
     forall+ (i : natlt n1). p i
   ensures
     forall+ (i : natlt n2). p i
+
+ghost
+fn forevery_factor
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt n -> slprop)
+  requires
+    forall+ (i:natlt n). p i
+  ensures
+    forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
+
+ghost
+fn forevery_unfactor
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt n -> slprop)
+  requires
+    forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
+  ensures
+    forall+ (i:natlt n). p i

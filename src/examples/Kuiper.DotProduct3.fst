@@ -27,7 +27,7 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
   : slprop =
     ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
-    if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2)))
+    if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nth) (pmul s1 s2)))
 
 let shared_pre (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth )) (it: nat) (tid:nat{tid < nth})
@@ -54,10 +54,10 @@ fn fixup
   (tid: SZ.t { SZ.v tid < nth })
   requires gpu **
     if_ (SZ.v tid = 0) (exists* sr. gpu_pts_to_array r sr) **
-    HR.kpost nth ar (pmul s1 s2) tid
+    HR.kpost 1 nth ar (pmul s1 s2) 0 tid
   ensures  gpu **
-    HR.kpost nth r (pmul s1 s2) tid **
-    HR.kpost nth ar (pmul s1 s2) tid
+    HR.kpost 1 nth r (pmul s1 s2) 0 tid **
+    HR.kpost 1 nth ar (pmul s1 s2) 0 tid
 {
   let dot_v = hide (pmul s1 s2);
   if (tid = 0sz) {
@@ -86,14 +86,14 @@ fn fixup
     if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #_ #_ #nth r 0 nth dot_v v);
     fold HR.gpu_pts_to_slice_sum r 0 nth dot_v;
 
-    if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2));
-    if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum ar 0 nth (pmul s1 s2));
+    if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0  (1 * nth) (pmul s1 s2));
+    if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum ar 0 (1 * nth) (pmul s1 s2));
   } else {
     rewrite each (SZ.v tid = 0) as false;
     if_elim_false (exists* sr. gpu_pts_to_array r sr);
     if_intro_false (HR.gpu_pts_to_slice_sum r 0 nth dot_v);
     rewrite (if_ false (HR.gpu_pts_to_slice_sum r 0 nth dot_v))
-         as (if_ (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0 nth (pmul s1 s2)));
+         as (if_ (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nth) (pmul s1 s2)));
   }
 }
 

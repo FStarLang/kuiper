@@ -18,6 +18,7 @@ let shmem_tok
   (ar:gpu_array a sz)
 : slprop = magic ()
 
+noextract
 fn obtain_shmem
   (#a:Type u#0)
   {| Kuiper.Sized.sized a |}
@@ -26,16 +27,22 @@ fn obtain_shmem
   requires shmem_tok ear
   returns  ar : gpu_array a sz
   ensures  pure (reveal ear == ar)
-    { admit () }
+{
+  admit () (* primitive *)
+}
 
 fn sync () (#e:erased nat)
-  requires epoch_live e
+  requires
+    epoch_live e
   returns
     e' : epoch_t
   ensures
-    epoch_live e' ** epoch_done e **
+    epoch_done e **
+    epoch_live e' **
     pure (e' >= e)
-{ admit (); }
+{
+  admit (); (* primitive, this is cudaDeviceSynchronize *)
+}
 
 fn launch_kernel_n_m_shmem_async
   (#u1: erased int)
@@ -69,7 +76,9 @@ fn launch_kernel_n_m_shmem_async
     epoch_live e' **
     pledge0 (epoch_done e') (bigstar #u1 0 (nblk * nthr) post) **
     pure (e' >= e)
-{ admit (); }
+{
+  admit (); (* primitive, extracted to an async kernel call. *)
+}
 
 (* f<<<nblk, nthr, smem_sz>>>(...); *)
 inline_for_extraction
@@ -108,37 +117,69 @@ fn launch_kernel_n_m_shmem
 
 (* f<<<nblk, nthr>>>(...); *)
 fn launch_kernel_n_m_barrier
-  (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
-  (#pre #post : (tid:nat{ tid < (nblk * nthr) } -> slprop))
-
-  (#p: rpm_t nthr)
+  (#pre #post : natlt nblk -> natlt nthr -> slprop)
+  (#p : rpm_t nthr)
   (k :
     (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
-    stt unit (         gpu ** thread_id etid ** mbarrier_tok nthr p 0 (tidx_x etid) ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** (exists* it. mbarrier_tok nthr p it (tidx_x etid)) ** post (thread_index etid))
+    stt unit
+      (         gpu ** thread_id etid ** mbarrier_tok nthr p 0 (tidx_x etid) ** pre  (bidx_x etid) (tidx_x etid))
+      (fun _ -> gpu ** thread_id etid ** (exists* it. mbarrier_tok nthr p it (tidx_x etid)) ** post (bidx_x etid) (tidx_x etid))
   )
-  requires cpu ** bigstar #u1 0 (nblk * nthr) pre
-  ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
+  requires
+    cpu **
+    (forall+ (b : natlt nblk) (t : natlt nthr). pre b t)
+  ensures
+    cpu **
+    (forall+ (b : natlt nblk) (t : natlt nthr). post b t)
 {
-  admit(); // launch_kernel_n_m_shmem
+  admit ();
+}
+
+let norpm (n:nat) : rpm_t n = fun _ _ _ -> emp
+
+inline_for_extraction noextract
+fn no_barrier
+  (#nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
+  (#nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
+  (#pre #post : natlt nblk -> natlt nthr -> slprop)
+  (k0 :
+    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    stt unit
+      (         gpu ** thread_id etid ** pre  (bidx_x etid) (tidx_x etid))
+      (fun _ -> gpu ** thread_id etid ** post (bidx_x etid) (tidx_x etid))
+  )
+  (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr })
+  requires
+  gpu ** thread_id etid ** mbarrier_tok nthr (norpm nthr) 0 (tidx_x etid) ** pre  (bidx_x etid) (tidx_x etid)
+  ensures
+  gpu ** thread_id etid ** (exists* it. mbarrier_tok nthr (norpm nthr) it (tidx_x etid)) ** post (bidx_x etid) (tidx_x etid)
+{
+  k0 etid;
 }
 
 (* f<<<nblk, nthr>>>(...); *)
+inline_for_extraction noextract
 fn launch_kernel_n_m
-  (#u1: erased int)
   (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
-  (#pre #post : (tid:nat{ 0 <= tid /\ tid < (nblk * nthr) } -> slprop))
+  (#pre #post : natlt nblk -> natlt nthr -> slprop)
   (k :
     (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
-    stt unit (         gpu ** thread_id etid ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
+    stt unit
+      (         gpu ** thread_id etid ** pre  (bidx_x etid) (tidx_x etid))
+      (fun _ -> gpu ** thread_id etid ** post (bidx_x etid) (tidx_x etid))
   )
-  requires cpu ** bigstar #u1 0 (nblk * nthr) pre
-  ensures  cpu ** bigstar #u1 0 (nblk * nthr) post
-{ admit (); }
+  requires
+    cpu **
+    (forall+ (b : natlt nblk) (t : natlt nthr). pre b t)
+  ensures
+    cpu **
+    (forall+ (b : natlt nblk) (t : natlt nthr). post b t)
+{
+  launch_kernel_n_m_barrier nblk nthr #pre #post (no_barrier k);
+}
 
 (* f<<<nblk, 1>>>(...); *)
 // Private

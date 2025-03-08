@@ -5,6 +5,11 @@ open Kuiper.Common
 open FStar.Tactics.V2
 open FStar.Tactics.Typeclasses
 
+(* A theory of bijections, used to shift views
+over ownership and data layouts. There is some delicate
+need to mark some of these 'unfold'. Probably due
+to a limitation of the pulse checker. *)
+
 noeq
 type bijection (a b : Type) = {
   ff : a -> b;
@@ -39,6 +44,7 @@ let bij_self (a:Type) : (a =~ a) =
   gg_ff = easy;
 }
 
+unfold
 let bij_sym (#a #b : Type) (d : a =~ b) : (b =~ a) =
 {
   ff = d.gg;
@@ -71,12 +77,16 @@ let bij_prod (#a #b #c #d : Type) (ab : a =~ b) (cd : c =~ d) : (a & c =~ b & d)
 }
 
 (* weird typing errors without hoisting. *)
+unfold
 let prod_ff (n1 n2 : nat) : natlt n1 & natlt n2 -> natlt (n1 * n2) =
-  fun (x, y) -> (x * n2 + y)
+  // fun (x, y) -> (x * n2 + y)
+  fun xy -> (xy._1 * n2 + xy._2)
 
+unfold
 let prod_gg (n1 n2 : nat) : natlt (n1 * n2) -> natlt n1 & natlt n2 =
   fun i -> (i / n2, i % n2)
 
+unfold
 let bij_nat_prod (#n1 #n2 : nat) : (natlt n1 & natlt n2 =~ natlt (n1 * n2)) =
 {
   ff = prod_ff n1 n2;
