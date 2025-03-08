@@ -166,6 +166,7 @@ depend.pdf: .depend .force
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
+$(OUTDIR)/%.krml: .plugin.touch
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!
@@ -180,7 +181,9 @@ $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 $(OUTDIR)/%.cu: MOD=$(subst _,.,$(basename $(notdir $<)))
-$(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
+# .plugin.touch doesn't feel right to me (it's on the krml targets)
+# but it triggers rebuilds when the plugin changes, which is good.
+$(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch .plugin.touch
 	$(call msg,"KRML")
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
