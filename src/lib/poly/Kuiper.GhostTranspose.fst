@@ -18,7 +18,8 @@ fn ghost_transpose1
   returns
     gA' : gpu_matrix et cols rows Repr.col_major
   ensures
-    gA' |-> mtranspose m
+    pure (core gA == core gA') **
+    (gA' |-> mtranspose m)
 {
   gpu_matrix_concr gA;
   assert (pure (Seq.equal
@@ -41,7 +42,8 @@ fn ghost_transpose2
   returns
     gA' : gpu_matrix et cols rows Repr.row_major
   ensures
-    gA' |-> mtranspose m
+    pure (core gA == core gA') **
+    (gA' |-> mtranspose m)
 {
   gpu_matrix_concr gA;
   assert (pure (Seq.equal

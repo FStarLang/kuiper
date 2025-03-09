@@ -18,7 +18,8 @@ fn ghost_transpose1
   returns
     gA' : gpu_matrix et cols rows Repr.col_major
   ensures
-    gA' |-> mtranspose m
+    pure (core gA == core gA') **
+    (gA' |-> mtranspose m)
 
 inline_for_extraction noextract
 fn ghost_transpose2
@@ -31,4 +32,5 @@ fn ghost_transpose2
   returns
     gA' : gpu_matrix et cols rows Repr.row_major
   ensures
-    gA' |-> mtranspose m
+    pure (core gA == core gA') **
+    (gA' |-> mtranspose m)

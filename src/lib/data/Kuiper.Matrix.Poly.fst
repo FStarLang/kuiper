@@ -34,6 +34,7 @@ let gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0 =
   gpu_array et (rows * cols)
 
 let core g = g
+let core_match g1 g2 = ()
 
 let gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat)
@@ -71,7 +72,8 @@ fn gpu_matrix_abs
   returns
     g' : gpu_matrix et rows cols l
   ensures
-    g' |-> em
+    pure (rows * cols == rows0 * cols0 /\ core g == core g') **
+    (g' |-> em)
 {
   gpu_pts_to_ref (core g);
   let g' : gpu_array et (rows0 * cols0) = core g;

@@ -61,6 +61,14 @@ val core
   (g : gpu_matrix et rows cols l)
   : gpu_array et (rows * cols)
 
+val core_match
+  (#et : Type)
+  (#rows #cols : erased nat)
+  (#l : _)
+  (g1 g2 : gpu_matrix et rows cols l)
+  : Lemma (requires core g1 == core g2)
+          (ensures g1 == g2)
+
 val gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et rows cols l)
@@ -107,7 +115,8 @@ fn gpu_matrix_abs
   returns
     g' : gpu_matrix et rows cols l
   ensures
-    g' |-> em
+    pure (rows * cols == rows0 * cols0 /\ core g == core g') **
+    (g' |-> em)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc
