@@ -45,7 +45,7 @@ let kpost (rows shared columns : nat)
   ** gpu_pts_to_slice r tid (tid+1)
       seq![P.matmul_single rows shared columns s1 s2 (tid / columns) (tid % columns) shared]
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (rows : erased sz) (shared : sz) (columns : sz{reveal rows * columns < pow2 64})
   (ga1 : gpu_array u64 (reveal rows * shared))

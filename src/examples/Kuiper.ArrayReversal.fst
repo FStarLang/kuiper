@@ -278,7 +278,7 @@ ensures
 }
 
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (#ty:Type0)
   (size:sz)

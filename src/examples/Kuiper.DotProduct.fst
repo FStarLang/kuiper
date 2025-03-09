@@ -26,7 +26,7 @@ let kpost (size: sz) (ga1 ga2 r : gpu_array elem_t (SZ.v size)) (tid:nat) : slpr
   gpu_pts_to_array1 #elem_t #(SZ.v size) ga2 tid **
   gpu_pts_to_array1 #elem_t #(SZ.v size) r tid
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (#nblk : erased sz { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
   (size : erased sz { SZ.v size == SZ.v nblk })

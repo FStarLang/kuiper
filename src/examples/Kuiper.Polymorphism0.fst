@@ -21,7 +21,7 @@ fn kswap
 }
 
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kswap_U64
   (r1 r2 : gpu_ref u64)
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)
@@ -30,7 +30,7 @@ fn kswap_U64
   kswap r1 r2
 }
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kswap_F32
   (r1 r2 : gpu_ref f32)
   requires gpu ** (r1 |-> 'v1) ** (r2 |-> 'v2)

@@ -6,7 +6,7 @@ open Kuiper
 
 module U64 = FStar.UInt64
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel (r : gpu_ref u64) (#v : erased u64)
   preserves gpu
   requires r |-> v

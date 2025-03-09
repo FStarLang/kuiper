@@ -23,7 +23,7 @@ let kpost #et (size: sz) (ga1 ga2 r : gpu_array et (SZ.v size)) (tid:nat) : slpr
   gpu_pts_to_array1 #et #(SZ.v size) ga2 tid **
   gpu_pts_to_array1 #et #(SZ.v size) r tid
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (#et:Type0)
   {| scalar et |}

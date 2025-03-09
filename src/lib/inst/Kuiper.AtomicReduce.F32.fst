@@ -4,7 +4,7 @@ module Kuiper.AtomicReduce.F32
 open Kuiper
 open Kuiper.AtomicReduce
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 let kernel : kernel_ty f32 = kernel #f32
 
 let reduce : reduce_ty f32 = reduce kernel

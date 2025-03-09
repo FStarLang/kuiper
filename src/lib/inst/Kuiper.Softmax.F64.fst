@@ -4,11 +4,11 @@ module Kuiper.Softmax.F64
 open Kuiper
 open Kuiper.Softmax
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 val k_pointwise_exp_f64 : k_pointwise_exp_ty f64
 let k_pointwise_exp_f64 = k_pointwise_exp
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 val k_pointwise_div_f64 : k_pointwise_div_ty f64
 let k_pointwise_div_f64 = k_pointwise_div
 

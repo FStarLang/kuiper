@@ -10,7 +10,7 @@ module SZ = FStar.SizeT
 
 // NOTE : rows is actually unused in the extracted code. But, erasing
 // it involves some changes all around.
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (rows : erased sz) (shared : sz) (columns : sz{reveal rows * columns < pow2 64})
   (ga1 : gpu_array u64 (reveal rows * shared))

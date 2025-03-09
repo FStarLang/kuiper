@@ -66,7 +66,7 @@ let tid_to_idx
   let r = (permute (rows / bdim) (columns / bdim) bdim).f tid in
   r
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})

@@ -8,7 +8,7 @@ open Kuiper
 
 module U64 = FStar.UInt64
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel (r : gpu_ref u64) (#v : erased u64)
   requires gpu ** (r |-> v)
   ensures  gpu ** (r |-> U64.add_underspec v 1uL)

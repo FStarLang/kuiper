@@ -235,7 +235,7 @@ fn outer_loop
 #restart-solver (* proof below very brittle *)
 #set-options "--split_queries always" // BAD
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})

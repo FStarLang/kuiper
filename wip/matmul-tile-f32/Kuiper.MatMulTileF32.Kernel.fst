@@ -229,7 +229,7 @@ fn outer_loop
 
 #push-options "--z3rlimit 60 --fuel 1 --ifuel 1"
 #set-options "--print_implicits --ugly"
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
   (rows shared columns : szp)
   (bdim : szp { bdim /? rows /\ bdim /? columns /\ bdim /? shared /\ bdim < pow2 30})

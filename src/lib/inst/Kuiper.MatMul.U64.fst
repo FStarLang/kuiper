@@ -4,7 +4,7 @@ module Kuiper.MatMul.U64
 open Kuiper
 open Kuiper.MatMul
 
-[@@CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 let kernel_u64
   : kernel_ty _ _ _ _
   = kernel #u64 R.row_major R.row_major R.row_major
