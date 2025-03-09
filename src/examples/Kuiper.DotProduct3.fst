@@ -15,7 +15,6 @@ friend Kuiper.HReduce (* use gpu_pts_to_slice, refactor ! *)
 
 #set-options "--z3rlimit 20"
 
-unfold
 let kpre
   (nthr : nat)
   (ga1 ga2 r : gpu_array u64 nthr)
@@ -28,7 +27,6 @@ let kpre
     gpu_pts_to_array #u64 #nthr ga2 #(1.0R /. nthr) s2) **
     if_ (bid = 0 && tid = 0) (exists* sr. gpu_pts_to_array #u64 #nthr r sr)
 
-unfold
 let kpost
   (nthr : nat)
   (ga1 ga2 r : gpu_array u64 nthr)
@@ -168,7 +166,6 @@ fn kernel
 
   fixup nth ar r s1 s2 tid;
   fold (kpost nth ga1 ga2 r s1 s2 0 tid);
-  admit();
   fold (shared_post nth ear r s1 s2 0 0 tid);
   ()
 }
