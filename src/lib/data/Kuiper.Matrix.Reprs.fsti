@@ -19,13 +19,9 @@ let mk_clayout (#rows #cols : _) (l : erased (mlayout rows cols))
     c_from2 = c_from2;
   }
 
-let bij_row_major (rows cols : nat)
-  : ((natlt rows & natlt cols) =~ natlt (rows * cols))
-  = bij_nat_prod
-
 let row_major : mrepr =
   fun #rows #cols ->
-    { bij = bij_row_major rows cols }
+    { bij = bij_nat_prod }
 
 inline_for_extraction
 let c_row_major : crepr row_major =
@@ -36,13 +32,9 @@ let c_row_major : crepr row_major =
       (fun idx -> idx `div` cols)
       (fun idx -> idx %^ cols)
 
-let bij_col_major (rows cols : nat)
-  : ((natlt rows & natlt cols) =~ natlt (rows * cols))
-  = bij_flip `bij_comp` bij_nat_prod
-
 let col_major : mrepr =
   fun #rows #cols ->
-    { bij = bij_col_major rows cols }
+    { bij = bij_flip `bij_comp` bij_nat_prod #cols #rows }
 
 inline_for_extraction
 let c_col_major : crepr col_major =

@@ -10,7 +10,7 @@ module SZ = FStar.SizeT
 [@@erasable]
 noeq
 type mlayout (rows cols : nat) = {
-  bij     : erased ((natlt rows & natlt cols) =~ natlt (rows * cols));
+  bij     : (natlt rows & natlt cols) =~ natlt (rows * cols);
 }
 
 (* Concrete layout accessors. *)
