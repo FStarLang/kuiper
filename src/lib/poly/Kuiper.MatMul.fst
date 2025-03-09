@@ -110,7 +110,7 @@ fn kernel_fixed
     as
       M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
 
-  assert (pure (trow < reveal rows));
+  assert (pure (trow < rows));
   assert (pure (tcol < cols));
 
   let mut i : sz = 0sz;
@@ -122,8 +122,8 @@ fn kernel_fixed
         pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
         pts_to i vi **
         pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
-        M.gpu_matrix_pts_to gA #(f /. (reveal rows * cols)) eA **
-        M.gpu_matrix_pts_to gB #(f /. (reveal rows * cols)) eB **
+        M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
+        M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
         gpu
   {
     let vi = !i;
@@ -139,11 +139,8 @@ fn kernel_fixed
   };
 
   let s = !sum;
-  M.gpu_matrix_write_cell gC trow tcol s; // r[tid] = s
+  M.gpu_matrix_write_cell gC trow tcol s;
 
-  (* ugh *)
-  assume (pure (SZ.v trow == (thread_index etid / SZ.v cols)));
-  assume (pure (SZ.v tcol == (thread_index etid % SZ.v cols)));
   rewrite
     M.gpu_matrix_pts_to_cell gC trow tcol
       (MS.matmul_single eA eB trow tcol shared)
@@ -245,10 +242,6 @@ fn teardown
     (gB |-> eB) **
     (gC |-> MS.matmul eA eB)
 {
-  // forevery_tostar #(natlt (rows * cols)) (kpost gA gB gC eA eB 1.0R);
-  // (* FIXME: the #_ is important. *)
-  // rewrite each Enumerable.cardinal (natlt (op_Multiply rows cols)) #_ as (op_Multiply rows cols);
-
   forevery_unzip #(natlt (rows * cols)) _ _;
   forevery_unzip #(natlt (rows * cols)) _ _;
 
@@ -259,9 +252,7 @@ fn teardown
     (fun i -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
-
   forevery_factor (rows * cols) rows cols _;
-  // admit();
 
   (* we get things back with some arithmetic in it *)
   assert (forall+ (r:natlt rows) (c:natlt cols).
