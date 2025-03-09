@@ -295,9 +295,6 @@ fn matmul_gpu
   (#shared : szp)
   (#cols : szp{SZ.fits (rows * cols)})
   (#rA #rB #rC : M.mrepr)
-  {| M.clayout (rA #rows #shared) |}
-  {| M.clayout (rB #shared #cols) |}
-  {| M.clayout (rC #rows #cols) |}
   (kk : kernel_fixed_ty et rA rB rC rows shared cols)
   (gA : M.gpu_matrix et rows shared rA)
   (gB : M.gpu_matrix et shared cols rB)
