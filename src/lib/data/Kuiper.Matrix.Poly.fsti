@@ -7,28 +7,31 @@ open Kuiper.Bijection
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
-(* FIXME: The dimensions here must be erased so that, when we try
-   to project, we can use erased values to call the projector.
-   Otherwise calling l.c_to will incur a ghost effect! This is definitely
-   not nice, and shows up below in the form of some annotations becoming
-   needed. Is this something uniformly fixable in F*?
-*)
+[@@erasable]
 noeq
-type layout (rows cols : nat) = {
+type mlayout (rows cols : nat) = {
   bij     : erased ((natlt rows & natlt cols) =~ natlt (rows * cols));
-  c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == bij.ff (SZ.v i, SZ.v j)};
-  c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (bij.gg (SZ.v idx))};
-  c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (bij.gg (SZ.v idx))};
+}
+
+[@@erasable]
+type mrepr = #rows:nat -> #cols:nat -> mlayout rows cols
+
+(* Concrete layout accessors. *)
+noeq
+type clayout (#rows #cols : _) (l : mlayout rows cols) = {
+  c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)};
+  c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};
+  c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
 }
 
 let from_seq (#et:Type) (#rows #cols : _)
-  (l : layout rows cols)
+  (l : mlayout rows cols)
   (s : lseq et (rows * cols))
   : ematrix et rows cols
   = M <| fun i j -> s @! l.bij.ff (i,j)
 
 let to_seq (#et:Type) (#rows #cols : _)
-  (l : layout rows cols)
+  (l : mlayout rows cols)
   (m : ematrix et rows cols)
   : GTot (lseq et (rows * cols))
   = Seq.init_ghost (rows * cols) (fun i -> 
@@ -36,10 +39,10 @@ let to_seq (#et:Type) (#rows #cols : _)
       m.f i j)
 
 inline_for_extraction noextract
-val gpu_matrix (et:Type0) (rows cols : nat) (l : layout rows cols) : Type0
+val gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0
 
 val gpu_matrix_pts_to
-  (#et:Type) (#rows #cols : erased nat) (#l : layout rows cols)
+  (#et:Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et rows cols l)
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
@@ -55,7 +58,7 @@ inline_for_extraction noextract
 fn gpu_matrix_alloc
   (#et:Type) {| scalar et |}
   (rows cols : szp)
-  (l : layout rows cols)
+  (l : mlayout rows cols)
   preserves
     cpu
   requires
@@ -69,7 +72,7 @@ inline_for_extraction noextract
 fn gpu_matrix_free
   (#et:Type) {| scalar et |}
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (gm : gpu_matrix et rows cols l)
   (#em : _)
   preserves
@@ -82,7 +85,7 @@ inline_for_extraction noextract
 fn gpu_matrix_from_array
   (#et:Type) {| scalar et |}
   (#rows #cols : szp)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (a : vec et)
   (gA : gpu_matrix et rows cols l)
   (#s : erased (seq et){ len s == rows * cols })
@@ -99,7 +102,7 @@ inline_for_extraction noextract
 fn gpu_matrix_to_array
   (#et:Type) {| scalar et |}
   (#rows #cols : szp)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (a : vec et)
   (gA : gpu_matrix et rows cols l)
   (#m : ematrix et rows cols)
@@ -117,7 +120,7 @@ fn gpu_matrix_share_n
   (#et:Type0)
   (#uid: int)
   (#rows #cols : nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (gm : gpu_matrix et rows cols l)
   (k : pos)
   (#f : perm)
@@ -132,7 +135,7 @@ fn gpu_matrix_gather_n
   (#et:Type0)
   (#uid: int)
   (#rows #cols : nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (gm : gpu_matrix et rows cols l)
   (k : pos)
   (#f : perm)
@@ -146,7 +149,8 @@ inline_for_extraction noextract
 fn gpu_matrix_read
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
+  (c : clayout l)
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -165,7 +169,8 @@ inline_for_extraction noextract
 fn gpu_matrix_write
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
+  (c : clayout l)
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -181,7 +186,7 @@ fn gpu_matrix_write
 (* Ownership over a single cell. *)
 val gpu_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et rows cols l)
   (#[T.exact (`1.0R)] f : perm)
   ([@@@mkey]i : natlt rows)
@@ -193,7 +198,8 @@ inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
+  (c : clayout l)
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -212,7 +218,8 @@ inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
+  (c : clayout l)
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -229,7 +236,7 @@ ghost
 fn gpu_matrix_explode
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (gm : gpu_matrix et rows cols l)
   (#f : perm)
   (#em : ematrix et rows cols)
@@ -243,7 +250,7 @@ ghost
 fn gpu_matrix_implode
   (#et:Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols)
+  (#l : mlayout rows cols)
   (gm : gpu_matrix et rows cols l)
   (#f : perm)
   (#em : ematrix et rows cols)
