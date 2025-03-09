@@ -75,8 +75,6 @@ type kernel_ty
     thread_id etid **
     kpost gA gB gC eA eB f (thread_index etid))
 
-#set-options "--print_implicits"
-
 inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |}
@@ -99,7 +97,7 @@ fn kernel
     ** thread_id etid
     ** kpost gA gB gC eA eB f (thread_index etid)
 {
-  (* Place these somewhere *)
+  (* Place these assumptions somewhere *)
   assume (pure (SZ.fits (rows * shared)));
   assume (pure (SZ.fits (shared * cols)));
   assume (pure (SZ.fits (rows * cols)));

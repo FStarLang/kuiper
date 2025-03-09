@@ -43,8 +43,6 @@ let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
     gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
     if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nth) (pmul s1 s2)))
 
-// #set-options "--ext pulse:env_on_err=1"
-
 [@@ CPrologue "__global__"]
 fn kernel
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
