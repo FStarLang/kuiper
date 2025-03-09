@@ -236,7 +236,7 @@ fn teardown
          (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
 
   (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
-  forevery_ext2
+  forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
       M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
          (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared))

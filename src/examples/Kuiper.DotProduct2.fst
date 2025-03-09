@@ -163,7 +163,7 @@ fn main
   forevery_factor dp2_size 1 dp2_size _;
 
   (* bid has to be zero. *)
-  forevery_ext2 #(natlt 1) #_ #(natlt dp2_size)
+  forevery_ext_2 #(natlt 1) #_ #(natlt dp2_size)
     (fun bid tid -> kpre dp2_size ga1 ga2 gr v1 v2 0 (bid * dp2_size + tid))
     (fun bid tid -> kpre dp2_size ga1 ga2 gr v1 v2 0 tid);
 
@@ -182,7 +182,7 @@ fn main
       kpost dp2_size ga1 ga2 gr v1 v2 bid tid;
 
   (* bid has to be zero. *)
-  forevery_ext2 #(natlt 1) #_ #(natlt dp2_size)
+  forevery_ext_2 #(natlt 1) #_ #(natlt dp2_size)
     (fun bid tid -> kpost dp2_size ga1 ga2 gr v1 v2 0 tid)
     (fun bid tid -> kpost dp2_size ga1 ga2 gr v1 v2 0 (bid * dp2_size + tid));
 

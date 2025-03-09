@@ -335,7 +335,7 @@ fn launch_kernel_n_async
     pure (e' >= e)
 {
   forevery_factor nblk nblk 1 _;
-  forevery_ext2
+  forevery_ext_2
     #(natlt nblk) #_
     #(natlt 1) #_
     (fun (b:natlt nblk) (t:natlt 1) -> pre (b*1 + t))
@@ -348,7 +348,7 @@ fn launch_kernel_n_async
     ensures
       forall+ (b:natlt nblk). post b
   {
-    forevery_ext2
+    forevery_ext_2
       #(natlt nblk) #_
       #(natlt 1) #_
       (fun (b:natlt nblk) (t:natlt 1) -> post b)

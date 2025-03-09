@@ -37,7 +37,7 @@ fn forevery_ext
     forall+ (x:a). g x
 
 ghost
-fn forevery_ext2
+fn forevery_ext_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
   (f : a -> b -> slprop)
