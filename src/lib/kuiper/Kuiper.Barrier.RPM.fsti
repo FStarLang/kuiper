@@ -6,7 +6,6 @@ open Pulse
 open Pulse.Lib.BigStar
 open Kuiper.Base
 open Kuiper.Common
-module SZ = FStar.SizeT
 
 let rpm_t (n:nat) =
   it:nat ->
@@ -38,7 +37,7 @@ val mbarrier_tok
 
 ghost
 fn mk_mbarrier
-  (n: SZ.t { 0 < n /\ n <= max_threads })
+  (n: nat { 0 < n /\ n <= max_threads })
   (p : rpm_t n)
   requires block_setup n
   ensures  block_setup n ** bigstar 0 n (mbarrier_tok n p 0)

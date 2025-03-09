@@ -8,7 +8,6 @@ open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open Kuiper.Base
 open Kuiper.SizeT
-module SZ = FStar.SizeT
 
 (* A barrier over nthreads. This is for specification only,
 there is no runtime representation for, as this models
@@ -42,7 +41,7 @@ val barrier_tok
    q's at each iteration. *)
 ghost
 fn mk_barrier
-  (n: SZ.t { 0 < n /\ n <= max_threads })
+  (n: nat { 0 < n /\ n <= max_threads })
   (p : (it:nat -> tid:natlt n -> slprop))
   (q : (it:nat -> tid:natlt n -> slprop))
   (pf : (it:nat -> stt_ghost unit emp_inames

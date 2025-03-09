@@ -8,7 +8,6 @@ open FStar.Tactics.V2
 open Kuiper.Base
 module B = Kuiper.Barrier
 open Kuiper.SizeT
-module SZ = FStar.SizeT
 
 let mbarrier_tok
   (n : nat)
@@ -38,7 +37,7 @@ fn mk_mbarrier_proof
 
 ghost
 fn mk_mbarrier
-  (n: SZ.t { 0 < n /\ n <= max_threads })
+  (n: nat { 0 < n /\ n <= max_threads })
   (p : rpm_t n)
   requires block_setup n
   ensures  block_setup n ** bigstar 0 n (mbarrier_tok n p 0)
