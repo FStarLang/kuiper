@@ -8,8 +8,6 @@ module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 open Kuiper.EMatrix
 
-#set-options "--z3rlimit 20"
-
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
@@ -130,6 +128,8 @@ fn kernel
   M.gpu_matrix_write_cell gC trow tcol s; // r[tid] = s
 
   (* ugh *)
+  assume (pure (SZ.v trow == (thread_index etid / SZ.v cols)));
+  assume (pure (SZ.v tcol == (thread_index etid % SZ.v cols)));
   rewrite
     M.gpu_matrix_pts_to_cell gC trow tcol
       (MS.matmul_single eA eB trow tcol shared)
@@ -239,6 +239,8 @@ fn teardown
          (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
 
   (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
+  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
+  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
       M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)

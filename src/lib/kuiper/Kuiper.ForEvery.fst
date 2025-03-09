@@ -68,6 +68,19 @@ fn forevery_flatten
 }
 
 ghost
+fn forevery_flatten'
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a & b -> slprop)
+  requires
+    forall+ (x:a) (y:b). f (x, y)
+  ensures
+    forall+ (xy : a & b). f xy
+{
+  forevery_flatten (fun x y -> f (x, y));
+}
+
+ghost
 fn forevery_unflatten
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
@@ -79,6 +92,19 @@ fn forevery_unflatten
       forevery b (fun y -> f x y))
 {
   admit(); // clearly true, fill in
+}
+
+ghost
+fn forevery_unflatten'
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a & b -> slprop)
+  requires
+    forall+ (xy : a & b). f xy
+  ensures
+    forall+ (x:a) (y:b). f (x, y)
+{
+  forevery_unflatten (fun x y -> f (x, y));
 }
 
 let bij2perm (n:nat) (d : natlt n =~ natlt n)
@@ -283,6 +309,7 @@ fn forevery_factor
   forevery_unflatten #(natlt d1) #_ #(natlt d2) (fun i1 i2 -> p (i1 * d2 + i2));
 }
 
+#push-options "--z3rlimit 20"
 ghost
 fn forevery_unfactor
   (n : nat)
@@ -299,6 +326,7 @@ fn forevery_unfactor
   forevery_rw_size (d1 * d2) n;
   ()
 }
+#pop-options
 
 ghost
 fn forevery_unfactor'

@@ -58,6 +58,16 @@ fn forevery_flatten
     forall+ (xy : a & b). f xy._1 xy._2
 
 ghost
+fn forevery_flatten'
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a & b -> slprop)
+  requires
+    forall+ (x:a) (y:b). f (x, y)
+  ensures
+    forall+ (xy : a & b). f xy
+
+ghost
 fn forevery_unflatten
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
@@ -66,6 +76,16 @@ fn forevery_unflatten
     forall+ (xy : a & b). f xy._1 xy._2
   ensures
     forall+ (x:a) (y:b). f x y
+
+ghost
+fn forevery_unflatten'
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (f : a & b -> slprop)
+  requires
+    forall+ (xy : a & b). f xy
+  ensures
+    forall+ (x:a) (y:b). f (x, y)
 
 ghost
 fn forevery_iso
