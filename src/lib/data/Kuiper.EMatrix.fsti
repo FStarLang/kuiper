@@ -4,8 +4,6 @@ module Kuiper.EMatrix
 (* An "erased" matrix, for specification purposes only *)
 
 open Kuiper
-module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
 
 [@@erasable]
 noeq

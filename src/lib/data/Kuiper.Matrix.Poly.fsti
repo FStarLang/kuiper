@@ -40,7 +40,7 @@ let to_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)
   (m : ematrix et rows cols)
   : GTot (lseq et (rows * cols))
-  = Seq.init_ghost (rows * cols) (fun i -> 
+  = Seq.init_ghost (rows * cols) (fun i ->
       let (i,j) = l.bij.gg i in
       m.f i j)
 
