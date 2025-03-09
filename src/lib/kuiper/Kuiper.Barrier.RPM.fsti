@@ -50,12 +50,3 @@ fn mbarrier_wait
   (#tid : erased (natlt n))
   requires mbarrier_tok n p  it    tid ** row p it tid
   ensures  mbarrier_tok n p (it+1) tid ** col p it tid
-
-(* Same comment as drop_barrier in Kuiper.Barrier.fsti *)
-// ghost
-// fn drop_mbarrier
-//   (#n : nat)
-//   (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
-//   (#it: nat)
-//   requires bigstar 0 n (mbarrier_tok n p it)
-//   ensures  emp

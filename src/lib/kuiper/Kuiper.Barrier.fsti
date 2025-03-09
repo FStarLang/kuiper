@@ -63,17 +63,3 @@ fn barrier_wait
   (#tid : erased (natlt n))
   requires barrier_tok p q b  it    tid ** p it tid
   ensures  barrier_tok p q b (it+1) tid ** q it tid
-
-(* I don't think this is really useful, nor even desirable. The API
-should probably enforce we always return a barrier token back, so
-there are never two conflicting specs. So why even have the barrier type...? *)
-
-// ghost
-// fn drop_barrier
-//   (#n : nat)
-//   (#p : (it:nat -> tid:natlt n -> slprop))
-//   (#q : (it:nat -> tid:natlt n -> slprop))
-//   (#b : barrier n)
-//   (#it: nat)
-//   requires bigstar 0 n (barrier_tok p q b it)
-//   ensures  emp

@@ -67,15 +67,3 @@ fn mbarrier_wait
   B.barrier_wait #n _;
   fold mbarrier_tok;
 }
-
-// ghost
-// fn drop_mbarrier
-//   (#n : nat)
-//   (#p : (it:nat -> from: nat { from < n } -> to: nat { to < n } -> slprop))
-//   (#it: nat)
-//   requires bigstar 0 n (mbarrier_tok n p it)
-//   ensures  emp
-// {
-//   (* should use drop_barrier.. but not a big deal really. *)
-//   drop_ (bigstar 0 n (mbarrier_tok n p it))
-// }
