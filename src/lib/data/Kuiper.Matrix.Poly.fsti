@@ -14,6 +14,7 @@ type mlayout (rows cols : nat) = {
 }
 
 (* Concrete layout accessors. *)
+inline_for_extraction
 class clayout (#rows #cols : _) (l : mlayout rows cols) = {
   c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)};
   c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};

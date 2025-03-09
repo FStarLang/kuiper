@@ -19,6 +19,7 @@ let mk_clayout (#rows #cols : _) (l : erased (mlayout rows cols))
     c_from2 = c_from2;
   }
 
+inline_for_extraction
 let row_major : mrepr =
   fun #rows #cols ->
     { bij = bij_nat_prod }
@@ -36,6 +37,7 @@ instance crepr_row_major : crepr row_major = {
   map = clayout_row_major;
 }
 
+inline_for_extraction
 let col_major : mrepr =
   fun #rows #cols ->
     { bij = bij_flip `bij_comp` bij_nat_prod #cols #rows }

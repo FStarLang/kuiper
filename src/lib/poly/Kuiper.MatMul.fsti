@@ -9,13 +9,29 @@ module SZ = FStar.SizeT
 open Kuiper.EMatrix
 
 inline_for_extraction
-val kernel_ty
+val kernel_fixed_ty
   (et : Type0) {| scalar et |}
   (rA rB rC : M.mrepr)
-  {| M.crepr rA |}
-  {| M.crepr rB |}
-  {| M.crepr rC |}
-  : Type0
+  (rows : nat)
+  (shared : nat)
+  (cols : nat{SZ.fits (rows * cols)})
+  {| M.clayout (rA #rows #shared) |}
+  {| M.clayout (rB #shared #cols) |}
+  {| M.clayout (rC #rows #cols) |}
+: Type0
+
+inline_for_extraction
+type kernel_ty
+  (et : Type0) {| scalar et |}
+  (rA rB rC : M.mrepr)
+  {| cA : M.crepr rA |}
+  {| cB : M.crepr rB |}
+  {| cC : M.crepr rC |}
+=
+  (#rows:szp) ->
+  (#shared:szp) ->
+  (#cols:szp{SZ.fits (rows * cols) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * cols)}) ->
+  kernel_fixed_ty et rA rB rC rows shared cols #(cA.map rows shared) #_ #(cC.map rows cols)
 
 inline_for_extraction noextract
 val kernel
