@@ -222,8 +222,8 @@ fn gpu_matrix_explode
   requires
     gpu_matrix_pts_to gm #f em
   ensures
-    bigstar #uid 0 (rows * cols) (fun i ->
-      gpu_matrix_pts_to_cell gm #f (i / cols) (i % cols) (macc em (i / cols) (i % cols)))
+    forall+ r c.
+      gpu_matrix_pts_to_cell gm #f r c (macc em r c)
 
 ghost
 fn gpu_matrix_implode
@@ -234,7 +234,7 @@ fn gpu_matrix_implode
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    bigstar #uid 0 (rows * cols) (fun i ->
-      gpu_matrix_pts_to_cell gm #f (i / cols) (i % cols) (macc em (i / cols) (i % cols)))
+    forall+ r c.
+      gpu_matrix_pts_to_cell gm #f r c (macc em r c)
   ensures
     gpu_matrix_pts_to gm #f em

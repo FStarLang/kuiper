@@ -262,10 +262,18 @@ fn gpu_matrix_explode
   requires
     gpu_matrix_pts_to gm #f em
   ensures
-    bigstar #uid 0 (rows * cols) (fun i ->
-      gpu_matrix_pts_to_cell gm #f (i / cols) (i % cols) (macc em (i / cols) (i % cols)))
+    forall+ r c.
+      gpu_matrix_pts_to_cell gm #f r c (macc em r c)
 {
-  admit(); // just tedious
+  unfold gpu_matrix_pts_to gm #f em;
+  gpu_array_slice_1 gm;
+  rewrite
+    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i])
+  as
+    bigstar 0 (Enumerable.cardinal (natlt (rows * cols))) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+  forevery_fromstar #(natlt (rows * cols))
+    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+  forevery_factor (rows * cols) rows cols _;
 }
 
 ghost
@@ -277,10 +285,19 @@ fn gpu_matrix_implode
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    bigstar #uid 0 (rows * cols) (fun i ->
-      gpu_matrix_pts_to_cell gm #f (i / cols) (i % cols) (macc em (i / cols) (i % cols)))
+    forall+ r c.
+      gpu_matrix_pts_to_cell gm #f r c (macc em r c)
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  admit(); // just tedious
+  forevery_unfactor (rows * cols) rows cols
+    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+  forevery_tostar #(natlt (rows * cols))
+    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+  rewrite
+    bigstar 0 (Enumerable.cardinal (natlt (rows * cols))) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i])
+  as
+    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+  gpu_array_unslice_1 gm;
+  fold gpu_matrix_pts_to gm #f em;
 }
