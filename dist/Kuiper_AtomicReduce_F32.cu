@@ -16,7 +16,7 @@ float_t Kuiper_AtomicReduce_F32_reduce(size_t n, float_t *a)
   float_t r = (float_t)0.0f;
   float_t *gr = (float_t *)KPR_GPU_ALLOC((size_t)4U);
   MUST(cudaMemcpy(gr, &r, (size_t)4U, cudaMemcpyHostToDevice));
-  KPR_KCALL_ASYNC(Kuiper_AtomicReduce_F32_kernel, n, 1U, a, gr);
+  KPR_KCALL(Kuiper_AtomicReduce_F32_kernel, n, (size_t)1U, (size_t)4U, (size_t)0U, a, gr);
   cudaDeviceSynchronize();
   MUST(cudaMemcpy(&r, gr, (size_t)4U, cudaMemcpyDeviceToHost));
   MUST(cudaFree(gr));

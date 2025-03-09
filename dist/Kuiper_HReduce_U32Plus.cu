@@ -24,13 +24,7 @@ void Kuiper_HReduce_U32Plus_k_reduce(size_t nth, uint32_t *a)
 
 void Kuiper_HReduce_U32Plus_reduce(size_t lena, uint32_t *a)
 {
-  KPR_KCALL_SHMEM_ASYNC(Kuiper_HReduce_U32Plus_k_reduce,
-    (size_t)1U,
-    lena,
-    (size_t)4U,
-    (size_t)0U,
-    lena,
-    a);
+  KPR_KCALL(Kuiper_HReduce_U32Plus_k_reduce, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a);
   cudaDeviceSynchronize();
 }
 

@@ -37,7 +37,7 @@ uint64_t Kuiper_DotProduct3_main(uint64_t *a1, uint64_t *a2)
   MUST(cudaMemcpy(ga1, a1, (size_t)8U * Kuiper_DotProduct3_dp2_size, cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(ga2, a2, (size_t)8U * Kuiper_DotProduct3_dp2_size, cudaMemcpyHostToDevice));
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * Kuiper_DotProduct3_dp2_size);
-  KPR_KCALL_SHMEM_ASYNC(Kuiper_DotProduct3_kernel,
+  KPR_KCALL(Kuiper_DotProduct3_kernel,
     (size_t)1U,
     Kuiper_DotProduct3_dp2_size,
     (size_t)8U,
