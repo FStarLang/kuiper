@@ -254,7 +254,6 @@ fn gpu_matrix_write_cell
 ghost
 fn gpu_matrix_explode
   (#et:Type0)
-  (#uid: int)
   (#rows #cols : nat)
   (gm : gpu_matrix et rows cols)
   (#f : perm)
@@ -279,7 +278,6 @@ fn gpu_matrix_explode
 ghost
 fn gpu_matrix_implode
   (#et:Type0)
-  (#uid: int)
   (#rows #cols : nat)
   (gm : gpu_matrix et rows cols)
   (#f : perm)

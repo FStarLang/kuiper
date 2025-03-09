@@ -157,30 +157,42 @@ fn setup
 {
   // Sharing the input matrices (splitting permissions)
   M.gpu_matrix_share_n #_ #0 gA (rows * cols);
-  M.gpu_matrix_share_n #_ #1 gB (rows * cols);
+  forevery_fromstar #(natlt (rows * cols)) _;
+  M.gpu_matrix_share_n #_ #0 gB (rows * cols);
+  forevery_fromstar #(natlt (rows * cols)) _;
 
   // Sharing the output matrix (splitting each cell)
-  M.gpu_matrix_explode #_ #2 gC;
+  M.gpu_matrix_explode #_ gC;
+
+  forevery_unfactor' (rows * cols) rows cols _;
 
   // Join resources into a single bigstar
-  bigstar_zip #0 #1 #3 0 (rows * cols) _ _;
-  bigstar_zip #3 #2 #4 0 (rows * cols) _ _;
+  forevery_zip #(natlt (rows * cols))
+    (fun _ -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA)
+    (fun _ -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
+  forevery_zip #(natlt (rows * cols))
+    _
+    (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols)));
 
   // Rewrite inside the bigstar
   ghost
-  fn aux1 (i:nat{0 <= i /\ i < rows * cols})
+  fn aux1 (i : natlt (rows * cols))
     requires
-      M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
-      M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
+      (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
+      M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols))
     ensures
       kpre gA gB gC eA eB 1.0R (Enumerable.of_nat #(natlt (rows * cols)) i)
   {
     ()
   };
-  bigstar_map #_ #_ #0 #(rows * cols) aux1;
-
-  forevery_fromstar #(natlt (rows * cols)) (kpre gA gB gC eA eB 1.0R);
+  forevery_map #(natlt (rows * cols))
+    (fun i ->
+      (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
+      M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
+      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols)))
+    _
+    aux1;
 }
 
 ghost
@@ -200,30 +212,57 @@ fn teardown
     (gB |-> eB) **
     (gC |-> MS.matmul eA eB)
 {
-  forevery_tostar #(natlt (rows * cols)) (kpost gA gB gC eA eB 1.0R);
-  (* FIXME: the #_ is important. *)
-  rewrite each Enumerable.cardinal (natlt (op_Multiply rows cols)) #_ as (op_Multiply rows cols);
+  // forevery_tostar #(natlt (rows * cols)) (kpost gA gB gC eA eB 1.0R);
+  // (* FIXME: the #_ is important. *)
+  // rewrite each Enumerable.cardinal (natlt (op_Multiply rows cols)) #_ as (op_Multiply rows cols);
 
-  bigstar_unzip 0 (rows * cols) _ _;
-  bigstar_unzip 0 (rows * cols) _ _;
+  forevery_unzip #(natlt (rows * cols)) _ _;
+  forevery_unzip #(natlt (rows * cols)) _ _;
 
+  forevery_tostar #(natlt (rows * cols))
+    (fun i -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA);
   M.gpu_matrix_gather_n gA _;
+  forevery_tostar #(natlt (rows * cols))
+    (fun i -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
-  Classical.forall_intro_2 (MS.lemma_matmul_index eA eB);
+
+  forevery_factor (rows * cols) rows cols _;
+  // admit();
+
+  (* we get things back with some arithmetic in it *)
+  assert (forall+ (r:natlt rows) (c:natlt cols).
+      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+         (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
+
+  (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
+  forevery_ext2
+    (fun (r:natlt rows) (c:natlt cols) ->
+      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+         (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared))
+    (fun (r:natlt rows) (c:natlt cols) ->
+      M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
+
+  assert (forall+ r c.
+      M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
 
   ghost
-  fn aux (i:nat{0 <= i /\ i < rows * cols})
+  fn aux (r:natlt rows) (c:natlt cols)
     requires
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (MS.matmul_single eA eB (i/cols) (i%cols) shared)
+      M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared)
     ensures
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc (MS.matmul eA eB) (i/cols) (i%cols))
+      M.gpu_matrix_pts_to_cell gC r c (M.macc (MS.matmul eA eB) r c)
   {
-    ()
+    MS.lemma_matmul_index eA eB r c;
+    () (* BUG! Should not be needed. *)
   };
-  bigstar_map #0 #0 #0 #(rows * cols) aux;
+  forevery_map_2 #(natlt rows) #_ #(natlt cols)
+    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared))
+    _
+    aux;
 
   M.gpu_matrix_implode gC;
+  ()
 }
 
 inline_for_extraction noextract
