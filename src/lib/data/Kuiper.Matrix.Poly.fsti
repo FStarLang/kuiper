@@ -68,7 +68,7 @@ instance has_pts_to (a:Type) (rows cols l : _)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc
-  (#et:Type) {| scalar et |}
+  (#et:Type) {| sized et |}
   (rows cols : szp)
   (l : mlayout rows cols)
   preserves
@@ -82,7 +82,7 @@ fn gpu_matrix_alloc
 
 inline_for_extraction noextract
 fn gpu_matrix_free
-  (#et:Type) {| scalar et |}
+  (#et:Type)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et rows cols l)
@@ -95,7 +95,7 @@ fn gpu_matrix_free
 
 inline_for_extraction noextract
 fn gpu_matrix_from_array
-  (#et:Type) {| scalar et |}
+  (#et:Type) {| sized et |}
   (#rows #cols : szp)
   (#l : mlayout rows cols)
   (a : vec et)
@@ -112,7 +112,7 @@ fn gpu_matrix_from_array
 
 inline_for_extraction noextract
 fn gpu_matrix_to_array
-  (#et:Type) {| scalar et |}
+  (#et:Type) {| sized et |}
   (#rows #cols : szp)
   (#l : mlayout rows cols)
   (a : vec et)
