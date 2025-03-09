@@ -211,11 +211,15 @@ fn setup
   (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
   requires block_setup nthr ** (exists* v. gpu_pts_to_array #u64 #nthr ear #1.0R v)
-  ensures  block_setup nthr ** bigstar 0 nthr (fun tid -> shared_pre nthr ear gr s1 s2 0 0 tid)
+  ensures  block_setup nthr ** (forall+ (tid : natlt nthr). shared_pre nthr ear gr s1 s2 0 0 tid)
 {
   mk_mbarrier nthr (HR.barrier_matrix nthr ear (pmul s1 s2));
   gpu_array_slice_1_underspec ear;
   bigstar_zip 0 nthr (gpu_pts_to_array1 ear) (mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0);
+  rewrite each nthr as Enumerable.cardinal (natlt nthr);
+  forevery_fromstar #(natlt nthr) (fun i ->
+    gpu_pts_to_array1 ear i **
+    mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0 i);
   ()
 }
 

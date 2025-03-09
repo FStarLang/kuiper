@@ -3,7 +3,6 @@ module Kuiper.Kernel
 
 open Pulse.Lib.Core
 open FStar.Ghost
-open Pulse.Lib.BigStar
 open Kuiper.SizeT
 open Kuiper.IntAliases
 open Kuiper.Array
@@ -25,7 +24,7 @@ fn launch_kernel_n_m_shmem
   (setup : (ar: gpu_array a smem_sz) -> (bid: natlt nblk) ->
     stt_ghost unit emp_inames
       (block_setup nthr ** (exists* v. gpu_pts_to_array #a #smem_sz ar #1.0R v))
-      (fun _ -> block_setup nthr ** bigstar 0 nthr (shared_pre ar bid)))
+      (fun _ -> block_setup nthr ** (forall+ (i : natlt nthr). shared_pre ar bid i)))
   (k :
     (ar: erased (gpu_array a smem_sz)) ->
     (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
@@ -87,7 +86,7 @@ fn barrier_setup
     block_setup nthr ** (exists* v. gpu_pts_to_array #u32 #0 ar #1.0R v)
   ensures
     block_setup nthr **
-    bigstar 0 nthr (barrier_shared_pre nblk nthr p ar bid)
+    (forall+ (i : natlt nthr). barrier_shared_pre nblk nthr p ar bid i)
 {
   (* TODO *)
   admit ();

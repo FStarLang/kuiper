@@ -4,13 +4,11 @@ module Kuiper.Kernel.Base
 open Kuiper.Common
 open Pulse.Lib.Core
 open FStar.Ghost
-open Pulse.Lib.BigStar
 open Kuiper.ForEvery
 open Kuiper.IntAliases
 open Kuiper.Array
 open Kuiper.Base
 open Kuiper.Epoch
-open Kuiper.SizeT
 module SZ = FStar.SizeT
 open Pulse.Lib.Pledge
 
@@ -36,7 +34,7 @@ fn launch_kernel_n_m_shmem_async
     (bid: natlt nblk) ->
     stt_ghost unit emp_inames
       (block_setup nthr ** (exists* v. gpu_pts_to_array #a #smem_sz ar #1.0R v))
-      (fun _ -> block_setup nthr ** bigstar 0 nthr (shared_pre ar bid)))
+      (fun _ -> block_setup nthr ** (forall+ (i : natlt nthr). shared_pre ar bid i)))
   (k :
     (ar: erased (gpu_array a smem_sz)) ->
     (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
