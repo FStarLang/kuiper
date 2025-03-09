@@ -35,10 +35,6 @@ instance clayout_from_crepr
   : clayout (m #rows #cols)
   = d.map rows cols
 
-(* NOTE: row-major in these specs. *)
-
-(* Concrete layout accessors. *)
-
 let from_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)
   (s : lseq et (rows * cols))
