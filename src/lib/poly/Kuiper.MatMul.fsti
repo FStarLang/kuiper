@@ -59,8 +59,8 @@ inline_for_extraction noextract
 val matmul
   (#et : Type0) {| scalar et |}
   (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
+  (#cA : M.crepr rA)
+  (#cB : M.crepr rB)
+  (#cC : M.crepr rC)
   (kk : kernel_ty et cA cB cC)
   : matmul_ty et cA cB cC

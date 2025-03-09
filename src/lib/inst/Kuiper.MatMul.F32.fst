@@ -8,4 +8,4 @@ open Kuiper.MatMul
 let kernel_f32 = kernel #f32 R.c_row_major R.c_row_major R.c_row_major
 
 let matmul_f32 : matmul_ty f32 R.c_row_major R.c_row_major R.c_row_major =
-  matmul R.c_row_major R.c_row_major R.c_row_major kernel_f32 
+  matmul kernel_f32
