@@ -4,6 +4,7 @@ module Kuiper.Spec.MatMul
 any weak modulo-associativity spec. *)
 
 open Kuiper
+open Kuiper.EMatrix
 open Kuiper.Matrix
 
 // computes
@@ -51,7 +52,7 @@ val matmul
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
-: GTot (ematrix et rows columns)
+: ematrix et rows columns
 
 val lemma_matmul_index
   (#et:Type) {| scalar et |}

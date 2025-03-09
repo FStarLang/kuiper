@@ -6,6 +6,9 @@ open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
+open Kuiper.EMatrix
+
+#set-options "--z3rlimit 20"
 
 unfold
 let kpre
@@ -14,8 +17,8 @@ let kpre
   (gA : M.gpu_matrix et rows shared)
   (gB : M.gpu_matrix et shared cols)
   (gC : M.gpu_matrix et rows cols)
-  (eA : M.ematrix et rows shared)
-  (eB : M.ematrix et shared cols)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
   (f : perm)
   (tid : nat{ tid < rows * cols })
   : slprop
@@ -32,8 +35,8 @@ let kpost
   (gA : M.gpu_matrix et rows shared)
   (gB : M.gpu_matrix et shared cols)
   (gC : M.gpu_matrix et rows cols)
-  (eA : M.ematrix et rows shared)
-  (eB : M.ematrix et shared cols)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
   (f : perm)
   (tid : nat{ tid < rows * cols })
   : slprop
@@ -52,8 +55,8 @@ type kernel_ty (et : Type0) {| scalar et |} =
   (gA : M.gpu_matrix et (reveal rows) shared) ->
   (gB : M.gpu_matrix et shared cols) ->
   (gC : M.gpu_matrix et (reveal rows) cols) ->
-  (#eA : M.ematrix et (reveal rows) shared) ->
-  (#eB : M.ematrix et shared cols) ->
+  (#eA : ematrix et (reveal rows) shared) ->
+  (#eB : ematrix et shared cols) ->
   (#f : perm) ->
   (etid : tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 }) ->
   stt unit
@@ -73,8 +76,8 @@ fn kernel
   (gA : M.gpu_matrix et (reveal rows) shared)
   (gB : M.gpu_matrix et shared cols)
   (gC : M.gpu_matrix et (reveal rows) cols)
-  (#eA : M.ematrix et (reveal rows) shared)
-  (#eB : M.ematrix et shared cols)
+  (#eA : ematrix et (reveal rows) shared)
+  (#eB : ematrix et shared cols)
   (#f : perm)
   (etid : tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 })
   requires gpu
@@ -144,9 +147,9 @@ fn setup
   (gA : M.gpu_matrix et rows shared)
   (gB : M.gpu_matrix et shared cols)
   (gC : M.gpu_matrix et rows cols)
-  (#eA : M.ematrix et rows shared)
-  (#eB : M.ematrix et shared cols)
-  (#eC : M.ematrix et rows cols)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
   requires
     (gA |-> eA) **
     (gB |-> eB) **
@@ -172,7 +175,7 @@ fn setup
     (fun _ -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
   forevery_zip #(natlt (rows * cols))
     _
-    (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols)));
+    (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
 
   // Rewrite inside the bigstar
   ghost
@@ -180,7 +183,7 @@ fn setup
     requires
       (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
       M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols))
+      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
     ensures
       kpre gA gB gC eA eB 1.0R (Enumerable.of_nat #(natlt (rows * cols)) i)
   {
@@ -190,7 +193,7 @@ fn setup
     (fun i ->
       (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
       M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (M.macc eC (i/cols) (i%cols)))
+      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)))
     _
     aux1;
 }
@@ -202,8 +205,8 @@ fn teardown
   (gA : M.gpu_matrix et rows shared)
   (gB : M.gpu_matrix et shared cols)
   (gC : M.gpu_matrix et rows cols)
-  (#eA : M.ematrix et rows shared)
-  (#eB : M.ematrix et shared cols)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
   requires
     forall+ (rc : natlt (rows * cols)).
       kpost gA gB gC eA eB 1.0R rc
@@ -251,7 +254,7 @@ fn teardown
     requires
       M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared)
     ensures
-      M.gpu_matrix_pts_to_cell gC r c (M.macc (MS.matmul eA eB) r c)
+      M.gpu_matrix_pts_to_cell gC r c (macc (MS.matmul eA eB) r c)
   {
     MS.lemma_matmul_index eA eB r c;
     () (* BUG! Should not be needed. *)
@@ -273,9 +276,9 @@ fn matmul_gpu
   (gA : M.gpu_matrix et rows shared)
   (gB : M.gpu_matrix et shared cols)
   (gC : M.gpu_matrix et rows cols)
-  (#eA : M.ematrix et rows shared)
-  (#eB : M.ematrix et shared cols)
-  (#eC : M.ematrix et rows cols)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
   preserves
     cpu **
     (gA |-> eA) **
@@ -324,7 +327,7 @@ fn matmul
   returns
     c : vec et
   ensures
-    (c |-> matrix_as_seq <| MS.matmul (seq_as_matrix rows shared sa) (seq_as_matrix shared cols sb))
+    (c |-> to_row_major_seq <| MS.matmul (from_row_major_seq #_ #rows #shared sa) (from_row_major_seq #_ #shared #cols sb))
 {
   let gA = M.gpu_matrix_alloc #et rows shared;
   let gB = M.gpu_matrix_alloc #et shared cols;
@@ -344,3 +347,4 @@ fn matmul
 
   c
 }
+

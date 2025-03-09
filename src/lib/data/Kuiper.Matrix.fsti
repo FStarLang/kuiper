@@ -2,30 +2,9 @@ module Kuiper.Matrix
 #lang-pulse
 
 open Kuiper
+open Kuiper.EMatrix
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
-
-[@@erasable]
-noeq
-type ematrix (et:Type) (rows cols : nat) =
-  | M : s:(seq et){ len s == rows * cols } -> ematrix et rows cols
-
-(* Note: row major (though this is erased, so not that important).
-TODO: Define a better abstract matrix type, or use the one from F*'s library. *)
-let macc (#et:Type) (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  (i : nat{ i < rows })
-  (j : nat{ j < cols })
-  : GTot et
-  = m.s @! (i * cols + j)
-
-let mupd (#et:Type) (#rows #cols : nat)
-  (m : ematrix et rows cols)
-  (i : nat{ i < rows })
-  (j : nat{ j < cols })
-  (v : et)
-  : ematrix et rows cols
-  = M <| Seq.upd m.s (i * cols + j) v
 
 (* Also row major layout *)
 inline_for_extraction noextract
@@ -69,6 +48,8 @@ fn gpu_matrix_free
     gm |-> em
   ensures emp
 
+(* NOTE: row-major in these specs. *)
+
 inline_for_extraction noextract
 fn gpu_matrix_from_array
   (#et:Type) {| scalar et |}
@@ -83,7 +64,7 @@ fn gpu_matrix_from_array
     (gA |-> 'm0) **
     pure (SZ.fits (rows * cols))
   ensures
-    gA |-> M s
+    gA |-> from_row_major_seq s
 
 inline_for_extraction noextract
 fn gpu_matrix_to_array
@@ -91,15 +72,15 @@ fn gpu_matrix_to_array
   (#rows #cols : szp)
   (a : vec et)
   (gA : gpu_matrix et rows cols)
-  (#s : ematrix et rows cols)
+  (#m : ematrix et rows cols)
   preserves
-    (gA |-> s) **
+    (gA |-> m) **
     cpu
   requires
     (a |-> 's0) **
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols)
   ensures
-    a |-> M?.s s
+    a |-> to_row_major_seq #_ #rows #cols m
 
 ghost
 fn gpu_matrix_share_n

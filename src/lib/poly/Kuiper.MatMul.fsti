@@ -6,28 +6,13 @@ open Kuiper
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
+open Kuiper.EMatrix
 
 inline_for_extraction
 val kernel_ty (et : Type0) {| scalar et |} : Type0
 
 inline_for_extraction noextract
 val kernel (#et : Type0) {| scalar et |} : kernel_ty et
-
-unfold
-let seq_as_matrix
-  (#et : Type0)
-  (rows cols : nat)
-  (s : seq et{len s == rows * cols})
-  : M.ematrix et rows cols
-  = M.M <| s
-
-unfold
-let matrix_as_seq
-  (#et : Type0)
-  (#rows #cols : nat)
-  (m : M.ematrix et rows cols)
-  : GTot (s : seq et{len s == rows * cols})
-  = m.s
 
 unfold
 let matmul_ty (et : Type0) {| scalar et |} : Type0 =
@@ -49,7 +34,7 @@ let matmul_ty (et : Type0) {| scalar et |} : Type0 =
     (cpu **
     (a |-> sa) **
     (b |-> sb)) **
-    (c |-> matrix_as_seq <| MS.matmul (seq_as_matrix rows shared sa) (seq_as_matrix shared cols sb)))
+    (c |-> to_row_major_seq <| MS.matmul (from_row_major_seq #_ #rows #shared sa) (from_row_major_seq #_ #shared #cols sb)))
 
 inline_for_extraction noextract
 val matmul

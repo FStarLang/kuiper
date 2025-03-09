@@ -13,7 +13,7 @@ let gpu_matrix_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
   : slprop
-  = gpu_pts_to_array gm #f em.s
+  = gpu_pts_to_array gm #f (to_row_major_seq em)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc
@@ -31,7 +31,7 @@ fn gpu_matrix_alloc
   open FStar.SizeT;
   let gm = gpu_array_alloc #et (rows *^ cols);
   with s. assert (gpu_pts_to_array gm #1.0R s);
-  let em = M #et #rows #cols s;
+  let em = from_row_major_seq #_ #rows #cols s;
   fold (gpu_matrix_pts_to gm em);
   gm;
 }
@@ -66,11 +66,11 @@ fn gpu_matrix_from_array
     (gA |-> 'm0) **
     pure (SZ.fits (rows * cols))
   ensures
-    gA |-> M s
+    gA |-> from_row_major_seq s
 {
   unfold gpu_matrix_pts_to gA 'm0;
   Kuiper.Array.gpu_memcpy_host_to_device gA a (SZ.mul rows cols);
-  fold gpu_matrix_pts_to gA (M s);
+  fold gpu_matrix_pts_to gA (from_row_major_seq s);
   ();
 }
 
@@ -80,20 +80,20 @@ fn gpu_matrix_to_array
   (#rows #cols : szp)
   (a : vec et)
   (gA : gpu_matrix et rows cols)
-  (#s : ematrix et rows cols)
+  (#m : ematrix et rows cols)
   preserves
-    (gA |-> s) **
+    (gA |-> m) **
     cpu
   requires
     (a |-> 's0) **
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols)
   ensures
-    a |-> M?.s s
+    a |-> to_row_major_seq m
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold gpu_matrix_pts_to gA s;
+  unfold gpu_matrix_pts_to gA m;
   Kuiper.Array.gpu_memcpy_device_to_host a gA (SZ.mul rows cols);
-  fold gpu_matrix_pts_to gA s;
+  fold gpu_matrix_pts_to gA m;
   ();
 }
 
@@ -182,6 +182,7 @@ fn gpu_matrix_write
   let idx = i *^ cols +^ j;
   gpu_array_write #et #(rows * SZ.v cols) #0 #(rows * SZ.v cols) gm idx vv;
   fold gpu_matrix_pts_to gm (mupd em i j vv);
+  ();
 }
 
 let gpu_matrix_pts_to_cell
@@ -267,12 +268,17 @@ fn gpu_matrix_explode
   unfold gpu_matrix_pts_to gm #f em;
   gpu_array_slice_1 gm;
   rewrite
-    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i])
+    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i])
   as
-    bigstar 0 (Enumerable.cardinal (natlt (rows * cols))) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+    bigstar 0 (Enumerable.cardinal (natlt (rows * cols))) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i]);
   forevery_fromstar #(natlt (rows * cols))
-    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i]);
   forevery_factor (rows * cols) rows cols _;
+  forevery_ext_2
+    #(natlt rows) #_
+    #(natlt cols) #_
+    (fun r c -> gpu_pts_to_slice gm #f (r * cols + c) (r * cols + c + 1) seq![Seq.index (to_row_major_seq em) (r * cols + c)])
+    (fun r c -> gpu_pts_to_slice gm #f (r * cols + c) (r * cols + c + 1) seq![macc em r c]);
 }
 
 ghost
@@ -288,14 +294,19 @@ fn gpu_matrix_implode
   ensures
     gpu_matrix_pts_to gm #f em
 {
+  forevery_ext_2
+    #(natlt rows) #_
+    #(natlt cols) #_
+    (fun r c -> gpu_pts_to_slice gm #f (r * cols + c) (r * cols + c + 1) seq![macc em r c])
+    (fun r c -> gpu_pts_to_slice gm #f (r * cols + c) (r * cols + c + 1) seq![Seq.index (to_row_major_seq em) (r * cols + c)]);
   forevery_unfactor (rows * cols) rows cols
-    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i]);
   forevery_tostar #(natlt (rows * cols))
-    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i]);
   rewrite
-    bigstar 0 (Enumerable.cardinal (natlt (rows * cols))) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i])
+    bigstar 0 (Enumerable.cardinal (natlt (rows * cols))) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i])
   as
-    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index em.s i]);
+    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_row_major_seq em) i]);
   gpu_array_unslice_1 gm;
   fold gpu_matrix_pts_to gm #f em;
 }
