@@ -11,13 +11,13 @@ open Kuiper.Seq.Common
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 
-[@@ CPrologue "__device__"]
+[@@CPrologue "__device__"]
 noextract inline_for_extraction
 let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
   (* Computing 2^s by 1<<s *)
   SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s))
 
-[@@ CPrologue "__device__"]
+[@@CPrologue "__device__"]
 noextract inline_for_extraction
 let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
   // SZ.rem tid (spow2 i) = 0sz
@@ -37,7 +37,7 @@ let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
     SZ.v tid % pow2 (SZ.v i);
 }
 
-[@@ CPrologue "__device__"]
+[@@CPrologue "__device__"]
 noextract inline_for_extraction
 let smin (a b : sz): sz =
   let open FStar.SizeT in
@@ -158,7 +158,7 @@ type k_reduce_ty (et:Type0) {| scalar et |} =
 // automatically to any definition that does not appear in the fsti,
 // but we have disable that since it interoperates poorly with pulse
 // (due to splicing).
-[@@ CPrologue "__device__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn iteration
   (#et:Type0) {| scalar et |}

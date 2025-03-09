@@ -63,7 +63,7 @@ let shared_post
   = if_ (tid = 0) (HR.gpu_pts_to_slice_sum sr 0 nthr (pmul s1 s2)) **
     (exists* it. mbarrier_tok nthr (HR.barrier_matrix nthr sr (pmul s1 s2)) it tid)
 
-[@@ CPrologue "__device__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 noextract inline_for_extraction
 fn fixup
   (nth: erased nat { 0 < nth /\ nth <= 1024 })
