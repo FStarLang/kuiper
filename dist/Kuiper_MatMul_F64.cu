@@ -6,6 +6,7 @@ __global__
 
 void
 Kuiper_MatMul_F64_kernel_f64(
+  size_t rows,
   size_t shared,
   size_t cols,
   double_t *gA,
@@ -13,6 +14,7 @@ Kuiper_MatMul_F64_kernel_f64(
   double_t *gC
 )
 {
+  KRML_MAYBE_UNUSED_VAR(rows);
   size_t tid = blockIdx_x();
   size_t trow = tid / cols;
   size_t tcol = tid % cols;
@@ -46,6 +48,7 @@ double_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
+    rows,
     shared,
     cols,
     gA,
