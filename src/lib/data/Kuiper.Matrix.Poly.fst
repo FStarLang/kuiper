@@ -33,6 +33,8 @@ let seq_upd (#et:Type) (#rows #cols : nat)
 let gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0 =
   gpu_array et (rows * cols)
 
+let core g = g
+
 let gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat)
   (#l : mlayout rows cols)
@@ -41,6 +43,36 @@ let gpu_matrix_pts_to
   (em : ematrix et rows cols)
   : slprop
   = gpu_pts_to_array gm #f (to_seq l em)
+
+ghost
+fn gpu_matrix_concr
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et rows cols l)
+  (#em : ematrix et rows cols)
+  requires
+    g |-> em
+  ensures
+    core g |-> to_seq l em
+{
+  unfold gpu_matrix_pts_to g #1.0R em;
+}
+
+ghost
+fn gpu_matrix_abs
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et rows cols l)
+  (#em : ematrix et rows cols)
+  requires
+    core g |-> to_seq l em
+  ensures
+    g |-> em
+{
+  fold gpu_matrix_pts_to g #1.0R em;
+}
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc

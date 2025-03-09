@@ -53,6 +53,9 @@ let to_seq (#et:Type) (#rows #cols : _)
 inline_for_extraction noextract
 val gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0
 
+inline_for_extraction noextract
+val core (#et #rows #cols #l : _) (g : gpu_matrix et rows cols l) : gpu_array et (rows * cols)
+
 val gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et rows cols l)
@@ -65,6 +68,32 @@ instance has_pts_to (a:Type) (rows cols l : _)
   : has_pts_to (gpu_matrix a rows cols l) (ematrix a rows cols) = {
   pts_to = gpu_matrix_pts_to;
 }
+
+ghost
+fn gpu_matrix_concr
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et rows cols l)
+  (#em : ematrix et rows cols)
+  requires
+    g |-> em
+  ensures
+    core g |-> to_seq l em
+
+ghost
+fn gpu_matrix_abs
+  (#et:Type)
+  (#rows0 #cols0 : nat) (#l0 : mlayout rows0 cols0)
+  (g : gpu_matrix et rows0 cols0 l0)
+  (rows cols : nat) (l : mlayout rows cols)
+  (#em : ematrix et rows cols)
+  requires
+    core g |-> to_seq l em
+  returns
+    g' : gpu_matrix et rows cols l
+  ensures
+    g' |-> em
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc
