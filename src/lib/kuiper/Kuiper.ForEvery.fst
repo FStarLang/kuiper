@@ -312,3 +312,69 @@ fn forevery_unfactor'
 {
   forevery_unfactor n d1 d2 (fun i -> p (i/d2) (i%d2));
 }
+
+ghost
+fn forevery_zip
+  (#a:Type0) {| enumerable a |}
+  (p1 p2 : a -> slprop)
+  requires
+    (forall+ (x:a). p1 x) **
+    (forall+ (x:a). p2 x)
+  ensures
+    forall+ (x:a). p1 x ** p2 x
+{
+  unfold forevery a (fun x -> p1 x);
+  unfold forevery a (fun x -> p2 x);
+  bigstar_zip 0 (cardinal a) _ _;
+  fold forevery a (fun x -> p1 x ** p2 x);
+}
+
+ghost
+fn forevery_unzip
+  (#a:Type0) {| enumerable a |}
+  (p1 p2 : a -> slprop)
+  requires
+    forall+ (x:a). p1 x ** p2 x
+  ensures
+    (forall+ (x:a). p1 x) **
+    (forall+ (x:a). p2 x)
+{
+  unfold forevery a (fun x -> p1 x ** p2 x);
+  bigstar_unzip 0 (cardinal a) _ _;
+  fold forevery a (fun x -> p1 x);
+  fold forevery a (fun x -> p2 x);
+}
+
+ghost
+fn forevery_map
+  (#a:Type0) {| enumerable a |}
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (p1 x) (fun _ -> p2 x)))
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+{
+  unfold forevery a (fun x -> p1 x);
+  bigstar_map #_ #_ #0 #(cardinal a) (fun x -> f (of_nat x));
+  fold forevery a (fun x -> p2 x);
+}
+
+ghost
+fn forevery_map_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (p1 p2 : a -> b -> slprop)
+  (f : (x:a -> y:b -> stt_ghost unit emp_inames (p1 x y) (fun _ -> p2 x y)))
+  requires
+    forall+ (x:a) (y:b). p1 x y
+  ensures
+    forall+ (x:a) (y:b). p2 x y
+{
+  forevery_map #a
+    (fun x -> forevery b (fun y -> p1 x y))
+    (fun x -> forevery b (fun y -> p2 x y))
+    (fun x -> forevery_map (fun y -> p1 x y)
+                          (fun y -> p2 x y)
+                          (f x));
+}

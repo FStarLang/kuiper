@@ -192,3 +192,44 @@ fn forevery_unfactor'
     forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
   ensures
     forall+ (i:natlt n). p (i/d2) (i%d2)
+
+ghost
+fn forevery_zip
+  (#a:Type0) {| enumerable a |}
+  (p1 p2 : a -> slprop)
+  requires
+    (forall+ (x:a). p1 x) **
+    (forall+ (x:a). p2 x)
+  ensures
+    forall+ (x:a). p1 x ** p2 x
+
+ghost
+fn forevery_unzip
+  (#a:Type0) {| enumerable a |}
+  (p1 p2 : a -> slprop)
+  requires
+    forall+ (x:a). p1 x ** p2 x
+  ensures
+    (forall+ (x:a). p1 x) **
+    (forall+ (x:a). p2 x)
+
+ghost
+fn forevery_map
+  (#a:Type0) {| enumerable a |}
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (p1 x) (fun _ -> p2 x)))
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+
+ghost
+fn forevery_map_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (p1 p2 : a -> b -> slprop)
+  (f : (x:a -> y:b -> stt_ghost unit emp_inames (p1 x y) (fun _ -> p2 x y)))
+  requires
+    forall+ (x:a) (y:b). p1 x y
+  ensures
+    forall+ (x:a) (y:b). p2 x y
