@@ -330,10 +330,6 @@ fn matmul_gpu
   open FStar.SizeT;
   setup gA gB gC;
 
-  assume (pure <| SZ.fits (reveal rows * shared));
-  assume (pure <| SZ.fits (shared * cols));
-  assume (pure <| SZ.fits (reveal rows * cols));
-
   let size = rows *^ cols;
   forevery_rw_size (rows * cols) size;
 
