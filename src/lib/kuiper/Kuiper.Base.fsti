@@ -34,7 +34,7 @@ let max_blocks_explicit : squash (reveal max_blocks == 1073741824) =
 let max_threads : erased int = 1024
 
 (* Token for being in GPU block setup code *)
-val block_setup (nthr: SZ.t { 0 < nthr /\ nthr <= max_threads })
+val block_setup (nthr: nat { 0 < nthr /\ nthr <= max_threads })
   : slprop
 
 (* Token for being a particular thread *)
