@@ -14,8 +14,7 @@ type mlayout (rows cols : nat) = {
 }
 
 (* Concrete layout accessors. *)
-noeq
-type clayout (#rows #cols : _) (l : mlayout rows cols) = {
+class clayout (#rows #cols : _) (l : mlayout rows cols) = {
   c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)};
   c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};
   c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
@@ -23,8 +22,18 @@ type clayout (#rows #cols : _) (l : mlayout rows cols) = {
 
 inline_for_extraction
 type mrepr = #rows:nat -> #cols:nat -> mlayout rows cols
+
 inline_for_extraction
-type crepr (r:mrepr) = rows:SZ.t -> cols:SZ.t{SZ.fits (rows * cols)} -> clayout (r #rows #cols)
+class crepr (r:mrepr) = {
+  map : (rows:SZ.t -> cols:SZ.t{SZ.fits (rows * cols)} -> clayout (r #rows #cols));
+}
+
+inline_for_extraction noextract
+instance clayout_from_crepr 
+  (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)})
+  (m : mrepr) (d : crepr m)
+  : clayout (m #rows #cols)
+  = d.map rows cols
 
 (* NOTE: row-major in these specs. *)
 
@@ -155,8 +164,7 @@ inline_for_extraction noextract
 fn gpu_matrix_read
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -175,8 +183,7 @@ inline_for_extraction noextract
 fn gpu_matrix_write
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -204,8 +211,7 @@ inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -224,8 +230,7 @@ inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})

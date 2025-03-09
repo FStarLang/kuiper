@@ -11,27 +11,27 @@ open Kuiper.EMatrix
 inline_for_extraction
 val kernel_ty
   (et : Type0) {| scalar et |}
-  (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
+  (rA rB rC : M.mrepr)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
   : Type0
 
 inline_for_extraction noextract
 val kernel
   (#et : Type0) {| scalar et |}
-  (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
-  : kernel_ty et cA cB cC
+  (rA rB rC : M.mrepr)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
+  : kernel_ty et rA rB rC
 
 unfold
 let matmul_ty (et : Type0) {| scalar et |}
-  (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
+  (rA rB rC : M.mrepr)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
   : Type0
   =
   (#rows : szp) ->
@@ -59,8 +59,8 @@ inline_for_extraction noextract
 val matmul
   (#et : Type0) {| scalar et |}
   (#rA #rB #rC : M.mrepr)
-  (#cA : M.crepr rA)
-  (#cB : M.crepr rB)
-  (#cC : M.crepr rC)
-  (kk : kernel_ty et cA cB cC)
-  : matmul_ty et cA cB cC
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
+  (kk : kernel_ty et rA rB rC)
+  : matmul_ty et rA rB rC

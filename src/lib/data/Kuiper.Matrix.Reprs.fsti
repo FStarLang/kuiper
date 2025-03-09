@@ -7,7 +7,7 @@ open Kuiper.Matrix.Poly
 module SZ = FStar.SizeT
 
 (* Explicit constructor, helps with figuring out what is erased or not. *)
-inline_for_extraction
+inline_for_extraction noextract
 let mk_clayout (#rows #cols : _) (l : erased (mlayout rows cols))
   (c_to    : ((i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)}))
   (c_from1 : ((idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))}))
@@ -23,24 +23,32 @@ let row_major : mrepr =
   fun #rows #cols ->
     { bij = bij_nat_prod }
 
-inline_for_extraction
-let c_row_major : crepr row_major =
-  fun rows cols ->
-    let open FStar.SizeT in
+inline_for_extraction noextract
+let clayout_row_major (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (row_major #rows #cols) =
+  let open FStar.SizeT in
     mk_clayout #_ #_ (row_major #(SZ.v rows) #(SZ.v cols))
       (fun i j -> i *^ cols +^ j)
       (fun idx -> idx `div` cols)
       (fun idx -> idx %^ cols)
 
+inline_for_extraction noextract
+instance crepr_row_major : crepr row_major = {
+  map = clayout_row_major;
+}
+
 let col_major : mrepr =
   fun #rows #cols ->
     { bij = bij_flip `bij_comp` bij_nat_prod #cols #rows }
 
-inline_for_extraction
-let c_col_major : crepr col_major =
-  fun rows cols ->
-    let open FStar.SizeT in
+inline_for_extraction noextract
+let clayout_col_major (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (col_major #rows #cols) =
+  let open FStar.SizeT in
     mk_clayout #_ #_ (col_major #(SZ.v rows) #(SZ.v cols))
       (fun i j -> j *^ rows +^ i)
       (fun idx -> idx %^ rows)
       (fun idx -> idx `div` rows)
+
+inline_for_extraction noextract
+instance crepr_col_major : crepr col_major = {
+  map = clayout_col_major;
+}

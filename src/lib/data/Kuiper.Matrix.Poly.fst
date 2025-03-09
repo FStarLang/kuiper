@@ -169,8 +169,7 @@ need the concrete nats to do so (?!) and that would
 incur a ghost effect. *)
 inline_for_extraction noextract
 let lcto (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| c : clayout l |}
   (i : SZ.t{SZ.v i < rows})
   (j : SZ.t{SZ.v j < cols})
   : r:SZ.t{r == c.c_to i j}
@@ -182,8 +181,7 @@ fn gpu_matrix_read
   (#et:Type0)
   (#rows : erased nat)
   (#cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| c : clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -202,7 +200,7 @@ fn gpu_matrix_read
   open FStar.SizeT;
   unfold gpu_matrix_pts_to gm #f em;
   gpu_pts_to_ref gm;
-  let idx : sz = lcto c i j;
+  let idx : sz = lcto #_ #_ #_ #c i j;
   let v = gpu_array_read #et #(rows * cols) #0 #(rows * cols) gm idx;
   fold gpu_matrix_pts_to gm #f em;
   v;
@@ -213,8 +211,7 @@ fn gpu_matrix_write
   (#et:Type0)
   (#rows : erased nat)
   (#cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| c : clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -230,7 +227,7 @@ fn gpu_matrix_write
   open FStar.SizeT;
   unfold gpu_matrix_pts_to gm em;
   gpu_pts_to_ref gm;
-  let idx = lcto c i j;
+  let idx = lcto #_ #_ #_ #c i j;
   gpu_array_write #et #(rows * cols) #0 #(rows * cols) gm idx vv;
   fold gpu_matrix_pts_to gm (mupd em i j vv);
   ();
@@ -251,8 +248,7 @@ inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| c : clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -270,7 +266,7 @@ fn gpu_matrix_read_cell
   open FStar.SizeT;
   unfold gpu_matrix_pts_to_cell gm #f i j v0;
   gpu_pts_to_slice_ref #et #(rows * cols) #f gm _ _ #(seq![reveal v0]);
-  let idx = lcto c i j;
+  let idx = lcto #_ #_ #_ #c i j;
   let v = gpu_array_read #et #(rows * cols) #idx #(idx+1) gm idx;
   fold gpu_matrix_pts_to_cell gm #f i j v0;
   v;
@@ -280,8 +276,7 @@ inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
+  (#l : mlayout rows cols) {| c : clayout l |}
   (gm : gpu_matrix et rows cols l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
@@ -297,7 +292,7 @@ fn gpu_matrix_write_cell
   open FStar.SizeT;
   unfold gpu_matrix_pts_to_cell gm i j v0;
   gpu_pts_to_slice_ref #et #(rows * cols) gm _ _ #(seq![reveal v0]);
-  let idx = lcto c i j;
+  let idx = lcto #_ #_ #_ #c i j;
   assert (gpu_pts_to_slice gm idx (idx+1) seq![reveal v0]);
   gpu_array_write #et #(rows * cols) #idx #(idx+1) gm idx v1;
   with s'. assert (gpu_pts_to_slice gm idx (idx+1) s');

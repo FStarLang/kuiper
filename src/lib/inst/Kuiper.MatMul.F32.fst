@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.MatMul
 
 [@@CPrologue "__global__"]
-let kernel_f32 = kernel #f32 R.c_row_major R.c_row_major R.c_row_major
+let kernel_f32 = kernel #f32 R.row_major R.row_major R.row_major
 
-let matmul_f32 : matmul_ty f32 R.c_row_major R.c_row_major R.c_row_major =
+let matmul_f32 : matmul_ty f32 R.row_major R.row_major R.row_major =
   matmul kernel_f32

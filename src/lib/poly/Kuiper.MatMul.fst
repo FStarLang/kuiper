@@ -50,10 +50,10 @@ let kpost
 inline_for_extraction
 type kernel_ty
   (et : Type0) {| scalar et |}
-  (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
+  (rA rB rC : M.mrepr)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
 =
   (#rows : szp) ->
   (#shared : szp) ->
@@ -78,10 +78,10 @@ type kernel_ty
 inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |}
-  (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
+  (rA rB rC : M.mrepr)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
   (#rows : szp) (#shared : szp) (#cols : szp{rows * cols < pow2 64})
   (gA : M.gpu_matrix et rows shared rA)
   (gB : M.gpu_matrix et shared cols rB)
@@ -131,8 +131,8 @@ fn kernel
   {
     let vi = !i;
     let s = !sum;
-    let v1 = M.gpu_matrix_read (cA rows shared) gA trow vi;
-    let v2 = M.gpu_matrix_read (cB shared cols) gB vi tcol;
+    let v1 = M.gpu_matrix_read gA trow vi;
+    let v2 = M.gpu_matrix_read gB vi tcol;
 
     sum := s `add` mul v1 v2;
     i := SZ.add vi 1sz;
@@ -142,7 +142,7 @@ fn kernel
   };
 
   let s = !sum;
-  M.gpu_matrix_write_cell (cC rows cols) gC trow tcol s; // r[tid] = s
+  M.gpu_matrix_write_cell gC trow tcol s; // r[tid] = s
 
   (* ugh *)
   assume (pure (SZ.v trow == (thread_index etid / SZ.v cols)));
@@ -162,9 +162,6 @@ fn setup
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : pos)
   (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
   (gA : M.gpu_matrix et rows shared rA)
   (gB : M.gpu_matrix et shared cols rB)
   (gC : M.gpu_matrix et rows cols rC)
@@ -224,9 +221,6 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : pos)
   (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
   (gA : M.gpu_matrix et rows shared rA)
   (gB : M.gpu_matrix et shared cols rB)
   (gC : M.gpu_matrix et rows cols rC)
@@ -300,10 +294,10 @@ fn matmul_gpu
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : szp) (* concrete args *)
   (#rA #rB #rC : M.mrepr)
-  (cA : M.crepr rA)
-  (cB : M.crepr rB)
-  (cC : M.crepr rC)
-  (kk : kernel_ty et cA cB cC)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
+  (kk : kernel_ty et rA rB rC #_ #_ #_)
   (gA : M.gpu_matrix et rows shared rA)
   (gB : M.gpu_matrix et shared cols rB)
   (gC : M.gpu_matrix et rows cols rC)
@@ -321,7 +315,7 @@ fn matmul_gpu
     gC |-> MS.matmul eA eB
 {
   open FStar.SizeT;
-  setup cA cB cC gA gB gC;
+  setup gA gB gC;
 
   let size = rows *^ cols;
   forevery_rw_size (rows * cols) size;
@@ -336,17 +330,17 @@ fn matmul_gpu
 
   forevery_rw_size size (rows * cols);
 
-  teardown cA cB cC gA gB gC;
+  teardown gA gB gC;
 }
 
 inline_for_extraction noextract
 fn matmul
   (#et : Type0) {| scalar et |}
   (#rA #rB #rC : M.mrepr)
-  (#cA : M.crepr rA)
-  (#cB : M.crepr rB)
-  (#cC : M.crepr rC)
-  (kk : kernel_ty et cA cB cC)
+  {| M.crepr rA |}
+  {| M.crepr rB |}
+  {| M.crepr rC |}
+  (kk : kernel_ty et rA rB rC #_ #_ #_)
   (#rows #shared #cols : szp) (* concrete args *)
   (a : vec et)
   (b : vec et)
@@ -372,7 +366,7 @@ fn matmul
   M.gpu_matrix_from_array a gA;
   M.gpu_matrix_from_array b gB;
 
-  matmul_gpu cA cB cC kk gA gB gC;
+  matmul_gpu kk gA gB gC;
 
   let c = Pulse.Lib.Vec.alloc #et zero (SZ.mul rows cols);
   M.gpu_matrix_to_array c gC;
