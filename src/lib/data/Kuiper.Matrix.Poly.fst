@@ -62,16 +62,22 @@ fn gpu_matrix_concr
 ghost
 fn gpu_matrix_abs
   (#et:Type)
-  (#rows #cols : nat)
-  (#l : mlayout rows cols)
-  (g : gpu_matrix et rows cols l)
+  (#rows0 #cols0 : nat) (#l0 : mlayout rows0 cols0)
+  (g : gpu_matrix et rows0 cols0 l0)
+  (rows cols : nat) (l : mlayout rows cols)
   (#em : ematrix et rows cols)
   requires
     core g |-> to_seq l em
+  returns
+    g' : gpu_matrix et rows cols l
   ensures
-    g |-> em
+    g' |-> em
 {
-  fold gpu_matrix_pts_to g #1.0R em;
+  gpu_pts_to_ref (core g);
+  let g' : gpu_array et (rows0 * cols0) = core g;
+  rewrite each core g as g';
+  fold gpu_matrix_pts_to #_ #_ #_ #l g' #1.0R em;
+  g'
 }
 
 inline_for_extraction noextract
