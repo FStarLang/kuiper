@@ -3,7 +3,6 @@ module Kuiper.GhostTranspose
 #lang-pulse
 
 open Kuiper
-module SZ = FStar.SizeT
 module Repr = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 

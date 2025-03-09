@@ -6,6 +6,7 @@ open Kuiper
 module M  = Kuiper.Matrix.Poly
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
+module R  = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 
 unfold
@@ -374,4 +375,50 @@ fn matmul
   M.gpu_matrix_free gC;
 
   c
+}
+
+
+
+(* An example of computing tr(AB) by just shifting a view.
+Basically:
+  - Instantiating rA=rB=row_major, rC=col_major
+  - Do the product, we get C = AB (in col-major)
+  - View-shift C to get tr(AB) in row-major
+
+  TODO: It would be nicer to do this just over matmul,
+  but there is no view-like interface for CPU arrays.
+*)
+inline_for_extraction noextract
+fn matmul_transpose_gpu
+  (#et : Type0) {| scalar et |}
+  (#rows : szp)
+  (#shared : szp)
+  (#cols : szp{SZ.fits (rows * cols) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * cols)})
+  (kk :
+    kernel_fixed_ty
+      et
+      R.row_major R.row_major R.row_major
+      rows shared cols
+  )
+  (gA : M.gpu_matrix et rows shared R.row_major)
+  (gB : M.gpu_matrix et shared cols R.row_major)
+  (gC : M.gpu_matrix et cols rows R.col_major)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et cols rows)
+  preserves
+    cpu **
+    (gA |-> eA) ** (gB |-> eB)
+  requires
+    pure (rows * cols <= max_blocks) **
+    (gC |-> eC)
+  ensures
+    gC |-> mtranspose (MS.matmul eA eB)
+{
+  let gC' = GhostTranspose.ghost_transpose2 gC;
+  matmul_gpu kk gA gB gC';
+  let gC'' = GhostTranspose.ghost_transpose1 gC';
+  M.core_match gC gC'';
+  rewrite each gC'' as gC;
+  ()
 }
