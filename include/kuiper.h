@@ -32,14 +32,15 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 	}
 }
 
-#define KPR_KCALL_SHMEM_ASYNC(foo, nblk, nthr, e_size, cnt, ...)		\
+/*
+ * All kernel calls extract to this. The shared memory will just
+ * be zero if not used, etc.
+ */
+#define KPR_KCALL(foo, nblk, nthr, e_size, cnt, ...)		\
 	do {									\
 		foo<<<nblk, nthr, ((e_size) * (cnt))>>>(__VA_ARGS__);		\
 		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);	\
 	} while (0)
-
-#define KPR_KCALL_ASYNC(foo, nblk, nthr, ...)					\
-	KPR_KCALL_SHMEM_ASYNC(foo, nblk, nthr, 0, 0, __VA_ARGS__)
 
 #define KPR_SHMEM()							\
 	({								\

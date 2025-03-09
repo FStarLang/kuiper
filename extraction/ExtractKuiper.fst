@@ -365,7 +365,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let args' = List.filter (fun a -> match a.expr with
                                       | MLE_Const MLC_Unit -> false
                                       | _ -> true) args in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL_SHMEM_ASYNC") in
+    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
     let e_size = get_sizet sized_a in
     let e' =
       with_ty ml_unit_ty <|
@@ -374,31 +374,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
                           nthr;
                           e_size;
                           smem_sz ]
-                        @ args')
-    in
-    cb e'
-
-  // TODO: remove the following case (and use the one from above)
-
-  | MLE_App ({ expr = MLE_Name p }, [
-        nthr;
-        _pre;
-        _post;
-        { expr = MLE_Fun (_, body) };
-        _epoch
-      ])
-    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n_async" ->
-    let hd, args = head_and_args body in
-    (* Filter out unit arguments. Not great, not sure why they remain *)
-    let args' = List.filter (fun a -> match a.expr with
-                                      | MLE_Const MLC_Unit -> false
-                                      | _ -> true) args in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL_ASYNC") in
-    let e' =
-      with_ty ml_unit_ty <|
-        MLE_App (kcall, [ hd;
-                          nthr;
-                          with_ty ml_int_ty <| MLE_Const (MLC_Int ("1", Some (Unsigned, FStarC.Const.Int32))) ]
                         @ args')
     in
     cb e'
