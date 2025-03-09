@@ -47,8 +47,9 @@ dist: all
 	rm -f dist/*
 	cp obj/*.cu dist
 
-.PHONY: maintenance
-maintenance:
+.PHONY: lint
+lint:
 	./FStar/.scripts/remove_all_unused_opens.sh src
 	( cd src && git sed 's/ *$$//' )
 	( cd src && ../scripts/find-pulse-noix.sh )
+	( cd src && ../scripts/check-attrs.sh )
