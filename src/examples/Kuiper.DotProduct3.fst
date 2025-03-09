@@ -15,33 +15,55 @@ friend Kuiper.HReduce (* use gpu_pts_to_slice, refactor ! *)
 
 #set-options "--z3rlimit 20"
 
-let kpre (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
-  : slprop =
-    (gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
-    gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
-    if_ (tid = 0) (exists* sr. gpu_pts_to_array #u64 #nth r sr)
+unfold
+let kpre
+  (nthr : nat)
+  (ga1 ga2 r : gpu_array u64 nthr)
+  (s1 s2: erased (seq u64))
+  (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
+  (bid : natlt 1)
+  (tid : natlt nthr)
+  : slprop
+  = (gpu_pts_to_array #u64 #nthr ga1 #(1.0R /. nthr) s1 **
+    gpu_pts_to_array #u64 #nthr ga2 #(1.0R /. nthr) s2) **
+    if_ (bid = 0 && tid = 0) (exists* sr. gpu_pts_to_array #u64 #nthr r sr)
 
-let kpost (nth: nat) (ga1 ga2 r : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
-  : slprop =
-    ((gpu_pts_to_array #u64 #nth ga1 #(1.0R /. nth) s1 **
-    gpu_pts_to_array #u64 #nth ga2 #(1.0R /. nth) s2) **
-    if_ (tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nth) (pmul s1 s2)))
+unfold
+let kpost
+  (nthr : nat)
+  (ga1 ga2 r : gpu_array u64 nthr)
+  (s1 s2: erased (seq u64))
+  (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
+  (bid : natlt 1)
+  (tid : natlt nthr)
+  : slprop
+  = ((gpu_pts_to_array #u64 #nthr ga1 #(1.0R /. nthr) s1 **
+    gpu_pts_to_array #u64 #nthr ga2 #(1.0R /. nthr) s2) **
+    if_ (bid = 0 && tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nthr) (pmul s1 s2)))
 
-let shared_pre (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( len s1 == nth /\ len s2 == nth )) (it: nat) (tid:nat{tid < nth})
-  : slprop =
-    gpu_pts_to_array1 sr tid **
-    mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid
+let shared_pre
+  (nthr: nat)
+  (sr gr : gpu_array u64 nthr)
+  (s1 s2: erased (seq u64))
+  (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
+  (it: nat)
+  (bid : natlt 1)
+  (tid : natlt nthr)
+  : slprop
+  = gpu_pts_to_array1 sr tid **
+    mbarrier_tok nthr (HR.barrier_matrix nthr sr (pmul s1 s2)) it tid
 
-let shared_post (nth: nat) (sr gr : gpu_array u64 nth) (s1 s2: erased (seq u64))
-  (#_: squash ( len s1 == nth /\ len s2 == nth )) (tid:nat{tid < nth})
-  : slprop =
-    if_ (tid = 0) (HR.gpu_pts_to_slice_sum sr 0 nth (pmul s1 s2)) **
-    (exists* it. mbarrier_tok nth (HR.barrier_matrix nth sr (pmul s1 s2)) it tid)
-
-// #set-options "--ext pulse:env_on_err=1"
+let shared_post
+  (nthr: nat)
+  (sr gr : gpu_array u64 nthr)
+  (s1 s2: erased (seq u64))
+  (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
+  (it: nat)
+  (bid : natlt 1)
+  (tid : natlt nthr)
+  : slprop
+  = if_ (tid = 0) (HR.gpu_pts_to_slice_sum sr 0 nthr (pmul s1 s2)) **
+    (exists* it. mbarrier_tok nthr (HR.barrier_matrix nthr sr (pmul s1 s2)) it tid)
 
 [@@ CPrologue "__device__"; "KrmlPrivate"]
 noextract inline_for_extraction
@@ -110,17 +132,17 @@ fn kernel
     gpu **
     thread_id etid **
     shmem_tok ear **
-    shared_pre nth ear r s1 s2 0 (thread_index etid) **
-    kpre nth ga1 ga2 r s1 s2 (thread_index etid)
+    shared_pre nth ear r s1 s2 0 (bidx_x etid) (tidx_x etid) **
+    kpre nth ga1 ga2 r s1 s2 (bidx_x etid) (tidx_x etid)
   ensures
     gpu **
     thread_id etid **
-    shared_post nth ear r s1 s2 (thread_index etid) **
-    kpost nth ga1 ga2 r s1 s2 (thread_index etid)
+    shared_post nth ear r s1 s2 0 (bidx_x etid) (tidx_x etid) **
+    kpost nth ga1 ga2 r s1 s2 (bidx_x etid) (tidx_x etid)
 {
   unfold shared_pre;
   let tid = thread_idx_x ();
-  (**)unfold (kpre nth ga1 ga2 r s1 s2 tid);
+  (**)unfold (kpre nth ga1 ga2 r s1 s2 0 tid);
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
   let v2 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga2 tid #s2;
@@ -145,8 +167,9 @@ fn kernel
   HR.d_reduce nth ar #dot_v #() etid;
 
   fixup nth ar r s1 s2 tid;
-  fold (kpost nth ga1 ga2 r s1 s2 tid);
-  fold (shared_post nth ear r s1 s2 tid);
+  fold (kpost nth ga1 ga2 r s1 s2 0 tid);
+  admit();
+  fold (shared_post nth ear r s1 s2 0 0 tid);
   ()
 }
 
@@ -169,10 +192,11 @@ fn share_array
 
 ghost
 fn gather_array
+  (#uid : int)
   (#nth : nat { nth <> 0 })
   (ga : gpu_array u64 nth)
   (#v: erased (seq u64) { reveal (len v) == nth })
-  requires bigstar 0 nth (shared_array #nth ga #v)
+  requires bigstar #uid 0 nth (shared_array #nth ga #v)
   ensures  gpu_pts_to_array ga #1.0R v
 {
   admit();
@@ -180,14 +204,14 @@ fn gather_array
 
 ghost
 fn setup
-  (nthr: SZ.t { 0 < SZ.v nthr /\ SZ.v nthr <= 1024 })
+  (nthr: nat { 0 < nthr /\ nthr <= 1024 })
   (ear: gpu_array u64 nthr)
-  (bid: SZ.t)
+  (bid: nat)
   (gr: gpu_array u64 nthr)
   (s1 s2: erased (seq u64))
   (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
   requires block_setup nthr ** (exists* v. gpu_pts_to_array #u64 #nthr ear #1.0R v)
-  ensures  block_setup nthr ** bigstar 0 nthr (fun tid -> shared_pre nthr ear gr s1 s2 0 tid)
+  ensures  block_setup nthr ** bigstar 0 nthr (fun tid -> shared_pre nthr ear gr s1 s2 0 0 tid)
 {
   mk_mbarrier nthr (HR.barrier_matrix nthr ear (pmul s1 s2));
   gpu_array_slice_1_underspec ear;
@@ -226,50 +250,52 @@ fn main
   // Boring combination of resources
   (**)bigstar_zip 0 dp2_size (shared_array ga1) (shared_array ga2);
   (**)bigstar_zip 0 dp2_size _ (gpu_pts_to_array1 gr);
-  (**)rewrite
-    (bigstar 0 dp2_size
-      (fun i -> ((shared_array #dp2_size ga1 #v1 i **
-                 shared_array #dp2_size ga2 #v2 i) **
-                 gpu_pts_to_array1 gr i)))
-  as
-    (bigstar 0 dp2_size (fun i -> kpre dp2_size ga1 ga2 gr v1 v2 i))
-    by tadmit ();
-  // (**)bigstar_uneta ();
 
+  forevery_fromstar #(natlt dp2_size) (fun i ->
+    (shared_array ga1 i **
+     shared_array ga2 i **
+     gpu_pts_to_array1 gr i));
+
+  forevery_factor dp2_size 1 dp2_size _;
   rewrite
-    bigstar 0 dp2_size
-      (kpre dp2_size ga1 ga2 gr v1 v2)
+    forall+ (bid:natlt 1) (tid:natlt dp2_size).
+      ((shared_array ga1 #v1 (bid * dp2_size + tid) **
+        shared_array ga2 #v2 (bid * dp2_size + tid)) **
+       gpu_pts_to_array1 gr (bid * dp2_size + tid))
   as
-    bigstar 0 (1 * SZ.v dp2_size)
-      (kpre dp2_size ga1 ga2 gr v1 v2);
+    forall+ (bid:natlt 1) (tid:natlt dp2_size).
+      (kpre dp2_size ga1 ga2 gr v1 v2 bid tid)
+  by tadmit (); // needs intro exists within body, TODO
 
-  launch_kernel_n_m_shmem #0 1sz dp2_size
-    #(kpre dp2_size ga1 ga2 gr v1 v2)
-    #(kpost dp2_size ga1 ga2 gr v1 v2)
+  launch_kernel_n_m_shmem 1sz dp2_size
+    #(kpre dp2_size ga1 ga2 gr v1 v2 #())
+    #(kpost dp2_size ga1 ga2 gr v1 v2 #())
     u64
     dp2_size
-    #(fun ear bid tid -> shared_pre dp2_size ear gr v1 v2 0 tid)
-    #(fun ear bid tid -> shared_post dp2_size ear gr v1 v2 tid)
+    #(fun ear bid tid -> shared_pre dp2_size ear gr v1 v2 0 bid tid)
+    #(fun ear bid tid -> shared_post dp2_size ear gr v1 v2 0 bid tid)
     (fun ear bid -> setup dp2_size ear bid gr v1 v2)
     (fun ear etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 ear etid);
 
-  // (**)bigstar_eta ();
-  // TODO:
-  (**)drop_
-        (bigstar 0 (1 * SZ.v dp2_size) (fun i -> kpost dp2_size ga1 ga2 gr v1 v2 i));
-  (**)assume
-        (bigstar 0 dp2_size
-          (fun i -> ((gpu_pts_to_array #u64 #dp2_size ga1 #(1.0R /. dp2_size) v1 **
-                    gpu_pts_to_array #u64 #dp2_size ga2 #(1.0R /. dp2_size) v2) **
-                    if_ (i = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
-        ));
+  rewrite
+    forall+ (bid:natlt 1) (tid:natlt dp2_size).
+      (kpost dp2_size ga1 ga2 gr v1 v2 bid tid)
+  as
+    forall+ (bid:natlt 1) (tid:natlt dp2_size).
+      ((shared_array ga1 #v1 (bid * dp2_size + tid) **
+        shared_array ga2 #v2 (bid * dp2_size + tid)) **
+       if_ (bid = 0 && tid = 0) (HR.gpu_pts_to_slice_sum gr 0 dp2_size (pmul v1 v2)))
+  by tadmit (); // needs intro exists within body, TODO
 
-  (**)bigstar_unzip 0 dp2_size _ _;
-  (**)bigstar_unzip 0 dp2_size _ _;
+  forevery_unfactor' dp2_size 1 dp2_size _;
+  forevery_tostar #(natlt dp2_size) _;
 
-  (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga1 #v1);
+  (**)bigstar_unzip #1 #2 #0 0 dp2_size _ _;
+  (**)bigstar_unzip #3 #4 #1 0 dp2_size _ _;
+
+  (**)bigstar_uneta () #3 #0 #dp2_size #(shared_array #dp2_size ga1 #v1);
   gather_array ga1;
-  (**)bigstar_uneta () #0 #0 #dp2_size #(shared_array #dp2_size ga2 #v2);
+  (**)bigstar_uneta () #4 #0 #dp2_size #(shared_array #dp2_size ga2 #v2);
   gather_array ga2;
 
   bigstar_if_elim #_ #0 #dp2_size 0 (fun _ -> HR.gpu_pts_to_slice_sum #_ #_ #dp2_size gr 0 dp2_size (pmul v1 v2));

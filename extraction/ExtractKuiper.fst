@@ -337,7 +337,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** OBTAIN SHMEM ********)
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sized_a :: sz :: earr :: [])
-    when string_of_mlpath p = "Kuiper.Kernel.obtain_shmem" ->
+    when string_of_mlpath p = "Kuiper.Kernel.Base.obtain_shmem" ->
     // let sz : mlexpr = get_sizet sz in
     // let e_size = get_sizet sized_a in
     ECast (EApp (EQualified ([], "KPR_SHMEM"), [EUnit]),
@@ -346,7 +346,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** KERNEL CALLS ********)
 
   | MLE_App ({ expr = MLE_Name p }, [
-        _uid;
         nblk;
         nthr;
         _pre;
@@ -360,7 +359,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         { expr = MLE_Fun (_, body) };
         _epoch
       ])
-    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n_m_shmem_async" ->
+    when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel_n_m_shmem_async" ->
     let hd, args = head_and_args body in
     (* Filter out unit arguments. Not great, not sure why they remain *)
     let args' = List.filter (fun a -> match a.expr with
@@ -375,30 +374,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
                           nthr;
                           e_size;
                           smem_sz ]
-                        @ args')
-    in
-    cb e'
-
-  | MLE_App ({ expr = MLE_Name p }, [
-        nblk;
-        nthr;
-        _pre;
-        _post;
-        _barrier;
-        { expr = MLE_Fun (_, body) }
-      ])
-    when string_of_mlpath p = "Kuiper.Kernel.launch_kernel_n_m_barrier" ->
-    let hd, args = head_and_args body in
-    (* Filter out unit arguments. Not great, not sure why they remain *)
-    let args' = List.filter (fun a -> match a.expr with
-                                      | MLE_Const MLC_Unit -> false
-                                      | _ -> true) args in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
-    let e' =
-      with_ty ml_unit_ty <|
-        MLE_App (kcall, [ hd;
-                          nblk;
-                          nthr ]
                         @ args')
     in
     cb e'
@@ -432,7 +407,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         _unit;
         _epoch
       ])
-    when string_of_mlpath p = "Kuiper.Kernel.sync" ->
+    when string_of_mlpath p = "Kuiper.Kernel.Base.sync" ->
     EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   (* Misc stuff missing from F*? *)

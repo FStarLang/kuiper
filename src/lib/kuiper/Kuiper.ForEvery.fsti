@@ -182,3 +182,13 @@ fn forevery_unfactor
     forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
   ensures
     forall+ (i:natlt n). p i
+
+ghost
+fn forevery_unfactor'
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt d1 -> natlt d2 -> slprop)
+  requires
+    forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
+  ensures
+    forall+ (i:natlt n). p (i/d2) (i%d2)

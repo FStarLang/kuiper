@@ -299,3 +299,16 @@ fn forevery_unfactor
   forevery_rw_size (d1 * d2) n;
   ()
 }
+
+ghost
+fn forevery_unfactor'
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt d1 -> natlt d2 -> slprop)
+  requires
+    forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
+  ensures
+    forall+ (i:natlt n). p (i/d2) (i%d2)
+{
+  forevery_unfactor n d1 d2 (fun i -> p (i/d2) (i%d2));
+}
