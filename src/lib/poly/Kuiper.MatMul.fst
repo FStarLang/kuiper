@@ -3,7 +3,7 @@ module Kuiper.MatMul
 #lang-pulse
 
 open Kuiper
-module M  = Kuiper.Matrix
+module M  = Kuiper.Matrix.Poly
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 open Kuiper.EMatrix
@@ -11,10 +11,11 @@ open Kuiper.EMatrix
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : pos)
-  (gA : M.gpu_matrix et rows shared)
-  (gB : M.gpu_matrix et shared cols)
-  (gC : M.gpu_matrix et rows cols)
+  (#rA #rB #rC : M.mrepr)
+  (#rows #shared #cols : nat)
+  (gA : M.gpu_matrix et rows shared rA)
+  (gB : M.gpu_matrix et shared cols rB)
+  (gC : M.gpu_matrix et rows cols rC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (f : perm)
@@ -29,10 +30,11 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : pos)
-  (gA : M.gpu_matrix et rows shared)
-  (gB : M.gpu_matrix et shared cols)
-  (gC : M.gpu_matrix et rows cols)
+  (#rA #rB #rC : M.mrepr)
+  (#rows #shared #cols : nat)
+  (gA : M.gpu_matrix et rows shared rA)
+  (gB : M.gpu_matrix et shared cols rB)
+  (gC : M.gpu_matrix et rows cols rC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (f : perm)
@@ -46,14 +48,20 @@ let kpost
 
 // unfold
 inline_for_extraction
-type kernel_ty (et : Type0) {| scalar et |} =
-  (#rows : erased szp) ->
+type kernel_ty
+  (et : Type0) {| scalar et |}
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+=
+  (#rows : szp) ->
   (#shared : szp) ->
-  (#cols : szp{reveal rows * cols < pow2 64}) ->
-  (gA : M.gpu_matrix et (reveal rows) shared) ->
-  (gB : M.gpu_matrix et shared cols) ->
-  (gC : M.gpu_matrix et (reveal rows) cols) ->
-  (#eA : ematrix et (reveal rows) shared) ->
+  (#cols : szp{rows * cols < pow2 64}) ->
+  (gA : M.gpu_matrix et rows shared rA) ->
+  (gB : M.gpu_matrix et shared cols rB) ->
+  (gC : M.gpu_matrix et rows cols rC) ->
+  (#eA : ematrix et rows shared) ->
   (#eB : ematrix et shared cols) ->
   (#f : perm) ->
   (etid : tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 }) ->
@@ -67,14 +75,20 @@ type kernel_ty (et : Type0) {| scalar et |} =
     thread_id etid **
     kpost gA gB gC eA eB f (thread_index etid))
 
+#set-options "--print_implicits"
+
 inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |}
-  (#rows : erased szp) (#shared : szp) (#cols : szp{reveal rows * cols < pow2 64})
-  (gA : M.gpu_matrix et (reveal rows) shared)
-  (gB : M.gpu_matrix et shared cols)
-  (gC : M.gpu_matrix et (reveal rows) cols)
-  (#eA : ematrix et (reveal rows) shared)
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  (#rows : szp) (#shared : szp) (#cols : szp{rows * cols < pow2 64})
+  (gA : M.gpu_matrix et rows shared rA)
+  (gB : M.gpu_matrix et shared cols rB)
+  (gC : M.gpu_matrix et rows cols rC)
+  (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#f : perm)
   (etid : tid_t { gdim_x etid == SZ.v rows * cols /\ bdim_x etid == 1 })
@@ -96,7 +110,7 @@ fn kernel
     as
       M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
 
-  assert (pure (trow < (reveal rows)));
+  assert (pure (trow < rows));
   assert (pure (tcol < cols));
 
   let mut i : sz = 0sz;
@@ -108,14 +122,14 @@ fn kernel
         pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
         pts_to i vi **
         pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
-        M.gpu_matrix_pts_to gA #(f /. (reveal rows * cols)) eA **
-        M.gpu_matrix_pts_to gB #(f /. (reveal rows * cols)) eB **
+        M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
+        M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
         gpu
   {
     let vi = !i;
     let s = !sum;
-    let v1 = M.gpu_matrix_read gA trow vi;
-    let v2 = M.gpu_matrix_read gB vi tcol;
+    let v1 = M.gpu_matrix_read (cA rows shared) gA trow vi;
+    let v2 = M.gpu_matrix_read (cB shared cols) gB vi tcol;
 
     sum := s `add` mul v1 v2;
     i := SZ.add vi 1sz;
@@ -125,7 +139,7 @@ fn kernel
   };
 
   let s = !sum;
-  M.gpu_matrix_write_cell gC trow tcol s; // r[tid] = s
+  M.gpu_matrix_write_cell (cC rows cols) gC trow tcol s; // r[tid] = s
 
   (* ugh *)
   assume (pure (SZ.v trow == (thread_index etid / SZ.v cols)));
@@ -144,9 +158,13 @@ ghost
 fn setup
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : pos)
-  (gA : M.gpu_matrix et rows shared)
-  (gB : M.gpu_matrix et shared cols)
-  (gC : M.gpu_matrix et rows cols)
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  (gA : M.gpu_matrix et rows shared rA)
+  (gB : M.gpu_matrix et shared cols rB)
+  (gC : M.gpu_matrix et rows cols rC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -202,9 +220,13 @@ ghost
 fn teardown
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : pos)
-  (gA : M.gpu_matrix et rows shared)
-  (gB : M.gpu_matrix et shared cols)
-  (gC : M.gpu_matrix et rows cols)
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  (gA : M.gpu_matrix et rows shared rA)
+  (gB : M.gpu_matrix et shared cols rB)
+  (gC : M.gpu_matrix et rows cols rC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   requires
@@ -273,11 +295,15 @@ fn teardown
 inline_for_extraction noextract
 fn matmul_gpu
   (#et : Type0) {| scalar et |}
-  (kk : kernel_ty et #_)
   (#rows #shared #cols : szp) (* concrete args *)
-  (gA : M.gpu_matrix et rows shared)
-  (gB : M.gpu_matrix et shared cols)
-  (gC : M.gpu_matrix et rows cols)
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  (kk : kernel_ty et cA cB cC)
+  (gA : M.gpu_matrix et rows shared rA)
+  (gB : M.gpu_matrix et shared cols rB)
+  (gC : M.gpu_matrix et rows cols rC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -292,7 +318,7 @@ fn matmul_gpu
     gC |-> MS.matmul eA eB
 {
   open FStar.SizeT;
-  setup gA gB gC;
+  setup cA cB cC gA gB gC;
 
   let size = rows *^ cols;
   forevery_rw_size (rows * cols) size;
@@ -307,13 +333,17 @@ fn matmul_gpu
 
   forevery_rw_size size (rows * cols);
 
-  teardown gA gB gC;
+  teardown cA cB cC gA gB gC;
 }
 
 inline_for_extraction noextract
 fn matmul
   (#et : Type0) {| scalar et |}
-  (kk : kernel_ty et #_)
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  (kk : kernel_ty et cA cB cC)
   (#rows #shared #cols : szp) (* concrete args *)
   (a : vec et)
   (b : vec et)
@@ -329,16 +359,17 @@ fn matmul
   returns
     c : vec et
   ensures
-    (c |-> to_row_major_seq <| MS.matmul (from_row_major_seq #_ #rows #shared sa) (from_row_major_seq #_ #shared #cols sb))
+    (c |-> M.to_seq rC <| MS.matmul (M.from_seq #_ #rows #shared rA sa)
+                                    (M.from_seq #_ #shared #cols rB sb))
 {
-  let gA = M.gpu_matrix_alloc #et rows shared;
-  let gB = M.gpu_matrix_alloc #et shared cols;
-  let gC = M.gpu_matrix_alloc #et rows cols;
+  let gA = M.gpu_matrix_alloc #et rows shared rA;
+  let gB = M.gpu_matrix_alloc #et shared cols rB;
+  let gC = M.gpu_matrix_alloc #et rows cols rC;
 
   M.gpu_matrix_from_array a gA;
   M.gpu_matrix_from_array b gB;
 
-  matmul_gpu kk gA gB gC;
+  matmul_gpu cA cB cC kk gA gB gC;
 
   let c = Pulse.Lib.Vec.alloc #et zero (SZ.mul rows cols);
   M.gpu_matrix_to_array c gC;
@@ -349,4 +380,3 @@ fn matmul
 
   c
 }
-

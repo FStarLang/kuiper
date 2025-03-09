@@ -167,6 +167,7 @@ fn gpu_matrix_gather_n
 (* NOTE: we cannot just call the projector, since we
 need the concrete nats to do so (?!) and that would
 incur a ghost effect. *)
+inline_for_extraction noextract
 let lcto (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (c : clayout l)

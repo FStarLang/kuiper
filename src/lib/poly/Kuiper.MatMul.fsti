@@ -3,19 +3,37 @@ module Kuiper.MatMul
 #lang-pulse
 
 open Kuiper
-module M = Kuiper.Matrix
+module M = Kuiper.Matrix.Poly
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 open Kuiper.EMatrix
 
 inline_for_extraction
-val kernel_ty (et : Type0) {| scalar et |} : Type0
+val kernel_ty
+  (et : Type0) {| scalar et |}
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  : Type0
 
 inline_for_extraction noextract
-val kernel (#et : Type0) {| scalar et |} : kernel_ty et
+val kernel
+  (#et : Type0) {| scalar et |}
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  : kernel_ty et cA cB cC
 
 unfold
-let matmul_ty (et : Type0) {| scalar et |} : Type0 =
+let matmul_ty (et : Type0) {| scalar et |}
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  : Type0
+  =
   (#rows : szp) ->
   (#shared : szp) ->
   (#cols : szp) ->
@@ -34,10 +52,15 @@ let matmul_ty (et : Type0) {| scalar et |} : Type0 =
     (cpu **
     (a |-> sa) **
     (b |-> sb)) **
-    (c |-> to_row_major_seq <| MS.matmul (from_row_major_seq #_ #rows #shared sa) (from_row_major_seq #_ #shared #cols sb)))
+    (c |-> M.to_seq rC <| MS.matmul (M.from_seq #_ #rows #shared rA sa)
+                                    (M.from_seq #_ #shared #cols rB sb)))
 
 inline_for_extraction noextract
 val matmul
   (#et : Type0) {| scalar et |}
-  (kk : kernel_ty et #_)
-  : matmul_ty et
+  (#rA #rB #rC : M.mrepr)
+  (cA : M.crepr rA)
+  (cB : M.crepr rB)
+  (cC : M.crepr rC)
+  (kk : kernel_ty et cA cB cC)
+  : matmul_ty et cA cB cC

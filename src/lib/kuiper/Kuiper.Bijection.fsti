@@ -78,6 +78,14 @@ let bij_prod (#a #b #c #d : Type) (ab : a =~ b) (cd : c =~ d) : (a & c =~ b & d)
     ab.gg_ff x1; cd.gg_ff x2);
 }
 
+let bij_flip (#a #b : Type) : (a & b =~ b & a) =
+{
+  ff = (fun (x, y) -> (y, x));
+  gg = (fun (y, x) -> (x, y));
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
 (* weird typing errors without hoisting. *)
 unfold
 let prod_ff (n1 n2 : nat) : natlt n1 & natlt n2 -> natlt (n1 * n2) =

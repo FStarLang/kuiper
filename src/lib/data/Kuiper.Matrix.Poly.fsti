@@ -13,9 +13,6 @@ type mlayout (rows cols : nat) = {
   bij     : erased ((natlt rows & natlt cols) =~ natlt (rows * cols));
 }
 
-[@@erasable]
-type mrepr = #rows:nat -> #cols:nat -> mlayout rows cols
-
 (* Concrete layout accessors. *)
 noeq
 type clayout (#rows #cols : _) (l : mlayout rows cols) = {
@@ -23,6 +20,15 @@ type clayout (#rows #cols : _) (l : mlayout rows cols) = {
   c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};
   c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
 }
+
+inline_for_extraction
+type mrepr = #rows:nat -> #cols:nat -> mlayout rows cols
+inline_for_extraction
+type crepr (r:mrepr) = rows:SZ.t -> cols:SZ.t -> clayout (r #rows #cols)
+
+(* NOTE: row-major in these specs. *)
+
+(* Concrete layout accessors. *)
 
 let from_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)
