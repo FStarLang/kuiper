@@ -53,9 +53,6 @@ type kernel_fixed_ty
   (rows : nat)
   (shared : nat)
   (cols : nat{SZ.fits (rows * cols)})
-  {| M.clayout (rA #rows #shared) |}
-  {| M.clayout (rB #shared #cols) |}
-  {| M.clayout (rC #rows #cols) |}
 : Type0
 =
   (gA : M.gpu_matrix et rows shared rA) ->
@@ -301,7 +298,7 @@ fn matmul_gpu
   {| M.clayout (rA #rows #shared) |}
   {| M.clayout (rB #shared #cols) |}
   {| M.clayout (rC #rows #cols) |}
-  (kk : kernel_fixed_ty et rA rB rC rows shared cols #_ #_ #_)
+  (kk : kernel_fixed_ty et rA rB rC rows shared cols)
   (gA : M.gpu_matrix et rows shared rA)
   (gB : M.gpu_matrix et shared cols rB)
   (gC : M.gpu_matrix et rows cols rC)
