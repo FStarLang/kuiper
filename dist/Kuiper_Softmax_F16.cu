@@ -48,7 +48,8 @@ void Kuiper_Softmax_F16_softmax(size_t lena, half_t *a)
   cudaDeviceSynchronize();
   half_t *a_ = (half_t *)KPR_GPU_ALLOC((size_t)2U * lena);
   MUST(cudaMemcpy(a_, ga, (size_t)2U * lena, cudaMemcpyDeviceToDevice));
-  KPR_KCALL(k_reduce, (size_t)1U, lena, lena, a_);
+  KPR_KCALL_SHMEM_ASYNC(k_reduce, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a_);
+  cudaDeviceSynchronize();
   half_t *ca = (half_t *)KRML_HOST_MALLOC(sizeof (half_t));
   if (ca != NULL)
     *ca = (half_t)0.0f;

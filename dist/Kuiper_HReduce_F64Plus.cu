@@ -24,6 +24,13 @@ void Kuiper_HReduce_F64Plus_k_reduce(size_t nth, double_t *a)
 
 void Kuiper_HReduce_F64Plus_reduce(size_t lena, double_t *a)
 {
-  KPR_KCALL(Kuiper_HReduce_F64Plus_k_reduce, (size_t)1U, lena, lena, a);
+  KPR_KCALL_SHMEM_ASYNC(Kuiper_HReduce_F64Plus_k_reduce,
+    (size_t)1U,
+    lena,
+    (size_t)4U,
+    (size_t)0U,
+    lena,
+    a);
+  cudaDeviceSynchronize();
 }
 
