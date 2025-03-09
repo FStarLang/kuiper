@@ -5,7 +5,6 @@ any weak modulo-associativity spec. *)
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.Matrix
 
 // computes
 // sum_{i=0}{to} m1[row][i] * m2[i][col]
