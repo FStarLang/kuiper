@@ -54,7 +54,12 @@ inline_for_extraction noextract
 val gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0
 
 inline_for_extraction noextract
-val core (#et #rows #cols #l : _) (g : gpu_matrix et rows cols l) : gpu_array et (rows * cols)
+val core
+  (#et : Type)
+  (#rows #cols : erased nat)
+  (#l : _)
+  (g : gpu_matrix et rows cols l)
+  : gpu_array et (rows * cols)
 
 val gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
@@ -69,10 +74,19 @@ instance has_pts_to (a:Type) (rows cols l : _)
   pts_to = gpu_matrix_pts_to;
 }
 
-ghost
+(* These are really ghost steps only... but
+since the gpu_matrix type encodes the layout as an argument,
+we return a new matrix (with the same core). This is so we do not
+expose that the gpu_matrix type does not really use the layout
+argument. Exposing that may bring in some dangers wrt typeclass resolution
+picking the wrong layout.
+
+But the current setting means we cannot do these shifts in ghost code...
+so maybe that's a bullet we should bite. *)
+inline_for_extraction noextract
 fn gpu_matrix_concr
   (#et:Type)
-  (#rows #cols : nat)
+  (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (g : gpu_matrix et rows cols l)
   (#em : ematrix et rows cols)
@@ -81,12 +95,12 @@ fn gpu_matrix_concr
   ensures
     core g |-> to_seq l em
 
-ghost
+inline_for_extraction noextract
 fn gpu_matrix_abs
   (#et:Type)
-  (#rows0 #cols0 : nat) (#l0 : mlayout rows0 cols0)
+  (#rows0 #cols0 : erased nat) (#l0 : mlayout rows0 cols0)
   (g : gpu_matrix et rows0 cols0 l0)
-  (rows cols : nat) (l : mlayout rows cols)
+  (rows cols : erased nat) (l : mlayout rows cols)
   (#em : ematrix et rows cols)
   requires
     core g |-> to_seq l em

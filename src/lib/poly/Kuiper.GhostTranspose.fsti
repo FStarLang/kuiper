@@ -7,10 +7,10 @@ open Kuiper.Matrix.Poly
 module Repr = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 
-ghost
+inline_for_extraction noextract
 fn ghost_transpose1
   (#et:Type)
-  (#rows #cols : nat)
+  (#rows #cols : erased nat)
   (gA : gpu_matrix et rows cols Repr.row_major)
   (#m : ematrix et rows cols)
   requires
@@ -20,10 +20,10 @@ fn ghost_transpose1
   ensures
     gA' |-> mtranspose m
 
-ghost
+inline_for_extraction noextract
 fn ghost_transpose2
   (#et:Type)
-  (#rows #cols : nat)
+  (#rows #cols : erased nat)
   (gA : gpu_matrix et rows cols Repr.col_major)
   (#m : ematrix et rows cols)
   requires

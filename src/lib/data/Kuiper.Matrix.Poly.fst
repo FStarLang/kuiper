@@ -44,10 +44,10 @@ let gpu_matrix_pts_to
   : slprop
   = gpu_pts_to_array gm #f (to_seq l em)
 
-ghost
+inline_for_extraction noextract
 fn gpu_matrix_concr
   (#et:Type)
-  (#rows #cols : nat)
+  (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (g : gpu_matrix et rows cols l)
   (#em : ematrix et rows cols)
@@ -59,12 +59,12 @@ fn gpu_matrix_concr
   unfold gpu_matrix_pts_to g #1.0R em;
 }
 
-ghost
+inline_for_extraction noextract
 fn gpu_matrix_abs
   (#et:Type)
-  (#rows0 #cols0 : nat) (#l0 : mlayout rows0 cols0)
+  (#rows0 #cols0 : erased nat) (#l0 : mlayout rows0 cols0)
   (g : gpu_matrix et rows0 cols0 l0)
-  (rows cols : nat) (l : mlayout rows cols)
+  (rows cols : erased nat) (l : mlayout rows cols)
   (#em : ematrix et rows cols)
   requires
     core g |-> to_seq l em
