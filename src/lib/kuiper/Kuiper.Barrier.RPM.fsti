@@ -7,6 +7,7 @@ open Pulse.Lib.BigStar
 open Kuiper.Base
 open Kuiper.Common
 
+(* A resource-passing matrix. *)
 let rpm_t (n:nat) =
   it:nat ->
   from: natlt n ->

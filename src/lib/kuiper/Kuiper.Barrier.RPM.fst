@@ -3,7 +3,6 @@ module Kuiper.Barrier.RPM
 #lang-pulse
 
 open Pulse.Lib.Pervasives
-open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open Kuiper.Base
 module B = Kuiper.Barrier

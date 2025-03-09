@@ -82,7 +82,7 @@ fn forevery_unflatten
 }
 
 let bij2perm (n:nat) (d : natlt n =~ natlt n)
-  : Pulse.Lib.BigStar.permutation (i:nat {0 <= i /\ i < n}) = {
+  : permutation (i:nat {0 <= i /\ i < n}) = {
   f = d.ff;
   g = d.gg;
   proof = ez; (* patterns! *)
