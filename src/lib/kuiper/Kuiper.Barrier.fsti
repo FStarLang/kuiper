@@ -10,12 +10,8 @@ open Kuiper.Base
 open Kuiper.SizeT
 
 (* A barrier over nthreads. This is for specification only,
-there is no runtime representation for, as this models
-the builtin CUDA __syncthreads() function. *)
-[@@erasable]
-val barrier
-  (n:nat)
-  : Type0
+there is no runtime representation for it, nor a handle-like
+type, as this models the builtin CUDA __syncthreads() function. *)
 
 (* A token representing that
    1) There is a barrier in scope
@@ -29,7 +25,6 @@ val barrier_tok
   (#n:nat)
   (p : (it:nat -> tid:natlt n -> slprop))
   (q : (it:nat -> tid:natlt n -> slprop))
-  (b : barrier n)
   (it : nat)
   (tid : natlt n)
   : slprop
@@ -48,18 +43,17 @@ fn mk_barrier
                   (requires bigstar 0 n (p it))
                   (ensures  fun _ -> bigstar 0 n (q it))))
   requires block_setup n
-  returns  b : erased (barrier n)
-  ensures  block_setup n ** bigstar 0 n (barrier_tok p q b 0)
+  ensures  block_setup n ** bigstar 0 n (barrier_tok p q 0)
 
 (* Wait on the barrier. This function blocks until all threads call it
    simultaneously. Each thread provides the current p
    and gets the current q. The iteration counter is incremented. *)
 fn barrier_wait
+  ()
   (#n : erased nat)
   (#p : (it:nat -> tid:natlt n -> slprop))
   (#q : (it:nat -> tid:natlt n -> slprop))
-  (b : barrier n)
   (#it : erased nat)
   (#tid : erased (natlt n))
-  requires barrier_tok p q b  it    tid ** p it tid
-  ensures  barrier_tok p q b (it+1) tid ** q it tid
+  requires barrier_tok p q  it    tid ** p it tid
+  ensures  barrier_tok p q (it+1) tid ** q it tid

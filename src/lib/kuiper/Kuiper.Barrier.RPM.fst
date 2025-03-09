@@ -15,12 +15,11 @@ let mbarrier_tok
   (tid : natlt n)
   : slprop
   =
-  exists* b.
-    (* Trade a row of p for a column of p. *)
-    B.barrier_tok #n
-      (row p)
-      (col p)
-      b it tid
+  (* Trade a row of p for a column of p. *)
+  B.barrier_tok #n
+    (row p)
+    (col p)
+    it tid
 
 ghost
 fn mk_mbarrier_proof
@@ -41,11 +40,11 @@ fn mk_mbarrier
   requires block_setup n
   ensures  block_setup n ** bigstar 0 n (mbarrier_tok n p 0)
 {
-  let b = B.mk_barrier n (row p) (col p) (mk_mbarrier_proof n p);
+  B.mk_barrier n (row p) (col p) (mk_mbarrier_proof n p);
   (* Need to intro an exists in every component of the bigstar. *)
   ghost
   fn aux (i : natlt n)
-    requires B.barrier_tok #n (row p) (col p) b 0 i
+    requires B.barrier_tok #n (row p) (col p) 0 i
     ensures  mbarrier_tok n p 0 i
   {
     fold (mbarrier_tok n p 0 i);
@@ -63,6 +62,6 @@ fn mbarrier_wait
   ensures  mbarrier_tok n p (it+1) tid ** col p it tid
 {
   unfold mbarrier_tok;
-  B.barrier_wait #n _;
+  B.barrier_wait ();
   fold mbarrier_tok;
 }
