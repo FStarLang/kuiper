@@ -343,7 +343,7 @@ fn launch_kernel_n_async
   let e' = launch_kernel_n_m_barrier_async nblk 1sz #(fun b t -> pre b) #(fun b t -> post b) (kernel_n_as_n_m nblk #pre #post k);
   ghost
   fn aux ()
-    requires 
+    requires
       forall+ (b:natlt nblk) (t:natlt 1). post b
     ensures
       forall+ (b:natlt nblk). post b
