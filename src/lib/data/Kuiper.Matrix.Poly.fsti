@@ -24,7 +24,7 @@ type clayout (#rows #cols : _) (l : mlayout rows cols) = {
 inline_for_extraction
 type mrepr = #rows:nat -> #cols:nat -> mlayout rows cols
 inline_for_extraction
-type crepr (r:mrepr) = rows:SZ.t -> cols:SZ.t -> clayout (r #rows #cols)
+type crepr (r:mrepr) = rows:SZ.t -> cols:SZ.t{SZ.fits (rows * cols)} -> clayout (r #rows #cols)
 
 (* NOTE: row-major in these specs. *)
 

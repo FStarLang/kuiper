@@ -30,7 +30,6 @@ let row_major : mrepr =
 inline_for_extraction
 let c_row_major : crepr row_major =
   fun rows cols ->
-    assume (SZ.fits (rows * cols)); (* state and carry around *)
     let open FStar.SizeT in
     mk_clayout #_ #_ (row_major #(SZ.v rows) #(SZ.v cols))
       (fun i j -> i *^ cols +^ j)
@@ -48,7 +47,6 @@ let col_major : mrepr =
 inline_for_extraction
 let c_col_major : crepr col_major =
   fun rows cols ->
-    assume (SZ.fits (rows * cols)); (* state and carry around *)
     let open FStar.SizeT in
     mk_clayout #_ #_ (col_major #(SZ.v rows) #(SZ.v cols))
       (fun i j -> j *^ rows +^ i)

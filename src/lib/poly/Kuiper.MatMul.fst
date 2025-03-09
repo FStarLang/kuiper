@@ -99,6 +99,11 @@ fn kernel
     ** thread_id etid
     ** kpost gA gB gC eA eB f (thread_index etid)
 {
+  (* Place these somewhere *)
+  assume (pure (SZ.fits (rows * shared)));
+  assume (pure (SZ.fits (shared * cols)));
+  assume (pure (SZ.fits (rows * cols)));
+
   let tid = block_idx_x ();
   rewrite each thread_index etid as tid;
 
