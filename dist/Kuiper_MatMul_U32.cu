@@ -4,15 +4,8 @@
 
 __global__
 
-void
-Kuiper_MatMul_U32_kernel_u32(
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  uint32_t *gA,
-  uint32_t *gB,
-  uint32_t *gC
-)
+static void
+kernel_u32(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
   size_t tid = blockIdx_x();
@@ -43,7 +36,7 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(Kuiper_MatMul_U32_kernel_u32,
+  KPR_KCALL(kernel_u32,
     rows * cols,
     (size_t)1U,
     (size_t)4U,
@@ -66,15 +59,8 @@ uint32_t
 
 __global__
 
-void
-Kuiper_MatMul_U32_kernel_u32_(
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  uint32_t *gA,
-  uint32_t *gB,
-  uint32_t *gC
-)
+static void
+kernel_u32_(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
   size_t tid = blockIdx_x();
   size_t trow = tid / cols;
@@ -104,7 +90,7 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(Kuiper_MatMul_U32_kernel_u32_,
+  KPR_KCALL(kernel_u32_,
     rows * cols,
     (size_t)1U,
     (size_t)4U,
@@ -127,15 +113,8 @@ uint32_t
 
 __global__
 
-void
-Kuiper_MatMul_U32_kernel_u32__(
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  uint32_t *gA,
-  uint32_t *gB,
-  uint32_t *gC
-)
+static void
+kernel_u32__(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
   size_t tid = blockIdx_x();
   size_t trow = tid / cols;
@@ -165,7 +144,7 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(Kuiper_MatMul_U32_kernel_u32__,
+  KPR_KCALL(kernel_u32__,
     rows * cols,
     (size_t)1U,
     (size_t)4U,

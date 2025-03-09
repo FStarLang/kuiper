@@ -4,7 +4,7 @@
 
 __global__
 
-void Kuiper_ArrayReversal_kernel__uint64_t(size_t size, uint64_t *a)
+static void kernel__uint64_t(size_t size, uint64_t *a)
 {
   size_t bid = blockIdx_x();
   size_t bdim = blockDim_x();
@@ -17,13 +17,7 @@ void Kuiper_ArrayReversal_kernel__uint64_t(size_t size, uint64_t *a)
 
 void Kuiper_ArrayReversal_reverse__uint64_t(size_t size, uint64_t *a)
 {
-  KPR_KCALL(Kuiper_ArrayReversal_kernel__uint64_t,
-    size / (size_t)2U,
-    (size_t)1U,
-    (size_t)4U,
-    (size_t)0U,
-    size,
-    a);
+  KPR_KCALL(kernel__uint64_t, size / (size_t)2U, (size_t)1U, (size_t)4U, (size_t)0U, size, a);
   cudaDeviceSynchronize();
 }
 

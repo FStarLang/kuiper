@@ -22,7 +22,7 @@ static void k_reduce(size_t nth, double_t *a)
 
 __global__
 
-void Kuiper_Softmax_F64_k_pointwise_exp_f64(double_t *a)
+static void k_pointwise_exp_f64(double_t *a)
 {
   size_t bid = blockIdx_x();
   size_t bdim = blockDim_x();
@@ -32,7 +32,7 @@ void Kuiper_Softmax_F64_k_pointwise_exp_f64(double_t *a)
 
 __global__
 
-void Kuiper_Softmax_F64_k_pointwise_div_f64(double_t *a, double_t d)
+static void k_pointwise_div_f64(double_t *a, double_t d)
 {
   size_t bid = blockIdx_x();
   size_t bdim = blockDim_x();
@@ -44,12 +44,7 @@ void Kuiper_Softmax_F64_softmax(size_t lena, double_t *a)
 {
   double_t *ga = (double_t *)KPR_GPU_ALLOC((size_t)8U * lena);
   MUST(cudaMemcpy(ga, a, (size_t)8U * lena, cudaMemcpyHostToDevice));
-  KPR_KCALL(Kuiper_Softmax_F64_k_pointwise_exp_f64,
-    lena,
-    (size_t)1U,
-    (size_t)4U,
-    (size_t)0U,
-    ga);
+  KPR_KCALL(k_pointwise_exp_f64, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga);
   cudaDeviceSynchronize();
   double_t *a_ = (double_t *)KPR_GPU_ALLOC((size_t)8U * lena);
   MUST(cudaMemcpy(a_, ga, (size_t)8U * lena, cudaMemcpyDeviceToDevice));
@@ -63,13 +58,7 @@ void Kuiper_Softmax_F64_softmax(size_t lena, double_t *a)
   KRML_HOST_FREE(ca);
   double_t avg = x;
   MUST(cudaFree(a_));
-  KPR_KCALL(Kuiper_Softmax_F64_k_pointwise_div_f64,
-    lena,
-    (size_t)1U,
-    (size_t)4U,
-    (size_t)0U,
-    ga,
-    avg);
+  KPR_KCALL(k_pointwise_div_f64, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga, avg);
   cudaDeviceSynchronize();
   MUST(cudaMemcpy(a, ga, (size_t)8U * lena, cudaMemcpyDeviceToHost));
   MUST(cudaFree(ga));

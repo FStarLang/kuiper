@@ -4,15 +4,8 @@
 
 __global__
 
-void
-Kuiper_MatMul_F32_kernel_f32(
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+static void
+kernel_f32(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
   size_t tid = blockIdx_x();
@@ -37,7 +30,7 @@ float_t
   float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(Kuiper_MatMul_F32_kernel_f32,
+  KPR_KCALL(kernel_f32,
     rows * cols,
     (size_t)1U,
     (size_t)4U,

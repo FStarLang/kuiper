@@ -6,7 +6,7 @@ size_t Kuiper_DotProduct3_dp2_size = (size_t)1024U;
 
 __global__
 
-void Kuiper_DotProduct3_kernel(size_t nth, uint64_t *ga1, uint64_t *ga2, uint64_t *r)
+static void kernel(size_t nth, uint64_t *ga1, uint64_t *ga2, uint64_t *r)
 {
   size_t tid = threadIdx_x();
   uint64_t vm = ga1[tid] * ga2[tid];
@@ -37,7 +37,7 @@ uint64_t Kuiper_DotProduct3_main(uint64_t *a1, uint64_t *a2)
   MUST(cudaMemcpy(ga1, a1, (size_t)8U * Kuiper_DotProduct3_dp2_size, cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(ga2, a2, (size_t)8U * Kuiper_DotProduct3_dp2_size, cudaMemcpyHostToDevice));
   uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * Kuiper_DotProduct3_dp2_size);
-  KPR_KCALL(Kuiper_DotProduct3_kernel,
+  KPR_KCALL(kernel,
     (size_t)1U,
     Kuiper_DotProduct3_dp2_size,
     (size_t)8U,
