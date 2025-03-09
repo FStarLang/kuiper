@@ -121,7 +121,7 @@ type kernel_ty (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
     thread_id etid **
     kpost (SZ.v n) a v_a r done i (thread_index etid))
 
-[@@ CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}

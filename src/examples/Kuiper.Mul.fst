@@ -11,7 +11,7 @@ let smul (s1 : seq u64) (s2 : seq u64 { len s2 == len s1 })
 
 #lang-pulse
 
-[@@ CPrologue "__global__"]
+[@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel (#size : erased nat)
   (a1 a2 ar : gpu_array u64 size)
   (s1 s2 : erased (seq u64))
