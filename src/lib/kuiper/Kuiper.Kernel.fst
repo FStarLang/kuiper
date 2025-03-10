@@ -75,6 +75,8 @@ let barrier_shared_post
   : slprop
   = exists* it. mbarrier_tok nthr p it tid
 
+let norpm (n:nat) : rpm_t n = fun _ _ _ -> emp
+
 ghost
 fn barrier_setup
   (nblk : pos { nblk <= max_blocks })
@@ -88,8 +90,16 @@ fn barrier_setup
     block_setup nthr **
     (forall+ (i : natlt nthr). barrier_shared_pre nblk nthr p ar bid i)
 {
-  (* TODO *)
-  admit ();
+  open Pulse.Lib.BigStar;
+  drop_ (exists* v. gpu_pts_to_array #u32 #0 ar #1.0R v);
+  mk_mbarrier nthr p;
+  bigstar_eta ();
+  with p.
+    rewrite
+      bigstar 0 nthr p
+    as
+      bigstar 0 (Enumerable.cardinal (natlt nthr)) p;
+  forevery_fromstar #(natlt nthr) _;
 }
 
 inline_for_extraction noextract
@@ -208,8 +218,6 @@ fn launch_kernel_n_m_barrier
   drop_ (epoch_done e');
   drop_ (epoch_live _);
 }
-
-let norpm (n:nat) : rpm_t n = fun _ _ _ -> emp
 
 inline_for_extraction noextract
 fn no_barrier
