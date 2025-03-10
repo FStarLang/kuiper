@@ -183,7 +183,8 @@ fn gpu_matrix_share_n
   ensures
     bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
 {
-  admit(); // just tedious
+  unfold gpu_matrix_pts_to gm #f em;
+  gpu_slice_share #uid gm _ _ k;
 }
 
 ghost
@@ -201,7 +202,8 @@ fn gpu_matrix_gather_n
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  admit(); // just tedious
+  gpu_slice_gather #uid gm _ _ k;
+  fold gpu_matrix_pts_to gm #f em;
 }
 
 (* NOTE: we cannot just call the projector, since we
