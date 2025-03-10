@@ -139,9 +139,7 @@ PULSE_LIB_FLAGS := --admit_smt_queries true --warn_error -288
 
 $(CACHEDIR)/%.checked: | .fstar.touch .pulse.touch
 	@$(call msg,"CHECK")
-	ramon --mark $@.0
 	$(Q)$(FSTAR) $(if $(findstring pulse/,$<),$(PULSE_LIB_FLAGS)) --already_cached '*' -c $< -o $@
-	ramon --mark $@.1
 	@touch -c $@
 
 # Without .cmxs extension
@@ -163,17 +161,13 @@ echo-krml:
 # the Pulse plugin
 .depend: $(ROOTS) .fstar.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
-	ramon --mark $@.0
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@
-	ramon --mark $@.1
 
 
 depgraph: depend.pdf
 depend.pdf: .depend .force
 	$(call msg, "DEPEND GRAPH", $(SRC))
-	ramon --mark $@.0
 	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(EXTRACT) $(DEPFLAGS) -o .depend.graph
-	ramon --mark $@.1
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
@@ -183,7 +177,6 @@ $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
-	ramon --mark $@.0
 	$(Q)$(FSTAR) --codegen krml 						\
 		--load_cmxs $(PLUGIN)						\
 		--extract "-*" 							\
@@ -191,7 +184,6 @@ $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 		--extract "+Kuiper"						\
 		-o $@								\
 		$<
-	ramon --mark $@.1
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 $(OUTDIR)/%.cu: MOD=$(subst _,.,$(basename $(notdir $<)))
@@ -199,10 +191,8 @@ $(OUTDIR)/%.cu: MOD=$(subst _,.,$(basename $(notdir $<)))
 # but it triggers rebuilds when the plugin changes, which is good.
 $(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch .plugin.touch
 	$(call msg,"KRML")
-	ramon --mark $@.0
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
-	ramon --mark $@.1
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
