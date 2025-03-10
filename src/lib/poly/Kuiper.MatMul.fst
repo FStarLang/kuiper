@@ -140,7 +140,8 @@ fn kernel_fixed
   let s = !sum;
   M.gpu_matrix_write_cell gC trow tcol s;
 
-  admit();
+  assert (pure (SZ.v trow == thread_index etid / cols));
+  assert (pure (SZ.v tcol == thread_index etid % cols));
   rewrite
     M.gpu_matrix_pts_to_cell gC trow tcol
       (MS.matmul_single eA eB trow tcol shared)
