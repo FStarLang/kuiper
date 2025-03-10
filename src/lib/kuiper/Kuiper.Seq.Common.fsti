@@ -4,24 +4,54 @@ open FStar.Seq
 open Kuiper.Functions
 open Kuiper.Monoid
 
+type seq_view a =
+  | SNil
+  | SCons : a -> seq a -> seq_view a
+
+let pack_seq (v : seq_view 'a) : seq 'a =
+  match v with
+  | SNil -> Seq.empty
+  | SCons x xs -> Seq.cons x xs
+
+(* Mark as coercion? *)
+let view_seq (s : seq 'a) : v:(seq_view 'a){pack_seq v == s} =
+  if Seq.length s = 0
+  then  (
+    assert (Seq.equal s Seq.empty);
+    SNil
+  ) else SCons (Seq.head s) (Seq.tail s)
+
 unfold
 let ( @! ) (#a:Type) (s : seq a) (i : nat { i < Seq.length s }) : a = Seq.index #a s i
 
-let rec seq_fold_left (#t:Type) (f: t -> t -> t) (acc: t) (v: seq t)
-: GTot t (decreases length v)
-=
-  if length v = 0 then
-    acc
-  else
-    let hd = head v in
-    let tl = tail v in
-    seq_fold_left f (f acc hd) tl
+let rec seq_fold_left (#a #b : Type) (f: b -> a -> b) (acc: b) (v: seq a)
+  : GTot b (decreases length v)
+  = match view_seq v with
+    | SNil -> acc
+    | SCons hd tl -> seq_fold_left f (f acc hd) tl
+
+let rec seq_fold_right (#a #b : Type) (f: a -> b -> b) (v : seq a) (e : b)
+  : GTot b (decreases length v)
+  = match view_seq v with
+    | SNil -> e
+    | SCons hd tl -> f hd (seq_fold_right f tl e)
+
+val lemma_seq_fold_monoid (#a:Type) (e:a) (f: a -> a -> a)
+  (s : seq a)
+  : Lemma (requires is_monoid e f)
+          (ensures seq_fold_left f e s == seq_fold_right f s e)
+
+val lemma_seq_fold_right_sum (#a:Type) (e:a) (f: a -> a -> a)
+  (s1 s2 : seq a)
+  : Lemma (requires is_monoid e f)
+          (ensures seq_fold_right f (append s1 s2) e
+                   == seq_fold_right f s1 e `f` seq_fold_right f s2 e)
 
 val lemma_seq_fold_left_sum (#a:Type) (e:a) (f: a -> a -> a)
   (s1 s2 : seq a)
   : Lemma (requires is_monoid e f)
           (ensures seq_fold_left f e (append s1 s2)
-                   == f (seq_fold_left f e s1) (seq_fold_left f e s2))
+                   == seq_fold_left f e s1 `f` seq_fold_left f e s2)
 
 val lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
   : Lemma (requires i <= j /\ j <= k /\ k <= length s)
