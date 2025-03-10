@@ -397,12 +397,12 @@ fn matmul_transpose_gpu
   (kk :
     kernel_fixed_ty
       et
-      R.row_major R.row_major R.row_major
+      R.row_major R.row_major R.col_major
       rows shared cols
   )
-  (gA : M.gpu_matrix et rows shared R.row_major)
-  (gB : M.gpu_matrix et shared cols R.row_major)
-  (gC : M.gpu_matrix et cols rows R.col_major)
+  (gA : M.gpu_matrix et rows   shared R.row_major)
+  (gB : M.gpu_matrix et shared cols   R.row_major)
+  (gC : M.gpu_matrix et cols   rows   R.row_major)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et cols rows)
@@ -415,9 +415,9 @@ fn matmul_transpose_gpu
   ensures
     gC |-> mtranspose (MS.matmul eA eB)
 {
-  let gC' = GhostTranspose.ghost_transpose2 gC;
+  let gC' = GhostTranspose.ghost_transpose1 gC;
   matmul_gpu kk gA gB gC';
-  let gC'' = GhostTranspose.ghost_transpose1 gC';
+  let gC'' = GhostTranspose.ghost_transpose2 gC';
   M.core_match gC gC'';
   rewrite each gC'' as gC;
   ()
