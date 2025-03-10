@@ -76,7 +76,7 @@ fn gpu_matrix_abs
     (g' |-> em)
 {
   gpu_pts_to_ref (core g);
-  let g' : gpu_array et (rows0 * cols0) = core g;
+  let g' : gpu_array et (rows * cols) = core g;
   rewrite each core g as g';
   fold gpu_matrix_pts_to #_ #_ #_ #l g' #1.0R em;
   g'
