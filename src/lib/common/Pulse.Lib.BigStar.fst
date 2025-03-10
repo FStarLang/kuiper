@@ -670,6 +670,18 @@ fn bigstar_flatten
   admit(); // TODO
 }
 
+ghost
+fn bigstar_unflatten
+  (#u1 #u2 : int)
+  (#n1 : nat)
+  (#n2 : nat)
+  (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
+  requires bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
+  ensures  bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
+{
+  admit(); // TODO
+}
+
 (* Axiom of choice. *)
 ghost
 fn bigstar_exists
