@@ -53,3 +53,7 @@ lint:
 	( cd src && git sed 's/ *$$//' )
 	( cd src && ../scripts/find-pulse-noix.sh )
 	( cd src && ../scripts/check-attrs.sh )
+
+.PHONY: list-admits
+list-admits:
+	-git grep -w 'assume_\|assume\|admit' src
