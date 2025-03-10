@@ -58,9 +58,9 @@ jobs:
 
       - name: Startup check
         run: |
-          mkdir -p out
-          nvcc -I include/ -o out/startup.exe test/startup.cu
-          ./out/startup.exe
+          mkdir -p obj
+          nvcc -I include/ -o obj/startup.exe ci/startup.cu
+          ./obj/startup.exe
 
       - name: Set debug mode
         if: ${{ inputs.debug }}

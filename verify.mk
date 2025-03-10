@@ -1,3 +1,4 @@
+default: all
 include .common.mk
 
 .PHONY: .force
@@ -205,10 +206,6 @@ $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	$(call msg,"NVLD")
 	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
 
-$(OUTDIR)/startup.exe: test/startup.cu
-	$(call msg,"NVCC")
-	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_FLAGS) -o $@ $^
-
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 	$< > $@
 
@@ -224,29 +221,18 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(call msg,"ACCEPT")
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
-TESTS+=Kuiper_Example1
-TESTS+=Kuiper_DotProduct2
-TESTS+=Kuiper_DotProduct3
-TESTS+=Kuiper_MatMul_U64
-# TESTS+=Kuiper_MatMulTile
-# TESTS+=Kuiper_MatMulTileF32
-# TESTS+=Kuiper_MatMulTile_Async
-TESTS+=Kuiper_BasicFloat
-TESTS+=Kuiper_AtomicReduce_U64
-TESTS+=Kuiper_HReduce_U32Plus
-TESTS+=Kuiper_HReduce_U64Plus
-TESTS+=Kuiper_HReduce_F32Plus
-TESTS+=Kuiper_HReduce_F64Plus
-TESTS+=Kuiper_ArrayReversal
-TESTS+=Kuiper_Async1
-# TESTS+=Kuiper_Softmax_F16
+TESTS+=$(patsubst Test_%,%,$(notdir $(basename $(wildcard test/*.cu))))
+TESTS:=$(filter-out Kuiper_Softmax_F16, $(TESTS))
 # Disable softmax 16. It works fine locally (outside of docker)
 # but fails within in with undefined __hdiv. The nvcc there is slightly
 # older. Suprisignly using / just works, but that fails for other
 # operators. Forget it for now, but we should be principled about using
 # the correct feature flags or whatever.
-TESTS+=Kuiper_Softmax_F32
-TESTS+=Kuiper_Softmax_F64
+
+# matmultile is WIP
+TESTS:=$(filter-out Kuiper_MatMulTile_Async, $(TESTS))
+TESTS:=$(filter-out Kuiper_MatMulTile, $(TESTS))
+TESTS:=$(filter-out Kuiper_MatMulTileF32, $(TESTS))
 
 extraction-targets: \
 	obj/Kuiper_Example1.exe \
