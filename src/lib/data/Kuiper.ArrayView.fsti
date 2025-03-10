@@ -12,8 +12,8 @@ type aview (a : Type) (len : nat) (vt : Type) = {
   it : Type0; (* index type *)
   bij : lseq a len =~ vt; (* bijection to sequences *)
   (* the view type is a map from index type into element type *)
-  acc : it -> vt -> a;
-  upd : it -> a -> vt -> vt;
+  acc : it -> vt -> GTot a;
+  upd : it -> a -> vt -> GTot vt;
   ibij : natlt len =~ it; (* bijection of indexes. *)
 
   cidx : a:it -> c:sz{SZ.v c == ibij.gg a};
