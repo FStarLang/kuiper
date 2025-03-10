@@ -3,7 +3,6 @@ module Kuiper.ArrayView
 
 open Kuiper
 open Kuiper.Bijection
-module B = Kuiper.Array (* base *)
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 

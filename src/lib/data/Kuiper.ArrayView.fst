@@ -281,10 +281,10 @@ fn gpu_array_explode
   as
     bigstar 0 (Enumerable.cardinal (natlt len))
       (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
-  forevery_fromstar #(natlt len) 
+  forevery_fromstar #(natlt len)
       (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
   forevery_iso vw.ibij _;
-  assert 
+  assert
     forall+ (i:vw.it).
       gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.bij.gg v @! vw.ibij.gg i];
 
@@ -313,7 +313,7 @@ fn gpu_array_implode
     (fun i -> gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.bij.gg v @! vw.ibij.gg i]);
   forevery_iso_back vw.ibij
       (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
-  forevery_tostar #(natlt len) 
+  forevery_tostar #(natlt len)
       (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
   gpu_array_unslice_1 a;
   fold gpu_array_pts_to a #f v;
