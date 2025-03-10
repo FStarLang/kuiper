@@ -54,3 +54,29 @@ inline_for_extraction noextract
 instance crepr_col_major : crepr col_major = {
   map = clayout_col_major;
 }
+
+let bij_mirror (#rows #cols : nat) : (natlt rows & natlt cols =~ natlt rows & natlt cols) =
+  Mkbijection
+   #(natlt rows & natlt cols) #(natlt rows & natlt cols)
+   (fun (x, y) -> (rows-1-x, cols-1-y))
+   (fun (x, y) -> (rows-1-x, cols-1-y))
+   ez
+   ez
+
+inline_for_extraction
+let row_major_mirror : mrepr =
+  fun #rows #cols ->
+    { bij = bij_mirror `bij_comp` bij_nat_prod }
+
+inline_for_extraction noextract
+let clayout_row_major_mirror (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (row_major_mirror #rows #cols) =
+  let open FStar.SizeT in
+    mk_clayout #_ #_ (row_major_mirror #(SZ.v rows) #(SZ.v cols))
+      (fun i j -> rows *^ cols -^ 1sz -^ i *^ cols -^ j)
+      (fun idx -> rows -^ 1sz -^ idx `div` cols)
+      (fun idx -> cols -^ 1sz -^ idx %^ cols)
+
+inline_for_extraction noextract
+instance crepr_row_major_mirror : crepr row_major_mirror = {
+  map = clayout_row_major_mirror;
+}
