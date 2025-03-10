@@ -11,6 +11,7 @@ let varray #a #len #vt vw =
   B.gpu_array a len
 
 let core a = a
+let core_match a1 a2 = ()
 
 let varray_pts_to
   (#et:Type) (#len : erased nat) (#vt:_) (#vw : aview et len vt)

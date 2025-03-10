@@ -36,9 +36,6 @@ let cidx (#a : Type) (#len : erased nat) (#vt : Type)
   : (a:vw.it -> c:sz{SZ.v c == vw.ibij.gg a})
   = match vw with {cidx} -> cidx
 
-// inline_for_extraction
-// type mrepr = #len:nat -> alayout a len vt rows
-
 inline_for_extraction noextract
 val varray (#a : Type0) (#len : nat) (#vt : Type) (vw : aview a len vt) : Type0
 
@@ -49,6 +46,15 @@ val core
   (#vt : Type) (#vw : aview a len vt)
   (g : varray vw)
   : Kuiper.Array.gpu_array a len
+
+val core_match
+  (#et : Type)
+  (#len : erased nat)
+  (#vt : Type)
+  (#vw : aview et len vt)
+  (a1 a2 : varray vw)
+  : Lemma (requires core a1 == core a2)
+          (ensures  a1 == a2)
 
 val varray_pts_to
   (#a:Type) (#len : erased nat) (#vt:_) (#vw : aview a len vt)
