@@ -69,6 +69,15 @@ instance has_pts_to (#a:Type) (#len : nat) (#vt:Type) (#vw : aview a len vt)
   pts_to = varray_pts_to;
 }
 
+(* These are really ghost steps only... but
+since the varray type encodes the view as an argument,
+we return a new array (with the same core). This is so we do not
+expose that the varray type does not really use the layout
+argument. Exposing that may bring in some dangers wrt typeclass resolution
+picking the wrong view.
+
+But the current setting means we cannot do these shifts in ghost code...
+so maybe that's a bullet we should bite. *)
 inline_for_extraction noextract
 fn varray_concr
   (#t:Type0)
