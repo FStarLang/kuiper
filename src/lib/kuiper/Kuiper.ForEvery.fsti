@@ -99,6 +99,17 @@ fn forevery_iso
     forall+ (y:b). p (bij.gg y)
 
 ghost
+fn forevery_iso_back
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (bij : (a =~ b))
+  (p : a -> slprop)
+  requires
+    forall+ (y:b). p (bij.gg y)
+  ensures
+    forall+ (x:a). p x
+
+ghost
 fn forevery_tostar
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop)
