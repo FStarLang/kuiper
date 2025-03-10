@@ -11,12 +11,12 @@ inline_for_extraction noextract
 fn ghost_transpose1
   (#et:Type)
   (#rows #cols : erased nat)
-  (gA : gpu_matrix et rows cols Repr.row_major)
+  (gA : gpu_matrix et (Repr.row_major rows cols))
   (#m : ematrix et rows cols)
   requires
     gA |-> m
   returns
-    gA' : gpu_matrix et cols rows Repr.col_major
+    gA' : gpu_matrix et (Repr.col_major cols rows)
   ensures
     pure (core gA == core gA') **
     (gA' |-> mtranspose m)
@@ -25,12 +25,12 @@ inline_for_extraction noextract
 fn ghost_transpose2
   (#et:Type)
   (#rows #cols : erased nat)
-  (gA : gpu_matrix et rows cols Repr.col_major)
+  (gA : gpu_matrix et (Repr.col_major rows cols))
   (#m : ematrix et rows cols)
   requires
     gA |-> m
   returns
-    gA' : gpu_matrix et cols rows Repr.row_major
+    gA' : gpu_matrix et (Repr.row_major cols rows)
   ensures
     pure (core gA == core gA') **
     (gA' |-> mtranspose m)

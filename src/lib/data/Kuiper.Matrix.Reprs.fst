@@ -3,7 +3,6 @@ module Kuiper.Matrix.Reprs
 
 open Kuiper
 open Kuiper.Bijection
-open Kuiper.Matrix.Poly
 module SZ = FStar.SizeT
 
 (* Explicit constructor, helps with figuring out what is erased or not. *)
@@ -20,9 +19,9 @@ let mk_clayout (#rows #cols : _) (l : erased (mlayout rows cols))
   }
 
 inline_for_extraction noextract
-let clayout_row_major (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (row_major #rows #cols) =
+let clayout_row_major (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (row_major rows cols) =
   let open FStar.SizeT in
-    mk_clayout #_ #_ (row_major #(SZ.v rows) #(SZ.v cols))
+    mk_clayout (row_major (SZ.v rows) (SZ.v cols))
       (fun i j -> i *^ cols +^ j)
       (fun idx -> idx `div` cols)
       (fun idx -> idx %^ cols)
@@ -33,9 +32,9 @@ instance crepr_row_major : crepr row_major = {
 }
 
 inline_for_extraction noextract
-let clayout_col_major (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (col_major #rows #cols) =
+let clayout_col_major (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (col_major rows cols) =
   let open FStar.SizeT in
-    mk_clayout #_ #_ (col_major #(SZ.v rows) #(SZ.v cols))
+    mk_clayout (col_major (SZ.v rows) (SZ.v cols))
       (fun i j -> j *^ rows +^ i)
       (fun idx -> idx %^ rows)
       (fun idx -> idx `div` rows)
@@ -46,9 +45,9 @@ instance crepr_col_major : crepr col_major = {
 }
 
 inline_for_extraction noextract
-let clayout_row_major_mirror (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (row_major_mirror #rows #cols) =
+let clayout_row_major_mirror (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)}) : clayout (row_major_mirror rows cols) =
   let open FStar.SizeT in
-    mk_clayout #_ #_ (row_major_mirror #(SZ.v rows) #(SZ.v cols))
+    mk_clayout (row_major_mirror (SZ.v rows) (SZ.v cols))
       (fun i j -> rows *^ cols -^ 1sz -^ i *^ cols -^ j)
       (fun idx -> rows -^ 1sz -^ idx `div` cols)
       (fun idx -> cols -^ 1sz -^ idx %^ cols)

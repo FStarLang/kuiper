@@ -30,7 +30,7 @@ let seq_upd (#et:Type) (#rows #cols : nat)
   = assert (Seq.equal (to_seq l (mupd m i j v)) (Seq.upd (to_seq l m) (l.bij.ff (i,j)) v));
     ()
 
-let gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0 =
+let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
   gpu_array et (rows * cols)
 
 let core g = g
@@ -39,7 +39,7 @@ let core_match g1 g2 = ()
 let gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat)
   (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et rows cols l)
+  ([@@@mkey] gm : gpu_matrix et l)
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
   : slprop
@@ -50,7 +50,7 @@ fn gpu_matrix_concr
   (#et:Type)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
-  (g : gpu_matrix et rows cols l)
+  (g : gpu_matrix et l)
   (#em : ematrix et rows cols)
   requires
     g |-> em
@@ -64,13 +64,13 @@ inline_for_extraction noextract
 fn gpu_matrix_abs
   (#et:Type)
   (#rows0 #cols0 : erased nat) (#l0 : mlayout rows0 cols0)
-  (g : gpu_matrix et rows0 cols0 l0)
-  (rows cols : erased nat) (l : mlayout rows cols)
+  (g : gpu_matrix et l0)
+  (#rows #cols : erased nat) (l : mlayout rows cols)
   (#em : ematrix et rows cols)
   requires
     core g |-> to_seq l em
   returns
-    g' : gpu_matrix et rows cols l
+    g' : gpu_matrix et l
   ensures
     pure (rows * cols == rows0 * cols0 /\ core g == core g') **
     (g' |-> em)
@@ -92,7 +92,7 @@ fn gpu_matrix_alloc
   requires
     pure (SZ.fits (rows * cols))
   returns
-    gm : gpu_matrix et rows cols l
+    gm : gpu_matrix et l
   ensures
     exists* em. gm |-> em
 {
@@ -109,7 +109,7 @@ fn gpu_matrix_free
   (#et:Type)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (#em : _)
   preserves
     cpu
@@ -127,7 +127,7 @@ fn gpu_matrix_from_array
   (#rows #cols : szp)
   (#l : mlayout rows cols)
   (a : vec et)
-  (gA : gpu_matrix et rows cols l)
+  (gA : gpu_matrix et l)
   (#s : erased (seq et){ len s == rows * cols })
   preserves
     (a |-> s) **
@@ -150,7 +150,7 @@ fn gpu_matrix_to_array
   (#rows #cols : szp)
   (#l : mlayout rows cols)
   (a : vec et)
-  (gA : gpu_matrix et rows cols l)
+  (gA : gpu_matrix et l)
   (#m : ematrix et rows cols)
   preserves
     (gA |-> m) **
@@ -174,7 +174,7 @@ fn gpu_matrix_share_n
   (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
   (#em : ematrix et rows cols)
@@ -193,7 +193,7 @@ fn gpu_matrix_gather_n
   (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
   (#em : ematrix et rows cols)
@@ -224,7 +224,7 @@ fn gpu_matrix_read
   (#rows : erased nat)
   (#cols : erased nat)
   (#l : mlayout rows cols) {| c : clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (#f:perm)
@@ -254,7 +254,7 @@ fn gpu_matrix_write
   (#rows : erased nat)
   (#cols : erased nat)
   (#l : mlayout rows cols) {| c : clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (vv : et)
@@ -278,7 +278,7 @@ fn gpu_matrix_write
 let gpu_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et rows cols l)
+  ([@@@mkey] gm : gpu_matrix et l)
   (#[T.exact (`1.0R)] f : perm)
   ([@@@mkey]i : natlt rows)
   ([@@@mkey]j : natlt cols)
@@ -291,7 +291,7 @@ fn gpu_matrix_read_cell
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| c : clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (#f : perm)
@@ -319,7 +319,7 @@ fn gpu_matrix_write_cell
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| c : clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (v1 : et)
@@ -348,7 +348,7 @@ fn gpu_matrix_explode
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
@@ -381,7 +381,7 @@ fn gpu_matrix_implode
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (#f : perm)
   (#em : ematrix et rows cols)
   requires

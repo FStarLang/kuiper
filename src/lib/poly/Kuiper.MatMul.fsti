@@ -7,11 +7,12 @@ module M = Kuiper.Matrix.Poly
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 open Kuiper.EMatrix
+open Kuiper.Matrix.Reprs.Type
 
 inline_for_extraction
 val kernel_fixed_ty
   (et : Type0) {| scalar et |}
-  (rA rB rC : M.mrepr)
+  (rA rB rC : mrepr)
   (rows : nat)
   (shared : nat)
   (cols : nat{SZ.fits (rows * cols)})
@@ -20,10 +21,10 @@ val kernel_fixed_ty
 inline_for_extraction
 type kernel_ty
   (et : Type0) {| scalar et |}
-  (rA rB rC : M.mrepr)
-  {| cA : M.crepr rA |}
-  {| cB : M.crepr rB |}
-  {| cC : M.crepr rC |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
 =
   (#rows:szp) ->
   (#shared:szp) ->
@@ -33,18 +34,18 @@ type kernel_ty
 inline_for_extraction noextract
 val kernel
   (#et : Type0) {| scalar et |}
-  (rA rB rC : M.mrepr)
-  {| M.crepr rA |}
-  {| M.crepr rB |}
-  {| M.crepr rC |}
+  (rA rB rC : mrepr)
+  {| crepr rA |}
+  {| crepr rB |}
+  {| crepr rC |}
   : kernel_ty et rA rB rC
 
 unfold
 let matmul_ty (et : Type0) {| scalar et |}
-  (rA rB rC : M.mrepr)
-  {| M.crepr rA |}
-  {| M.crepr rB |}
-  {| M.crepr rC |}
+  (rA rB rC : mrepr)
+  {| crepr rA |}
+  {| crepr rB |}
+  {| crepr rC |}
   : Type0
   =
   (#rows : szp) ->
@@ -65,15 +66,16 @@ let matmul_ty (et : Type0) {| scalar et |}
     (cpu **
     (a |-> sa) **
     (b |-> sb)) **
-    (c |-> M.to_seq rC <| MS.matmul (M.from_seq #_ #rows #shared rA sa)
-                                    (M.from_seq #_ #shared #cols rB sb)))
+    (c |-> M.to_seq (rC rows cols) <|
+             MS.matmul (M.from_seq (rA rows shared) sa)
+                       (M.from_seq (rB shared cols) sb)))
 
 inline_for_extraction noextract
 val matmul
   (#et : Type0) {| scalar et |}
-  (#rA #rB #rC : M.mrepr)
-  {| M.crepr rA |}
-  {| M.crepr rB |}
-  {| M.crepr rC |}
+  (#rA #rB #rC : mrepr)
+  {| crepr rA |}
+  {| crepr rB |}
+  {| crepr rC |}
   (kk : kernel_ty et rA rB rC)
   : matmul_ty et rA rB rC

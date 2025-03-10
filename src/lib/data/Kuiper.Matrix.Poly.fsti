@@ -4,37 +4,9 @@ module Kuiper.Matrix.Poly
 open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Bijection
+open Kuiper.Matrix.Reprs.Type
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
-
-[@@erasable]
-noeq
-type mlayout (rows cols : nat) = {
-  bij     : (natlt rows & natlt cols) =~ natlt (rows * cols);
-}
-
-(* Concrete layout accessors. *)
-inline_for_extraction
-class clayout (#rows #cols : _) (l : mlayout rows cols) = {
-  c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)};
-  c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};
-  c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
-}
-
-inline_for_extraction
-type mrepr = #rows:nat -> #cols:nat -> mlayout rows cols
-
-inline_for_extraction
-class crepr (r:mrepr) = {
-  map : (rows:SZ.t -> cols:SZ.t{SZ.fits (rows * cols)} -> clayout (r #rows #cols));
-}
-
-inline_for_extraction noextract
-instance clayout_from_crepr
-  (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)})
-  (m : mrepr) (d : crepr m)
-  : clayout (m #rows #cols)
-  = d.map rows cols
 
 let from_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)
@@ -51,34 +23,35 @@ let to_seq (#et:Type) (#rows #cols : _)
       m.f i j)
 
 inline_for_extraction noextract
-val gpu_matrix (et:Type0) (rows cols : nat) (l : mlayout rows cols) : Type0
+val gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0
 
 inline_for_extraction noextract
 val core
   (#et : Type)
   (#rows #cols : erased nat)
-  (#l : _)
-  (g : gpu_matrix et rows cols l)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
   : gpu_array et (rows * cols)
 
 val core_match
   (#et : Type)
   (#rows #cols : erased nat)
-  (#l : _)
-  (g1 g2 : gpu_matrix et rows cols l)
+  (#l : mlayout rows cols)
+  (g1 g2 : gpu_matrix et l)
   : Lemma (requires core g1 == core g2)
           (ensures g1 == g2)
 
 val gpu_matrix_pts_to
   (#et:Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et rows cols l)
+  ([@@@mkey] gm : gpu_matrix et l)
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
   : slprop
 
+(* erased is important for the lens! *)
 unfold
-instance has_pts_to (a:Type) (rows cols l : _)
-  : has_pts_to (gpu_matrix a rows cols l) (ematrix a rows cols) = {
+instance has_pts_to (a:Type) (rows cols : erased nat) (l : _)
+  : has_pts_to (gpu_matrix a l) (ematrix a rows cols) = {
   pts_to = gpu_matrix_pts_to;
 }
 
@@ -96,7 +69,7 @@ fn gpu_matrix_concr
   (#et:Type)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
-  (g : gpu_matrix et rows cols l)
+  (g : gpu_matrix et l)
   (#em : ematrix et rows cols)
   requires
     g |-> em
@@ -107,13 +80,13 @@ inline_for_extraction noextract
 fn gpu_matrix_abs
   (#et:Type)
   (#rows0 #cols0 : erased nat) (#l0 : mlayout rows0 cols0)
-  (g : gpu_matrix et rows0 cols0 l0)
-  (rows cols : erased nat) (l : mlayout rows cols)
+  (g : gpu_matrix et l0)
+  (#rows #cols : erased nat) (l : mlayout rows cols)
   (#em : ematrix et rows cols)
   requires
     core g |-> to_seq l em
   returns
-    g' : gpu_matrix et rows cols l
+    g' : gpu_matrix et l
   ensures
     pure (rows * cols == rows0 * cols0 /\ core g == core g') **
     (g' |-> em)
@@ -128,7 +101,7 @@ fn gpu_matrix_alloc
   requires
     pure (SZ.fits (rows * cols))
   returns
-    gm : gpu_matrix et rows cols l
+    gm : gpu_matrix et l
   ensures
     exists* em. gm |-> em
 
@@ -137,7 +110,7 @@ fn gpu_matrix_free
   (#et:Type)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (#em : _)
   preserves
     cpu
@@ -151,7 +124,7 @@ fn gpu_matrix_from_array
   (#rows #cols : szp)
   (#l : mlayout rows cols)
   (a : vec et)
-  (gA : gpu_matrix et rows cols l)
+  (gA : gpu_matrix et l)
   (#s : erased (seq et){ len s == rows * cols })
   preserves
     (a |-> s) **
@@ -168,7 +141,7 @@ fn gpu_matrix_to_array
   (#rows #cols : szp)
   (#l : mlayout rows cols)
   (a : vec et)
-  (gA : gpu_matrix et rows cols l)
+  (gA : gpu_matrix et l)
   (#m : ematrix et rows cols)
   preserves
     (gA |-> m) **
@@ -185,7 +158,7 @@ fn gpu_matrix_share_n
   (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
   (#em : ematrix et rows cols)
@@ -200,7 +173,7 @@ fn gpu_matrix_gather_n
   (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
   (#em : ematrix et rows cols)
@@ -214,7 +187,7 @@ fn gpu_matrix_read
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (#f : perm)
@@ -233,7 +206,7 @@ fn gpu_matrix_write
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (v : et)
@@ -249,7 +222,7 @@ fn gpu_matrix_write
 val gpu_matrix_pts_to_cell
   (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et rows cols l)
+  ([@@@mkey] gm : gpu_matrix et l)
   (#[T.exact (`1.0R)] f : perm)
   ([@@@mkey]i : natlt rows)
   ([@@@mkey]j : natlt cols)
@@ -261,7 +234,7 @@ fn gpu_matrix_read_cell
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (#f : perm)
@@ -280,7 +253,7 @@ fn gpu_matrix_write_cell
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| clayout l |}
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
   (v1 : et)
@@ -297,7 +270,7 @@ fn gpu_matrix_explode
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
@@ -311,7 +284,7 @@ fn gpu_matrix_implode
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
-  (gm : gpu_matrix et rows cols l)
+  (gm : gpu_matrix et l)
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
