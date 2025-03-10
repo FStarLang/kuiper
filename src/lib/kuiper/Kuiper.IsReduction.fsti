@@ -3,7 +3,7 @@ module Kuiper.IsReduction
 open Kuiper.Functions
 open FStar.Seq
 
-val is_permutation (#a:Type) (s1 s2 :seq a) : prop
+val is_permutation (#a:Type) (s1 s2 : seq a) : prop
 
 noeq
 type is_reduction (#a:Type0) (z:a) (f : a -> a -> a) : (s : seq a) -> (r : a) -> Type0 =
