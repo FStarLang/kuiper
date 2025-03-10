@@ -186,11 +186,7 @@ kernel_u32_mirror(
   {
     size_t vi = i;
     sum +=
-      gA[rows
-      * shared
-      - (size_t)1U
-      - trow * shared
-      - vi]
+      gA[rows * shared - (size_t)1U - trow * shared - vi]
       * gB[shared * cols - (size_t)1U - vi * cols - tcol];
     i = vi + (size_t)1U;
   }
