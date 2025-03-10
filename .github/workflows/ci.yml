@@ -139,7 +139,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: output
-          path: out/
+          path: obj/*.cu
 
       - name: Spit out all CUDA files into action log
         if: ${{ always () }}
