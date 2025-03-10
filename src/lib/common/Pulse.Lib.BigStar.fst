@@ -395,6 +395,22 @@ fn bigstar_map
   bigstar_uneta ();
 }
 
+ghost
+fn bigstar_map2
+  (#u1 #u2 : int)
+  (#m : nat)  (#n : nat {m <= n})
+  (#m' : nat) (#n' : nat {m' <= n'})
+  (#f #g : (i:nat{m <= i /\ i < n}) -> (j:nat{m' <= j /\ j < n'}) -> slprop)
+  (stt: ((i: nat{m <= i /\ i < n}) ->
+            (j: nat{m' <= j /\ j < n'}) -> stt_ghost unit emp_inames
+            (f i j)
+            (fun _ -> g i j)))
+  requires bigstar #u1 m n (fun x -> bigstar #u2 m' n' (fun y -> f x y))
+  ensures  bigstar #u1 m n (fun x -> bigstar #u2 m' n' (fun y -> g x y))
+{
+  bigstar_map #u1 #u1 #m #n (fun x -> bigstar_map #u2 #u2 #m' #n' (stt x));
+}
+
 let lemma_eq
   (#u2 : int)
   (m0 : nat)
@@ -625,22 +641,21 @@ fn bigstar_permute
   requires bigstar #u1 m n f
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
 {
-  // bigstar 0 n (fun j -> f j)
   bigstar_map #u1 #u1 #m #n (fun j -> bigstar_if_intro #u1 m n (p.g j) (fun _ -> f j));
-  // bigstar 0 n (fun j -> bigstar 0 n (fun i -> cond (i == p.g j) (f j) emp)
   bigstar_commute #u1 #u1 m n m n (fun j i -> cond (i = (p.g j)) (f j) emp);
-  // bigstar 0 n (fun i -> bigstar 0 n (fun j -> cond (i == p.g j) (f j) emp)
-  bigstar_map #u1 #u1 #m #n (fun (j:nat { m <= j /\ j < n }) ->
-    bigstar_map #u1 #u1 #m #n (fun (i:nat { m <= i /\ i < n }) ->
-      // let tmp: squash ((j = p.g i) == (i = p.f j)) = (equality_translate #m #n j (p.g i) i (p.f j) (p.proof j i)) in
-      //  p.proof j i;
-      cond_rewrite_bool (j = (p.g i)) (i = (p.f j)) #(f i) #emp
-        // #tmp
-        #(assume ((j = (p.g i)) <==> (i = (p.f j)))) // <- TODO
-    ));
-  // bigstar 0 n (fun i -> bigstar 0 n (fun j -> cond (j == p.f i) (f j) emp)
+  ghost
+  fn aux (i : nat { m <= i /\ i < n }) (j : nat { m <= j /\ j < n })
+    requires cond (i = (p.g j)) (f j) emp
+    ensures  cond (j = (p.f i)) (f j) emp
+  {
+    p.proof i j;
+    assert (pure (i == p.g j <==> j == p.f i));
+    assert (pure ((i = p.g j) = (j = p.f i)));
+    cond_rewrite_bool (i = (p.g j)) (j = (p.f i)) #_ #_ #();
+    ();
+  };
+  bigstar_map2 #u1 #u1 #m #n #m #n aux;
   bigstar_map #u1 #u1 #m #n (fun j -> bigstar_if_elim #u1 #m #n (p.f j) f);
-  // bigstar 0 n (fun i -> f (p.f i))
 }
 
 ghost
