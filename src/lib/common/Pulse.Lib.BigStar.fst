@@ -101,7 +101,8 @@ let rec bigstar_star (#u1: int) (m : nat) (n : nat {m <= n}) (f g h : (i:nat { m
   )
 
 let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (n' : nat { m' <= n' /\ n' - m' == n - m })
-    (f : (i:nat { m <= i /\ i < n }) -> slprop) (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
+    (f : (i:nat { m <= i /\ i < n }) -> slprop)
+    (f' : (i:nat { m' <= i /\ i < n' }) -> slprop)
     (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m'+i))))
 : Lemma (ensures bigstar #u1 m n f == bigstar #u2 m' n' f')
         (decreases n-m)
@@ -659,15 +660,84 @@ fn bigstar_permute
 }
 
 ghost
-fn bigstar_flatten
+fn bigstar_cut
+  (#u1 : int)
+  (#n1 : nat)
+  (#n2 : nat{n1 <= n2})
+  (n3 : nat{n1 <= n3 /\ n3 <= n2})
+  (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
+  requires bigstar #u1 n1 n2 f
+  ensures  bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
+{
+  bigstar_split #u1 n1 n2 f n3;
+  rewrite bigstar #u1 n1 n2 f
+       as bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f;
+}
+
+ghost
+fn bigstar_paste
+  (#u1 : int)
+  (#n1 : nat)
+  (#n2 : nat{n1 <= n2})
+  (n3 : nat{n1 <= n3 /\ n3 <= n2})
+  (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
+  requires bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
+  ensures  bigstar #u1 n1 n2 f
+{
+  bigstar_split #u1 n1 n2 f n3;
+  rewrite bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
+       as bigstar #u1 n1 n2 f;
+}
+
+ghost
+fn bigstar_shift
+  (#u1 : int)
+  (#n1 : nat)
+  (#n2 : nat{n1 <= n2})
+  (s : int{s + n1 >= 0})
+  (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
+  requires bigstar #u1 n1 n2 f
+  ensures  bigstar #u1 (n1 + s) (n2 + s) (fun x -> f (x - s))
+{
+  bigstar_congr #u1 #u1 n1 n2 (n1 + s) (n2 + s) f (fun x -> f (x - s))
+    (fun (i:nat{i < n2-n1}) -> assert (f (n1+i) == f (((n1+s) + i) - s)));
+  rewrite bigstar #u1 n1 n2 f
+       as bigstar #u1 (n1 + s) (n2 + s) (fun x -> f (x - s));
+}
+
+ghost
+fn rec bigstar_flatten
   (#u1 #u2 : int)
   (#n1 : nat)
   (#n2 : nat)
   (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
   requires bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
   ensures  bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
+  decreases n1
 {
-  admit(); // TODO
+  if (n1 = 0) {
+    rewrite bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i)) as emp;
+    rewrite emp as bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2));
+  } else {
+    bigstar_extract 0 n1 (fun i -> bigstar #u2 0 n2 (f i)) (n1-1);
+    rewrite
+      bigstar #u1 ((n1-1)+1) n1 (fun i -> bigstar #u2 0 n2 (f i))
+    as emp;
+    bigstar_flatten #u1 #u2 #(n1-1) #n2 #(fun x -> f x);
+    bigstar_shift #u2 #0 #n2 ((n1-1)*n2)
+      #(fun i -> f (n1-1) i);
+    bigstar_ext u2 u2 ((n1-1)*n2) (n1*n2)
+      (fun i -> f (n1-1) (i - (n1-1)*n2))
+      (fun i -> f (i/n2) (i%n2));
+    rewrite each (0 + ((n1-1) `op_Multiply` n2)) as ((n1-1)*n2);
+    rewrite each (n2 + ((n1-1) `op_Multiply` n2)) as (n1*n2);
+    assert bigstar #u2 ((n1-1)*n2) (n1*n2) (fun i -> f (i/n2) (i%n2));
+    // retag
+    rewrite bigstar #u2 ((n1-1)*n2) (n1*n2) (fun i -> f (i/n2) (i%n2))
+         as bigstar #u1 ((n1-1)*n2) (n1*n2) (fun i -> f (i/n2) (i%n2));
+    let f' = (fun (ij : nat {0 <= ij /\ ij < n1 * n2}) -> f (ij / n2) (ij % n2));
+    bigstar_paste #u1 #0 #(n1*n2) ((n1-1)*n2) #f';
+  }
 }
 
 ghost
@@ -679,7 +749,7 @@ fn bigstar_unflatten
   requires bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
   ensures  bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
 {
-  admit(); // TODO
+  admit(); (* reverse the _flatten *)
 }
 
 (* Axiom of choice. *)
