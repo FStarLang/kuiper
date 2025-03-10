@@ -91,7 +91,15 @@ fn forevery_unflatten
     forevery a (fun x ->
       forevery b (fun y -> f x y))
 {
-  admit(); // clearly true, fill in
+  unfold forevery (a & b) (fun (x, y) -> f x y);
+  assert bigstar 0 (cardinal (a & b)) (fun i -> let x, y = of_nat i in f x y);
+  rewrite
+    bigstar 0 (cardinal (a & b)) (fun i -> let x, y = of_nat i in f x y)
+  as
+    bigstar 0 (cardinal a * cardinal b) (fun i -> f (of_nat (i / cardinal b)) (of_nat (i % cardinal b)));
+  bigstar_unflatten #0 #0 #(cardinal a) #(cardinal b) #(fun x y -> f (of_nat x) (of_nat y));
+  fold forevery a (fun x ->
+    forevery b (fun y -> f x y));
 }
 
 ghost
