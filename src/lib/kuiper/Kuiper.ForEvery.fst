@@ -151,7 +151,7 @@ ghost
 fn forevery_iso
   (#a:Type0) {| ea : enumerable a |}
   (#b:Type0) {| eb : enumerable b |}
-  (bij : (a =~ b))
+  (bij : erased (a =~ b))
   (p : a -> slprop)
   requires
     forall+ (x:a). p x
@@ -185,7 +185,7 @@ ghost
 fn forevery_iso_back
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
-  (bij : (a =~ b))
+  (bij : erased (a =~ b))
   (p : a -> slprop)
   requires
     forall+ (y:b). p (bij.gg y)
@@ -193,6 +193,23 @@ fn forevery_iso_back
     forall+ (x:a). p x
 {
   forevery_iso (bij_sym bij) _;
+}
+
+ghost
+fn forevery_permute
+  (#a:Type0) {| ea: enumerable a |}
+  (bij : erased (a =~ a))
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    forall+ (x:a). p (bij.ff x)
+{
+  unfold forevery a (fun x -> p x);
+  bigstar_permute'
+    (fun i -> p (of_nat i))
+    (bij_sym ea.bij `bij_comp` bij `bij_comp` ea.bij);
+  fold forevery a (fun x -> p (of_nat (to_nat (bij.ff x))));
 }
 
 ghost
