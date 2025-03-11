@@ -3,7 +3,7 @@ module Kuiper.Bijection
 #lang-pulse
 
 open Kuiper.Common
-open FStar.Tactics.V2
+open FStar.Functions
 
 let galois_nopat (#a #b : _) (d : a =~ b) (x:a) (y:b)
   : Lemma (d.ff x == y <==> x == d.gg y)
@@ -22,21 +22,21 @@ let galois_forall (#a #b : _) (d : a =~ b)
   = Classical.forall_intro_2 (galois_nopat d)
 #pop-options
 
+val __pigeon (n1:nat) (n2:nat{n2 < n1})
+  (f : natlt n1 -> natlt n2)
+  : Lemma (requires is_inj f) (ensures False)
+let __pigeon n1 n2 f = admit()
+
+val pigeon (n1:nat) (n2:nat{n2 < n1})
+  (f : natlt n1 -> natlt n2)
+  : Lemma (exists x y. f x == f y /\ x =!= y)
+let pigeon n1 n2 f =
+  Classical.forall_intro (Classical.move_requires (__pigeon n1 n2))
+
 let __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
   : Lemma (n1 == n2) =
-  let auxf (x y : natlt n1) : Lemma (bij.ff x == bij.ff y ==> x == y) =
-    bij.gg_ff x;
-    bij.gg_ff y
-  in
-  Classical.forall_intro_2 auxf;
-  let auxg (x y : natlt n2) : Lemma (bij.gg x == bij.gg y ==> x == y) =
-    bij.ff_gg x;
-    bij.ff_gg y
-  in
-  Classical.forall_intro_2 auxg;
-  (* clearly true, can't be bothered to prove right now *)
-  assume (n1 > n2 ==> exists x y. bij.ff x == bij.ff y /\ x =!= y);
-  assume (n1 < n2 ==> exists x y. bij.gg x == bij.gg y /\ x =!= y);
+  if n1 > n2 then pigeon n1 n2 bij.ff;
+  if n1 < n2 then pigeon n2 n1 bij.gg;
   ()
 
 let bij_cardinal (n1 n2 : nat)

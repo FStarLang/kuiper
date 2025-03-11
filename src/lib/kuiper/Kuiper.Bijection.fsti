@@ -2,7 +2,6 @@ module Kuiper.Bijection
 
 #lang-pulse
 open Kuiper.Common
-open FStar.Tactics.V2
 module SZ = FStar.SizeT
 open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 
@@ -42,8 +41,8 @@ let bij_self (a:Type) : (a =~ a) =
 {
   ff = id;
   gg = id;
-  ff_gg = easy;
-  gg_ff = easy;
+  ff_gg = ez;
+  gg_ff = ez;
 }
 
 unfold
@@ -106,8 +105,8 @@ let bij_nat_prod (#n1 #n2 : nat) : (natlt n1 & natlt n2 =~ natlt (n1 * n2)) =
 {
   ff = prod_ff n1 n2;
   gg = prod_gg n1 n2;
-  ff_gg = easy;
-  gg_ff = easy;
+  ff_gg = ez;
+  gg_ff = ez;
 }
 
 val __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
@@ -150,6 +149,6 @@ let bij_sz_prod (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   = {
     ff = sz_prod_ff n1 n2;
     gg = sz_prod_gg n1 n2;
-    ff_gg = easy;
-    gg_ff = easy;
+    ff_gg = ez;
+    gg_ff = ez;
   }
