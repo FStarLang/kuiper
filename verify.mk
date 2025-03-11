@@ -80,6 +80,7 @@ FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext context_pruning
 FSTAR_FLAGS += --ext no_krml_private
 FSTAR_FLAGS += --ext krml_inline_all
+FSTAR_FLAGS += --error_contexts true
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
