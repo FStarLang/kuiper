@@ -20,8 +20,8 @@ let mkM (#et:Type) (#rows #cols : nat)
 
 let macc (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
-  (i : nat{ i < rows })
-  (j : nat{ j < cols })
+  (i : natlt rows)
+  (j : natlt cols)
   : GTot et
   = m.f (i, j)
 
@@ -38,8 +38,8 @@ let mupd (#et:Type) (#rows #cols : nat)
 
 val macc_pat (#et :Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
-  (i : nat{ i < rows })
-  (j : nat{ j < cols })
+  (i : natlt rows)
+  (j : natlt cols)
   : Lemma (macc m i j == m.f (i, j))
           [SMTPat (m.f (i, j))]
 
