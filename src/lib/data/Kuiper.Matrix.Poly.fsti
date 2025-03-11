@@ -39,7 +39,7 @@ val core_match
           (ensures g1 == g2)
 
 val gpu_matrix_pts_to
-  (#et:Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
+  (#et:Type) (#rows #cols : nat) (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et l)
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
@@ -80,7 +80,7 @@ fn gpu_matrix_abs
     (g' |-> em)
 
 inline_for_extraction noextract
-fn gpu_matrix_alloc
+fn gpu_matrix_alloc0
   (#et:Type) {| sized et |}
   (rows cols : szp)
   (l : mlayout rows cols)
@@ -105,40 +105,6 @@ fn gpu_matrix_free
   requires
     gm |-> em
   ensures emp
-
-inline_for_extraction noextract
-fn gpu_matrix_from_array
-  (#et:Type) {| sized et |}
-  (#rows #cols : szp)
-  (#l : mlayout rows cols)
-  (a : vec et)
-  (gA : gpu_matrix et l)
-  (#s : erased (seq et){ len s == rows * cols })
-  preserves
-    (a |-> s) **
-    cpu
-  requires
-    (gA |-> 'm0) **
-    pure (SZ.fits (rows * cols))
-  ensures
-    gA |-> from_seq l s
-
-inline_for_extraction noextract
-fn gpu_matrix_to_array
-  (#et:Type) {| sized et |}
-  (#rows #cols : szp)
-  (#l : mlayout rows cols)
-  (a : vec et)
-  (gA : gpu_matrix et l)
-  (#m : ematrix et rows cols)
-  preserves
-    (gA |-> m) **
-    cpu
-  requires
-    (a |-> 's0) **
-    pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols)
-  ensures
-    a |-> to_seq l m
 
 ghost
 fn gpu_matrix_share_n
@@ -176,8 +142,8 @@ fn gpu_matrix_read
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| clayout l |}
   (gm : gpu_matrix et l)
-  (i : sz{SZ.v i < rows})
-  (j : sz{SZ.v j < cols})
+  (i : szlt rows)
+  (j : szlt cols)
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
@@ -280,3 +246,39 @@ fn gpu_matrix_implode
       gpu_matrix_pts_to_cell gm #f r c (macc em r c)
   ensures
     gpu_matrix_pts_to gm #f em
+
+inline_for_extraction noextract
+fn gpu_matrix_from_array
+  (#et:Type0) {| sized et |}
+  (#rows #cols : SZ.t)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == rows * cols})
+  (#em : ematrix et rows cols)
+  preserves
+    (a |-> s) **
+    cpu
+  requires
+    (gm |-> em)
+  ensures
+    pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
+    (gm |-> from_seq l s)
+
+inline_for_extraction noextract
+fn gpu_matrix_to_array
+  (#et:Type0) {| sized et |}
+  (#rows #cols : SZ.t)
+  (#l : mlayout rows cols)
+  (a : vec et)
+  (gm : gpu_matrix et l)
+  (#s : erased (seq et){Seq.length s == rows * cols})
+  (#em : ematrix et rows cols)
+  preserves
+    (gm |-> em) **
+    cpu
+  requires
+    (a |-> s)
+  ensures
+    pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
+    (a |-> to_seq l em)

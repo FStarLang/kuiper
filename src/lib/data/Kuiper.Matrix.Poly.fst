@@ -3,47 +3,99 @@ module Kuiper.Matrix.Poly
 
 open Kuiper
 open Kuiper.Bijection
+open Kuiper.GhostMap
+open Kuiper.EMatrix
+module A = Kuiper.ArrayView
 module T = FStar.Tactics.V2
 
-let to_from_inv (#et:Type) (#rows #cols : nat) (l : mlayout rows cols)
+let ematrix_is_ghost_map
+  (et:Type) (#rows #cols : nat)
+  : is_ghost_map (ematrix et rows cols) (natlt rows & natlt cols) et
+= {
+    bij = {
+      ff = (fun m -> M?.f m);
+      gg = (fun f -> M f);
+      ff_gg = ez;
+      gg_ff = ez;
+    };
+    acc = (fun m (i, j) -> macc m i j);
+    upd = (fun m (i, j) x -> mupd m i j x);
+    l1 = ez;
+    l2 = ez;
+  }
+
+let aview_from_mlayout
+  (et : Type) (#rows #cols : nat)
+  (l : mlayout rows cols)
+  : GTot (A.aview et (rows * cols) (ematrix et rows cols)) =
+  {
+    it = natlt rows & natlt cols;
+    igm = ematrix_is_ghost_map et;
+    ibij = l.bij;
+  }
+
+let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : lseq et (rows * cols))
-  : Lemma (to_seq l (from_seq l s) == s)
-          [SMTPat (to_seq l (from_seq l s))]
-  = assert (Seq.equal (to_seq l (from_seq l s)) s);
+  : Lemma (from_seq l s == A.from_seq (aview_from_mlayout et l) s)
+  = admit(); assert (Kuiper.EMatrix.equal (from_seq l s) (A.from_seq (aview_from_mlayout et l) s));
     ()
 
-let seq_acc (#et:Type) (#rows #cols : nat)
-  (l : mlayout rows cols)
-  (m : ematrix et rows cols)
-  (i : natlt rows) (j : natlt cols)
-  : Lemma (macc m i j == to_seq l m @! l.bij.ff (i,j))
-          [SMTPat (macc m i j); SMTPat (to_seq l m)]
-  = ()
-
-let seq_upd (#et:Type) (#rows #cols : nat)
-  (l : mlayout rows cols)
-  (m : ematrix et rows cols)
-  (i : natlt rows) (j : natlt cols)
-  (v : et)
-  : Lemma (to_seq l (mupd m i j v) == Seq.upd (to_seq l m) (l.bij.ff (i,j)) v)
-          [SMTPat (mupd m i j v); SMTPat (to_seq l m)]
-  = assert (Seq.equal (to_seq l (mupd m i j v)) (Seq.upd (to_seq l m) (l.bij.ff (i,j)) v));
+let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
+  (s : ematrix et rows cols)
+  : Lemma (to_seq l s == A.to_seq (aview_from_mlayout et l) s)
+  = admit(); 
     ()
+
+inline_for_extraction noextract
+let cview_from_clayout_ff
+  (et : Type)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (c : clayout l)
+  : szlt rows & szlt cols -> szlt (rows * cols)
+  = fun (i, j) -> c.c_to i j <: szlt (rows * cols)
+
+inline_for_extraction noextract
+let cview_from_clayout_gg
+  (et : Type)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (c : clayout l)
+  : szlt (rows * cols) -> szlt rows & szlt cols
+  = fun x -> (c.c_from1 x, c.c_from2 x)
+
+inline_for_extraction noextract
+instance cview_from_clayout
+  (et : Type)
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  (c : clayout l)
+  : A.cview (aview_from_mlayout et l) =
+{
+  lenfits = ();
+  cit = szlt rows & szlt cols;
+  cibij = {
+    ff = cview_from_clayout_ff et c;
+    gg = cview_from_clayout_gg et c;
+    ff_gg = ez;
+    gg_ff = ez;
+  };
+}
 
 let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
-  gpu_array et (rows * cols)
+  A.varray (aview_from_mlayout et #rows #cols l)
 
-let core g = g
-let core_match g1 g2 = ()
+let core g = A.core g
+let core_match g1 g2 = A.core_match g1 g2
 
 let gpu_matrix_pts_to
-  (#et:Type) (#rows #cols : erased nat)
+  (#et:Type) (#rows #cols : nat)
   (#l : mlayout rows cols)
   ([@@@mkey] gm : gpu_matrix et l)
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
   : slprop
-  = gpu_pts_to_array gm #f (to_seq l em)
+  = A.varray_pts_to gm #f em
 
 inline_for_extraction noextract
 fn gpu_matrix_concr
@@ -58,6 +110,9 @@ fn gpu_matrix_concr
     core g |-> to_seq l em
 {
   unfold gpu_matrix_pts_to g #1.0R em;
+  let a' = A.varray_concr g;
+  assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et #rows #cols l) em)));
+  a'
 }
 
 inline_for_extraction noextract
@@ -75,15 +130,15 @@ fn gpu_matrix_abs
     pure (rows * cols == rows0 * cols0 /\ core g == core g') **
     (g' |-> em)
 {
-  gpu_pts_to_ref (core g);
-  let g' : gpu_array et (rows * cols) = core g;
-  rewrite each core g as g';
-  fold gpu_matrix_pts_to #_ #_ #_ #l g' #1.0R em;
+  assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
+  rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
+  let g' = A.varray_abs g (aview_from_mlayout et l);
+  fold gpu_matrix_pts_to g' em;
   g'
 }
 
 inline_for_extraction noextract
-fn gpu_matrix_alloc
+fn gpu_matrix_alloc0
   (#et:Type) {| sized et |}
   (rows cols : szp)
   (l : mlayout rows cols)
@@ -97,10 +152,9 @@ fn gpu_matrix_alloc
     exists* em. gm |-> em
 {
   open FStar.SizeT;
-  let gm = gpu_array_alloc #et (rows *^ cols);
-  with s. assert (gpu_pts_to_array gm #1.0R s);
-  let em = from_seq l s;
-  fold (gpu_matrix_pts_to #_ #_ #_ #l gm em);
+  let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);
+  with s. assert (A.varray_pts_to gm #1.0R s);
+  fold gpu_matrix_pts_to gm s;
   gm;
 }
 
@@ -118,54 +172,7 @@ fn gpu_matrix_free
   ensures emp
 {
   unfold gpu_matrix_pts_to gm em;
-  gpu_array_free gm;
-}
-
-inline_for_extraction noextract
-fn gpu_matrix_from_array
-  (#et:Type) {| sized et |}
-  (#rows #cols : szp)
-  (#l : mlayout rows cols)
-  (a : vec et)
-  (gA : gpu_matrix et l)
-  (#s : erased (seq et){ len s == rows * cols })
-  preserves
-    (a |-> s) **
-    cpu
-  requires
-    (gA |-> 'm0) **
-    pure (SZ.fits (rows * cols))
-  ensures
-    gA |-> from_seq l s
-{
-  unfold gpu_matrix_pts_to gA 'm0;
-  Kuiper.Array.gpu_memcpy_host_to_device gA a (SZ.mul rows cols);
-  fold gpu_matrix_pts_to gA (from_seq l s);
-  ();
-}
-
-inline_for_extraction noextract
-fn gpu_matrix_to_array
-  (#et:Type) {| sized et |}
-  (#rows #cols : szp)
-  (#l : mlayout rows cols)
-  (a : vec et)
-  (gA : gpu_matrix et l)
-  (#m : ematrix et rows cols)
-  preserves
-    (gA |-> m) **
-    cpu
-  requires
-    (a |-> 's0) **
-    pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols)
-  ensures
-    a |-> to_seq l m
-{
-  Pulse.Lib.Vec.pts_to_len a;
-  unfold gpu_matrix_pts_to gA m;
-  Kuiper.Array.gpu_memcpy_device_to_host a gA (SZ.mul rows cols);
-  fold gpu_matrix_pts_to gA m;
-  ();
+  A.varray_free gm;
 }
 
 ghost
@@ -184,7 +191,15 @@ fn gpu_matrix_share_n
     bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
 {
   unfold gpu_matrix_pts_to gm #f em;
-  gpu_slice_share #uid gm _ _ k;
+  A.varray_share_n gm k;
+  ghost
+  fn aux (i:natlt k)
+    requires A.varray_pts_to gm #(f /. k) em
+    ensures  gpu_matrix_pts_to gm #(f /. k) em
+  {
+    fold gpu_matrix_pts_to gm #(f /. k) em;
+  };
+  bigstar_map #0 #uid #0 #k aux;
 }
 
 ghost
@@ -202,77 +217,67 @@ fn gpu_matrix_gather_n
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  gpu_slice_gather #uid gm _ _ k;
+  ghost
+  fn aux (i:natlt k)
+    requires gpu_matrix_pts_to gm #(f /. k) em
+    ensures  A.varray_pts_to gm #(f /. k) em
+  {
+    unfold gpu_matrix_pts_to gm #(f /. k) em;
+  };
+  bigstar_map #uid #0 #0 #k aux;
+  A.varray_gather_n gm k;
   fold gpu_matrix_pts_to gm #f em;
 }
-
-(* NOTE: we cannot just call the projector, since we
-need the concrete nats to do so (?!) and that would
-incur a ghost effect. *)
-inline_for_extraction noextract
-let lcto (#rows #cols : erased nat)
-  (#l : mlayout rows cols) {| c : clayout l |}
-  (i : SZ.t{SZ.v i < rows})
-  (j : SZ.t{SZ.v j < cols})
-  : r:SZ.t{r == c.c_to i j}
-  = match c with
-    | { c_to } -> c_to i j
 
 inline_for_extraction noextract
 fn gpu_matrix_read
   (#et:Type0)
-  (#rows : erased nat)
-  (#cols : erased nat)
-  (#l : mlayout rows cols) {| c : clayout l |}
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols) {| cl : clayout l |}
   (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
-  (#f:perm)
+  (#f : perm)
   (#em : ematrix et rows cols)
   requires
     gpu **
     gpu_matrix_pts_to gm #f em
-  returns
-    v : et
+  returns v : et
   ensures
     gpu **
     gpu_matrix_pts_to gm #f em **
     pure (v == macc em i j)
 {
-  open FStar.SizeT;
   unfold gpu_matrix_pts_to gm #f em;
-  gpu_pts_to_ref gm;
-  let idx : sz = lcto #_ #_ #_ #c i j;
-  let v = gpu_array_read #et #(rows * cols) #0 #(rows * cols) gm idx;
+  let r = A.varray_read gm (i,j);
   fold gpu_matrix_pts_to gm #f em;
-  v;
+  r
 }
 
 inline_for_extraction noextract
 fn gpu_matrix_write
   (#et:Type0)
-  (#rows : erased nat)
-  (#cols : erased nat)
-  (#l : mlayout rows cols) {| c : clayout l |}
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols) {| clayout l |}
   (gm : gpu_matrix et l)
   (i : sz{SZ.v i < rows})
   (j : sz{SZ.v j < cols})
-  (vv : et)
+  (v : et)
   (#em : ematrix et rows cols)
   requires
     gpu **
     gpu_matrix_pts_to gm em
   ensures
     gpu **
-    gpu_matrix_pts_to gm (mupd em i j vv)
+    gpu_matrix_pts_to gm (mupd em i j v)
 {
-  open FStar.SizeT;
   unfold gpu_matrix_pts_to gm em;
-  gpu_pts_to_ref gm;
-  let idx = lcto #_ #_ #_ #c i j;
-  gpu_array_write #et #(rows * cols) #0 #(rows * cols) gm idx vv;
-  fold gpu_matrix_pts_to gm (mupd em i j vv);
-  ();
+  A.varray_write gm (i,j) v;
+  assert (pure (
+    mupd em i j v
+    `Kuiper.EMatrix.equal`
+    (aview_from_mlayout et #rows #cols l).igm.upd em (A.cit_to_it _ (i,j)) v));
+  fold gpu_matrix_pts_to gm (mupd em i j v);
 }
 
 let gpu_matrix_pts_to_cell
@@ -284,7 +289,7 @@ let gpu_matrix_pts_to_cell
   ([@@@mkey]j : natlt cols)
   (v : et)
   : slprop
-  = gpu_pts_to_slice gm #f (l.bij.ff (i,j)) (l.bij.ff (i,j) + 1) seq![v]
+  = A.varray_pts_to_cell gm #f (i,j) v
 
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
@@ -292,8 +297,8 @@ fn gpu_matrix_read_cell
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| c : clayout l |}
   (gm : gpu_matrix et l)
-  (i : sz{SZ.v i < rows})
-  (j : sz{SZ.v j < cols})
+  (i : szlt rows)
+  (j : szlt cols)
   (#f : perm)
   (#v0 : erased et)
   requires
@@ -305,11 +310,14 @@ fn gpu_matrix_read_cell
     gpu_matrix_pts_to_cell gm #f i j v **
     pure (v == v0)
 {
-  open FStar.SizeT;
   unfold gpu_matrix_pts_to_cell gm #f i j v0;
-  gpu_pts_to_slice_ref #et #(rows * cols) #f gm _ _ #(seq![reveal v0]);
-  let idx = lcto #_ #_ #_ #c i j;
-  let v = gpu_array_read #et #(rows * cols) #idx #(idx+1) gm idx;
+  (* very awkward *)
+  rewrite
+    each Mktuple2 #(natlt rows) #(natlt cols) (SZ.v i) (SZ.v j)
+      as A.cit_to_it (aview_from_mlayout et l) (i, j);
+  let v = A.varray_read_cell gm (i,j);
+  with ai. assert (A.varray_pts_to_cell gm #f ai v0);
+  rewrite each ai as Mktuple2 #(natlt rows) #(natlt cols) i j;
   fold gpu_matrix_pts_to_cell gm #f i j v0;
   v;
 }
@@ -320,8 +328,8 @@ fn gpu_matrix_write_cell
   (#rows #cols : erased nat)
   (#l : mlayout rows cols) {| c : clayout l |}
   (gm : gpu_matrix et l)
-  (i : sz{SZ.v i < rows})
-  (j : sz{SZ.v j < cols})
+  (i : szlt rows)
+  (j : szlt cols)
   (v1 : et)
   (#v0 : erased et)
   requires
@@ -331,15 +339,14 @@ fn gpu_matrix_write_cell
     gpu **
     gpu_matrix_pts_to_cell gm i j v1
 {
-  open FStar.SizeT;
   unfold gpu_matrix_pts_to_cell gm i j v0;
-  gpu_pts_to_slice_ref #et #(rows * cols) gm _ _ #(seq![reveal v0]);
-  let idx = lcto #_ #_ #_ #c i j;
-  assert (gpu_pts_to_slice gm idx (idx+1) seq![reveal v0]);
-  gpu_array_write #et #(rows * cols) #idx #(idx+1) gm idx v1;
-  with s'. assert (gpu_pts_to_slice gm idx (idx+1) s');
-  Kuiper.Seq.Common.lem_one_elem s' v1;
-  assert (gpu_pts_to_slice gm idx (idx+1) seq![v1]);
+  (* very awkward *)
+  rewrite
+    each Mktuple2 #(natlt rows) #(natlt cols) (SZ.v i) (SZ.v j)
+      as A.cit_to_it (aview_from_mlayout et l) (i, j);
+  A.varray_write_cell gm (i,j) v1;
+  with ai. assert (A.varray_pts_to_cell gm #1.0R ai v1);
+  rewrite each ai as Mktuple2 #(natlt rows) #(natlt cols) i j;
   fold gpu_matrix_pts_to_cell gm i j v1;
 }
 
@@ -358,22 +365,16 @@ fn gpu_matrix_explode
       gpu_matrix_pts_to_cell gm #f r c (macc em r c)
 {
   unfold gpu_matrix_pts_to gm #f em;
-  gpu_array_slice_1 gm;
-  assert bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
-  rewrite
-    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i])
-  as
-    bigstar 0 (Kuiper.Enumerable.cardinal (natlt (rows * cols)) #_)
-      (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
-  forevery_fromstar #(natlt (rows * cols))
-    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
-  forevery_iso (bij_sym l.bij) _;
-  forevery_unflatten' #(natlt rows) #_ #(natlt cols) _;
-  forevery_ext_2
-    #(natlt rows) #_
-    #(natlt cols) #_
-    (fun r c -> gpu_pts_to_slice gm #f (l.bij.ff (r,c)) (l.bij.ff (r,c) + 1) seq![Seq.index (to_seq l em) (l.bij.ff (r,c))])
-    (fun r c -> gpu_pts_to_slice gm #f (l.bij.ff (r,c)) (l.bij.ff (r,c) + 1) seq![macc em r c]);
+  A.varray_explode gm;
+  (* Change the type... convince pulse. *)
+  with (ty:Type0) d ff. assert forevery ty #d ff;
+  rewrite forevery ty #d ff as forevery (natlt rows & natlt cols) #d ff;
+
+  forevery_ext #(natlt rows & natlt cols)
+    (fun i -> A.varray_pts_to_cell gm #f i ((aview_from_mlayout et l).igm.acc em i))
+    (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2));
+  forevery_unflatten #(natlt rows) #_ #(natlt cols)
+    (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
 }
 
 ghost
@@ -390,27 +391,63 @@ fn gpu_matrix_implode
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  forevery_ext_2
-    #(natlt rows) #_
-    #(natlt cols) #_
-    (fun r c -> gpu_pts_to_slice gm #f (l.bij.ff (r,c)) (l.bij.ff (r,c) + 1) seq![macc em r c])
-    (fun r c -> gpu_pts_to_slice gm #f (l.bij.ff (r,c)) (l.bij.ff (r,c) + 1) seq![Seq.index (to_seq l em) (l.bij.ff (r,c))]);
-  forevery_flatten' #(natlt rows) #_ #(natlt cols)
-    (fun (x,y) -> gpu_pts_to_slice gm #f (l.bij.ff (x,y)) (l.bij.ff (x,y) + 1) seq![Seq.index (to_seq l em) (l.bij.ff (x,y))]);
-  forevery_iso l.bij _;
-  forevery_ext
-    #(natlt (rows * cols))
-    (fun i -> let x,y = l.bij.gg i in
-              gpu_pts_to_slice gm #f (l.bij.ff (x,y)) (l.bij.ff (x,y) + 1) seq![Seq.index (to_seq l em) (l.bij.ff (x,y))])
-    (fun y -> gpu_pts_to_slice gm #f y (y + 1) seq![Seq.index (to_seq l em) y]);
-  forevery_tostar #(natlt (rows * cols))
-    (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
-  rewrite
-    bigstar 0 (Kuiper.Enumerable.cardinal (natlt (rows * cols)) #_)
-      (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i])
-  as
-    bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
-  assert bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
-  gpu_array_unslice_1 gm;
+  forevery_flatten #(natlt rows) #_ #(natlt cols)
+    (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
+  forevery_ext #(natlt rows & natlt cols)
+    (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2))
+    (fun i -> A.varray_pts_to_cell gm #f i ((aview_from_mlayout et l).igm.acc em i));
+  A.varray_implode gm;
   fold gpu_matrix_pts_to gm #f em;
+}
+
+inline_for_extraction noextract
+fn gpu_matrix_from_array
+  (#et:Type0) {| sized et |}
+  (#rows #cols : SZ.t)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == rows * cols})
+  (#em : ematrix et rows cols)
+  preserves
+    (a |-> s) **
+    cpu
+  requires
+    (gm |-> em)
+  ensures
+    pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
+    (gm |-> from_seq l s)
+{
+  Pulse.Lib.Vec.pts_to_len a;
+  open FStar.SizeT;
+  unfold gpu_matrix_pts_to gm #1.0R em;
+  A.varray_from_array #_ #_ #(rows *^ cols) gm a;
+  from_seq_rel l s;
+  fold gpu_matrix_pts_to gm #1.0R (from_seq l s);
+}
+
+inline_for_extraction noextract
+fn gpu_matrix_to_array
+  (#et:Type0) {| sized et |}
+  (#rows #cols : SZ.t)
+  (#l : mlayout rows cols)
+  (a : vec et)
+  (gm : gpu_matrix et l)
+  (#s : erased (seq et){Seq.length s == rows * cols})
+  (#em : ematrix et rows cols)
+  preserves
+    (gm |-> em) **
+    cpu
+  requires
+    (a |-> s)
+  ensures
+    pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
+    (a |-> to_seq l em)
+{
+  Pulse.Lib.Vec.pts_to_len a;
+  open FStar.SizeT;
+  unfold gpu_matrix_pts_to gm #1.0R em;
+  A.varray_to_array #_ #_ #(rows *^ cols) a gm;
+  to_seq_rel l em;
+  fold gpu_matrix_pts_to gm #1.0R em;
 }

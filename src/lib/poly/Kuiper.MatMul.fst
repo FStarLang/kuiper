@@ -370,12 +370,12 @@ fn matmul
              MS.matmul (M.from_seq (rA rows shared) sa)
                        (M.from_seq (rB shared cols) sb))
 {
-  let gA = M.gpu_matrix_alloc #et _ _ (rA rows shared);
-  let gB = M.gpu_matrix_alloc #et _ _ (rB shared cols);
-  let gC = M.gpu_matrix_alloc #et _ _ (rC rows cols);
+  let gA = M.gpu_matrix_alloc0 #et _ _ (rA rows shared);
+  let gB = M.gpu_matrix_alloc0 #et _ _ (rB shared cols);
+  let gC = M.gpu_matrix_alloc0 #et _ _ (rC rows cols);
 
-  M.gpu_matrix_from_array a gA;
-  M.gpu_matrix_from_array b gB;
+  M.gpu_matrix_from_array gA a;
+  M.gpu_matrix_from_array gB b;
 
   matmul_gpu kk gA gB gC;
 

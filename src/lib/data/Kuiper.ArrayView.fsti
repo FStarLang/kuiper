@@ -334,3 +334,41 @@ fn varray_implode
       varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
   ensures
     varray_pts_to a #f v
+
+(* memcpys *)
+
+inline_for_extraction noextract
+fn varray_from_array
+  (#et:Type) {| sized et |}
+  (#len : SZ.t) (#vt:Type0)
+  (#vw : aview et len vt)
+  (va : varray vw)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == len})
+  (#v : erased vt)
+  preserves
+    (a |-> s) **
+    cpu
+  requires
+    (va |-> v)
+  ensures
+    pure (SZ.fits len /\ Pulse.Lib.Vec.length a == len) **
+    (va |-> from_seq vw s)
+
+inline_for_extraction noextract
+fn varray_to_array
+  (#et:Type) {| sized et |}
+  (#len : SZ.t) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : vec et)
+  (va : varray vw)
+  (#s : erased (seq et){Seq.length s == len})
+  (#v : erased vt)
+  preserves
+    (va |-> v) **
+    cpu
+  requires
+    (a |-> s)
+  ensures
+    pure (SZ.fits len /\ Pulse.Lib.Vec.length a == len) **
+    (a |-> to_seq vw v)

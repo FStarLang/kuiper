@@ -365,3 +365,53 @@ fn varray_implode
   B.gpu_array_unslice_1 a;
   fold varray_pts_to a #f v;
 }
+
+
+inline_for_extraction noextract
+fn varray_from_array
+  (#et:Type) {| sized et |}
+  (#len : SZ.t) (#vt:Type0)
+  (#vw : aview et len vt)
+  (va : varray vw)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == len})
+  (#v : erased vt)
+  preserves
+    (a |-> s) **
+    cpu
+  requires
+    (va |-> v)
+  ensures
+    pure (SZ.fits len /\ Pulse.Lib.Vec.length a == len) **
+    (va |-> from_seq vw s)
+{
+  Pulse.Lib.Vec.pts_to_len a;
+  unfold varray_pts_to va v;
+  B.gpu_pts_to_ref va;
+  B.gpu_memcpy_host_to_device va a len;
+  fold varray_pts_to va (from_seq vw s);
+}
+
+inline_for_extraction noextract
+fn varray_to_array
+  (#et:Type) {| sized et |}
+  (#len : SZ.t) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : vec et)
+  (va : varray vw)
+  (#s : erased (seq et){Seq.length s == len})
+  (#v : erased vt)
+  preserves
+    (va |-> v) **
+    cpu
+  requires
+    (a |-> s)
+  ensures
+    pure (SZ.fits len /\ Pulse.Lib.Vec.length a == len) **
+    (a |-> to_seq vw v)
+{
+  Pulse.Lib.Vec.pts_to_len a;
+  unfold varray_pts_to va v;
+  B.gpu_memcpy_device_to_host a va len;
+  fold varray_pts_to va v;
+}
