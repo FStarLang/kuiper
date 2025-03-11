@@ -9,6 +9,11 @@ module F = FStar.FunctionalExtensionality
 
 let macc_pat m i j = ()
 
+let equal (#et #rows #cols : _) m1 m2 =
+  forall (i:natlt rows) (j:natlt cols). macc m1 i j == macc m2 i j
+
+let lemma_equal_intro m1 m2 = ()
+
 let ematrix_ext #et #rows #cols
   (m1 m2 : ematrix et rows cols)
   : Lemma (requires equal m1 m2)

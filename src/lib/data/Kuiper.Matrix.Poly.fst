@@ -37,14 +37,12 @@ let aview_from_mlayout
 let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : lseq et (rows * cols))
   : Lemma (from_seq l s == A.from_seq (aview_from_mlayout et l) s)
-  = admit(); assert (Kuiper.EMatrix.equal (from_seq l s) (A.from_seq (aview_from_mlayout et l) s));
-    ()
+  = assert (Kuiper.EMatrix.equal (from_seq l s) (A.from_seq (aview_from_mlayout et l) s))
 
 let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : ematrix et rows cols)
   : Lemma (to_seq l s == A.to_seq (aview_from_mlayout et l) s)
-  = admit();
-    ()
+  = assert (Seq.equal (to_seq l s) (A.to_seq (aview_from_mlayout et l) s))
 
 inline_for_extraction noextract
 let cview_from_clayout_ff

@@ -48,11 +48,16 @@ let mtranspose (#et:Type) (#rows #cols : nat)
   : ematrix et cols rows
   = mkM fun i j -> m.f (j, i)
 
-let equal (#et #rows #cols : _) (m1 m2 : ematrix et rows cols)
-  : prop
-  = forall i j. macc m1 i j == macc m2 i j
+val equal (#et #rows #cols : _) (m1 m2 : ematrix et rows cols) : prop
+
+val lemma_equal_intro (#et #rows #cols : _)
+  (m1 m2 : ematrix et rows cols)
+  : Lemma (requires forall (i:natlt rows) (j:natlt cols). macc m1 i j == macc m2 i j)
+          (ensures equal m1 m2)
+          [SMTPat (equal m1 m2)]
 
 val ematrix_ext #et #rows #cols
   (m1 m2 : ematrix et rows cols)
   : Lemma (requires equal m1 m2)
           (ensures m1 == m2)
+          [SMTPat (equal m1 m2)]
