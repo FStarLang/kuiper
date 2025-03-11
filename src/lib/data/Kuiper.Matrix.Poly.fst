@@ -43,7 +43,7 @@ let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
 let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : ematrix et rows cols)
   : Lemma (to_seq l s == A.to_seq (aview_from_mlayout et l) s)
-  = admit(); 
+  = admit();
     ()
 
 inline_for_extraction noextract
