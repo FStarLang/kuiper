@@ -253,7 +253,6 @@ fn varray_write
   (a : varray vw)
   (i : cw.cit)
   (e : et)
-  (#f : perm)
   (#v0 : erased vt)
   requires
     gpu **
