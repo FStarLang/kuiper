@@ -74,6 +74,8 @@ type kernel_fixed_ty
     thread_id etid **
     kpost gA gB gC eA eB f (thread_index etid))
 
+(* FIXME: stabilize this *)
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kernel_fixed
   (#et : Type0) {| scalar et |}
@@ -151,6 +153,7 @@ fn kernel_fixed
 
   ()
 }
+#pop-options
 
 let kernel
   (#et : Type0) {| scalar et |}
