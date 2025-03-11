@@ -11,15 +11,13 @@ let from_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)
   (s : lseq et (rows * cols))
   : ematrix et rows cols
-  = M <| fun i j -> s @! l.bij.ff (i,j)
+  = mkM fun i j -> s @! l.bij.ff (i,j)
 
 let to_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)
   (m : ematrix et rows cols)
   : GTot (lseq et (rows * cols))
-  = Seq.init_ghost (rows * cols) (fun i ->
-      let (i, j) = l.bij.gg i in
-      m.f i j)
+  = Seq.init_ghost (rows * cols) (fun i -> m.f (l.bij.gg i))
 
 inline_for_extraction noextract
 val gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0

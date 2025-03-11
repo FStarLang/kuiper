@@ -36,7 +36,7 @@ let matmul
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
-= M <| fun i j -> matmul_single m1 m2 i j shared
+= mkM <| fun i j -> matmul_single m1 m2 i j shared
 
 let lemma_matmul_index
   (#et:Type) {| scalar et |}
