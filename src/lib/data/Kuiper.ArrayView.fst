@@ -3,6 +3,7 @@ module Kuiper.ArrayView
 
 open Kuiper
 open Kuiper.Bijection
+module Enum = Kuiper.Enumerable
 module B = Kuiper.Array (* base *)
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
@@ -286,6 +287,7 @@ fn varray_explode
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt)
+  {| enum : Enumerable.enumerable vw.it |}
   (a : varray vw)
   (#f : perm)
   (#v : vt)
@@ -295,12 +297,31 @@ fn varray_explode
     forall+ (i : vw.it).
       varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
 {
+  (* jeez *)
   unfold varray_pts_to a #f v;
   B.gpu_array_slice_1 a;
-  forevery_fromstar #vw.it
-      (fun i -> gpu_pts_to_slice a #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![to_seq vw v @! (i |~> vw.ibij)]);
+  Enumerable.bijection_implies_equal_cardinal
+    vw.it (natlt len) vw.ibij;
+  assert (pure (enum._cardinal == len));
+  rewrite
+    bigstar 0 len
+      (fun i -> gpu_pts_to_slice a #f i (i + 1) seq![to_seq vw v @! i])
+  as
+    bigstar 0 (Enum.cardinal vw.it #_)
+      (fun i -> gpu_pts_to_slice a #f i (i + 1) seq![to_seq vw v @! i]);
+  forevery_fromstar #vw.it #enum
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice a #f (Enum.to_nat i) ((Enum.to_nat i) + 1) seq![to_seq vw v @! (Enum.to_nat i)]);
+  forevery_permute #vw.it #enum (vw.ibij `bij_comp` bij_sym enum.bij)
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice a #f (Enum.to_nat i)
+                            ((Enum.to_nat i) + 1)
+                            seq![to_seq vw v @! Enum.to_nat i]);
   forevery_ext #vw.it
-    (fun i -> gpu_pts_to_slice a #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![to_seq vw v @! (i |~> vw.ibij)])
+    (fun i ->
+      gpu_pts_to_slice a #f (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))
+                            ((Enum.to_nat (enum.bij.gg (vw.ibij.ff i))) + 1)
+                            seq![to_seq vw v @! (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))])
     (fun i -> gpu_pts_to_slice a #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![vw.igm.acc v i]);
 }
 
@@ -309,6 +330,7 @@ fn varray_implode
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt)
+  {| enum : Enumerable.enumerable vw.it |}
   (a : varray vw)
   (#f : perm)
   (#v : vt)
@@ -318,11 +340,28 @@ fn varray_implode
   ensures
     varray_pts_to a #f v
 {
+  Enumerable.bijection_implies_equal_cardinal
+    vw.it (natlt len) vw.ibij;
   forevery_ext #vw.it
     (fun i -> gpu_pts_to_slice a #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![vw.igm.acc v i])
-    (fun i -> gpu_pts_to_slice a #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![to_seq vw v @! (i |~> vw.ibij)]);
-  forevery_tostar #vw.it
-      (fun i -> gpu_pts_to_slice a #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![to_seq vw v @! (i |~> vw.ibij)]);
+    (fun i ->
+      gpu_pts_to_slice a #f (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))
+                            ((Enum.to_nat (enum.bij.gg (vw.ibij.ff i))) + 1)
+                            seq![to_seq vw v @! (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))]);
+  forevery_permute_back #vw.it #enum (vw.ibij `bij_comp` bij_sym enum.bij)
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice a #f (Enum.to_nat i)
+                            ((Enum.to_nat i) + 1)
+                            seq![to_seq vw v @! Enum.to_nat i]);
+  forevery_tostar #vw.it #enum
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice a #f (Enum.to_nat i) ((Enum.to_nat i) + 1) seq![to_seq vw v @! (Enum.to_nat i)]);
+  rewrite
+    bigstar 0 (Enum.cardinal vw.it #_)
+      (fun i -> gpu_pts_to_slice a #f i (i + 1) seq![to_seq vw v @! i])
+  as
+    bigstar 0 len
+      (fun i -> gpu_pts_to_slice a #f i (i + 1) seq![to_seq vw v @! i]);
   B.gpu_array_unslice_1 a;
   fold varray_pts_to a #f v;
 }

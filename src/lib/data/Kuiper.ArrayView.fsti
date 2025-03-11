@@ -24,6 +24,7 @@ type aview (a : Type) (len : nat) (vt : Type) = {
   ibij : it =~ natlt len;
 }
 
+inline_for_extraction noextract
 class cview (#a : Type) (#len : erased nat) (#vt : Type) (avw : aview a len vt) = {
   (* the length is actually realizable. *)
   lenfits : squash (SZ.fits len);
@@ -85,24 +86,8 @@ val to_from (#a:Type) (#len:nat) (#vt:Type)
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
 
-(* Needed to check the spec of explode/implode, as we iterate over the indices. *)
-instance enumerable_view_cit (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  (cw : cview vw)
-  : Enumerable.enumerable cw.cit =
-{
-  _cardinal = len;
-  bij = cw.cibij `bij_comp` bij_sym (fin_size_t_bij len);
-}
-instance enumerable_view_it (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  : Enumerable.enumerable vw.it =
-{
-  _cardinal = len;
-  bij = vw.ibij;
-}
-
 (* Avoid ghost effect when using projector. *)
+inline_for_extraction noextract
 let cidx
   (#a : Type) (#len : erased nat) (#vt : Type)
   (#vw : aview a len vt) (cw : cview vw)
@@ -313,11 +298,19 @@ fn varray_write_cell
     gpu **
     varray_pts_to_cell a (cit_to_it vw i) v1
 
+(* Note: the functions below take a constraint for enumerable vw.it,
+   even if there is an enumeration in vw.ibij. We do this since it's
+   not necessary for that enumeration to match the one in the typeclass system.
+   For example, for a matrix view, that enumeration can be anything
+   depending on the layout chosen, but the enumeration we want for the
+   **abstract indices** is just lexicographic. *)
+
 ghost
 fn varray_explode
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt)
+  {| Enumerable.enumerable vw.it |}
   (a : varray vw)
   (#f : perm)
   (#v : vt)
@@ -332,6 +325,7 @@ fn varray_implode
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt)
+  {| Enumerable.enumerable vw.it |}
   (a : varray vw)
   (#f : perm)
   (#v : vt)
