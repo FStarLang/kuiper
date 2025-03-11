@@ -3,7 +3,7 @@ module Kuiper.GhostTranspose
 #lang-pulse
 
 open Kuiper
-open Kuiper.Matrix.Poly
+open Kuiper.Matrix
 module Repr = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 

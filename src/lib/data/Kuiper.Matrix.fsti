@@ -1,4 +1,4 @@
-module Kuiper.Matrix.Poly
+module Kuiper.Matrix
 #lang-pulse
 
 open Kuiper

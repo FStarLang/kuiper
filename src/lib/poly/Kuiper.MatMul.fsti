@@ -3,7 +3,7 @@ module Kuiper.MatMul
 #lang-pulse
 
 open Kuiper
-module M = Kuiper.Matrix.Poly
+module M = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 open Kuiper.EMatrix
