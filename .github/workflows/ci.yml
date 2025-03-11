@@ -80,7 +80,7 @@ jobs:
 
       - name: Try fetch cached F*
         id: fstarcache
-        if: ${{ inputs.nocache != 'true' && github.event_name != 'schedule' }}
+        if: ${{ inputs.nocache != true && github.event_name != 'schedule' }}
         uses: actions/cache/restore@v4
         with:
           path: inst
@@ -105,7 +105,7 @@ jobs:
 
       - name: Try fetch cached Pulse plugin
         id: pulsecache
-        if: ${{ inputs.nocache != 'true' && github.event_name != 'schedule' }}
+        if: ${{ inputs.nocache != true && github.event_name != 'schedule' }}
         uses: actions/cache/restore@v4
         with:
           path: pulse/build/ocaml/installed/lib/pulse/pulse.cmxs
