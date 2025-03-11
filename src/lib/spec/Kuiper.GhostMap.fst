@@ -19,4 +19,4 @@ let ghost_map_upd
   : Lemma (gm.bij.ff (gm.upd m i e) == oplus (gm.bij.ff m) i e)
           [SMTPatOr [[SMTPat (gm.bij.ff (gm.upd m i e))];
                      [SMTPat (oplus (gm.bij.ff m) i e)]]]
-  = gm.i2 i m e
+  = gm.l2 i m e

@@ -66,20 +66,6 @@ val to_from (#a:Type) (#len:nat) (#vt:Type)
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
 
-type szlt (n:nat) = i:SZ.t{SZ.v i < n}
-
-(* FIXME: terrible inference here if we remove the ascription from
-the body of ff. It seems to try to try to define a bijection into SZ.t,
-regardless of the annotation on the letbinding and the annotation on the
-binder for m in gg. *)
-let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
-  {
-    gg = (fun (m:szlt n) -> SZ.v m);
-    ff = (fun (i:natlt n) -> SZ.uint_to_t i <: szlt n);
-    ff_gg = ez;
-    gg_ff = ez;
-  }
-
 // instance enumerable_view_it (#a:Type) (#len:nat) (#vt:Type) (vw : aview a len vt)
 //   : Enumerable.enumerable vw.it =
 // {

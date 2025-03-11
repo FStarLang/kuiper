@@ -3,6 +3,8 @@ module Kuiper.Bijection
 #lang-pulse
 open Kuiper.Common
 open FStar.Tactics.V2
+module SZ = FStar.SizeT
+open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 
 (* A theory of bijections, used to shift views
 over ownership and data layouts. There is some delicate
@@ -107,3 +109,37 @@ val __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
 val bij_cardinal (n1 n2 : nat)
   : Lemma (requires exists (b : natlt n1 =~ natlt n2). True)
           (ensures n1 == n2)
+
+
+(* FIXME: terrible inference here if we remove the ascription from
+the body of ff. It seems to try to try to define a bijection into SZ.t,
+regardless of the annotation on the letbinding and the annotation on the
+binder for m in gg. *)
+let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
+  {
+    gg = (fun (m:szlt n) -> SZ.v m);
+    ff = (fun (i:natlt n) -> SZ.uint_to_t i <: szlt n);
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+(* weird typing errors without hoisting. *)
+unfold
+let sz_prod_ff (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
+  : szlt (SZ.v n1) & szlt (SZ.v n2) -> szlt (SZ.v n1 * SZ.v n2)
+  = fun xy -> (xy._1 *^ n2 +^ xy._2)
+
+unfold
+let sz_prod_gg (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
+  : szlt (SZ.v n1 * SZ.v n2) -> szlt (SZ.v n1) & szlt (SZ.v n2)
+  = fun i -> (i /^ n2, i %^ n2)
+
+unfold
+let bij_sz_prod (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
+  : (szlt (SZ.v n1) & szlt (SZ.v n2) =~ szlt (SZ.v n1 * SZ.v n2))
+  = {
+    ff = sz_prod_ff n1 n2;
+    gg = sz_prod_gg n1 n2;
+    ff_gg = easy;
+    gg_ff = easy;
+  }

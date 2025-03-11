@@ -19,7 +19,7 @@ type is_ghost_map (mt : Type) (it : Type) (et : Type) = {
 
   l1 : (i:it -> m:mt ->
          squash (bij.ff m i == acc m i));
-  i2 : (i:it -> m:mt -> e:et ->
+  l2 : (i:it -> m:mt -> e:et ->
          squash (bij.ff (upd m i e) == oplus (bij.ff m) i e));
 }
 

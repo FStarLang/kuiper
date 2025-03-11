@@ -3,7 +3,6 @@ module Kuiper.Matrix.Poly
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.Bijection
 open Kuiper.Matrix.Reprs.Type
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
@@ -19,7 +18,7 @@ let to_seq (#et:Type) (#rows #cols : _)
   (m : ematrix et rows cols)
   : GTot (lseq et (rows * cols))
   = Seq.init_ghost (rows * cols) (fun i ->
-      let (i,j) = l.bij.gg i in
+      let (i, j) = l.bij.gg i in
       m.f i j)
 
 inline_for_extraction noextract
@@ -55,15 +54,6 @@ instance has_pts_to (a:Type) (rows cols : erased nat) (l : _)
   pts_to = gpu_matrix_pts_to;
 }
 
-(* These are really ghost steps only... but
-since the gpu_matrix type encodes the layout as an argument,
-we return a new matrix (with the same core). This is so we do not
-expose that the gpu_matrix type does not really use the layout
-argument. Exposing that may bring in some dangers wrt typeclass resolution
-picking the wrong layout.
-
-But the current setting means we cannot do these shifts in ghost code...
-so maybe that's a bullet we should bite. *)
 inline_for_extraction noextract
 fn gpu_matrix_concr
   (#et:Type)
