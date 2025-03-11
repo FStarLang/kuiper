@@ -4,7 +4,6 @@ module Kuiper.Common
 This module should have no Kuiper dependencies. *)
 
 include FStar.Mul
-module SZ = FStar.SizeT
 include FStar.Tactics.Typeclasses { solve }
 
 type natlt (b:int) = n:nat{n <  b}
