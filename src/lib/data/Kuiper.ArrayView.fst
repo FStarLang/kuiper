@@ -171,11 +171,13 @@ fn varray_gather_n
   fold varray_pts_to a #f v;
 }
 
+inline_for_extraction noextract
 fn varray_read
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
-  (i : vw.cit)
+  (i : cw.cit)
   (#f : perm)
   (#v : vt)
   requires
@@ -186,9 +188,9 @@ fn varray_read
   ensures
     gpu **
     varray_pts_to a #f v **
-    pure (e == vw.igm.acc v (vw.ibij.gg i))
+    pure (e == vw.igm.acc v (cit_to_it vw i))
 {
-  let ni = cidx vw i;
+  let ni = cidx cw i;
   unfold varray_pts_to a #f v;
   let r = B.gpu_array_read #et #len #0 #len a #f ni;
   fold varray_pts_to a #f v;
@@ -198,9 +200,10 @@ fn varray_read
 inline_for_extraction noextract
 fn varray_write
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
-  (i : vw.cit)
+  (i : cw.cit)
   (e : et)
   (#f : perm)
   (#v0 : vt)
@@ -209,31 +212,32 @@ fn varray_write
     (a |-> v0)
   ensures
     gpu **
-    (a |-> vw.igm.upd v0 (vw.ibij.gg i) e)
+    (a |-> vw.igm.upd v0 (cit_to_it vw i) e)
 {
-  let ci = cidx vw i;
+  let ci = cidx cw i;
   unfold varray_pts_to a v0;
   B.gpu_array_write #et #len #0 #len a ci e;
-  fold varray_pts_to a (vw.igm.upd v0 (vw.ibij.gg i) e);
-  ()
+  fold varray_pts_to a (vw.igm.upd v0 (cit_to_it vw i) e);
 }
 
 let varray_pts_to_cell
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.cit)
+  ([@@@mkey]i : cw.cit)
   (v : et)
   : slprop
-  = gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij) + 1) seq![v]
+  = gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij) + 1) seq![v]
 
 inline_for_extraction noextract
- fn varray_read_cell
+fn varray_read_cell
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
-  (i : vw.cit)
+  (i : cw.cit)
   (#f : perm)
   (#v0 : erased et)
   requires
@@ -246,7 +250,7 @@ inline_for_extraction noextract
     varray_pts_to_cell a #f i v **
     pure (v == v0)
 {
-  let ci = cidx vw i;
+  let ci = cidx cw i;
   unfold varray_pts_to_cell a #f i v0;
   let r = B.gpu_array_read #et #len #ci #(ci+1) a #f ci;
   fold varray_pts_to_cell a #f i v0;
@@ -256,9 +260,10 @@ inline_for_extraction noextract
 inline_for_extraction noextract
 fn varray_write_cell
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
-  (i : vw.cit)
+  (i : cw.cit)
   (v1 : et)
   (#v0 : erased et)
   requires
@@ -268,7 +273,7 @@ fn varray_write_cell
     gpu **
     varray_pts_to_cell a i v1
 {
-  let ci = cidx vw i;
+  let ci = cidx cw i;
   unfold varray_pts_to_cell a i v0;
   B.gpu_array_write #_ #_ #ci #(ci+1) a ci v1;
   with s'. assert (B.gpu_pts_to_slice a ci (ci+1) s');
@@ -280,43 +285,45 @@ fn varray_write_cell
 ghost
 fn varray_explode
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
   (#f : perm)
   (#v : vt)
   requires
     varray_pts_to a #f v
   ensures
-    forall+ (i : vw.cit).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (i <~| vw.ibij))
+    forall+ (i : cw.cit).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (cit_to_it vw i))
 {
   unfold varray_pts_to a #f v;
   B.gpu_array_slice_1 a;
-  forevery_fromstar #vw.cit
-      (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)]);
-  forevery_ext #vw.cit
-    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)])
-    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![vw.igm.acc v (i <~| vw.ibij)]);
+  forevery_fromstar #cw.cit
+      (fun i -> gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij)+1) seq![to_seq vw v @! (i |~> cw.cibij)]);
+  forevery_ext #cw.cit
+    (fun i -> gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij)+1) seq![to_seq vw v @! (i |~> cw.cibij)])
+    (fun i -> gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij)+1) seq![vw.igm.acc v (cit_to_it vw i)]);
 }
 
 ghost
 fn varray_implode
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
   (#f : perm)
   (#v : vt)
   requires
-    forall+ (i : vw.cit).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (i <~| vw.ibij))
+    forall+ (i : cw.cit).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (cit_to_it vw i))
   ensures
     varray_pts_to a #f v
 {
-  forevery_ext #vw.cit
-    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![vw.igm.acc v (i <~| vw.ibij)])
-    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)]);
-  forevery_tostar #vw.cit
-      (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)]);
+  forevery_ext #cw.cit
+    (fun i -> gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij)+1) seq![vw.igm.acc v (cit_to_it vw i)])
+    (fun i -> gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij)+1) seq![to_seq vw v @! (i |~> cw.cibij)]);
+  forevery_tostar #cw.cit
+      (fun i -> gpu_pts_to_slice a #f (i |~> cw.cibij) ((i |~> cw.cibij)+1) seq![to_seq vw v @! (i |~> cw.cibij)]);
   B.gpu_array_unslice_1 a;
   fold varray_pts_to a #f v;
 }
