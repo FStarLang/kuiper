@@ -32,7 +32,7 @@ let core a = a
 let core_match a1 a2 = ()
 
 let varray_pts_to
-  (#et:Type) (#len : erased nat) (#vt:_) (#vw : aview et len vt)
+  (#et:Type) (#len : nat) (#vt:_) (#vw : aview et len vt)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
   (v : vt)
@@ -122,7 +122,7 @@ fn varray_alloc0
 inline_for_extraction noextract
 fn varray_free
   (#et:Type) {| sized et |}
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (a : varray vw)
   (#v : vt)
   preserves
@@ -138,7 +138,7 @@ fn varray_free
 ghost
 fn varray_share_n
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
@@ -156,7 +156,7 @@ fn varray_share_n
 ghost
 fn varray_gather_n
   (#et:Type)
-  (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
+  (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (#uid: int)
   (a : varray vw)
   (k : pos)
@@ -175,7 +175,7 @@ inline_for_extraction noextract
 fn varray_read
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
-  (vw : aview et len vt) {| cw : cview vw |}
+  (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
   (i : cw.cit)
   (#f : perm)
@@ -201,7 +201,7 @@ inline_for_extraction noextract
 fn varray_write
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
-  (vw : aview et len vt) {| cw : cview vw |}
+  (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
   (i : cw.cit)
   (e : et)
