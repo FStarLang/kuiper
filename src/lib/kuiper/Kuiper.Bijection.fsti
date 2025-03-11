@@ -2,6 +2,7 @@ module Kuiper.Bijection
 
 #lang-pulse
 open Kuiper.Common
+open Kuiper.SizeT
 module SZ = FStar.SizeT
 open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 

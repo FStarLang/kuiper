@@ -1,5 +1,8 @@
 module Kuiper.Math.Silly
 
+(* A collection of silly lemmas to deal with
+bad non-linear arithmetic in Z3. *)
+
 open FStar.Mul
 
 val lemma_nonneg_mul (x y : int)
@@ -28,3 +31,8 @@ val stupid_mul_mono (x y z w : nat)
 
 val stupid_divides (x:nat) (y:nonzero)
   : Lemma (x/y <= x)
+
+val p4_assoc
+  (x y z w : nat)
+  : Lemma ((x * y) * (z * w) == x * z * y * w)
+

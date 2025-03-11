@@ -1,6 +1,7 @@
 module Kuiper.Math.Silly
 
 open FStar.Mul
+open Kuiper.Common
 
 let lemma_nonneg_mul (x y : int)
   : Lemma (requires x >= 0 /\ y >= 0)
@@ -33,3 +34,5 @@ let stupid_mul_mono (x y z w : nat)
 let stupid_divides (x:nat) (y:nonzero)
 : Lemma (x/y <= x)
 = ()
+
+let p4_assoc = ez

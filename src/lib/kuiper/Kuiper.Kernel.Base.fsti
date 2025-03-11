@@ -10,6 +10,7 @@ open Kuiper.Array
 open Kuiper.Base
 open Kuiper.Epoch
 module SZ = FStar.SizeT
+open Kuiper.SizeT
 open Pulse.Lib.Pledge
 
 val shmem_tok

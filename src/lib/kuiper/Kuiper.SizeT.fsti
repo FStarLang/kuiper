@@ -2,9 +2,15 @@ module Kuiper.SizeT
 
 open FStar.Ghost
 open Pulse.Lib.Core
+open FStar.Mul
+
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
+
+unfold type sz  = FStar.SizeT.t
+unfold type szp = x:sz{FStar.SizeT.v x > 0}
+unfold type szlt (n:nat) = i:sz{SZ.v i < n}
 
 (* Throughout this repo we assume a 64bit machine. This
 simplifies reasoning about overflow a bit. *)
@@ -44,5 +50,23 @@ val sizet_does_not_overflow : prop
 val overflow_lem () : Lemma (sizet_does_not_overflow ==> (forall n. SZ.fits n))
 
 unfold
-let between (n:int) (lohi: int * int)
+let between (n:int) (lohi: int & int)
   : prop = lohi._1 <= n /\ n <= lohi._2
+
+let s_divmod (j:szp) (i:sz) : dm:(sz & szlt j){SZ.fits (dm._1 * j + dm._2)} =
+  let open FStar.SizeT in
+  (i `div` j, i %^ j)
+
+let s_undivmod (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)}) : sz =
+  let open FStar.SizeT in
+  dm._1 *^ j +^ dm._2
+
+let s_divmod_inv_1 (j:szp) (i:sz)
+  : Lemma (s_undivmod j (s_divmod j i) == i)
+          [SMTPat (s_undivmod j (s_divmod j i))]
+  = ()
+
+let s_divmod_inv_2 (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)})
+  : Lemma (s_divmod j (s_undivmod j dm) == dm)
+          [SMTPat (s_divmod j (s_undivmod j dm))]
+  = ()
