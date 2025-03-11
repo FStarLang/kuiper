@@ -95,6 +95,8 @@ void * __KPR_GPU_ALLOC(size_t len, const char *str, const char *fname,
 		if (((size_t)(sz)) > ((size_t)(SIZE_MAX / (size_elt))))	\
 			assert(!"CHECK_SIZE");				\
 	} while (0)
+#define KRML_HOST_EPRINTF(s, ...)   fprintf(stderr, __VA_ARGS__)
+#define KRML_HOST_EXIT(rc)          exit(rc)
 
 static inline
 void INFO ()

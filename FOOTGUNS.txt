@@ -3,3 +3,16 @@
   even happens if the `inline_for_extraction` does appear but is
   only on a Pulse definition. You can add
   `inline_for_extraction let () = ()` to just force it.
+
+- For inlining, pretty much every concrete function must be
+  `inline_for_extraction noextract`. Only kernels *must* be
+  top-level, and with a __global__. Everything else is probably
+  safe to inline. Note: this applies to typeclasses instances too,
+  if they are used concretely (e.g. clayout) they must be
+  `inline_for_extraction noextract`.
+
+- If a type has a concrete parameter, like `foo (a : nat)`, we
+  can use foo over an erased nat most of the time. But, trying
+  to project a field out of it will bump the effect to ghost,
+  as the projector has a concrete `nat` parameter instead of erased.
+  This is probably worthwhile to fix in F*.
