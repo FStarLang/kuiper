@@ -4,7 +4,7 @@ module Kuiper.ArrayView
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.GhostMap { is_ghost_map }
-open FStar.FunctionalExtensionality { (^->>) } 
+open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
@@ -49,7 +49,7 @@ let it_of_nat
 let to_seq
   (#a:Type) (#len:nat) (#vt:Type)
   (vw : aview a len vt)
-  (v : vt) 
+  (v : vt)
   : GTot (lseq a len)
   = Seq.init_ghost len (fun i -> vw.igm.acc v (it_of_nat vw i))
 
