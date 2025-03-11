@@ -47,7 +47,7 @@ fn varray_concr
   (#vt:Type0)
   (#vw : aview t len vt)
   (a : varray vw)
-  (#v : vt)
+  (#v : erased vt)
   requires
     a |-> v
   ensures
@@ -62,7 +62,7 @@ fn varray_abs
   (#len0 : erased nat) (#vt0:Type0) (#vw0 : aview t len0 vt0)
   (a : varray vw0)
   (#len : erased nat) (#vt:Type0) (vw : aview t len vt)
-  (#v : vt)
+  (#v : erased vt)
   requires
     core a |-> to_seq vw v
   returns
@@ -124,7 +124,7 @@ fn varray_free
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (a : varray vw)
-  (#v : vt)
+  (#v : erased vt)
   preserves
     cpu
   requires
@@ -179,7 +179,7 @@ fn varray_read
   (a : varray vw)
   (i : cw.cit)
   (#f : perm)
-  (#v : vt)
+  (#v : erased vt)
   requires
     gpu **
     varray_pts_to a #f v
@@ -206,7 +206,7 @@ fn varray_write
   (i : cw.cit)
   (e : et)
   (#f : perm)
-  (#v0 : vt)
+  (#v0 : erased vt)
   requires
     gpu **
     (a |-> v0)
