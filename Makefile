@@ -57,3 +57,10 @@ lint:
 .PHONY: list-admits
 list-admits:
 	-git grep -w 'assume_\|assume\|admit' src
+
+.PHONY: wc
+wc:
+	echo F*:
+	find src/ \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
+	echo CUDA:
+	find dist/ -name '*.cu' -exec cat {} \+ | grep '[^ ]' | wc -l
