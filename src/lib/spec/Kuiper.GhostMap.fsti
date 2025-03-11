@@ -2,9 +2,12 @@ module Kuiper.GhostMap
 
 open Kuiper.Bijection
 open FStar.FunctionalExtensionality { (^->>) }
+module F = FStar.FunctionalExtensionality
 
-let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
-  fun x' ->
+(* If this axiom causes some eyebrows to raise, we can always
+   change the l2 statement to avoid it. *)
+let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : (a ^->> b) =
+  F.on_g _ fun x' ->
     if FStar.StrongExcludedMiddle.strong_excluded_middle (x == x')
     then y
     else f x'
@@ -20,7 +23,7 @@ type is_ghost_map (mt : Type) (it : Type) (et : Type) = {
   l1 : (i:it -> m:mt ->
          squash (bij.ff m i == acc m i));
   l2 : (i:it -> m:mt -> e:et ->
-         squash (bij.ff (upd m i e) == oplus (bij.ff m) i e));
+         squash (bij.ff (upd m i e) `F.feq_g` oplus (bij.ff m) i e));
 }
 
 val ghost_map_acc
