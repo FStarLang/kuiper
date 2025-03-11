@@ -121,7 +121,7 @@ fn varray_alloc0
 
 inline_for_extraction noextract
 fn varray_free
-  (#et:Type) {| sized et |}
+  (#et:Type)
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (a : varray vw)
   (#v : vt)
