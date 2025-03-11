@@ -363,7 +363,7 @@ fn gpu_matrix_explode
   rewrite
     bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i])
   as
-    bigstar 0 (Kuiper.Enumerable.cardinal (natlt (rows * cols)))
+    bigstar 0 (Kuiper.Enumerable.cardinal (natlt (rows * cols)) #_)
       (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
   forevery_fromstar #(natlt (rows * cols))
     (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
@@ -406,7 +406,7 @@ fn gpu_matrix_implode
   forevery_tostar #(natlt (rows * cols))
     (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);
   rewrite
-    bigstar 0 (Kuiper.Enumerable.cardinal (natlt (rows * cols)))
+    bigstar 0 (Kuiper.Enumerable.cardinal (natlt (rows * cols)) #_)
       (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i])
   as
     bigstar 0 (rows * cols) (fun i -> gpu_pts_to_slice gm #f i (i+1) seq![Seq.index (to_seq l em) i]);

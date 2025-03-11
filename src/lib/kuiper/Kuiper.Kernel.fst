@@ -98,7 +98,7 @@ fn barrier_setup
     rewrite
       bigstar 0 nthr p
     as
-      bigstar 0 (Enumerable.cardinal (natlt nthr)) p;
+      bigstar 0 (Enumerable.cardinal (natlt nthr) #_) p;
   forevery_fromstar #(natlt nthr) _;
 }
 

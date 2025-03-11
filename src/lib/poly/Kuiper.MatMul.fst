@@ -172,6 +172,8 @@ let kernel
            #(cB.map shared cols)
            #(cC.map rows cols) gA gB gC
 
+#set-options "--print_implicits"
+
 ghost
 fn setup
   (#et : Type0) {| scalar et |}

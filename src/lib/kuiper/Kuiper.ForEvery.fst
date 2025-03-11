@@ -7,7 +7,7 @@ open Kuiper.Enumerable
 open Pulse.Lib.BigStar
 
 let forevery a p =
-  bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+  bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
 
 let forevery_ext_lem
   (#a:Type0) {| enumerable a |}
@@ -56,14 +56,14 @@ fn forevery_flatten
 {
   unfold forevery a (fun x -> forevery b (fun y -> f x y));
   ghost
-  fn aux1 (i:natlt (cardinal a))
+  fn aux1 (i:natlt (cardinal a #_))
     requires forevery b (fun y -> f (of_nat i) y)
-    ensures  bigstar 0 (cardinal b) (fun j -> f (of_nat i) (of_nat j))
+    ensures  bigstar 0 (cardinal b #_) (fun j -> f (of_nat i) (of_nat j))
   {
     unfold forevery b (fun y -> f (of_nat i) y);
   };
-  bigstar_map #_ #_ #0 #(cardinal a) aux1; // optional :-)
-  bigstar_flatten #_ #_ #(cardinal a) #(cardinal b);
+  bigstar_map #_ #_ #0 #(cardinal a #_) aux1; // optional :-)
+  bigstar_flatten #_ #_ #(cardinal a #_) #(cardinal b #_);
   fold forevery (a & b) (fun (x, y) -> f x y);
 }
 
@@ -92,12 +92,12 @@ fn forevery_unflatten
       forevery b (fun y -> f x y))
 {
   unfold forevery (a & b) (fun (x, y) -> f x y);
-  assert bigstar 0 (cardinal (a & b)) (fun i -> let x, y = of_nat i in f x y);
+  assert bigstar 0 (cardinal (a & b) #_) (fun i -> let x, y = of_nat i in f x y);
   rewrite
-    bigstar 0 (cardinal (a & b)) (fun i -> let x, y = of_nat i in f x y)
+    bigstar 0 (cardinal (a & b) #_) (fun i -> let x, y = of_nat i in f x y)
   as
-    bigstar 0 (cardinal a * cardinal b) (fun i -> f (of_nat (i / cardinal b)) (of_nat (i % cardinal b)));
-  bigstar_unflatten #0 #0 #(cardinal a) #(cardinal b) #(fun x y -> f (of_nat x) (of_nat y));
+    bigstar 0 (cardinal a #_ * cardinal b #_) (fun i -> f (of_nat (i / cardinal b #_)) (of_nat (i % cardinal b #_)));
+  bigstar_unflatten #0 #0 #(cardinal a #_) #(cardinal b #_) #(fun x y -> f (of_nat x) (of_nat y));
   fold forevery a (fun x ->
     forevery b (fun y -> f x y));
 }
@@ -159,25 +159,25 @@ fn forevery_iso
     forall+ (y:b). p (bij.gg y)
 {
   bijection_implies_equal_cardinal a b bij;
-  assert (pure (cardinal a == cardinal b));
+  assert (pure (cardinal a #_ == cardinal b #_));
 
   unfold forevery a (fun x -> p x);
-  assert bigstar 0 (cardinal a) (fun i -> p (of_nat i));
+  assert bigstar 0 (cardinal a #_) (fun i -> p (of_nat i));
 
-  let bij_n : (natlt (cardinal a) =~ natlt (cardinal a)) =
+  let bij_n : (natlt (cardinal a #_) =~ natlt (cardinal a #_)) =
     bij_sym ea.bij `bij_comp` bij `bij_comp` eb.bij;
 
-  assert bigstar 0 (cardinal a) (fun i -> p (of_nat #a i));
+  assert bigstar 0 (cardinal a #_) (fun i -> p (of_nat #a i));
   bigstar_permute'' (fun i -> p (of_nat i)) bij_n;
-  assert bigstar 0 (cardinal a) (fun i -> p (of_nat #a (bij_n.gg i)));
-  assert bigstar 0 (cardinal a) (fun i -> p (of_nat #a (to_nat #a (bij.gg (eb.bij.gg i)))));
-  assert bigstar 0 (cardinal a) (fun i -> p (bij.gg (eb.bij.gg i)));
+  assert bigstar 0 (cardinal a #_) (fun i -> p (of_nat #a (bij_n.gg i)));
+  assert bigstar 0 (cardinal a #_) (fun i -> p (of_nat #a (to_nat #a (bij.gg (eb.bij.gg i)))));
+  assert bigstar 0 (cardinal a #_) (fun i -> p (bij.gg (eb.bij.gg i)));
   rewrite (* rewrite each cardinal a as cardinal b fails *)
-    bigstar 0 (cardinal a) (fun i -> p (bij.gg (eb.bij.gg i)))
+    bigstar 0 (cardinal a #_) (fun i -> p (bij.gg (eb.bij.gg i)))
   as
-    bigstar 0 (cardinal b) (fun i -> p (bij.gg (eb.bij.gg i)));
+    bigstar 0 (cardinal b #_) (fun i -> p (bij.gg (eb.bij.gg i)));
 
-  assert bigstar 0 (cardinal b) (fun i -> p (bij.gg (eb.bij.gg i)));
+  assert bigstar 0 (cardinal b #_) (fun i -> p (bij.gg (eb.bij.gg i)));
   fold forevery b (fun y -> p (bij.gg y));
 }
 
@@ -202,7 +202,7 @@ fn forevery_tostar
   requires
     forall+ (x:a). p x
   ensures
-    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
 {
   unfold forevery a (fun x -> p x);
 }
@@ -212,7 +212,7 @@ fn forevery_fromstar
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop)
   requires
-    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
   ensures
     forall+ (x:a). p x
 {
@@ -222,7 +222,7 @@ fn forevery_fromstar
 ghost
 fn forevery_singleton_intro
   (#a:Type0) {| enumerable a |}
-  (p : a -> slprop { cardinal a == 1 })
+  (p : a -> slprop { cardinal a #_ == 1 })
   requires
     p (of_nat 0)
   ensures
@@ -232,14 +232,14 @@ fn forevery_singleton_intro
   rewrite
     bigstar 0 1 (fun x -> p (of_nat x))
   as
-    bigstar 0 (cardinal a) (fun x -> p (of_nat x));
+    bigstar 0 (cardinal a #_) (fun x -> p (of_nat x));
   fold forevery a (fun x -> p x);
 }
 
 ghost
 fn forevery_singleton_elim
   (#a:Type0) {| enumerable a |}
-  (p : a -> slprop { cardinal a == 1 })
+  (p : a -> slprop { cardinal a #_ == 1 })
   requires
     forall+ (x:a). p x
   ensures
@@ -375,7 +375,7 @@ fn forevery_zip
 {
   unfold forevery a (fun x -> p1 x);
   unfold forevery a (fun x -> p2 x);
-  bigstar_zip 0 (cardinal a) _ _;
+  bigstar_zip 0 (cardinal a #_) _ _;
   fold forevery a (fun x -> p1 x ** p2 x);
 }
 
@@ -390,7 +390,7 @@ fn forevery_unzip
     (forall+ (x:a). p2 x)
 {
   unfold forevery a (fun x -> p1 x ** p2 x);
-  bigstar_unzip 0 (cardinal a) _ _;
+  bigstar_unzip 0 (cardinal a #_) _ _;
   fold forevery a (fun x -> p1 x);
   fold forevery a (fun x -> p2 x);
 }
@@ -406,7 +406,7 @@ fn forevery_map
     forall+ (x:a). p2 x
 {
   unfold forevery a (fun x -> p1 x);
-  bigstar_map #_ #_ #0 #(cardinal a) (fun x -> f (of_nat x));
+  bigstar_map #_ #_ #0 #(cardinal a #_) (fun x -> f (of_nat x));
   fold forevery a (fun x -> p2 x);
 }
 

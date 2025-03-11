@@ -213,7 +213,7 @@ fn setup
   mk_mbarrier nthr (HR.barrier_matrix nthr ear (pmul s1 s2));
   gpu_array_slice_1_underspec ear;
   bigstar_zip 0 nthr (gpu_pts_to_array1 ear) (mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0);
-  rewrite each nthr as Enumerable.cardinal (natlt nthr);
+  rewrite each nthr as Enumerable.cardinal (natlt nthr) #_;
   forevery_fromstar #(natlt nthr) (fun i ->
     gpu_pts_to_array1 ear i **
     mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0 i);

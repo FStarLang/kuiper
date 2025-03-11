@@ -324,7 +324,7 @@ fn factor_array
 {
   open Kuiper.Enumerable;
   Array.gpu_array_slice_1 a;
-  rewrite each len as cardinal (natlt len);
+  rewrite each len as cardinal (natlt len) #_;
   forevery_fromstar #(natlt len) (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
   forevery_factor len d1 d2 _;
   ();

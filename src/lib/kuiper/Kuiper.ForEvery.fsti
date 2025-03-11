@@ -116,14 +116,14 @@ fn forevery_tostar
   requires
     forall+ (x:a). p x
   ensures
-    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
 
 ghost
 fn forevery_fromstar
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop)
   requires
-    bigstar 0 (cardinal a) (fun i -> p (of_nat i))
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
   ensures
     forall+ (x:a). p x
 
@@ -146,7 +146,7 @@ fn forevery_unit_elim
 ghost
 fn forevery_singleton_intro
   (#a:Type0) {| enumerable a |}
-  (p : a -> slprop { cardinal a == 1 })
+  (p : a -> slprop { cardinal a #_ == 1 })
   requires
     p (of_nat 0)
   ensures
@@ -155,7 +155,7 @@ fn forevery_singleton_intro
 ghost
 fn forevery_singleton_elim
   (#a:Type0) {| enumerable a |}
-  (p : a -> slprop { cardinal a == 1 })
+  (p : a -> slprop { cardinal a #_ == 1 })
   requires
     forall+ (x:a). p x
   ensures
