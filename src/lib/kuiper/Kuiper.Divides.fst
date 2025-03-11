@@ -36,6 +36,12 @@ let lemma_divides_mod (x:pos) (y : int)
   Classical.forall_intro_2 aux;
   ()
 
+let lemma_divides_product (x y : int)
+  : Lemma (x /? (x * y)  /\  x /? (y * x))
+          [SMTPatOr [[SMTPat (x /? (x * y))];
+                     [SMTPat (x /? (y * x))]]]
+  = ()
+
 let lemma_divides_exact (x:pos) (y:int)
   : Lemma (x /? y <==> x * (y/x) == y)
 = lemma_divides_mod1 x y;
