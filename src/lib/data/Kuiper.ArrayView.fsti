@@ -24,7 +24,7 @@ type aview (a : Type) (len : nat) (vt : Type) = {
   ibij : it =~ natlt len;
 }
 
-class cview (#a : Type) (#len : nat) (#vt : Type) (avw : aview a len vt) = {
+class cview (#a : Type) (#len : erased nat) (#vt : Type) (avw : aview a len vt) = {
   (* the length is actually realizable. *)
   lenfits : squash (SZ.fits len);
 
@@ -93,6 +93,13 @@ instance enumerable_view_cit (#a:Type) (#len:nat) (#vt:Type)
 {
   _cardinal = len;
   bij = cw.cibij `bij_comp` bij_sym (fin_size_t_bij len);
+}
+instance enumerable_view_it (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  : Enumerable.enumerable vw.it =
+{
+  _cardinal = len;
+  bij = vw.ibij;
 }
 
 (* Avoid ghost effect when using projector. *)
@@ -265,14 +272,11 @@ fn varray_write
 val varray_pts_to_cell
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
-  {| cw : cview vw |}
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : cw.cit)
+  ([@@@mkey]i : vw.it)
   (v : et)
   : slprop
-
-(* Ownership over a single index. *)
 
 inline_for_extraction noextract
 fn varray_read_cell
@@ -285,12 +289,12 @@ fn varray_read_cell
   (#v0 : erased et)
   requires
     gpu **
-    varray_pts_to_cell a #f i v0
+    varray_pts_to_cell a #f (cit_to_it vw i) v0
   returns
     v : et
   ensures
     gpu **
-    varray_pts_to_cell a #f i v **
+    varray_pts_to_cell a #f (cit_to_it vw i) v **
     pure (v == v0)
 
 inline_for_extraction noextract
@@ -304,35 +308,35 @@ fn varray_write_cell
   (#v0 : erased et)
   requires
     gpu **
-    varray_pts_to_cell a i v0
+    varray_pts_to_cell a (cit_to_it vw i) v0
   ensures
     gpu **
-    varray_pts_to_cell a i v1
+    varray_pts_to_cell a (cit_to_it vw i) v1
 
 ghost
 fn varray_explode
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt) {| cw : cview vw |}
+  (#vw : aview et len vt)
   (a : varray vw)
   (#f : perm)
   (#v : vt)
   requires
     varray_pts_to a #f v
   ensures
-    forall+ (i : cw.cit).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (cit_to_it vw i))
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
 
 ghost
 fn varray_implode
   (#et:Type)
   (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt) {| cw : cview vw |}
+  (#vw : aview et len vt)
   (a : varray vw)
   (#f : perm)
   (#v : vt)
   requires
-    forall+ (i : cw.cit).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (cit_to_it vw i))
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
   ensures
     varray_pts_to a #f v
