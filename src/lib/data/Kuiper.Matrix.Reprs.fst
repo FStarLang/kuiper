@@ -3,7 +3,6 @@ module Kuiper.Matrix.Reprs
 
 open Kuiper
 open Kuiper.Bijection
-module SZ = FStar.SizeT
 open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 
 inline_for_extraction noextract
