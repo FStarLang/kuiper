@@ -211,6 +211,18 @@ fn forevery_permute
     (bij_sym ea.bij `bij_comp` bij `bij_comp` ea.bij);
   fold forevery a (fun x -> p (of_nat (to_nat (bij.ff x))));
 }
+ghost
+fn forevery_permute_back
+  (#a:Type0) {| ea: enumerable a |}
+  (bij : erased (a =~ a))
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p (bij.ff x)
+  ensures
+    forall+ (x:a). p x
+{
+  forevery_permute (bij_sym bij) _;
+}
 
 ghost
 fn forevery_tostar

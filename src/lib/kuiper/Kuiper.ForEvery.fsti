@@ -121,6 +121,16 @@ fn forevery_permute
     forall+ (x:a). p (bij.ff x)
 
 ghost
+fn forevery_permute_back
+  (#a:Type0) {| enumerable a |}
+  (bij : erased (a =~ a))
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p (bij.ff x)
+  ensures
+    forall+ (x:a). p x
+
+ghost
 fn forevery_tostar
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop)
