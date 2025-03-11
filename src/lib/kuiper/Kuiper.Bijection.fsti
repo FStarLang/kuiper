@@ -12,6 +12,7 @@ need to mark some of these 'unfold'. Probably due
 to a limitation of the pulse checker. *)
 
 noeq
+inline_for_extraction noextract (* IMPORTANT! *)
 type bijection (a b : Type) = {
   ff : a -> b;
   gg : b -> a;
@@ -36,6 +37,7 @@ val galois_forall (#a #b : _) (d : a =~ b)
           [SMTPat (has_type d (a =~ b))] // OK? Useful?
 #pop-options
 
+inline_for_extraction noextract
 let bij_self (a:Type) : (a =~ a) =
 {
   ff = id;
@@ -45,6 +47,7 @@ let bij_self (a:Type) : (a =~ a) =
 }
 
 unfold
+inline_for_extraction noextract
 let bij_sym (#a #b : Type) (d : a =~ b) : (b =~ a) =
 {
   ff = d.gg;
@@ -53,9 +56,11 @@ let bij_sym (#a #b : Type) (d : a =~ b) : (b =~ a) =
   gg_ff = d.ff_gg;
 }
 
+inline_for_extraction noextract
 let o f g =
   fun x -> f (g x)
 
+inline_for_extraction noextract
 let bij_comp (#a #b #c : Type) (ab : a =~ b) (bc : b =~ c) : (a =~ c) =
 {
   ff = bc.ff `o` ab.ff;
@@ -64,6 +69,7 @@ let bij_comp (#a #b #c : Type) (ab : a =~ b) (bc : b =~ c) : (a =~ c) =
   gg_ff = (fun x -> bc.gg_ff (ab.ff x); ab.gg_ff x);
 }
 
+inline_for_extraction noextract
 let bij_prod (#a #b #c #d : Type) (ab : a =~ b) (cd : c =~ d) : (a & c =~ b & d) =
 {
   ff = (fun (x, y) -> (ab.ff x, cd.ff y));
@@ -76,6 +82,7 @@ let bij_prod (#a #b #c #d : Type) (ab : a =~ b) (cd : c =~ d) : (a & c =~ b & d)
     ab.gg_ff x1; cd.gg_ff x2);
 }
 
+inline_for_extraction noextract
 let bij_flip (#a #b : Type) : (a & b =~ b & a) =
 {
   ff = (fun (x, y) -> (y, x));
@@ -125,16 +132,19 @@ let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
 
 (* weird typing errors without hoisting. *)
 unfold
+inline_for_extraction noextract
 let sz_prod_ff (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   : szlt (SZ.v n1) & szlt (SZ.v n2) -> szlt (SZ.v n1 * SZ.v n2)
   = fun xy -> (xy._1 *^ n2 +^ xy._2)
 
 unfold
+inline_for_extraction noextract
 let sz_prod_gg (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   : szlt (SZ.v n1 * SZ.v n2) -> szlt (SZ.v n1) & szlt (SZ.v n2)
   = fun i -> (i /^ n2, i %^ n2)
 
 unfold
+inline_for_extraction noextract
 let bij_sz_prod (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
   : (szlt (SZ.v n1) & szlt (SZ.v n2) =~ szlt (SZ.v n1 * SZ.v n2))
   = {
