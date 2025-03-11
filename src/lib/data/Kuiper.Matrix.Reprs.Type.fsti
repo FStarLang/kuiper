@@ -24,10 +24,12 @@ to allow constructing the record (i.e. instances) without a
 concrete nat in scope. *)
 inline_for_extraction
 class clayout (#rows #cols : erased nat) (l : mlayout rows cols) = {
-  [@@@no_method] lenfits : squash (SZ.fits (rows * cols));
-  [@@@no_method] c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)};
-  [@@@no_method] c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};
-  [@@@no_method] c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
+  [@@@no_method]  m_rows : (x:SZ.t {SZ.v x == reveal rows});
+  [@@@no_method]  m_cols : (x:SZ.t {SZ.v x == reveal cols});
+  [@@@no_method]  lenfits : squash (SZ.fits (rows * cols));
+  [@@@no_method]  c_to    : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.bij.ff (SZ.v i, SZ.v j)};
+  [@@@no_method]  c_from1 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == fst (l.bij.gg (SZ.v idx))};
+  [@@@no_method]  c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
 }
 
 type crepr_t (r : mrepr) =
