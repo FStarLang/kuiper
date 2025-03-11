@@ -101,6 +101,9 @@ let bij_nat_prod (#n1 #n2 : nat) : (natlt n1 & natlt n2 =~ natlt (n1 * n2)) =
   gg_ff = easy;
 }
 
+val __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
+  : Lemma (n1 == n2)
+
 val bij_cardinal (n1 n2 : nat)
   : Lemma (requires exists (b : natlt n1 =~ natlt n2). True)
           (ensures n1 == n2)
