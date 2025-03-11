@@ -58,6 +58,13 @@ let base_view (et len : _) : aview et len (erased (lseq et len)) =
   ibij = bij_self _;
 }
 
+let r_base_view (et len : _) : aview et len (erased (lseq et len)) =
+{
+  it   = natlt len;
+  igm  = lseq_is_ghost_map et len;
+  ibij = bij_nat_rev _;
+}
+
 noeq
 inline_for_extraction noextract
 type _normal et len = | N of erased (lseq et len)
@@ -89,7 +96,7 @@ let bij__reverse (et len : _) : (erased (lseq et len) =~ _reverse et len) = {
 
 let reverse_view (et:Type) (len:nat) : aview et len (_reverse et len) =
   aview_bij et len (erased (lseq et len)) (_reverse et len)
-    (base_view et len)
+    (r_base_view et len)
     (bij__reverse et len)
 
 inline_for_extraction noextract
@@ -127,7 +134,29 @@ fn write1 (a : varray (normal_view u32 50))
 { varray_write a 0sz 123ul; }
 
 fn write2 (a : varray (reverse_view u32 50))
+  (#s : erased (lseq u32 50))
   preserves gpu
-  requires a |-> R 's
-  ensures  a |-> R (Seq.upd 's 49 123ul) (* huh... confusing.. but ok *)
+  requires a |-> R s
+  ensures  a |-> R (Seq.upd s 0 123ul)
 { varray_write a 0sz 123ul; }
+
+
+(* awkward, we should be able to start from a random array (not "core a")
+   and use abs on it. *)
+fn write3 (a : varray (reverse_view u32 50))
+  (#s : erased (lseq u32 50))
+  preserves gpu
+  requires core a |-> to_seq (reverse_view u32 50) (R s)
+  ensures  core a |-> Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul
+{
+  let a' = varray_abs a (reverse_view u32 50);
+  write2 a';
+  varray_concr a';
+  rewrite each core #UInt32.t #(hide #nat 50) #(_reverse UInt32.t 50)
+          #(reverse_view UInt32.t 50) a' as core a;
+
+  assert (pure (Seq.equal
+    (Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul)
+    (to_seq (reverse_view u32 50) (R (Seq.upd s 0 123ul)))));
+  ();
+}

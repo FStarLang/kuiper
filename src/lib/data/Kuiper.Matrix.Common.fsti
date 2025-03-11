@@ -6,8 +6,6 @@ open Kuiper.EMatrix
 open Kuiper.GhostMap
 open Kuiper.Matrix.Reprs.Type
 module A = Kuiper.ArrayView
-module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
 
 let from_seq (#et:Type) (#rows #cols : _)
   (l : mlayout rows cols)

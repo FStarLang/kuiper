@@ -2,6 +2,7 @@ module Kuiper.MatMul
 
 #lang-pulse
 
+module M = Kuiper.Matrix
 open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
@@ -171,8 +172,6 @@ let kernel
            #(cA.map rows shared)
            #(cB.map shared cols)
            #(cC.map rows cols) gA gB gC
-
-#set-options "--print_implicits"
 
 ghost
 fn setup
