@@ -12,6 +12,10 @@ type mlayout (rows cols : nat) = {
   bij : natlt rows & natlt cols =~ natlt (rows * cols);
 }
 
+(* erased helps *)
+let mlayout_size (#rows #cols : erased nat) (_ : mlayout rows cols) : GTot nat =
+  rows * cols
+
 inline_for_extraction
 type mrepr = rows:nat -> cols:nat -> mlayout rows cols
 
