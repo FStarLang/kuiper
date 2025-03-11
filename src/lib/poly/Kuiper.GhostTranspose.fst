@@ -5,6 +5,7 @@ module Kuiper.GhostTranspose
 open Kuiper
 module Repr = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
+open Kuiper.Matrix.Common
 
 inline_for_extraction noextract
 fn ghost_transpose1

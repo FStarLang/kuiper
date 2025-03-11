@@ -366,9 +366,9 @@ fn matmul
   returns
     c : vec et
   ensures
-    (c |-> M.to_seq (rC rows cols) <|
-             MS.matmul (M.from_seq (rA rows shared) sa)
-                       (M.from_seq (rB shared cols) sb))
+    (c |-> to_seq (rC rows cols) <|
+             MS.matmul (from_seq (rA rows shared) sa)
+                       (from_seq (rB shared cols) sb))
 {
   let gA = M.gpu_matrix_alloc0 #et _ _ (rA rows shared);
   let gB = M.gpu_matrix_alloc0 #et _ _ (rB shared cols);

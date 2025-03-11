@@ -8,42 +8,6 @@ open Kuiper.EMatrix
 module A = Kuiper.ArrayView
 module T = FStar.Tactics.V2
 
-let ematrix_is_ghost_map
-  (et:Type) (#rows #cols : nat)
-  : is_ghost_map (ematrix et rows cols) (natlt rows & natlt cols) et
-= {
-    bij = {
-      ff = (fun m -> M?.f m);
-      gg = (fun f -> M f);
-      ff_gg = ez;
-      gg_ff = ez;
-    };
-    acc = (fun m (i, j) -> macc m i j);
-    upd = (fun m (i, j) x -> mupd m i j x);
-    l1 = ez;
-    l2 = ez;
-  }
-
-let aview_from_mlayout
-  (et : Type) (#rows #cols : nat)
-  (l : mlayout rows cols)
-  : GTot (A.aview et (rows * cols) (ematrix et rows cols)) =
-  {
-    it = natlt rows & natlt cols;
-    igm = ematrix_is_ghost_map et;
-    ibij = l.bij;
-  }
-
-let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
-  (s : lseq et (rows * cols))
-  : Lemma (from_seq l s == A.from_seq (aview_from_mlayout et l) s)
-  = assert (Kuiper.EMatrix.equal (from_seq l s) (A.from_seq (aview_from_mlayout et l) s))
-
-let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
-  (s : ematrix et rows cols)
-  : Lemma (to_seq l s == A.to_seq (aview_from_mlayout et l) s)
-  = assert (Seq.equal (to_seq l s) (A.to_seq (aview_from_mlayout et l) s))
-
 inline_for_extraction noextract
 let cview_from_clayout_ff
   (et : Type)

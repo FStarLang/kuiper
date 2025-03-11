@@ -3,21 +3,10 @@ module Kuiper.Matrix
 
 open Kuiper
 open Kuiper.EMatrix
+open Kuiper.Matrix.Common
 open Kuiper.Matrix.Reprs.Type
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
-
-let from_seq (#et:Type) (#rows #cols : _)
-  (l : mlayout rows cols)
-  (s : lseq et (rows * cols))
-  : ematrix et rows cols
-  = mkM fun i j -> s @! l.bij.ff (i,j)
-
-let to_seq (#et:Type) (#rows #cols : _)
-  (l : mlayout rows cols)
-  (m : ematrix et rows cols)
-  : GTot (lseq et (rows * cols))
-  = Seq.init_ghost (rows * cols) (fun i -> m.f (l.bij.gg i))
 
 inline_for_extraction noextract
 val gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0

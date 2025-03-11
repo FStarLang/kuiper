@@ -3,6 +3,7 @@ module Kuiper.MatMul
 #lang-pulse
 
 open Kuiper
+open Kuiper.Matrix.Common
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
@@ -66,9 +67,9 @@ let matmul_ty (et : Type0) {| scalar et |}
     (cpu **
     (a |-> sa) **
     (b |-> sb)) **
-    (c |-> M.to_seq (rC rows cols) <|
-             MS.matmul (M.from_seq (rA rows shared) sa)
-                       (M.from_seq (rB shared cols) sb)))
+    (c |-> to_seq (rC rows cols) <|
+             MS.matmul (from_seq (rA rows shared) sa)
+                       (from_seq (rB shared cols) sb)))
 
 inline_for_extraction noextract
 val matmul
