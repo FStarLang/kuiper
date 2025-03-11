@@ -3,38 +3,105 @@ module Kuiper.ArrayView
 
 open Kuiper
 open Kuiper.Bijection
+open Kuiper.GhostMap { is_ghost_map }
+open FStar.FunctionalExtensionality { (^->>) } 
+module F = FStar.FunctionalExtensionality
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
+
+(* The view type is an array of length len, with elements of type a,
+   and index type it. The view type is a map from index type into element
+   type. *)
 
 // [@@erasable]
 noeq
 type aview (a : Type) (len : nat) (vt : Type) = {
-  it : Type0; (* index type *)
-  bij : lseq a len =~ vt; (* bijection to sequences *)
-  (* the view type is a map from index type into element type *)
-  acc : it -> vt -> GTot a;
-  upd : it -> a -> vt -> GTot vt;
-  ibij : natlt len =~ it; (* bijection of indexes. *)
+  lenfits : squash (SZ.fits len);
+  (* abstract index type *)
+  it : Type0;
+  (* the view is essentially a map *)
+  igm : is_ghost_map vt it a;
 
-  cidx : a:it -> c:sz{SZ.v c == ibij.gg a};
-  aidx : c:sz{c < len} -> a:it{a == ibij.ff c};
+  (* concrete index type, with translation to/from machine integers
+  and abstract index types. This implies the abstract index is enumerable too. *)
+  cit : Type0;
+  cibij : cit =~ (n:SZ.t{SZ.v n < len});
 
-  galois1 : (a:vt -> i:it -> Lemma (acc i a == (bij.gg a) @! (ibij.gg i)));
-  galois2 : (abs:vt -> i:it -> x:a -> Lemma (bij.gg (upd i x abs) == Seq.upd (bij.gg abs) (ibij.gg i) x));
+  ibij : it =~ cit;
 }
+
+(* hm.... the choice of bijections above makes these a bit awkward *)
+
+let it_to_nat
+  (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (i : vw.it)
+  : natlt len
+  = (i |~> vw.ibij |~> vw.cibij) |> SZ.v
+
+let it_of_nat
+  (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (i: natlt len)
+  : vw.it
+  = SZ.uint_to_t i <~| vw.cibij <~| vw.ibij
+
+let to_seq
+  (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (v : vt) 
+  : GTot (lseq a len)
+  = Seq.init_ghost len (fun i -> vw.igm.acc v (it_of_nat vw i))
+
+let from_seq
+  (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (s : lseq a len)
+  : GTot vt
+  = vw.igm.bij.gg (F.on_g vw.it <| fun i -> s @! it_to_nat vw i)
+
+val to_from (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (s : lseq a len)
+  : Lemma (ensures to_seq vw (from_seq vw s) == s)
+          [SMTPat (to_seq vw (from_seq vw s))]
+
+type szlt (n:nat) = i:SZ.t{SZ.v i < n}
+
+(* FIXME: terrible inference here if we remove the ascription from
+the body of ff. It seems to try to try to define a bijection into SZ.t,
+regardless of the annotation on the letbinding and the annotation on the
+binder for m in gg. *)
+let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
+  {
+    gg = (fun (m:szlt n) -> SZ.v m);
+    ff = (fun (i:natlt n) -> SZ.uint_to_t i <: szlt n);
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+// instance enumerable_view_it (#a:Type) (#len:nat) (#vt:Type) (vw : aview a len vt)
+//   : Enumerable.enumerable vw.it =
+// {
+//   _cardinal = len;
+//   bij = vw.ibij `bij_comp` vw.cibij `bij_comp` bij_sym (fin_size_t_bij len);
+// }
 
 (* Needed to check the spec of explode/implode, as we iterate over the indices. *)
-instance enumerable_view_it (#a:Type) (#len:nat) (#vt:Type) (vw : aview a len vt)
-  : Enumerable.enumerable vw.it =
+instance enumerable_view_cit (#a:Type) (#len:nat) (#vt:Type) (vw : aview a len vt)
+  : Enumerable.enumerable vw.cit =
 {
   _cardinal = len;
-  bij = bij_sym vw.ibij;
+  bij = vw.cibij `bij_comp` bij_sym (fin_size_t_bij len);
 }
 
-let cidx (#a : Type) (#len : erased nat) (#vt : Type)
-         (vw : aview a len vt)
-  : (a:vw.it -> c:sz{SZ.v c == vw.ibij.gg a})
-  = match vw with {cidx} -> cidx
+(* Avoid ghost effect when using projector. *)
+let cidx
+  (#a : Type) (#len : erased nat) (#vt : Type)
+  (vw : aview a len vt)
+  (cit : vw.cit)
+  : c:sz{c == vw.cibij.ff cit}
+  = match vw with {cibij} -> cibij.ff cit
 
 inline_for_extraction noextract
 val varray (#a : Type0) (#len : nat) (#vt : Type) (vw : aview a len vt) : Type0
@@ -89,7 +156,7 @@ fn varray_concr
   requires
     a |-> v
   ensures
-    core a |-> vw.bij.gg v
+    core a |-> to_seq vw v
 
 inline_for_extraction noextract
 fn varray_abs
@@ -99,7 +166,7 @@ fn varray_abs
   (#len : erased nat) (#vt:Type0) (vw : aview t len vt)
   (#v : vt)
   requires
-    core a |-> vw.bij.gg v
+    core a |-> to_seq vw v
   returns
     a' : varray vw
   ensures
@@ -164,7 +231,7 @@ fn varray_read
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (#f : perm)
   (#v : vt)
   requires
@@ -175,23 +242,23 @@ fn varray_read
   ensures
     gpu **
     varray_pts_to a #f v **
-    pure (e == vw.acc i v)
+    pure (e == vw.igm.acc v (vw.ibij.gg i))
 
 inline_for_extraction noextract
 fn varray_write
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (e : et)
   (#f : perm)
   (#v0 : vt)
   requires
     gpu **
-    varray_pts_to a v0
+    (a |-> v0)
   ensures
     gpu **
-    varray_pts_to a (vw.upd i e v0)
+    (a |-> vw.igm.upd v0 (vw.ibij.gg i) e)
 
 (* Ownership over a single index. *)
 val varray_pts_to_cell
@@ -199,7 +266,7 @@ val varray_pts_to_cell
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.it)
+  ([@@@mkey]i : vw.cit)
   (v : et)
   : slprop
 
@@ -210,7 +277,7 @@ fn varray_read_cell
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (#f : perm)
   (#v0 : erased et)
   requires
@@ -228,7 +295,7 @@ fn varray_write_cell
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (v1 : et)
   (#v0 : erased et)
   requires
@@ -248,8 +315,8 @@ fn varray_explode
   requires
     varray_pts_to a #f v
   ensures
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.acc i v)
+    forall+ (i : vw.cit).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (i <~| vw.ibij))
 
 ghost
 fn varray_implode
@@ -259,7 +326,7 @@ fn varray_implode
   (#f : perm)
   (#v : vt)
   requires
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.acc i v)
+    forall+ (i : vw.cit).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (i <~| vw.ibij))
   ensures
     varray_pts_to a #f v

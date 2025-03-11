@@ -7,6 +7,24 @@ module B = Kuiper.Array (* base *)
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
+let to_from (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (s : lseq a len)
+  : Lemma (ensures to_seq vw (from_seq vw s) == s)
+          [SMTPat (to_seq vw (from_seq vw s))]
+  = let _ = vw.igm.bij.gg (F.on_g vw.it <| fun i -> s @! it_to_nat vw i) in
+    (* funny, mentioning the term above (= from_seq vw s) makes the proof work. *)
+    assert (Seq.equal s (to_seq vw (from_seq vw s)))
+
+let to_seq_upd (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (v : vt)
+  (i : vw.it)
+  (x : a)
+  : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
+          [SMTPat (to_seq vw (vw.igm.upd v i x))]
+  = assert (to_seq vw (vw.igm.upd v i x) `Seq.equal` Seq.upd (to_seq vw v) (it_to_nat vw i) x)
+
 let varray #a #len #vt vw =
   B.gpu_array a len
 
@@ -20,7 +38,7 @@ let varray_pts_to
   (v : vt)
   : slprop
   =
-    B.gpu_pts_to_array a #f (vw.bij.gg v)
+    B.gpu_pts_to_array a #f (to_seq vw v)
 
 inline_for_extraction noextract
 fn varray_concr
@@ -33,7 +51,7 @@ fn varray_concr
   requires
     a |-> v
   ensures
-    core a |-> vw.bij.gg v
+    core a |-> to_seq vw v
 {
   unfold varray_pts_to a v;
 }
@@ -46,7 +64,7 @@ fn varray_abs
   (#len : erased nat) (#vt:Type0) (vw : aview t len vt)
   (#v : vt)
   requires
-    core a |-> vw.bij.gg v
+    core a |-> to_seq vw v
   returns
     a' : varray vw
   ensures
@@ -74,10 +92,11 @@ fn varray_alloc0
     exists* v. a |-> v
 {
   let a = B.gpu_array_alloc #et len;
-  with v.
-    assert (a |-> v);
-  rewrite each v as vw.bij.gg (vw.bij.ff v);
-  fold varray_pts_to #et #len #vt #vw a #1.0R (vw.bij.ff v);
+  with s.
+    assert (a |-> s);
+  let v = hide (from_seq vw s);
+  rewrite each s as to_seq vw v;
+  fold varray_pts_to #et #len #vt #vw a #1.0R v;
   a
 }
 
@@ -152,12 +171,11 @@ fn varray_gather_n
   fold varray_pts_to a #f v;
 }
 
-inline_for_extraction noextract
 fn varray_read
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (#f : perm)
   (#v : vt)
   requires
@@ -168,12 +186,11 @@ fn varray_read
   ensures
     gpu **
     varray_pts_to a #f v **
-    pure (e == vw.acc i v)
+    pure (e == vw.igm.acc v (vw.ibij.gg i))
 {
-  let ci = cidx vw i;
+  let ni = cidx vw i;
   unfold varray_pts_to a #f v;
-  let r = B.gpu_array_read #et #len #0 #len a #f ci;
-  vw.galois1 v i;
+  let r = B.gpu_array_read #et #len #0 #len a #f ni;
   fold varray_pts_to a #f v;
   r
 }
@@ -183,22 +200,21 @@ fn varray_write
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (e : et)
   (#f : perm)
   (#v0 : vt)
   requires
     gpu **
-    varray_pts_to a v0
+    (a |-> v0)
   ensures
     gpu **
-    varray_pts_to a (vw.upd i e v0)
+    (a |-> vw.igm.upd v0 (vw.ibij.gg i) e)
 {
   let ci = cidx vw i;
   unfold varray_pts_to a v0;
   B.gpu_array_write #et #len #0 #len a ci e;
-  vw.galois2 v0 i e;
-  fold varray_pts_to a (vw.upd i e v0);
+  fold varray_pts_to a (vw.igm.upd v0 (vw.ibij.gg i) e);
   ()
 }
 
@@ -207,17 +223,17 @@ let varray_pts_to_cell
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.it)
+  ([@@@mkey]i : vw.cit)
   (v : et)
   : slprop
-  = gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![v]
+  = gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij) + 1) seq![v]
 
 inline_for_extraction noextract
-fn varray_read_cell
+ fn varray_read_cell
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (#f : perm)
   (#v0 : erased et)
   requires
@@ -242,7 +258,7 @@ fn varray_write_cell
   (#et:Type)
   (#len : erased nat) (#vt:Type0) (vw : aview et len vt)
   (a : varray vw)
-  (i : vw.it)
+  (i : vw.cit)
   (v1 : et)
   (#v0 : erased et)
   requires
@@ -271,28 +287,16 @@ fn varray_explode
   requires
     varray_pts_to a #f v
   ensures
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.acc i v)
+    forall+ (i : vw.cit).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (i <~| vw.ibij))
 {
   unfold varray_pts_to a #f v;
   B.gpu_array_slice_1 a;
-  rewrite
-    bigstar 0 len
-     (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i])
-  as
-    bigstar 0 (Enumerable.cardinal (natlt len))
-      (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
-  forevery_fromstar #(natlt len)
-      (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
-  forevery_iso vw.ibij _;
-  assert
-    forall+ (i:vw.it).
-      gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.bij.gg v @! vw.ibij.gg i];
-
-  Classical.forall_intro_2 vw.galois1;
-  forevery_ext #vw.it
-    (fun i -> gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.bij.gg v @! vw.ibij.gg i])
-    (fun i -> gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.acc i v]);
+  forevery_fromstar #vw.cit
+      (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)]);
+  forevery_ext #vw.cit
+    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)])
+    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![vw.igm.acc v (i <~| vw.ibij)]);
 }
 
 ghost
@@ -303,19 +307,16 @@ fn varray_implode
   (#f : perm)
   (#v : vt)
   requires
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.acc i v)
+    forall+ (i : vw.cit).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v (i <~| vw.ibij))
   ensures
     varray_pts_to a #f v
 {
-  Classical.forall_intro_2 vw.galois1;
-  forevery_ext #vw.it
-    (fun i -> gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.acc i v])
-    (fun i -> gpu_pts_to_slice a #f (vw.ibij.gg i) (vw.ibij.gg i + 1) seq![vw.bij.gg v @! vw.ibij.gg i]);
-  forevery_iso_back vw.ibij
-      (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
-  forevery_tostar #(natlt len)
-      (fun i -> gpu_pts_to_slice a #f i (i+1) seq![vw.bij.gg v @! i]);
+  forevery_ext #vw.cit
+    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![vw.igm.acc v (i <~| vw.ibij)])
+    (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)]);
+  forevery_tostar #vw.cit
+      (fun i -> gpu_pts_to_slice a #f (i |~> vw.cibij) ((i |~> vw.cibij)+1) seq![to_seq vw v @! (i |~> vw.cibij)]);
   B.gpu_array_unslice_1 a;
   fold varray_pts_to a #f v;
 }
