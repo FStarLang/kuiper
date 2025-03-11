@@ -64,7 +64,38 @@ int main(int argc, char **argv)
 	for (int l = 0; l < laps; l++) {
 		float t;
 		free (m3);
-		m3 = TIME(Kuiper_MatMul_U64_matmul_u64(rows, shared, columns, m1, m2), &t);
+		fprintf(stderr, "Standard\n");
+		m3 = TIME(Kuiper_MatMul_U64_matmul_u64_rrr(rows, shared, columns, m1, m2), &t);
+		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
+	}
+
+	if (check) {
+		u64 *m3_cpu = TIME(cpu_mul(rows, shared, columns, m1, m2), NULL);
+		for (i = 0; i < rows; i++) {
+			for (j = 0; j < columns; j++) {
+				if (m3[i * columns + j] != m3_cpu[i * columns + j]) {
+					printf("Error at %d %d: %lu != %lu\n", i, j, m3[i * columns + j], m3_cpu[i * columns + j]);
+					return 1;
+				}
+			}
+		}
+	}
+
+	for (int l = 0; l < laps; l++) {
+		float t;
+		free (m3);
+		fprintf(stderr, "Flipped\n");
+		/*
+		  M1/M2 are row-major.
+
+		  mult(R, M1, M2)
+		  = TR(mult(R, TR(M2), TR(M1)))
+		  = mult(C, TR(M2), TR(M1)
+		  = mult(C, as_col_major M2, as_col_major M1)
+
+		*/
+			
+		m3 = TIME(Kuiper_MatMul_U64_matmul_u64_ccc(columns, shared, rows, m2, m1), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 
