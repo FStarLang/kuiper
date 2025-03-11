@@ -93,7 +93,9 @@ fn gpu_matrix_abs
     (g' |-> em)
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
+  with v.
+    rewrite core g |-> v
+         as core g |-> A.to_seq (aview_from_mlayout et l) em;
   let g' = A.varray_abs g (aview_from_mlayout et l);
   fold gpu_matrix_pts_to g' em;
   g'
