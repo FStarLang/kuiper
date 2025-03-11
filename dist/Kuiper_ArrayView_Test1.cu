@@ -22,3 +22,8 @@ void Kuiper_ArrayView_Test1_write2(uint32_t *a)
   a[49U] = 123U;
 }
 
+void Kuiper_ArrayView_Test1_write3(uint32_t *a)
+{
+  Kuiper_ArrayView_Test1_write2(a);
+}
+
