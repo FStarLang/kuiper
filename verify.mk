@@ -235,6 +235,7 @@ TESTS:=$(filter-out Kuiper_MatMulTile, $(TESTS))
 TESTS:=$(filter-out Kuiper_MatMulTileF32, $(TESTS))
 
 extraction-targets: \
+	obj/Kuiper_ArrayView_Test1.cu \
 	obj/Kuiper_Example1.exe \
 	obj/Kuiper_DotProduct.o \
 	obj/Kuiper_DotProduct.exe \
