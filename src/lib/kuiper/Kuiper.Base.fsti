@@ -19,17 +19,18 @@ let cpu : slprop = mode CPU
 unfold
 let gpu : slprop = mode GPU
 
+(* Token for being in GPU block setup code *)
+val block_setup (nthr : nat) : slprop
+
 (* Arbitrary *)
 let max_blocks : erased int = pow2 30
 
+(* Help F* *)
 let max_blocks_explicit : squash (reveal max_blocks == 1073741824) =
   assert_norm (reveal max_blocks == 1073741824)
 
 (* Hard CUDA limit *)
 let max_threads : erased int = 1024
-
-(* Token for being in GPU block setup code *)
-val block_setup (nthr : nat) : slprop
 
 (* Token given to a particular block within a grid. Both here
 and in thread_id, the first argument is always positive
