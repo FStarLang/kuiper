@@ -70,3 +70,8 @@ let s_divmod_inv_2 (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)})
   : Lemma (s_divmod j (s_undivmod j dm) == dm)
           [SMTPat (s_divmod j (s_undivmod j dm))]
   = ()
+
+let three_fits (a b c : nat) : prop =
+  SZ.fits (a * b) /\
+  SZ.fits (b * c) /\
+  SZ.fits (a * c)

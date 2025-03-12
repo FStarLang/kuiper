@@ -2,23 +2,25 @@ module Kuiper.MatMul
 
 #lang-pulse
 
-module M = Kuiper.Matrix
 open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 module R  = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
+open Kuiper.Matrix.Reprs.Type
 
 (* This could be over layouts instead of reprs. *)
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (#rA #rB #rC : mrepr)
   (#rows #shared #cols : nat)
-  (gA : M.gpu_matrix et (rA rows shared))
-  (gB : M.gpu_matrix et (rB shared cols))
-  (gC : M.gpu_matrix et (rC rows cols))
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (f : perm)
@@ -33,11 +35,13 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (#rA #rB #rC : mrepr)
   (#rows #shared #cols : nat)
-  (gA : M.gpu_matrix et (rA rows shared))
-  (gB : M.gpu_matrix et (rB shared cols))
-  (gC : M.gpu_matrix et (rC rows cols))
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (f : perm)
@@ -52,15 +56,18 @@ let kpost
 inline_for_extraction
 type kernel_fixed_ty
   (et : Type0) {| scalar et |}
-  (rA rB rC : mrepr)
-  (rows : nat)
-  (shared : nat)
-  (cols : nat{SZ.fits (rows * cols)})
+  (#rows #shared #cols : nat)
+  (lA : mlayout rows shared)
+  (lB : mlayout shared cols)
+  (lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
 : Type0
 =
-  (gA : M.gpu_matrix et (rA rows shared)) ->
-  (gB : M.gpu_matrix et (rB shared cols)) ->
-  (gC : M.gpu_matrix et (rC rows cols)) ->
+  (gA : M.gpu_matrix et lA) ->
+  (gB : M.gpu_matrix et lB) ->
+  (gC : M.gpu_matrix et lC) ->
   (#eA : ematrix et rows shared) ->
   (#eB : ematrix et shared cols) ->
   (#f : perm) ->
@@ -80,16 +87,16 @@ type kernel_fixed_ty
 inline_for_extraction noextract
 fn kernel_fixed
   (#et : Type0) {| scalar et |}
-  (rA rB rC : mrepr)
-  (rows : erased nat)
-  (shared : SZ.t)
-  (cols : SZ.t{SZ.fits (rows * cols)})
-  {| clayout (rA rows shared) |}
-  {| clayout (rB shared cols) |}
-  {| clayout (rC rows cols) |}
-  (gA : M.gpu_matrix et (rA rows shared))
-  (gB : M.gpu_matrix et (rB shared cols))
-  (gC : M.gpu_matrix et (rC rows cols))
+  (#rows #shared #cols : SZ.t)
+  (lA : mlayout rows shared)
+  (lB : mlayout shared cols)
+  (lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#f : perm)
@@ -156,31 +163,19 @@ fn kernel_fixed
 }
 #pop-options
 
-let kernel
-  (#et : Type0) {| scalar et |}
-  (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
-  : kernel_ty et rA rB rC
-  =
-    fun #rows #shared #cols
-      (gA : M.gpu_matrix et (rA rows shared))
-      (gB : M.gpu_matrix et (rB shared cols))
-      (gC : M.gpu_matrix et (rC rows cols))
-      -> kernel_fixed #et rA rB rC rows shared cols
-           #(cA.map rows shared)
-           #(cB.map shared cols)
-           #(cC.map rows cols) gA gB gC
-
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : pos)
-  (#rA #rB #rC : mrepr)
-  (gA : M.gpu_matrix et (rA rows shared))
-  (gB : M.gpu_matrix et (rB shared cols))
-  (gC : M.gpu_matrix et (rC rows cols))
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -236,10 +231,15 @@ ghost
 fn teardown
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : pos)
-  (#rA #rB #rC : mrepr)
-  (gA : M.gpu_matrix et (rA rows shared))
-  (gB : M.gpu_matrix et (rB shared cols))
-  (gC : M.gpu_matrix et (rC rows cols))
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   requires
@@ -300,16 +300,19 @@ fn teardown
 }
 
 inline_for_extraction noextract
-fn matmul_gpu
+fn matmul_gpu_fixed
   (#et : Type0) {| scalar et |}
-  (#rows : szp)
-  (#shared : szp)
-  (#cols : szp{SZ.fits (rows * cols)})
-  (#rA #rB #rC : mrepr)
-  (kk : kernel_fixed_ty et rA rB rC rows shared cols)
-  (gA : M.gpu_matrix et (rA rows shared))
-  (gB : M.gpu_matrix et (rB shared cols))
-  (gC : M.gpu_matrix et (rC rows cols))
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
+  (kk : kernel_fixed_ty et lA lB lC #_ #_ #_)
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -340,96 +343,4 @@ fn matmul_gpu
   forevery_rw_size size (rows * cols);
 
   teardown gA gB gC;
-}
-
-inline_for_extraction noextract
-fn matmul
-  (#et : Type0) {| scalar et |}
-  (#rA #rB #rC : mrepr)
-  {| crepr rA |}
-  {| crepr rB |}
-  {| crepr rC |}
-  (kk : kernel_ty et rA rB rC #_ #_ #_)
-  (#rows #shared #cols : szp) (* concrete args *)
-  (a : vec et)
-  (b : vec et)
-  (#sa : erased (seq et){ len sa == rows * shared })
-  (#sb : erased (seq et){ len sb == shared * cols })
-  preserves
-    cpu **
-    (a |-> sa) **
-    (b |-> sb)
-  requires
-    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks)
-  returns
-    c : vec et
-  ensures
-    (c |-> to_seq (rC rows cols) <|
-             MS.matmul (from_seq (rA rows shared) sa)
-                       (from_seq (rB shared cols) sb))
-{
-  let gA = M.gpu_matrix_alloc0 #et _ _ (rA rows shared);
-  let gB = M.gpu_matrix_alloc0 #et _ _ (rB shared cols);
-  let gC = M.gpu_matrix_alloc0 #et _ _ (rC rows cols);
-
-  M.gpu_matrix_from_array gA a;
-  M.gpu_matrix_from_array gB b;
-
-  matmul_gpu kk gA gB gC;
-
-  let c = Pulse.Lib.Vec.alloc #et zero (SZ.mul rows cols);
-  M.gpu_matrix_to_array c gC;
-
-  M.gpu_matrix_free gA;
-  M.gpu_matrix_free gB;
-  M.gpu_matrix_free gC;
-
-  c
-}
-
-
-
-(* An example of computing tr(AB) by just shifting a view.
-Basically:
-  - Instantiating rA=rB=row_major, rC=col_major
-  - Do the product, we get C = AB (in col-major)
-  - View-shift C to get tr(AB) in row-major
-
-  TODO: It would be nicer to do this just over matmul,
-  but there is no view-like interface for CPU arrays.
-*)
-inline_for_extraction noextract
-fn matmul_transpose_gpu
-  (#et : Type0) {| scalar et |}
-  (#rows : szp)
-  (#shared : szp)
-  (#cols : szp{SZ.fits (rows * cols) /\ SZ.fits (rows * shared) /\ SZ.fits (shared * cols)})
-  (kk :
-    kernel_fixed_ty
-      et
-      R.row_major R.row_major R.col_major
-      rows shared cols
-  )
-  (gA : M.gpu_matrix et (R.row_major rows shared))
-  (gB : M.gpu_matrix et (R.row_major shared cols))
-  (gC : M.gpu_matrix et (R.row_major cols rows))
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et cols rows)
-  preserves
-    cpu **
-    (gA |-> eA) ** (gB |-> eB)
-  requires
-    pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
-  ensures
-    gC |-> mtranspose (MS.matmul eA eB)
-{
-  let gC' = GhostTranspose.ghost_transpose1 gC;
-  matmul_gpu kk gA gB gC';
-  let gC'' = GhostTranspose.ghost_transpose2 gC';
-  M.core_match gC gC'';
-  rewrite each gC'' as gC;
-  ()
 }

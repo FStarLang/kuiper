@@ -3,27 +3,19 @@ module Kuiper.MatMul.U32
 #lang-pulse
 open Kuiper
 open Kuiper.MatMul
+open Kuiper.MatMulCPU
+open Kuiper.MatMulGPU.Type
+module R = Kuiper.Matrix.Reprs
 
 [@@CPrologue "__global__"; "KrmlPrivate"]
-let kernel_u32_rrr
-  : kernel_ty _ _ _ _
-  = kernel #u32 R.row_major R.row_major R.row_major
+let k_u32_rrr
+  (rows shared : szp) (cols : szp{ three_fits rows shared cols })
+  : kernel_fixed_ty u32 (R.row_major rows shared) (R.row_major shared cols) (R.row_major rows cols)
+  = kernel_fixed #u32 _ _ _ 
+      #(R.crepr_row_major.map rows shared)
+      #(R.crepr_row_major.map shared cols)
+      #(R.crepr_row_major.map rows cols)
 
-let matmul_u32_rrr : matmul_ty u32 R.row_major R.row_major R.row_major =
-  matmul kernel_u32_rrr
-
-[@@CPrologue "__global__"; "KrmlPrivate"]
-let kernel_u32_ccc
-  : kernel_ty _ _ _ _
-  = kernel #u32 R.col_major R.col_major R.col_major
-
-let matmul_u32_ccc : matmul_ty u32 R.col_major R.col_major R.col_major =
-  matmul kernel_u32_ccc
-
-[@@CPrologue "__global__"; "KrmlPrivate"]
-let kernel_u32_ccr
-  : kernel_ty _ _ _ _
-  = kernel #u32 R.col_major R.col_major R.row_major
-
-let matmul_u32_ccr : matmul_ty u32 R.col_major R.col_major R.row_major =
-  matmul kernel_u32_ccr
+let matmul_u32_rrr : fixed_repr_matmul_cpu_ty u32 R.row_major R.row_major R.row_major =
+  mk_fixed_repr_matmul u32 R.row_major R.row_major R.row_major
+    (fun rows shared cols -> matmul_gpu_fixed (k_u32_rrr rows shared cols))

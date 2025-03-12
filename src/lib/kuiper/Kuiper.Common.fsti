@@ -1,5 +1,7 @@
 module Kuiper.Common
 
+open Pulse.Lib.Core
+
 (* Some base definitions we want everywhere, only over F* and Pulse constructs.
 This module should have no Kuiper dependencies. *)
 

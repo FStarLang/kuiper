@@ -277,7 +277,7 @@ fn gpu_matrix_implode
 inline_for_extraction noextract
 fn gpu_matrix_from_array
   (#et:Type0) {| sized et |}
-  (#mrows #mcols #brows #bcols : SZ.t)
+  (#mrows #mcols #brows #bcols : szp)
   (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (a : vec et)

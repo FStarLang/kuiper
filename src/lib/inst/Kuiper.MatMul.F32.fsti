@@ -2,7 +2,7 @@ module Kuiper.MatMul.F32
 
 #lang-pulse
 open Kuiper
-open Kuiper.MatMul
+open Kuiper.MatMulCPU
 module R = Kuiper.Matrix.Reprs
 
-val matmul_f32 : matmul_ty f32 R.row_major R.row_major R.row_major
+val matmul_f32_rrr : fixed_repr_matmul_cpu_ty f32 R.row_major R.row_major R.row_major
