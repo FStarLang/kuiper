@@ -5,7 +5,7 @@
 __global__
 
 static void
-kernel_f32(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
+k_f32_rrr(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
   size_t tid = blockIdx_x();
@@ -23,14 +23,20 @@ kernel_f32(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, fl
 }
 
 float_t
-*Kuiper_MatMul_F32_matmul_f32(size_t rows, size_t shared, size_t cols, float_t *a, float_t *b)
+*Kuiper_MatMul_F32_matmul_f32_rrr(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *a,
+  float_t *b
+)
 {
   float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * shared));
   float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U * (shared * cols));
   float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(kernel_f32,
+  KPR_KCALL(k_f32_rrr,
     rows * cols,
     (size_t)1U,
     (size_t)4U,

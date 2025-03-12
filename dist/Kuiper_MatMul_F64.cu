@@ -5,7 +5,7 @@
 __global__
 
 static void
-kernel_f64(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
+k_f64_rrr(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
   size_t tid = blockIdx_x();
@@ -23,7 +23,7 @@ kernel_f64(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, 
 }
 
 double_t
-*Kuiper_MatMul_F64_matmul_f64(
+*Kuiper_MatMul_F64_matmul_f64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -36,7 +36,7 @@ double_t
   double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U * (rows * cols));
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_KCALL(kernel_f64,
+  KPR_KCALL(k_f64_rrr,
     rows * cols,
     (size_t)1U,
     (size_t)4U,
