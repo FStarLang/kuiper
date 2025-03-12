@@ -1,4 +1,4 @@
-#include "Kuiper_MatMul_U64.h"
+#include "Kuiper_MatMul_Naive_Inst.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 		float t;
 		free (m3);
 		fprintf(stderr, "Standard\n");
-		m3 = TIME(Kuiper_MatMul_U64_matmul_u64_rrr(rows, shared, columns, m1, m2), &t);
+		m3 = TIME(Kuiper_MatMul_Naive_Inst_matmul_u64_rrr(rows, shared, columns, m1, m2), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
 		*/
 			
-		m3 = TIME(Kuiper_MatMul_U64_matmul_u64_ccc(columns, shared, rows, m2, m1), &t);
+		m3 = TIME(Kuiper_MatMul_Naive_Inst_matmul_u64_ccc(columns, shared, rows, m2, m1), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 

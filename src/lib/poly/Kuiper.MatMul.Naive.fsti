@@ -1,4 +1,4 @@
-module Kuiper.MatMul
+module Kuiper.MatMul.Naive
 
 #lang-pulse
 

@@ -1,4 +1,4 @@
-module Kuiper.MatMul
+module Kuiper.MatMul.Naive
 
 #lang-pulse
 
@@ -213,7 +213,7 @@ fn setup
       M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
     ensures
-      kpre gA gB gC eA eB 1.0R (Enumerable.of_nat #(natlt (rows * cols)) i)
+      kpre gA gB gC eA eB 1.0R (Kuiper.Enumerable.of_nat #(natlt (rows * cols)) i)
   {
     ()
   };
