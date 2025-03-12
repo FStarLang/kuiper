@@ -6,6 +6,7 @@ open Kuiper
 open Kuiper.MatMulGPU.Type
 open Kuiper.Matrix.Reprs.Type
 module SZ = FStar.SizeT
+(*
 
 inline_for_extraction
 val kernel_fixed_ty

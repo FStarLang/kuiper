@@ -277,6 +277,27 @@ ensures
   fold (gpu_pts_to_cell a #1.0R (SZ.v i) v);
 }
 
+unfold
+let kpre
+  (#ty:Type0)
+  (size:sz)
+  (a:gpu_array ty size)
+  (s:seq ty{ len s == SZ.v size })
+  (ebid : natlt (SZ.v size / 2))
+  : slprop =
+  gpu_pts_to_cell a #1.0R ebid (Seq.index s ebid) **
+  gpu_pts_to_cell a #1.0R (SZ.v size - ebid - 1) (index_flip s ebid)
+
+unfold
+let kpost
+  (#ty:Type0)
+  (size:sz)
+  (a:gpu_array ty size)
+  (s:seq ty{ len s == SZ.v size })
+  (ebid : natlt (SZ.v size / 2))
+  : slprop =
+  gpu_pts_to_cell a #1.0R ebid (Seq.index (reverse_spec s) ebid) **
+  gpu_pts_to_cell a #1.0R (SZ.v size - ebid - 1) (index_flip (reverse_spec s) ebid)
 
 [@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
@@ -284,20 +305,18 @@ fn kernel
   (size:sz)
   (a:gpu_array ty size)
   (#s:erased (Seq.seq ty) { len s == SZ.v size })
-  (etid:tid_t { gdim_x etid == size `div` 2sz /\ bdim_x etid == 1sz }) //thread_index etid < SZ.v size / 2 })
+  (ebid : enatlt (SZ.v (size `div` 2sz))) (* pretty awful.. *)
 requires
   gpu **
-  thread_id etid **
-  (gpu_pts_to_cell a #1.0R (thread_index etid) (Seq.index s (thread_index etid)) **
-   gpu_pts_to_cell a #1.0R (SZ.v size - thread_index etid - 1) (index_flip s (thread_index etid)))
+  block_id (SZ.v (size `div` 2sz)) ebid **
+  kpre size a s ebid
 ensures
   gpu **
-  thread_id etid **
-  (gpu_pts_to_cell a #1.0R (thread_index etid) (Seq.index (reverse_spec s) (thread_index etid)) **
-   gpu_pts_to_cell a #1.0R (SZ.v size - thread_index etid - 1sz) (index_flip (reverse_spec s) (thread_index etid)))
+  block_id (SZ.v (size `div` 2sz)) ebid **
+  kpost size a s ebid
 {
-  let idx = thread_idx_all ();
-  rewrite each thread_index etid as idx;
+  let idx = get_bid ();
+  rewrite each ebid as SZ.v idx;
   let idx' = (size - idx - 1sz);
   rewrite each (SZ.v size - SZ.v idx - 1) as idx';
   let uu = read_cell a idx;
@@ -305,7 +324,7 @@ ensures
   write_cell a idx vv;
   write_cell a idx' uu;
   rewrite each SZ.v idx' as (SZ.v size - SZ.v idx - 1);
-  rewrite each SZ.v idx  as thread_index etid;
+  rewrite each SZ.v idx  as ebid;
   ()
 }
 
@@ -329,15 +348,14 @@ ensures
       gpu_pts_to_cell a #1.0R tid (Seq.index s tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip s tid));
 
-  launch_kernel_n
+  assert (pure (SZ.v (size `div` 2sz) > 0));
+  assert (pure (SZ.v (size `div` 2sz) <= max_blocks));
+
+  launch_kernel_n_blocks
     (size `div` 2sz)
-    #(fun tid ->
-      gpu_pts_to_cell a #1.0R tid (Seq.index s tid) **
-      gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip s tid))
-    #(fun tid ->
-      gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
-      gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip (reverse_spec s) tid))
-    (fun etid -> kernel size a #s etid);
+    #(kpre size a s)
+    #(kpost size a s)
+    (fun ebid -> kernel size a #s ebid);
 
   forevery_tostar #(natlt (size `div` 2sz))
     (fun tid ->
@@ -348,5 +366,4 @@ ensures
   implode_cells a
 }
 
-// GM: suprised this worked
 let reverse_u64 = reverse #u64

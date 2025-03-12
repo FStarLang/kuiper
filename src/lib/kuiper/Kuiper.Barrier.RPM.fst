@@ -57,7 +57,7 @@ fn mbarrier_wait
   (#n : erased nat)
   (#p : rpm_t n)
   (#it : erased nat)
-  (#tid : erased (natlt n))
+  (#tid : enatlt n)
   requires mbarrier_tok n p  it    tid ** row p it tid
   ensures  mbarrier_tok n p (it+1) tid ** col p it tid
 {

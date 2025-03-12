@@ -31,20 +31,23 @@ fn launch_kernel_n_m_shmem
     stt_ghost unit emp_inames
       (block_setup nthr ** (exists* v. gpu_pts_to_array #a #smem_sz ar #1.0R v))
       (fun _ -> block_setup nthr ** (forall+ (i : natlt nthr). shared_pre ar bid i)))
-  (k :
+(k :
     (ar: erased (gpu_array a smem_sz)) ->
-    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (ebid : enatlt nblk) ->
+    (etid : enatlt nthr) ->
     stt unit
       (         gpu **
-                thread_id etid **
+                block_id nblk ebid **
+                thread_id nthr etid **
                 shmem_tok ar **
-                shared_pre ar (bidx_x etid) (tidx_x etid) **
-                pre (bidx_x etid) (tidx_x etid))
+                shared_pre ar ebid etid **
+                pre ebid etid)
       (fun _ -> gpu **
-                thread_id etid **
+                block_id nblk ebid **
+                thread_id nthr etid **
                 // shmem_tok ar **
-                shared_post ar (bidx_x etid) (tidx_x etid) **
-                post (bidx_x etid) (tidx_x etid))
+                shared_post ar ebid etid **
+                post ebid etid)
   )
   requires
     cpu **
@@ -60,16 +63,19 @@ fn launch_kernel_n_m_barrier_async
   (#pre #post : natlt nblk -> natlt nthr -> slprop)
   (#p : rpm_t nthr)
   (k :
-    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (ebid : enatlt nblk) ->
+    (etid : enatlt nthr) ->
     stt unit
       (         gpu **
-                thread_id etid **
-                mbarrier_tok nthr p 0 (tidx_x etid) **
-                pre (bidx_x etid) (tidx_x etid))
+                block_id nblk ebid **
+                thread_id nthr etid **
+                mbarrier_tok nthr p 0 etid **
+                pre ebid etid)
       (fun _ -> gpu **
-                thread_id etid **
-                (exists* it. mbarrier_tok nthr p it (tidx_x etid)) **
-                post (bidx_x etid) (tidx_x etid))
+                block_id nblk ebid **
+                thread_id nthr etid **
+                (exists* it. mbarrier_tok nthr p it etid) **
+                post ebid etid)
   )
   (#e : epoch_t)
   requires
@@ -92,16 +98,19 @@ fn launch_kernel_n_m_barrier
   (#pre #post : natlt nblk -> natlt nthr -> slprop)
   (#p : rpm_t nthr)
   (k :
-    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (ebid : enatlt nblk) ->
+    (etid : enatlt nthr) ->
     stt unit
       (         gpu **
-                thread_id etid **
-                mbarrier_tok nthr p 0 (tidx_x etid) **
-                pre (bidx_x etid) (tidx_x etid))
+                block_id nblk ebid **
+                thread_id nthr etid **
+                mbarrier_tok nthr p 0 etid **
+                pre ebid etid)
       (fun _ -> gpu **
-                thread_id etid **
-                (exists* it. mbarrier_tok nthr p it (tidx_x etid)) **
-                post (bidx_x etid) (tidx_x etid))
+                block_id nblk ebid **
+                thread_id nthr etid **
+                (exists* it. mbarrier_tok nthr p it etid) **
+                post ebid etid)
   )
   requires
     cpu **
@@ -117,10 +126,17 @@ fn launch_kernel_n_m
   (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
   (#pre #post : natlt nblk -> natlt nthr -> slprop)
   (k :
-    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (ebid : enatlt nblk) ->
+    (etid : enatlt nthr) ->
     stt unit
-      (         gpu ** thread_id etid ** pre  (bidx_x etid) (tidx_x etid))
-      (fun _ -> gpu ** thread_id etid ** post (bidx_x etid) (tidx_x etid))
+      (         gpu **
+                block_id nblk ebid **
+                thread_id nthr etid **
+                pre ebid etid)
+      (fun _ -> gpu **
+                block_id nblk ebid **
+                thread_id nthr etid **
+                post ebid etid)
   )
   requires
     cpu **
@@ -129,14 +145,20 @@ fn launch_kernel_n_m
     cpu **
     (forall+ (b : natlt nblk) (t : natlt nthr). post b t)
 
-fn launch_kernel_n_async
+inline_for_extraction noextract
+fn launch_kernel_n_blocks_async
   (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : natlt nblk -> slprop)
   (k :
-    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
-    stt unit (gpu ** thread_id etid ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
-  )
+    (ebid : enatlt nblk ->
+    stt unit
+      (         gpu **
+                block_id nblk ebid **
+                pre ebid)
+      (fun _ -> gpu **
+                block_id nblk ebid **
+                post ebid)
+  ))
   (#e : epoch_t)
   requires
     cpu **
@@ -152,14 +174,19 @@ fn launch_kernel_n_async
     pure (e' >= e)
 
 inline_for_extraction noextract
-fn launch_kernel_n
-  (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
+fn launch_kernel_n_blocks
+  (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
   (#pre #post : (natlt nblk -> slprop))
   (k :
-    (etid:tid_t { gdim_x etid == nblk /\ bdim_x etid == 1sz }) ->
-    stt unit (gpu ** thread_id etid ** pre (thread_index etid))
-             (fun _ -> gpu ** thread_id etid ** post (thread_index etid))
-  )
+    (ebid : enatlt nblk ->
+    stt unit
+      (         gpu **
+                block_id nblk ebid **
+                pre ebid)
+      (fun _ -> gpu **
+                block_id nblk ebid **
+                post ebid)
+  ))
   requires
     cpu **
     (forall+ (b : natlt nblk). pre b)
@@ -195,13 +222,13 @@ fn launch_kernel_1
   requires cpu ** pre
   ensures  cpu ** post
 
-inline_for_extraction noextract
-fn thread_idx_all () (#n: tid_t)
-  preserves
-    thread_id n
-  requires
-    emp
-  returns
-    id : SZ.t
-  ensures
-    pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
+// inline_for_extraction noextract
+// fn thread_idx_all () (#n: tid_t)
+//   preserves
+//     thread_id n
+//   requires
+//     emp
+//   returns
+//     id : SZ.t
+//   ensures
+//     pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)

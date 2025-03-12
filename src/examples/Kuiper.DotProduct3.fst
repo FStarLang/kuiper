@@ -125,21 +125,23 @@ fn kernel
   (#s1 #s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth ))
   (ear: erased (gpu_array u64 nth))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : enatlt nth)
   requires
     gpu **
-    thread_id etid **
+    block_id 1 0 **
+    thread_id nth etid **
     shmem_tok ear **
-    shared_pre nth ear r s1 s2 0 (bidx_x etid) (tidx_x etid) **
-    kpre nth ga1 ga2 r s1 s2 (bidx_x etid) (tidx_x etid)
+    shared_pre nth ear r s1 s2 0 0 etid **
+    kpre nth ga1 ga2 r s1 s2 0 etid
   ensures
     gpu **
-    thread_id etid **
-    shared_post nth ear r s1 s2 0 (bidx_x etid) (tidx_x etid) **
-    kpost nth ga1 ga2 r s1 s2 (bidx_x etid) (tidx_x etid)
+    block_id 1 0 **
+    thread_id nth etid **
+    shared_post nth ear r s1 s2 0 0 etid **
+    kpost nth ga1 ga2 r s1 s2 0 etid
 {
   unfold shared_pre;
-  let tid = thread_idx_x ();
+  let tid = get_tid ();
   (**)unfold (kpre nth ga1 ga2 r s1 s2 0 tid);
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
@@ -162,7 +164,7 @@ fn kernel
   rewrite each s' as seq![vm <: u64];
 
   (* Reduction *)
-  HR.d_reduce nth ar #dot_v #() etid;
+  HR.d_reduce nth ar #dot_v #() 0 etid;
 
   fixup nth ar r s1 s2 tid;
   fold (kpost nth ga1 ga2 r s1 s2 0 tid);
@@ -276,7 +278,7 @@ fn main
     #(fun ear bid tid -> shared_pre dp2_size ear gr v1 v2 0 bid tid)
     #(fun ear bid tid -> shared_post dp2_size ear gr v1 v2 0 bid tid)
     (fun ear bid -> setup dp2_size ear bid gr v1 v2)
-    (fun ear etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 ear etid);
+    (fun ear _ebid etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 ear etid);
 
   rewrite
     forall+ (bid:natlt 1) (tid:natlt dp2_size).

@@ -54,6 +54,6 @@ fn barrier_wait
   (#p : (it:nat -> tid:natlt n -> slprop))
   (#q : (it:nat -> tid:natlt n -> slprop))
   (#it : erased nat)
-  (#tid : erased (natlt n))
+  (#tid : enatlt n)
   requires barrier_tok p q  it    tid ** p it tid
   ensures  barrier_tok p q (it+1) tid ** q it tid

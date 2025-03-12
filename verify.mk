@@ -235,11 +235,12 @@ TESTS:=$(filter-out Kuiper_MatMulTile_Async, $(TESTS))
 TESTS:=$(filter-out Kuiper_MatMulTile, $(TESTS))
 TESTS:=$(filter-out Kuiper_MatMulTileF32, $(TESTS))
 
+# restore using poly impl
+TESTS:=$(filter-out Kuiper_DotProduct, $(TESTS))
+
 extraction-targets: \
 	obj/Kuiper_ArrayView_Test1.cu \
 	obj/Kuiper_Example1.exe \
-	obj/Kuiper_DotProduct.o \
-	obj/Kuiper_DotProduct.exe \
 	$(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst)))) \
 	$(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst)))) \
 	$(patsubst %,obj/%.exe,$(TESTS))

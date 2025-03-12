@@ -38,18 +38,21 @@ fn launch_kernel_n_m_shmem_async
       (fun _ -> block_setup nthr ** (forall+ (i : natlt nthr). shared_pre ar bid i)))
   (k :
     (ar: erased (gpu_array a smem_sz)) ->
-    (etid: tid_t { gdim_x etid == nblk /\ bdim_x etid == nthr }) ->
+    (ebid : enatlt nblk) ->
+    (etid : enatlt nthr) ->
     stt unit
       (         gpu **
-                thread_id etid **
+                block_id nblk ebid **
+                thread_id nthr etid **
                 shmem_tok ar **
-                shared_pre ar (bidx_x etid) (tidx_x etid) **
-                pre (bidx_x etid) (tidx_x etid))
+                shared_pre ar ebid etid **
+                pre ebid etid)
       (fun _ -> gpu **
-                thread_id etid **
+                block_id nblk ebid **
+                thread_id nthr etid **
                 // shmem_tok ar **
-                shared_post ar (bidx_x etid) (tidx_x etid) **
-                post (bidx_x etid) (tidx_x etid))
+                shared_post ar ebid etid **
+                post ebid etid)
   )
   (#e : epoch_t)
   requires

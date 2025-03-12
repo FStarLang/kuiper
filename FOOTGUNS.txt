@@ -16,3 +16,10 @@
   to project a field out of it will bump the effect to ghost,
   as the projector has a concrete `nat` parameter instead of erased.
   This is probably worthwhile to fix in F*.
+
+- Do not write `erased (natlt z)`, ideally don't write erased of
+  any refined type. Since erased is invariant wrt types this makes
+  typechecking much more brittle and really hard to debug.
+  Instead refine the erased value like:
+    n:(erased nat){n < z}
+  or use the alias `enatlt` for this particular one.

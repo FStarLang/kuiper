@@ -9,6 +9,7 @@ open FStar.Tactics.V2
 open FStar.Seq
 open Kuiper.Base
 open Kuiper.Sized
+open Kuiper.SizeT
 
 module SZ = FStar.SizeT
 

@@ -11,6 +11,10 @@ include FStar.Tactics.Typeclasses { solve }
 type natlt (b:int) = n:nat{n <  b}
 type natle (b:int) = n:nat{n <= b}
 
+(* Erased version, with refinement **on the outside** to prevent
+against invariance of erased wrt types. *)
+type enatlt (b:int) = n:(Ghost.erased nat){n <  b}
+
 (* really just ez = easy *)
 let ez : #a:Type -> (#[Tactics.V2.easy_fill ()] _ : a) -> a = Tactics.V2.easy
 

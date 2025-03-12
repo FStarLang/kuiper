@@ -32,40 +32,40 @@ type k_pointwise_exp_ty
   (et:Type0) {| floating et |} =
   (#lena : erased nat) ->
   (a : gpu_array et lena) ->
-  (etid : tid_t { gdim_x etid == reveal lena /\ bdim_x etid == 1 }) ->
+  (ebid : enatlt lena) ->
   stt unit
   (requires
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid))
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid)
   (ensures fun _ ->
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid))
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid)
 
 inline_for_extraction noextract
 fn k_pointwise_exp
   (#et : Type0) {| floating et |}
   (#lena : erased nat)
   (a : gpu_array et lena)
-  (etid : tid_t { gdim_x etid == reveal lena /\ bdim_x etid == 1 })
+  (ebid : enatlt lena)
   requires
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid)
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid
   ensures
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid)
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid
 {
-  let i = thread_idx_all ();
+  let i = get_bid ();
   assert (pure (i < lena));
-  assert (pure (SZ.v i == thread_index etid));
-  unfold gpu_pts_to_array1 a (thread_index etid);
+  assert (pure (SZ.v i == ebid));
+  unfold gpu_pts_to_array1 a ebid;
   let x = gpu_array_read #_ #_ #i #(i+1) a i;
   let x = exp x;
   gpu_array_write #_ #_ #i #(i+1) a i x;
-  fold gpu_pts_to_array1 a (thread_index etid);
+  fold gpu_pts_to_array1 a ebid;
   ()
 }
 
@@ -74,16 +74,16 @@ type k_pointwise_div_ty
   (#lena : erased nat) ->
   (a : gpu_array et lena) ->
   (d : et) ->
-  (etid : tid_t { gdim_x etid == reveal lena /\ bdim_x etid == 1 }) ->
+  (ebid : enatlt lena) ->
   stt unit
   (requires
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid))
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid)
   (ensures fun _ ->
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid))
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid)
 
 inline_for_extraction noextract
 fn k_pointwise_div
@@ -91,24 +91,24 @@ fn k_pointwise_div
   (#lena : erased nat)
   (a : gpu_array et lena)
   (d : et)
-  (etid : tid_t { gdim_x etid == reveal lena /\ bdim_x etid == 1 })
+  (ebid : enatlt lena)
   requires
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid)
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid
   ensures
     gpu **
-    thread_id etid **
-    gpu_pts_to_array1 a (thread_index etid)
+    block_id lena ebid **
+    gpu_pts_to_array1 a ebid
 {
-  let i = thread_idx_all ();
+  let i = get_bid ();
   assert (pure (i < lena));
-  assert (pure (SZ.v i == thread_index etid));
-  unfold gpu_pts_to_array1 a (thread_index etid);
+  assert (pure (SZ.v i == ebid));
+  unfold gpu_pts_to_array1 a ebid;
   let x = gpu_array_read #_ #_ #i #(i+1) a i;
   let x = x `div` d;
   gpu_array_write #_ #_ #i #(i+1) a i x;
-  fold gpu_pts_to_array1 a (thread_index etid);
+  fold gpu_pts_to_array1 a ebid;
   ()
 }
 
@@ -131,13 +131,13 @@ fn softmax_gpu
   Array.gpu_array_slice_1_underspec a;
 
   forevery_fromstar #(natlt lena)
-    (fun tid -> gpu_pts_to_array1 a tid);
+    (fun bid -> gpu_pts_to_array1 a bid);
 
-  launch_kernel_n
+  launch_kernel_n_blocks
     lena
-    #(fun tid -> gpu_pts_to_array1 a tid)
+    #(fun bid -> gpu_pts_to_array1 a bid)
     #(gpu_pts_to_array1 a)
-    (fun etid -> kexp #(SZ.v lena) a etid);
+    (fun ebid -> kexp #(SZ.v lena) a ebid);
 
   forevery_tostar #(natlt lena)
     (fun i -> gpu_pts_to_array1 a i);
@@ -158,12 +158,12 @@ fn softmax_gpu
   (* Divide by average *)
   Array.gpu_array_slice_1_underspec a;
   forevery_fromstar #(natlt lena)
-    (fun tid -> gpu_pts_to_array1 a tid);
-  launch_kernel_n
+    (fun bid -> gpu_pts_to_array1 a bid);
+  launch_kernel_n_blocks
     lena
-    #(fun tid -> gpu_pts_to_array1 a tid)
+    #(fun bid -> gpu_pts_to_array1 a bid)
     #(gpu_pts_to_array1 a)
-     (fun etid -> kdiv #(SZ.v lena) a avg etid);
+     (fun ebid -> kdiv #(SZ.v lena) a avg ebid);
   forevery_tostar #(natlt lena)
     (fun i -> gpu_pts_to_array1 a i);
   rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)

@@ -103,16 +103,20 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   (******** PREDEFINED VARS ********)
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "Kuiper.Base.block_idx_x" ->
+  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednblk; _erasednbid])
+    when string_of_mlpath p = "Kuiper.Base.get_gdim" ->
+    EApp (EQualified ([], "gridDim_x"), [ EUnit ])
+
+  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednblk; _erasednbid])
+    when string_of_mlpath p = "Kuiper.Base.get_bid" ->
     EApp (EQualified ([], "blockIdx_x"), [ EUnit ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "Kuiper.Base.block_dim_x" ->
+  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednthr; _erasedntid])
+    when string_of_mlpath p = "Kuiper.Base.get_bdim" ->
     EApp (EQualified ([], "blockDim_x"), [ EUnit ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasedn])
-    when string_of_mlpath p = "Kuiper.Base.thread_idx_x" ->
+  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednthr; _erasedntid])
+    when string_of_mlpath p = "Kuiper.Base.get_tid" ->
     EApp (EQualified ([], "threadIdx_x"), [ EUnit ])
 
   | MLE_App ({ expr = MLE_Name p } , [ sz ])

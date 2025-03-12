@@ -110,16 +110,16 @@ type kernel_ty (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
   (done : erased (seq (gref bool)){len done == reveal (SZ.v n)}) ->
   (i : iname) ->
   (v_a : erased (seq et)) ->
-  (etid : tid_t { gdim_x etid == SZ.v n /\ bdim_x etid == 1 }) ->
+  (ebid : enatlt (SZ.v n)) ->
   stt unit
   (requires
     gpu **
-    thread_id etid **
-    kpre  (SZ.v n) a v_a r done i (thread_index etid))
+    block_id (SZ.v n) ebid **
+    kpre  (SZ.v n) a v_a r done i ebid)
   (ensures fun _ ->
     gpu **
-    thread_id etid **
-    kpost (SZ.v n) a v_a r done i (thread_index etid))
+    block_id (SZ.v n) ebid **
+    kpost (SZ.v n) a v_a r done i ebid)
 
 [@@CPrologue "__global__"; "KrmlPrivate"]
 inline_for_extraction noextract
@@ -131,13 +131,12 @@ fn kernel
   (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
   (v_a : erased (seq et))
-  (etid : tid_t { gdim_x etid == reveal nn /\ bdim_x etid == 1})
-  requires gpu ** thread_id etid ** kpre  (SZ.v nn) a v_a r done i (thread_index etid)
-  ensures  gpu ** thread_id etid ** kpost (SZ.v nn) a v_a r done i (thread_index etid)
+  (ebid : enatlt (SZ.v nn))
+  requires gpu ** block_id (SZ.v nn) ebid ** kpre  (SZ.v nn) a v_a r done i ebid
+  ensures  gpu ** block_id (SZ.v nn) ebid ** kpost (SZ.v nn) a v_a r done i ebid
 {
   assume (pure (len v_a == reveal nn));
-  let tid = thread_idx_all ();
-  rewrite each thread_index etid as SZ.v tid;
+  let bid = get_bid (); rewrite each ebid as SZ.v bid;
   later_credit_buy 1;
   later_credit_buy 1;
   (* Read array at idx *)
@@ -146,15 +145,15 @@ fn kernel
       returns v : et
       ensures
         gpu **
-        thread_id etid **
-        gref_pts_to (done @! tid) #0.5R false **
+        block_id (SZ.v nn) ebid **
+        gref_pts_to (done @! bid) #0.5R false **
         later (inv_p (SZ.v nn) a v_a r done) **
-        pure (v == v_a @! SZ.v tid) **
+        pure (v == v_a @! SZ.v bid) **
         later_credit 1
     {
       later_elim _;
       unfold (inv_p (SZ.v nn) a v_a r done);
-      let rr = gpu_array_read #et #(SZ.v nn) #0 #(SZ.v nn) a tid;
+      let rr = gpu_array_read #et #(SZ.v nn) #0 #(SZ.v nn) a bid;
       fold (inv_p (SZ.v nn) a v_a r done);
       later_intro (inv_p (SZ.v nn) a v_a r done);
       rr
@@ -167,7 +166,7 @@ fn kernel
     let _ = atomic_add r v;
     bigstar_ghost_upd_lemma done _ _ ;
     assume (pure False); (* FIXME *)
-    rewrite each SZ.v tid as thread_index etid;
+    rewrite each SZ.v bid as ebid;
     fold (inv_p (SZ.v nn) a v_a r done);
     later_intro (inv_p (SZ.v nn) a v_a r done);
   }
@@ -182,7 +181,6 @@ fn done_lemma
   (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
   (v_a : erased (seq et))
-  (etid : tid_t { gdim_x etid == 1 /\ bdim_x etid == reveal nn})
   requires
     gpu **
     bigstar 0 nn (fun tid -> kpost  nn a v_a r done i tid)
@@ -304,7 +302,7 @@ fn reduce
   forevery_fromstar #(natlt (SZ.v n))
     (kpre (SZ.v n) a v_a gr done i);
 
-  launch_kernel_n n
+  launch_kernel_n_blocks n
     #(kpre  (SZ.v n) a v_a gr done i)
     #(kpost (SZ.v n) a v_a gr done i)
     (fun etid -> k (hide n) a gr done i v_a etid);

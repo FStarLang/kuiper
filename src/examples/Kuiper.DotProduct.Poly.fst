@@ -13,36 +13,32 @@ let size : n:(erased nat){reveal n == SZ.v m_size} = SZ.v m_size
 inline_for_extraction
 let uint32_to_sizet x = FStar.SizeT.uint32_to_sizet x
 
-let kpre #et (size: sz) (ga1 ga2 r : gpu_array et (SZ.v size)) (tid:nat) : slprop =
-  gpu_pts_to_array1 #et #(SZ.v size) ga1 tid **
-  gpu_pts_to_array1 #et #(SZ.v size) ga2 tid **
-  gpu_pts_to_array1 #et #(SZ.v size) r tid
+let kpre #et (size:nat) (ga1 ga2 r : gpu_array et size) (tid:nat) : slprop =
+  gpu_pts_to_array1 ga1 tid **
+  gpu_pts_to_array1 ga2 tid **
+  gpu_pts_to_array1 r tid
 
-let kpost #et (size: sz) (ga1 ga2 r : gpu_array et (SZ.v size)) (tid:nat) : slprop =
-  gpu_pts_to_array1 #et #(SZ.v size) ga1 tid **
-  gpu_pts_to_array1 #et #(SZ.v size) ga2 tid **
-  gpu_pts_to_array1 #et #(SZ.v size) r tid
+let kpost #et (size:nat) (ga1 ga2 r : gpu_array et size) (tid:nat) : slprop =
+  gpu_pts_to_array1 ga1 tid **
+  gpu_pts_to_array1 ga2 tid **
+  gpu_pts_to_array1 r tid
 
 [@@CPrologue "__global__"; "KrmlPrivate"]
 fn kernel
-  (#et:Type0)
-  {| scalar et |}
-  (#nblk : erased sz { 0 < SZ.v nblk /\ SZ.v nblk <= 1024 * 1024 })
-  (size : erased sz { SZ.v size == SZ.v nblk })
-  (ga1 ga2 : gpu_array et (reveal size))
-  (r : gpu_array et (reveal size))
-  (etid : erased tid_t { gdim_x etid == SZ.v nblk /\ bdim_x etid == 1 })
-  requires gpu ** thread_id etid ** kpre size ga1 ga2 r (thread_index etid)
-  ensures  gpu ** thread_id etid ** kpost size ga1 ga2 r (thread_index etid)
+  (#et:Type0) {| scalar et |}
+  (#size : erased nat)
+  (ga1 ga2 r : gpu_array et size)
+  (ebid : enatlt size)
+  requires gpu ** block_id size ebid ** kpre  size ga1 ga2 r ebid
+  ensures  gpu ** block_id size ebid ** kpost size ga1 ga2 r ebid
 {
-  let id = thread_idx_all ();
-  rewrite each thread_index etid as id;
+  let id = get_bid ();
+  rewrite each ebid as SZ.v id;
   (* r[id] = ga1[id] * ga2[id] *)
 
   (**)unfold (kpre size ga1 ga2 r id);
 
   (**)unfold (gpu_pts_to_array1 ga1 id);
-  (**)gpu_pts_to_slice_ref ga1 id (id+1); // recall tid < size
   let v1 = gpu_array_read #_ #(reveal size) #id #(id+1) ga1 id;
 
   (**)unfold (gpu_pts_to_array1 ga2 id);
@@ -118,9 +114,9 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   forevery_fromstar #(natlt (SZ.v nthr))
     (fun i -> kpre m_size ga1 ga2 gr i);
 
-  launch_kernel_n nthr
+  launch_kernel_n_blocks nthr
     #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
-    (fun etid -> kernel #et #_ #(hide nthr) (hide m_size) ga1 ga2 gr etid);
+    (fun etid -> kernel ga1 ga2 gr etid);
 
   forevery_tostar #(natlt (SZ.v nthr))
     (fun i -> kpost m_size ga1 ga2 gr i);

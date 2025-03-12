@@ -3,169 +3,191 @@ module Kuiper.MatMul.Tiled
 #lang-pulse
 
 open Kuiper
-module M  = Kuiper.Matrix
+module M   = Kuiper.Matrix
+module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
-open Kuiper.EMatrix
+open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
 
-(* This could be over layouts instead of reprs. *)
+open Kuiper.Matrix4 {
+  gpu_matrix as gpu_matrix4,
+  gpu_matrix_pts_to as m4_pts_to,
+  gpu_matrix_pts_to_cell as m4_pts_to_cell,
+  mlayout4,
+  clayout4
+}
+
+
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (#mrows #mshared #mcols #bdim : pos)
+  (#lA : mlayout4 mrows   mshared bdim bdim)
+  (#lB : mlayout4 mshared mcols   bdim bdim)
+  (#lC : mlayout4 mrows   mcols   bdim bdim)
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (eA : ematrix4 et mrows mshared bdim bdim)
+  (eB : ematrix4 et mshared mcols bdim bdim)
   (f : perm)
-  (tid : nat{ tid < rows * cols })
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (bdim * bdim))
   : slprop
   =
-  M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-  M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
+  m4_pts_to gA #(f /. mlayout_size lA) eA **
+  m4_pts_to gB #(f /. mlayout_size lB) eB **
   (exists* v.
-    M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v)
+    m4_pts_to_cell gC #1.0R
+      (bid / mcols) (bid % mcols)
+      (tid / bdim) (tid % bdim) v)
 
+(* NO FUNCTIONAL SPEC RIGHT NOW *)
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
+  (#mrows #mshared #mcols #bdim : pos)
+  (#lA : mlayout4 mrows   mshared bdim bdim)
+  (#lB : mlayout4 mshared mcols   bdim bdim)
+  (#lC : mlayout4 mrows   mcols   bdim bdim)
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (eA : ematrix4 et mrows mshared bdim bdim)
+  (eB : ematrix4 et mshared mcols bdim bdim)
   (f : perm)
-  (tid : nat{ tid < rows * cols })
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (bdim * bdim))
   : slprop
   =
-  M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-  M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
-  M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
-    (MS.matmul_single eA eB (tid / cols) (tid % cols) shared)
+  m4_pts_to gA #(f /. mlayout_size lA) eA **
+  m4_pts_to gB #(f /. mlayout_size lB) eB **
+  (exists* v.
+    m4_pts_to_cell gC #1.0R
+      (bid / mcols) (bid % mcols)
+      (tid / bdim) (tid % bdim) v)
 
 inline_for_extraction
 type kernel_fixed_ty
   (bdim : szp) (* block dim *)
-  (et : Type0) {| scalar et |}
-  (#rows #shared #cols : szpmultiple bdim)
-  (lA : mlayout rows shared)
-  (lB : mlayout shared cols)
-  (lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  (#et : Type0) {| scalar et |}
+  (#mrows #mshared #mcols : SZ.t)
+  (lA : mlayout4 mrows   mshared bdim bdim)
+  (lB : mlayout4 mshared mcols   bdim bdim)
+  (lC : mlayout4 mrows   mcols   bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  {| clayout4 lC |}
 : Type0
 =
-  (gA : M.gpu_matrix et lA) ->
-  (gB : M.gpu_matrix et lB) ->
-  (gC : M.gpu_matrix et lC) ->
-  (#eA : ematrix et rows shared) ->
-  (#eB : ematrix et shared cols) ->
+  (gA : gpu_matrix4 et lA) ->
+  (gB : gpu_matrix4 et lB) ->
+  (gC : gpu_matrix4 et lC) ->
+  (#eA : ematrix4 et mrows   mshared bdim bdim) ->
+  (#eB : ematrix4 et mshared mcols   bdim bdim) ->
   (#f : perm) ->
-  (etid : tid_t { gdim_x etid == rows * cols /\ bdim_x etid == 1 }) ->
+  (ebid : enatlt (mrows * mcols)) ->
+  (etid : enatlt (bdim * bdim)) ->
   stt unit
   (requires
     gpu **
-    thread_id etid **
-    kpre gA gB gC eA eB f (thread_index etid))
+    block_id (mrows * mcols) ebid **
+    thread_id (bdim * bdim) etid **
+    kpre gA gB gC eA eB f ebid etid)
   (ensures fun _ ->
     gpu **
-    thread_id etid **
-    kpost gA gB gC eA eB f (thread_index etid))
+    block_id (mrows * mcols) ebid **
+    thread_id (bdim * bdim) etid **
+    kpost gA gB gC eA eB f ebid etid)
 
-(* FIXME: stabilize this *)
-#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kernel_fixed_f
   (bdim : szp) (* block dim *)
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : SZ.t)
-  (lA : mlayout rows shared)
-  (lB : mlayout shared cols)
-  (lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
+  (#mrows #mshared #mcols : SZ.t)
+  (lA : mlayout4 mrows   mshared bdim bdim)
+  (lB : mlayout4 mshared mcols   bdim bdim)
+  (lC : mlayout4 mrows   mcols   bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  {| clayout4 lC |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (#eA : ematrix4 et mrows   mshared bdim bdim)
+  (#eB : ematrix4 et mshared mcols   bdim bdim)
   (#f : perm)
-  (etid : tid_t { gdim_x etid == rows * cols /\ bdim_x etid == 1 })
-  requires gpu
-    ** thread_id etid
-    ** kpre gA gB gC eA eB f (thread_index etid)
-  ensures  gpu
-    ** thread_id etid
-    ** kpost gA gB gC eA eB f (thread_index etid)
+  (ebid : enatlt (mrows * mcols))
+  (etid : enatlt (bdim * bdim))
+  requires
+    gpu **
+    block_id (mrows * mcols) ebid **
+    thread_id (bdim * bdim) etid **
+    kpre gA gB gC eA eB f ebid etid
+  ensures
+    gpu **
+    block_id (mrows * mcols) ebid **
+    thread_id (bdim * bdim) etid **
+    kpost gA gB gC eA eB f ebid etid
 {
-  let tid = block_idx_x ();
-  rewrite each thread_index etid as tid;
+  admit();
+  // let tid = get_tid (); rewrite each etid as SZ.v tid;
 
-  let trow = SZ.div tid cols;
-  let tcol = SZ.rem tid cols;
-  with v0.
-    rewrite
-      M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v0
-    as
-      M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
+  // let trow = SZ.div tid cols;
+  // let tcol = SZ.rem tid cols;
+  // with v0.
+  //   rewrite
+  //     M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v0
+  //   as
+  //     M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
 
-  assert (pure (trow < rows));
-  assert (pure (tcol < cols));
+  // assert (pure (trow < rows));
+  // assert (pure (tcol < cols));
 
-  let mut i : sz = 0sz;
-  let mut sum : et = zero #et #_;
+  // let mut i : sz = 0sz;
+  // let mut sum : et = zero #et #_;
 
-  while (let vi = !i; SZ.(vi <^ shared))
-    invariant b.
-      exists* (vi : SZ.t{ vi <= shared}).
-        pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
-        pts_to i vi **
-        pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
-        M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-        M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
-        gpu
-  {
-    let vi = !i;
-    let s = !sum;
-    let v1 = M.gpu_matrix_read gA trow vi;
-    let v2 = M.gpu_matrix_read gB vi tcol;
+  // while (let vi = !i; SZ.(vi <^ shared))
+  //   invariant b.
+  //     exists* (vi : SZ.t{ vi <= shared}).
+  //       pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
+  //       pts_to i vi **
+  //       pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
+  //       M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
+  //       M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
+  //       gpu
+  // {
+  //   let vi = !i;
+  //   let s = !sum;
+  //   let v1 = M.gpu_matrix_read gA trow vi;
+  //   let v2 = M.gpu_matrix_read gB vi tcol;
 
-    sum := s `add` mul v1 v2;
-    i := SZ.add vi 1sz;
+  //   sum := s `add` mul v1 v2;
+  //   i := SZ.add vi 1sz;
 
-    (**)MS.matmul_single_lemma eA eB trow tcol (vi + 1);
-    ();
-  };
+  //   (**)MS.matmul_single_lemma eA eB trow tcol (vi + 1);
+  //   ();
+  // };
 
-  let s = !sum;
-  M.gpu_matrix_write_cell gC trow tcol s;
+  // let s = !sum;
+  // M.gpu_matrix_write_cell gC trow tcol s;
 
-  assert (pure (SZ.v trow == thread_index etid / cols));
-  assert (pure (SZ.v tcol == thread_index etid % cols));
-  rewrite
-    M.gpu_matrix_pts_to_cell gC trow tcol
-      (MS.matmul_single eA eB trow tcol shared)
-  as
-    M.gpu_matrix_pts_to_cell gC (thread_index etid / cols) (thread_index etid % cols)
-      (MS.matmul_single eA eB (thread_index etid / cols) (thread_index etid % cols) shared);
+  // assert (pure (SZ.v trow == thread_index etid / cols));
+  // assert (pure (SZ.v tcol == thread_index etid % cols));
+  // rewrite
+  //   M.gpu_matrix_pts_to_cell gC trow tcol
+  //     (MS.matmul_single eA eB trow tcol shared)
+  // as
+  //   M.gpu_matrix_pts_to_cell gC (thread_index etid / cols) (thread_index etid % cols)
+  //     (MS.matmul_single eA eB (thread_index etid / cols) (thread_index etid % cols) shared);
 
-  ()
+  // ()
 }
-#pop-options
 
 let kernel_fixed = kernel_fixed_f
 
+(*
 ghost
 fn setup
   (#et : Type0) {| scalar et |}

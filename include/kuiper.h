@@ -14,8 +14,9 @@ typedef half half_t; /* crutch */
 
 #include "atomics.h"
 
-#define blockIdx_x() blockIdx.x
-#define blockDim_x() blockDim.x
+#define gridDim_x()   gridDim.x
+#define blockIdx_x()  blockIdx.x
+#define blockDim_x()  blockDim.x
 #define threadIdx_x() threadIdx.x
 
 #include <cuda_runtime.h>

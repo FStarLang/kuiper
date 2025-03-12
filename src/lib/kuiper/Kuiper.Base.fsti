@@ -2,8 +2,6 @@ module Kuiper.Base
 
 #lang-pulse
 
-open Kuiper.Common
-open Kuiper.SizeT
 open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Main
@@ -21,9 +19,6 @@ let cpu : slprop = mode CPU
 unfold
 let gpu : slprop = mode GPU
 
-[@@erasable]
-val tid_t : Type0
-
 (* Arbitrary *)
 let max_blocks : erased int = pow2 30
 
@@ -34,49 +29,45 @@ let max_blocks_explicit : squash (reveal max_blocks == 1073741824) =
 let max_threads : erased int = 1024
 
 (* Token for being in GPU block setup code *)
-val block_setup (nthr: nat { 0 < nthr /\ nthr <= max_threads })
-  : slprop
+val block_setup (nthr : nat) : slprop
 
-(* Token for being a particular thread *)
-val thread_id (tid : tid_t)
-  : slprop
+(* Token given to a particular block within a grid. Both here
+and in thread_id, the first argument is always positive
+when this resource is actually live, but not placing that refinement
+here helps with inference in some places. *)
+val block_id (nblk : nat) (bid : nat) : slprop
 
-(* How many blocks total in the grid *)
-val gdim_x (tid : tid_t)
-  : GTot (r:pos{r <= max_blocks})
+(* Token given to a particular thread within a block *)
+val thread_id (nthr : nat) (tid : nat) : slprop
 
-(* Which block am I in? *)
-val bidx_x (tid : tid_t)
-  : GTot (r:nat{r < gdim_x tid})
-
-(* How many threads per block *)
-val bdim_x (tid : tid_t)
-  : GTot (r:pos{r <= max_threads})
-
-(* Which thread am I in? *)
-val tidx_x (tid : tid_t)
-  : GTot (r:nat{r < bdim_x tid})
-
-let thread_index (n: tid_t): GTot (i: nat { i < gdim_x n * bdim_x n }) = (
-  assert ((bidx_x n + 1) * bdim_x n <= gdim_x n * bdim_x n);
-  bidx_x n * bdim_x n + tidx_x n
-)
-let thread_count (n: tid_t): GTot pos = gdim_x n * bdim_x n
-
-fn block_idx_x () (#n: tid_t)
-  preserves thread_id n
+(* Get a concrete value for the number of blocks (~ gridDim.x) *)
+fn get_gdim () 
+  preserves block_id 'nblk 'bid
   requires  emp
-  returns   id : SZ.t
-  ensures   pure (SZ.v id == bidx_x n)
+  returns   x : SZ.t
+  ensures   pure (SZ.v x == 'nblk)
 
-fn block_dim_x () (#n: tid_t)
-  preserves thread_id n
+fn get_bid ()
+  preserves block_id 'nblk 'bid
   requires  emp
-  returns   id : SZ.t
-  ensures   pure (SZ.v id == bdim_x n)
+  returns   x : SZ.t
+  ensures   pure (SZ.v x == 'bid)
 
-fn thread_idx_x () (#n: tid_t)
-  preserves thread_id n
+fn get_bdim ()
+  preserves thread_id 'nthr 'tid
   requires  emp
-  returns   id : SZ.t
-  ensures   pure (SZ.v id == tidx_x n)
+  returns   x : SZ.t
+  ensures   pure (SZ.v x == 'nthr)
+
+fn get_tid ()
+  preserves thread_id 'nthr 'tid
+  requires  emp
+  returns   x : SZ.t
+  ensures   pure (SZ.v x == 'tid)
+
+
+// let thread_index (n: tid_t): GTot (i: nat { i < gdim_x n * bdim_x n }) = (
+//   assert ((bidx_x n + 1) * bdim_x n <= gdim_x n * bdim_x n);
+//   bidx_x n * bdim_x n + tidx_x n
+// )
+// let thread_count (n: tid_t): GTot pos = gdim_x n * bdim_x n

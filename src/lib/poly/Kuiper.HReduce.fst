@@ -141,18 +141,21 @@ type k_reduce_ty (et:Type0) {| scalar et |} =
   (a : gpu_array et nth) ->
   (#s :  erased (seq et)) ->
   (#_: squash (Seq.length s == SZ.v nth)) ->
-  (etid : tid_t { (gdim_x etid <: nat) == 1 /\ (bdim_x etid <: nat) == SZ.v nth }) ->
+  (ebid : enatlt 1) ->
+  (etid : enatlt nth) ->
   stt unit
   (requires
     gpu **
-    thread_id etid **
-    mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
-    kpre 1 nth a s 0 (thread_index etid))
+    block_id 1 ebid **
+    thread_id nth etid **
+    mbarrier_tok nth (barrier_matrix nth a s) 0 etid **
+    kpre 1 nth a s 0 etid)
   (ensures fun _ ->
     gpu **
-    thread_id etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost 1 nth a s 0 (thread_index etid))
+    block_id 1 ebid **
+    thread_id nth etid **
+    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it etid) **
+    kpost 1 nth a s 0 etid)
 
 // KrmlPrivate is essentially a "noextract". F* usually adds it
 // automatically to any definition that does not appear in the fsti,
@@ -271,18 +274,22 @@ fn d_reduce
   (a : gpu_array et nth)
   (#s :  erased (seq et))
   (#_ : squash (Seq.length s == nth))
-  (etid : tid_t { (gdim_x etid <: nat) == 1 /\ (bdim_x etid <: nat) == SZ.v nth })
+  (ebid : enatlt 1)
+  (etid : enatlt nth)
   requires
-    gpu ** thread_id etid **
-    mbarrier_tok nth (barrier_matrix nth a s) 0 (tidx_x etid) **
-    kpre 1 nth a s 0 (thread_index etid)
+    gpu **
+    block_id 1 ebid **
+    thread_id nth etid **
+    mbarrier_tok nth (barrier_matrix nth a s) 0 etid **
+    kpre 1 nth a s 0 etid
   ensures
-    gpu ** thread_id etid **
-    (exists* it.  mbarrier_tok nth (barrier_matrix nth a s) it (tidx_x etid)) **
-    kpost 1 nth a s 0 (thread_index etid)
+    gpu **
+    block_id 1 ebid **
+    thread_id nth etid **
+    (exists* it.  mbarrier_tok nth (barrier_matrix nth a s) it etid) **
+    kpost 1 nth a s 0 etid 
 {
-  let tid = thread_idx_x ();
-  rewrite each thread_index etid as tid;
+  let tid = get_tid (); rewrite each etid as SZ.v tid;
 
   (* Reduction *)
   let mut n = 0sz;

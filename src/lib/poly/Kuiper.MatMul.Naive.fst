@@ -69,16 +69,16 @@ type kernel_fixed_ty
   (#eA : ematrix et rows shared) ->
   (#eB : ematrix et shared cols) ->
   (#f : perm) ->
-  (etid : tid_t { gdim_x etid == rows * cols /\ bdim_x etid == 1 }) ->
+  (ebid : enatlt (rows * cols)) ->
   stt unit
   (requires
     gpu **
-    thread_id etid **
-    kpre gA gB gC eA eB f (thread_index etid))
+    block_id (rows * cols) ebid **
+    kpre gA gB gC eA eB f ebid)
   (ensures fun _ ->
     gpu **
-    thread_id etid **
-    kpost gA gB gC eA eB f (thread_index etid))
+    block_id (rows * cols) ebid **
+    kpost gA gB gC eA eB f ebid)
 
 (* FIXME: stabilize this *)
 #push-options "--z3rlimit 20"
@@ -98,22 +98,23 @@ fn kernel_fixed
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#f : perm)
-  (etid : tid_t { gdim_x etid == rows * cols /\ bdim_x etid == 1 })
-  requires gpu
-    ** thread_id etid
-    ** kpre gA gB gC eA eB f (thread_index etid)
-  ensures  gpu
-    ** thread_id etid
-    ** kpost gA gB gC eA eB f (thread_index etid)
+  (ebid : enatlt (rows * cols))
+  requires
+    gpu **
+    block_id (rows * cols) ebid **
+    kpre gA gB gC eA eB f ebid
+  ensures
+    gpu **
+    block_id (rows * cols) ebid **
+    kpost gA gB gC eA eB f ebid
 {
-  let tid = block_idx_x ();
-  rewrite each thread_index etid as tid;
+  let id = get_bid (); rewrite each ebid as SZ.v id;
 
-  let trow = SZ.div tid cols;
-  let tcol = SZ.rem tid cols;
+  let trow = SZ.div id cols;
+  let tcol = SZ.rem id cols;
   with v0.
     rewrite
-      M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v0
+      M.gpu_matrix_pts_to_cell gC #1.0R (id / cols) (id % cols) v0
     as
       M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
 
@@ -148,14 +149,14 @@ fn kernel_fixed
   let s = !sum;
   M.gpu_matrix_write_cell gC trow tcol s;
 
-  assert (pure (SZ.v trow == thread_index etid / cols));
-  assert (pure (SZ.v tcol == thread_index etid % cols));
+  assert (pure (SZ.v trow == ebid / cols));
+  assert (pure (SZ.v tcol == ebid % cols));
   rewrite
     M.gpu_matrix_pts_to_cell gC trow tcol
       (MS.matmul_single eA eB trow tcol shared)
   as
-    M.gpu_matrix_pts_to_cell gC (thread_index etid / cols) (thread_index etid % cols)
-      (MS.matmul_single eA eB (thread_index etid / cols) (thread_index etid % cols) shared);
+    M.gpu_matrix_pts_to_cell gC (ebid / cols) (ebid % cols)
+      (MS.matmul_single eA eB (ebid / cols) (ebid % cols) shared);
 
   ()
 }
@@ -332,11 +333,12 @@ fn matmul_gpu_fixed
 
   (* FIXME: F* inference failure means we need to annotate pre/post (somewhat) *)
   (* We also need eta due to the extraction rules looking for it. *)
-  launch_kernel_n
+
+  launch_kernel_n_blocks
     size
-    #(kpre  _ _ _ _ _ _)
-    #(kpost _ _ _ _ _ _)
-    (fun etid -> kk gA gB gC etid);
+    #(kpre  #et gA gB gC eA eB 1.0R)
+    #(kpost #et gA gB gC eA eB 1.0R)
+    (fun ebid -> kk gA gB gC ebid);
 
   forevery_rw_size size (rows * cols);
 

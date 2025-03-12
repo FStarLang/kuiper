@@ -50,19 +50,21 @@ fn kernel
   (r : gpu_array u64 nth)
   (#s1 #s2: erased (seq u64))
   (#_: squash ( len s1 == nth /\ len s2 == nth ))
-  (etid : erased tid_t { (gdim_x etid <: nat) == 1ul /\ (bdim_x etid <: nat) == SZ.sizet_to_uint32 nth })
+  (etid : enatlt nth)
   requires
     gpu **
-    thread_id etid **
-    mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) 0 (tidx_x etid) **
-    kpre nth ga1 ga2 r s1 s2 0 (thread_index etid)
+    block_id 1 0 **
+    thread_id nth etid **
+    mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) 0 etid **
+    kpre nth ga1 ga2 r s1 s2 0 etid
   ensures
     gpu **
-    thread_id etid **
-    (exists* it. mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) it (tidx_x etid)) **
-    kpost nth ga1 ga2 r s1 s2 0 (thread_index etid)
+    block_id 1 0 **
+    thread_id nth etid **
+    (exists* it. mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) it etid) **
+    kpost nth ga1 ga2 r s1 s2 0 etid
 {
-  let tid = thread_idx_x ();
+  let tid = get_tid (); 
   (**)unfold (kpre nth ga1 ga2 r s1 s2 0 tid);
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;
@@ -84,9 +86,9 @@ fn kernel
   rewrite each s' as seq![vm <: u64];
 
   (* Reduction *)
-  rewrite each SZ.v tid as thread_index etid;
-  Kuiper.HReduce.d_reduce nth r #dot_v #() etid;
-  rewrite each thread_index etid as SZ.v tid;
+  rewrite each SZ.v tid as etid;
+  Kuiper.HReduce.d_reduce nth r #dot_v #() 0 etid;
+  rewrite each etid as SZ.v tid;
   rewrite each dot_v as pmul s1 s2;
 
   fold (kpost nth ga1 ga2 r s1 s2 0 tid);
@@ -173,7 +175,7 @@ fn main
     #(kpre dp2_size ga1 ga2 gr v1 v2)
     #(kpost dp2_size ga1 ga2 gr v1 v2)
     #(HR.barrier_matrix dp2_size gr (pmul v1 v2))
-    (fun etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 etid);
+    (fun _ebid etid -> kernel dp2_size ga1 ga2 gr #v1 #v2 etid);
 
   assert
     forall+ (bid : natlt 1) (tid : natlt dp2_size).
