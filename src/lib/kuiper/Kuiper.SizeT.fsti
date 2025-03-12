@@ -3,6 +3,7 @@ module Kuiper.SizeT
 open FStar.Ghost
 open Pulse.Lib.Core
 open FStar.Mul
+open Kuiper.Divides
 
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
@@ -11,6 +12,7 @@ module U64 = FStar.UInt64
 unfold type sz  = FStar.SizeT.t
 unfold type szp = x:sz{FStar.SizeT.v x > 0}
 unfold type szlt (n:nat) = i:sz{SZ.v i < n}
+unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
 (* Throughout this repo we assume a 64bit machine. This
 simplifies reasoning about overflow a bit. *)
