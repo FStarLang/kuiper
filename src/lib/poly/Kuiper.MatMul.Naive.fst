@@ -9,7 +9,6 @@ module SZ = FStar.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
-(* This could be over layouts instead of reprs. *)
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
