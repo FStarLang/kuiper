@@ -6,9 +6,7 @@ __global__
 
 static void kernel(double_t *a, double_t *r)
 {
-  size_t bid = blockIdx_x();
-  size_t bdim = blockDim_x();
-  atomic_add_f64(r, a[bid * bdim + threadIdx_x()]);
+  atomic_add_f64(r, a[blockIdx_x()]);
 }
 
 double_t Kuiper_AtomicReduce_F64_reduce(size_t n, double_t *a)

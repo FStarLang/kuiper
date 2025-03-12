@@ -6,9 +6,7 @@ __global__
 
 static void kernel(uint32_t *a, uint32_t *r)
 {
-  size_t bid = blockIdx_x();
-  size_t bdim = blockDim_x();
-  atomic_add_u32(r, a[bid * bdim + threadIdx_x()]);
+  atomic_add_u32(r, a[blockIdx_x()]);
 }
 
 uint32_t Kuiper_AtomicReduce_U32_reduce(size_t n, uint32_t *a)

@@ -6,9 +6,7 @@ __global__
 
 static void kernel__uint64_t(size_t size, uint64_t *a)
 {
-  size_t bid = blockIdx_x();
-  size_t bdim = blockDim_x();
-  size_t idx = bid * bdim + threadIdx_x();
+  size_t idx = blockIdx_x();
   size_t idx_ = size - idx - (size_t)1U;
   uint64_t uu = a[idx];
   a[idx] = a[idx_];

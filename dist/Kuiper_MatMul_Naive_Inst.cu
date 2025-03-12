@@ -8,9 +8,9 @@ static void
 k_f32_rrr(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
-  size_t tid = blockIdx_x();
-  size_t trow = tid / cols;
-  size_t tcol = tid % cols;
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t i = (size_t)0U;
   float_t sum = (float_t)0.0f;
   while (i < shared)
@@ -66,9 +66,9 @@ static void
 k_f64_rrr(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
-  size_t tid = blockIdx_x();
-  size_t trow = tid / cols;
-  size_t tcol = tid % cols;
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t i = (size_t)0U;
   double_t sum = (double_t)0.0l;
   while (i < shared)
@@ -124,9 +124,9 @@ static void
 k_u32_rrr(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
-  size_t tid = blockIdx_x();
-  size_t trow = tid / cols;
-  size_t tcol = tid % cols;
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t i = (size_t)0U;
   uint32_t sum = 0U;
   while (i < shared)
@@ -179,9 +179,9 @@ static void
 k_u64_rrr(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
   KRML_MAYBE_UNUSED_VAR(rows);
-  size_t tid = blockIdx_x();
-  size_t trow = tid / cols;
-  size_t tcol = tid % cols;
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t i = (size_t)0U;
   uint64_t sum = 0ULL;
   while (i < shared)
@@ -233,9 +233,9 @@ __global__
 static void
 k_u64_ccc(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t tid = blockIdx_x();
-  size_t trow = tid / cols;
-  size_t tcol = tid % cols;
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t i = (size_t)0U;
   uint64_t sum = 0ULL;
   while (i < shared)

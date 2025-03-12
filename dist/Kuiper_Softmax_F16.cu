@@ -24,9 +24,7 @@ __global__
 
 static void k_pointwise_exp_f16(half_t *a)
 {
-  size_t bid = blockIdx_x();
-  size_t bdim = blockDim_x();
-  size_t i = bid * bdim + threadIdx_x();
+  size_t i = blockIdx_x();
   a[i] = __hexp(a[i]);
 }
 
@@ -34,9 +32,7 @@ __global__
 
 static void k_pointwise_div_f16(half_t *a, half_t d)
 {
-  size_t bid = blockIdx_x();
-  size_t bdim = blockDim_x();
-  size_t i = bid * bdim + threadIdx_x();
+  size_t i = blockIdx_x();
   a[i] = __hdiv(a[i], d);
 }
 
