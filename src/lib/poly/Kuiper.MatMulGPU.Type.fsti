@@ -7,7 +7,6 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.MatMul
 module M  = Kuiper.Matrix
-module SZ = FStar.SizeT
 
 unfold
 inline_for_extraction

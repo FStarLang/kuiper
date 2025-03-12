@@ -10,7 +10,6 @@ open Kuiper.MatMulGPU.Type
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.MatMul
-module M  = Kuiper.Matrix
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
 unfold

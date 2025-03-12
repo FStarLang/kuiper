@@ -6,7 +6,6 @@ open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
-module R  = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
