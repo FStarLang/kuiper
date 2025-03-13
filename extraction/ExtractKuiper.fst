@@ -382,6 +382,42 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     in
     cb e'
 
+  (* New one! *)
+  | MLE_App ({ expr = MLE_Name p }, [ kdesc; _epoch ])
+    when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel" ->
+    let assoc' k v =
+      match List.assoc k v with
+      | Some r -> r
+      | None -> failwith ("launch_kernel: field not found: " ^ k)
+    in
+    let nblk, nthr, e_size, smem_sz, hd, rest_args =
+      match kdesc.expr with
+      | MLE_Record (_, _, fields) ->
+        let nblk = assoc' "nblk" fields in
+        let nthr = assoc' "nthr" fields in
+        let sized_a = assoc' "shmem_type_is_sized" fields in
+        let smem_sz = assoc' "shmem_sz" fields in
+        let hd, args =
+          match (assoc' "f" fields).expr with
+          | MLE_Fun (_, body) -> head_and_args body
+          | _ -> failwith "launch_kernel: 'f' is not a function"
+        in
+        let rest_args = List.filter (fun a -> match a.expr with
+                                              | MLE_Const MLC_Unit -> false
+                                              | _ -> true) args in
+        let e_size = get_sizet sized_a in
+        nblk, nthr, e_size, smem_sz, hd, rest_args
+
+      | _ ->
+        failwith "launch_kernel: not a record"
+    in
+    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
+    let e' =
+      with_ty ml_unit_ty <|
+        MLE_App (kcall, [ hd; nblk; nthr; e_size; smem_sz ] @ rest_args)
+    in
+    cb e'
+
   | MLE_App ({ expr = MLE_Name p }, [
         _unit;
         _epoch

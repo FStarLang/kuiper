@@ -500,44 +500,162 @@ fn launch_kernel_1_async
   e'
 }
 
+ghost
+fn nop_block_setup (ar : gpu_array u32 0sz) (bit : natlt 1sz)
+  requires
+    block_setup 1sz ** (exists* v. gpu_pts_to_array ar v)
+  ensures
+    block_setup 1sz ** (forall+ (i : natlt 1). emp)
+{
+  open Pulse.Lib.BigStar;
+  drop_ (exists* v. gpu_pts_to_array #u32 #0 ar #1.0R v);
+  forevery_singleton_intro #(natlt 1) (fun _ -> emp);
+}
+
 inline_for_extraction noextract
-fn launch_kernel_1
+fn kernel_nop (eshmem : erased (gpu_array u32 0sz)) (ebid : enatlt 1sz) (etid : enatlt 1sz)
+  requires 
+    gpu **
+    emp ** (* kpre *)
+    thread_id 1sz etid **
+    block_id 1sz ebid **
+    shmem_tok eshmem **
+    emp (* block pre *)
+  ensures
+    gpu **
+    emp ** (* kpost *)
+    thread_id 1sz etid **
+    block_id 1sz ebid **
+    shmem_tok eshmem **
+    emp (* block post *)
+{
+  ()
+}
+
+inline_for_extraction noextract
+let nop_desc : kernel_desc = {
+  nblk = 1sz;
+  nthr = 1sz;
+
+  shmem_type = u32;
+  shmem_type_is_sized = solve;
+  shmem_sz = 0sz;
+
+  block_pre  = (fun _ _ _ -> emp);
+  block_post = (fun _ _ _ -> emp);
+  block_setup = nop_block_setup;
+
+  kpre = (fun _ _ -> emp);
+  kpost = (fun _ _ -> emp);
+  f = kernel_nop;
+
+  full_pre = emp;
+  setup = (magic ());
+  full_post = emp;
+  teardown = (magic ());
+}
+
+(* f<<<1, 1>>>(...); *)
+
+inline_for_extraction noextract
+fn frame_right1 (fr1 : slprop) (#p #q :slprop)
+  (f : unit -> stt unit p (fun _ -> q))
+  requires p ** fr1
+  ensures  q ** fr1
+  { f (); }
+
+inline_for_extraction noextract
+fn frame_right2 (fr1 fr2 : slprop) (#p #q :slprop)
+  (f : unit -> stt unit p (fun _ -> q))
+  requires p ** fr1 ** fr2
+  ensures  q ** fr1 ** fr2
+  { f (); }
+
+inline_for_extraction noextract
+fn frame_right3 (fr1 fr2 fr3 : slprop) (#p #q :slprop)
+  (f : unit -> stt unit p (fun _ -> q))
+  requires p ** fr1 ** fr2 ** fr3
+  ensures  q ** fr1 ** fr2 ** fr3
+  { f (); }
+
+inline_for_extraction noextract
+fn frame_right4 (fr1 fr2 fr3 fr4 : slprop) (#p #q :slprop)
+  (f : unit -> stt unit p (fun _ -> q))
+  requires p ** fr1 ** fr2 ** fr3 ** fr4
+  ensures  q ** fr1 ** fr2 ** fr3 ** fr4
+  { f (); }
+
+inline_for_extraction noextract
+let mk_desc_1
   (#pre #post : slprop)
   (k : unit ->
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
-  requires cpu ** pre
-  ensures  cpu ** post
+  : kernel_desc
+  = { nop_desc
+      with
+      kpre = (fun _ _ -> pre);
+      kpost = (fun _ _ -> post);
+      full_pre = pre;
+      full_post = post;
+      f = (fun _shmem _ebid _etid -> frame_right4 _ _ _ _ k);
+
+      setup = magic();
+      teardown = magic();
+  }
+
+(* f<<<1, 1>>>(...); *)
+
+inline_for_extraction noextract
+fn launch_kernel_sync (k : kernel_desc)
+  requires
+    cpu **
+    k.full_pre
+  ensures
+    cpu **
+    k.full_post
 {
   get_epoch ();
-  launch_kernel_1_async #pre #post k;
+  launch_kernel k;
   sync ();
-  with e'. assert (epoch_done e');
-  redeem_pledge emp_inames (epoch_done e') post;
-  drop_ (epoch_done e');
+  redeem_pledge emp_inames (epoch_done _) k.full_post;
+  drop_ (epoch_done _);
   drop_ (epoch_live _);
 }
 
-// let lemma_mul_lt (a b: nat) (c: nat { a < c }) (d: nat { b <= d /\ d > 0 }): Lemma (a * b < c * d) = ()
-
 // inline_for_extraction noextract
-// fn thread_idx_all () (#n: tid_t)
-//   preserves
-//     thread_id n
-//   requires
-//     emp
-//   returns
-//     id : SZ.t
-//   ensures
-//     pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
-// {
-//   assert (pure (bidx_x n < 1024 * 1024 * 1024 /\ tidx_x n < 1024 /\ bdim_x n <= 1024));
-//   lemma_mul_lt (bidx_x n) (bdim_x n) (1024 * 1024 * 1024) 1024;
-//   assert (pure (bidx_x n * tidx_x n < 1024 * 1024 * 1024 * 1024 /\ bdim_x n <= 1024));
-//   let bid = block_idx_x ();
-//   let bdim = block_dim_x ();
-//   let tid = thread_idx_x ();
-//   open FStar.SizeT;
-//   let r = (bid *^ bdim) +^ tid;
-//   r
-// }
+// fn launch_kernel_1'
+//   (#pre #post : slprop)
+//   (kf : unit ->
+//     stt unit (gpu ** pre) (fun _ -> gpu ** post)
+//   )
+//   requires cpu ** pre
+//   ensures  cpu ** post
+
+let launch_kernel_1
+  #pre #post kf = launch_kernel_sync (mk_desc_1 kf)
+
+(*
+inline_for_extraction noextract
+fn launch_kernel_1
+  (#pre #post : slprop)
+  (kf : unit ->
+    stt unit (gpu ** pre) (fun _ -> gpu ** post)
+  )
+  requires cpu ** pre
+  ensures  cpu ** post
+
+
+{
+  // get_epoch ();
+  // launch_kernel_1_async #pre #post k;
+  // sync ();
+  // with e'. assert (epoch_done e');
+  // redeem_pledge emp_inames (epoch_done e') post;
+  // drop_ (epoch_done e');
+  // drop_ (epoch_live _);
+  let k = mk_desc_1 kf;
+  rewrite pre as k.full_pre;
+  launch_kernel_sync k;
+  rewrite k.full_post as post;
+}
