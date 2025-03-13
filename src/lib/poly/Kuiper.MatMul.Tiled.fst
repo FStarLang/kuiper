@@ -70,16 +70,13 @@ let kpost
 
 inline_for_extraction
 type kernel_fixed_ty
-  (bdim : szp) (* block dim *)
+  (bdim : pos) (* block dim *)
   (et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols : SZ.t)
+  (#mrows #mshared #mcols : pos)
   (lA : mlayout4 mrows   mshared bdim bdim)
   (lB : mlayout4 mshared mcols   bdim bdim)
   (lC : mlayout4 mrows   mcols   bdim bdim)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
-: Type0
+  : Type0
 =
   (gA : gpu_matrix4 et lA) ->
   (gB : gpu_matrix4 et lB) ->
@@ -101,16 +98,14 @@ type kernel_fixed_ty
     thread_id (bdim * bdim) etid **
     kpost gA gB gC eA eB f ebid etid)
 
-#set-options "--print_implicits"
-
 inline_for_extraction noextract
-fn kernel_fixed_f
+fn kernel_fixed
   (bdim : szp) (* block dim *)
   (#et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : SZ.t)
-  (lA : mlayout4 mrows   mshared bdim bdim)
-  (lB : mlayout4 mshared mcols   bdim bdim)
-  (lC : mlayout4 mrows   mcols   bdim bdim)
+  (#lA : mlayout4 mrows   mshared bdim bdim)
+  (#lB : mlayout4 mshared mcols   bdim bdim)
+  (#lC : mlayout4 mrows   mcols   bdim bdim)
   {| clayout4 lA |}
   {| clayout4 lB |}
   {| clayout4 lC |}
@@ -137,8 +132,12 @@ fn kernel_fixed_f
   let tid = get_tid (); rewrite each etid as SZ.v tid;
   let id = bid *^ (bdim *^ bdim) +^ tid;
 
-  let mrow, mcol = s_divmod mcols bid;
-  let brow, bcol = s_divmod bdim  tid;
+  // let mrow, mcol = s_divmod mcols bid;
+  // let brow, bcol = s_divmod bdim  tid;
+  let mrow = bid /^ mcols;
+  let mcol = bid %^ mcols;
+  let brow = tid /^ bdim;
+  let bcol = tid %^ bdim;
 
   with bi0 bj0 i0 j0 v0.
     rewrite
@@ -164,10 +163,6 @@ fn kernel_fixed_f
 
   ()
 }
-
-let kernel_fixed = kernel_fixed_f
-
-// let mksz = SZ.uint_to_t
 
 ghost
 fn setup
@@ -231,14 +226,14 @@ inline_for_extraction noextract
 fn matmul_gpu_fixed
   (bdim : szp) (* block dim *)
   (#et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols : SZ.t)
+  (#mrows #mshared #mcols : szp)
   (lA : mlayout4 mrows   mshared bdim bdim)
   (lB : mlayout4 mshared mcols   bdim bdim)
   (lC : mlayout4 mrows   mcols   bdim bdim)
   {| clayout4 lA |}
   {| clayout4 lB |}
   {| clayout4 lC |}
-  (kk : kernel_fixed_ty bdim et lA lB lC #_ #_ #_)
+  (kk : kernel_fixed_ty bdim et lA lB lC)
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
   (gC : gpu_matrix4 et lC)

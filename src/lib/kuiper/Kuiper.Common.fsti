@@ -1,6 +1,7 @@
 module Kuiper.Common
 
 open Pulse.Lib.Core
+open Kuiper.Divides
 
 (* Some base definitions we want everywhere, only over F* and Pulse constructs.
 This module should have no Kuiper dependencies. *)
@@ -10,6 +11,7 @@ include FStar.Tactics.Typeclasses { solve }
 
 type natlt (b:int) = n:nat{n <  b}
 type natle (b:int) = n:nat{n <= b}
+type posmultiple (k:int) = n:pos{k /? n}
 
 (* Erased version, with refinement **on the outside** to prevent
 against invariance of erased wrt types. *)

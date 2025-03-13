@@ -1,4 +1,7 @@
 module Kuiper.Matrix.Reprs.Type
+
+inline_for_extraction let x = ()
+
 #lang-pulse
 
 open Kuiper
@@ -32,6 +35,7 @@ class clayout (#rows #cols : erased nat) (l : mlayout rows cols) = {
   [@@@no_method]  c_from2 : (idx:SZ.t{idx < rows * cols}) -> r:SZ.t{SZ.v r == snd (l.bij.gg (SZ.v idx))};
 }
 
+inline_for_extraction
 type crepr_t (r : mrepr) =
   rows:SZ.t -> cols:SZ.t{SZ.fits (rows * cols)} -> clayout (r rows cols)
 

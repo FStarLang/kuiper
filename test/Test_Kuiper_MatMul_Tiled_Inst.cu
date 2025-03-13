@@ -1,4 +1,4 @@
-#include "Kuiper_MatMulTile.h"
+#include "Kuiper_MatMul_Tiled_Inst.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	for (int l = 0; l < laps; l++) {
 		float t;
 		free (m3);
-		m3 = TIME(Kuiper_MatMul_Tiled_Inst_matmul_f32_rrr(rows, shared, columns, tile, m1, m2), &t);
+		m3 = TIME(Kuiper_MatMul_Tiled_Inst_matmul_u64_rrr(tile, rows, shared, columns, m1, m2), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 

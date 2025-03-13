@@ -6,6 +6,7 @@ open Kuiper.SizeT
 open FStar.Ghost
 module SZ = FStar.SizeT
 
+inline_for_extraction noextract
 let tile_ff
   (mrows mcols : erased nat)
   (brows bcols : SZ.t)
@@ -17,6 +18,7 @@ let tile_ff
     let j = s_undivmod bcols (bj, sj) in
     i, j
 
+inline_for_extraction noextract
 let tile_gg
   (mrows mcols : erased nat)
   (brows bcols : SZ.t)
@@ -28,6 +30,7 @@ let tile_gg
     let bj, sj = s_divmod bcols j in
     (bi, bj, si, sj)
 
+inline_for_extraction noextract
 let tile_bij
   (mrows mcols : erased nat)
   (brows bcols : SZ.t)

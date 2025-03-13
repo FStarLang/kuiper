@@ -213,7 +213,7 @@ fn launch_kernel_1_async
     pledge0 (epoch_done e') post **
     pure (e' >= e)
 
-inline_for_extraction
+inline_for_extraction noextract
 fn launch_kernel_1
   (#pre #post : slprop)
   (k : unit ->

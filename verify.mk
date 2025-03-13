@@ -238,9 +238,6 @@ TESTS:=$(filter-out Kuiper_MatMulTileF32, $(TESTS))
 # restore using poly impl
 TESTS:=$(filter-out Kuiper_DotProduct, $(TESTS))
 
-# very temp
-TESTS:=$(filter-out Kuiper_MatMul_Tiled_Inst, $(TESTS))
-
 extraction-targets: \
 	obj/Kuiper_ArrayView_Test1.cu \
 	obj/Kuiper_Example1.exe \

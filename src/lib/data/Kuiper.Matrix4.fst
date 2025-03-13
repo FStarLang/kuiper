@@ -9,6 +9,7 @@ module A = Kuiper.ArrayView
 module T = FStar.Tactics.V2
 open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 
+inline_for_extraction noextract
 type cit
   (#mrows #mcols #brows #bcols : erased nat)
   (l : mlayout4 mrows mcols brows bcols)
@@ -25,8 +26,8 @@ let cview_from_clayout_ff
   : cit l -> szlt (mrows * mcols * brows * bcols)
   = fun (bi, bj, i, j) ->
       c.parent.c_to
-        (s_undivmod c.c_brows (bi, i))
-        (s_undivmod c.c_bcols (bj, j))
+        (bi *^ c.c_brows +^ i)
+        (bj *^ c.c_bcols +^ j)
 
 inline_for_extraction noextract
 let cview_from_clayout_gg
@@ -38,8 +39,12 @@ let cview_from_clayout_gg
   = fun x ->
       let i = c.parent.c_from1 x in
       let j = c.parent.c_from2 x in
-      let bi, si = s_divmod c.c_brows i in
-      let bj, sj = s_divmod c.c_bcols j in
+      // let bi, si = s_divmod c.c_brows i in
+      // let bj, sj = s_divmod c.c_bcols j in
+      let bi = i /^ c.c_brows in
+      let bj = j /^ c.c_bcols in
+      let si = i %^ c.c_brows in
+      let sj = j %^ c.c_bcols in
       (bi, bj, si, sj)
 
 let cview_from_clayout_gg_ff
@@ -49,7 +54,8 @@ let cview_from_clayout_gg_ff
   (c : clayout4 l)
   (i4 : cit l)
   : squash (cview_from_clayout_gg et c (cview_from_clayout_ff et c i4) == i4)
-= calc (==) {
+= admit();
+  calc (==) {
     cview_from_clayout_gg et c (cview_from_clayout_ff et c i4);
     == {}
     (let i = c.parent.c_from1 (cview_from_clayout_ff et c i4) in
@@ -168,7 +174,7 @@ inline_for_extraction noextract
 fn gpu_matrix_free
   (#et:Type)
   (#mrows #mcols #brows #bcols : erased nat)
-  (l : mlayout4 mrows mcols brows bcols)
+  (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (#em : _)
   preserves
@@ -186,7 +192,7 @@ fn gpu_matrix_share_n
   (#et:Type0)
   (#uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
-  (l : mlayout4 mrows mcols brows bcols)
+  (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
@@ -213,7 +219,7 @@ fn gpu_matrix_gather_n
   (#et:Type0)
   (#uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
-  (l : mlayout4 mrows mcols brows bcols)
+  (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
@@ -340,18 +346,10 @@ fn gpu_matrix_read_cell
   assert (pure (brows > 0));
   assert (pure (bcols > 0));
   let v = A.varray_read_cell gm (bi, bj, i, j);
-  // with i'. assert (A.varray_pts_to_cell gm #f i' v0');
-  // rewrite each i' as
-    //  (undivmod brows (SZ.v bi, SZ.v i),
-      // undivmod bcols (SZ.v bj, SZ.v j));
-  admit();
-  // with i_low'. assert (A.varray_pts_to_cell gm #f i_low' v_low);
-  // rewrite each i_low' as
-  //   ((undivmod brows (SZ.v bi, SZ.v i) <: szlt (mrows * brows)),
-  //    (undivmod bcols (SZ.v bj, SZ.v j) <: szlt (mcols * bcols)));
-  admit();
-  fold gpu_matrix_pts_to_cell gm #f bi bj i j v0;
-  admit();
+  with i1 v1.
+    assert (A.varray_pts_to_cell gm #f i1 v1);
+  rewrite A.varray_pts_to_cell gm #f i1 v1 as
+    gpu_matrix_pts_to_cell gm #f bi bj i j v0;
   v;
 }
 
@@ -382,13 +380,10 @@ fn gpu_matrix_write_cell
     each i_low
       as A.cit_to_it (aview_from_mlayout et l) ci;
   A.varray_write_cell gm ci v1;
-  // with ci'. assert (A.varray_pts_to_cell gm #1.0R ai v1);
-  // rewrite each ai as ci;
-  admit();
-  rewrite each i_low as
-    (undivmod brows (SZ.v bi, SZ.v i),
-     undivmod bcols (SZ.v bj, SZ.v j));
-  fold gpu_matrix_pts_to_cell gm bi bj i j v1;
+  with i1 lv1.
+    assert (A.varray_pts_to_cell gm i1 lv1);
+  rewrite A.varray_pts_to_cell gm i1 lv1 as
+    gpu_matrix_pts_to_cell gm bi bj i j v1;
 }
 
 ghost

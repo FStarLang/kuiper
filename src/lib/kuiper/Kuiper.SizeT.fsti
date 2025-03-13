@@ -55,10 +55,12 @@ unfold
 let between (n:int) (lohi: int & int)
   : prop = lohi._1 <= n /\ n <= lohi._2
 
+inline_for_extraction noextract
 let s_divmod (j:szp) (i:sz) : dm:(sz & szlt j){SZ.fits (dm._1 * j + dm._2)} =
   let open FStar.SizeT in
   (i `div` j, i %^ j)
 
+inline_for_extraction noextract
 let s_undivmod (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)}) : sz =
   let open FStar.SizeT in
   dm._1 *^ j +^ dm._2

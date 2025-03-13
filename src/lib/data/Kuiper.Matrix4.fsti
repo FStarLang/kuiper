@@ -1,4 +1,6 @@
 module Kuiper.Matrix4
+inline_for_extraction let x = ()
+
 #lang-pulse
 
 open Kuiper
@@ -9,11 +11,12 @@ module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
 unfold
+inline_for_extraction noextract
 type mlayout4 (mrows mcols brows bcols : erased nat) =
   mlayout (mrows * brows) (mcols * bcols)
 
-noeq
-type clayout4
+inline_for_extraction noextract
+class clayout4
   (#mrows #mcols #brows #bcols : erased nat)
   (l : mlayout4 mrows mcols brows bcols) =
 {
@@ -22,6 +25,28 @@ type clayout4
   c_brows : (x:SZ.t{SZ.v x > 0 /\ SZ.v x == reveal brows});
   c_bcols : (x:SZ.t{SZ.v x > 0 /\ SZ.v x == reveal bcols});
   parent : clayout l;
+}
+
+inline_for_extraction noextract
+type mrepr4 =
+  mrows:nat ->
+  mcols:nat ->
+  brows:nat ->
+  bcols:nat ->
+  mlayout4 mrows mcols brows bcols
+
+inline_for_extraction noextract
+type crepr4_t (r : mrepr4) =
+  mrows:SZ.t ->
+  mcols:SZ.t ->
+  brows:SZ.t ->
+  bcols:SZ.t ->
+  squash (SZ.fits (mrows * brows * mcols * bcols)) ->
+  clayout4 (r mrows mcols brows bcols)
+
+inline_for_extraction noextract
+class crepr4 (r:mrepr4) = {
+  map : crepr4_t r;
 }
 
 inline_for_extraction noextract
@@ -113,7 +138,7 @@ inline_for_extraction noextract
 fn gpu_matrix_free
   (#et:Type)
   (#mrows #mcols #brows #bcols : erased nat)
-  (l : mlayout4 mrows mcols brows bcols)
+  (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (#em : _)
   preserves
@@ -127,7 +152,7 @@ fn gpu_matrix_share_n
   (#et:Type0)
   (#uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
-  (l : mlayout4 mrows mcols brows bcols)
+  (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
@@ -142,7 +167,7 @@ fn gpu_matrix_gather_n
   (#et:Type0)
   (#uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
-  (l : mlayout4 mrows mcols brows bcols)
+  (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
