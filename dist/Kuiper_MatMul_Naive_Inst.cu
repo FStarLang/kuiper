@@ -11,13 +11,13 @@ k_f32_rrr(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, flo
   size_t id = blockIdx_x();
   size_t trow = id / cols;
   size_t tcol = id % cols;
-  size_t i = (size_t)0U;
+  size_t k = (size_t)0U;
   float_t sum = (float_t)0.0f;
-  while (i < shared)
+  while (k < shared)
   {
-    size_t vi = i;
-    sum += gA[trow * shared + vi] * gB[vi * cols + tcol];
-    i = vi + (size_t)1U;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
   gC[trow * cols + tcol] = sum;
 }
@@ -69,13 +69,13 @@ k_f64_rrr(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, d
   size_t id = blockIdx_x();
   size_t trow = id / cols;
   size_t tcol = id % cols;
-  size_t i = (size_t)0U;
+  size_t k = (size_t)0U;
   double_t sum = (double_t)0.0l;
-  while (i < shared)
+  while (k < shared)
   {
-    size_t vi = i;
-    sum += gA[trow * shared + vi] * gB[vi * cols + tcol];
-    i = vi + (size_t)1U;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
   gC[trow * cols + tcol] = sum;
 }
@@ -127,13 +127,13 @@ k_u32_rrr(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, u
   size_t id = blockIdx_x();
   size_t trow = id / cols;
   size_t tcol = id % cols;
-  size_t i = (size_t)0U;
+  size_t k = (size_t)0U;
   uint32_t sum = 0U;
-  while (i < shared)
+  while (k < shared)
   {
-    size_t vi = i;
-    sum += gA[trow * shared + vi] * gB[vi * cols + tcol];
-    i = vi + (size_t)1U;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
   gC[trow * cols + tcol] = sum;
 }
@@ -182,13 +182,13 @@ k_u64_rrr(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, u
   size_t id = blockIdx_x();
   size_t trow = id / cols;
   size_t tcol = id % cols;
-  size_t i = (size_t)0U;
+  size_t k = (size_t)0U;
   uint64_t sum = 0ULL;
-  while (i < shared)
+  while (k < shared)
   {
-    size_t vi = i;
-    sum += gA[trow * shared + vi] * gB[vi * cols + tcol];
-    i = vi + (size_t)1U;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
   gC[trow * cols + tcol] = sum;
 }
@@ -236,13 +236,13 @@ k_u64_ccc(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, u
   size_t id = blockIdx_x();
   size_t trow = id / cols;
   size_t tcol = id % cols;
-  size_t i = (size_t)0U;
+  size_t k = (size_t)0U;
   uint64_t sum = 0ULL;
-  while (i < shared)
+  while (k < shared)
   {
-    size_t vi = i;
-    sum += gA[vi * rows + trow] * gB[tcol * shared + vi];
-    i = vi + (size_t)1U;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
   gC[tcol * rows + trow] = sum;
 }
