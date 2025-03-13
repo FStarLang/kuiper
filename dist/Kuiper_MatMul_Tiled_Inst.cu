@@ -6,11 +6,11 @@ __global__
 
 static void
 __hoisted_0(
+  size_t bdim,
+  size_t mcols,
   size_t mshared,
   uint64_t *gA,
   uint64_t *gB,
-  size_t mcols,
-  size_t bdim,
   uint64_t *gC
 )
 {
@@ -68,11 +68,11 @@ uint64_t
     bdim * bdim,
     (size_t)4U,
     (size_t)0U,
+    bdim,
+    mcols,
     mshared,
     gA,
     gB,
-    mcols,
-    bdim,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
@@ -86,7 +86,7 @@ uint64_t
 
 __global__
 
-static void __hoisted_1(size_t mshared, uint64_t *gA, uint64_t *gB, size_t mcols, uint64_t *gC)
+static void __hoisted_1(size_t mcols, size_t mshared, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
   size_t bid = blockIdx_x();
   size_t tid = threadIdx_x();
@@ -150,10 +150,10 @@ uint64_t
     (size_t)1024U,
     (size_t)4U,
     (size_t)0U,
+    mcols,
     mshared,
     gA,
     gB,
-    mcols,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);

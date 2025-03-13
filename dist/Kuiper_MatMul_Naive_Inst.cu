@@ -4,7 +4,7 @@
 
 __global__
 
-static void __hoisted_0(size_t shared, float_t *gA, float_t *gB, size_t cols, float_t *gC)
+static void __hoisted_0(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -40,9 +40,9 @@ float_t
     (size_t)4U,
     (size_t)0U,
     shared,
+    cols,
     gA,
     gB,
-    cols,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
@@ -59,7 +59,7 @@ float_t
 
 __global__
 
-static void __hoisted_1(size_t shared, double_t *gA, double_t *gB, size_t cols, double_t *gC)
+static void __hoisted_1(size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -95,9 +95,9 @@ double_t
     (size_t)4U,
     (size_t)0U,
     shared,
+    cols,
     gA,
     gB,
-    cols,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
@@ -114,7 +114,7 @@ double_t
 
 __global__
 
-static void __hoisted_2(size_t shared, uint32_t *gA, uint32_t *gB, size_t cols, uint32_t *gC)
+static void __hoisted_2(size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -150,9 +150,9 @@ uint32_t
     (size_t)4U,
     (size_t)0U,
     shared,
+    cols,
     gA,
     gB,
-    cols,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
@@ -166,7 +166,7 @@ uint32_t
 
 __global__
 
-static void __hoisted_3(size_t shared, uint64_t *gA, uint64_t *gB, size_t cols, uint64_t *gC)
+static void __hoisted_3(size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -202,9 +202,9 @@ uint64_t
     (size_t)4U,
     (size_t)0U,
     shared,
+    cols,
     gA,
     gB,
-    cols,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
@@ -219,7 +219,7 @@ uint64_t
 __global__
 
 static void
-__hoisted_4(size_t cols, float_t *gA, size_t shared, float_t *gB, size_t rows, float_t *gC)
+__hoisted_4(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -254,11 +254,11 @@ float_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
+    rows,
+    shared,
     cols,
     gA,
-    shared,
     gB,
-    rows,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
@@ -276,7 +276,7 @@ float_t
 __global__
 
 static void
-__hoisted_5(size_t cols, double_t *gA, size_t shared, double_t *gB, size_t rows, double_t *gC)
+__hoisted_5(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -311,11 +311,11 @@ double_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
+    rows,
+    shared,
     cols,
     gA,
-    shared,
     gB,
-    rows,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
@@ -333,7 +333,7 @@ double_t
 __global__
 
 static void
-__hoisted_6(size_t cols, uint32_t *gA, size_t shared, uint32_t *gB, size_t rows, uint32_t *gC)
+__hoisted_6(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -368,11 +368,11 @@ uint32_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
+    rows,
+    shared,
     cols,
     gA,
-    shared,
     gB,
-    rows,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
@@ -387,7 +387,7 @@ uint32_t
 __global__
 
 static void
-__hoisted_7(size_t cols, uint64_t *gA, size_t shared, uint64_t *gB, size_t rows, uint64_t *gC)
+__hoisted_7(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
   size_t id = blockIdx_x();
   size_t trow = id / cols;
@@ -422,11 +422,11 @@ uint64_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
+    rows,
+    shared,
     cols,
     gA,
-    shared,
     gB,
-    rows,
     gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);

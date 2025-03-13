@@ -38,9 +38,9 @@ static void k_pointwise_div_f16(half_t *a, half_t d)
 
 __global__
 
-static void __hoisted_3(half_t *ga, half_t avg)
+static void __hoisted_1(half_t *ga)
 {
-  k_pointwise_div_f16(ga, avg);
+  k_pointwise_exp_f16(ga);
 }
 
 __global__
@@ -52,9 +52,9 @@ static void __hoisted_2(size_t lena, half_t *a_)
 
 __global__
 
-static void __hoisted_1(half_t *ga)
+static void __hoisted_3(half_t *ga, half_t avg)
 {
-  k_pointwise_exp_f16(ga);
+  k_pointwise_div_f16(ga, avg);
 }
 
 void Kuiper_Softmax_F16_softmax(size_t lena, half_t *a)

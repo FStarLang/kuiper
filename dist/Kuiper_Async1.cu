@@ -19,30 +19,9 @@ uint64_t Kuiper_Async1_gread(uint64_t *gr)
 
 __global__
 
-static void __hoisted_5(uint64_t *r6)
+static void __hoisted_0(uint64_t *r1)
 {
-  *r6 += 1ULL;
-}
-
-__global__
-
-static void __hoisted_4(uint64_t *r5)
-{
-  *r5 += 1ULL;
-}
-
-__global__
-
-static void __hoisted_3(uint64_t *r4)
-{
-  *r4 += 1ULL;
-}
-
-__global__
-
-static void __hoisted_2(uint64_t *r3)
-{
-  *r3 += 1ULL;
+  *r1 += 1ULL;
 }
 
 __global__
@@ -54,9 +33,30 @@ static void __hoisted_1(uint64_t *r2)
 
 __global__
 
-static void __hoisted_0(uint64_t *r1)
+static void __hoisted_2(uint64_t *r3)
 {
-  *r1 += 1ULL;
+  *r3 += 1ULL;
+}
+
+__global__
+
+static void __hoisted_3(uint64_t *r4)
+{
+  *r4 += 1ULL;
+}
+
+__global__
+
+static void __hoisted_4(uint64_t *r5)
+{
+  *r5 += 1ULL;
+}
+
+__global__
+
+static void __hoisted_5(uint64_t *r6)
+{
+  *r6 += 1ULL;
 }
 
 uint64_t Kuiper_Async1_main(void)
