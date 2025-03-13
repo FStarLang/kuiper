@@ -1,7 +1,4 @@
 module Kuiper.Matrix.Reprs.Type
-
-inline_for_extraction let x = ()
-
 #lang-pulse
 
 open Kuiper

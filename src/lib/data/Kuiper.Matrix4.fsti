@@ -1,6 +1,4 @@
 module Kuiper.Matrix4
-inline_for_extraction let x = ()
-
 #lang-pulse
 
 open Kuiper
