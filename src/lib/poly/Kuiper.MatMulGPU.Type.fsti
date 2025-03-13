@@ -69,3 +69,30 @@ inline_for_extraction
 type matmul_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
   matmul_gpu_ty_type et
+
+
+
+
+
+
+// fn matmul
+//   (et : Type0) {| scalar et |}
+//   (#rows #shared #cols : _)
+//   (#shared : pos)
+//   (#cols : pos{three_fits rows shared cols})
+//   (lA : mlayout rows shared)
+//   (lB : mlayout shared cols)
+//   (lC : mlayout rows cols)
+//   {| clayout lA |}
+//   {| clayout lB |}
+//   {| clayout lC |}
+//   (gA : M.gpu_matrix et lA)
+//   (gB : M.gpu_matrix et lB)
+//   (gC : M.gpu_matrix et lC)
+//   preserves
+//     cpu ** (gA |-> 'eA) ** (gB |-> 'eB)
+//   requires
+//     pure (rows * cols <= max_blocks) **
+//     gC |-> 'eC
+//   ensures
+//     gC |-> MS.matmul 'eA 'eB
