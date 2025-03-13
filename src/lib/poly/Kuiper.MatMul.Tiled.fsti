@@ -11,10 +11,10 @@ open Kuiper.Matrix4 { mlayout4, clayout4 }
 
 // inline_for_extraction noextract
 // val matmul_gpu
-//   (bdim : szp) (* block dim *)
+//   (tile : szp) (* block dim *)
 //   (#et : Type0) {| scalar et |}
-//   (#rows #shared #cols : szp) (* already divided by bdim *)
-//   (_ : squash (bdim /? rows /\ bdim /? cols /\ bdim /? shared))
+//   (#rows #shared #cols : szp) (* already divided by tile *)
+//   (_ : squash (tile /? rows /\ tile /? cols /\ tile /? shared))
 //   (lA : mlayout rows   shared)
 //   (lB : mlayout shared cols)
 //   (lC : mlayout rows   cols)

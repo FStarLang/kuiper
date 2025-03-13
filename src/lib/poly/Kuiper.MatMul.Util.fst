@@ -64,19 +64,19 @@ fn matmul_dotprod
 inline_for_extraction noextract
 fn matmul_tiled_dotprod
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols #bdim : SZ.t)
-  (#lA : mlayout4 rows shared bdim bdim)
-  (#lB : mlayout4 shared cols bdim bdim)
+  (#rows #shared #cols #tile : SZ.t)
+  (#lA : mlayout4 rows shared tile tile)
+  (#lB : mlayout4 shared cols tile tile)
   {| clayout4 lA |}
   {| clayout4 lB |}
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
-  (#eA : ematrix4 et rows shared bdim bdim)
-  (#eB : ematrix4 et shared cols bdim bdim)
+  (#eA : ematrix4 et rows shared tile tile)
+  (#eB : ematrix4 et shared cols tile tile)
   (bi : szlt rows)
   (bj : szlt cols)
-  (i : szlt bdim)
-  (j : szlt bdim)
+  (i : szlt tile)
+  (j : szlt tile)
   (#fA #fB : perm)
   preserves
     gpu **
@@ -85,7 +85,7 @@ fn matmul_tiled_dotprod
   returns
     res : et
   // ensures
-  //   pure (res == MS.matmul_single #et #_ #(rows * bdim) #(shared * bdim) #(cols * bdim) eA eB i j shared)
+  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
 {
   let mut sum : et = zero #et #_;
   let mut bk  : sz = 0sz;
@@ -93,9 +93,9 @@ fn matmul_tiled_dotprod
 
   while (let vbk = !bk; SZ.(vbk <^ shared))
     invariant b.
-      exists* (vbk : SZ.t{vbk <= shared}) (vk : SZ.t{vk < bdim}) sumv.
+      exists* (vbk : SZ.t{vbk <= shared}) (vk : SZ.t{vk < tile}) sumv.
         pure (0 <= shared /\ b == (SZ.v vbk < shared) /\ vbk <= shared /\ vbk >= 0) **
-        pure (0 <= bdim /\ vk < bdim /\ vk >= 0) **
+        pure (0 <= tile /\ vk < tile /\ vk >= 0) **
         pts_to k vk **
         pts_to bk vbk **
         pts_to #_ #et sum sumv **
@@ -111,7 +111,7 @@ fn matmul_tiled_dotprod
 
     sum := s `add` mul v1 v2;
 
-    if (vk = bdim -^ 1sz) {
+    if (vk = tile -^ 1sz) {
       k := 0sz;
       bk := vbk +^ 1sz;
     } else {

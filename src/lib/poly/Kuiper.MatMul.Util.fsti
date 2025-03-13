@@ -44,19 +44,19 @@ fn matmul_dotprod
 inline_for_extraction noextract
 fn matmul_tiled_dotprod
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols #bdim : SZ.t)
-  (#lA : mlayout4 rows shared bdim bdim)
-  (#lB : mlayout4 shared cols bdim bdim)
+  (#rows #shared #cols #tile : SZ.t)
+  (#lA : mlayout4 rows shared tile tile)
+  (#lB : mlayout4 shared cols tile tile)
   {| clayout4 lA |}
   {| clayout4 lB |}
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
-  (#eA : ematrix4 et rows shared bdim bdim)
-  (#eB : ematrix4 et shared cols bdim bdim)
+  (#eA : ematrix4 et rows shared tile tile)
+  (#eB : ematrix4 et shared cols tile tile)
   (bi : szlt rows)
   (bj : szlt cols)
-  (i : szlt bdim)
-  (j : szlt bdim)
+  (i : szlt tile)
+  (j : szlt tile)
   (#fA #fB : perm)
   preserves
     gpu **
@@ -65,4 +65,4 @@ fn matmul_tiled_dotprod
   returns
     res : et
   // ensures
-  //   pure (res == MS.matmul_single #et #_ #(rows * bdim) #(shared * bdim) #(cols * bdim) eA eB i j shared)
+  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
