@@ -6,7 +6,7 @@ __global__
 
 static void
 __hoisted_0(
-  size_t bdim,
+  size_t tile,
   size_t mcols,
   size_t mshared,
   uint64_t *gA,
@@ -18,8 +18,8 @@ __hoisted_0(
   size_t tid = threadIdx_x();
   size_t mrow = bid / mcols;
   size_t mcol = bid % mcols;
-  size_t brow = tid / bdim;
-  size_t bcol = tid % bdim;
+  size_t brow = tid / tile;
+  size_t bcol = tid % tile;
   size_t bi = mrow;
   size_t bj = mcol;
   size_t i = brow;
@@ -32,9 +32,9 @@ __hoisted_0(
     size_t vbk = bk;
     size_t vk = k;
     sum +=
-      gA[(mrow * bdim + brow) * (mshared * bdim) + vbk * bdim + vk] *
-        gB[(vbk * bdim + vk) * (mcols * bdim) + mcol * bdim + bcol];
-    if (vk == bdim - (size_t)1U)
+      gA[(mrow * tile + brow) * (mshared * tile) + vbk * tile + vk] *
+        gB[(vbk * tile + vk) * (mcols * tile) + mcol * tile + bcol];
+    if (vk == tile - (size_t)1U)
     {
       k = (size_t)0U;
       bk = vbk + (size_t)1U;
@@ -42,12 +42,12 @@ __hoisted_0(
     else
       k = vk + (size_t)1U;
   }
-  gC[(bi * bdim + i) * (mcols * bdim) + bj * bdim + j] = sum;
+  gC[(bi * tile + i) * (mcols * tile) + bj * tile + j] = sum;
 }
 
 uint64_t
 *Kuiper_MatMul_Tiled_Inst_matmul_u64_rrr(
-  size_t bdim,
+  size_t tile,
   size_t rows,
   size_t shared,
   size_t cols,
@@ -55,20 +55,20 @@ uint64_t
   uint64_t *b
 )
 {
-  size_t mcols = cols / bdim;
-  size_t mshared = shared / bdim;
-  size_t mrows = rows / bdim;
-  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * bdim * mshared * bdim));
-  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mshared * bdim * mcols * bdim));
-  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * bdim * mcols * bdim));
-  MUST(cudaMemcpy(gB, b, (size_t)8U * (mshared * bdim * (mcols * bdim)), cudaMemcpyHostToDevice));
-  MUST(cudaMemcpy(gA, a, (size_t)8U * (mrows * bdim * (mshared * bdim)), cudaMemcpyHostToDevice));
+  size_t mcols = cols / tile;
+  size_t mshared = shared / tile;
+  size_t mrows = rows / tile;
+  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * tile * mshared * tile));
+  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mshared * tile * mcols * tile));
+  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * tile * mcols * tile));
+  MUST(cudaMemcpy(gB, b, (size_t)8U * (mshared * tile * (mcols * tile)), cudaMemcpyHostToDevice));
+  MUST(cudaMemcpy(gA, a, (size_t)8U * (mrows * tile * (mshared * tile)), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_0,
     mrows * mcols,
-    bdim * bdim,
+    tile * tile,
     (size_t)4U,
     (size_t)0U,
-    bdim,
+    tile,
     mcols,
     mshared,
     gA,
@@ -77,7 +77,7 @@ uint64_t
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
-  MUST(cudaMemcpy(c, gC, (size_t)8U * (mrows * bdim * (mcols * bdim)), cudaMemcpyDeviceToHost));
+  MUST(cudaMemcpy(c, gC, (size_t)8U * (mrows * tile * (mcols * tile)), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
   MUST(cudaFree(gC));
