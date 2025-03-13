@@ -78,6 +78,7 @@ let three_fits (a b c : nat) : prop =
   SZ.fits (b * c) /\
   SZ.fits (a * c)
 
+inline_for_extraction noextract
 let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
   let open FStar.SizeT in
   (x +^ y -^ 1sz) `div` y
