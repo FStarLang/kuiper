@@ -52,35 +52,6 @@ let kpost
   M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
     (MS.matmul_single eA eB (tid / cols) (tid % cols) shared)
 
-inline_for_extraction
-type kernel_fixed_ty
-  (et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (lA : mlayout rows shared)
-  (lB : mlayout shared cols)
-  (lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
-: Type0
-=
-  (gA : M.gpu_matrix et lA) ->
-  (gB : M.gpu_matrix et lB) ->
-  (gC : M.gpu_matrix et lC) ->
-  (#eA : ematrix et rows shared) ->
-  (#eB : ematrix et shared cols) ->
-  (#f : perm) ->
-  (ebid : enatlt (rows * cols)) ->
-  stt unit
-  (requires
-    gpu **
-    block_id (rows * cols) ebid **
-    kpre gA gB gC eA eB f ebid)
-  (ensures fun _ ->
-    gpu **
-    block_id (rows * cols) ebid **
-    kpost gA gB gC eA eB f ebid)
-
 inline_for_extraction noextract
 fn kernel_fixed
   (#et : Type0) {| scalar et |}

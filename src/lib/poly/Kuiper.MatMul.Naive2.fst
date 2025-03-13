@@ -66,38 +66,6 @@ let kpost
    else
      emp)
 
-inline_for_extraction
-type kernel_fixed_ty
-  (et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (lA : mlayout rows shared)
-  (lB : mlayout shared cols)
-  (lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
-: Type0
-=
-  (gA : M.gpu_matrix et lA) ->
-  (gB : M.gpu_matrix et lB) ->
-  (gC : M.gpu_matrix et lC) ->
-  (#eA : ematrix et rows shared) ->
-  (#eB : ematrix et shared cols) ->
-  (#f : perm) ->
-  (ebid : enatlt (divup (rows * cols) 1024)) ->
-  (etid : enatlt 1024) ->
-  stt unit
-  (requires
-    gpu **
-    block_id (divup (rows * cols) 1024) ebid **
-    thread_id (1024) etid **
-    kpre gA gB gC eA eB f ebid etid)
-  (ensures fun _ ->
-    gpu **
-    block_id (divup (rows * cols) 1024) ebid **
-    thread_id (1024) etid **
-    kpost gA gB gC eA eB f ebid etid)
-
 inline_for_extraction noextract
 fn kernel_fixed
   (#et : Type0) {| scalar et |}

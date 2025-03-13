@@ -68,36 +68,6 @@ let kpost
       (bid / mcols) (bid % mcols)
       (tid / bdim) (tid % bdim) v)
 
-inline_for_extraction
-type kernel_fixed_ty
-  (bdim : pos) (* block dim *)
-  (et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols : pos)
-  (lA : mlayout4 mrows   mshared bdim bdim)
-  (lB : mlayout4 mshared mcols   bdim bdim)
-  (lC : mlayout4 mrows   mcols   bdim bdim)
-  : Type0
-=
-  (gA : gpu_matrix4 et lA) ->
-  (gB : gpu_matrix4 et lB) ->
-  (gC : gpu_matrix4 et lC) ->
-  (#eA : ematrix4 et mrows   mshared bdim bdim) ->
-  (#eB : ematrix4 et mshared mcols   bdim bdim) ->
-  (#f : perm) ->
-  (ebid : enatlt (mrows * mcols)) ->
-  (etid : enatlt (bdim * bdim)) ->
-  stt unit
-  (requires
-    gpu **
-    block_id (mrows * mcols) ebid **
-    thread_id (bdim * bdim) etid **
-    kpre gA gB gC eA eB f ebid etid)
-  (ensures fun _ ->
-    gpu **
-    block_id (mrows * mcols) ebid **
-    thread_id (bdim * bdim) etid **
-    kpost gA gB gC eA eB f ebid etid)
-
 inline_for_extraction noextract
 fn kernel_fixed
   (bdim : szp) (* block dim *)
