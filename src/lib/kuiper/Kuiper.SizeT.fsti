@@ -77,3 +77,12 @@ let three_fits (a b c : nat) : prop =
   SZ.fits (a * b) /\
   SZ.fits (b * c) /\
   SZ.fits (a * c)
+
+let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
+  let open FStar.SizeT in
+  (x +^ y -^ 1sz) `div` y
+
+let lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
+  : Lemma (SZ.v (sdivup x y) == divup (SZ.v x) (SZ.v y))
+          [SMTPat (sdivup x y)]
+  = ()
