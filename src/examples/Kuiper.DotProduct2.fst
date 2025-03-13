@@ -64,7 +64,7 @@ fn kernel
     (exists* it. mbarrier_tok nth (HR.barrier_matrix nth r (pmul s1 s2)) it etid) **
     kpost nth ga1 ga2 r s1 s2 0 etid
 {
-  let tid = get_tid (); 
+  let tid = get_tid ();
   (**)unfold (kpre nth ga1 ga2 r s1 s2 0 tid);
 
   let v1 = gpu_array_read #u64 #(SZ.v nth) #0 #(SZ.v nth) ga1 tid #s1;

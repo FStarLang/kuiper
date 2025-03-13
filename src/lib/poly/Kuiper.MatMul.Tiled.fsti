@@ -8,7 +8,6 @@ open Kuiper
 open Kuiper.MatMulGPU.Type
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix4 { mlayout4, clayout4 }
-module SZ = FStar.SizeT
 
 inline_for_extraction
 val kernel_fixed_ty

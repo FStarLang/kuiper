@@ -3,7 +3,6 @@ module Kuiper.MatMul.Tiled
 #lang-pulse
 
 open Kuiper
-module M   = Kuiper.Matrix
 module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
 module MU = Kuiper.MatMul.Util

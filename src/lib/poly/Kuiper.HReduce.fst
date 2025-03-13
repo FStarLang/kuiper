@@ -287,7 +287,7 @@ fn d_reduce
     block_id 1 ebid **
     thread_id nth etid **
     (exists* it.  mbarrier_tok nth (barrier_matrix nth a s) it etid) **
-    kpost 1 nth a s 0 etid 
+    kpost 1 nth a s 0 etid
 {
   let tid = get_tid (); rewrite each etid as SZ.v tid;
 
