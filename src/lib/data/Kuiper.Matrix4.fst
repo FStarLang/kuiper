@@ -26,8 +26,8 @@ let cview_from_clayout_ff
   : cit l -> szlt (mrows * mcols * brows * bcols)
   = fun (bi, bj, i, j) ->
       c.parent.c_to
-        (bi *^ c.c_brows +^ i)
-        (bj *^ c.c_bcols +^ j)
+        (s_undivmod c.c_brows (bi, i))
+        (s_undivmod c.c_bcols (bj, j))
 
 inline_for_extraction noextract
 let cview_from_clayout_gg
@@ -39,12 +39,8 @@ let cview_from_clayout_gg
   = fun x ->
       let i = c.parent.c_from1 x in
       let j = c.parent.c_from2 x in
-      // let bi, si = s_divmod c.c_brows i in
-      // let bj, sj = s_divmod c.c_bcols j in
-      let bi = i /^ c.c_brows in
-      let bj = j /^ c.c_bcols in
-      let si = i %^ c.c_brows in
-      let sj = j %^ c.c_bcols in
+      let bi, si = s_divmod c.c_brows i in
+      let bj, sj = s_divmod c.c_bcols j in
       (bi, bj, si, sj)
 
 let cview_from_clayout_gg_ff
@@ -54,8 +50,7 @@ let cview_from_clayout_gg_ff
   (c : clayout4 l)
   (i4 : cit l)
   : squash (cview_from_clayout_gg et c (cview_from_clayout_ff et c i4) == i4)
-= admit();
-  calc (==) {
+= calc (==) {
     cview_from_clayout_gg et c (cview_from_clayout_ff et c i4);
     == {}
     (let i = c.parent.c_from1 (cview_from_clayout_ff et c i4) in
