@@ -15,6 +15,7 @@ open FStar.Mul
 module SZ = FStar.SizeT
 open Pulse.Lib.Pledge
 include Kuiper.Kernel.Base
+include Kuiper.Kernel.Desc
 
 (* Helpers below *)
 

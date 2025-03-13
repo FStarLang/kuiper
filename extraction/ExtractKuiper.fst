@@ -594,7 +594,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         _unit;
         _epoch
       ])
-    when string_of_mlpath p = "Kuiper.Kernel.Base.sync" ->
+    when string_of_mlpath p = "Kuiper.Kernel.Base.sync_device" ->
     EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   (* Misc stuff missing from F*? *)

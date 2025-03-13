@@ -10,7 +10,7 @@ open Kuiper.Base
 module SZ = FStar.SizeT
 open Kuiper.ForEvery
 
-open Kuiper.Kernel.Base
+open Kuiper.Kernel.Desc
 
 ghost
 fn nop_block_setup (#nblk #nthr : nat) (ar : gpu_array u32 0sz) (bid : natlt nblk)

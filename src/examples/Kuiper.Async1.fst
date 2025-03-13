@@ -74,7 +74,7 @@ fn main (_:unit)
   launch_kernel_1_async (fun () -> kernel r5);
   launch_kernel_1_async (fun () -> kernel r6);
 
-  sync();
+  sync_device ();
 
   redeem1 _ _ _;
   redeem1 _ _ _;

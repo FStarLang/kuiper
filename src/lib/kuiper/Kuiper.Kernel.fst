@@ -52,7 +52,7 @@ fn launch_kernel_n_m_shmem
 {
   let e = get_epoch ();
   let e' = launch_kernel_n_m_shmem_async nblk nthr #pre #post a #_ smem_sz #shared_pre #shared_post setup k #e;
-  sync ();
+  sync_device ();
   redeem_pledge emp_inames (epoch_done e') _;
   drop_ (epoch_done e');
   drop_ (epoch_live _);
@@ -228,7 +228,7 @@ fn launch_kernel_n_m_barrier
 {
   get_epoch ();
   let e' = launch_kernel_n_m_barrier_async nblk nthr k;
-  sync ();
+  sync_device ();
   redeem_pledge emp_inames (epoch_done e') _;
   drop_ (epoch_done e');
   drop_ (epoch_live _);
@@ -442,7 +442,7 @@ fn launch_kernel_n_blocks
 {
   get_epoch ();
   let e' = launch_kernel_n_blocks_async nblk #pre #post k;
-  sync ();
+  sync_device ();
   redeem_pledge emp_inames (epoch_done e') _;
   drop_ (epoch_done e');
   drop_ (epoch_live _);
@@ -563,7 +563,7 @@ fn launch_kernel_sync
 {
   get_epoch ();
   launch_kernel k;
-  sync ();
+  sync_device ();
   redeem_pledge emp_inames (epoch_done _) full_post;
   drop_ (epoch_done _);
   drop_ (epoch_live _);
