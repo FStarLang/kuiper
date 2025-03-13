@@ -100,7 +100,6 @@ fn kernel
 {
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
   let tid = get_tid (); rewrite each etid as SZ.v tid;
-  let id = bid *^ (tile *^ tile) +^ tid;
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
