@@ -249,6 +249,19 @@ fn forevery_fromstar
 }
 
 ghost
+fn forevery_fromnat
+  (n : nat)
+  (p : natlt n -> slprop)
+  requires
+    bigstar 0 n (fun i -> p i)
+  ensures
+    forall+ (x : natlt n). p x
+{
+  rewrite each n as cardinal (natlt n) #_;
+  forevery_fromstar p;
+}
+
+ghost
 fn forevery_singleton_intro
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop { cardinal a #_ == 1 })

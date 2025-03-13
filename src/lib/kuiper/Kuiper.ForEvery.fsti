@@ -149,6 +149,15 @@ fn forevery_fromstar
     forall+ (x:a). p x
 
 ghost
+fn forevery_fromnat
+  (n : nat)
+  (p : natlt n -> slprop)
+  requires
+    bigstar 0 n (fun i -> p i)
+  ensures
+    forall+ (x : natlt n). p x
+
+ghost
 fn forevery_unit_intro
   (p : slprop)
   requires
