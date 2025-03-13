@@ -121,7 +121,7 @@ type kernel_ty (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
     block_id (SZ.v n) ebid **
     kpost (SZ.v n) a v_a r done i ebid)
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}

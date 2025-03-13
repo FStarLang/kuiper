@@ -4,11 +4,11 @@ module Kuiper.Softmax.F32
 open Kuiper
 open Kuiper.Softmax
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 val k_pointwise_exp_f32 : k_pointwise_exp_ty f32
 let k_pointwise_exp_f32 = k_pointwise_exp
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 val k_pointwise_div_f32 : k_pointwise_div_ty f32
 let k_pointwise_div_f32 = k_pointwise_div
 

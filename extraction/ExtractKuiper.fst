@@ -198,7 +198,7 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
 
   let bs =  List.map mk_binder fvs @ [extra_unit_binder] in
   let kbs = translate_binders g bs in
-  let g0 = { g with names = [] } in
+  let g0 = { g with names = []; names_t = [] } in
   let lambda = translate_expr (add_binders g0 bs) e in
   let flags = [
     Krml.Private;

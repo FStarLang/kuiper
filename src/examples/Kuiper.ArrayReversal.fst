@@ -299,7 +299,7 @@ let kpost
   gpu_pts_to_cell a #1.0R ebid (Seq.index (reverse_spec s) ebid) **
   gpu_pts_to_cell a #1.0R (SZ.v size - ebid - 1) (index_flip (reverse_spec s) ebid)
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+inline_for_extraction noextract
 fn kernel
   (#ty:Type0)
   (size:sz)
@@ -328,6 +328,9 @@ ensures
   ()
 }
 
+(* fixme: we should recognize this is polymorphic and not extract it as-is,
+currently we crash the extraction process *)
+inline_for_extraction noextract
 fn reverse
     (#ty:Type0)
     (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })

@@ -117,7 +117,7 @@ fn fixup
   }
 }
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 fn kernel
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
   (ga1 ga2 : gpu_array u64 nth)

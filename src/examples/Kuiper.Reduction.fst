@@ -51,7 +51,7 @@ fn k_reduce
 
 (* Reduces a simple scalar array with the addition operation, leaving
 the result in the 0th index of the original array (overwriting that element). *)
-[@@CPrologue "__global__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 fn k_reduce_and_set
   (#tt : Type0)
   {| d : scalar tt |}

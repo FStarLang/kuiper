@@ -4,7 +4,7 @@
 
 size_t Kuiper_HReduce_F16Plus_size = (size_t)1024U;
 
-__global__
+__device__
 
 static void k_reduce(size_t nth, half_t *a)
 {
@@ -22,9 +22,16 @@ static void k_reduce(size_t nth, half_t *a)
   }
 }
 
+__global__
+
+static void __hoisted_0(size_t lena, half_t *a)
+{
+  k_reduce(lena, a);
+}
+
 void Kuiper_HReduce_F16Plus_reduce(size_t lena, half_t *a)
 {
-  KPR_KCALL(k_reduce, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a);
+  KPR_KCALL(__hoisted_0, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a);
   cudaDeviceSynchronize();
 }
 

@@ -2,7 +2,7 @@
 
 #include "Kuiper_Softmax_F16.h"
 
-__global__
+__device__
 
 static void k_reduce(size_t nth, half_t *a)
 {
@@ -20,7 +20,7 @@ static void k_reduce(size_t nth, half_t *a)
   }
 }
 
-__global__
+__device__
 
 static void k_pointwise_exp_f16(half_t *a)
 {
@@ -28,7 +28,7 @@ static void k_pointwise_exp_f16(half_t *a)
   a[i] = __hexp(a[i]);
 }
 
-__global__
+__device__
 
 static void k_pointwise_div_f16(half_t *a, half_t d)
 {
@@ -36,15 +36,36 @@ static void k_pointwise_div_f16(half_t *a, half_t d)
   a[i] = __hdiv(a[i], d);
 }
 
+__global__
+
+static void __hoisted_3(half_t *ga, half_t avg)
+{
+  k_pointwise_div_f16(ga, avg);
+}
+
+__global__
+
+static void __hoisted_2(size_t lena, half_t *a_)
+{
+  k_reduce(lena, a_);
+}
+
+__global__
+
+static void __hoisted_1(half_t *ga)
+{
+  k_pointwise_exp_f16(ga);
+}
+
 void Kuiper_Softmax_F16_softmax(size_t lena, half_t *a)
 {
   half_t *ga = (half_t *)KPR_GPU_ALLOC((size_t)2U * lena);
   MUST(cudaMemcpy(ga, a, (size_t)2U * lena, cudaMemcpyHostToDevice));
-  KPR_KCALL(k_pointwise_exp_f16, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga);
+  KPR_KCALL(__hoisted_1, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga);
   cudaDeviceSynchronize();
   half_t *a_ = (half_t *)KPR_GPU_ALLOC((size_t)2U * lena);
   MUST(cudaMemcpy(a_, ga, (size_t)2U * lena, cudaMemcpyDeviceToDevice));
-  KPR_KCALL(k_reduce, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a_);
+  KPR_KCALL(__hoisted_2, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a_);
   cudaDeviceSynchronize();
   half_t *ca = (half_t *)KRML_HOST_MALLOC(sizeof (half_t));
   if (ca != NULL)
@@ -54,7 +75,7 @@ void Kuiper_Softmax_F16_softmax(size_t lena, half_t *a)
   KRML_HOST_FREE(ca);
   half_t avg = x;
   MUST(cudaFree(a_));
-  KPR_KCALL(k_pointwise_div_f16, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga, avg);
+  KPR_KCALL(__hoisted_3, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga, avg);
   cudaDeviceSynchronize();
   MUST(cudaMemcpy(a, ga, (size_t)2U * lena, cudaMemcpyDeviceToHost));
   MUST(cudaFree(ga));

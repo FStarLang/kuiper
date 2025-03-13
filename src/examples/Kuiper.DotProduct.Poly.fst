@@ -6,6 +6,7 @@ open Kuiper
 module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 
+inline_for_extraction
 let m_size : sz = 1024sz
 let size : n:(erased nat){reveal n == SZ.v m_size} = SZ.v m_size
 
@@ -23,7 +24,7 @@ let kpost #et (size:nat) (ga1 ga2 r : gpu_array et size) (tid:nat) : slprop =
   gpu_pts_to_array1 ga2 tid **
   gpu_pts_to_array1 r tid
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 fn kernel
   (#et:Type0) {| scalar et |}
   (#size : erased nat)

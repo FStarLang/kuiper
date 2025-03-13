@@ -2,7 +2,7 @@
 
 #include "Kuiper_Mul.h"
 
-__global__
+__device__
 
 void Kuiper_Mul_kernel(uint64_t *a1, uint64_t *a2, uint64_t *ar)
 {

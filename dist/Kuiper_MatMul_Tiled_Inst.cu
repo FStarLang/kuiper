@@ -6,54 +6,20 @@ __global__
 
 static void
 __hoisted_0(
-  size_t bdim,
-  size_t bdim0,
-  size_t mcols,
-  size_t mcols0,
-  size_t bdim1,
-  size_t bdim2,
   size_t mshared,
-  size_t bdim3,
-  size_t mshared0,
-  size_t bdim4,
-  size_t bdim5,
   uint64_t *gA,
-  size_t bdim6,
-  size_t mcols1,
-  size_t bdim7,
-  size_t bdim8,
   uint64_t *gB,
-  size_t bdim9,
-  size_t bdim10,
-  size_t mcols2,
-  size_t bdim11,
-  size_t bdim12,
+  size_t mcols,
+  size_t bdim,
   uint64_t *gC
 )
 {
-  KRML_MAYBE_UNUSED_VAR(bdim);
-  KRML_MAYBE_UNUSED_VAR(bdim0);
-  KRML_MAYBE_UNUSED_VAR(mcols);
-  KRML_MAYBE_UNUSED_VAR(mcols0);
-  KRML_MAYBE_UNUSED_VAR(bdim1);
-  KRML_MAYBE_UNUSED_VAR(bdim2);
-  KRML_MAYBE_UNUSED_VAR(mshared);
-  KRML_MAYBE_UNUSED_VAR(bdim3);
-  KRML_MAYBE_UNUSED_VAR(bdim4);
-  KRML_MAYBE_UNUSED_VAR(bdim5);
-  KRML_MAYBE_UNUSED_VAR(bdim6);
-  KRML_MAYBE_UNUSED_VAR(mcols1);
-  KRML_MAYBE_UNUSED_VAR(bdim7);
-  KRML_MAYBE_UNUSED_VAR(bdim8);
-  KRML_MAYBE_UNUSED_VAR(bdim9);
-  KRML_MAYBE_UNUSED_VAR(bdim10);
-  KRML_MAYBE_UNUSED_VAR(bdim11);
   size_t bid = blockIdx_x();
   size_t tid = threadIdx_x();
-  size_t mrow = bid / mcols2;
-  size_t mcol = bid % mcols2;
-  size_t brow = tid / bdim12;
-  size_t bcol = tid % bdim12;
+  size_t mrow = bid / mcols;
+  size_t mcol = bid % mcols;
+  size_t brow = tid / bdim;
+  size_t bcol = tid % bdim;
   size_t bi = mrow;
   size_t bj = mcol;
   size_t i = brow;
@@ -61,14 +27,14 @@ __hoisted_0(
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   size_t k = (size_t)0U;
-  while (bk < mshared0)
+  while (bk < mshared)
   {
     size_t vbk = bk;
     size_t vk = k;
     sum +=
-      gA[(mrow * bdim12 + brow) * (mshared0 * bdim12) + vbk * bdim12 + vk] *
-        gB[(vbk * bdim12 + vk) * (mcols2 * bdim12) + mcol * bdim12 + bcol];
-    if (vk == bdim12 - (size_t)1U)
+      gA[(mrow * bdim + brow) * (mshared * bdim) + vbk * bdim + vk] *
+        gB[(vbk * bdim + vk) * (mcols * bdim) + mcol * bdim + bcol];
+    if (vk == bdim - (size_t)1U)
     {
       k = (size_t)0U;
       bk = vbk + (size_t)1U;
@@ -76,7 +42,7 @@ __hoisted_0(
     else
       k = vk + (size_t)1U;
   }
-  gC[(bi * bdim12 + i) * (mcols2 * bdim12) + bj * bdim12 + j] = sum;
+  gC[(bi * bdim + i) * (mcols * bdim) + bj * bdim + j] = sum;
 }
 
 uint64_t
@@ -102,27 +68,10 @@ uint64_t
     bdim * bdim,
     (size_t)4U,
     (size_t)0U,
-    bdim,
-    bdim,
-    mcols,
-    mcols,
-    bdim,
-    bdim,
     mshared,
-    bdim,
-    mshared,
-    bdim,
-    bdim,
     gA,
-    bdim,
-    mcols,
-    bdim,
-    bdim,
     gB,
-    bdim,
-    bdim,
     mcols,
-    bdim,
     bdim,
     gC);
   cudaDeviceSynchronize();
@@ -137,27 +86,12 @@ uint64_t
 
 __global__
 
-static void
-__hoisted_1(
-  size_t mcols,
-  size_t mcols0,
-  size_t mshared,
-  size_t mshared0,
-  uint64_t *gA,
-  size_t mcols1,
-  uint64_t *gB,
-  size_t mcols2,
-  uint64_t *gC
-)
+static void __hoisted_1(size_t mshared, uint64_t *gA, uint64_t *gB, size_t mcols, uint64_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(mcols);
-  KRML_MAYBE_UNUSED_VAR(mcols0);
-  KRML_MAYBE_UNUSED_VAR(mshared);
-  KRML_MAYBE_UNUSED_VAR(mcols1);
   size_t bid = blockIdx_x();
   size_t tid = threadIdx_x();
-  size_t mrow = bid / mcols2;
-  size_t mcol = bid % mcols2;
+  size_t mrow = bid / mcols;
+  size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
   size_t bi = mrow;
@@ -167,13 +101,13 @@ __hoisted_1(
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   size_t k = (size_t)0U;
-  while (bk < mshared0)
+  while (bk < mshared)
   {
     size_t vbk = bk;
     size_t vk = k;
     sum +=
-      gA[(mrow * (size_t)32U + brow) * (mshared0 * (size_t)32U) + vbk * (size_t)32U + vk] *
-        gB[(vbk * (size_t)32U + vk) * (mcols2 * (size_t)32U) + mcol * (size_t)32U + bcol];
+      gA[(mrow * (size_t)32U + brow) * (mshared * (size_t)32U) + vbk * (size_t)32U + vk] *
+        gB[(vbk * (size_t)32U + vk) * (mcols * (size_t)32U) + mcol * (size_t)32U + bcol];
     if (vk == (size_t)31U)
     {
       k = (size_t)0U;
@@ -182,7 +116,7 @@ __hoisted_1(
     else
       k = vk + (size_t)1U;
   }
-  gC[(bi * (size_t)32U + i) * (mcols2 * (size_t)32U) + bj * (size_t)32U + j] = sum;
+  gC[(bi * (size_t)32U + i) * (mcols * (size_t)32U) + bj * (size_t)32U + j] = sum;
 }
 
 uint64_t
@@ -216,12 +150,8 @@ uint64_t
     (size_t)1024U,
     (size_t)4U,
     (size_t)0U,
-    mcols,
-    mcols,
-    mshared,
     mshared,
     gA,
-    mcols,
     gB,
     mcols,
     gC);

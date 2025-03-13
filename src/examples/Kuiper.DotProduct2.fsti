@@ -6,6 +6,7 @@ open Kuiper
 module U64 = FStar.UInt64
 
 (* calling it size means name resolution confusion with Kuiper.Sized.size *)
+inline_for_extraction
 let dp2_size : sz = 1024sz
 
 (* pointwise mul of sequences *)

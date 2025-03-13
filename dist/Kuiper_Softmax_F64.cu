@@ -2,7 +2,7 @@
 
 #include "Kuiper_Softmax_F64.h"
 
-__global__
+__device__
 
 static void k_reduce(size_t nth, double_t *a)
 {
@@ -20,7 +20,7 @@ static void k_reduce(size_t nth, double_t *a)
   }
 }
 
-__global__
+__device__
 
 static void k_pointwise_exp_f64(double_t *a)
 {
@@ -28,7 +28,7 @@ static void k_pointwise_exp_f64(double_t *a)
   a[i] = exp(a[i]);
 }
 
-__global__
+__device__
 
 static void k_pointwise_div_f64(double_t *a, double_t d)
 {
@@ -36,15 +36,36 @@ static void k_pointwise_div_f64(double_t *a, double_t d)
   a[i] /= d;
 }
 
+__global__
+
+static void __hoisted_3(double_t *ga, double_t avg)
+{
+  k_pointwise_div_f64(ga, avg);
+}
+
+__global__
+
+static void __hoisted_2(size_t lena, double_t *a_)
+{
+  k_reduce(lena, a_);
+}
+
+__global__
+
+static void __hoisted_1(double_t *ga)
+{
+  k_pointwise_exp_f64(ga);
+}
+
 void Kuiper_Softmax_F64_softmax(size_t lena, double_t *a)
 {
   double_t *ga = (double_t *)KPR_GPU_ALLOC((size_t)8U * lena);
   MUST(cudaMemcpy(ga, a, (size_t)8U * lena, cudaMemcpyHostToDevice));
-  KPR_KCALL(k_pointwise_exp_f64, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga);
+  KPR_KCALL(__hoisted_1, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga);
   cudaDeviceSynchronize();
   double_t *a_ = (double_t *)KPR_GPU_ALLOC((size_t)8U * lena);
   MUST(cudaMemcpy(a_, ga, (size_t)8U * lena, cudaMemcpyDeviceToDevice));
-  KPR_KCALL(k_reduce, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a_);
+  KPR_KCALL(__hoisted_2, (size_t)1U, lena, (size_t)4U, (size_t)0U, lena, a_);
   cudaDeviceSynchronize();
   double_t *ca = (double_t *)KRML_HOST_MALLOC(sizeof (double_t));
   if (ca != NULL)
@@ -54,7 +75,7 @@ void Kuiper_Softmax_F64_softmax(size_t lena, double_t *a)
   KRML_HOST_FREE(ca);
   double_t avg = x;
   MUST(cudaFree(a_));
-  KPR_KCALL(k_pointwise_div_f64, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga, avg);
+  KPR_KCALL(__hoisted_3, lena, (size_t)1U, (size_t)4U, (size_t)0U, ga, avg);
   cudaDeviceSynchronize();
   MUST(cudaMemcpy(a, ga, (size_t)8U * lena, cudaMemcpyDeviceToHost));
   MUST(cudaFree(ga));

@@ -4,35 +4,20 @@
 
 __global__
 
-static void
-__hoisted_0(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t shared0,
-  float_t *gA,
-  size_t cols1,
-  float_t *gB,
-  size_t cols2,
-  float_t *gC
-)
+static void __hoisted_0(size_t shared, float_t *gA, float_t *gB, size_t cols, float_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(cols0);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(cols1);
   size_t id = blockIdx_x();
-  size_t trow = id / cols2;
-  size_t tcol = id % cols2;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   float_t sum = (float_t)0.0f;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[trow * shared0 + vk] * gB[vk * cols2 + tcol];
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
     k = vk + (size_t)1U;
   }
-  gC[trow * cols2 + tcol] = sum;
+  gC[trow * cols + tcol] = sum;
 }
 
 float_t
@@ -54,12 +39,8 @@ float_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
-    cols,
-    cols,
-    shared,
     shared,
     gA,
-    cols,
     gB,
     cols,
     gC);
@@ -78,35 +59,20 @@ float_t
 
 __global__
 
-static void
-__hoisted_1(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t shared0,
-  double_t *gA,
-  size_t cols1,
-  double_t *gB,
-  size_t cols2,
-  double_t *gC
-)
+static void __hoisted_1(size_t shared, double_t *gA, double_t *gB, size_t cols, double_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(cols0);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(cols1);
   size_t id = blockIdx_x();
-  size_t trow = id / cols2;
-  size_t tcol = id % cols2;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   double_t sum = (double_t)0.0l;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[trow * shared0 + vk] * gB[vk * cols2 + tcol];
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
     k = vk + (size_t)1U;
   }
-  gC[trow * cols2 + tcol] = sum;
+  gC[trow * cols + tcol] = sum;
 }
 
 double_t
@@ -128,12 +94,8 @@ double_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
-    cols,
-    cols,
-    shared,
     shared,
     gA,
-    cols,
     gB,
     cols,
     gC);
@@ -152,35 +114,20 @@ double_t
 
 __global__
 
-static void
-__hoisted_2(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t shared0,
-  uint32_t *gA,
-  size_t cols1,
-  uint32_t *gB,
-  size_t cols2,
-  uint32_t *gC
-)
+static void __hoisted_2(size_t shared, uint32_t *gA, uint32_t *gB, size_t cols, uint32_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(cols0);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(cols1);
   size_t id = blockIdx_x();
-  size_t trow = id / cols2;
-  size_t tcol = id % cols2;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   uint32_t sum = 0U;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[trow * shared0 + vk] * gB[vk * cols2 + tcol];
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
     k = vk + (size_t)1U;
   }
-  gC[trow * cols2 + tcol] = sum;
+  gC[trow * cols + tcol] = sum;
 }
 
 uint32_t
@@ -202,12 +149,8 @@ uint32_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
-    cols,
-    cols,
-    shared,
     shared,
     gA,
-    cols,
     gB,
     cols,
     gC);
@@ -223,35 +166,20 @@ uint32_t
 
 __global__
 
-static void
-__hoisted_3(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t shared0,
-  uint64_t *gA,
-  size_t cols1,
-  uint64_t *gB,
-  size_t cols2,
-  uint64_t *gC
-)
+static void __hoisted_3(size_t shared, uint64_t *gA, uint64_t *gB, size_t cols, uint64_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(cols0);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(cols1);
   size_t id = blockIdx_x();
-  size_t trow = id / cols2;
-  size_t tcol = id % cols2;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   uint64_t sum = 0ULL;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[trow * shared0 + vk] * gB[vk * cols2 + tcol];
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
     k = vk + (size_t)1U;
   }
-  gC[trow * cols2 + tcol] = sum;
+  gC[trow * cols + tcol] = sum;
 }
 
 uint64_t
@@ -273,12 +201,8 @@ uint64_t
     (size_t)1U,
     (size_t)4U,
     (size_t)0U,
-    cols,
-    cols,
-    shared,
     shared,
     gA,
-    cols,
     gB,
     cols,
     gC);
@@ -295,33 +219,20 @@ uint64_t
 __global__
 
 static void
-__hoisted_4(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t rows,
-  float_t *gA,
-  size_t shared0,
-  float_t *gB,
-  size_t rows0,
-  float_t *gC
-)
+__hoisted_4(size_t cols, float_t *gA, size_t shared, float_t *gB, size_t rows, float_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(rows);
   size_t id = blockIdx_x();
-  size_t trow = id / cols0;
-  size_t tcol = id % cols0;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   float_t sum = (float_t)0.0f;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[vk * rows0 + trow] * gB[tcol * shared0 + vk];
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
     k = vk + (size_t)1U;
   }
-  gC[tcol * rows0 + trow] = sum;
+  gC[tcol * rows + trow] = sum;
 }
 
 float_t
@@ -344,9 +255,6 @@ float_t
     (size_t)4U,
     (size_t)0U,
     cols,
-    cols,
-    shared,
-    rows,
     gA,
     shared,
     gB,
@@ -368,33 +276,20 @@ float_t
 __global__
 
 static void
-__hoisted_5(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t rows,
-  double_t *gA,
-  size_t shared0,
-  double_t *gB,
-  size_t rows0,
-  double_t *gC
-)
+__hoisted_5(size_t cols, double_t *gA, size_t shared, double_t *gB, size_t rows, double_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(rows);
   size_t id = blockIdx_x();
-  size_t trow = id / cols0;
-  size_t tcol = id % cols0;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   double_t sum = (double_t)0.0l;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[vk * rows0 + trow] * gB[tcol * shared0 + vk];
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
     k = vk + (size_t)1U;
   }
-  gC[tcol * rows0 + trow] = sum;
+  gC[tcol * rows + trow] = sum;
 }
 
 double_t
@@ -417,9 +312,6 @@ double_t
     (size_t)4U,
     (size_t)0U,
     cols,
-    cols,
-    shared,
-    rows,
     gA,
     shared,
     gB,
@@ -441,33 +333,20 @@ double_t
 __global__
 
 static void
-__hoisted_6(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t rows,
-  uint32_t *gA,
-  size_t shared0,
-  uint32_t *gB,
-  size_t rows0,
-  uint32_t *gC
-)
+__hoisted_6(size_t cols, uint32_t *gA, size_t shared, uint32_t *gB, size_t rows, uint32_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(rows);
   size_t id = blockIdx_x();
-  size_t trow = id / cols0;
-  size_t tcol = id % cols0;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   uint32_t sum = 0U;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[vk * rows0 + trow] * gB[tcol * shared0 + vk];
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
     k = vk + (size_t)1U;
   }
-  gC[tcol * rows0 + trow] = sum;
+  gC[tcol * rows + trow] = sum;
 }
 
 uint32_t
@@ -490,9 +369,6 @@ uint32_t
     (size_t)4U,
     (size_t)0U,
     cols,
-    cols,
-    shared,
-    rows,
     gA,
     shared,
     gB,
@@ -511,33 +387,20 @@ uint32_t
 __global__
 
 static void
-__hoisted_7(
-  size_t cols,
-  size_t cols0,
-  size_t shared,
-  size_t rows,
-  uint64_t *gA,
-  size_t shared0,
-  uint64_t *gB,
-  size_t rows0,
-  uint64_t *gC
-)
+__hoisted_7(size_t cols, uint64_t *gA, size_t shared, uint64_t *gB, size_t rows, uint64_t *gC)
 {
-  KRML_MAYBE_UNUSED_VAR(cols);
-  KRML_MAYBE_UNUSED_VAR(shared);
-  KRML_MAYBE_UNUSED_VAR(rows);
   size_t id = blockIdx_x();
-  size_t trow = id / cols0;
-  size_t tcol = id % cols0;
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
   size_t k = (size_t)0U;
   uint64_t sum = 0ULL;
-  while (k < shared0)
+  while (k < shared)
   {
     size_t vk = k;
-    sum += gA[vk * rows0 + trow] * gB[tcol * shared0 + vk];
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
     k = vk + (size_t)1U;
   }
-  gC[tcol * rows0 + trow] = sum;
+  gC[tcol * rows + trow] = sum;
 }
 
 uint64_t
@@ -560,9 +423,6 @@ uint64_t
     (size_t)4U,
     (size_t)0U,
     cols,
-    cols,
-    shared,
-    rows,
     gA,
     shared,
     gB,
