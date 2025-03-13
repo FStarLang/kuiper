@@ -5,7 +5,7 @@ module Kuiper.BasicFloat
 open Kuiper
 open Pulse.Lib
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
+inline_for_extraction noextract
 fn kernel (r : gpu_ref f32) (#v : erased f32)
   requires gpu ** (r |-> v)
   ensures  gpu ** (exists* v'. r |-> v')

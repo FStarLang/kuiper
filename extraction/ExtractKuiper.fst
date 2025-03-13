@@ -14,6 +14,12 @@ open FStarC.Const
 
 open FStarC.Class.Show
 
+let rec drop n (lst : list 'a) : list 'a =
+  match lst with
+  | [] -> []
+  | _ when n <= 0 -> lst
+  | _ -> List.tl (drop (n - 1) lst)
+
 exception Failed of string
 
 module BU = FStarC.Util
@@ -80,10 +86,142 @@ let get_sizet (e : mlexpr) : mlexpr =
 let _MUST (e : expr) : expr =
     EApp (EQualified ([], "MUST"), [e])
 
+let remove (ks : list string) (vs : list (string & mlty)) : list (string & mlty) =
+  List.filter (fun (v, _) -> not (List.existsb (fun k -> v = k) ks)) vs
+
+let rec freevars_of_mlexpr (e : mlexpr) : list (string & mlty) =
+  match e.expr with
+  | MLE_Const _ -> []
+  | MLE_Var v -> [(v, e.mlty)]
+  | MLE_Name p -> []
+  | MLE_Let (lb, e2) ->
+    let freevars_of_lb lb =
+      freevars_of_mlexpr lb.mllb_def
+    in
+    List.collect freevars_of_lb lb._2 @
+    (freevars_of_mlexpr e2 |> remove (List.map (fun lb -> lb.mllb_name) lb._2))
+  | MLE_App (head, args) ->
+    let fvs = freevars_of_mlexpr head in
+    List.fold_left (fun acc arg -> acc @ freevars_of_mlexpr arg) fvs args
+  | MLE_TApp (head, args) ->
+    freevars_of_mlexpr head
+  | MLE_Fun (bs, e2) ->
+    let fvs = freevars_of_mlexpr e2 in
+    let bs = List.map (fun b -> b.mlbinder_name) bs in
+    remove bs fvs
+  | MLE_Match (e, branches) ->
+    let freevars_branch branch =
+      let (p, _, e2) = branch in
+      let rec pat_bound (p:mlpattern) : list string =
+        match p with
+        | MLP_Var v -> [v]
+        | MLP_CTor (_, args) -> List.collect pat_bound args
+        | MLP_Record (_, fields) -> List.map (fun (f, _) -> f) fields
+        | MLP_Tuple ps -> List.collect pat_bound ps
+        | _ -> []
+      in
+      let bs = pat_bound p in
+      let fvs = freevars_of_mlexpr e2 in
+      remove bs fvs
+    in
+    freevars_of_mlexpr e @ List.collect freevars_branch branches
+  | MLE_Coerce (e, _, _) -> freevars_of_mlexpr e
+  | MLE_CTor (_, args) ->
+    List.collect freevars_of_mlexpr args
+  | MLE_Seq es ->
+    List.collect freevars_of_mlexpr es
+  | MLE_Tuple es ->
+    List.collect freevars_of_mlexpr es
+  | MLE_Record (_, _, fields) ->
+    List.collect (fun (_, e) -> freevars_of_mlexpr e) fields
+  | MLE_Proj (e, _) ->
+    freevars_of_mlexpr e
+  | MLE_If (e1, e2, e3) ->
+    let fvs1 = freevars_of_mlexpr e1 in
+    let fvs2 = freevars_of_mlexpr e2 in
+    let fvs3 = match e3 with
+      | Some e -> freevars_of_mlexpr e
+      | None -> []
+    in
+    fvs1 @ fvs2 @ fvs3
+  | MLE_Raise (_, args) ->
+    List.collect freevars_of_mlexpr args
+  | MLE_Try (e, branches) ->
+    let fvs = freevars_of_mlexpr e in
+    let freevars_branch branch =
+      let (_, _, e2) = branch in
+      freevars_of_mlexpr e2
+    in
+    fvs @ List.collect freevars_branch branches
+
+  | _ -> failwith "freevars_of_mlexpr: missing case"
+
+let ctr = mk_ref 0
+
+let extra_unit_binder = {mlbinder_name = "extra_unit"; mlbinder_ty = ml_unit_ty; mlbinder_attrs = []}
+
+let rec takeWhile f xs =
+  match xs with
+  | [] -> ([], [])
+  | x::xs' ->
+    if f x then
+      let (ys, zs) = takeWhile f xs' in
+      (x::ys, zs)
+    else
+      ([], xs)
+
+let remove_trailing_units (e : mlexpr) : mlexpr =
+  let hd, args = head_and_args e in
+  let units, non_units = List.rev args |> takeWhile (fun a -> match a.expr with
+                              | MLE_Const MLC_Unit -> true
+                              | _ -> false) in
+  { e with expr = MLE_App (hd, List.rev non_units ) }
+
+let mkarr t1 t2 = MLTY_Fun (t1, E_IMPURE, t2)
+
+let eta (e : mlexpr) : mlexpr =
+  let e' = with_ty (mkarr ml_unit_ty e.mlty) <| MLE_Fun ([extra_unit_binder], e) in
+  let e'' = with_ty e.mlty <| MLE_App (e', [ml_unit]) in
+  e''
+
+let hoist (g : env) (e : mlexpr) : mlexpr =
+  let e0 = e in
+  // let e = remove_trailing_units e in // ???
+  let e = eta e in
+  let et = e.mlty in
+  let fvs = freevars_of_mlexpr e in
+  // BU.print1_warning "fvs = %s\n" (show fvs);
+  let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
+  let fresh = "__hoisted_" ^ string_of_int !ctr in
+  let arr_t = List.fold_right mkarr (List.map snd fvs) (mkarr ml_unit_ty et) in
+  ctr := !ctr + 1;
+
+  let bs =  List.map mk_binder fvs @ [extra_unit_binder] in
+  let kbs = translate_binders g bs in
+  let g0 = { g with names = [] } in
+  let lambda = translate_expr (add_binders g0 bs) e in
+  let flags = [
+    Krml.Private;
+    Krml.Prologue "__global__";
+  ]
+  in
+  let decl = DFunction (None, flags, 0, translate_type (add_binders g0 bs) et, ([], fresh), kbs, lambda) in
+  translate_decl_accum := decl :: !translate_decl_accum;
+
+  let nm = with_ty ml_unit_ty <| MLE_Name ([], fresh) in
+  let call = MLE_App (nm, List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs ) in
+  let e' = {e with expr = call} in
+  if !dbg then (
+    BU.print3_warning
+      "Hoisted %s into %s, creating the declaration\n%s\n" (mlexpr_to_string e) fresh (show decl);
+    BU.print1_warning "The translated expression is %s\n" (mlexpr_to_string e')
+  );
+  e'
+
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
-  then BU.print1_warning "ExtractPulse.gpu_translate_expr %s\n" (mlexpr_to_string e);
+  then BU.print1_warning "ExtractKuiper.gpu_translate_expr %s\n" (mlexpr_to_string e);
   let cb = translate_expr env in
   match e.expr with
 
@@ -91,7 +229,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_Name p } , [ x ])
     when string_of_mlpath p = "Kuiper.Assert.dassert" ->
     EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
-  
+
   | MLE_App ({ expr = MLE_Name p } , [ x ])
     when string_of_mlpath p = "Kuiper.Assert.dguard" ->
     EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
@@ -383,7 +521,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     cb e'
 
   (* New one! *)
-  | MLE_App ({ expr = MLE_Name p }, [ kdesc; _epoch ])
+  | MLE_App ({ expr = MLE_Name p }, [ _full_pre; _full_post; kdesc; _epoch ])
     when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel" ->
     let assoc' k v =
       match List.assoc k v with
@@ -397,19 +535,37 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         let nthr = assoc' "nthr" fields in
         let sized_a = assoc' "shmem_type_is_sized" fields in
         let smem_sz = assoc' "shmem_sz" fields in
-        let hd, args =
-          match (assoc' "f" fields).expr with
-          | MLE_Fun (_, body) -> head_and_args body
-          | _ -> failwith "launch_kernel: 'f' is not a function"
+        let kf = assoc' "f" fields in
+        let rec drop_n_binders (e:mlexpr) n =
+          match e.expr with
+          | MLE_Fun (bs, body) when List.length bs = n -> body
+          | MLE_Fun (bs, body) when List.length bs > n ->
+            let bs = drop n bs in
+            { e with expr = MLE_Fun (bs, body) }
+          | MLE_Fun (bs, body) when List.length bs < n ->
+            drop_n_binders body (n - List.length bs)
+          | _ -> failwith ("launch_kernel: not enough binders: " ^ show e)
         in
-        let rest_args = List.filter (fun a -> match a.expr with
-                                              | MLE_Const MLC_Unit -> false
-                                              | _ -> true) args in
+        let rec drop_last_n_args (e:mlexpr) n =
+          match e.expr with
+          | MLE_App (head, args) when List.length args = n -> head
+          | MLE_App (head, args) when List.length args > n ->
+            let args = drop n args in
+            { e with expr = MLE_App (head, args) }
+          | MLE_App (head, args) when List.length args < n ->
+            drop_last_n_args head (n - List.length args)
+          | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
+        in
+        let kf = drop_n_binders kf 3 in
+        let kf = hoist env kf in
+        let hd, rest_args = head_and_args kf in
+        if Nil? rest_args then
+          failwith ("launch_kernel: no arguments to kernel: " ^ show kf);
         let e_size = get_sizet sized_a in
         nblk, nthr, e_size, smem_sz, hd, rest_args
 
       | _ ->
-        failwith "launch_kernel: not a record"
+        failwith ("launch_kernel: not a record: " ^ show kdesc)
     in
     let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
     let e' =

@@ -232,3 +232,15 @@ fn launch_kernel_1
 //     id : SZ.t
 //   ensures
 //     pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
+
+inline_for_extraction noextract
+fn launch_kernel_sync
+  (#full_pre : slprop)
+  (#full_post : slprop)
+  (k : kernel_desc full_pre full_post)
+  requires
+    cpu **
+    full_pre
+  ensures
+    cpu **
+    full_post

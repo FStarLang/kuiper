@@ -1,41 +1,24 @@
 module Kuiper.Scalars
 
 open Kuiper.Sized
+open FStar.Tactics.Typeclasses { solve, tcinstance }
 
 module U8  = FStar.UInt8
 module U16 = FStar.UInt16
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-module I8  = FStar.Int8
-module I16 = FStar.Int16
-module I32 = FStar.Int32
-module I64 = FStar.Int64
 
 module F16 = Kuiper.Float16
 module F32 = Kuiper.Float32
 module F64 = Kuiper.Float64
-
-inline_for_extraction instance _ : sized U8.t  = { size = 1sz; }
-inline_for_extraction instance _ : sized U16.t = { size = 2sz; }
-inline_for_extraction instance _ : sized U32.t = { size = 4sz; }
-inline_for_extraction instance _ : sized U64.t = { size = 8sz; }
-
-inline_for_extraction instance _ : sized I8.t  = { size = 1sz; }
-inline_for_extraction instance _ : sized I16.t = { size = 2sz; }
-inline_for_extraction instance _ : sized I32.t = { size = 4sz; }
-inline_for_extraction instance _ : sized I64.t = { size = 8sz; }
-
-inline_for_extraction instance _ : sized F16.t = { size = 2sz; }
-inline_for_extraction instance _ : sized F32.t = { size = 4sz; }
-inline_for_extraction instance _ : sized F64.t = { size = 8sz; }
 
 (* There are no scalar instances for signed ints, we do not have
 total unconditional operations on them. *)
 
 inline_for_extraction
 class scalar (t : Type) = {
-  [@@@FStar.Tactics.Typeclasses.tcinstance]
+  [@@@tcinstance]
   is_sized : sized t;
   add : t -> t -> t;
   sub : t -> t -> t;
@@ -46,7 +29,7 @@ class scalar (t : Type) = {
 
 inline_for_extraction
 class floating (t : Type) = {
-  [@@@FStar.Tactics.Typeclasses.tcinstance]
+  [@@@tcinstance]
   is_scalar : scalar t;
   div : t -> t -> t;
   exp : t -> t;
@@ -54,7 +37,7 @@ class floating (t : Type) = {
 
 inline_for_extraction
 instance _ : scalar U8.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = U8.add_mod;
   sub = U8.sub_mod;
   mul = U8.mul_mod;
@@ -64,7 +47,7 @@ instance _ : scalar U8.t = {
 
 inline_for_extraction
 instance _ : scalar U16.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = U16.add_mod;
   sub = U16.sub_mod;
   mul = U16.mul_mod;
@@ -74,7 +57,7 @@ instance _ : scalar U16.t = {
 
 inline_for_extraction
 instance _ : scalar U32.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = U32.add_mod;
   sub = U32.sub_mod;
   mul = U32.mul_mod;
@@ -84,7 +67,7 @@ instance _ : scalar U32.t = {
 
 inline_for_extraction
 instance _ : scalar U64.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = U64.add_mod;
   sub = U64.sub_mod;
   mul = U64.mul_mod;
@@ -94,7 +77,7 @@ instance _ : scalar U64.t = {
 
 inline_for_extraction
 instance _ : scalar F16.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = F16.add;
   sub = F16.sub;
   mul = F16.mul;
@@ -104,14 +87,14 @@ instance _ : scalar F16.t = {
 
 inline_for_extraction
 instance _ : floating F16.t = {
-  is_scalar = FStar.Tactics.Typeclasses.solve;
+  is_scalar = solve;
   div = F16.div;
   exp = F16.exp;
 }
 
 inline_for_extraction
 instance _ : scalar F32.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = F32.add;
   sub = F32.sub;
   mul = F32.mul;
@@ -121,14 +104,14 @@ instance _ : scalar F32.t = {
 
 inline_for_extraction
 instance _ : floating F32.t = {
-  is_scalar = FStar.Tactics.Typeclasses.solve;
+  is_scalar = solve;
   div = F32.div;
   exp = F32.exp;
 }
 
 inline_for_extraction
 instance _ : scalar F64.t = {
-  is_sized = FStar.Tactics.Typeclasses.solve;
+  is_sized = solve;
   add = F64.add;
   sub = F64.sub;
   mul = F64.mul;
@@ -138,7 +121,7 @@ instance _ : scalar F64.t = {
 
 inline_for_extraction
 instance _ : floating F64.t = {
-  is_scalar = FStar.Tactics.Typeclasses.solve;
+  is_scalar = solve;
   div = F64.div;
   exp = F64.exp;
 }

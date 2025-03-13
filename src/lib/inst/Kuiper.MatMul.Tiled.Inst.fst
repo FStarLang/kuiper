@@ -58,28 +58,28 @@ instance clayout4_row_major
     parent = parent4 rows cols bdim ();
   }
 
-[@@CPrologue "__global__"; "KrmlPrivate"]
-let k_u64_rrr
-  (bdim : szp)
-  (rows shared cols : szp)
-  (_ : squash (
-      SZ.fits ((rows * bdim) * (shared * bdim)) /\
-      SZ.fits ((shared * bdim) * (cols * bdim)) /\
-      SZ.fits ((rows * bdim) * (cols * bdim))
-  ))
-  : kernel_fixed_ty bdim u64 #_
-      #(rows) #(shared) #(cols)
-      (row_major4 (rows) (shared) bdim bdim)
-      (row_major4 (shared) (cols) bdim bdim)
-      (row_major4 (rows) (cols) bdim bdim)
-  = coerce_eq () <|
-    kernel_fixed bdim #u64 #_ #(rows) #(shared) #(cols)
-      #_ #_ #_
-      #(clayout4_row_major (rows  ) (shared) bdim)
-      #(clayout4_row_major (shared) (cols  ) bdim)
-      #(clayout4_row_major (rows  ) (cols  ) bdim)
+// [@@CPrologue "__global__"; "KrmlPrivate"]
+// let k_u64_rrr
+//   (bdim : szp)
+//   (rows shared cols : szp)
+//   (_ : squash (
+//       SZ.fits ((rows * bdim) * (shared * bdim)) /\
+//       SZ.fits ((shared * bdim) * (cols * bdim)) /\
+//       SZ.fits ((rows * bdim) * (cols * bdim))
+//   ))
+//   : kernel_fixed_ty bdim u64 #_
+//       #(rows) #(shared) #(cols)
+//       (row_major4 (rows) (shared) bdim bdim)
+//       (row_major4 (shared) (cols) bdim bdim)
+//       (row_major4 (rows) (cols) bdim bdim)
+//   = coerce_eq () <|
+//     kernel_fixed bdim #u64 #_ #(rows) #(shared) #(cols)
+//       #_ #_ #_
+//       #(clayout4_row_major (rows  ) (shared) bdim)
+//       #(clayout4_row_major (shared) (cols  ) bdim)
+//       #(clayout4_row_major (rows  ) (cols  ) bdim)
 
-inline_for_extraction noextract
+// inline_for_extraction noextract
 fn matmul_gpu_u64_rrr
   (bdim : szp) (* block dim *)
   (#mrows #mshared #mcols : szp)
@@ -104,7 +104,7 @@ fn matmul_gpu_u64_rrr
     exists* eC'.
       gC |-> eC'
 {
-  matmul_gpu_fixed bdim _ _ _ (k_u64_rrr bdim mrows mshared mcols ()) gA gB gC;
+  matmul_gpu_fixed bdim _ _ _ gA gB gC (mk_kernel bdim gA gB gC ());
 }
 
 fn matmul_u64_rrr

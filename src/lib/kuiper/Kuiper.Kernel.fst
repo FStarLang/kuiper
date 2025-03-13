@@ -500,61 +500,6 @@ fn launch_kernel_1_async
   e'
 }
 
-ghost
-fn nop_block_setup (ar : gpu_array u32 0sz) (bit : natlt 1sz)
-  requires
-    block_setup 1sz ** (exists* v. gpu_pts_to_array ar v)
-  ensures
-    block_setup 1sz ** (forall+ (i : natlt 1). emp)
-{
-  open Pulse.Lib.BigStar;
-  drop_ (exists* v. gpu_pts_to_array #u32 #0 ar #1.0R v);
-  forevery_singleton_intro #(natlt 1) (fun _ -> emp);
-}
-
-inline_for_extraction noextract
-fn kernel_nop (eshmem : erased (gpu_array u32 0sz)) (ebid : enatlt 1sz) (etid : enatlt 1sz)
-  requires 
-    gpu **
-    emp ** (* kpre *)
-    thread_id 1sz etid **
-    block_id 1sz ebid **
-    shmem_tok eshmem **
-    emp (* block pre *)
-  ensures
-    gpu **
-    emp ** (* kpost *)
-    thread_id 1sz etid **
-    block_id 1sz ebid **
-    shmem_tok eshmem **
-    emp (* block post *)
-{
-  ()
-}
-
-inline_for_extraction noextract
-let nop_desc : kernel_desc = {
-  nblk = 1sz;
-  nthr = 1sz;
-
-  shmem_type = u32;
-  shmem_type_is_sized = solve;
-  shmem_sz = 0sz;
-
-  block_pre  = (fun _ _ _ -> emp);
-  block_post = (fun _ _ _ -> emp);
-  block_setup = nop_block_setup;
-
-  kpre = (fun _ _ -> emp);
-  kpost = (fun _ _ -> emp);
-  f = kernel_nop;
-
-  full_pre = emp;
-  setup = (magic ());
-  full_post = emp;
-  teardown = (magic ());
-}
-
 (* f<<<1, 1>>>(...); *)
 
 inline_for_extraction noextract
@@ -591,13 +536,11 @@ let mk_desc_1
   (k : unit ->
     stt unit (gpu ** pre) (fun _ -> gpu ** post)
   )
-  : kernel_desc
-  = { nop_desc
+  : kernel_desc pre post
+  = { Kernel.Nop.nop_desc
       with
       kpre = (fun _ _ -> pre);
       kpost = (fun _ _ -> post);
-      full_pre = pre;
-      full_post = post;
       f = (fun _shmem _ebid _etid -> frame_right4 _ _ _ _ k);
 
       setup = magic();
@@ -607,55 +550,24 @@ let mk_desc_1
 (* f<<<1, 1>>>(...); *)
 
 inline_for_extraction noextract
-fn launch_kernel_sync (k : kernel_desc)
+fn launch_kernel_sync
+  (#full_pre : slprop)
+  (#full_post : slprop)
+  (k : kernel_desc full_pre full_post)
   requires
     cpu **
-    k.full_pre
+    full_pre
   ensures
     cpu **
-    k.full_post
+    full_post
 {
   get_epoch ();
   launch_kernel k;
   sync ();
-  redeem_pledge emp_inames (epoch_done _) k.full_post;
+  redeem_pledge emp_inames (epoch_done _) full_post;
   drop_ (epoch_done _);
   drop_ (epoch_live _);
 }
 
-// inline_for_extraction noextract
-// fn launch_kernel_1'
-//   (#pre #post : slprop)
-//   (kf : unit ->
-//     stt unit (gpu ** pre) (fun _ -> gpu ** post)
-//   )
-//   requires cpu ** pre
-//   ensures  cpu ** post
-
-let launch_kernel_1
-  #pre #post kf = launch_kernel_sync (mk_desc_1 kf)
-
-(*
 inline_for_extraction noextract
-fn launch_kernel_1
-  (#pre #post : slprop)
-  (kf : unit ->
-    stt unit (gpu ** pre) (fun _ -> gpu ** post)
-  )
-  requires cpu ** pre
-  ensures  cpu ** post
-
-
-{
-  // get_epoch ();
-  // launch_kernel_1_async #pre #post k;
-  // sync ();
-  // with e'. assert (epoch_done e');
-  // redeem_pledge emp_inames (epoch_done e') post;
-  // drop_ (epoch_done e');
-  // drop_ (epoch_live _);
-  let k = mk_desc_1 kf;
-  rewrite pre as k.full_pre;
-  launch_kernel_sync k;
-  rewrite k.full_post as post;
-}
+let launch_kernel_1 #pre #post kf = launch_kernel_sync (mk_desc_1 kf)

@@ -2,6 +2,7 @@ module Kuiper.Common
 
 open Pulse.Lib.Core
 open Kuiper.Divides
+module SZ = FStar.SizeT
 
 (* Some base definitions we want everywhere, only over F* and Pulse constructs.
 This module should have no Kuiper dependencies. *)
@@ -13,9 +14,19 @@ type natlt (b:int) = n:nat{n <  b}
 type natle (b:int) = n:nat{n <= b}
 type posmultiple (k:int) = n:pos{k /? n}
 
+
 (* Erased version, with refinement **on the outside** to prevent
 against invariance of erased wrt types. *)
 type enatlt (b:int) = n:(Ghost.erased nat){n <  b}
+
+(* These two are useful when using size_t as a bound, to avoid
+mismatches betweeen SZ.v (a *^ b) and SZ.v a * SZ.v b. *)
+type natlt2
+  (b1 : SZ.t)
+  (b2 : SZ.t{SZ.fits (SZ.v b1 * SZ.v b2)}) = n:nat{n <  SZ.v (b1 `SZ.mul` b2)}
+type enatlt2
+  (b1 : SZ.t)
+  (b2 : SZ.t{SZ.fits (SZ.v b1 * SZ.v b2)}) = n:(Ghost.erased nat){n <  SZ.v (b1 `SZ.mul` b2)}
 
 (* really just ez = easy *)
 let ez : #a:Type -> (#[Tactics.V2.easy_fill ()] _ : a) -> a = Tactics.V2.easy

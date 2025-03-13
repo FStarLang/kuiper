@@ -9,6 +9,7 @@ module MU = Kuiper.MatMul.Util
 module SZ = FStar.SizeT
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
+module Nop = Kuiper.Kernel.Nop
 
 open Kuiper.Matrix4 {
   gpu_matrix as gpu_matrix4,
@@ -114,18 +115,18 @@ fn kernel_fixed
   (#eA : ematrix4 et mrows   mshared bdim bdim)
   (#eB : ematrix4 et mshared mcols   bdim bdim)
   (#f : perm)
-  (ebid : enatlt (mrows * mcols))
-  (etid : enatlt (bdim * bdim))
+  (ebid : enatlt2 mrows mcols)
+  (etid : enatlt2 bdim  bdim)
   requires
     gpu **
-    block_id (mrows * mcols) ebid **
+    kpre gA gB gC eA eB f ebid etid **
     thread_id (bdim * bdim) etid **
-    kpre gA gB gC eA eB f ebid etid
+    block_id (mrows * mcols) ebid
   ensures
     gpu **
-    block_id (mrows * mcols) ebid **
+    kpost gA gB gC eA eB f ebid etid **
     thread_id (bdim * bdim) etid **
-    kpost gA gB gC eA eB f ebid etid
+    block_id (mrows * mcols) ebid
 {
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
   let tid = get_tid (); rewrite each etid as SZ.v tid;
@@ -165,9 +166,9 @@ fn kernel_fixed
 
 ghost
 fn setup
-  (bdim : pos) (* block dim *)
+  (bdim : SZ.t)
   (#et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols : nat)
+  (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared bdim bdim)
   (#lB : mlayout4 mshared mcols   bdim bdim)
   (#lC : mlayout4 mrows   mcols   bdim bdim)
@@ -180,23 +181,24 @@ fn setup
   (#eA : ematrix4 et mrows   mshared bdim bdim)
   (#eB : ematrix4 et mshared mcols   bdim bdim)
   (#eC : ematrix4 et mrows   mcols   bdim bdim)
+  ()
   requires
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> eC)
   ensures
-    forall+ (bid : natlt (mrows * mcols))
-            (tid : natlt (bdim  * bdim)).
-      kpost gA gB gC eA eB 1.0R bid tid
+    forall+ (bid : natlt2 mrows mcols)
+            (tid : natlt2 bdim  bdim).
+      kpre gA gB gC eA eB 1.0R bid tid
 {
   admit();
 }
 
 ghost
 fn teardown
-  (bdim : pos) (* block dim *)
+  (bdim : SZ.t)
   (#et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols : nat)
+  (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared bdim bdim)
   (#lB : mlayout4 mshared mcols   bdim bdim)
   (#lC : mlayout4 mrows   mcols   bdim bdim)
@@ -209,16 +211,61 @@ fn teardown
   (#eA : ematrix4 et mrows   mshared bdim bdim)
   (#eB : ematrix4 et mshared mcols   bdim bdim)
   (#eC : ematrix4 et mrows   mcols   bdim bdim)
+  ()
   requires
-    forall+ (bid : natlt (mrows * mcols))
-            (tid : natlt (bdim  * bdim)).
-      kpre gA gB gC eA eB 1.0R bid tid
+    forall+ (bid : natlt2 mrows mcols)
+            (tid : natlt2 bdim  bdim).
+      kpost gA gB gC eA eB 1.0R bid tid
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> MS.matmul eA eB)
 {
   admit();
+}
+
+inline_for_extraction noextract
+let mk_kernel
+  (bdim : szp) (* block dim *)
+  (#et : Type0) {| scalar et |}
+  (#mrows #mshared #mcols : SZ.t)
+  (#lA : mlayout4 mrows   mshared bdim bdim)
+  (#lB : mlayout4 mshared mcols   bdim bdim)
+  (#lC : mlayout4 mrows   mcols   bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  {| clayout4 lC |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (#eA : ematrix4 et mrows   mshared bdim bdim)
+  (#eB : ematrix4 et mshared mcols   bdim bdim)
+  (#eC : ematrix4 et mrows   mcols   bdim bdim)
+  (_ : squash (mrows * mcols <= max_blocks
+               /\ bdim * bdim <= max_threads))
+  : kernel_desc
+      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
+      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.matmul eA eB))
+= {
+  nblk = mrows *^ mcols;
+  nthr = bdim *^ bdim;
+
+  shmem_type = u32;
+  shmem_type_is_sized = solve;
+  shmem_sz = 0sz;
+
+  block_pre  = (fun _ _ _ -> emp);
+  block_post = (fun _ _ _ -> emp);
+  block_setup = Kuiper.Kernel.Nop.nop_block_setup #_ #(bdim *^ bdim);
+
+  kpre      = kpre gA gB gC eA eB 1.0R;
+  setup     = (fun () -> setup bdim gA gB gC #eA #eB #eC ());
+
+  kpost     = kpost gA gB gC eA eB 1.0R;
+  teardown  = teardown bdim gA gB gC #eA #eB #eC;
+
+  f = Nop.kf_no_shmem #(mrows *^ mcols) #(bdim *^ bdim) #_ #_ #_ #(kpre gA gB gC eA eB 1.0R) #(kpost gA gB gC eA eB 1.0R)
+            (kernel_fixed bdim #et #_ #mrows #mshared #mcols gA gB gC #eA #eB #1.0R);
 }
 
 inline_for_extraction noextract
@@ -232,13 +279,16 @@ fn matmul_gpu_fixed
   {| clayout4 lA |}
   {| clayout4 lB |}
   {| clayout4 lC |}
-  (kk : kernel_fixed_ty bdim et lA lB lC)
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared bdim bdim)
   (#eB : ematrix4 et mshared mcols   bdim bdim)
   (#eC : ematrix4 et mrows   mcols   bdim bdim)
+  (kk : kernel_desc
+          ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
+          ((gA |-> eA) ** (gB |-> eB) ** (gC |->  MS.matmul eA eB))
+  )
   preserves
     cpu **
     (gA |-> eA) **
@@ -250,27 +300,7 @@ fn matmul_gpu_fixed
   ensures
     gC |-> MS.matmul eA eB
 {
-  open FStar.SizeT;
-  setup bdim gA gB gC;
-
-  let nblk = mrows *^ mcols;
-  let nthr = bdim *^ bdim;
-
-  forevery_rw_size2 (mrows * mcols) nblk
-                    (bdim * bdim) nthr;
-
-  (* FIXME: F* inference failure means we need to annotate pre/post (somewhat) *)
-  (* We also need eta due to the extraction rules looking for it. *)
-  launch_kernel_n_m
-    nblk
-    nthr
-    #(kpre  _ _ _ _ _ _)
-    #(kpost _ _ _ _ _ _)
-    (fun ebid etid -> kk gA gB gC ebid etid);
-
-  forevery_rw_size2 nblk (mrows * mcols)
-                    nthr (bdim * bdim);
-
-  teardown bdim gA gB gC #eA #eB #eC;
+  // launch_kernel_sync kk;
+  launch_kernel_sync (mk_kernel bdim #et #_ #mrows #mshared #mcols #lA #lB #lC gA gB gC #eA #eB #eC ());
   ()
 }

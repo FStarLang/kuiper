@@ -22,7 +22,7 @@ val shmem_tok
 
 noeq
 inline_for_extraction noextract
-type kernel_desc = {
+type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   nblk : (x : SZ.t { 0 < x /\ x <= max_blocks });
   nthr : (x : SZ.t { 0 < x /\ x <= max_threads });
 
@@ -72,14 +72,12 @@ type kernel_desc = {
          shmem_tok eshmem **
          block_post eshmem ebid etid)
   );
-  full_pre : slprop;
   setup : (
     unit ->
     stt_ghost unit emp_inames
       (requires full_pre)
       (ensures  fun _ -> forall+ (bid : natlt nblk) (tid : natlt nthr). kpre bid tid)
   );
-  full_post : slprop;
   teardown : (
     unit ->
     stt_ghost unit emp_inames
@@ -91,18 +89,21 @@ type kernel_desc = {
 (* This is the single primitive for launching kernels, with the most general
 type and capabilities. There are many simpler versions in the Kuiper.Kernel module,
 all implemented using this one and without any extra assumptions. *)
-fn launch_kernel (k : kernel_desc)
+fn launch_kernel
+  (#full_pre : slprop)
+  (#full_post : slprop)
+  (k : kernel_desc full_pre full_post)
   (#e : epoch_t)
   requires
     cpu **
     epoch_live e **
-    k.full_pre
+    full_pre
   returns
     e' : epoch_t
   ensures
     cpu **
     epoch_live e' **
-    pledge0 (epoch_done e') k.full_post **
+    pledge0 (epoch_done e') full_post **
     pure (e' >= e)
 
 inline_for_extraction noextract
