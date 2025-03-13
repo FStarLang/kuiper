@@ -189,7 +189,7 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   // let e = remove_trailing_units e in // ???
   let e = eta e in
   let et = e.mlty in
-  let fvs = freevars_of_mlexpr e in
+  let fvs = freevars_of_mlexpr e |> List.unique in
   // BU.print1_warning "fvs = %s\n" (show fvs);
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
