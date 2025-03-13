@@ -71,7 +71,7 @@ let kpost
 inline_for_extraction
 type kernel_fixed_ty
   (bdim : szp) (* block dim *)
-  (#et : Type0) {| scalar et |}
+  (et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : SZ.t)
   (lA : mlayout4 mrows   mshared bdim bdim)
   (lB : mlayout4 mshared mcols   bdim bdim)
@@ -187,186 +187,216 @@ fn kernel_fixed_f
 
 let kernel_fixed = kernel_fixed_f
 
-(*
+// let mksz = SZ.uint_to_t
+
 ghost
 fn setup
+  (bdim : pos) (* block dim *)
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : pos)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#mrows #mshared #mcols : nat)
+  (#lA : mlayout4 mrows   mshared bdim bdim)
+  (#lB : mlayout4 mshared mcols   bdim bdim)
+  (#lC : mlayout4 mrows   mcols   bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  {| clayout4 lC |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (#eA : ematrix4 et mrows   mshared bdim bdim)
+  (#eB : ematrix4 et mshared mcols   bdim bdim)
+  (#eC : ematrix4 et mrows   mcols   bdim bdim)
   requires
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> eC)
   ensures
-    forall+ (rc : natlt (rows * cols)).
-      kpre gA gB gC eA eB 1.0R rc
+    forall+ (bid : natlt (mrows * mcols))
+            (tid : natlt (bdim  * bdim)).
+      kpost gA gB gC eA eB 1.0R bid tid
 {
-  // Sharing the input matrices (splitting permissions)
-  M.gpu_matrix_share_n #_ #0 gA (rows * cols);
-  forevery_fromstar #(natlt (rows * cols)) _;
-  M.gpu_matrix_share_n #_ #0 gB (rows * cols);
-  forevery_fromstar #(natlt (rows * cols)) _;
+  admit();
+  // // Sharing the input matrices (splitting permissions)
+  // M.gpu_matrix_share_n #_ #0 gA (rows * cols);
+  // forevery_fromstar #(natlt (rows * cols)) _;
+  // M.gpu_matrix_share_n #_ #0 gB (rows * cols);
+  // forevery_fromstar #(natlt (rows * cols)) _;
 
-  // Sharing the output matrix (splitting each cell)
-  M.gpu_matrix_explode #_ gC;
+  // // Sharing the output matrix (splitting each cell)
+  // M.gpu_matrix_explode #_ gC;
 
-  forevery_unfactor' (rows * cols) rows cols _;
+  // forevery_unfactor' (rows * cols) rows cols _;
 
-  // Join resources into a single bigstar
-  forevery_zip #(natlt (rows * cols))
-    (fun _ -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA)
-    (fun _ -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
-  forevery_zip #(natlt (rows * cols))
-    _
-    (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
+  // // Join resources into a single bigstar
+  // forevery_zip #(natlt (rows * cols))
+  //   (fun _ -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA)
+  //   (fun _ -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
+  // forevery_zip #(natlt (rows * cols))
+  //   _
+  //   (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
 
-  // Rewrite inside the bigstar
-  ghost
-  fn aux1 (i : natlt (rows * cols))
-    requires
-      (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
-      M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
-    ensures
-      kpre gA gB gC eA eB 1.0R (Kuiper.Enumerable.of_nat #(natlt (rows * cols)) i)
-  {
-    ()
-  };
-  forevery_map #(natlt (rows * cols))
-    (fun i ->
-      (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
-      M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)))
-    _
-    aux1;
+  // // Rewrite inside the bigstar
+  // ghost
+  // fn aux1 (i : natlt (rows * cols))
+  //   requires
+  //     (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
+  //     M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
+  //     M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
+  //   ensures
+  //     kpre gA gB gC eA eB 1.0R (Kuiper.Enumerable.of_nat #(natlt (rows * cols)) i)
+  // {
+  //   ()
+  // };
+  // forevery_map #(natlt (rows * cols))
+  //   (fun i ->
+  //     (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
+  //     M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
+  //     M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)))
+  //   _
+  //   aux1;
 }
 
 ghost
 fn teardown
+  (bdim : pos) (* block dim *)
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : pos)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
+  (#mrows #mshared #mcols : nat)
+  (#lA : mlayout4 mrows   mshared bdim bdim)
+  (#lB : mlayout4 mshared mcols   bdim bdim)
+  (#lC : mlayout4 mrows   mcols   bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  {| clayout4 lC |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (#eA : ematrix4 et mrows   mshared bdim bdim)
+  (#eB : ematrix4 et mshared mcols   bdim bdim)
+  (#eC : ematrix4 et mrows   mcols   bdim bdim)
   requires
-    forall+ (rc : natlt (rows * cols)).
-      kpost gA gB gC eA eB 1.0R rc
+    forall+ (bid : natlt (mrows * mcols))
+            (tid : natlt (bdim  * bdim)).
+      kpre gA gB gC eA eB 1.0R bid tid
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> MS.matmul eA eB)
 {
-  forevery_unzip #(natlt (rows * cols)) _ _;
-  forevery_unzip #(natlt (rows * cols)) _ _;
+  admit();
+  // forevery_unzip #(natlt (rows * cols)) _ _;
+  // forevery_unzip #(natlt (rows * cols)) _ _;
 
-  forevery_tostar #(natlt (rows * cols))
-    (fun i -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA);
-  M.gpu_matrix_gather_n gA _;
-  forevery_tostar #(natlt (rows * cols))
-    (fun i -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
-  M.gpu_matrix_gather_n gB _;
+  // forevery_tostar #(natlt (rows * cols))
+  //   (fun i -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA);
+  // M.gpu_matrix_gather_n gA _;
+  // forevery_tostar #(natlt (rows * cols))
+  //   (fun i -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
+  // M.gpu_matrix_gather_n gB _;
 
-  forevery_factor (rows * cols) rows cols _;
+  // forevery_factor (rows * cols) rows cols _;
 
-  (* we get things back with some arithmetic in it *)
-  assert (forall+ (r:natlt rows) (c:natlt cols).
-      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-         (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
+  // (* we get things back with some arithmetic in it *)
+  // assert (forall+ (r:natlt rows) (c:natlt cols).
+  //     M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+  //        (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
 
-  (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
-  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
-  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
-  forevery_ext_2
-    (fun (r:natlt rows) (c:natlt cols) ->
-      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-         (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared))
-    (fun (r:natlt rows) (c:natlt cols) ->
-      M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
+  // (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
+  // assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
+  // assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
+  // forevery_ext_2
+  //   (fun (r:natlt rows) (c:natlt cols) ->
+  //     M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+  //        (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared))
+  //   (fun (r:natlt rows) (c:natlt cols) ->
+  //     M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
 
-  assert (forall+ r c.
-      M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
+  // assert (forall+ r c.
+  //     M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
 
-  ghost
-  fn aux (r:natlt rows) (c:natlt cols)
-    requires
-      M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared)
-    ensures
-      M.gpu_matrix_pts_to_cell gC r c (macc (MS.matmul eA eB) r c)
-  {
-    MS.lemma_matmul_index eA eB r c;
-    () (* BUG! Should not be needed. *)
-  };
-  forevery_map_2 #(natlt rows) #_ #(natlt cols)
-    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared))
-    _
-    aux;
+  // ghost
+  // fn aux (r:natlt rows) (c:natlt cols)
+  //   requires
+  //     M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared)
+  //   ensures
+  //     M.gpu_matrix_pts_to_cell gC r c (macc (MS.matmul eA eB) r c)
+  // {
+  //   MS.lemma_matmul_index eA eB r c;
+  //   () (* BUG! Should not be needed. *)
+  // };
+  // forevery_map_2 #(natlt rows) #_ #(natlt cols)
+  //   (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared))
+  //   _
+  //   aux;
 
-  M.gpu_matrix_implode gC;
-  ()
+  // M.gpu_matrix_implode gC;
+  // ()
+}
+
+ghost
+fn forevery_rw_size2
+  (n1 : nat)
+  (n2 : nat{n1 == n2})
+  (n3 : nat)
+  (n4 : nat{n3 == n4})
+  (#p : natlt n1 -> natlt n3 -> slprop)
+  requires
+    forall+ (i : natlt n1) (j : natlt n3). p i j
+  ensures
+    forall+ (i : natlt n2) (j : natlt n4). p i j
+{
+  admit();
 }
 
 inline_for_extraction noextract
 fn matmul_gpu_fixed
   (bdim : szp) (* block dim *)
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : szpmultiple bdim)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  (#mrows #mshared #mcols : SZ.t)
+  (lA : mlayout4 mrows   mshared bdim bdim)
+  (lB : mlayout4 mshared mcols   bdim bdim)
+  (lC : mlayout4 mrows   mcols   bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  {| clayout4 lC |}
   (kk : kernel_fixed_ty bdim et lA lB lC #_ #_ #_)
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (#eA : ematrix4 et mrows   mshared bdim bdim)
+  (#eB : ematrix4 et mshared mcols   bdim bdim)
+  (#eC : ematrix4 et mrows   mcols   bdim bdim)
   preserves
     cpu **
     (gA |-> eA) **
     (gB |-> eB)
   requires
-    pure (rows * cols <= max_blocks) **
+    pure (mrows * mcols <= max_blocks) **
+    pure (bdim * bdim <= max_threads) **
     (gC |-> eC)
   ensures
     gC |-> MS.matmul eA eB
 {
   open FStar.SizeT;
-  setup gA gB gC;
+  setup bdim gA gB gC;
 
-  let size = rows *^ cols;
-  forevery_rw_size (rows * cols) size;
+  let nblk = mrows *^ mcols;
+  let nthr = bdim *^ bdim;
+
+  forevery_rw_size2 (mrows * mcols) nblk
+                    (bdim * bdim) nthr;
 
   (* FIXME: F* inference failure means we need to annotate pre/post (somewhat) *)
   (* We also need eta due to the extraction rules looking for it. *)
-  launch_kernel_n
-    size
+  launch_kernel_n_m
+    nblk
+    nthr
     #(kpre  _ _ _ _ _ _)
     #(kpost _ _ _ _ _ _)
-    (fun etid -> kk gA gB gC etid);
+    (fun ebid etid -> kk gA gB gC ebid etid);
 
-  forevery_rw_size size (rows * cols);
+  forevery_rw_size2 nblk (mrows * mcols)
+                    nthr (bdim * bdim);
 
-  teardown gA gB gC;
+  teardown bdim gA gB gC #eA #eB #eC;
+  ()
 }
