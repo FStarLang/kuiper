@@ -58,56 +58,8 @@ instance clayout4_row_major
     parent = parent4 rows cols bdim ();
   }
 
-// [@@CPrologue "__global__"; "KrmlPrivate"]
-// let k_u64_rrr
-//   (bdim : szp)
-//   (rows shared cols : szp)
-//   (_ : squash (
-//       SZ.fits ((rows * bdim) * (shared * bdim)) /\
-//       SZ.fits ((shared * bdim) * (cols * bdim)) /\
-//       SZ.fits ((rows * bdim) * (cols * bdim))
-//   ))
-//   : kernel_fixed_ty bdim u64 #_
-//       #(rows) #(shared) #(cols)
-//       (row_major4 (rows) (shared) bdim bdim)
-//       (row_major4 (shared) (cols) bdim bdim)
-//       (row_major4 (rows) (cols) bdim bdim)
-//   = coerce_eq () <|
-//     kernel_fixed bdim #u64 #_ #(rows) #(shared) #(cols)
-//       #_ #_ #_
-//       #(clayout4_row_major (rows  ) (shared) bdim)
-//       #(clayout4_row_major (shared) (cols  ) bdim)
-//       #(clayout4_row_major (rows  ) (cols  ) bdim)
-
-// inline_for_extraction noextract
-fn matmul_gpu_u64_rrr
-  (bdim : szp) (* block dim *)
-  (#mrows #mshared #mcols : szp)
-  (gA : M4.gpu_matrix u64 (row_major4 mrows   mshared bdim bdim))
-  (gB : M4.gpu_matrix u64 (row_major4 mshared mcols   bdim bdim))
-  (gC : M4.gpu_matrix u64 (row_major4 mrows   mcols   bdim bdim))
-  (#eA : ematrix4 u64 mrows   mshared bdim bdim)
-  (#eB : ematrix4 u64 mshared mcols   bdim bdim)
-  (#eC : ematrix4 u64 mrows   mcols   bdim bdim)
-  preserves
-    cpu **
-    (gA |-> eA) **
-    (gB |-> eB)
-  requires
-    pure (SZ.fits ((mrows * bdim) * (mshared * bdim))) **
-    pure (SZ.fits ((mshared * bdim) * (mcols * bdim))) **
-    pure (SZ.fits ((mrows * bdim) * (mcols * bdim))) **
-    pure (mrows * mcols <= max_blocks) **
-    pure (bdim * bdim <= max_threads) **
-    (gC |-> eC)
-  ensures
-    exists* eC'.
-      gC |-> eC'
-{
-  matmul_gpu_fixed bdim _ _ _ gA gB gC (mk_kernel bdim gA gB gC ());
-}
-
-fn matmul_u64_rrr
+inline_for_extraction noextract
+fn matmul_cpu
   (bdim : szp)
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp{three_fits rows shared cols})
@@ -148,7 +100,7 @@ fn matmul_u64_rrr
 
   assume (pure (mrows * mcols <= max_blocks));
   assume (pure (bdim * bdim <= max_threads));
-  matmul_gpu_u64_rrr bdim gA gB gC;
+  matmul_gpu bdim _ _ _ gA gB gC;
 
   let c = Pulse.Lib.Vec.alloc #u64 zero (SZ.mul rows cols);
   M4.gpu_matrix_to_array c gC;
@@ -159,3 +111,22 @@ fn matmul_u64_rrr
 
   c
 }
+
+let matmul_u64_rrr
+  (bdim : szp)
+  (#rows #shared : szp) (* concrete args *)
+  (#cols : szp{three_fits rows shared cols})
+  (a : vec u64)
+  (b : vec u64)
+  (#sa : erased (seq u64){ len sa == rows * shared })
+  (#sb : erased (seq u64){ len sb == shared * cols })
+  = matmul_cpu bdim #rows #shared #cols a b #sa #sb
+
+let matmul_u64_rrr_tile32
+  (#rows #shared : szp) (* concrete args *)
+  (#cols : szp{three_fits rows shared cols})
+  (a : vec u64)
+  (b : vec u64)
+  (#sa : erased (seq u64){ len sa == rows * shared })
+  (#sb : erased (seq u64){ len sb == shared * cols })
+  = matmul_cpu 32sz #rows #shared #cols a b #sa #sb

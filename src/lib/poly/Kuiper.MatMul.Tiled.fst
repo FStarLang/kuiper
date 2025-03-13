@@ -269,7 +269,7 @@ let mk_kernel
 }
 
 inline_for_extraction noextract
-fn matmul_gpu_fixed
+fn matmul_gpu
   (bdim : szp) (* block dim *)
   (#et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : szp)
@@ -285,10 +285,6 @@ fn matmul_gpu_fixed
   (#eA : ematrix4 et mrows   mshared bdim bdim)
   (#eB : ematrix4 et mshared mcols   bdim bdim)
   (#eC : ematrix4 et mrows   mcols   bdim bdim)
-  (kk : kernel_desc
-          ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
-          ((gA |-> eA) ** (gB |-> eB) ** (gC |->  MS.matmul eA eB))
-  )
   preserves
     cpu **
     (gA |-> eA) **
@@ -300,7 +296,6 @@ fn matmul_gpu_fixed
   ensures
     gC |-> MS.matmul eA eB
 {
-  // launch_kernel_sync kk;
   launch_kernel_sync (mk_kernel bdim #et #_ #mrows #mshared #mcols #lA #lB #lC gA gB gC #eA #eB #eC ());
   ()
 }
