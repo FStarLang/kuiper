@@ -189,7 +189,22 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   // let e = remove_trailing_units e in // ???
   let e = eta e in
   let et = e.mlty in
-  let fvs = freevars_of_mlexpr e |> List.unique in
+  let fvs0 = freevars_of_mlexpr e |> List.unique in
+  (* get the fvs in the order they appear in the environment (mind
+     the rev-- the env head is the closest binder). This makes the
+     order much more predictable and conceptually nicer. *)
+  let fvs =
+    g.names |> List.rev |> List.collect (fun n ->
+      match List.tryFind (fun (v, _) -> v = n.pretty) fvs0 with
+      | Some (v, t) -> [(v, t)]
+      | None -> []
+    )
+  in
+  if List.length fvs <> List.length fvs0
+  then
+    failwith ("Hoist: free variables do not match: " ^ show e0 ^ "\n" ^
+                   "fvs0 = " ^ show fvs0 ^ "\n" ^
+                   "fvs = " ^ show fvs);
   // BU.print1_warning "fvs = %s\n" (show fvs);
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
@@ -206,7 +221,7 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   ]
   in
   let decl = DFunction (None, flags, 0, translate_type (add_binders g0 bs) et, ([], fresh), kbs, lambda) in
-  translate_decl_accum := decl :: !translate_decl_accum;
+  translate_decl_accum := !translate_decl_accum @ [decl];
 
   let nm = with_ty ml_unit_ty <| MLE_Name ([], fresh) in
   let call = MLE_App (nm, List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs ) in
