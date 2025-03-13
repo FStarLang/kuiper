@@ -1,5 +1,8 @@
 module Kuiper.MatMul.Naive
 
+(* This is a very naive matmul, spawning MxN blocks of 1 thread
+to do the computation. *)
+
 #lang-pulse
 
 open Kuiper

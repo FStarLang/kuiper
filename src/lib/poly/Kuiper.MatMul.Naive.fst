@@ -6,6 +6,7 @@ open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
+module MU = Kuiper.MatMul.Util
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
@@ -80,8 +81,6 @@ type kernel_fixed_ty
     block_id (rows * cols) ebid **
     kpost gA gB gC eA eB f ebid)
 
-(* FIXME: stabilize this *)
-#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kernel_fixed
   (#et : Type0) {| scalar et |}
@@ -121,32 +120,7 @@ fn kernel_fixed
   assert (pure (trow < rows));
   assert (pure (tcol < cols));
 
-  let mut i : sz = 0sz;
-  let mut sum : et = zero #et #_;
-
-  while (let vi = !i; SZ.(vi <^ shared))
-    invariant b.
-      exists* (vi : SZ.t{ vi <= shared}).
-        pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
-        pts_to i vi **
-        pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
-        M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-        M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
-        gpu
-  {
-    let vi = !i;
-    let s = !sum;
-    let v1 = M.gpu_matrix_read gA trow vi;
-    let v2 = M.gpu_matrix_read gB vi tcol;
-
-    sum := s `add` mul v1 v2;
-    i := SZ.add vi 1sz;
-
-    (**)MS.matmul_single_lemma eA eB trow tcol (vi + 1);
-    ();
-  };
-
-  let s = !sum;
+  let s = MU.matmul_dotprod gA gB trow tcol;
   M.gpu_matrix_write_cell gC trow tcol s;
 
   assert (pure (SZ.v trow == ebid / cols));
@@ -160,7 +134,6 @@ fn kernel_fixed
 
   ()
 }
-#pop-options
 
 ghost
 fn setup
