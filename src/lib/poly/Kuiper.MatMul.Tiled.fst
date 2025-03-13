@@ -6,6 +6,7 @@ open Kuiper
 module M   = Kuiper.Matrix
 module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
+module MU = Kuiper.MatMul.Util
 module SZ = FStar.SizeT
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
@@ -17,7 +18,6 @@ open Kuiper.Matrix4 {
   mlayout4,
   clayout4
 }
-
 
 unfold
 let kpre
@@ -36,8 +36,8 @@ let kpre
   (tid : natlt (bdim * bdim))
   : slprop
   =
-  m4_pts_to gA #(f /. mlayout_size lA) eA **
-  m4_pts_to gB #(f /. mlayout_size lB) eB **
+  m4_pts_to gA #(f /. mlayout_size lC) eA **
+  m4_pts_to gB #(f /. mlayout_size lC) eB **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -61,8 +61,8 @@ let kpost
   (tid : natlt (bdim * bdim))
   : slprop
   =
-  m4_pts_to gA #(f /. mlayout_size lA) eA **
-  m4_pts_to gB #(f /. mlayout_size lB) eB **
+  m4_pts_to gA #(f /. mlayout_size lC) eA **
+  m4_pts_to gB #(f /. mlayout_size lC) eB **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -101,6 +101,8 @@ type kernel_fixed_ty
     thread_id (bdim * bdim) etid **
     kpost gA gB gC eA eB f ebid etid)
 
+#set-options "--print_implicits"
+
 inline_for_extraction noextract
 fn kernel_fixed_f
   (bdim : szp) (* block dim *)
@@ -131,58 +133,36 @@ fn kernel_fixed_f
     thread_id (bdim * bdim) etid **
     kpost gA gB gC eA eB f ebid etid
 {
-  admit();
-  // let tid = get_tid (); rewrite each etid as SZ.v tid;
+  let bid = get_bid (); rewrite each ebid as SZ.v bid;
+  let tid = get_tid (); rewrite each etid as SZ.v tid;
+  let id = bid *^ (bdim *^ bdim) +^ tid;
 
-  // let trow = SZ.div tid cols;
-  // let tcol = SZ.rem tid cols;
-  // with v0.
-  //   rewrite
-  //     M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v0
-  //   as
-  //     M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
+  let mrow, mcol = s_divmod mcols bid;
+  let brow, bcol = s_divmod bdim  tid;
 
-  // assert (pure (trow < rows));
-  // assert (pure (tcol < cols));
+  with bi0 bj0 i0 j0 v0.
+    rewrite
+      m4_pts_to_cell gC #1.0R bi0 bj0 i0 j0 v0
+    as
+      m4_pts_to_cell gC #1.0R mrow mcol brow bcol v0;
 
-  // let mut i : sz = 0sz;
-  // let mut sum : et = zero #et #_;
+  assert (pure (mrow < mrows));
+  assert (pure (mcol < mcols));
+  assert (pure (brow < bdim));
+  assert (pure (bcol < bdim));
 
-  // while (let vi = !i; SZ.(vi <^ shared))
-  //   invariant b.
-  //     exists* (vi : SZ.t{ vi <= shared}).
-  //       pure (0 <= shared /\ b == (SZ.v vi < shared) /\ vi <= shared /\ vi >= 0) **
-  //       pts_to i vi **
-  //       pts_to #_ #et sum (MS.matmul_single eA eB trow tcol vi) **
-  //       M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-  //       M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
-  //       gpu
-  // {
-  //   let vi = !i;
-  //   let s = !sum;
-  //   let v1 = M.gpu_matrix_read gA trow vi;
-  //   let v2 = M.gpu_matrix_read gB vi tcol;
+  let s = MU.matmul_tiled_dotprod gA gB mrow mcol brow bcol;
+  M4.gpu_matrix_write_cell gC mrow mcol brow bcol s;
 
-  //   sum := s `add` mul v1 v2;
-  //   i := SZ.add vi 1sz;
+  with v'.
+    rewrite
+      M4.gpu_matrix_pts_to_cell gC mrow mcol brow bcol v'
+    as
+      M4.gpu_matrix_pts_to_cell gC
+        (ebid / mcols) (ebid % mcols)
+        (etid / bdim) (etid % bdim) v';
 
-  //   (**)MS.matmul_single_lemma eA eB trow tcol (vi + 1);
-  //   ();
-  // };
-
-  // let s = !sum;
-  // M.gpu_matrix_write_cell gC trow tcol s;
-
-  // assert (pure (SZ.v trow == thread_index etid / cols));
-  // assert (pure (SZ.v tcol == thread_index etid % cols));
-  // rewrite
-  //   M.gpu_matrix_pts_to_cell gC trow tcol
-  //     (MS.matmul_single eA eB trow tcol shared)
-  // as
-  //   M.gpu_matrix_pts_to_cell gC (thread_index etid / cols) (thread_index etid % cols)
-  //     (MS.matmul_single eA eB (thread_index etid / cols) (thread_index etid % cols) shared);
-
-  // ()
+  ()
 }
 
 let kernel_fixed = kernel_fixed_f
@@ -216,44 +196,6 @@ fn setup
       kpost gA gB gC eA eB 1.0R bid tid
 {
   admit();
-  // // Sharing the input matrices (splitting permissions)
-  // M.gpu_matrix_share_n #_ #0 gA (rows * cols);
-  // forevery_fromstar #(natlt (rows * cols)) _;
-  // M.gpu_matrix_share_n #_ #0 gB (rows * cols);
-  // forevery_fromstar #(natlt (rows * cols)) _;
-
-  // // Sharing the output matrix (splitting each cell)
-  // M.gpu_matrix_explode #_ gC;
-
-  // forevery_unfactor' (rows * cols) rows cols _;
-
-  // // Join resources into a single bigstar
-  // forevery_zip #(natlt (rows * cols))
-  //   (fun _ -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA)
-  //   (fun _ -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
-  // forevery_zip #(natlt (rows * cols))
-  //   _
-  //   (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
-
-  // // Rewrite inside the bigstar
-  // ghost
-  // fn aux1 (i : natlt (rows * cols))
-  //   requires
-  //     (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
-  //     M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-  //     M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
-  //   ensures
-  //     kpre gA gB gC eA eB 1.0R (Kuiper.Enumerable.of_nat #(natlt (rows * cols)) i)
-  // {
-  //   ()
-  // };
-  // forevery_map #(natlt (rows * cols))
-  //   (fun i ->
-  //     (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
-  //     M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-  //     M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)))
-  //   _
-  //   aux1;
 }
 
 ghost
@@ -281,68 +223,6 @@ fn teardown
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> MS.matmul eA eB)
-{
-  admit();
-  // forevery_unzip #(natlt (rows * cols)) _ _;
-  // forevery_unzip #(natlt (rows * cols)) _ _;
-
-  // forevery_tostar #(natlt (rows * cols))
-  //   (fun i -> M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA);
-  // M.gpu_matrix_gather_n gA _;
-  // forevery_tostar #(natlt (rows * cols))
-  //   (fun i -> M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB);
-  // M.gpu_matrix_gather_n gB _;
-
-  // forevery_factor (rows * cols) rows cols _;
-
-  // (* we get things back with some arithmetic in it *)
-  // assert (forall+ (r:natlt rows) (c:natlt cols).
-  //     M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-  //        (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
-
-  // (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
-  // assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
-  // assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
-  // forevery_ext_2
-  //   (fun (r:natlt rows) (c:natlt cols) ->
-  //     M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-  //        (MS.matmul_single eA eB ((r * cols + c) / cols) ((r * cols + c) % cols) shared))
-  //   (fun (r:natlt rows) (c:natlt cols) ->
-  //     M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
-
-  // assert (forall+ r c.
-  //     M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared));
-
-  // ghost
-  // fn aux (r:natlt rows) (c:natlt cols)
-  //   requires
-  //     M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared)
-  //   ensures
-  //     M.gpu_matrix_pts_to_cell gC r c (macc (MS.matmul eA eB) r c)
-  // {
-  //   MS.lemma_matmul_index eA eB r c;
-  //   () (* BUG! Should not be needed. *)
-  // };
-  // forevery_map_2 #(natlt rows) #_ #(natlt cols)
-  //   (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.matmul_single eA eB r c shared))
-  //   _
-  //   aux;
-
-  // M.gpu_matrix_implode gC;
-  // ()
-}
-
-ghost
-fn forevery_rw_size2
-  (n1 : nat)
-  (n2 : nat{n1 == n2})
-  (n3 : nat)
-  (n4 : nat{n3 == n4})
-  (#p : natlt n1 -> natlt n3 -> slprop)
-  requires
-    forall+ (i : natlt n1) (j : natlt n3). p i j
-  ensures
-    forall+ (i : natlt n2) (j : natlt n4). p i j
 {
   admit();
 }

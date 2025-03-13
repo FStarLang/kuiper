@@ -4,6 +4,7 @@ module Kuiper.MatMul.Util
 
 open Kuiper
 module M  = Kuiper.Matrix
+module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 open Kuiper.EMatrix
@@ -21,13 +22,13 @@ fn matmul_dotprod
   (gB : M.gpu_matrix et lB)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
-  (#f : perm)
   (i : szlt rows)
   (j : szlt cols)
+  (#fA #fB : perm)
   preserves
     gpu **
-    M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-    M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB
+    M.gpu_matrix_pts_to gA #fA eA **
+    M.gpu_matrix_pts_to gB #fB eB
   returns
     res : et
   ensures
@@ -42,8 +43,8 @@ fn matmul_dotprod
         pure (0 <= shared /\ b == (SZ.v vk < shared) /\ vk <= shared /\ vk >= 0) **
         pts_to k vk **
         pts_to #_ #et sum (MS.matmul_single eA eB i j vk) **
-        M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-        M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
+        M.gpu_matrix_pts_to gA #fA eA **
+        M.gpu_matrix_pts_to gB #fB eB **
         gpu
   {
     let vk = !k;
@@ -56,6 +57,66 @@ fn matmul_dotprod
 
     (**)MS.matmul_single_lemma eA eB i j (vk + 1);
     ();
+  };
+  !sum
+}
+
+inline_for_extraction noextract
+fn matmul_tiled_dotprod
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols #bdim : SZ.t)
+  (#lA : mlayout4 rows shared bdim bdim)
+  (#lB : mlayout4 shared cols bdim bdim)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (#eA : ematrix4 et rows shared bdim bdim)
+  (#eB : ematrix4 et shared cols bdim bdim)
+  (bi : szlt rows)
+  (bj : szlt cols)
+  (i : szlt bdim)
+  (j : szlt bdim)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    m4_pts_to gA #fA eA **
+    m4_pts_to gB #fB eB
+  returns
+    res : et
+  // ensures
+  //   pure (res == MS.matmul_single #et #_ #(rows * bdim) #(shared * bdim) #(cols * bdim) eA eB i j shared)
+{
+  let mut sum : et = zero #et #_;
+  let mut bk  : sz = 0sz;
+  let mut k   : sz = 0sz;
+
+  while (let vbk = !bk; SZ.(vbk <^ shared))
+    invariant b.
+      exists* (vbk : SZ.t{vbk <= shared}) (vk : SZ.t{vk < bdim}) sumv.
+        pure (0 <= shared /\ b == (SZ.v vbk < shared) /\ vbk <= shared /\ vbk >= 0) **
+        pure (0 <= bdim /\ vk < bdim /\ vk >= 0) **
+        pts_to k vk **
+        pts_to bk vbk **
+        pts_to #_ #et sum sumv **
+        m4_pts_to gA #fA eA **
+        m4_pts_to gB #fB eB **
+        gpu
+  {
+    let vbk = !bk;
+    let vk = !k;
+    let s = !sum;
+    let v1 = M4.gpu_matrix_read gA bi vbk i vk;
+    let v2 = M4.gpu_matrix_read gB vbk bj vk j;
+
+    sum := s `add` mul v1 v2;
+
+    if (vk = bdim -^ 1sz) {
+      k := 0sz;
+      bk := vbk +^ 1sz;
+    } else {
+      k := vk +^ 1sz;
+    }
   };
   !sum
 }
