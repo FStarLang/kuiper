@@ -67,7 +67,7 @@ let kpost
      emp)
 
 inline_for_extraction noextract
-fn kernel_fixed
+fn kernel
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : SZ.t)
   (lA : mlayout rows shared)
@@ -247,7 +247,7 @@ fn matmul_gpu
     1024sz
     #(kpre  #et gA gB gC eA eB 1.0R)
     #(kpost #et gA gB gC eA eB 1.0R)
-    (fun ebid etid -> kernel_fixed _ _ _ gA gB gC ebid etid);
+    (fun ebid etid -> kernel _ _ _ gA gB gC ebid etid);
 
   forevery_rw_size nblk (divup (rows * cols) 1024);
 

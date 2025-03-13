@@ -69,7 +69,7 @@ let kpost
       (tid / bdim) (tid % bdim) v)
 
 inline_for_extraction noextract
-fn kernel_fixed
+fn kernel
   (bdim : szp) (* block dim *)
   (#et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : SZ.t)
@@ -231,7 +231,7 @@ let mk_kernel
   teardown  = teardown bdim gA gB gC #eA #eB #eC;
 
   f = Nop.kf_no_shmem #(mrows *^ mcols) #(bdim *^ bdim) #_ #_ #_ #(kpre gA gB gC eA eB 1.0R) #(kpost gA gB gC eA eB 1.0R)
-            (kernel_fixed bdim #et #_ #mrows #mshared #mcols gA gB gC #eA #eB #1.0R);
+            (kernel bdim #et #_ #mrows #mshared #mcols gA gB gC #eA #eB #1.0R);
 }
 
 inline_for_extraction noextract

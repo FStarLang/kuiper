@@ -53,7 +53,7 @@ let kpost
     (MS.matmul_single eA eB (tid / cols) (tid % cols) shared)
 
 inline_for_extraction noextract
-fn kernel_fixed
+fn kernel
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : SZ.t)
   (lA : mlayout rows shared)
@@ -281,7 +281,7 @@ fn matmul_gpu
     size
     #(kpre  #et gA gB gC eA eB 1.0R)
     #(kpost #et gA gB gC eA eB 1.0R)
-    (fun ebid -> kernel_fixed _ _ _ gA gB gC ebid);
+    (fun ebid -> kernel _ _ _ gA gB gC ebid);
 
   forevery_rw_size size (rows * cols);
 
