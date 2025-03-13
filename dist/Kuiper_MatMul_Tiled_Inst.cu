@@ -57,10 +57,6 @@ uint64_t
   uint64_t *b
 )
 {
-  printf("rows = %lu\n", rows);
-  printf("shared = %lu\n", shared);
-  printf("cols = %lu\n", cols);
-  printf("bdim = %lu\n", bdim);
   size_t mcols = cols / bdim;
   size_t mshared = shared / bdim;
   size_t mrows = rows / bdim;
@@ -69,10 +65,6 @@ uint64_t
   uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * bdim * mcols * bdim));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (mshared * bdim * (mcols * bdim)), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gA, a, (size_t)8U * (mrows * bdim * (mshared * bdim)), cudaMemcpyHostToDevice));
-  printf("mrows = %lu\n", mrows);
-  printf("mshared = %lu\n", mshared);
-  printf("mcols = %lu\n", mcols);
-  printf("bdim = %lu\n", bdim);
   KPR_KCALL(k_u64_rrr,
     mrows * mcols,
     bdim * bdim,
