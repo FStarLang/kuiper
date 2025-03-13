@@ -72,3 +72,13 @@ let rec lemma_pow2_div (x y : nat)
     lemma_pow2_div (x+1) y;
     lemma_divides_trans (pow2 x) (pow2 (x+1)) (pow2 y)
   )
+
+let lem_divup_back (m:nat) (k:pos)
+  : Lemma (k * divup m k >= m)
+          [SMTPat (divup m k)]
+  = ()
+
+let lem_divup_divides (m:nat) (k:pos)
+  : Lemma (k /? m ==> divup m k === m / k)
+          [SMTPat (divup m k)]
+  = ()

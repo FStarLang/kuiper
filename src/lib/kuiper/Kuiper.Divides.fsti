@@ -39,3 +39,14 @@ val lemma_pow2_div (x y : nat)
   : Lemma (requires x <= y)
           (ensures pow2 x /? pow2 y)
           [SMTPat (pow2 x /? pow2 y)]
+
+let divup (m:nat) (k:pos) =
+  (m + (k-1)) / k
+
+val lem_divup_back (m:nat) (k:pos)
+  : Lemma (k * divup m k >= m)
+          [SMTPat (divup m k)]
+
+val lem_divup_divides (m:nat) (k:pos)
+  : Lemma (k /? m ==> divup m k === m / k)
+          [SMTPat (divup m k)]
