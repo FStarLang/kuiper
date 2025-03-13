@@ -102,12 +102,8 @@ fn kernel_fixed
   let tid = get_tid (); rewrite each etid as SZ.v tid;
   let id = bid *^ (bdim *^ bdim) +^ tid;
 
-  // let mrow, mcol = s_divmod mcols bid;
-  // let brow, bcol = s_divmod bdim  tid;
-  let mrow = bid /^ mcols;
-  let mcol = bid %^ mcols;
-  let brow = tid /^ bdim;
-  let bcol = tid %^ bdim;
+  let mrow, mcol = s_divmod mcols bid;
+  let brow, bcol = s_divmod bdim  tid;
 
   with bi0 bj0 i0 j0 v0.
     rewrite

@@ -104,8 +104,7 @@ fn kernel_fixed
     rewrite each ebid as SZ.v bid;
     rewrite each etid as SZ.v tid;
 
-    let trow = SZ.div id cols;
-    let tcol = SZ.rem id cols;
+    let trow, tcol = s_divmod cols id;
     with i0 j0 v0.
       rewrite
         M.gpu_matrix_pts_to_cell gC #1.0R i0 j0 v0
