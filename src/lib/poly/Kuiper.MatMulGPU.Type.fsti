@@ -46,9 +46,9 @@ type matmul_gpu_ty_type_dims
   (shared : pos)
   (cols : pos{three_fits rows shared cols})
 =
-  (lA : mlayout rows shared) ->
-  (lB : mlayout shared cols) ->
-  (lC : mlayout rows cols) ->
+  (#lA : mlayout rows shared) ->
+  (#lB : mlayout shared cols) ->
+  (#lC : mlayout rows cols) ->
   {| clayout lA |} ->
   {| clayout lB |} ->
   {| clayout lC |} ->
@@ -59,13 +59,13 @@ inline_for_extraction
 type matmul_gpu_ty_type
   (et : Type0) {| scalar et |}
 =
-  (rows : szp) ->
-  (shared : szp) ->
-  (cols : szp{three_fits rows shared cols}) ->
+  (#rows : szp) ->
+  (#shared : szp) ->
+  (#cols : szp{three_fits rows shared cols}) ->
   matmul_gpu_ty_type_dims et rows shared cols
 
 unfold
 inline_for_extraction
 type matmul_gpu_ty =
-  (et : Type0) -> {| scalar et |} ->
+  (#et : Type0) -> {| scalar et |} ->
   matmul_gpu_ty_type et

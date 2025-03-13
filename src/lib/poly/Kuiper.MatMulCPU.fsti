@@ -90,3 +90,13 @@ val mk_fixed_repr_matmul
     matmul_gpu_ty_type_dims_repr et (rA rows shared) (rB shared cols) (rC rows cols) #(cA.map _ _) #(cB.map _ _) #(cC.map _ _)
   ))
   : fixed_repr_matmul_cpu_ty et rA rB rC
+
+inline_for_extraction noextract
+val specialize_to_type_and_reprs
+  (matmul_gpu : matmul_gpu_ty)
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
+  : fixed_repr_matmul_cpu_ty et rA rB rC #cA #cB #cC

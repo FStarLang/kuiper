@@ -502,6 +502,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         _epoch
       ])
     when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel_n_m_shmem_async" ->
+    let body = hoist env body in
     let hd, args = head_and_args body in
     (* Filter out unit arguments. Not great, not sure why they remain *)
     let args' = List.filter (fun a -> match a.expr with

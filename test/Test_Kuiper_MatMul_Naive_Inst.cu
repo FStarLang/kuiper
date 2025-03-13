@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 		float t;
 		free (m3);
 		fprintf(stderr, "Standard\n");
-		m3 = TIME(Kuiper_MatMul_Naive_Inst_matmul_u64_rrr(rows, shared, columns, m1, m2), &t);
+		m3 = TIME(Kuiper_MatMul_Naive_Inst_matmul_u64_ccc(rows, shared, columns, m1, m2), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n", (rows * shared * columns * 2.0) / t / 1e9);
 	}
 

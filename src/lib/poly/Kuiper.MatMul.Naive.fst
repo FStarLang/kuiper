@@ -272,7 +272,7 @@ fn teardown
 }
 
 inline_for_extraction noextract
-fn matmul_gpu_fixed
+fn matmul_gpu
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -281,7 +281,6 @@ fn matmul_gpu_fixed
   {| clayout lA |}
   {| clayout lB |}
   {| clayout lC |}
-  (kk : kernel_fixed_ty et lA lB lC #_ #_ #_)
   (gA : M.gpu_matrix et lA)
   (gB : M.gpu_matrix et lB)
   (gC : M.gpu_matrix et lC)
@@ -311,7 +310,7 @@ fn matmul_gpu_fixed
     size
     #(kpre  #et gA gB gC eA eB 1.0R)
     #(kpost #et gA gB gC eA eB 1.0R)
-    (fun ebid -> kk gA gB gC ebid);
+    (fun ebid -> kernel_fixed _ _ _ gA gB gC ebid);
 
   forevery_rw_size size (rows * cols);
 

@@ -70,7 +70,7 @@ fn matmul
 inline_for_extraction noextract
 let mk_matmul (matmul_gpu : matmul_gpu_ty) : matmul_cpu_ty =
   fun #et #_ #rows #shared #cols #lA #lB #lC a b #sa #sb ->
-    matmul (matmul_gpu et rows shared cols lA lB lC) a b #sa #sb
+    matmul (matmul_gpu #et #_ #rows #shared #cols #lA #lB #lC) a b #sa #sb
 
 inline_for_extraction noextract
 let mk_fixed_repr_matmul
@@ -135,4 +135,37 @@ fn matmul_transpose_gpu
   M.core_match gC gC'';
   rewrite each gC'' as gC;
   ()
+}
+
+inline_for_extraction noextract
+fn specialize_to_type_and_reprs
+  (matmul_gpu : matmul_gpu_ty)
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
+  (#rows #shared : szp) (* concrete args *)
+  (#cols : szp{three_fits rows shared cols})
+  (a : vec et)
+  (b : vec et)
+  (#sa : erased (seq et){ len sa == rows * shared })
+  (#sb : erased (seq et){ len sb == shared * cols })
+  preserves
+    cpu **
+    (a |-> sa) **
+    (b |-> sb)
+  requires
+    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
+       is not needed for all kernels. *)
+    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
+    pure (rows * cols <= max_blocks)
+  returns
+    c : vec et
+  ensures
+    (c |-> to_seq (rC rows cols) <|
+             MS.matmul (from_seq (rA rows shared) sa)
+                       (from_seq (rB shared cols) sb))
+{
+  matmul (matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _)) a b #sa #sb
 }
