@@ -37,10 +37,10 @@ let cview_from_clayout_gg
   (c : clayout4 l)
   : szlt (mrows * mcols * brows * bcols) -> cit l
   = fun x ->
-      let i = c.parent.c_from1 x in
-      let j = c.parent.c_from2 x in
-      let bi, si = s_divmod c.c_brows i in
-      let bj, sj = s_divmod c.c_bcols j in
+      [@@inline_let] let i = c.parent.c_from1 x in
+      [@@inline_let] let j = c.parent.c_from2 x in
+      [@@inline_let] let bi, si = s_divmod c.c_brows i in
+      [@@inline_let] let bj, sj = s_divmod c.c_bcols j in
       (bi, bj, si, sj)
 
 let cview_from_clayout_gg_ff

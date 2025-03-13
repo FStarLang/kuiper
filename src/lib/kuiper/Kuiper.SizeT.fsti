@@ -63,7 +63,7 @@ let s_divmod (j:szp) (i:sz) : dm:(sz & szlt j){SZ.fits (dm._1 * j + dm._2)} =
 inline_for_extraction noextract
 let s_undivmod (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)}) : sz =
   let open FStar.SizeT in
-  let (d, m) = dm in
+  [@@inline_let] let (d, m) = dm in
   d *^ j +^ m
 
 let s_divmod_inv_1 (j:szp) (i:sz)
