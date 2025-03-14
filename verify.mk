@@ -203,6 +203,8 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
+remove__ = $(patsubst %__,%,$1)
+
 $(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
 	$(call msg,"NVLD")
 	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
