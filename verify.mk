@@ -84,12 +84,13 @@ FSTAR_FLAGS += --ext krml_inline_all
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
-FSTAR = $(FSTAR_EXE)					\
-	$(SIL)						\
-	--include pulse/build/ocaml/installed/lib/pulse	\
-	--include pulse/lib/common			\
-	--include pulse/lib/pulse 			\
-	--include src					\
+# abspath is important so the fstar.sh script can be run from anywhere
+FSTAR = $(FSTAR_EXE)							\
+	$(SIL)								\
+	--include $(abspath pulse/build/ocaml/installed/lib/pulse)	\
+	--include $(abspath pulse/lib/common)				\
+	--include $(abspath pulse/lib/pulse)				\
+	--include $(abspath src)					\
 	$(FSTAR_FLAGS)
 
 GPUH := $(realpath include/kuiper.h)

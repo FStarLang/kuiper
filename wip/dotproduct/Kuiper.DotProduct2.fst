@@ -10,8 +10,8 @@ module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 module U64 = FStar.UInt64
 
-module HR = Kuiper.HReduce
-friend Kuiper.HReduce (* use gpu_pts_to_slice, refactor ! *)
+module HR = Kuiper.Poly.HReduce
+friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice, refactor ! *)
 
 let u64_comm_semigroup ()
 : squash (is_comm_semigroup #u64 zero add)

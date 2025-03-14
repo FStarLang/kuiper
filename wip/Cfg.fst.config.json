@@ -1,0 +1,7 @@
+{
+  "fstar_exe": "../fstar.sh",
+  "options": [
+  ],
+  "include_dirs": [
+  ]
+}
