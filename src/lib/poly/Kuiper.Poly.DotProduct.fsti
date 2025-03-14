@@ -1,13 +1,9 @@
-module Kuiper.DotProduct3
+module Kuiper.Poly.DotProduct
 
 #lang-pulse
 
 open Kuiper
 module U64 = FStar.UInt64
-
-(* calling it size means name resolution confusion with Kuiper.Sized.size *)
-inline_for_extraction
-let dp2_size : sz = 1024sz
 
 (* pointwise mul of sequences *)
 let pmul (s1 s2: seq u64)
@@ -19,12 +15,19 @@ let pmul (s1 s2: seq u64)
 
 let sum = Kuiper.Seq.Common.seq_fold_left #u64 add zero
 
-fn main
+fn dotprod
+  (lena : szp{lena <= max_threads})
   (a1 a2: vec u64)
   (v1 v2: erased (seq u64))
-  (#_: squash (len v1 = dp2_size /\ len v2 = dp2_size))
-  preserves cpu ** (a1 |-> v1) ** (a2 |-> v2)
-  requires emp
-  returns  dp: u64
-  ensures  pure (dp == sum (pmul v1 v2))
+  (#_: squash (len v1 == lena /\ len v2 == lena))
+  preserves
+    cpu **
+    (a1 |-> v1) **
+    (a2 |-> v2)
+  requires
+    emp
+  returns 
+    dp: u64
+  ensures
+    pure (dp == sum (pmul v1 v2))
 
