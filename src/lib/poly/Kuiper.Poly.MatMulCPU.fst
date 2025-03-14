@@ -96,9 +96,9 @@ fn matmul_transpose_gpu
   ensures
     gC |-> mtranspose (MS.matmul eA eB)
 {
-  let gC' = GhostTranspose.ghost_transpose1 gC;
+  let gC' = Kuiper.Ghost.Transpose.ghost_transpose1 gC;
   matmul_gpu gA gB gC';
-  let gC'' = GhostTranspose.ghost_transpose2 gC';
+  let gC'' = Kuiper.Ghost.Transpose.ghost_transpose2 gC';
   M.core_match gC gC'';
   rewrite each gC'' as gC;
   ()

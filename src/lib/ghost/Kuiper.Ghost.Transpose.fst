@@ -1,4 +1,4 @@
-module Kuiper.Poly.GhostTranspose
+module Kuiper.Ghost.Transpose
 
 #lang-pulse
 
