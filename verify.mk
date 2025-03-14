@@ -228,7 +228,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
 TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
-TESTS:=$(filter-out Test_Kuiper_Softmax_F16, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_Softmax__F16, $(TESTS))
 # Disable softmax 16. It works fine locally (outside of docker)
 # but fails within in with undefined __hdiv. The nvcc there is slightly
 # older. Suprisignly using / just works, but that fails for other
