@@ -197,6 +197,7 @@ let dp_kernel
 //   ()
 // }
 
+inline_for_extraction noextract
 fn dotprod
   (#et:Type0) {| scalar et |}
   (lena : szp{lena <= max_threads})
@@ -209,7 +210,7 @@ fn dotprod
     (a2 |-> v2)
   requires
     pure (is_comm_semigroup #et zero add)
-  returns 
+  returns
     dp: et
   ensures
     pure (dp == sum (pmul v1 v2))

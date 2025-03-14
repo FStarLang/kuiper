@@ -3,7 +3,7 @@ module Kuiper.Poly.DotProduct
 #lang-pulse
 
 open Kuiper
-module U64 = FStar.UInt64
+module SZ = FStar.SizeT
 
 (* pointwise mul of sequences *)
 let pmul
@@ -15,25 +15,36 @@ let pmul
   = Seq.init_ghost (len s1)
       (fun i -> Seq.index s1 i `mul` Seq.index s2 i)
 
-let sum 
+let sum
   (#et:Type0) {| scalar et |}
   (s : seq et)
   : GTot et
   = Kuiper.Seq.Common.seq_fold_left add zero s
 
-fn dotprod
-  (#et:Type0) {| scalar et |}
-  (lena : szp{lena <= max_threads})
-  (a1 a2: vec et)
-  (v1 v2: erased (seq et))
-  (#_: squash (len v1 == lena /\ len v2 == lena))
-  preserves
-    cpu **
+inline_for_extraction noextract
+type dotprod_ty
+  (et:Type0) {| scalar et |}
+  : Type
+  =
+  (lena : szp{SZ.v lena <= max_threads}) ->
+  (a1 : vec et) ->
+  (a2 : vec et) ->
+  (v1 : erased (seq et)) ->
+  (v2 : erased (seq et)) ->
+  (#_: squash (len v1 == SZ.v lena /\ len v2 == SZ.v lena)) ->
+  stt et
+  (requires
+    (cpu **
     (a1 |-> v1) **
-    (a2 |-> v2)
-  requires
-    pure (is_comm_semigroup #et zero add)
-  returns 
-    dp : et
-  ensures
-    pure (dp == sum (pmul v1 v2))
+    (a2 |-> v2)) **
+    pure (is_comm_semigroup #et zero add))
+  (ensures fun (dp : et) ->
+    (cpu **
+    (a1 |-> v1) **
+    (a2 |-> v2)) **
+    pure (dp == sum (pmul v1 v2)))
+
+inline_for_extraction noextract
+val dotprod
+  (#et:Type0) {| scalar et |}
+  : dotprod_ty et
