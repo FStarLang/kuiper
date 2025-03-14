@@ -6,28 +6,34 @@ open Kuiper
 module U64 = FStar.UInt64
 
 (* pointwise mul of sequences *)
-let pmul (s1 s2: seq u64)
-  : Ghost (seq u64)
+let pmul
+  (#et:Type0) {| scalar et |}
+  (s1 s2: seq et)
+  : Ghost (seq et)
           (requires len s1 == len s2)
           (ensures fun _ -> True)
   = Seq.init_ghost (len s1)
-      (fun i -> U64.mul_mod (Seq.index s1 i) (Seq.index s2 i))
+      (fun i -> Seq.index s1 i `mul` Seq.index s2 i)
 
-let sum = Kuiper.Seq.Common.seq_fold_left #u64 add zero
+let sum 
+  (#et:Type0) {| scalar et |}
+  (s : seq et)
+  : GTot et
+  = Kuiper.Seq.Common.seq_fold_left add zero s
 
 fn dotprod
+  (#et:Type0) {| scalar et |}
   (lena : szp{lena <= max_threads})
-  (a1 a2: vec u64)
-  (v1 v2: erased (seq u64))
+  (a1 a2: vec et)
+  (v1 v2: erased (seq et))
   (#_: squash (len v1 == lena /\ len v2 == lena))
   preserves
     cpu **
     (a1 |-> v1) **
     (a2 |-> v2)
   requires
-    emp
+    pure (is_comm_semigroup #et zero add)
   returns 
-    dp: u64
+    dp : et
   ensures
     pure (dp == sum (pmul v1 v2))
-

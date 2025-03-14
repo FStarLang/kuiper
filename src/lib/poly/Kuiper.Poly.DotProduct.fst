@@ -21,20 +21,18 @@ open Kuiper.IsReduction
 
 module V = Pulse.Lib.Vec
 module SZ = FStar.SizeT
-module U64 = FStar.UInt64
 
 module HR = Kuiper.Poly.HReduce
 friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)
-
-#set-options "--z3rlimit 20"
 
 (* - Mutable permission over single cell in ga1
    - Read permission over same cell in ga2
    - Barrier for operating over ga1. *)
 let kpre
+  (#et:Type0) {| scalar et |}
   (lena : nat)
-  (ga1 ga2 : gpu_array u64 lena)
-  (s1 s2 : erased (seq u64))
+  (ga1 ga2 : gpu_array et lena)
+  (s1 s2 : erased (seq et))
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
@@ -49,9 +47,10 @@ let kpre
     so that is the "contract" that the barrier must use. *)
 
 let kpost
+  (#et:Type0) {| scalar et |}
   (lena : nat)
-  (ga1 ga2 : gpu_array u64 lena)
-  (s1 s2 : erased (seq u64))
+  (ga1 ga2 : gpu_array et lena)
+  (s1 s2 : erased (seq et))
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
@@ -63,9 +62,9 @@ let kpost
 // noextract inline_for_extraction
 // fn fixup
 //   (nth: erased nat { 0 < nth /\ nth <= 1024 })
-//   (ar: gpu_array u64 nth)
-//   (r: gpu_array u64 nth)
-//   (s1 s2: erased (seq u64))
+//   (ar: gpu_array et nth)
+//   (r: gpu_array et nth)
+//   (s1 s2: erased (seq et))
 //   (#_: squash (len s1 = nth /\ len s2 = nth))
 //   (tid: SZ.t { SZ.v tid < nth })
 //   requires gpu **
@@ -86,10 +85,10 @@ let kpost
 //     unfold (HR.gpu_pts_to_slice_sum ar 0 nth dot_v);
 //     if_elim_true (exists* v. HR.gpu_pts_to_slice_sum_inner ar 0 nth dot_v v);
 
-//     let vv = gpu_array_read #u64 #nth #0 #nth ar 0sz; (* CONCRETE STEP *)
+//     let vv = gpu_array_read #et #nth #0 #nth ar 0sz; (* CONCRETE STEP *)
 //     with cv. assert (gpu_pts_to_array r cv);
 //     gpu_pts_to_ref r;
-//     gpu_array_write #u64 #nth #0 #nth r 0sz vv; (* CONCRETE STEP *)
+//     gpu_array_write #et #nth #0 #nth r 0sz vv; (* CONCRETE STEP *)
 
 //     with v1. assert (gpu_pts_to_slice ar 0 nth v1);
 //     // assert (pure (Seq.index v1 0 == HR.sum dot_v));
@@ -115,9 +114,10 @@ let kpost
 
 inline_for_extraction noextract
 fn kf
+  (#et:Type0) {| scalar et |}
   (lena : szp{lena <= max_threads})
-  (ga1 ga2 : gpu_array u64 lena)
-  (#s1 #s2 : erased (seq u64))
+  (ga1 ga2 : gpu_array et lena)
+  (#s1 #s2 : erased (seq et))
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (etid : enatlt lena)
   ()
@@ -133,12 +133,12 @@ fn kf
   let tid = get_tid (); rewrite each etid as tid;
   (**)unfold (kpre lena ga1 ga2 s1 s2 tid);
 
-  let v1 = gpu_array_read #u64 #(SZ.v lena) #tid #(tid + 1) ga1 tid #_;
-  let v2 = gpu_array_read #u64 #(SZ.v lena) #tid #(tid + 1) ga2 tid #_;
+  let v1 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga1 tid #_;
+  let v2 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga2 tid #_;
 
-  let vm = U64.mul_mod v1 v2;
+  let vm = mul v1 v2;
 
-  gpu_array_write #u64 #(SZ.v lena) #(SZ.v tid) #(hide (SZ.v tid+1)) ga1 tid vm;
+  gpu_array_write #et #(SZ.v lena) #(SZ.v tid) #(hide (SZ.v tid+1)) ga1 tid vm;
 
   (* Convince the SMT solver that these sequences are equal *)
   with s'.
@@ -154,9 +154,10 @@ fn kf
 
 inline_for_extraction noextract
 let dp_kernel
+  (#et:Type0) {| scalar et |}
   (lena : szp{SZ.v lena <= max_threads})
-  (ga1 ga2 : gpu_array u64 lena)
-  (#s1 #s2 : erased (seq u64))
+  (ga1 ga2 : gpu_array et lena)
+  (#s1 #s2 : erased (seq et))
   (#_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   : kernel_desc
       ((ga2 |-> s2) ** (ga1 |-> s1))
@@ -178,12 +179,12 @@ let dp_kernel
 // ghost
 // fn setup
 //   (nthr: nat { 0 < nthr /\ nthr <= 1024 })
-//   (ear: gpu_array u64 nthr)
+//   (ear: gpu_array et nthr)
 //   (bid: nat)
-//   (gr: gpu_array u64 nthr)
-//   (s1 s2: erased (seq u64))
+//   (gr: gpu_array et nthr)
+//   (s1 s2: erased (seq et))
 //   (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
-//   requires block_setup_tok nthr ** (exists* v. gpu_pts_to_array #u64 #nthr ear #1.0R v)
+//   requires block_setup_tok nthr ** (exists* v. gpu_pts_to_array #et #nthr ear #1.0R v)
 //   ensures  block_setup_tok nthr ** (forall+ (tid : natlt nthr). shared_pre nthr ear gr s1 s2 0 0 tid)
 // {
 //   mk_mbarrier nthr (HR.barrier_matrix nthr ear (pmul s1 s2));
@@ -196,23 +197,20 @@ let dp_kernel
 //   ()
 // }
 
-let u64_comm_semigroup ()
-: squash (is_comm_semigroup #u64 zero add)
-= admit()
-
 fn dotprod
+  (#et:Type0) {| scalar et |}
   (lena : szp{lena <= max_threads})
-  (a1 a2: vec u64)
-  (v1 v2: erased (seq u64))
+  (a1 a2: vec et)
+  (v1 v2: erased (seq et))
   (#_: squash (len v1 == lena /\ len v2 == lena))
   preserves
     cpu **
     (a1 |-> v1) **
     (a2 |-> v2)
   requires
-    emp
+    pure (is_comm_semigroup #et zero add)
   returns 
-    dp: u64
+    dp: et
   ensures
     pure (dp == sum (pmul v1 v2))
 {
@@ -220,10 +218,10 @@ fn dotprod
   Pulse.Lib.Vec.pts_to_len a2;
 
   (* swap space *)
-  let ar = V.alloc #u64 0UL 1sz;
+  let ar = V.alloc #et zero 1sz;
 
-  let ga1 = gpu_array_alloc #u64 lena;
-  let ga2 = gpu_array_alloc #u64 lena;
+  let ga1 = gpu_array_alloc #et lena;
+  let ga2 = gpu_array_alloc #et lena;
 
   Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 lena;
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 lena;
@@ -246,7 +244,6 @@ fn dotprod
   let dp = ar.(0sz);
 
   (* Finally, ensure that the reduction must be sum *)
-  u64_comm_semigroup ();
   Kuiper.IsReduction.ac_eq_foldl zero add (pmul v1 v2) dp;
 
   V.free ar;
