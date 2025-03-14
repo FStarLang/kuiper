@@ -57,7 +57,7 @@ let kpre
   (i:iname)
   (tid : natlt nn)
 =
-  gref_pts_to (done @! tid) #0.5R false  **
+  gref_pts_to (done @! tid) #0.5R false **
   inv i (inv_p nn a v_a r done)
 
 unfold
@@ -103,42 +103,25 @@ val contributions_lemma
           (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op v_r (v_a @! tid)) acc)
           [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op v_r (v_a @! tid)) acc)]
 
-type kernel_ty (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
-  (n: erased SZ.t) ->
-  (a : gpu_array et (SZ.v n)) ->
-  (r : gpu_ref et) ->
-  (done : erased (seq (gref bool)){len done == reveal (SZ.v n)}) ->
-  (i : iname) ->
-  (v_a : erased (seq et)) ->
-  (ebid : enatlt (SZ.v n)) ->
-  stt unit
-  (requires
-    gpu **
-    block_id (SZ.v n) ebid **
-    kpre  (SZ.v n) a v_a r done i ebid)
-  (ensures fun _ ->
-    gpu **
-    block_id (SZ.v n) ebid **
-    kpost (SZ.v n) a v_a r done i ebid)
-
 inline_for_extraction noextract
-fn kernel
+fn kf
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (nn: erased SZ.t)
+  (#nn: SZ.t)
   (a : gpu_array et (SZ.v nn))
+  (#v_a : erased (seq et))
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
-  (v_a : erased (seq et))
   (ebid : enatlt (SZ.v nn))
+  ()
   requires
     gpu **
-    block_id (SZ.v nn) ebid **
-    kpre (SZ.v nn) a v_a r done i ebid
+    kpre (SZ.v nn) a v_a r done i ebid **
+    block_id (SZ.v nn) ebid
   ensures
     gpu **
-    block_id (SZ.v nn) ebid **
-    kpost (SZ.v nn) a v_a r done i ebid
+    kpost (SZ.v nn) a v_a r done i ebid **
+    block_id (SZ.v nn) ebid
 {
   assume (pure (len v_a == reveal nn));
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
@@ -251,9 +234,38 @@ fn teardown
 }
 
 inline_for_extraction noextract
+let kdesc
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (n : szp{n < max_blocks})
+  (a : gpu_array et n)
+  (#f : perm)
+  (#v_a : erased (seq et))
+  (r : gpu_ref et)
+  (#r0 : erased et)
+  (* FIXME: these two arguments should be created by the setup 
+     and passed to each block. We should extend the kernel_desc
+     to allow for that. *)
+  (done : erased (seq (gref bool)){len done == SZ.v n})
+  (i : iname)
+: kernel_desc
+    (gpu_pts_to_array a #f v_a **
+      (r |-> r0))
+    (gpu_pts_to_array a #f v_a **
+      (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a))
+ = {
+  nblk = n;
+  f = kf a #v_a r done i;
+  setup = magic();
+  teardown = magic();
+  kpre  = kpre  n a v_a r done i;
+  kpost = kpost n a v_a r done i;
+  frame = emp;
+} <: kernel_desc_m_1 _ _
+
+inline_for_extraction noextract
 fn reduce
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (n : sz)
+  (n : szp {n < max_blocks})
   (a : gpu_array et n)
   (#f : perm)
   (#v_a : erased (seq et))
@@ -269,41 +281,33 @@ fn reduce
     gpu_pts_to_array a #f v_a **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
-  (* RESTORE *)
-  admit();
-  // let mut r = zero #et #_;
-  // let gr = gpu_alloc0 #et ();
-  // Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
+  let mut r = zero #et #_;
+  let gr = gpu_alloc0 #et ();
+  Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
 
-  // with v. assert (pts_to r v);
-  // assert (pure (v == zero));
+  with v. assert (pts_to r v);
+  assert (pure (v == zero));
 
-  // assert (pure (n < max_blocks));
-
-  // // assert (gpu_pts_to gr #1.0R 0uL);
-
-  // // pack (x,y) as p?
-  // // let p = (x, y);
-  // // rewrite each x as p._1;
-  // // rewrite each y as p._2;
-  // // pack Inl x as o;
+  assert (pure (n < max_blocks));
 
   // let i_done = setup n a gr;
   // let i = (i_done)._1;
   // let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
   // rewrite each i_done as (i, done) by (tadmit());
-  // // New fancy syntax, does not extract
-  // // let Mktuple2 i done = setup n a gr;
-  // // The problem is essentially https://github.com/FStarLang/pulse/issues/93.
-  // // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
-  // // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
+  // New fancy syntax, does not extract
+  // let Mktuple2 i done = setup n a gr;
+  // The problem is essentially https://github.com/FStarLang/pulse/issues/93.
+  // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
+  // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
 
   // W.elim_with_pure (len done == SZ.v n) _;
 
-  // assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
+  let done = magic #(erased (seq (gref bool))) ();
+  let i    = magic #iname ();
+  assume (pure (len done == SZ.v n));
+  // (done : erased (seq (gref bool)){len done == SZ.v n})
 
-  // forevery_fromstar #(natlt (SZ.v n))
-  //   (kpre (SZ.v n) a v_a gr done i);
+  launch_sync (kdesc n a #f #v_a gr #(zero #et) done i);
 
   // launch_kernel_n_blocks n
   //   #(kpre  (SZ.v n) a v_a gr done i)
@@ -315,12 +319,12 @@ fn reduce
 
   // teardown n a #f #v_a gr i done;
 
-  // Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
+  Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
 
-  // Kuiper.Ref.gpu_free gr;
+  Kuiper.Ref.gpu_free gr;
 
-  // let v = !r;
-  // v
+  let v = !r;
+  v
 }
 
 

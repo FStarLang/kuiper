@@ -27,14 +27,14 @@ uint64_t atomic_add_u64(uint64_t *p, uint64_t v)
 
 __device__
 static inline
-float atomic_add_u64(float *p, float v)
+float atomic_add_f32(float *p, float v)
 {
 	return atomicAdd(p, v);
 }
 
 __device__
 static inline
-double atomic_add_u64(double* address, double val)
+double atomic_add_f64(double* address, double val)
 {
 	// FIXME: We're lucky here that there is an implementation for arch<600,
 	// but we should probably model GPU compute capabilities in the Pulse code.

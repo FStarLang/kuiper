@@ -243,7 +243,6 @@ TESTS:=$(filter-out Test_Kuiper_MatMulTileF32, $(TESTS))
 TESTS:=$(filter-out Test_Kuiper_DotProduct, $(TESTS))
 TESTS:=$(filter-out Test_Kuiper_DotProduct2, $(TESTS))
 TESTS:=$(filter-out Test_Kuiper_DotProduct3, $(TESTS))
-TESTS:=$(filter-out Test_Kuiper_AtomicReduce_U64, $(TESTS))
 
 extraction-targets: obj/Kuiper_ArrayView_Test1.cu
 extraction-targets: obj/Kuiper_Example1.cu

@@ -10,19 +10,9 @@ open Kuiper.Atomics
 module SZ = FStar.SizeT
 
 inline_for_extraction noextract
-val kernel_ty
-  (et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  : Type0
-
-inline_for_extraction noextract
-val kernel
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  : kernel_ty et
-
-unfold
 type reduce_ty
   (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
-  (n : sz) ->
+  (n : szp{n < max_blocks}) ->
   (a : gpu_array et n) ->
   (#f : perm) ->
   (#v_a : erased (seq et)) ->
@@ -39,5 +29,5 @@ type reduce_ty
 
 inline_for_extraction noextract
 val reduce
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  : reduce_ty et #_ #_
+  (#et : Type0) {| scalar et |} {| has_atomic_add et |}
+  : reduce_ty et
