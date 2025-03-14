@@ -203,9 +203,11 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
-remove__ = $(patsubst %__,%,$1)
+remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
-$(OUTDIR)/%.exe: $(OUTDIR)/%.o test/Test_%.cu
+# argh
+.SECONDEXPANSION:
+$(OUTDIR)/%.exe: $(OUTDIR)/$$(call remove__, %).o test/%.cu
 	$(call msg,"NVLD")
 	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
 
@@ -224,7 +226,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(call msg,"ACCEPT")
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
-TESTS+=$(patsubst Test_%,%,$(notdir $(basename $(wildcard test/*.cu))))
+TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
 TESTS:=$(filter-out Kuiper_Softmax_F16, $(TESTS))
 # Disable softmax 16. It works fine locally (outside of docker)
 # but fails within in with undefined __hdiv. The nvcc there is slightly
@@ -233,25 +235,24 @@ TESTS:=$(filter-out Kuiper_Softmax_F16, $(TESTS))
 # the correct feature flags or whatever.
 
 # matmultile is WIP
-TESTS:=$(filter-out Kuiper_MatMulTile_Async, $(TESTS))
-TESTS:=$(filter-out Kuiper_MatMulTile, $(TESTS))
-TESTS:=$(filter-out Kuiper_MatMulTileF32, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_MatMulTile_Async, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_MatMulTile, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_MatMulTileF32, $(TESTS))
 
 # restore using poly impl
-TESTS:=$(filter-out Kuiper_DotProduct, $(TESTS))
-TESTS:=$(filter-out Kuiper_DotProduct2, $(TESTS))
-TESTS:=$(filter-out Kuiper_DotProduct3, $(TESTS))
-TESTS:=$(filter-out Kuiper_AtomicReduce_U64, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_DotProduct, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_DotProduct2, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_DotProduct3, $(TESTS))
+TESTS:=$(filter-out Test_Kuiper_AtomicReduce_U64, $(TESTS))
 
-extraction-targets: \
-	obj/Kuiper_ArrayView_Test1.cu \
-	obj/Kuiper_Example1.exe \
-	$(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst)))) \
-	$(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst)))) \
-	$(patsubst %,obj/%.exe,$(TESTS))
+extraction-targets: obj/Kuiper_ArrayView_Test1.cu
+extraction-targets: obj/Kuiper_Example1.cu
+extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst))))
+extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst))))
+extraction-targets: $(patsubst %,obj/%.exe,$(TESTS))
 
 # ^ nasty
-	# obj/Kuiper_MatMulTileF32_Async.cu \
+# obj/Kuiper_MatMulTileF32_Async.cu
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))

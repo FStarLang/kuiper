@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "Kuiper_HReduce_U64Plus.h"
+#include "Kuiper_HReduce.h"
 
 /* It would be nicer to write a purely-Pulse test. */
 int main()
 {
 	uint64_t *a;
 	uint64_t *ga;
-	const size_t siz = Kuiper_HReduce_U64Plus_size;
+	const size_t siz = 1024;
 
 	a = (uint64_t*)malloc(siz * sizeof(uint64_t));
 	ga = (uint64_t*)KPR_GPU_ALLOC(siz * sizeof(uint64_t));
@@ -19,7 +19,7 @@ int main()
 
 	MUST(cudaMemcpy(ga, a, siz * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-	Kuiper_HReduce_U64Plus_reduce(siz, ga);
+	Kuiper_HReduce_reduce_u64_plus(siz, ga);
 
 	MUST(cudaMemcpy(a, ga, siz * sizeof(uint64_t), cudaMemcpyDeviceToHost));
 	MUST(cudaFree(ga));

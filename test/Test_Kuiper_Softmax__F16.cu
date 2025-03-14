@@ -1,4 +1,4 @@
-#include "Kuiper_Softmax_F16.h"
+#include "Kuiper_Softmax.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -13,7 +13,7 @@ int main(int argc, char **argv)
                 for (j = 0; j < i; j++) {
                         arr[j] = j;
                 }
-                Kuiper_Softmax_F16_softmax(i, arr);
+                Kuiper_Softmax_softmax_f16(i, arr);
                 for (j = 0; j < i; j++) {
                         printf("%f,", __half2float(arr[j]));
                 }

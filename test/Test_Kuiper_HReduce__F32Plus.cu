@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "Kuiper_HReduce_F32Plus.h"
+#include "Kuiper_HReduce.h"
 
 /* It would be nicer to write a purely-Pulse test. */
 int main()
 {
 	float *a;
 	float *ga;
-	const size_t siz = Kuiper_HReduce_F32Plus_size;
+	const size_t siz = 1024;
 
 	a = (float*)malloc(siz * sizeof(float));
 	ga = (float*)KPR_GPU_ALLOC(siz * sizeof(float));
@@ -19,7 +19,7 @@ int main()
 
 	MUST(cudaMemcpy(ga, a, siz * sizeof(float), cudaMemcpyHostToDevice));
 
-	Kuiper_HReduce_F32Plus_reduce(siz, ga);
+	Kuiper_HReduce_reduce_f32_plus(siz, ga);
 
 	MUST(cudaMemcpy(a, ga, siz * sizeof(float), cudaMemcpyDeviceToHost));
 	MUST(cudaFree(ga));
