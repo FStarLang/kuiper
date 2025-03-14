@@ -219,7 +219,7 @@ test/%.output.expected:
 	$(error You need to create the '$@' file)
 
 $(OUTDIR)/%.test: $(OUTDIR)/%.output test/%.output.expected
-	./scripts/diff.sh -u $^
+	./scripts/diff.sh $^
 	$(call msg,"TEST OK")
 	@touch $@
 
