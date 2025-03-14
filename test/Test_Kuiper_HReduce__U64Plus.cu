@@ -9,8 +9,8 @@ int main()
 	uint64_t *ga;
 	const size_t siz = 1024;
 
-	a = (uint64_t*)malloc(siz * sizeof(uint64_t));
-	ga = (uint64_t*)KPR_GPU_ALLOC(siz * sizeof(uint64_t));
+	a = (uint64_t *) malloc(siz * sizeof(uint64_t));
+	ga = (uint64_t *) KPR_GPU_ALLOC(siz * sizeof(uint64_t));
 
 	int i;
 

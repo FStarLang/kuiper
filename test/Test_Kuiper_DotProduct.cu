@@ -4,6 +4,6 @@
 
 int main()
 {
-	Kuiper_DotProduct_main ();
+	Kuiper_DotProduct_main();
 	return 0;
 }
