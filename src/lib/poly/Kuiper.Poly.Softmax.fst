@@ -135,8 +135,6 @@ fn softmax_gpu
   (* Pointwise exponentiation. *)
   launch_sync (kexp lena a);
 
-  (* Reduce to sum. *)
-
   (* Compute average. Need swap space since hreduce trashes the input. *)
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
