@@ -40,5 +40,4 @@ type reduce_ty
 inline_for_extraction noextract
 val reduce
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (k : kernel_ty et #_ #_)
   : reduce_ty et #_ #_

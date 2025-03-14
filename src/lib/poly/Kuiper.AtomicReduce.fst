@@ -121,7 +121,6 @@ type kernel_ty (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
     block_id (SZ.v n) ebid **
     kpost (SZ.v n) a v_a r done i ebid)
 
-[@@CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
@@ -132,8 +131,14 @@ fn kernel
   (i : iname)
   (v_a : erased (seq et))
   (ebid : enatlt (SZ.v nn))
-  requires gpu ** block_id (SZ.v nn) ebid ** kpre  (SZ.v nn) a v_a r done i ebid
-  ensures  gpu ** block_id (SZ.v nn) ebid ** kpost (SZ.v nn) a v_a r done i ebid
+  requires
+    gpu **
+    block_id (SZ.v nn) ebid **
+    kpre (SZ.v nn) a v_a r done i ebid
+  ensures
+    gpu **
+    block_id (SZ.v nn) ebid **
+    kpost (SZ.v nn) a v_a r done i ebid
 {
   assume (pure (len v_a == reveal nn));
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
@@ -248,7 +253,6 @@ fn teardown
 inline_for_extraction noextract
 fn reduce
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (k : kernel_ty et #_ #_)
   (n : sz)
   (a : gpu_array et n)
   (#f : perm)

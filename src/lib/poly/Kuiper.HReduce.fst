@@ -138,11 +138,6 @@ let kpost
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s) **
     (exists* it. mbarrier_tok lena (barrier_matrix lena a s) it tid)
 
-// KrmlPrivate is essentially a "noextract". F* usually adds it
-// automatically to any definition that does not appear in the fsti,
-// but we have disable that since it interoperates poorly with pulse
-// (due to splicing).
-[@@CPrologue "__device__"; "KrmlPrivate"]
 inline_for_extraction
 fn iteration
   (#et:Type0) {| scalar et |}
