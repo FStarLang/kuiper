@@ -28,35 +28,21 @@ fn arr_read_1
   x;
 }
 
-type k_pointwise_exp_ty
-  (et:Type0) {| floating et |} =
-  (#lena : erased nat) ->
-  (a : gpu_array et lena) ->
-  (ebid : enatlt lena) ->
-  stt unit
-  (requires
-    gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid)
-  (ensures fun _ ->
-    gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid)
-
 inline_for_extraction noextract
-fn k_pointwise_exp
+fn kf_exp
   (#et : Type0) {| floating et |}
   (#lena : erased nat)
   (a : gpu_array et lena)
   (ebid : enatlt lena)
+  ()
   requires
     gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid
+    gpu_pts_to_array1 a ebid **
+    block_id lena ebid
   ensures
     gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid
+    gpu_pts_to_array1 a ebid **
+    block_id lena ebid
 {
   let i = get_bid ();
   assert (pure (i < lena));
@@ -69,37 +55,41 @@ fn k_pointwise_exp
   ()
 }
 
-type k_pointwise_div_ty
-  (et:Type0) {| floating et |} =
-  (#lena : erased nat) ->
-  (a : gpu_array et lena) ->
-  (d : et) ->
-  (ebid : enatlt lena) ->
-  stt unit
-  (requires
-    gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid)
-  (ensures fun _ ->
-    gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid)
+inline_for_extraction noextract
+let kexp 
+  (#et : Type0) {| floating et |}
+  (lena : szp{ lena < max_blocks })
+  (a : gpu_array et lena)
+: kernel_desc
+    (exists* s. gpu_pts_to_array a #1.0R s)
+    (exists* s. gpu_pts_to_array a #1.0R s) =
+{
+  nblk = lena;
+  f = kf_exp a;
+
+  teardown = magic();
+  setup = magic ();
+  kpre =  gpu_pts_to_array1 a #1.0R;
+  kpost = gpu_pts_to_array1 a #1.0R;
+  frame = emp;
+} <: kernel_desc_m_1 _ _
 
 inline_for_extraction noextract
-fn k_pointwise_div
+fn kf_div
   (#et : Type0) {| floating et |}
   (#lena : erased nat)
   (a : gpu_array et lena)
   (d : et)
   (ebid : enatlt lena)
+  ()
   requires
     gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid
+    gpu_pts_to_array1 a ebid **
+    block_id lena ebid
   ensures
     gpu **
-    block_id lena ebid **
-    gpu_pts_to_array1 a ebid
+    gpu_pts_to_array1 a ebid **
+    block_id lena ebid
 {
   let i = get_bid ();
   assert (pure (i < lena));
@@ -113,6 +103,26 @@ fn k_pointwise_div
 }
 
 inline_for_extraction noextract
+let kdiv
+  (#et : Type0) {| floating et |}
+  (lena : szp{ lena < max_blocks })
+  (a : gpu_array et lena)
+  (d : et)
+: kernel_desc
+    (exists* s. gpu_pts_to_array a #1.0R s)
+    (exists* s. gpu_pts_to_array a #1.0R s) =
+{
+  nblk = lena;
+  f = kf_div a d;
+
+  teardown = magic();
+  setup = magic ();
+  kpre =  gpu_pts_to_array1 a #1.0R;
+  kpost = gpu_pts_to_array1 a #1.0R;
+  frame = emp;
+} <: kernel_desc_m_1 _ _
+
+inline_for_extraction noextract
 fn softmax_gpu
   (#et : Type0) {| floating et |}
   (#lena : szp { lena < max_threads })
@@ -120,57 +130,24 @@ fn softmax_gpu
   requires cpu ** gpu_pts_to_array a 'va ** pure (lena > 0 /\ lena <= max_blocks)
   ensures  cpu ** (exists* v'. gpu_pts_to_array a v')
 {
-  (* RESTORE *)
-  admit();
+  gpu_pts_to_ref a; (* recall length, automate *)
 
-  // gpu_pts_to_ref a; (* recall length, automate *)
-  // // FIXME: Annotating this should NOT be needed.
-  // // Even more basic: eta-expanding the post makes the unslicing fail.
-  // // Fix by adding a match_via binder_attribute on the bigstar?
-  // (* Call exp on every element. *)
-  // Array.gpu_array_slice_1_underspec a;
+  (* Pointwise exponentiation. *)
+  launch_sync (kexp lena a);
 
-  // forevery_fromstar #(natlt lena)
-  //   (fun bid -> gpu_pts_to_array1 a bid);
+  (* Reduce to sum. *)
 
-  // launch_kernel_n_blocks
-  //   lena
-  //   #(fun bid -> gpu_pts_to_array1 a bid)
-  //   #(gpu_pts_to_array1 a)
-  //   (fun ebid -> kexp #(SZ.v lena) a ebid);
+  (* Compute average. Need swap space since hreduce trashes the input. *)
+  let a' = Array.gpu_array_alloc #et lena;
+  gpu_memcpy_device_to_device a' a lena;
+  Kuiper.Poly.HReduce.reduce lena a';
+  let avg = arr_read_1 zero (lena <: szp) (a' <: gpu_array et lena);
+  gpu_array_free a';
 
-  // forevery_tostar #(natlt lena)
-  //   (fun i -> gpu_pts_to_array1 a i);
-  // rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)
-  //      as bigstar 0 lena (gpu_pts_to_array1 a);
+  (* Divide by average *)
+  launch_sync (kdiv lena a avg);
 
-  // (* Reduce to sum. *)
-
-  // Array.gpu_array_unslice_1_underspec a;
-
-  // (* Compute average. Need swap space. *)
-  // let a' = Array.gpu_array_alloc #et lena;
-  // gpu_memcpy_device_to_device a' a lena;
-  // Kuiper.HReduce.reduce kreduce lena a';
-  // let avg = arr_read_1 zero (lena <: szp) (a' <: gpu_array et lena);
-  // gpu_array_free a';
-
-  // (* Divide by average *)
-  // Array.gpu_array_slice_1_underspec a;
-  // forevery_fromstar #(natlt lena)
-  //   (fun bid -> gpu_pts_to_array1 a bid);
-  // launch_kernel_n_blocks
-  //   lena
-  //   #(fun bid -> gpu_pts_to_array1 a bid)
-  //   #(gpu_pts_to_array1 a)
-  //    (fun ebid -> kdiv #(SZ.v lena) a avg ebid);
-  // forevery_tostar #(natlt lena)
-  //   (fun i -> gpu_pts_to_array1 a i);
-  // rewrite bigstar 0 lena (fun i -> gpu_pts_to_array1 a i)
-  //      as bigstar 0 lena (gpu_pts_to_array1 a);
-  // Array.gpu_array_unslice_1_underspec a;
-
-  // ()
+  ()
 }
 
 inline_for_extraction noextract
