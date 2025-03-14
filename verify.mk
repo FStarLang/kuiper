@@ -241,11 +241,6 @@ NOTEST += Test_Kuiper_MatMulTile_Async
 NOTEST += Test_Kuiper_MatMulTile
 NOTEST += Test_Kuiper_MatMulTileF32
 
-# restore using poly impl
-NOTEST += Test_Kuiper_DotProduct
-NOTEST += Test_Kuiper_DotProduct2
-NOTEST += Test_Kuiper_DotProduct3
-
 TESTS := $(filter-out $(NOTEST), $(TESTS))
 
 # Extract everything in src/examples
