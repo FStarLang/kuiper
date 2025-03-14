@@ -1,7 +1,13 @@
 module Kuiper.IsReduction
 
+open Pulse.Lib.Core
 open Kuiper.Functions
 open FStar.Seq
+open Kuiper.Scalars
+open Kuiper.Seq.Common
+open Kuiper.Len
+open Kuiper.Array
+open Kuiper.Conditional
 
 val is_permutation (#a:Type) (s1 s2 : seq a) : prop
 
@@ -45,3 +51,32 @@ val op_is_reduction
 : Lemma (requires is_reduction z f s1 r1 /\ is_reduction z f s2 r2)
         (ensures is_reduction z f (s1 `Seq.append` s2) (f r1 r2))
         [SMTPat (is_reduction z f (s1 `Seq.append` s2) (f r1 r2))]
+
+
+(* Ownership of array r between i and j. The first value of that slice
+is the reduction of all the values in the (original) slice v. *)
+unfold
+let gpu_pts_to_slice_sum_inner
+  (#et:Type0) {| scalar et |}
+  (#sz:nat)
+  (r : gpu_array et sz)
+  (i j :nat)
+  (v : seq et)
+  (s : seq et)
+: slprop
+= gpu_pts_to_slice r i j s
+  ** pure (i < j /\ j <= sz /\
+           len v = sz /\
+           len s = j - i /\
+           squash (is_reduction zero add (Seq.slice v i j) (s @! 0))) // SQUASH VERY IMPORTANT!!
+
+(* Not easy to mark this unfold as it has a lambda (in the exists) *)
+let gpu_pts_to_slice_sum
+  (#et:Type0) {| scalar et |}
+  (#sz:nat)
+  ([@@@mkey] r: gpu_array et sz)
+  ([@@@mkey] i : nat)
+  (j:nat)
+  (v: seq et)
+: slprop
+= if_ (i < j && j <= sz) (exists* s. gpu_pts_to_slice_sum_inner r i j v s)
