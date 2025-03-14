@@ -217,8 +217,8 @@ $(OUTDIR)/%.output: $(OUTDIR)/%.exe
 test/%.output.expected:
 	$(error You need to create the '$@' file)
 
-$(OUTDIR)/%.test: test/%.output.expected $(OUTDIR)/%.output
-	$(Q)diff -u $^
+$(OUTDIR)/%.test: $(OUTDIR)/%.output test/%.output.expected
+	./scripts/diff.sh -u $^
 	$(call msg,"TEST OK")
 	@touch $@
 
