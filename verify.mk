@@ -228,7 +228,8 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
 TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
-TESTS:=$(filter-out Test_Kuiper_Softmax__F16, $(TESTS))
+
+NOTEST += Test_Kuiper_Softmax__F16
 # Disable softmax 16. It works fine locally (outside of docker)
 # but fails within in with undefined __hdiv. The nvcc there is slightly
 # older. Suprisignly using / just works, but that fails for other
@@ -236,19 +237,22 @@ TESTS:=$(filter-out Test_Kuiper_Softmax__F16, $(TESTS))
 # the correct feature flags or whatever.
 
 # matmultile is WIP
-TESTS:=$(filter-out Test_Kuiper_MatMulTile_Async, $(TESTS))
-TESTS:=$(filter-out Test_Kuiper_MatMulTile, $(TESTS))
-TESTS:=$(filter-out Test_Kuiper_MatMulTileF32, $(TESTS))
+NOTEST += Test_Kuiper_MatMulTile_Async
+NOTEST += Test_Kuiper_MatMulTile
+NOTEST += Test_Kuiper_MatMulTileF32
 
 # restore using poly impl
-TESTS:=$(filter-out Test_Kuiper_DotProduct, $(TESTS))
-TESTS:=$(filter-out Test_Kuiper_DotProduct2, $(TESTS))
-TESTS:=$(filter-out Test_Kuiper_DotProduct3, $(TESTS))
+NOTEST += Test_Kuiper_DotProduct
+NOTEST += Test_Kuiper_DotProduct2
+NOTEST += Test_Kuiper_DotProduct3
 
-extraction-targets: obj/Kuiper_ArrayView_Test1.cu
-extraction-targets: obj/Kuiper_Example1.cu
+TESTS := $(filter-out $(NOTEST), $(TESTS))
+
+# Extract everything in src/examples
 extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst))))
+# Extract everything in src/lib/inst, they are the C api for the library
 extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst))))
+# *Build* every executable in test/, we can do this without a GPU
 extraction-targets: $(patsubst %,obj/%.exe,$(TESTS))
 
 # ^ nasty
@@ -256,5 +260,6 @@ extraction-targets: $(patsubst %,obj/%.exe,$(TESTS))
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
+
 .PHONY: accept
 accept: $(patsubst %,$(OUTDIR)/%.accept,$(TESTS))
