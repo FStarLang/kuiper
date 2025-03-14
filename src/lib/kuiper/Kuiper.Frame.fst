@@ -38,7 +38,7 @@ ghost fn emp_elim  (#f:slprop) ()
   { () }
 ghost fn emp_intro (#f:slprop) ()
   requires f
-  ensures  emp ** f 
+  ensures  emp ** f
   { () }
 ghost fn emp_elim_r  (#f:slprop) ()
   requires f ** emp

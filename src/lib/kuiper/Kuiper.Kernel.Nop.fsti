@@ -7,7 +7,6 @@ open FStar.Ghost
 open Kuiper.IntAliases
 open Kuiper.Array
 open Kuiper.Base
-module SZ = FStar.SizeT
 open Kuiper.ForEvery
 
 open Kuiper.Kernel.Desc

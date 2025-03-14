@@ -56,7 +56,7 @@ fn kf_exp
 }
 
 inline_for_extraction noextract
-let kexp 
+let kexp
   (#et : Type0) {| floating et |}
   (lena : szp{ lena < max_blocks })
   (a : gpu_array et lena)

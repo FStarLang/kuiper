@@ -255,7 +255,7 @@ let kdesc
 
   kpre  = kpre gA gB gC eA eB 1.0R;
   kpost = kpost gA gB gC eA eB 1.0R;
-  
+
   f = kernel gA gB gC #eA #eB #1.0R;
 }
 

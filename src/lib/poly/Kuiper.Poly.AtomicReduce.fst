@@ -242,7 +242,7 @@ let kdesc
   (#v_a : erased (seq et))
   (r : gpu_ref et)
   (#r0 : erased et)
-  (* FIXME: these two arguments should be created by the setup 
+  (* FIXME: these two arguments should be created by the setup
      and passed to each block. We should extend the kernel_desc
      to allow for that. *)
   (done : erased (seq (gref bool)){len done == SZ.v n})

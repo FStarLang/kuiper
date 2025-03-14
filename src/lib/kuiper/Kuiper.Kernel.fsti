@@ -44,7 +44,7 @@ there is no reason to), and will then fail to find an instance. *)
 
 // (* A class for different configurations that can be launched. *)
 // [@@fundeps [1;2]]
-// class launchable (t : Type) (full_pre full_post : slprop) = { 
+// class launchable (t : Type) (full_pre full_post : slprop) = {
 //   [@@@no_method] cast : t -> kernel_desc full_pre full_post;
 // }
 

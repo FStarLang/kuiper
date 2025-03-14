@@ -7,7 +7,6 @@ open Kuiper.Common
 open Kuiper.ForEvery
 open Kuiper.Base
 open Kuiper.Kernel.Desc
-module SZ = FStar.SizeT
 
 [@@coercion]
 inline_for_extraction noextract
