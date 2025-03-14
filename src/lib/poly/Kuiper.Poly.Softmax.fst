@@ -12,7 +12,7 @@ inline_for_extraction noextract
 fn arr_read_1
   (#et : Type0) {| sized et |}
   (init : et) // silly
-  (len : erased nat)
+  (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
   requires cpu ** gpu_pts_to_array a #f 'va ** pure (len > 0)
@@ -139,7 +139,7 @@ fn softmax_gpu
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
   Kuiper.Poly.HReduce.reduce lena a';
-  let avg = arr_read_1 zero (lena <: szp) (a' <: gpu_array et lena);
+  let avg = arr_read_1 zero a';
   gpu_array_free a';
 
   (* Divide by average *)
@@ -157,9 +157,9 @@ fn softmax
   ensures  cpu ** (exists* v'. a |-> v')
 {
   let ga = Array.gpu_array_alloc #et lena;
-  Array.gpu_memcpy_host_to_device #et ga a lena;
+  Array.gpu_memcpy_host_to_device ga a lena;
   softmax_gpu ga;
-  gpu_memcpy_device_to_host #et #_ a ga lena;
+  gpu_memcpy_device_to_host a ga lena;
   Array.gpu_array_free ga;
   ();
 }
