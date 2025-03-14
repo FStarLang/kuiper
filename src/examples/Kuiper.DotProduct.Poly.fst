@@ -29,12 +29,19 @@ fn kernel
   (#et:Type0) {| scalar et |}
   (#size : erased nat)
   (ga1 ga2 r : gpu_array et size)
-  (ebid : enatlt size)
-  requires gpu ** block_id size ebid ** kpre  size ga1 ga2 r ebid
-  ensures  gpu ** block_id size ebid ** kpost size ga1 ga2 r ebid
+  (etid : enatlt size)
+  ()
+  requires
+    gpu **
+    kpre size ga1 ga2 r etid **
+    thread_id size etid
+  ensures
+    gpu **
+    kpost size ga1 ga2 r etid **
+    thread_id size etid
 {
-  let id = get_bid ();
-  rewrite each ebid as SZ.v id;
+  let id = get_tid ();
+  rewrite each etid as SZ.v id;
   (* r[id] = ga1[id] * ga2[id] *)
 
   (**)unfold (kpre size ga1 ga2 r id);
@@ -56,6 +63,95 @@ fn kernel
   (**)fold (kpost size ga1 ga2 r id);
   ()
 }
+
+ghost
+fn block_setup
+    (#et:Type) (ga1 ga2 gr : gpu_array et size)
+    ()
+    requires
+      block_setup_tok m_size **
+      (exists* s1 s2 sr.
+        gpu_pts_to_array ga1 #1.0R s1 **
+        gpu_pts_to_array ga2 #1.0R s2 **
+        gpu_pts_to_array gr #1.0R sr)
+    ensures
+      block_setup_tok m_size **
+      (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
+      emp (* frame *)
+{
+  // Slicing the arrays
+  (**)gpu_array_slice_1_underspec #1 ga1;
+  (**)gpu_array_slice_1_underspec #2 ga2;
+  (**)gpu_array_slice_1_underspec #3 gr;
+
+  // Boring combination of resources
+  (**)bigstar_zip #1 #2 #1 0 size _ _;
+  (**)bigstar_zip #1 #3 #0 0 size _ _;
+
+  (**)bigstar_uneta ();
+
+  forevery_fromnat size
+    (fun i -> kpre m_size ga1 ga2 gr i);
+
+  forevery_rw_size size (SZ.v m_size);
+}
+
+#set-options "--print_implicits"
+
+ghost
+fn block_teardown
+    (#et:Type) (ga1 ga2 gr : gpu_array et size)
+    ()
+    requires
+      (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
+      emp (* frame *)
+    ensures
+      (exists* s1 s2 sr.
+        gpu_pts_to_array ga1 #1.0R s1 **
+        gpu_pts_to_array ga2 #1.0R s2 **
+        gpu_pts_to_array gr #1.0R sr)
+{
+  forevery_rw_size (SZ.v m_size) size;
+  forevery_tonat size
+    (fun i -> kpost m_size ga1 ga2 gr i);
+
+  (**)bigstar_unzip #1 #2 #0 0 size _ _;
+  (**)bigstar_unzip #3 #4 #1 0 size _ _;
+
+  rewrite each SZ.v m_size as size;
+
+  (* Why is this needed? *)
+  bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
+  bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 ga2 #1.0R);
+  bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 gr  #1.0R);
+
+  // Unslicing
+  (**)gpu_array_unslice_1_underspec #3 ga1;
+  (**)gpu_array_unslice_1_underspec ga2;
+  (**)gpu_array_unslice_1_underspec gr;
+}
+
+
+inline_for_extraction noextract
+let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
+  : kernel_desc
+      (exists* s1 s2 sr.
+        gpu_pts_to_array ga1 #1.0R s1 **
+        gpu_pts_to_array ga2 #1.0R s2 **
+        gpu_pts_to_array r #1.0R sr)
+      (exists* s1 s2 sr.
+        gpu_pts_to_array ga1 #1.0R s1 **
+        gpu_pts_to_array ga2 #1.0R s2 **
+        gpu_pts_to_array r #1.0R sr)
+= {
+  f = kernel #et ga1 ga2 r;
+  nthr = m_size;
+  frame = emp;
+  kpre  = kpre #et size ga1 ga2 r;
+  kpost = kpost #et size ga1 ga2 r;
+  block_setup = block_setup #et ga1 ga2 r;
+  block_teardown = block_teardown #et ga1 ga2 r;
+} <: kernel_desc_1_n _ _
 
 inline_for_extraction noextract
 fn main (#et:Type0) {| scalar et |} (_:unit)
@@ -93,49 +189,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   let gr = gpu_array_alloc #et m_size;
 
-  let nthr : sz = m_size;
-
-  // Slicing the arrays
-  (**)gpu_array_slice_1_underspec #1 ga1;
-  (**)gpu_array_slice_1_underspec #2 ga2;
-  (**)gpu_array_slice_1_underspec #3 gr;
-
-  // Boring combination of resources
-  (**)bigstar_zip #1 #2 #1 0 (SZ.v m_size) _ _;
-  (**)bigstar_zip #1 #3 #0 0 (SZ.v m_size) _ _;
-
-  (**)bigstar_uneta ();
-
-  assert (pure (SZ.v m_size == SZ.v nthr));
-  rewrite
-    (bigstar 0 (SZ.v m_size) (kpre m_size ga1 ga2 gr))
-  as
-    (bigstar 0 (SZ.v nthr)  (kpre m_size ga1 ga2 gr));
-
-  forevery_fromstar #(natlt (SZ.v nthr))
-    (fun i -> kpre m_size ga1 ga2 gr i);
-
-  launch_kernel_n_blocks nthr
-    #(kpre m_size ga1 ga2 gr) #(kpost m_size ga1 ga2 gr)
-    (fun etid -> kernel ga1 ga2 gr etid);
-
-  forevery_tostar #(natlt (SZ.v nthr))
-    (fun i -> kpost m_size ga1 ga2 gr i);
-
-  rewrite
-    (bigstar 0 (SZ.v nthr)  (kpost m_size ga1 ga2 gr))
-  as
-    (bigstar 0 (SZ.v m_size) (kpost m_size ga1 ga2 gr));
-
-  (**)bigstar_eta ();
-
-  (**)bigstar_unzip 0 (SZ.v m_size) _ _;
-  (**)bigstar_unzip 0 (SZ.v m_size) _ _;
-
-  // Unslicing
-  (**)gpu_array_unslice_1_underspec ga1;
-  (**)gpu_array_unslice_1_underspec ga2;
-  (**)gpu_array_unslice_1_underspec gr;
+  launch_sync (kdesc ga1 ga2 gr);
 
   Kuiper.Array.gpu_memcpy_device_to_host ar gr m_size;
   gpu_array_free ga1;

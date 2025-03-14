@@ -27,58 +27,84 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   shmem_type_is_sized : Kuiper.Sized.sized shmem_type;
   shmem_sz : sz;
 
-  (* This is used to split up the array for the threads in the block.
-     It should definitely be generalized to be more uniform with
-     other levels of the hierarchy, e.g. by having a teardown. Currently
-     we just drop the block_post. *)
-  block_pre  : gpu_array shmem_type shmem_sz -> natlt nblk -> natlt nthr -> slprop;
-  block_post : gpu_array shmem_type shmem_sz -> natlt nblk -> natlt nthr -> slprop;
-  block_setup : (
-    (ar: gpu_array shmem_type shmem_sz) ->
-    (bid: natlt nblk) ->
-    stt_ghost unit emp_inames
-      (requires
-        block_setup nthr **
-        (exists* v. gpu_pts_to_array #shmem_type #shmem_sz ar #1.0R v))
-      (ensures fun _ ->
-        block_setup nthr **
-        (forall+ (i : natlt nthr). block_pre ar bid i))
-  );
+  frame : slprop;
 
-  kpre : natlt nblk -> natlt nthr -> slprop;
-  kpost : natlt nblk -> natlt nthr -> slprop;
+  block_pre  : natlt nblk -> slprop;
+  block_post : natlt nblk -> slprop;
 
-  f : (
-    eshmem : erased (gpu_array shmem_type shmem_sz) ->
-    ebid : enatlt nblk ->
-    etid : enatlt nthr ->
-    stt unit
-      (requires
-         gpu **
-         kpre ebid etid **
-         thread_id nthr etid **
-         block_id nblk ebid **
-         shmem_tok eshmem **
-         block_pre eshmem ebid etid
-      )
-      (ensures fun _ ->
-         gpu **
-         kpost ebid etid **
-         thread_id nthr etid **
-         block_id nblk ebid **
-         shmem_tok eshmem **
-         block_post eshmem ebid etid)
-  );
+  block_frame : gpu_array shmem_type shmem_sz -> natlt nblk -> slprop;
+
   setup : (
     unit ->
     stt_ghost unit emp_inames
       (requires full_pre)
-      (ensures  fun _ -> forall+ (bid : natlt nblk) (tid : natlt nthr). kpre bid tid)
+      (ensures fun _ ->
+        (forall+ (bid : natlt nblk). block_pre bid) **
+        frame)
   );
   teardown : (
     unit ->
     stt_ghost unit emp_inames
-      (requires forall+ (bid : natlt nblk) (tid : natlt nthr). kpost bid tid)
+      (requires
+        (forall+ (bid : natlt nblk). block_post bid) **
+        frame)
       (ensures  fun _ -> full_post)
+  );
+
+  kpre :
+    gpu_array shmem_type shmem_sz ->
+    natlt nblk ->
+    natlt nthr ->
+    slprop;
+  kpost :
+    gpu_array shmem_type shmem_sz ->
+    natlt nblk ->
+    natlt nthr ->
+    slprop;
+
+  block_setup : (
+    (ar: gpu_array shmem_type shmem_sz) ->
+    (bid: natlt nblk) ->
+    unit ->
+    stt_ghost unit emp_inames
+      (requires
+        block_setup_tok nthr **
+        (exists* v. gpu_pts_to_array #shmem_type #shmem_sz ar #1.0R v) **
+        block_pre bid)
+      (ensures fun _ ->
+        block_setup_tok nthr **
+        (forall+ (i : natlt nthr). kpre ar bid i) **
+        block_frame ar bid)
+  );
+
+  block_teardown : (
+    (ar: gpu_array shmem_type shmem_sz) ->
+    (bid: natlt nblk) ->
+    unit ->
+    stt_ghost unit emp_inames
+      (requires
+        (forall+ (i : natlt nthr). kpost ar bid i) **
+        block_frame ar bid)
+      (ensures fun _ ->
+        (exists* v. gpu_pts_to_array #shmem_type #shmem_sz ar #1.0R v) **
+        block_post bid)
+  );
+
+  f : (
+    ear  : erased (gpu_array shmem_type shmem_sz) ->
+    ebid : enatlt nblk ->
+    etid : enatlt nthr ->
+    unit ->
+    stt unit
+      (requires
+         gpu **
+         kpre ear ebid etid **
+         thread_id nthr etid **
+         block_id nblk ebid)
+      (ensures fun _ ->
+         gpu **
+         kpost ear ebid etid **
+         thread_id nthr etid **
+         block_id nblk ebid)
   );
 }

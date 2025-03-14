@@ -42,8 +42,8 @@ fn mk_barrier
   (pf : (it:nat -> stt_ghost unit emp_inames
                   (requires bigstar 0 n (p it))
                   (ensures  fun _ -> bigstar 0 n (q it))))
-  requires block_setup n
-  ensures  block_setup n ** bigstar 0 n (barrier_tok p q 0)
+  requires block_setup_tok n
+  ensures  block_setup_tok n ** bigstar 0 n (barrier_tok p q 0)
 
 (* Wait on the barrier. This function blocks until all threads call it
    simultaneously. Each thread provides the current p

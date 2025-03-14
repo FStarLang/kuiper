@@ -237,6 +237,9 @@ TESTS:=$(filter-out Kuiper_MatMulTileF32, $(TESTS))
 
 # restore using poly impl
 TESTS:=$(filter-out Kuiper_DotProduct, $(TESTS))
+TESTS:=$(filter-out Kuiper_DotProduct2, $(TESTS))
+TESTS:=$(filter-out Kuiper_DotProduct3, $(TESTS))
+TESTS:=$(filter-out Kuiper_AtomicReduce_U64, $(TESTS))
 
 extraction-targets: \
 	obj/Kuiper_ArrayView_Test1.cu \

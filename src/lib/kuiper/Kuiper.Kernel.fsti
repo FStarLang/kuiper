@@ -1,241 +1,18 @@
 module Kuiper.Kernel
+inline_for_extraction noextract let x = ()
 #lang-pulse
 
-open Kuiper.Common
 open Pulse.Lib.Core
-open FStar.Ghost
-open Kuiper.ForEvery
-open Kuiper.IntAliases
-open Kuiper.SizeT
-open Kuiper.Array
 open Kuiper.Base
-open Kuiper.Barrier.RPM
 open Kuiper.Epoch
-open FStar.Mul
-module SZ = FStar.SizeT
-open Pulse.Lib.Pledge
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
-
-(* Helpers below *)
-
-(* f<<<nblk, nthr, smem_sz>>>(...); *)
-inline_for_extraction noextract
-fn launch_kernel_n_m_shmem
-  (nblk : szp { nblk <= max_blocks })
-  (nthr : szp { nthr <= max_threads })
-  (#pre #post : natlt nblk -> natlt nthr -> slprop)
-  (a : Type u#0) {| Kuiper.Sized.sized a |}
-  (smem_sz : SZ.t)
-  (#shared_pre #shared_post : gpu_array a smem_sz -> natlt nblk -> natlt nthr -> slprop)
-  (setup : (ar: gpu_array a smem_sz) -> (bid: natlt nblk) ->
-    stt_ghost unit emp_inames
-      (block_setup nthr ** (exists* v. gpu_pts_to_array #a #smem_sz ar #1.0R v))
-      (fun _ -> block_setup nthr ** (forall+ (i : natlt nthr). shared_pre ar bid i)))
-(k :
-    (ar: erased (gpu_array a smem_sz)) ->
-    (ebid : enatlt nblk) ->
-    (etid : enatlt nthr) ->
-    stt unit
-      (         gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                shmem_tok ar **
-                shared_pre ar ebid etid **
-                pre ebid etid)
-      (fun _ -> gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                // shmem_tok ar **
-                shared_post ar ebid etid **
-                post ebid etid)
-  )
-  requires
-    cpu **
-    (forall+ (b : natlt nblk) (t : natlt nthr). pre b t)
-  ensures
-    cpu **
-    (forall+ (b : natlt nblk) (t : natlt nthr). post b t)
+include Kuiper.Kernel.Casts
+open FStar.Tactics.Typeclasses
+open Pulse.Lib.Pledge
 
 inline_for_extraction noextract
-fn launch_kernel_n_m_barrier_async
-  (nblk : szp { nblk <= max_blocks })
-  (nthr : szp { nthr <= max_threads })
-  (#pre #post : natlt nblk -> natlt nthr -> slprop)
-  (#p : rpm_t nthr)
-  (k :
-    (ebid : enatlt nblk) ->
-    (etid : enatlt nthr) ->
-    stt unit
-      (         gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                mbarrier_tok nthr p 0 etid **
-                pre ebid etid)
-      (fun _ -> gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                (exists* it. mbarrier_tok nthr p it etid) **
-                post ebid etid)
-  )
-  (#e : epoch_t)
-  requires
-    cpu **
-    epoch_live e **
-    (forall+ (b : natlt nblk) (t : natlt nthr). pre b t)
-  returns
-    e' : epoch_t
-  ensures
-    cpu **
-    epoch_live e' **
-    pledge0 (epoch_done e')
-      (forall+ (b : natlt nblk) (t : natlt nthr). post b t) **
-    pure (e' >= e)
-
-inline_for_extraction noextract
-fn launch_kernel_n_m_barrier
-  (nblk : szp { nblk <= max_blocks })
-  (nthr : szp { nthr <= max_threads })
-  (#pre #post : natlt nblk -> natlt nthr -> slprop)
-  (#p : rpm_t nthr)
-  (k :
-    (ebid : enatlt nblk) ->
-    (etid : enatlt nthr) ->
-    stt unit
-      (         gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                mbarrier_tok nthr p 0 etid **
-                pre ebid etid)
-      (fun _ -> gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                (exists* it. mbarrier_tok nthr p it etid) **
-                post ebid etid)
-  )
-  requires
-    cpu **
-    (forall+ (b : natlt nblk) (t : natlt nthr). pre b t)
-  ensures
-    cpu **
-    (forall+ (b : natlt nblk) (t : natlt nthr). post b t)
-
-(* f<<<nblk, nthr>>>(...); *)
-inline_for_extraction noextract
-fn launch_kernel_n_m
-  (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
-  (nthr : SZ.t { 0 < nthr /\ nthr <= max_threads })
-  (#pre #post : natlt nblk -> natlt nthr -> slprop)
-  (k :
-    (ebid : enatlt nblk) ->
-    (etid : enatlt nthr) ->
-    stt unit
-      (         gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                pre ebid etid)
-      (fun _ -> gpu **
-                block_id nblk ebid **
-                thread_id nthr etid **
-                post ebid etid)
-  )
-  requires
-    cpu **
-    (forall+ (b : natlt nblk) (t : natlt nthr). pre b t)
-  ensures
-    cpu **
-    (forall+ (b : natlt nblk) (t : natlt nthr). post b t)
-
-inline_for_extraction noextract
-fn launch_kernel_n_blocks_async
-  (nblk  : SZ.t { 0 < nblk /\ nblk <= max_blocks })
-  (#pre #post : natlt nblk -> slprop)
-  (k :
-    (ebid : enatlt nblk ->
-    stt unit
-      (         gpu **
-                block_id nblk ebid **
-                pre ebid)
-      (fun _ -> gpu **
-                block_id nblk ebid **
-                post ebid)
-  ))
-  (#e : epoch_t)
-  requires
-    cpu **
-    epoch_live e **
-    (forall+ (b : natlt nblk). pre b)
-  returns
-    e' : epoch_t
-  ensures
-    cpu **
-    epoch_live e' **
-    pledge0 (epoch_done e')
-      (forall+ (b : natlt nblk). post b) **
-    pure (e' >= e)
-
-inline_for_extraction noextract
-fn launch_kernel_n_blocks
-  (nblk : SZ.t { 0 < nblk /\ nblk <= max_blocks })
-  (#pre #post : (natlt nblk -> slprop))
-  (k :
-    (ebid : enatlt nblk ->
-    stt unit
-      (         gpu **
-                block_id nblk ebid **
-                pre ebid)
-      (fun _ -> gpu **
-                block_id nblk ebid **
-                post ebid)
-  ))
-  requires
-    cpu **
-    (forall+ (b : natlt nblk). pre b)
-  ensures
-    cpu **
-    (forall+ (b : natlt nblk). post b)
-
-inline_for_extraction noextract
-fn launch_kernel_1_async
-  (#pre #post : slprop)
-  (k : unit ->
-    stt unit (gpu ** pre) (fun _ -> gpu ** post)
-  )
-  (#e : epoch_t)
-  requires
-    cpu **
-    epoch_live e **
-    pre
-  returns
-    e' : epoch_t
-  ensures
-    cpu **
-    epoch_live e' **
-    pledge0 (epoch_done e') post **
-    pure (e' >= e)
-
-inline_for_extraction noextract
-fn launch_kernel_1
-  (#pre #post : slprop)
-  (k : unit ->
-    stt unit (gpu ** pre) (fun _ -> gpu ** post)
-  )
-  requires cpu ** pre
-  ensures  cpu ** post
-
-// inline_for_extraction noextract
-// fn thread_idx_all () (#n: tid_t)
-//   preserves
-//     thread_id n
-//   requires
-//     emp
-//   returns
-//     id : SZ.t
-//   ensures
-//     pure (SZ.v id == thread_index n /\ SZ.v id < max_blocks * max_threads)
-
-inline_for_extraction noextract
-fn launch_kernel_sync
+fn launch_kernel_full_sync
   (#full_pre : slprop)
   (#full_post : slprop)
   (k : kernel_desc full_pre full_post)
@@ -245,3 +22,84 @@ fn launch_kernel_sync
   ensures
     cpu **
     full_post
+
+(* A helper for very simple kernels, mostly for unit tests. *)
+inline_for_extraction noextract
+fn launch_kernel_1
+  (#pre : slprop)
+  (#post : slprop)
+  (k : unit -> stt unit (gpu ** pre) (fun _ -> gpu ** post))
+  requires
+    cpu **
+    pre
+  ensures
+    cpu **
+    post
+
+(* NOTE: commented-out is how to define these functions using a typeclass
+of launchable things instead of making the kernel casts coercions. But this
+hurts inference. If we have a function of type `r:ref a -> #v:erased a -> kernel_desc ..`
+and try to launch it, F* will not instantiate the implicit (which makes sense,
+there is no reason to), and will then fail to find an instance. *)
+
+// (* A class for different configurations that can be launched. *)
+// [@@fundeps [1;2]]
+// class launchable (t : Type) (full_pre full_post : slprop) = { 
+//   [@@@no_method] cast : t -> kernel_desc full_pre full_post;
+// }
+
+inline_for_extraction noextract
+val launch
+  // (#t:Type)
+  (#full_pre #full_post : slprop)
+  // {| d : launchable t full_pre full_post |}
+  // (x : t)
+  (k : kernel_desc full_pre full_post)
+  (#e : epoch_t)
+  : stt epoch_t
+      (cpu **
+       epoch_live e **
+       full_pre)
+      (fun e' ->
+        cpu **
+        epoch_live e' **
+        pledge0 (epoch_done e') full_post **
+        pure (e' >= e))
+
+inline_for_extraction noextract
+val launch_sync
+  // (#t:Type)
+  (#full_pre #full_post : slprop)
+  // {| d : launchable t full_pre full_post |}
+  // (x : t)
+  (_ : kernel_desc full_pre full_post)
+  : stt unit
+      (cpu ** full_pre)
+      (fun _ ->
+        cpu **
+        full_post)
+
+// inline_for_extraction noextract
+// instance val launchable_self
+//   (#full_pre #full_post : slprop)
+//   : launchable (kernel_desc full_pre full_post) full_pre full_post
+
+// inline_for_extraction noextract
+// instance val launchable_m_n
+//   (#full_pre #full_post : slprop)
+//   : launchable (kernel_desc_m_n full_pre full_post) full_pre full_post
+
+// inline_for_extraction noextract
+// instance val launchable_m_1
+//   (#full_pre #full_post : slprop)
+//   : launchable (kernel_desc_m_1 full_pre full_post) full_pre full_post
+
+// inline_for_extraction noextract
+// instance val launchable_1_n
+//   (#full_pre #full_post : slprop)
+//   : launchable (kernel_desc_1_n full_pre full_post) full_pre full_post
+
+// inline_for_extraction noextract
+// instance val launchable_1_1
+//   (#full_pre #full_post : slprop)
+//   : launchable (kernel_desc_1_1 full_pre full_post) full_pre full_post

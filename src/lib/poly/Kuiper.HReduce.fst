@@ -7,6 +7,7 @@ open Kuiper.Barrier.RPM
 module RPM = Kuiper.Barrier.RPM
 open Kuiper.Math
 open Kuiper.Seq.Common
+open Kuiper.IsReduction
 
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
@@ -116,46 +117,26 @@ fn mk_barrier_pre
 unfold
 let kpre
   (#et:Type0) {| scalar et |}
-  (nblk : nat) (nthr : nat)
-  (a : gpu_array et nthr) (s : erased (seq et))
-  (#_: squash (len s == nblk * nthr))
-  (bid : natlt nblk)
-  (tid : natlt nthr)
+  (lena : nat)
+  (a : gpu_array et lena)
+  (s : erased (seq et))
+  (#_: squash (len s == lena))
+  (tid : natlt lena)
   : slprop =
-    gpu_pts_to_slice a (bid * nthr + tid) (bid * nthr + tid +1) seq![Seq.index s (bid * nthr + tid)]
+    gpu_pts_to_slice a tid (tid +1) seq![Seq.index s tid] **
+    mbarrier_tok lena (barrier_matrix lena a s) 0 tid
 
 unfold
 let kpost
   (#et:Type0) {| scalar et |}
-  (nblk : nat) (nthr : nat)
-  (a : gpu_array et nthr) (s : erased (seq et))
-  (#_: squash (len s == nblk * nthr))
-  (bid : natlt nblk)
-  (tid : natlt nthr)
+  (lena : nat)
+  (a : gpu_array et lena)
+  (s : erased (seq et))
+  (#_: squash (len s == lena))
+  (tid : natlt lena)
   : slprop =
-    if_ (bid = 0 && tid = 0) (gpu_pts_to_slice_sum a 0 (nblk * nthr) s)
-
-(* Note: there is only one block. *)
-type k_reduce_ty (et:Type0) {| scalar et |} =
-  (nth : szp { nth <= 1024 }) ->
-  (a : gpu_array et nth) ->
-  (#s :  erased (seq et)) ->
-  (#_: squash (Seq.length s == SZ.v nth)) ->
-  (ebid : enatlt 1) ->
-  (etid : enatlt nth) ->
-  stt unit
-  (requires
-    gpu **
-    block_id 1 ebid **
-    thread_id nth etid **
-    mbarrier_tok nth (barrier_matrix nth a s) 0 etid **
-    kpre 1 nth a s 0 etid)
-  (ensures fun _ ->
-    gpu **
-    block_id 1 ebid **
-    thread_id nth etid **
-    (exists* it. mbarrier_tok nth (barrier_matrix nth a s) it etid) **
-    kpost 1 nth a s 0 etid)
+    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s) **
+    (exists* it. mbarrier_tok lena (barrier_matrix lena a s) it tid)
 
 // KrmlPrivate is essentially a "noextract". F* usually adds it
 // automatically to any definition that does not appear in the fsti,
@@ -274,20 +255,16 @@ fn d_reduce
   (a : gpu_array et nth)
   (#s :  erased (seq et))
   (#_ : squash (Seq.length s == nth))
-  (ebid : enatlt 1)
   (etid : enatlt nth)
+  ()
   requires
     gpu **
-    block_id 1 ebid **
-    thread_id nth etid **
-    mbarrier_tok nth (barrier_matrix nth a s) 0 etid **
-    kpre 1 nth a s 0 etid
+    kpre nth a s etid **
+    thread_id nth etid
   ensures
     gpu **
-    block_id 1 ebid **
-    thread_id nth etid **
-    (exists* it.  mbarrier_tok nth (barrier_matrix nth a s) it etid) **
-    kpost 1 nth a s 0 etid
+    kpost nth a s etid **
+    thread_id nth etid
 {
   let tid = get_tid (); rewrite each etid as SZ.v tid;
 
@@ -355,9 +332,28 @@ fn unfactor_array
 }
 
 inline_for_extraction noextract
+let kernel
+  (#et:Type0) {| scalar et |}
+  (lena : szp { lena < max_threads })
+  (a : gpu_array et lena)
+  (#va : erased (seq et) { Seq.length va == SZ.v lena })
+: kernel_desc_1_n
+    (gpu_pts_to_array a va)
+    (exists* va'. gpu_pts_to_array a #1.0R va')
+= {
+  nthr = lena;
+  f = d_reduce lena a #va;
+
+  block_teardown = magic();
+  block_setup = magic();
+  kpost = kpost lena a va;
+  kpre =  kpre lena a va;
+  frame = emp;
+}
+
+inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| scalar et |}
-  (kk : k_reduce_ty et #_)
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
   requires
@@ -368,29 +364,30 @@ fn reduce
     (exists* va'. gpu_pts_to_array a va') (* underspec *)
 {
   gpu_pts_to_ref a; (* recall length, automate *)
+  launch_sync (kernel lena a);
 
-  factor_array lena a 1 lena;
+  // factor_array lena a 1 lena;
 
-  launch_kernel_n_m_barrier 1sz lena
-    #(kpre  1 lena a 'va)
-    #(kpost 1 lena a 'va)
-    (fun etid -> kk lena a etid);
+  // launch_kernel_n_m_barrier 1sz lena
+  //   #(kpre  1 lena a 'va)
+  //   #(kpost 1 lena a 'va)
+  //   (fun etid -> kk lena a etid);
 
-  forevery_singleton_elim #(natlt 1) (fun bid -> forall+ (tid:natlt lena). kpost 1 lena a 'va bid tid);
-  forevery_tostar #(natlt lena) _;
+  // forevery_singleton_elim #(natlt 1) (fun bid -> forall+ (tid:natlt lena). kpost 1 lena a 'va bid tid);
+  // forevery_tostar #(natlt lena) _;
 
-  bigstar_extract 0 lena (kpost 1 lena a 'va 0) 0;
-  if_elim_true _;
-
-  unfold (gpu_pts_to_slice_sum a 0 lena 'va);
+  // bigstar_extract 0 lena (kpost 1 lena a 'va 0) 0;
   // if_elim_true _;
-  (* ^ Bad unification from matching, instead of trying to prove that the condition
-     of if_ p f is true (to match it with if_ true ?u) it picks ?u = if_ p f. *)
-  with pp ff. assert (if_ pp ff);
-  rewrite each pp as true;
-  if_elim_true _;
-  bigstar_emp_elim #_ #0 #0;
-  bigstar_emp_elim' #_ #1 #lena _;
 
-  ()
+  // unfold (gpu_pts_to_slice_sum a 0 lena 'va);
+  // // if_elim_true _;
+  // (* ^ Bad unification from matching, instead of trying to prove that the condition
+  //    of if_ p f is true (to match it with if_ true ?u) it picks ?u = if_ p f. *)
+  // with pp ff. assert (if_ pp ff);
+  // rewrite each pp as true;
+  // if_elim_true _;
+  // bigstar_emp_elim #_ #0 #0;
+  // bigstar_emp_elim' #_ #1 #lena _;
+
+  // ()
 }

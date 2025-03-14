@@ -538,7 +538,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   (* New one! *)
   | MLE_App ({ expr = MLE_Name p }, [ _full_pre; _full_post; kdesc; _epoch ])
-    when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel" ->
+    when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel_full" ->
     let assoc' k v =
       match List.assoc k v with
       | Some r -> r
@@ -572,7 +572,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
             drop_last_n_args head (n - List.length args)
           | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
         in
-        let kf = drop_n_binders kf 3 in
+        let kf = drop_n_binders kf 4 in
         let kf = hoist env kf in
         let hd, rest_args = head_and_args kf in
         if Nil? rest_args then

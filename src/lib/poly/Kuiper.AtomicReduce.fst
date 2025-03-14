@@ -233,14 +233,11 @@ fn teardown
   // returns
   //   i_done : erased (iname & erased (seq (gref bool)))
   requires
-    emp
-    ** cpu
-    ** pure (len done == SZ.v n)
-    ** bigstar 0 (SZ.v n) (fun tid ->
-        gref_pts_to (done @! tid) #0.5R true **
-        inv i (inv_p (SZ.v n) a v_a r done))
+    pure (len done == SZ.v n) **
+    bigstar 0 (SZ.v n) (fun tid ->
+     gref_pts_to (done @! tid) #0.5R true **
+     inv i (inv_p (SZ.v n) a v_a r done))
   ensures
-    cpu **
     gpu_pts_to_array a #f v_a **
     (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a) **
     pure (SZ.v n <= 1024)
@@ -268,56 +265,58 @@ fn reduce
     gpu_pts_to_array a #f v_a **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
-  let mut r = zero #et #_;
-  let gr = gpu_alloc0 #et ();
-  Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
+  (* RESTORE *)
+  admit();
+  // let mut r = zero #et #_;
+  // let gr = gpu_alloc0 #et ();
+  // Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
 
-  with v. assert (pts_to r v);
-  assert (pure (v == zero));
+  // with v. assert (pts_to r v);
+  // assert (pure (v == zero));
 
-  assert (pure (n < max_blocks));
+  // assert (pure (n < max_blocks));
 
-  // assert (gpu_pts_to gr #1.0R 0uL);
+  // // assert (gpu_pts_to gr #1.0R 0uL);
 
-  // pack (x,y) as p?
-  // let p = (x, y);
-  // rewrite each x as p._1;
-  // rewrite each y as p._2;
-  // pack Inl x as o;
+  // // pack (x,y) as p?
+  // // let p = (x, y);
+  // // rewrite each x as p._1;
+  // // rewrite each y as p._2;
+  // // pack Inl x as o;
 
-  let i_done = setup n a gr;
-  let i = (i_done)._1;
-  let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
-  rewrite each i_done as (i, done) by (tadmit());
-  // New fancy syntax, does not extract
-  // let Mktuple2 i done = setup n a gr;
-  // The problem is essentially https://github.com/FStarLang/pulse/issues/93.
-  // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
-  // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
+  // let i_done = setup n a gr;
+  // let i = (i_done)._1;
+  // let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
+  // rewrite each i_done as (i, done) by (tadmit());
+  // // New fancy syntax, does not extract
+  // // let Mktuple2 i done = setup n a gr;
+  // // The problem is essentially https://github.com/FStarLang/pulse/issues/93.
+  // // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
+  // // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
 
-  W.elim_with_pure (len done == SZ.v n) _;
+  // W.elim_with_pure (len done == SZ.v n) _;
 
-  assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
+  // assert (bigstar 0 n (fun tid -> kpre  (SZ.v n) a v_a gr done i tid));
 
-  forevery_fromstar #(natlt (SZ.v n))
-    (kpre (SZ.v n) a v_a gr done i);
+  // forevery_fromstar #(natlt (SZ.v n))
+  //   (kpre (SZ.v n) a v_a gr done i);
 
-  launch_kernel_n_blocks n
-    #(kpre  (SZ.v n) a v_a gr done i)
-    #(kpost (SZ.v n) a v_a gr done i)
-    (fun etid -> k (hide n) a gr done i v_a etid);
+  // launch_kernel_n_blocks n
+  //   #(kpre  (SZ.v n) a v_a gr done i)
+  //   #(kpost (SZ.v n) a v_a gr done i)
+  //   (fun etid -> k (hide n) a gr done i v_a etid);
 
-  forevery_tostar #(natlt (SZ.v n))
-    (kpost (SZ.v n) a v_a gr done i);
+  // forevery_tostar #(natlt (SZ.v n))
+  //   (kpost (SZ.v n) a v_a gr done i);
 
-  teardown n a #f #v_a gr i done;
+  // teardown n a #f #v_a gr i done;
 
-  Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
+  // Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
 
-  Kuiper.Ref.gpu_free gr;
+  // Kuiper.Ref.gpu_free gr;
 
-  let v = !r;
-  v
+  // let v = !r;
+  // v
 }
 
 

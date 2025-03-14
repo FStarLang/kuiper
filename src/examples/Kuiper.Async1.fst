@@ -9,13 +9,19 @@ open Kuiper
 module U64 = FStar.UInt64
 
 inline_for_extraction noextract
-fn kernel (r : gpu_ref u64) (#v : erased u64)
+fn kernel_f (r : gpu_ref u64) (#v : erased u64)
+  ()
   requires gpu ** (r |-> v)
   ensures  gpu ** (r |-> U64.add_underspec v 1uL)
 {
   let v = gpu_read r;
   gpu_write r (U64.add_underspec v 1uL);
 }
+
+inline_for_extraction noextract
+let kernel (r : gpu_ref u64) (#v : erased u64)
+  : kernel_desc _ _
+  = { f = kernel_f r #v } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
 
 fn galloc (x : u64)
   requires cpu
@@ -67,12 +73,12 @@ fn main (_:unit)
   let r6 = galloc 6uL;
 
   let _ = get_epoch ();
-  launch_kernel_1_async (fun () -> kernel r1);
-  launch_kernel_1_async (fun () -> kernel r2);
-  launch_kernel_1_async (fun () -> kernel r3);
-  launch_kernel_1_async (fun () -> kernel r4);
-  launch_kernel_1_async (fun () -> kernel r5);
-  launch_kernel_1_async (fun () -> kernel r6);
+  launch (kernel r1);
+  launch (kernel r2);
+  launch (kernel r3);
+  launch (kernel r4);
+  launch (kernel r5);
+  launch (kernel r6);
 
   sync_device ();
 

@@ -42,7 +42,7 @@ class crepr (r:mrepr) = {
 }
 
 inline_for_extraction noextract
-let clayout_from_crepr
+instance clayout_from_crepr
   (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)})
   (m : mrepr) (d : crepr m)
   : clayout (m rows cols)

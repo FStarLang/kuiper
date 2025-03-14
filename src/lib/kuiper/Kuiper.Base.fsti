@@ -20,7 +20,7 @@ unfold
 let gpu : slprop = mode GPU
 
 (* Token for being in GPU block setup code *)
-val block_setup (nthr : nat) : slprop
+val block_setup_tok (nthr : nat) : slprop
 
 (* Arbitrary *)
 let max_blocks : erased int = pow2 30

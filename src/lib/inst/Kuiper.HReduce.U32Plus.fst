@@ -5,6 +5,4 @@ module Kuiper.HReduce.U32Plus
 open Kuiper
 open Kuiper.HReduce
 
-[@@CPrologue "__device__"; "KrmlPrivate"]
-let k_reduce = d_reduce
-let reduce = reduce k_reduce
+let reduce = Kuiper.HReduce.reduce

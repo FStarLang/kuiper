@@ -40,8 +40,8 @@ ghost
 fn mk_mbarrier
   (n: nat { 0 < n /\ n <= max_threads })
   (p : rpm_t n)
-  requires block_setup n
-  ensures  block_setup n ** bigstar 0 n (mbarrier_tok n p 0)
+  requires block_setup_tok n
+  ensures  block_setup_tok n ** bigstar 0 n (mbarrier_tok n p 0)
 
 fn mbarrier_wait
   ()

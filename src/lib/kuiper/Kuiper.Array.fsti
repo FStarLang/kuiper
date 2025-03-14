@@ -15,6 +15,10 @@ module SZ = FStar.SizeT
 
 val gpu_array (a:Type u#0) (sz:nat) : Type u#0
 
+(* FIXME: I think having nat here, which forces to use erased nat
+   in concrete functions, hurts Pulse inference a lot. Try to make all
+   these ints. *)
+
 (* x is the base pointer, this gives permission in [i,j) *)
 val gpu_pts_to_slice
   (#a:Type u#0)
@@ -237,9 +241,9 @@ pulse should only do weak unfolding. *)
 let gpu_pts_to_array1
   (#a:Type0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  ([@@@mkey]arr : gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
-  (i:nat)
+  ([@@@mkey]i:nat)
 : slprop =
   exists* s. gpu_pts_to_slice arr i (i+1) s
 

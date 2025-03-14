@@ -45,7 +45,9 @@ type matmul_cpu_ty
                           (from_seq lB sb)))
 
 inline_for_extraction noextract
-val mk_matmul (matmul_gpu : matmul_gpu_ty) : matmul_cpu_ty
+val matmul_cpu
+  (matmul_gpu : matmul_gpu_ty)
+  : matmul_cpu_ty
 
 unfold
 inline_for_extraction
@@ -75,21 +77,6 @@ type fixed_repr_matmul_cpu_ty
       (c |-> to_seq (rC rows cols) <|
                 MS.matmul (from_seq (rA rows shared) sa)
                           (from_seq (rB shared cols) sb)))
-
-inline_for_extraction noextract
-val mk_fixed_repr_matmul
-  (et : Type0) {| scalar et |}
-  (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
-  (matmul_gpu : (
-    rows:szp ->
-    shared:szp ->
-    cols:szp{three_fits rows shared cols} ->
-    matmul_gpu_ty_type_dims_repr et (rA rows shared) (rB shared cols) (rC rows cols) #(cA.map _ _) #(cB.map _ _) #(cC.map _ _)
-  ))
-  : fixed_repr_matmul_cpu_ty et rA rB rC
 
 inline_for_extraction noextract
 val specialize_to_type_and_reprs

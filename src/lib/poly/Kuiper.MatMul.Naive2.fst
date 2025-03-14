@@ -26,8 +26,8 @@ let kpre
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (f : perm)
-  (bid : natlt (divup (rows * cols) 1024))
-  (tid : natlt 1024)
+  (bid : natlt (divup (rows * cols) 1024sz))
+  (tid : natlt 1024sz)
   : slprop
   =
   pure (SZ.fits (bid * 1024 + tid)) **
@@ -53,8 +53,8 @@ let kpost
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (f : perm)
-  (bid : natlt (divup (rows * cols) 1024))
-  (tid : natlt 1024)
+  (bid : natlt (divup (rows * cols) 1024sz))
+  (tid : natlt 1024sz)
   : slprop
   =
   M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
@@ -70,9 +70,9 @@ inline_for_extraction noextract
 fn kernel
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : SZ.t)
-  (lA : mlayout rows shared)
-  (lB : mlayout shared cols)
-  (lC : mlayout rows cols)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
   {| clayout lA |}
   {| clayout lB |}
   {| clayout lC |}
@@ -82,18 +82,19 @@ fn kernel
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#f : perm)
-  (ebid : enatlt (divup (rows * cols) 1024))
-  (etid : enatlt 1024)
+  (ebid : enatlt (divup (rows *^ cols) 1024sz))
+  (etid : enatlt 1024sz)
+  ()
   requires
     gpu **
-    block_id (divup (rows * cols) 1024) ebid **
+    kpre gA gB gC eA eB f ebid etid **
     thread_id (1024) etid **
-    kpre gA gB gC eA eB f ebid etid
+    block_id (divup (rows * cols) 1024) ebid
   ensures
     gpu **
-    block_id (divup (rows * cols) 1024) ebid **
+    kpost gA gB gC eA eB f ebid etid **
     thread_id (1024) etid **
-    kpost gA gB gC eA eB f ebid etid
+    block_id (divup (rows * cols) 1024) ebid
 {
   let bid = get_bid ();
   let tid = get_tid ();
@@ -152,7 +153,7 @@ fn kernel
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : pos)
+  (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
@@ -165,14 +166,17 @@ fn setup
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  (_ : squash (rows * cols <= max_blocks))
+  ()
   requires
     (gA |-> eA) **
     (gB |-> eB) **
     (gC |-> eC)
   ensures
-    forall+ (bid : natlt (divup (rows * cols) 1024))
+    (forall+ (bid : natlt (sdivup (rows *^ cols) 1024sz))
             (tid : natlt 1024).
-      kpre gA gB gC eA eB 1.0R bid tid
+      kpre gA gB gC eA eB 1.0R bid tid) **
+    emp (* frame *)
 {
   (* Reuse Naive.setup + factor the forevery from N into (divup N 1024) * 1024.
      Should be really easy. *)
@@ -182,7 +186,7 @@ fn setup
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : pos)
+  (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
@@ -194,10 +198,13 @@ fn teardown
   (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
+  (_ : squash (rows * cols <= max_blocks))
+  ()
   requires
-    forall+ (bid : natlt (divup (rows * cols) 1024))
+    (forall+ (bid : natlt (sdivup (rows *^ cols) 1024sz))
             (tid : natlt 1024).
-      kpost gA gB gC eA eB 1.0R bid tid
+      kpost gA gB gC eA eB 1.0R bid tid) **
+    emp (* frame *)
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
@@ -205,6 +212,51 @@ fn teardown
 {
   (* Idem. *)
   admit();
+}
+
+
+inline_for_extraction noextract
+let kdesc
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  (_ : squash (rows * cols <= max_blocks))
+  : kernel_desc_m_n
+    (((gA |-> eA) ** (gB |-> eB)) **
+     ((gC |-> eC)))
+    (((gA |-> eA) ** (gB |-> eB)) **
+      (gC |-> MS.matmul eA eB))
+=
+{
+  nblk = sdivup (rows *^ cols) 1024sz;
+  nthr = 1024sz;
+
+  frame = emp;
+
+  block_pre  = (fun bid -> forall+ (tid : natlt 1024). kpre gA gB gC eA eB 1.0R bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt 1024). kpost gA gB gC eA eB 1.0R bid tid);
+  setup    = setup gA gB gC #eA #eB #eC ();
+  teardown = teardown gA gB gC #eA #eB ();
+
+  block_setup = (fun bid -> Kuiper.Frame.emp_intro_r ());
+  block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
+  block_frame = (fun _bid -> emp);
+
+  kpre  = kpre gA gB gC eA eB 1.0R;
+  kpost = kpost gA gB gC eA eB 1.0R;
+  
+  f = kernel gA gB gC #eA #eB #1.0R;
 }
 
 inline_for_extraction noextract
@@ -233,25 +285,5 @@ fn matmul_gpu
   ensures
     gC |-> MS.matmul eA eB
 {
-  open FStar.SizeT;
-  setup gA gB gC;
-
-  let nblk = sdivup (rows *^ cols) 1024sz;
-  forevery_rw_size (divup (rows * cols) 1024) nblk;
-
-  (* FIXME: F* inference failure means we need to annotate pre/post (somewhat) *)
-  (* We also need eta due to the extraction rules looking for it. *)
-
-  launch_kernel_n_m
-    nblk
-    1024sz
-    #(kpre  #et gA gB gC eA eB 1.0R)
-    #(kpost #et gA gB gC eA eB 1.0R)
-    (fun ebid etid -> kernel _ _ _ gA gB gC ebid etid);
-
-  forevery_rw_size nblk (divup (rows * cols) 1024);
-
-  teardown gA gB gC;
-
-  ();
+  launch_sync (kdesc gA gB gC #eA #eB #eC ());
 }

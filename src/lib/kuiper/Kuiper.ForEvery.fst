@@ -262,6 +262,43 @@ fn forevery_fromnat
 }
 
 ghost
+fn forevery_tonat
+  (n : nat)
+  (p : natlt n -> slprop)
+  requires
+    forall+ (x : natlt n). p x
+  ensures
+    bigstar 0 n (fun i -> p i)
+{
+  forevery_tostar p;
+  rewrite each cardinal (natlt n) #_ as n;
+}
+
+ghost
+fn forevery_emp_intro
+  (a : Type0) {| enumerable a |}
+  requires
+    emp
+  ensures
+    forall+ (_ : a). emp
+{
+  bigstar_emp_intro 0 (cardinal a #_);
+  fold forevery a (fun _ -> emp);
+}
+
+ghost
+fn forevery_emp_elim
+  (a : Type0) {| enumerable a |}
+  requires
+    forall+ (_ : a). emp
+  ensures
+    emp
+{
+  unfold forevery a (fun _ -> emp);
+  bigstar_emp_elim #_ #0 #(cardinal a #_);
+}
+
+ghost
 fn forevery_singleton_intro
   (#a:Type0) {| enumerable a |}
   (p : a -> slprop { cardinal a #_ == 1 })

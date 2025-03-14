@@ -12,13 +12,4 @@ open Kuiper.Matrix.Reprs.Type
 module SZ = FStar.SizeT
 
 inline_for_extraction noextract
-val matmul_gpu
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
-  : matmul_gpu_ty_type_dims_repr et lA lB lC
+val matmul_gpu : matmul_gpu_ty

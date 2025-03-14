@@ -158,6 +158,31 @@ fn forevery_fromnat
     forall+ (x : natlt n). p x
 
 ghost
+fn forevery_tonat
+  (n : nat)
+  (p : natlt n -> slprop)
+  requires
+    forall+ (x : natlt n). p x
+  ensures
+    bigstar 0 n (fun i -> p i)
+
+ghost
+fn forevery_emp_intro
+  (a : Type0) {| enumerable a |}
+  requires
+    emp
+  ensures
+    forall+ (_ : a). emp
+
+ghost
+fn forevery_emp_elim
+  (a : Type0) {| enumerable a |}
+  requires
+    forall+ (_ : a). emp
+  ensures
+    emp
+
+ghost
 fn forevery_unit_intro
   (p : slprop)
   requires

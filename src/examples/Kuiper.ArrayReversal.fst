@@ -306,14 +306,15 @@ fn kernel
   (a:gpu_array ty size)
   (#s:erased (Seq.seq ty) { len s == SZ.v size })
   (ebid : enatlt (SZ.v (size `div` 2sz))) (* pretty awful.. *)
+  ()
 requires
   gpu **
-  block_id (SZ.v (size `div` 2sz)) ebid **
-  kpre size a s ebid
+  kpre size a s ebid **
+  block_id (size /^ 2sz) ebid
 ensures
   gpu **
-  block_id (SZ.v (size `div` 2sz)) ebid **
-  kpost size a s ebid
+  kpost size a s ebid **
+  block_id (size /^ 2sz) ebid
 {
   let idx = get_bid ();
   rewrite each ebid as SZ.v idx;
@@ -328,20 +329,18 @@ ensures
   ()
 }
 
-(* fixme: we should recognize this is polymorphic and not extract it as-is,
-currently we crash the extraction process *)
-inline_for_extraction noextract
-fn reverse
-    (#ty:Type0)
-    (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
-    (a:gpu_array ty size)
-    (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
-preserves
-  cpu
-requires
-  a |-> s
-ensures
-  a |-> reverse_spec s
+ghost
+fn setup
+  (#ty:Type0)
+  (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < reveal max_blocks })
+  (a:gpu_array ty size)
+  (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
+  ()
+  requires
+    a |-> s
+  ensures
+    (forall+ (bid : natlt (size /^ 2sz)). kpre size a s bid) **
+    emp (* frame *)
 {
   explode_cells a;
   partition_cells a;
@@ -350,16 +349,21 @@ ensures
     (fun tid ->
       gpu_pts_to_cell a #1.0R tid (Seq.index s tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip s tid));
+}
 
-  assert (pure (SZ.v (size `div` 2sz) > 0));
-  assert (pure (SZ.v (size `div` 2sz) <= max_blocks));
-
-  launch_kernel_n_blocks
-    (size `div` 2sz)
-    #(kpre size a s)
-    #(kpost size a s)
-    (fun ebid -> kernel size a #s ebid);
-
+ghost
+fn teardown
+  (#ty:Type0)
+  (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < reveal max_blocks })
+  (a:gpu_array ty size)
+  (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
+  ()
+  requires
+    (forall+ (bid : natlt (size /^ 2sz)). kpost size a s bid) **
+    emp (* frame *)
+  ensures
+    a |-> reverse_spec s
+{
   forevery_tostar #(natlt (size `div` 2sz))
     (fun tid ->
       gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
@@ -367,6 +371,42 @@ ensures
 
   partition_cells_inv a;
   implode_cells a
+}
+
+(* TODO: if size is odd, just put the middle cell in the frame! *)
+inline_for_extraction noextract
+let kdesc
+  (#ty:Type0)
+  (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < reveal max_blocks })
+  (a:gpu_array ty size)
+  (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
+  : kernel_desc_m_1
+      (a |-> s)
+      (a |-> reverse_spec s)
+  = {
+      nblk     = size /^ 2sz;
+      f        = kernel size a #s;
+      setup    = (setup size a);
+      teardown = (teardown size a);
+      kpre     = kpre size a s;
+      kpost    = kpost size a s;
+      frame    = emp;
+  }
+
+inline_for_extraction noextract
+fn reverse
+    (#ty:Type0)
+    (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
+    (a:gpu_array ty size)
+    (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
+  preserves
+    cpu
+  requires
+    a |-> s
+  ensures
+    a |-> reverse_spec s
+{
+  launch_sync (kdesc size a #s);
 }
 
 let reverse_u64 = reverse #u64
