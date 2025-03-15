@@ -119,6 +119,21 @@ let kpost
   gpu_pts_to_array1 ar tid **
   gpu_pts_to_array1 ar (tid + tile *^ tile)
 
+fn fakesync ()
+  requires emp
+  ensures emp
+{
+  open Kuiper.Barrier.RPM;
+  let p : rpm_t 1 = (fun _ _ _ -> emp);
+  assume (mbarrier_tok 1 p 0 0);
+  assume (row p 0 0);
+  mbarrier_wait ();
+  drop_ (mbarrier_tok 1 p 1 0);
+  drop_ (col p 1 0);
+  ()
+}
+
+
 inline_for_extraction noextract
 fn kernel
   (tile : valid_tile)
@@ -176,7 +191,9 @@ fn kernel
         gpu
   {
     let vbk = !bk;
+    fakesync ();
     let sub = MU.matmul_tiled_sub_dotprod gA gB mrow vbk mcol brow bcol;
+    fakesync ();
     let s = !sum;
     sum := s `add` sub;
   };
