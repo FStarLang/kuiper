@@ -108,6 +108,7 @@ fn matmul_tiled_sub_dotprod
     let v2 = M4.gpu_matrix_read gB bk bj vk j;
 
     sum := s `add` mul v1 v2;
+    k := vk +^ 1sz;
   };
   !sum
 }
@@ -155,6 +156,7 @@ fn matmul_tiled_dotprod
     let sub = matmul_tiled_sub_dotprod gA gB bi vbk bj i j;
     let s = !sum;
     sum := s `add` sub;
+    bk := vbk +^ 1sz;
   };
   !sum
 }

@@ -37,9 +37,11 @@ __hoisted_0(
       sum1 +=
         gA[(mrow * tile + brow) * (mshared * tile) + vbk * tile + vk] *
           gB[(vbk * tile + vk) * (mcols * tile) + mcol * tile + bcol];
+      k = vk + (size_t)1U;
     }
     uint64_t sub = sum1;
     sum += sub;
+    bk = vbk + (size_t)1U;
   }
   gC[(bi * tile + i) * (mcols * tile) + bj * tile + j] = sum;
 }
@@ -110,9 +112,11 @@ static void __hoisted_1(size_t mcols, size_t mshared, uint64_t *gA, uint64_t *gB
       sum1 +=
         gA[(mrow * (size_t)32U + brow) * (mshared * (size_t)32U) + vbk * (size_t)32U + vk] *
           gB[(vbk * (size_t)32U + vk) * (mcols * (size_t)32U) + mcol * (size_t)32U + bcol];
+      k = vk + (size_t)1U;
     }
     uint64_t sub = sum1;
     sum += sub;
+    bk = vbk + (size_t)1U;
   }
   gC[(bi * (size_t)32U + i) * (mcols * (size_t)32U) + bj * (size_t)32U + j] = sum;
 }
