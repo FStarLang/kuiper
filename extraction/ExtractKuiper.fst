@@ -233,205 +233,150 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   );
   e'
 
+
+(* head fv, type args, and args *)
+let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
+  (* there is probably no need for these two to recurse. *)
+  let rec get_args (e : mlexpr) : mlexpr & list mlexpr =
+    match e.expr with
+    | MLE_App (e', args') ->
+      let e'', args'' = get_args e' in
+      e'', args'' @ args'
+    | _ -> e, []
+  in
+  let rec get_tyargs (e : mlexpr) : mlexpr & list mlty =
+    match e.expr with
+    | MLE_TApp (e', args') ->
+      let e'', args'' = get_tyargs e' in
+      e'', args'' @ args'
+    | _ -> e, []
+  in
+  let e, args = get_args e in
+  let e, tyargs = get_tyargs e in
+  match e.expr with
+  | MLE_Name p -> Some (string_of_mlpath p, tyargs, args)
+  | _ -> None
+
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
   then BU.print1_warning "ExtractKuiper.gpu_translate_expr %s\n" (mlexpr_to_string e);
   let cb = translate_expr env in
-  match e.expr with
-
+  let x = hta e in
+  if None? x then raise NotSupportedByKrmlExtension;
+  match Some?.v x with
   (******** ASSERTIONS ********)
-  | MLE_App ({ expr = MLE_Name p } , [ x ])
-    when string_of_mlpath p = "Kuiper.Assert.dassert" ->
+  | "Kuiper.Assert.dassert", [], [ x ] ->
     EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ x ])
-    when string_of_mlpath p = "Kuiper.Assert.dguard" ->
+  | "Kuiper.Assert.dassert", [], [ x ] ->
     EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
 
   (******** SIZET, missing from F* ********)
-  | MLE_App ({ expr = MLE_Name p } , [ x; y ])
-    when string_of_mlpath p = "Kuiper.SizeT.sizet_and" ->
+  | "Kuiper.SizeT.sizet_and", [], [ x; y ] ->
     EApp (EOp (BAnd, SizeT), [ cb x; cb y ])
 
   (******** PREDEFINED VARS ********)
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednblk; _erasednbid])
-    when string_of_mlpath p = "Kuiper.Base.get_gdim" ->
+  | "Kuiper.Base.get_gdim", [], [ _unit; _erasednblk; _erasednbid ] ->
     EApp (EQualified ([], "gridDim_x"), [ EUnit ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednblk; _erasednbid])
-    when string_of_mlpath p = "Kuiper.Base.get_bid" ->
+  | "Kuiper.Base.get_bid", [], [ _unit; _erasednblk; _erasednbid ] ->
     EApp (EQualified ([], "blockIdx_x"), [ EUnit ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednthr; _erasedntid])
-    when string_of_mlpath p = "Kuiper.Base.get_bdim" ->
+  | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
     EApp (EQualified ([], "blockDim_x"), [ EUnit ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ _unit; _erasednthr; _erasedntid])
-    when string_of_mlpath p = "Kuiper.Base.get_tid" ->
+  | "Kuiper.Base.get_tid", [], [ _unit; _erasednthr; _erasedntid ] ->
     EApp (EQualified ([], "threadIdx_x"), [ EUnit ])
 
-  | MLE_App ({ expr = MLE_Name p } , [ sz ])
-    when string_of_mlpath p = "Kuiper.SizeT.sizet_to_u32" ->
+  | "Kuiper.SizeT.sizet_to_u32", [], [ sz ] ->
     ECast (cb sz, TInt UInt32)
 
   (******** BARRIERS ********)
 
-  | MLE_App ({ expr = MLE_Name p } , [_unit; _n; _p; _q; _it; _tid])
-    when string_of_mlpath p = "Kuiper.Barrier.barrier_wait" ->
+  | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _p; _q; _it; _tid ] ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
 
   (******** FLOAT ARITHMETIC *******)
 
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float16.zero" ->
-    EConstant (Half, "0.0f")
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float16.one" ->
-    EConstant (Half, "1.0f")
-
-   (* Using operators worked locally but failed on CI, probably
+   (* For halfs, using operators worked locally but failed on CI, probably
    depends on CUDA version. Just use the intrinsics. *)
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float16.add" ->
-    EApp (EQualified ([], "__hadd"), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float16.sub" ->
-    EApp (EQualified ([], "__hsub"), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float16.neg" ->
-    EApp (EQualified ([], "__hneg"), [cb x])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float16.mul" ->
-    EApp (EQualified ([], "__hmul"), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float16.div" ->
-    EApp (EQualified ([], "__hdiv"), [cb x; cb y])
+  | "Kuiper.Float16.zero", [], [] -> EConstant (Half, "0.0f")
+  | "Kuiper.Float16.one",  [], [] -> EConstant (Half, "1.0f")
+  | "Kuiper.Float16.add",  [], [] -> EQualified ([], "__hadd")
+  | "Kuiper.Float16.sub",  [], [] -> EQualified ([], "__hsub")
+  | "Kuiper.Float16.mul",  [], [] -> EQualified ([], "__hmul")
+  | "Kuiper.Float16.div",  [], [] -> EQualified ([], "__hdiv")
+  | "Kuiper.Float16.exp",  [], [] -> EQualified ([], "__hexp")
 
-  | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float16.exp" ->
-    EApp (EQualified ([], "__hexp"), [ cb x ])
+  | "Kuiper.Float32.zero", [], [] -> EConstant (Float, "0.0f")
+  | "Kuiper.Float32.one",  [], [] -> EConstant (Float, "1.0f")
+  | "Kuiper.Float32.add",  [], [] -> EOp (Add, Float)
+  | "Kuiper.Float32.sub",  [], [] -> EOp (Sub, Float)
+  | "Kuiper.Float32.mul",  [], [] -> EOp (Mult, Float)
+  | "Kuiper.Float32.div",  [], [] -> EOp (Div, Float)
+  | "Kuiper.Float32.exp",  [], [] -> EQualified ([], "exp")
 
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float32.zero" ->
-    EConstant (Float, "0.0f")
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float32.one" ->
-    EConstant (Float, "1.0f")
-
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float32.add" ->
-    EApp (EOp (Add, Float), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float32.sub" ->
-    EApp (EOp (Sub, Float), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float32.neg" ->
-    EApp (EOp (Sub, Float), [EConstant (Float, "0.0f"); cb x])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float32.mul" ->
-    EApp (EOp (Mult, Float), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float32.div" ->
-    EApp (EOp (Div, Float), [cb x; cb y])
-
-  | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float32.exp" ->
-    EApp (EQualified ([], "exp"), [ cb x ])
-
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float64.zero" ->
-    EConstant (Double, "0.0l")
-  | MLE_Name p
-    when string_of_mlpath p = "Kuiper.Float64.one" ->
-    EConstant (Double, "1.0l")
-
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float64.add" ->
-    EApp (EOp (Add, Double), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float64.sub" ->
-    EApp (EOp (Sub, Double), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float64.neg" ->
-    EApp (EOp (Sub, Double), [EConstant (Double, "0.0l"); cb x])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float64.mul" ->
-    EApp (EOp (Mult, Double), [cb x; cb y])
-  | MLE_App ({ expr = MLE_Name p }, [ x; y ])
-    when string_of_mlpath p = "Kuiper.Float64.div" ->
-    EApp (EOp (Div, Double), [cb x; cb y])
-
-  | MLE_App ({ expr = MLE_Name p }, [ x ])
-    when string_of_mlpath p = "Kuiper.Float64.exp" ->
-    EApp (EQualified ([], "exp"), [ cb x ])
+  | "Kuiper.Float64.zero", [], [] -> EConstant (Double, "0.0l")
+  | "Kuiper.Float64.one",  [], [] -> EConstant (Double, "1.0l")
+  | "Kuiper.Float64.add",  [], [] -> EOp (Add, Double)
+  | "Kuiper.Float64.sub",  [], [] -> EOp (Sub, Double)
+  | "Kuiper.Float64.mul",  [], [] -> EOp (Mult, Double)
+  | "Kuiper.Float64.div",  [], [] -> EOp (Div, Double)
+  | "Kuiper.Float64.exp",  [], [] -> EQualified ([], "exp")
 
   (******** REFERENCES ********)
 
-  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, [ ty ]) }, [ sz; _unit ])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_alloc0" ->
+  | "Kuiper.Ref.gpu_alloc0", [ty], [ sz; _unit ] ->
     let sz : mlexpr = get_sizet sz in
     ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; EConstant (SizeT, "1") ]),
            TBuf (translate_type env ty))
 
-  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ r; _v ])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_free" ->
+  | "Kuiper.Ref.gpu_free", [ty], [ r; _v ] ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
 
-  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e; _perm; _v ])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_read" ->
+  | "Kuiper.Ref.gpu_read", [ty], [ e; _perm; _v ] ->
     EBufRead (cb e, zero_for_deref)
 
-  | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ e1; e2; _v0 ])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_write" ->
+  | "Kuiper.Ref.gpu_write", [ty], [ e1; e2; _v0 ] ->
     EBufWrite (cb e1, zero_for_deref, cb e2)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: dst_gr :: src_r :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_memcpy_host_to_device"->
+  | "Kuiper.Ref.gpu_memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; cb sz ; cudaMemcpyHostToDevice ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: dst_r :: src_gr :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_memcpy_device_to_host"->
+  | "Kuiper.Ref.gpu_memcpy_device_to_host", [ty], [ sz; dst_r; src_gr; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_r; cb src_gr; cb sz; cudaMemcpyDeviceToHost ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: dst_gr :: src_r :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Ref.gpu_memcpy_device_to_device"->
+  | "Kuiper.Ref.gpu_memcpy_device_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; cb sz ; cudaMemcpyDeviceToDevice ])
 
   (******** ARRAY ********)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: len :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_array_alloc" ->
+  | "Kuiper.Array.gpu_array_alloc", [ty], [ sz; len ] ->
     let sz : mlexpr = get_sizet sz in
     ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; cb len ]),
            TBuf (translate_type env ty))
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: v :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_array_free" ->
-    _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
+  | "Kuiper.Array.gpu_array_free", [ty], [ _sz; a; _v ] ->
+    _MUST <| EApp (EQualified ([], "cudaFree"), [cb a])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: f :: idx :: s :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_array_read" ->
-    EBufRead (cb r, cb idx)
+  | "Kuiper.Array.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
+    EBufRead (cb a, cb idx)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, _) }, sz :: i :: j :: r :: idx :: v :: s :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_array_write" ->
-    EBufWrite (cb r, cb idx, cb v)
+  | "Kuiper.Array.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
+    EBufWrite (cb a, cb idx, cb v)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
-             sz :: _elen :: dst_ga :: src_a :: cnt :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_host_to_device" ->
+  | "Kuiper.Array.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
-             sz :: _dst_sz :: dst_ga :: dst_off :: _src_sz :: src_a :: src_off :: cnt :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_host_to_device'" ->
+  | "Kuiper.Array.gpu_memcpy_host_to_device'", [ty],
+        [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
     let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
     let dst_off = mul_by_sz (cb dst_off) in
@@ -443,16 +388,13 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
-             sz :: _elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_host"->
+  | "Kuiper.Array.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) },
-             sz :: _dst_sz :: dst_a :: dst_off :: _src_sz :: src_ga :: src_off :: cnt :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_host'" ->
+  | "Kuiper.Array.gpu_memcpy_device_to_host'", [ty],
+        [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
     let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
     let dst_off = mul_by_sz (cb dst_off) in
@@ -464,8 +406,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: elen :: dst_a :: src_ga :: cnt :: f :: v :: gv :: [])
-    when string_of_mlpath p = "Kuiper.Array.gpu_memcpy_device_to_device"->
+  | "Kuiper.Array.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
@@ -473,27 +414,14 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   (******** ATOMIC OPS ********)
 
-  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
-    when string_of_mlpath p = "Kuiper.AtomicOps.gpu_faa_u32" ->
-    (* Can we cast here instead of using a wrapper? *)
-    EApp (EQualified ([], "atomic_add_u32"), [cb r; cb v])
-
-  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
-    when string_of_mlpath p = "Kuiper.AtomicOps.gpu_faa_u64" ->
-    EApp (EQualified ([], "atomic_add_u64"), [cb r; cb v])
-
-  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
-    when string_of_mlpath p = "Kuiper.AtomicOps.gpu_faa_f32" ->
-    EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
-
-  | MLE_App ({ expr = MLE_Name p }, r :: v :: _ev :: [])
-    when string_of_mlpath p = "Kuiper.AtomicOps.gpu_faa_f64" ->
-    EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
+  | "Kuiper.AtomicOps.gpu_faa_u32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_u32"), [cb r; cb v])
+  | "Kuiper.AtomicOps.gpu_faa_u64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_u64"), [cb r; cb v])
+  | "Kuiper.AtomicOps.gpu_faa_f32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
+  | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
   (******** OBTAIN SHMEM ********)
 
-  | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sized_a :: sz :: earr :: [])
-    when string_of_mlpath p = "Kuiper.Kernel.Base.obtain_shmem" ->
+  | "Kuiper.Kernel.Base.obtain_shmem", [ty], [ sized_a; sz; earr ] ->
     // let sz : mlexpr = get_sizet sz in
     // let e_size = get_sizet sized_a in
     ECast (EApp (EQualified ([], "KPR_SHMEM"), [EUnit]),
@@ -502,8 +430,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   (******** KERNEL CALL ********)
 
   (* The single kcall! *)
-  | MLE_App ({ expr = MLE_Name p }, [ _full_pre; _full_post; kdesc; _epoch ])
-    when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel_full" ->
+  | "Kuiper.Kernel.Base.launch_kernel_full", [], [ _full_pre; _full_post; kdesc; _epoch ] ->
     let assoc' k v =
       match List.assoc k v with
       | Some r -> r
@@ -555,30 +482,26 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     in
     cb e'
 
-  | MLE_App ({ expr = MLE_Name p }, [
-        _unit;
-        _epoch
-      ])
-    when string_of_mlpath p = "Kuiper.Kernel.Base.sync_device" ->
+  | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
     EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   (* Misc stuff missing from F*? *)
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt64.zero" -> EConstant (Krml.UInt64, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt64.one"  -> EConstant (Krml.UInt64, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt32.zero" -> EConstant (Krml.UInt32, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt32.one"  -> EConstant (Krml.UInt32, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt16.zero" -> EConstant (Krml.UInt16, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt16.one"  -> EConstant (Krml.UInt16, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt8.zero"  -> EConstant (Krml.UInt8, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.UInt8.one"   -> EConstant (Krml.UInt8, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int64.zero"  -> EConstant (Krml.Int64, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int64.one"   -> EConstant (Krml.Int64, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int32.zero"  -> EConstant (Krml.Int32, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int32.one"   -> EConstant (Krml.Int32, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int16.zero"  -> EConstant (Krml.Int16, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int16.one"   -> EConstant (Krml.Int16, "1")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int8.zero"   -> EConstant (Krml.Int8, "0")
-  | MLE_Name p when string_of_mlpath p = "FStar.Int8.one"    -> EConstant (Krml.Int8, "1")
+  | "FStar.UInt64.zero" , [], [] -> EConstant (Krml.UInt64, "0")
+  | "FStar.UInt64.one"  , [], [] -> EConstant (Krml.UInt64, "1")
+  | "FStar.UInt32.zero" , [], [] -> EConstant (Krml.UInt32, "0")
+  | "FStar.UInt32.one"  , [], [] -> EConstant (Krml.UInt32, "1")
+  | "FStar.UInt16.zero" , [], [] -> EConstant (Krml.UInt16, "0")
+  | "FStar.UInt16.one"  , [], [] -> EConstant (Krml.UInt16, "1")
+  | "FStar.UInt8.zero"  , [], [] -> EConstant (Krml.UInt8, "0")
+  | "FStar.UInt8.one"   , [], [] -> EConstant (Krml.UInt8, "1")
+  | "FStar.Int64.zero"  , [], [] -> EConstant (Krml.Int64, "0")
+  | "FStar.Int64.one"   , [], [] -> EConstant (Krml.Int64, "1")
+  | "FStar.Int32.zero"  , [], [] -> EConstant (Krml.Int32, "0")
+  | "FStar.Int32.one"   , [], [] -> EConstant (Krml.Int32, "1")
+  | "FStar.Int16.zero"  , [], [] -> EConstant (Krml.Int16, "0")
+  | "FStar.Int16.one"   , [], [] -> EConstant (Krml.Int16, "1")
+  | "FStar.Int8.zero"   , [], [] -> EConstant (Krml.Int8, "0")
+  | "FStar.Int8.one"    , [], [] -> EConstant (Krml.Int8, "1")
 
   | _ -> raise NotSupportedByKrmlExtension
 
