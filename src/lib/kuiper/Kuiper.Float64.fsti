@@ -8,7 +8,6 @@ val t : Type0
 
 [@@noextract_to "krml"] val add : t -> t -> t
 [@@noextract_to "krml"] val sub : t -> t -> t
-[@@noextract_to "krml"] val neg : t -> t
 [@@noextract_to "krml"] val mul : t -> t -> t
 [@@noextract_to "krml"] val div : t -> t -> t
 
