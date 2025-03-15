@@ -119,6 +119,7 @@ let kpost
   gpu_pts_to_array1 ar tid **
   gpu_pts_to_array1 ar (tid + tile *^ tile)
 
+inline_for_extraction noextract
 fn fakesync ()
   requires emp
   ensures emp
