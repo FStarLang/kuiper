@@ -163,8 +163,10 @@ echo-krml:
 # the Pulse plugin
 .depend: $(ROOTS) .fstar.touch .pulse.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@
-
+	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@.tmp
+	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
+	sed ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
+	rm -f $@.tmp
 
 depgraph: depend.pdf
 depend.pdf: .depend .force
@@ -174,9 +176,11 @@ depend.pdf: .depend .force
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
-$(OUTDIR)/%.krml: .plugin.touch
+# Does not work. See hack in .depend
+# $(OUTDIR)/%.krml: .plugin.touch
+
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
-$(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
+$(OUTDIR)/%.krml: | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
 	$(Q)$(FSTAR) --codegen krml 						\
@@ -189,9 +193,7 @@ $(OUTDIR)/%.krml: | .fstar.touch .plugin.touch
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 $(OUTDIR)/%.cu: MOD=$(subst _,.,$(basename $(notdir $<)))
-# .plugin.touch doesn't feel right to me (it's on the krml targets)
-# but it triggers rebuilds when the plugin changes, which is good.
-$(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch .plugin.touch
+$(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
