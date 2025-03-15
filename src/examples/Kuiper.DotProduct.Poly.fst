@@ -143,7 +143,7 @@ let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
         gpu_pts_to_array ga2 #1.0R s2 **
         gpu_pts_to_array r #1.0R sr)
 = {
-  f = kernel #et ga1 ga2 r;
+  f = kf #et ga1 ga2 r;
   nthr = m_size;
   frame = emp;
   kpre  = kpre #et size ga1 ga2 r;
