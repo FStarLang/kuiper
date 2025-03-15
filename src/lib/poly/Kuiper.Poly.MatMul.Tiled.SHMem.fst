@@ -67,7 +67,8 @@ let kpre
   =
   kpre1 tile gA gB gC eA eB f bid tid **
   gpu_pts_to_array1 ar tid **
-  gpu_pts_to_array1 ar (tid + tile *^ tile)
+  gpu_pts_to_array1 ar (tid + tile *^ tile) **
+  shmem_tok ar
 
 (* NO FUNCTIONAL SPEC RIGHT NOW *)
 unfold
@@ -152,22 +153,35 @@ fn kernel
 {
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
   let tid = get_tid (); rewrite each etid as SZ.v tid;
+  let ar = obtain_shmem ear; rewrite each ear as ar;
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
 
   with bi0 bj0 i0 j0 v0.
-    rewrite
-      m4_pts_to_cell gC #1.0R bi0 bj0 i0 j0 v0
-    as
-      m4_pts_to_cell gC #1.0R mrow mcol brow bcol v0;
+    rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
+         as m4_pts_to_cell gC mrow mcol brow bcol v0;
 
-  assert (pure (mrow < mrows));
-  assert (pure (mcol < mcols));
-  assert (pure (brow < tile));
-  assert (pure (bcol < tile));
+  let mut sum : et = zero #et #_;
+  let mut bk  : sz = 0sz;
 
-  let s = MU.matmul_tiled_dotprod gA gB mrow mcol brow bcol;
+  while (let vbk = !bk; SZ.(vbk <^ mshared))
+    invariant b.
+      exists* (vbk : SZ.t{vbk <= mshared}) sumv.
+        pure (0 <= mshared /\ b == (SZ.v vbk < mshared) /\ vbk <= mshared /\ vbk >= 0) **
+        pts_to bk vbk **
+        pts_to #_ #et sum sumv **
+        m4_pts_to gA #(f /. mlayout_size lC) eA **
+        m4_pts_to gB #(f /. mlayout_size lC) eB **
+        gpu
+  {
+    let vbk = !bk;
+    let sub = MU.matmul_tiled_sub_dotprod gA gB mrow vbk mcol brow bcol;
+    let s = !sum;
+    sum := s `add` sub;
+  };
+
+  let s = !sum;
   M4.gpu_matrix_write_cell gC mrow mcol brow bcol s;
 
   with v'.
@@ -179,6 +193,7 @@ fn kernel
         (etid / tile) (etid % tile) v';
 
   rewrite each SZ.v tid as reveal etid;
+  rewrite each ar as ear;
 
   ()
 }

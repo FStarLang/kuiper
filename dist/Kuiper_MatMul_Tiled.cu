@@ -26,21 +26,20 @@ __hoisted_0(
   size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
-  size_t k = (size_t)0U;
   while (bk < mshared)
   {
     size_t vbk = bk;
-    size_t vk = k;
-    sum +=
-      gA[(mrow * tile + brow) * (mshared * tile) + vbk * tile + vk] *
-        gB[(vbk * tile + vk) * (mcols * tile) + mcol * tile + bcol];
-    if (vk == tile - (size_t)1U)
+    uint64_t sum1 = 0ULL;
+    size_t k = (size_t)0U;
+    while (k < tile)
     {
-      k = (size_t)0U;
-      bk = vbk + (size_t)1U;
+      size_t vk = k;
+      sum1 +=
+        gA[(mrow * tile + brow) * (mshared * tile) + vbk * tile + vk] *
+          gB[(vbk * tile + vk) * (mcols * tile) + mcol * tile + bcol];
     }
-    else
-      k = vk + (size_t)1U;
+    uint64_t sub = sum1;
+    sum += sub;
   }
   gC[(bi * tile + i) * (mcols * tile) + bj * tile + j] = sum;
 }
@@ -100,21 +99,20 @@ static void __hoisted_1(size_t mcols, size_t mshared, uint64_t *gA, uint64_t *gB
   size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
-  size_t k = (size_t)0U;
   while (bk < mshared)
   {
     size_t vbk = bk;
-    size_t vk = k;
-    sum +=
-      gA[(mrow * (size_t)32U + brow) * (mshared * (size_t)32U) + vbk * (size_t)32U + vk] *
-        gB[(vbk * (size_t)32U + vk) * (mcols * (size_t)32U) + mcol * (size_t)32U + bcol];
-    if (vk == (size_t)31U)
+    uint64_t sum1 = 0ULL;
+    size_t k = (size_t)0U;
+    while (k < (size_t)32U)
     {
-      k = (size_t)0U;
-      bk = vbk + (size_t)1U;
+      size_t vk = k;
+      sum1 +=
+        gA[(mrow * (size_t)32U + brow) * (mshared * (size_t)32U) + vbk * (size_t)32U + vk] *
+          gB[(vbk * (size_t)32U + vk) * (mcols * (size_t)32U) + mcol * (size_t)32U + bcol];
     }
-    else
-      k = vk + (size_t)1U;
+    uint64_t sub = sum1;
+    sum += sub;
   }
   gC[(bi * (size_t)32U + i) * (mcols * (size_t)32U) + bj * (size_t)32U + j] = sum;
 }

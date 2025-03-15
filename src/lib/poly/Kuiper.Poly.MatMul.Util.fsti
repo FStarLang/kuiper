@@ -41,6 +41,34 @@ fn matmul_dotprod
   ensures
     pure (res == MS.matmul_single #et #_ #rows #shared #cols eA eB i j shared)
 
+(* Will only multiply across the minor index. *)
+inline_for_extraction noextract
+fn matmul_tiled_sub_dotprod
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols #tile : SZ.t)
+  (#lA : mlayout4 rows shared tile tile)
+  (#lB : mlayout4 shared cols tile tile)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (#eA : ematrix4 et rows shared tile tile)
+  (#eB : ematrix4 et shared cols tile tile)
+  (bi : szlt rows)
+  (bk : szlt shared)
+  (bj : szlt cols)
+  (i : szlt tile)
+  (j : szlt tile)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    m4_pts_to gA #fA eA **
+    m4_pts_to gB #fB eB
+  returns
+    res : et
+  // ensures
+  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
+
 inline_for_extraction noextract
 fn matmul_tiled_dotprod
   (#et : Type0) {| scalar et |}

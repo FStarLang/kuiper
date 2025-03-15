@@ -61,6 +61,57 @@ fn matmul_dotprod
   !sum
 }
 
+(* Will only multiply across the minor index. *)
+inline_for_extraction noextract
+fn matmul_tiled_sub_dotprod
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols #tile : SZ.t)
+  (#lA : mlayout4 rows shared tile tile)
+  (#lB : mlayout4 shared cols tile tile)
+  {| clayout4 lA |}
+  {| clayout4 lB |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (#eA : ematrix4 et rows shared tile tile)
+  (#eB : ematrix4 et shared cols tile tile)
+  (bi : szlt rows)
+  (bk : szlt shared)
+  (bj : szlt cols)
+  (i : szlt tile)
+  (j : szlt tile)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    m4_pts_to gA #fA eA **
+    m4_pts_to gB #fB eB
+  returns
+    res : et
+  // ensures
+  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
+{
+  let mut sum : et = zero #et #_;
+  let mut k   : sz = 0sz;
+
+  while (let vk = !k; SZ.(vk <^ tile))
+    invariant b.
+      exists* (vk : SZ.t{vk <= tile}) sumv.
+        pure (0 <= tile /\ b == (SZ.v vk < tile) /\ vk <= tile /\ vk >= 0) **
+        pts_to k vk **
+        pts_to #_ #et sum sumv **
+        m4_pts_to gA #fA eA **
+        m4_pts_to gB #fB eB **
+        gpu
+  {
+    let vk = !k;
+    let s = !sum;
+    let v1 = M4.gpu_matrix_read gA bi bk i vk;
+    let v2 = M4.gpu_matrix_read gB bk bj vk j;
+
+    sum := s `add` mul v1 v2;
+  };
+  !sum
+}
+
 inline_for_extraction noextract
 fn matmul_tiled_dotprod
   (#et : Type0) {| scalar et |}
@@ -89,14 +140,11 @@ fn matmul_tiled_dotprod
 {
   let mut sum : et = zero #et #_;
   let mut bk  : sz = 0sz;
-  let mut k   : sz = 0sz;
 
   while (let vbk = !bk; SZ.(vbk <^ shared))
     invariant b.
-      exists* (vbk : SZ.t{vbk <= shared}) (vk : SZ.t{vk < tile}) sumv.
+      exists* (vbk : SZ.t{vbk <= shared}) sumv.
         pure (0 <= shared /\ b == (SZ.v vbk < shared) /\ vbk <= shared /\ vbk >= 0) **
-        pure (0 <= tile /\ vk < tile /\ vk >= 0) **
-        pts_to k vk **
         pts_to bk vbk **
         pts_to #_ #et sum sumv **
         m4_pts_to gA #fA eA **
@@ -104,19 +152,9 @@ fn matmul_tiled_dotprod
         gpu
   {
     let vbk = !bk;
-    let vk = !k;
+    let sub = matmul_tiled_sub_dotprod gA gB bi vbk bj i j;
     let s = !sum;
-    let v1 = M4.gpu_matrix_read gA bi vbk i vk;
-    let v2 = M4.gpu_matrix_read gB vbk bj vk j;
-
-    sum := s `add` mul v1 v2;
-
-    if (vk = tile -^ 1sz) {
-      k := 0sz;
-      bk := vbk +^ 1sz;
-    } else {
-      k := vk +^ 1sz;
-    }
+    sum := s `add` sub;
   };
   !sum
 }
