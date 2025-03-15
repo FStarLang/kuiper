@@ -6,16 +6,33 @@ open Kuiper.ArrayView
 open Kuiper.GhostMap
 open Kuiper.Bijection
 module F = FStar.FunctionalExtensionality
+open FStar.FunctionalExtensionality { (^->>) }
 module SZ = FStar.SizeT
 open FStar.SizeT
 
+let lseq_to_ghost_map (#et:Type) (#len:nat) : erased (lseq et len) -> (natlt len ^->> et) =
+  fun v -> F.on_g _ fun (i:natlt len) -> Seq.index (reveal v) i <: et
+
+let lseq_from_ghost_map (#et:Type) (#len:nat) : (natlt len ^->> et) -> erased (lseq et len) =
+  fun f -> hide (Seq.init_ghost len f)
+
+let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (erased (lseq et len)) (natlt len ^->> et) = {
+  ff = lseq_to_ghost_map;
+  gg = lseq_from_ghost_map;
+  ff_gg = (fun f ->
+    assert (F.feq_g (lseq_to_ghost_map (lseq_from_ghost_map f)) f);
+    ()
+  );
+  (* We need to state this, otherwise we get a coercion that messes things up. *)
+  gg_ff = (fun (es : erased (lseq et len)) ->
+    (* ARGH! without stating erased above, we seem to implicly get a reveal coercion that messes things up. *)
+    assert (Seq.equal (lseq_from_ghost_map (lseq_to_ghost_map es)) es);
+    ()
+  );
+}
+
 let lseq_is_ghost_map (et:Type) (len:nat) : is_ghost_map (erased (lseq et len)) (natlt len) et = {
-  bij = {
-    ff = (fun (v : erased (lseq et len)) -> F.on_g _ fun (i:natlt len) -> Seq.index (reveal v) i <: et);
-    gg = (fun f -> hide (Seq.init_ghost len f));
-    ff_gg = (fun f -> admit());
-    gg_ff = magic();
-  };
+  bij = bij_lseq_ghost_map et len;
   acc = (fun v i -> reveal v @! i);
   upd = (fun v i x -> Seq.upd (reveal v) i x);
   l1 = ez;
