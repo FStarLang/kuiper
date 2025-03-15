@@ -13,21 +13,22 @@ DIFF="diff -u --strip-trailing-cr"
 # Doing the diff in this order is more natural for error
 # messages, as '+' means new lines and '-' lines that are
 # no longer appearing.
-if $DIFF "$EXPECTED" "$ACTUAL" ; then
+if $DIFF -q "$EXPECTED" "$ACTUAL" ; then
   # OK
   exit 0
 else
   # We're gonna fail. If we're running in CI, emit a Github
   # error message.
   if [ -v GITHUB_ENV ]; then
-    DIFFTEXT=$($DIFF "$ACTUAL" "$EXPECTED" | sed 's/$/%0A/' | tr -d '\n')
+    DIFFTEXT=$($DIFF "$EXPECTED" "$ACTUAL" | sed 's/$/%0A/' | tr -d '\n')
     ACTUAL=$(realpath "$ACTUAL")
     ACTUAL="${ACTUAL#$FSTAR_ROOT}"
     EXPECTED=$(realpath "$EXPECTED")
     EXPECTED="${EXPECTED#$FSTAR_ROOT}"
-    echo "::error::Diff failed for files $ACTUAL and $EXPECTED:%0A%0A$DIFFTEXT"
+    echo "::error::File $ACTUAL did not match expected $EXPECTED:%0A%0A$DIFFTEXT"
   else
-    echo "error: Diff failed for files $ACTUAL and $EXPECTED" >&2
+    echo "error: File $ACTUAL did not match expected $EXPECTED. Diff follows." >&2
+    $DIFF "$EXPECTED" "$ACTUAL"
   fi
   exit 1
 fi
