@@ -8,7 +8,7 @@ static void __hoisted_2(uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
   size_t bid = blockIdx_x();
   size_t tid = threadIdx_x();
-  KRML_HOST_IGNORE((uint64_t *)KPR_SHMEM());
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = bid / (size_t)32U;
   size_t mcol = bid % (size_t)32U;
   size_t brow = tid / (size_t)32U;
@@ -18,20 +18,18 @@ static void __hoisted_2(uint64_t *gA, uint64_t *gB, uint64_t *gC)
   while (bk < (size_t)32U)
   {
     size_t vbk = bk;
+    uint64_t v2 = gB[(vbk * (size_t)32U + brow) * (size_t)1024U + mcol * (size_t)32U + bcol];
+    ar[tid] = gA[(mrow * (size_t)32U + brow) * (size_t)1024U + vbk * (size_t)32U + bcol];
+    ar[tid + (size_t)1024U] = v2;
     __syncthreads();
-    uint64_t sum1 = 0ULL;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA[(mrow * (size_t)32U + brow) * (size_t)1024U + vbk * (size_t)32U + vk] *
-          gB[(vbk * (size_t)32U + vk) * (size_t)1024U + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[vsk * (size_t)32U + bcol + (size_t)1024U];
+      sk = vsk + (size_t)1U;
     }
-    uint64_t sub = sum1;
     __syncthreads();
-    sum += sub;
     bk = vbk + (size_t)1U;
   }
   size_t bi = mrow;

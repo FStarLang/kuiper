@@ -136,6 +136,34 @@ fn fakesync ()
 
 
 inline_for_extraction noextract
+fn eqplus
+  (#et : Type0) {| scalar et |}
+  (r : ref et)
+  (v : et)
+  (#v0 : erased et)
+  requires
+    r |-> v0
+  ensures
+    r |-> v0 `add #et` v
+{
+  let v0 = !r;
+  r := v0 `add` v;
+}
+
+inline_for_extraction noextract
+fn incr
+  (#et : Type0) {| scalar et |}
+  (r : ref et)
+  (#v0 : erased et)
+  requires
+    r |-> v0
+  ensures
+    r |-> (v0 `add #et` one)
+{
+  eqplus r one;
+}
+
+inline_for_extraction noextract
 fn kernel
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
@@ -167,9 +195,13 @@ fn kernel
     thread_id (tile * tile) etid **
     block_id (mrows * mcols) ebid
 {
+  assume (pure False);
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
   let tid = get_tid (); rewrite each etid as SZ.v tid;
   let ar = obtain_shmem ear; rewrite each ear as ar;
+
+  unfold gpu_pts_to_array1 ar tid;
+  unfold gpu_pts_to_array1 ar (tid + tile *^ tile);
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
@@ -184,19 +216,56 @@ fn kernel
   while (let vbk = !bk; SZ.(vbk <^ mshared))
     invariant b.
       exists* (vbk : SZ.t{vbk <= mshared}) sumv.
-        pure (0 <= mshared /\ b == (SZ.v vbk < mshared) /\ vbk <= mshared /\ vbk >= 0) **
+        pure (b == (SZ.v vbk < mshared)) **
         pts_to bk vbk **
         pts_to #_ #et sum sumv **
         m4_pts_to gA #(f /. mlayout_size lC) eA **
         m4_pts_to gB #(f /. mlayout_size lC) eB **
+        (exists* x. gpu_pts_to_slice ar tid (tid + 1) x) **
+        (exists* x. gpu_pts_to_slice ar (tid + tile*tile) (tid + tile*tile+1) x) **
+        // (exists* arv. gpu_pts_to_array ar arv) **
         gpu
   {
     let vbk = !bk;
+    let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
+    let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
+    gpu_array_write #_ #_ #(tid) #(tid + 1) ar tid v1;
+    gpu_array_write #_ #_ #(tid + tile*tile) #(tid + tile*tile + 1) ar (tid +^ tile *^ tile) v2;
+
     fakesync ();
-    let sub = MU.matmul_tiled_sub_dotprod gA gB mrow vbk mcol brow bcol;
+    drop_ (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
+    drop_ (exists* x. gpu_pts_to_slice ar (tid + tile*tile) (tid + tile*tile+1) x);
+    assume (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
+
+    let mut sk : sz = 0sz;
+    while (let vsk = !sk; SZ.(vsk <^ tile))
+      invariant b.
+        exists* (vsk : SZ.t{vsk <= tile}) sumv.
+          pure (b == (SZ.v vsk < tile)) **
+          pts_to sk vsk **
+          pts_to #_ #et sum sumv **
+          m4_pts_to gA #(f /. mlayout_size lC) eA **
+          m4_pts_to gB #(f /. mlayout_size lC) eB **
+          (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x) **
+          gpu
+    {
+      assume (pure False);
+      let vsk = !sk;
+      let sidx1 = brow *^ tile +^ vsk;
+      assert (pure (SZ.v sidx1 < tile * tile));
+      let v1 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx1;
+      let sidx2 = vsk *^ tile +^ bcol +^ tile *^ tile;
+      let v2 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx2;
+      let v = v1 `mul` v2;
+      eqplus sum v;
+      sk := vsk +^ 1sz;
+    };
+
     fakesync ();
-    let s = !sum;
-    sum := s `add` sub;
+    drop_ (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
+    assume (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
+    assume (exists* x. gpu_pts_to_slice ar (tid + tile*tile) (tid + tile*tile+1) x);
+
     bk := vbk +^ 1sz;
   };
 
@@ -210,6 +279,9 @@ fn kernel
       M4.gpu_matrix_pts_to_cell gC
         (ebid / mcols) (ebid % mcols)
         (etid / tile) (etid % tile) v';
+
+  fold gpu_pts_to_array1 ar tid;
+  fold gpu_pts_to_array1 ar (tid + tile *^ tile);
 
   rewrite each SZ.v tid as reveal etid;
   rewrite each ar as ear;
