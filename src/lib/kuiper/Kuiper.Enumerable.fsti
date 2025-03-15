@@ -45,15 +45,7 @@ val bijection_implies_equal_cardinal
   (bij : bijection a b)
   : Lemma (cardinal a #_ == cardinal b #_)
 
-(* sigh, need hoisting or proofs fail. *)
-let bij_unit : bijection unit (natlt 1) = {
-  ff = (fun _ -> 0 <: natlt 1);
-  gg = (fun _ -> ());
-  ff_gg = ez;
-  gg_ff = ez;
-}
-
 instance enumerable_unit : enumerable unit = {
   _cardinal = 1;
-  bij = bij_unit;
+  bij = bij_unit_natlt1;
 }

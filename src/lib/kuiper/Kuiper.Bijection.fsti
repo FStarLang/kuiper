@@ -23,6 +23,13 @@ type bijection (a b : Type) = {
 
 let ( =~ ) a b = bijection a b
 
+let bij_unit_natlt1 : bijection unit (natlt 1) = {
+  ff = (fun _ -> 0 <: natlt 1);
+  gg = (fun _ -> ());
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
 (* Move values across bijections. *)
 let ( |~> ) (#a #b : Type) (x : a) (bij : a =~ b) : b = bij.ff x
 let ( <~| ) (#a #b : Type) (x : b) (bij : a =~ b) : a = bij.gg x
