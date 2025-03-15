@@ -499,43 +499,9 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     ECast (EApp (EQualified ([], "KPR_SHMEM"), [EUnit]),
            TBuf (translate_type env ty))
 
-  (******** KERNEL CALLS ********)
+  (******** KERNEL CALL ********)
 
-  | MLE_App ({ expr = MLE_Name p }, [
-        nblk;
-        nthr;
-        _pre;
-        _post;
-        _a;
-        sized_a;
-        smem_sz;
-        _shared_pre;
-        _shared_post;
-        _setup;
-        { expr = MLE_Fun (_, body) };
-        _epoch
-      ])
-    when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel_n_m_shmem_async" ->
-    let body = hoist env body in
-    let hd, args = head_and_args body in
-    (* Filter out unit arguments. Not great, not sure why they remain *)
-    let args' = List.filter (fun a -> match a.expr with
-                                      | MLE_Const MLC_Unit -> false
-                                      | _ -> true) args in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
-    let e_size = get_sizet sized_a in
-    let e' =
-      with_ty ml_unit_ty <|
-        MLE_App (kcall, [ hd;
-                          nblk;
-                          nthr;
-                          e_size;
-                          smem_sz ]
-                        @ args')
-    in
-    cb e'
-
-  (* New one! *)
+  (* The single kcall! *)
   | MLE_App ({ expr = MLE_Name p }, [ _full_pre; _full_post; kdesc; _epoch ])
     when string_of_mlpath p = "Kuiper.Kernel.Base.launch_kernel_full" ->
     let assoc' k v =
