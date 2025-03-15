@@ -59,9 +59,9 @@ uint64_t
   size_t mcols = cols / tile;
   size_t mshared = shared / tile;
   size_t mrows = rows / tile;
-  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * tile * mshared * tile));
-  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mshared * tile * mcols * tile));
-  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * tile * mcols * tile));
+  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, mrows * tile * mshared * tile);
+  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, mshared * tile * mcols * tile);
+  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, mrows * tile * mcols * tile);
   MUST(cudaMemcpy(gB, b, (size_t)8U * (mshared * tile * (mcols * tile)), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gA, a, (size_t)8U * (mrows * tile * (mshared * tile)), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_0,
@@ -134,11 +134,11 @@ uint64_t
   size_t mshared = shared / (size_t)32U;
   size_t mrows = rows / (size_t)32U;
   uint64_t
-  *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * (size_t)32U * mshared * (size_t)32U));
+  *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, mrows * (size_t)32U * mshared * (size_t)32U);
   uint64_t
-  *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mshared * (size_t)32U * mcols * (size_t)32U));
+  *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, mshared * (size_t)32U * mcols * (size_t)32U);
   uint64_t
-  *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (mrows * (size_t)32U * mcols * (size_t)32U));
+  *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, mrows * (size_t)32U * mcols * (size_t)32U);
   MUST(cudaMemcpy(gB,
       b,
       (size_t)8U * (mshared * (size_t)32U * (mcols * (size_t)32U)),

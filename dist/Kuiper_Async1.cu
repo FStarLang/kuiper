@@ -5,7 +5,7 @@
 uint64_t *Kuiper_Async1_galloc(uint64_t x)
 {
   uint64_t r = x;
-  uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U);
+  uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, (size_t)1U);
   MUST(cudaMemcpy(gr, &r, (size_t)8U, cudaMemcpyHostToDevice));
   return gr;
 }

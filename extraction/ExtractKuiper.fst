@@ -372,7 +372,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, [ ty ]) }, [ sz; _unit ])
     when string_of_mlpath p = "Kuiper.Ref.gpu_alloc0" ->
     let sz : mlexpr = get_sizet sz in
-    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz ]),
+    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; EConstant (SizeT, "1") ]),
            TBuf (translate_type env ty))
 
   | MLE_App ({ expr = MLE_TApp({ expr = MLE_Name p }, _) }, [ r; _v ])
@@ -407,8 +407,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: len :: [])
     when string_of_mlpath p = "Kuiper.Array.gpu_array_alloc" ->
     let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb len ]) in
-    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ bytesize ]),
+    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; cb len ]),
            TBuf (translate_type env ty))
 
   | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name p }, [ty]) }, sz :: r :: v :: [])

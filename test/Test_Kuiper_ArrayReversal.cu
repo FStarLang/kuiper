@@ -21,7 +21,7 @@ int main()
 		printf("Trying n = %i\n", n);
 
 		a = (u64 *) malloc(n * sizeof a[0]);
-		u64 *aa = (u64 *) KPR_GPU_ALLOC(n * sizeof aa[0]);
+		u64 *aa = (u64 *) KPR_GPU_ALLOC(sizeof aa[0], n);
 
 		for (i = 0; i < n; i++)
 			a[i] = i;

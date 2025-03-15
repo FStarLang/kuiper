@@ -49,9 +49,9 @@ void Kuiper_MatMul_Tiled_SHMem_inst_gpu(uint64_t *gA, uint64_t *gB, uint64_t *gC
 
 uint64_t *Kuiper_MatMul_Tiled_SHMem_matmul(uint64_t *a, uint64_t *b)
 {
-  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8388608U);
-  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8388608U);
-  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8388608U);
+  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, (size_t)1048576U);
+  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, (size_t)1048576U);
+  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, (size_t)1048576U);
   MUST(cudaMemcpy(gA, a, (size_t)8388608U, cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8388608U, cudaMemcpyHostToDevice));
   Kuiper_MatMul_Tiled_SHMem_inst_gpu(gA, gB, gC);

@@ -25,7 +25,7 @@ int main()
 		// printf("M1\n"); pr(m1); printf("\n");
 		// printf("M2\n"); pr(m2); printf("\n");
 
-		u64 *aa = (uint64_t *) KPR_GPU_ALLOC(n * sizeof aa[0]);
+		u64 *aa = (uint64_t *) KPR_GPU_ALLOC(sizeof aa[0], n);
 		MUST(cudaMemcpy(aa, a, n * 8U, cudaMemcpyHostToDevice));
 
 		u64 r = TIME(Kuiper_AtomicReduce_reduce_u64(n, aa), NULL);

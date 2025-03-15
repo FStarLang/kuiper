@@ -34,9 +34,9 @@ float_t
   float_t *b
 )
 {
-  float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * shared));
-  float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U * (shared * cols));
-  float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
+  float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * shared);
+  float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U, shared * cols);
+  float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_0,
@@ -95,9 +95,9 @@ double_t
   double_t *b
 )
 {
-  double_t *gA = (double_t *)KPR_GPU_ALLOC((size_t)8U * (rows * shared));
-  double_t *gB = (double_t *)KPR_GPU_ALLOC((size_t)8U * (shared * cols));
-  double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U * (rows * cols));
+  double_t *gA = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * shared);
+  double_t *gB = (double_t *)KPR_GPU_ALLOC((size_t)8U, shared * cols);
+  double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_1,
@@ -156,9 +156,9 @@ uint32_t
   uint32_t *b
 )
 {
-  uint32_t *gA = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * shared));
-  uint32_t *gB = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (shared * cols));
-  uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
+  uint32_t *gA = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * shared);
+  uint32_t *gB = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, shared * cols);
+  uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_2,
@@ -214,9 +214,9 @@ uint64_t
   uint64_t *b
 )
 {
-  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (rows * shared));
-  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (shared * cols));
-  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (rows * cols));
+  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * shared);
+  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, shared * cols);
+  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_3,
@@ -272,9 +272,9 @@ float_t
   float_t *b
 )
 {
-  float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * shared));
-  float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U * (shared * cols));
-  float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
+  float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * shared);
+  float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U, shared * cols);
+  float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_4,
@@ -333,9 +333,9 @@ double_t
   double_t *b
 )
 {
-  double_t *gA = (double_t *)KPR_GPU_ALLOC((size_t)8U * (rows * shared));
-  double_t *gB = (double_t *)KPR_GPU_ALLOC((size_t)8U * (shared * cols));
-  double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U * (rows * cols));
+  double_t *gA = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * shared);
+  double_t *gB = (double_t *)KPR_GPU_ALLOC((size_t)8U, shared * cols);
+  double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_5,
@@ -394,9 +394,9 @@ uint32_t
   uint32_t *b
 )
 {
-  uint32_t *gA = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * shared));
-  uint32_t *gB = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (shared * cols));
-  uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U * (rows * cols));
+  uint32_t *gA = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * shared);
+  uint32_t *gB = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, shared * cols);
+  uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_6,
@@ -452,9 +452,9 @@ uint64_t
   uint64_t *b
 )
 {
-  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (rows * shared));
-  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (shared * cols));
-  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U * (rows * cols));
+  uint64_t *gA = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * shared);
+  uint64_t *gB = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, shared * cols);
+  uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_7,

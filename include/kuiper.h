@@ -74,18 +74,6 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 #define MUST(e)								\
 	__MUST(e, #e, __FILE__, __LINE__)
 
-static inline
-void * __KPR_GPU_ALLOC(size_t len, const char *str, const char *fname,
-			     int line)
-{
-	void *ret = NULL;
-	__MUST(cudaMalloc(&ret, len), str, fname, line);
-	return ret;
-}
-
-#define KPR_GPU_ALLOC(len)						\
-	__KPR_GPU_ALLOC(len, "KPR_GPU_ALLOC(" #len ")", __FILE__, __LINE__)
-
 #define KRML_HOST_MALLOC            malloc
 #define KRML_HOST_CALLOC            calloc
 #define KRML_HOST_FREE              free
@@ -98,6 +86,19 @@ void * __KPR_GPU_ALLOC(size_t len, const char *str, const char *fname,
 	} while (0)
 #define KRML_HOST_EPRINTF(s, ...)   fprintf(stderr, __VA_ARGS__)
 #define KRML_HOST_EXIT(rc)          exit(rc)
+
+static inline
+void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char *str, const char *fname,
+			     int line)
+{
+	void *ret = NULL;
+	KRML_CHECK_SIZE(sz, len);
+	__MUST(cudaMalloc(&ret, sz*len), str, fname, line);
+	return ret;
+}
+
+#define KPR_GPU_ALLOC(sz, len)						\
+	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #len ")", __FILE__, __LINE__)
 
 static inline
 void INFO ()
