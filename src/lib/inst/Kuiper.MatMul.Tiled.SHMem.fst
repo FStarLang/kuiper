@@ -9,7 +9,7 @@ module M4 = Kuiper.Matrix4
 module Tiled = Kuiper.MatMul.Tiled
 friend Kuiper.MatMul.Tiled
 
-let inst_gpu = 
+let inst_gpu =
    P.matmul_gpu 32sz
    #u64 #_ #32sz #32sz #32sz
    (R.row_major 1024 1024)
