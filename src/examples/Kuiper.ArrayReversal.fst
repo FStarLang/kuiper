@@ -230,7 +230,6 @@ ensures
 
 }
 
-[@@CPrologue "__device__"]
 inline_for_extraction
 fn read_cell
   (#ty:Type0)
@@ -255,7 +254,6 @@ ensures
   v
 }
 
-[@@CPrologue "__device__"]
 inline_for_extraction
 fn write_cell
   (#ty:Type0)
@@ -398,7 +396,7 @@ fn reverse
     (#ty:Type0)
     (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
     (a:gpu_array ty size)
-    (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
+    (#s: erased (seq ty) { len s == SZ.v size })
   preserves
     cpu
   requires
