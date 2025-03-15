@@ -83,27 +83,14 @@ fn kf
 
   let trow = SZ.div id cols;
   let tcol = SZ.rem id cols;
-  with v0.
-    rewrite
-      M.gpu_matrix_pts_to_cell gC #1.0R (id / cols) (id % cols) v0
-    as
-      M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
-
-  assert (pure (trow < rows));
-  assert (pure (tcol < cols));
+  rewrite each (SZ.v id / SZ.v cols) as trow;
+  rewrite each (SZ.v id % SZ.v cols) as tcol;
 
   let s = MU.matmul_dotprod gA gB trow tcol;
   M.gpu_matrix_write_cell gC trow tcol s;
 
-  assert (pure (SZ.v trow == ebid / cols));
-  assert (pure (SZ.v tcol == ebid % cols));
-  rewrite
-    M.gpu_matrix_pts_to_cell gC trow tcol
-      (MS.matmul_single eA eB trow tcol shared)
-  as
-    M.gpu_matrix_pts_to_cell gC (ebid / cols) (ebid % cols)
-      (MS.matmul_single eA eB (ebid / cols) (ebid % cols) shared);
-
+  rewrite each SZ.v trow as (ebid / cols);
+  rewrite each SZ.v tcol as (ebid % cols);
   ()
 }
 
