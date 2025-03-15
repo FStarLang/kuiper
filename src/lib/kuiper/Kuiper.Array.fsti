@@ -10,6 +10,7 @@ open FStar.Seq
 open Kuiper.Base
 open Kuiper.Sized
 open Kuiper.SizeT
+open Kuiper.Seq.Common
 
 module SZ = FStar.SizeT
 
@@ -166,7 +167,7 @@ fn gpu_memcpy_host_to_device'
   requires
     (dst_garr |-> gv)
   ensures
-    (dst_garr |-> Kuiper.Seq.Common.seq_blit gv dst_off v src_off cnt) **
+    (dst_garr |-> seq_blit gv dst_off v src_off cnt) **
     pure (Seq.length v == reveal dst_sz)
 
 fn gpu_memcpy_device_to_host
@@ -212,7 +213,7 @@ fn gpu_memcpy_device_to_host'
   requires
     (dst_arr |-> gv)
   ensures
-    (dst_arr |-> Kuiper.Seq.Common.seq_blit gv dst_off v src_off cnt) **
+    (dst_arr |-> seq_blit gv dst_off v src_off cnt) **
     pure (Seq.length v == reveal dst_sz)
 
 fn gpu_memcpy_device_to_device

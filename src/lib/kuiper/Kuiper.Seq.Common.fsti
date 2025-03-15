@@ -83,3 +83,19 @@ let seq_blit
 =
   let cut = slice s2 off2 (off2 + cnt) in
   seq_replace s1 off1 (off1 + cnt) cut
+
+let seq_take
+  (#a:Type)
+  (n : nat)
+  (s : seq a{n <= length s})
+  : seq a
+=
+  slice s 0 n
+
+let seq_drop
+  (#a:Type)
+  (n : nat)
+  (s : seq a{n <= length s})
+  : seq a
+=
+  slice s n (length s)
