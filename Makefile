@@ -45,7 +45,7 @@ clean-full: clean
 
 dist: all
 	rm -f dist/*
-	cp obj/*.cu dist
+	cp obj/*.cu obj/*.h dist
 
 .PHONY: lint
 lint:
