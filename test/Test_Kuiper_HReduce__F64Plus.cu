@@ -9,7 +9,7 @@ int main()
 	double *ga;
 	const size_t siz = 1024;
 
-	a  = (double *)malloc(siz * sizeof a[0]);
+	a = (double *)malloc(siz * sizeof a[0]);
 	ga = (double *)KPR_GPU_ALLOC(sizeof ga[0], siz);
 
 	int i;

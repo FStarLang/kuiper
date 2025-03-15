@@ -5,7 +5,6 @@ module Kuiper.Poly.MatMul.Tiled.SHMem
 open Kuiper
 module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
-module MU = Kuiper.Poly.MatMul.Util
 module SZ = FStar.SizeT
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type

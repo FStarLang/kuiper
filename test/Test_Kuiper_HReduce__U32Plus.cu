@@ -10,8 +10,8 @@ int main()
 	uint32_t *ga;
 	const size_t siz = 1024;
 
-	a  = (uint32_t *)malloc(siz * sizeof a[0]);
-	ga = (uint32_t *)KPR_GPU_ALLOC(sizeof ga[0], siz);
+	a = (uint32_t *) malloc(siz * sizeof a[0]);
+	ga = (uint32_t *) KPR_GPU_ALLOC(sizeof ga[0], siz);
 
 	int i;
 
