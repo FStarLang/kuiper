@@ -32,6 +32,7 @@ static void __hoisted_2(uint64_t *gA, uint64_t *gB, uint64_t *gC)
     uint64_t sub = sum1;
     __syncthreads();
     sum += sub;
+    bk = vbk + (size_t)1U;
   }
   size_t bi = mrow;
   size_t bj = mcol;

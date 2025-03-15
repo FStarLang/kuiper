@@ -197,6 +197,7 @@ fn kernel
     fakesync ();
     let s = !sum;
     sum := s `add` sub;
+    bk := vbk +^ 1sz;
   };
 
   let s = !sum;
