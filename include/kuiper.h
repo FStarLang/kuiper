@@ -98,7 +98,7 @@ void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char *str, const char *fname
 }
 
 #define KPR_GPU_ALLOC(sz, len)						\
-	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #len ")", __FILE__, __LINE__)
+	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #sz ", " #len ")", __FILE__, __LINE__)
 
 static inline
 void INFO ()
