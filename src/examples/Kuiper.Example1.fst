@@ -7,7 +7,7 @@ open Kuiper
 module U64 = FStar.UInt64
 
 inline_for_extraction noextract
-fn kernel (r : gpu_ref u64) (#v : erased u64)
+fn kf (r : gpu_ref u64) (#v : erased u64)
   preserves gpu
   requires r |-> v
   ensures  r |-> U64.add_mod v 1uL

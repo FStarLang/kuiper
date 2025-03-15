@@ -298,7 +298,7 @@ let kpost
   gpu_pts_to_cell a #1.0R (SZ.v size - ebid - 1) (index_flip (reverse_spec s) ebid)
 
 inline_for_extraction noextract
-fn kernel
+fn kf
   (#ty:Type0)
   (size:sz)
   (a:gpu_array ty size)
@@ -383,7 +383,7 @@ let kdesc
       (a |-> reverse_spec s)
   = {
       nblk     = size /^ 2sz;
-      f        = kernel size a #s;
+      f        = kf size a #s;
       setup    = (setup size a);
       teardown = (teardown size a);
       kpre     = kpre size a s;

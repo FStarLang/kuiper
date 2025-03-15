@@ -163,7 +163,7 @@ fn incr
 }
 
 inline_for_extraction noextract
-fn kernel
+fn kf
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : SZ.t)
@@ -459,7 +459,7 @@ let mk_kernel
   kpre      = kpre  tile gA gB gC eA eB 1.0R;
   kpost     = kpost tile gA gB gC eA eB 1.0R;
 
-  f = kernel tile #et #_ #mrows #mshared #mcols gA gB gC #eA #eB #1.0R;
+  f = kf tile #et #_ #mrows #mshared #mcols gA gB gC #eA #eB #1.0R;
 }
 
 inline_for_extraction noextract

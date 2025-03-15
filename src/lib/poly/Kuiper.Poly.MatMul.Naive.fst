@@ -53,7 +53,7 @@ let kpost
     (MS.matmul_single eA eB (tid / cols) (tid % cols) shared)
 
 inline_for_extraction noextract
-fn kernel
+fn kf
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : SZ.t)
   (#lA : mlayout rows shared)
@@ -278,5 +278,5 @@ let kdesc
   kpre  = kpre gA gB gC eA eB 1.0R;
   kpost = kpost gA gB gC eA eB 1.0R;
 
-  f = kernel gA gB gC #eA #eB #1.0R;
+  f = kf gA gB gC #eA #eB #1.0R;
 }

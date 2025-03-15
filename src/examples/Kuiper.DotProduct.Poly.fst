@@ -24,7 +24,7 @@ let kpost #et (size:nat) (ga1 ga2 r : gpu_array et size) (tid:nat) : slprop =
   gpu_pts_to_array1 ga2 tid **
   gpu_pts_to_array1 r tid
 
-fn kernel
+fn kf
   (#et:Type0) {| scalar et |}
   (#size : erased nat)
   (ga1 ga2 r : gpu_array et size)
