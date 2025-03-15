@@ -43,6 +43,7 @@ fn mk_mbarrier
   requires block_setup_tok n
   ensures  block_setup_tok n ** bigstar 0 n (mbarrier_tok n p 0)
 
+inline_for_extraction noextract
 fn mbarrier_wait
   ()
   (#n : erased nat)

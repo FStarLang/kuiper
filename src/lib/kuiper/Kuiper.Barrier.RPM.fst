@@ -52,6 +52,7 @@ fn mk_mbarrier
   bigstar_map #0 #0 #0 #n aux;
 }
 
+inline_for_extraction noextract
 fn mbarrier_wait
   ()
   (#n : erased nat)

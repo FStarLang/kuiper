@@ -278,8 +278,8 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   (******** BARRIERS ********)
 
-  | MLE_App ({ expr = MLE_Name p } , [_;u1;u2;u3;u4])
-    when string_of_mlpath p = "Kuiper.Barrier.RPM.mbarrier_wait" ->
+  | MLE_App ({ expr = MLE_Name p } , [_unit; _n; _p; _q; _it; _tid])
+    when string_of_mlpath p = "Kuiper.Barrier.barrier_wait" ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
 
   (******** FLOAT ARITHMETIC *******)
