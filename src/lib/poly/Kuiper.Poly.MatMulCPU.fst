@@ -13,7 +13,7 @@ module R = Kuiper.Matrix.Reprs
 
 inline_for_extraction noextract
 fn matmul_cpu
-  (matmul_gpu : matmul_gpu_ty)
+  (k : matmul_kernel_ty)
   (#et : Type0) {| scalar et |}
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp{three_fits rows shared cols})
@@ -52,7 +52,7 @@ fn matmul_cpu
 
   with vc. assert gC |-> vc;
 
-  matmul_gpu gA gB gC;
+  launch_sync (k gA gB gC ());
 
   let c = Pulse.Lib.Vec.alloc #et zero (SZ.mul rows cols);
   M.gpu_matrix_to_array c gC;
@@ -75,7 +75,7 @@ Basically:
 *)
 inline_for_extraction noextract
 fn matmul_transpose_gpu
-  (matmul_gpu : matmul_gpu_ty)
+  (k : matmul_kernel_ty)
   (#et : Type0) {| scalar et |}
   (#rows : szp)
   (#shared : szp)
@@ -97,7 +97,7 @@ fn matmul_transpose_gpu
     gC |-> mtranspose (MS.matmul eA eB)
 {
   let gC' = Kuiper.Ghost.Transpose.ghost_transpose1 gC;
-  matmul_gpu gA gB gC';
+  launch_sync (k gA gB gC' ());
   let gC'' = Kuiper.Ghost.Transpose.ghost_transpose2 gC';
   M.core_match gC gC'';
   rewrite each gC'' as gC;
@@ -106,7 +106,7 @@ fn matmul_transpose_gpu
 
 inline_for_extraction noextract
 fn specialize_to_type_and_reprs
-  (matmul_gpu : matmul_gpu_ty)
+  (matmul : matmul_cpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
@@ -134,5 +134,5 @@ fn specialize_to_type_and_reprs
              MS.matmul (from_seq (rA rows shared) sa)
                        (from_seq (rB shared cols) sb))
 {
-  matmul_cpu matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
+  matmul #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
 }

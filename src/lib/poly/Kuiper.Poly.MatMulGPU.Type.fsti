@@ -10,7 +10,7 @@ module M  = Kuiper.Matrix
 
 unfold
 inline_for_extraction
-type matmul_gpu_ty =
+type matmul_kernel_ty =
   (#et : Type0) -> {| scalar et |} ->
   (#rows : szp) ->
   (#shared : szp) ->
@@ -27,12 +27,7 @@ type matmul_gpu_ty =
   (#eA : ematrix et rows shared) ->
   (#eB : ematrix et shared cols) ->
   (#eC : ematrix et rows cols) ->
-  (* This has a preserves. *)
-  stt unit
-    (requires
-      (cpu ** (gA |-> eA) ** (gB |-> eB)) **
-      (pure (rows * cols <= max_blocks) **
-       (gC |-> eC)))
-    (ensures fun _ ->
-      (cpu ** (gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.matmul eA eB))
+  (_ : squash (rows * cols <= max_blocks)) ->
+  kernel_desc
+    ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
+    ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.matmul eA eB))

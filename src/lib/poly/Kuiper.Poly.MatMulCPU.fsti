@@ -46,7 +46,7 @@ type matmul_cpu_ty
 
 inline_for_extraction noextract
 val matmul_cpu
-  (matmul_gpu : matmul_gpu_ty)
+  (k : matmul_kernel_ty)
   : matmul_cpu_ty
 
 unfold
@@ -80,7 +80,7 @@ type fixed_repr_matmul_cpu_ty
 
 inline_for_extraction noextract
 val specialize_to_type_and_reprs
-  (matmul_gpu : matmul_gpu_ty)
+  (matmul : matmul_cpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
