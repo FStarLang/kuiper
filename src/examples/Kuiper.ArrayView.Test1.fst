@@ -16,6 +16,7 @@ let lseq_to_ghost_map (#et:Type) (#len:nat) : erased (lseq et len) -> (natlt len
 let lseq_from_ghost_map (#et:Type) (#len:nat) : (natlt len ^->> et) -> erased (lseq et len) =
   fun f -> hide (Seq.init_ghost len f)
 
+noextract
 let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (erased (lseq et len)) (natlt len ^->> et) = {
   ff = lseq_to_ghost_map;
   gg = lseq_from_ghost_map;
@@ -31,6 +32,7 @@ let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (erased (lseq et len)) (n
   );
 }
 
+noextract
 let lseq_is_ghost_map (et:Type) (len:nat) : is_ghost_map (erased (lseq et len)) (natlt len) et = {
   bij = bij_lseq_ghost_map et len;
   acc = (fun v i -> reveal v @! i);
