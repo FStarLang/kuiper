@@ -47,15 +47,21 @@ dist: all
 	rm -f dist/*
 	cp obj/*.cu obj/*.h dist
 
-.PHONY: lint
-lint:
+.PHONY: lint-c
+lint-c:
+	indent -linux -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
+
+.PHONY: lint-fstar
+lint-fstar:
 	./FStar/.scripts/remove_all_unused_opens.sh extraction
 	./FStar/.scripts/remove_all_unused_opens.sh src
 	( cd src && git sed 's/ *$$//' )
 	( cd extraction && git sed 's/ *$$//' )
 	( cd src && ../scripts/find-pulse-noix.sh )
 	( cd src && ../scripts/check-attrs.sh )
-	indent -linux -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
+
+.PHONY: lint
+lint: lint-c lint-fstar
 
 .PHONY: list-admits
 list-admits:
