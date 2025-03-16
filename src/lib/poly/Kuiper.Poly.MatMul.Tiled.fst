@@ -278,5 +278,6 @@ fn matmul_gpu
   ensures
     gC |-> MS.matmul eA eB
 {
+  dassert (tile `SZ.gt` 0sz);
   launch_sync (mk_kernel tile gA gB gC ());
 }

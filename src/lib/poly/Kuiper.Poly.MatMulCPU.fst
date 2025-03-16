@@ -97,6 +97,7 @@ fn matmul_gpu_tiled
   ensures
     gC |-> MS.matmul eA eB
 {
+  dassert (tile `SZ.gt` 0sz);
   dguard (rows   %^ tile = 0sz);
   dguard (shared %^ tile = 0sz);
   dguard (cols   %^ tile = 0sz);
