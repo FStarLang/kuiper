@@ -44,19 +44,12 @@ let barrier_p
       (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x)
     )
 
-(* Same thing, switching the condition. *)
 let barrier_q
   (#et : Type0) {| scalar et |}
   (tile : valid_tile)
   (ar : gpu_array et (2sz *^ tile *^ tile))
   : B.barrier_side (tile *^ tile) =
-  fun it tid ->
-    if odd it
-    then (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x)
-    else (
-      (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x) **
-      (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x)
-    )
+  fun it tid -> barrier_p tile ar (it+1) tid (* flip flop *)
 
 (* without shmem ownership *)
 unfold
@@ -186,6 +179,10 @@ fn incr
   eqplus r one;
 }
 
+(* TODO: This function is REALLY slow since we are using
+the shared memory array as a flat buffer, and computing compound
+indices into it. We should instead split in two, and use
+two adjacent Matrix2 views on it, which would eliminate all of this. *)
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
