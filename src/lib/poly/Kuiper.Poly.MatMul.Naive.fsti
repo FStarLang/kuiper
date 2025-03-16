@@ -10,4 +10,4 @@ open Kuiper.Poly.MatMulGPU.Type
 open Kuiper.Matrix.Reprs.Type
 
 inline_for_extraction noextract
-val kdesc : matmul_kernel_ty
+val matmul_gpu : matmul_gpu_ty

@@ -258,3 +258,32 @@ let kdesc
 
   f = kf gA gB gC #eA #eB #1.0R;
 }
+
+inline_for_extraction noextract
+fn matmul_gpu
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| clayout lA |}
+  {| clayout lB |}
+  {| clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (gC : M.gpu_matrix et lC)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  preserves
+    cpu **
+    (gA |-> eA) **
+    (gB |-> eB)
+  requires
+    pure (rows * cols <= max_blocks) **
+    (gC |-> eC)
+  ensures
+    gC |-> MS.matmul eA eB
+{
+  launch_sync (kdesc gA gB gC #eA #eB #eC ());
+}
