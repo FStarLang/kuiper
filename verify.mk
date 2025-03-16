@@ -6,7 +6,10 @@ include .common.mk
 
 # I HATE MAKE!
 .SUFFIXES:
-.SECONDARY:
+# .SECONDARY:
+# ^ Don't ask me why, but SECONDARY makes this makefile very slow on
+# no-ops. NOTINTERMEDIATE has a similar effect.
+.NOTINTERMEDIATE:
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
