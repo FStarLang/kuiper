@@ -42,6 +42,7 @@ instance has_pts_to (a:Type) (rows cols : erased nat) (l : _)
 }
 
 inline_for_extraction noextract
+ghost
 fn gpu_matrix_concr
   (#et:Type)
   (#rows #cols : erased nat)
@@ -56,16 +57,15 @@ fn gpu_matrix_concr
 inline_for_extraction noextract
 fn gpu_matrix_abs
   (#et:Type)
-  (#rows0 #cols0 : erased nat) (#l0 : mlayout rows0 cols0)
-  (g : gpu_matrix et l0)
   (#rows #cols : erased nat) (l : mlayout rows cols)
+  (p : gpu_array et (mlayout_size l))
   (#em : ematrix et rows cols)
   requires
-    core g |-> to_seq l em
+    p |-> to_seq l em
   returns
     g' : gpu_matrix et l
   ensures
-    pure (rows * cols == rows0 * cols0 /\ core g == core g') **
+    pure (core g' == p) **
     (g' |-> em)
 
 inline_for_extraction noextract

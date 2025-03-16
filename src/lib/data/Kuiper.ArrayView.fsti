@@ -130,7 +130,7 @@ instance has_pts_to (#a:Type) (#len : nat) (#vt:Type) (#vw : aview a len vt)
 
 (* These are really ghost steps only... but
 since the varray type encodes the view as an argument,
-we return a new array (with the same core). This is so we do not
+_abs must return a new array. This is so we do not
 expose that the varray type does not really use the layout
 argument. Exposing that may bring in some dangers wrt typeclass resolution
 picking the wrong view.
@@ -138,6 +138,7 @@ picking the wrong view.
 But the current setting means we cannot do these shifts in ghost code...
 so maybe that's a bullet we should bite. *)
 inline_for_extraction noextract
+ghost
 fn varray_concr
   (#t:Type0)
   (#len : erased nat)
@@ -153,17 +154,17 @@ fn varray_concr
 inline_for_extraction noextract
 fn varray_abs
   (#t:Type0)
-  (#len0 : erased nat) (#vt0:Type0) (#vw0 : aview t len0 vt0)
-  (a : varray vw0)
-  (#len : erased nat) (#vt:Type0) (vw : aview t len vt)
+  (#len : erased nat)
+  (#vt:Type0) (vw : aview t len vt)
+  (a : gpu_array t len)
   (#v : erased vt)
   requires
-    core a |-> to_seq vw v
+    a |-> to_seq vw v
   returns
-    a' : varray vw
+    av : varray vw
   ensures
-    pure (len0 == len /\ core a == core a') **
-    (a' |-> v)
+    pure (core av == a) **
+    (av |-> v)
 
 inline_for_extraction noextract
 fn varray_alloc0

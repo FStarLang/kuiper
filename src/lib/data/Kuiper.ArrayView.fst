@@ -42,6 +42,7 @@ let varray_pts_to
     B.gpu_pts_to_array a #f (to_seq vw v)
 
 inline_for_extraction noextract
+ghost
 fn varray_concr
   (#t:Type0)
   (#len : erased nat)
@@ -60,24 +61,23 @@ fn varray_concr
 inline_for_extraction noextract
 fn varray_abs
   (#t:Type0)
-  (#len0 : erased nat) (#vt0:Type0) (#vw0 : aview t len0 vt0)
-  (a : varray vw0)
-  (#len : erased nat) (#vt:Type0) (vw : aview t len vt)
+  (#len : erased nat)
+  (#vt:Type0) (vw : aview t len vt)
+  (a : gpu_array t len)
   (#v : erased vt)
   requires
-    core a |-> to_seq vw v
+    a |-> to_seq vw v
   returns
-    a' : varray vw
+    av : varray vw
   ensures
-    pure (len0 == len /\ core a == core a') **
-    (a' |-> v)
+    pure (core av == a) **
+    (av |-> v)
 {
-  gpu_pts_to_ref (core a);
-  let a' : varray vw = core a;
-  rewrite each core a as a';
-  rewrite each len0 as len;
-  fold varray_pts_to #t #len #vt #vw a' #1.0R v;
-  a'
+  gpu_pts_to_ref a;
+  let av : varray vw = a;
+  rewrite each a as av;
+  fold varray_pts_to #t #len #vt #vw av #1.0R v;
+  av
 }
 
 inline_for_extraction noextract

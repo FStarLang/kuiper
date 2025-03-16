@@ -27,7 +27,7 @@ fn ghost_transpose1
                   (to_seq (Repr.col_major cols rows) (mtranspose m))));
   rewrite each to_seq (Repr.row_major rows cols) m
             as to_seq (Repr.col_major cols rows) (mtranspose m);
-  let gA' = gpu_matrix_abs gA (Repr.col_major cols rows);
+  let gA' = gpu_matrix_abs (Repr.col_major cols rows) (core gA);
   gA'
 }
 
@@ -51,6 +51,6 @@ fn ghost_transpose2
                   (to_seq (Repr.row_major cols rows) (mtranspose m))));
   rewrite each to_seq (Repr.col_major rows cols) m
             as to_seq (Repr.row_major cols rows) (mtranspose m);
-  let gA' = gpu_matrix_abs gA (Repr.row_major cols rows);
+  let gA' = gpu_matrix_abs (Repr.row_major cols rows) (core gA);
   gA'
 }

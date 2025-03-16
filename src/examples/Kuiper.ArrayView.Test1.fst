@@ -162,17 +162,19 @@ fn write2 (a : varray (reverse_view u32 50))
 
 (* awkward, we should be able to start from a random array (not "core a")
    and use abs on it. *)
-fn write3 (a : varray (reverse_view u32 50))
+(* fixed! *)
+fn write3
+  (p : gpu_array u32 50)
   (#s : erased (lseq u32 50))
   preserves gpu
-  requires core a |-> to_seq (reverse_view u32 50) (R s)
-  ensures  core a |-> Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul
+  requires p |-> to_seq (reverse_view u32 50) (R s)
+  ensures  p |-> Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul
 {
-  let a' = varray_abs a (reverse_view u32 50);
+  let a' = varray_abs (reverse_view u32 50) p;
   write2 a';
   varray_concr a';
   rewrite each core #UInt32.t #(hide #nat 50) #(_reverse UInt32.t 50)
-          #(reverse_view UInt32.t 50) a' as core a;
+          #(reverse_view UInt32.t 50) a' as p;
 
   assert (pure (Seq.equal
     (Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul)
