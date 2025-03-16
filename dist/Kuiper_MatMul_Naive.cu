@@ -438,3 +438,339 @@ uint64_t
   return c;
 }
 
+__global__
+
+static void __hoisted_8(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  float_t sum = (float_t)0.0f;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
+  }
+  gC[trow * cols + tcol] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_f32_rrr(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_KCALL(__hoisted_8,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void __hoisted_9(size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  double_t sum = (double_t)0.0l;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
+  }
+  gC[trow * cols + tcol] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_f64_rrr(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_KCALL(__hoisted_9,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void __hoisted_10(size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  uint32_t sum = 0U;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
+  }
+  gC[trow * cols + tcol] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_u32_rrr(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_KCALL(__hoisted_10,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void __hoisted_11(size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  uint64_t sum = 0ULL;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
+  }
+  gC[trow * cols + tcol] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_u64_rrr(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_KCALL(__hoisted_11,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_12(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  float_t sum = (float_t)0.0f;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
+  }
+  gC[tcol * rows + trow] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_f32_ccc(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_KCALL(__hoisted_12,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    rows,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_13(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  double_t sum = (double_t)0.0l;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
+  }
+  gC[tcol * rows + trow] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_f64_ccc(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_KCALL(__hoisted_13,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    rows,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_14(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  uint32_t sum = 0U;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
+  }
+  gC[tcol * rows + trow] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_u32_ccc(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_KCALL(__hoisted_14,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    rows,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_15(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
+{
+  size_t id = blockIdx_x();
+  size_t trow = id / cols;
+  size_t tcol = id % cols;
+  size_t k = (size_t)0U;
+  uint64_t sum = 0ULL;
+  while (k < shared)
+  {
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
+  }
+  gC[tcol * rows + trow] = sum;
+}
+
+void
+Kuiper_MatMul_Naive_g_matmul_u64_ccc(
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_KCALL(__hoisted_15,
+    rows * cols,
+    (size_t)1U,
+    (size_t)1U,
+    (size_t)0U,
+    rows,
+    shared,
+    cols,
+    gA,
+    gB,
+    gC);
+  cudaDeviceSynchronize();
+}
+
