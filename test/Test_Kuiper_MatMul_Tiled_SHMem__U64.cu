@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	for (int l = 0; l < laps; l++) {
 		float t;
 		free(m3);
-		fprintf (stderr, "Static tile = 16\n");
+		fprintf(stderr, "Static tile = 16\n");
 		m3 = TIME(Kuiper_MatMul_Tiled_SHMem_matmul_u64_tile16_rrr
 			  (rows, shared, columns, m1, m2), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n",
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	for (int l = 0; l < laps; l++) {
 		float t;
 		free(m3);
-		fprintf (stderr, "Static tile = 32\n");
+		fprintf(stderr, "Static tile = 32\n");
 		m3 = TIME(Kuiper_MatMul_Tiled_SHMem_matmul_u64_tile32_rrr
 			  (rows, shared, columns, m1, m2), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n",
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	for (int l = 0; l < laps; l++) {
 		float t;
 		free(m3);
-		fprintf (stderr, "Dynamic tile = %d\n", tile);
+		fprintf(stderr, "Dynamic tile = %d\n", tile);
 		m3 = TIME(Kuiper_MatMul_Tiled_SHMem_matmul_u64_rrr
 			  (tile, rows, shared, columns, m1, m2), &t);
 		fprintf(stderr, "Estimated GIOPS: %.3f\n",
