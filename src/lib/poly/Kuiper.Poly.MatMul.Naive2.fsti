@@ -8,7 +8,6 @@ computing a full dot product. *)
 
 open Kuiper
 open Kuiper.Poly.MatMulGPU.Type
-open Kuiper.Matrix.Reprs.Type
 
 inline_for_extraction noextract
 val matmul_gpu : matmul_gpu_ty

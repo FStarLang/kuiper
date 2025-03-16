@@ -491,7 +491,8 @@ fn from_matrix2
   returns
     gA4 : gpu_matrix et lA
   ensures
-    gA4 |-> eA
+    (gA4 |-> eA) **
+    pure (core gA4 == M.core gA)
 {
   (* NICE ! *)
   M.gpu_matrix_concr gA;
@@ -511,7 +512,8 @@ fn to_matrix2
   returns
     gA : M.gpu_matrix et lA
   ensures
-    gA |-> eA
+    (gA |-> eA) **
+    pure (core gA4 == M.core gA)
 {
   gpu_matrix_concr gA4;
   M.gpu_matrix_abs lA (core gA4);

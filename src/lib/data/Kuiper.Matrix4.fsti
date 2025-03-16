@@ -28,6 +28,20 @@ class clayout4
 }
 
 inline_for_extraction noextract
+let clayout4_from_clayout
+  (#rows #cols : szp)
+  (tile : szp)
+  (#l : mlayout (rows * tile) (cols * tile))
+  (c : clayout l)
+  : clayout4 l = {
+    parent = c;
+    c_mrows = rows;
+    c_mcols = cols;
+    c_brows = tile;
+    c_bcols = tile;
+}
+
+inline_for_extraction noextract
 type mrepr4 =
   mrows:nat ->
   mcols:nat ->

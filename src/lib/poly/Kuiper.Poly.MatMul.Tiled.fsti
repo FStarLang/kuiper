@@ -2,4 +2,10 @@ module Kuiper.Poly.MatMul.Tiled
 
 #lang-pulse
 
-(* TODO: Fit this into the non-tiled types. *)
+open Kuiper
+open Kuiper.Poly.MatMulGPU.Type
+
+type valid_tile = tile:szp{tile * tile <= max_threads}
+
+inline_for_extraction noextract
+val matmul_gpu (tile : valid_tile) : matmul_gpu_ty
