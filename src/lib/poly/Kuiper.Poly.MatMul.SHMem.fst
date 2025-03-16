@@ -190,13 +190,13 @@ fn kf
     thread_id (tile * tile) etid **
     block_id (mrows * mcols) ebid
 {
-  assume (pure False);
   let bid = get_bid (); rewrite each ebid as SZ.v bid;
   let tid = get_tid (); rewrite each etid as SZ.v tid;
   let ar = obtain_shmem ear; rewrite each ear as ar;
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
+  assert (pure (brow < tile));
 
   with bi0 bj0 i0 j0 v0.
     rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
@@ -245,9 +245,13 @@ fn kf
           (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
           gpu
     {
-      assume (pure False);
       let vsk = !sk;
+      (* Z3 Takes some convincing here... *)
+      assert (pure (brow < tile));
+      assert (pure (brow <= tile - 1));
+      assert (pure (brow *^ tile <= tile*tile - tile));
       let sidx1 = brow *^ tile +^ vsk;
+      assert (pure (brow *^ tile +^ vsk <= tile*tile - 1));
       assert (pure (SZ.v sidx1 < tile * tile));
       let v1 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx1;
       let sidx2 = vsk *^ tile +^ bcol +^ tile *^ tile;
