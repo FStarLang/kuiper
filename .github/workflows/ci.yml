@@ -137,6 +137,12 @@ jobs:
           eval $(opam env)
           make -kj$(nproc) -Otarget ci |& tee LOG
 
+      - name: Make artifact with test executables
+        uses: actions/upload-artifact@master
+        with:
+          name: test-executables
+          path: obj/*.exe
+
       - name: Make artifact with output
         if: ${{ always () }}
         continue-on-error: true
@@ -162,3 +168,29 @@ jobs:
           name: all
           include-hidden-files: true
           path: '**'
+
+  bench:
+    needs: build
+    runs-on: [self-hosted, linux, X64, cuda]
+    container:
+      image: mtzguido/pulse-cuda-devcontainer
+      options: --gpus all
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: |
+          whoami
+          id
+          env
+
+      - run: find . -delete
+
+      - name: Download artifacts
+        uses: actions/download-artifact@master
+        with:
+          name: test-executables
+
+      - name: Run bench script
+        run: |
+          ./scripts/bench.sh
