@@ -47,16 +47,16 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 of the GPU. This silly wrapper will just wait and keep retrying if
 the allocation fails.
 */
-static void * kpr_wait_alloc(size_t sz, size_t len)
+static void *kpr_wait_alloc(size_t sz, size_t len)
 {
     void *ret;
     cudaError rc;
+    int tries = 10;
 
-    rc = cudaMalloc (&ret, sz*len);
-    while (rc == cudaErrorMemoryAllocation) {
+    while ((rc = cudaMalloc(&ret, sz * len)) == cudaErrorMemoryAllocation &&
+           tries-- > 0) {
         fprintf(stderr, "%s: Waiting for GPU memory...\n", progname);
-        sleep (5);
-        rc = cudaMalloc (&ret, sz*len);
+        sleep(5);
     }
     MUST(rc);
     return ret;
