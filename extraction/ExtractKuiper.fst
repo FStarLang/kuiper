@@ -269,7 +269,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Assert.dassert", [], [ x ] ->
     EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
 
-  | "Kuiper.Assert.dassert", [], [ x ] ->
+  | "Kuiper.Assert.dguard", [], [ x ] ->
     EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
 
   (******** SIZET, missing from F* ********)
