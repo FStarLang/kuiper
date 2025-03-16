@@ -6,7 +6,8 @@
 #include "matmul_common.c.inc"
 
 #define DEFAULT_DIM   1024
-#define DEFAULT_LAPS  5
+#define DEFAULT_LAPS  2
+/* This is slower, just do two laps when testing */
 
 int main(int argc, char **argv)
 {
