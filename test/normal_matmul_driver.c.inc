@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     }
 
     if (check)
-        m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
+        TIME_void(m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu), NULL);
 
     et *m1 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * shared);
     et *m2 = (et *) KPR_GPU_ALLOC(sizeof(et), shared * cols);
