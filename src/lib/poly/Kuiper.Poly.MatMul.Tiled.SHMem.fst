@@ -225,8 +225,8 @@ fn kf
   {
     let vbk = !bk;
     let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
-    let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
     gpu_array_write #_ #_ #(tid) #(tid + 1) ar tid v1;
+    let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
     gpu_array_write #_ #_ #(tid + tile*^tile) #(tid + tile*^tile + 1) ar (tid +^ tile *^ tile) v2;
 
     fakesync ();

@@ -22,10 +22,6 @@ __hoisted_0(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -44,7 +40,7 @@ __hoisted_0(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * tile + i) * cols + bj * tile + j] = sum;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 float_t
@@ -112,10 +108,6 @@ __hoisted_1(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -134,7 +126,7 @@ __hoisted_1(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * tile + i) * cols + bj * tile + j] = sum;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 double_t
@@ -202,10 +194,6 @@ __hoisted_2(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -224,7 +212,7 @@ __hoisted_2(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * tile + i) * cols + bj * tile + j] = sum;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 uint32_t
@@ -289,10 +277,6 @@ __hoisted_3(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -311,7 +295,7 @@ __hoisted_3(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * tile + i) * cols + bj * tile + j] = sum;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 uint64_t
@@ -376,10 +360,6 @@ __hoisted_4(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -398,7 +378,7 @@ __hoisted_4(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * tile + j) * rows + bi * tile + i] = sum;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 float_t
@@ -466,10 +446,6 @@ __hoisted_5(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -488,7 +464,7 @@ __hoisted_5(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * tile + j) * rows + bi * tile + i] = sum;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 double_t
@@ -556,10 +532,6 @@ __hoisted_6(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -578,7 +550,7 @@ __hoisted_6(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * tile + j) * rows + bi * tile + i] = sum;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 uint32_t
@@ -643,10 +615,6 @@ __hoisted_7(
   size_t mcol = bid % mcols;
   size_t brow = tid / tile;
   size_t bcol = tid % tile;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -665,7 +633,7 @@ __hoisted_7(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * tile + j) * rows + bi * tile + i] = sum;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 uint64_t
@@ -729,10 +697,6 @@ __hoisted_8(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -751,7 +715,7 @@ __hoisted_8(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)32U + i) * cols + bj * (size_t)32U + j] = sum;
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 float_t
@@ -816,10 +780,6 @@ __hoisted_9(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -838,7 +798,7 @@ __hoisted_9(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)32U + i) * cols + bj * (size_t)32U + j] = sum;
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 double_t
@@ -903,10 +863,6 @@ __hoisted_10(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -925,7 +881,7 @@ __hoisted_10(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)32U + i) * cols + bj * (size_t)32U + j] = sum;
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 uint32_t
@@ -987,10 +943,6 @@ __hoisted_11(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1009,7 +961,7 @@ __hoisted_11(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)32U + i) * cols + bj * (size_t)32U + j] = sum;
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 uint64_t
@@ -1071,10 +1023,6 @@ __hoisted_12(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1093,7 +1041,7 @@ __hoisted_12(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)32U + j) * rows + bi * (size_t)32U + i] = sum;
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 float_t
@@ -1158,10 +1106,6 @@ __hoisted_13(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1180,7 +1124,7 @@ __hoisted_13(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)32U + j) * rows + bi * (size_t)32U + i] = sum;
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 double_t
@@ -1245,10 +1189,6 @@ __hoisted_14(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1267,7 +1207,7 @@ __hoisted_14(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)32U + j) * rows + bi * (size_t)32U + i] = sum;
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 uint32_t
@@ -1329,10 +1269,6 @@ __hoisted_15(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)32U;
   size_t bcol = tid % (size_t)32U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1351,7 +1287,7 @@ __hoisted_15(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)32U + j) * rows + bi * (size_t)32U + i] = sum;
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 uint64_t
@@ -1413,10 +1349,6 @@ __hoisted_16(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1435,7 +1367,7 @@ __hoisted_16(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)16U + i) * cols + bj * (size_t)16U + j] = sum;
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 float_t
@@ -1500,10 +1432,6 @@ __hoisted_17(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1522,7 +1450,7 @@ __hoisted_17(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)16U + i) * cols + bj * (size_t)16U + j] = sum;
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 double_t
@@ -1587,10 +1515,6 @@ __hoisted_18(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1609,7 +1533,7 @@ __hoisted_18(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)16U + i) * cols + bj * (size_t)16U + j] = sum;
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 uint32_t
@@ -1671,10 +1595,6 @@ __hoisted_19(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1693,7 +1613,7 @@ __hoisted_19(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bi * (size_t)16U + i) * cols + bj * (size_t)16U + j] = sum;
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 uint64_t
@@ -1755,10 +1675,6 @@ __hoisted_20(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1777,7 +1693,7 @@ __hoisted_20(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)16U + j) * rows + bi * (size_t)16U + i] = sum;
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 float_t
@@ -1842,10 +1758,6 @@ __hoisted_21(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1864,7 +1776,7 @@ __hoisted_21(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)16U + j) * rows + bi * (size_t)16U + i] = sum;
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 double_t
@@ -1929,10 +1841,6 @@ __hoisted_22(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1951,7 +1859,7 @@ __hoisted_22(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)16U + j) * rows + bi * (size_t)16U + i] = sum;
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 uint32_t
@@ -2013,10 +1921,6 @@ __hoisted_23(
   size_t mcol = bid % mcols;
   size_t brow = tid / (size_t)16U;
   size_t bcol = tid % (size_t)16U;
-  size_t bi = mrow;
-  size_t bj = mcol;
-  size_t i = brow;
-  size_t j = bcol;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2035,7 +1939,7 @@ __hoisted_23(
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  gC4[(bj * (size_t)16U + j) * rows + bi * (size_t)16U + i] = sum;
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 uint64_t

@@ -365,14 +365,17 @@ fn gpu_matrix_write_cell
     gpu **
     gpu_matrix_pts_to_cell gm bi bj i j v1
 {
-  let ci : cit l = (bi, bj, i, j);
+  // let ci : cit l = (bi, bj, i, j);
+  // ^ having this here worsens code generation by introducing
+  // more intermediate variables. Why? Every Pulse let is supposed
+  // to be marked inline.
   unfold gpu_matrix_pts_to_cell gm bi bj i j v0;
   with i_low v_low.
     assert (A.varray_pts_to_cell gm #1.0R i_low v_low);
   rewrite
     each i_low
-      as A.cit_to_it (aview_from_mlayout et l) ci;
-  A.varray_write_cell gm ci v1;
+      as A.cit_to_it (aview_from_mlayout et l) (bi, bj, i, j);
+  A.varray_write_cell gm (bi, bj, i, j) v1;
   with i1 lv1.
     assert (A.varray_pts_to_cell gm i1 lv1);
   rewrite A.varray_pts_to_cell gm i1 lv1 as
