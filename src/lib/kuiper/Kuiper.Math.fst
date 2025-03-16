@@ -2,6 +2,19 @@ module Kuiper.Math
 
 module M = FStar.Math.Lemmas
 
+let even_odd (n : int) :
+  Lemma (even n <==> not (odd n))
+        [SMTPat (even n); SMTPat (odd n)]
+        = ()
+
+let even_2x (n : int) :
+  Lemma (ensures even (2 * n))
+  = ()
+
+let odd_2x1 (n : int) :
+  Lemma (ensures odd (2 * n + 1))
+  = ()
+
 let rec lemma_log2_pow2 (n: nat) : Lemma (log2 (pow2 n) = n) =
   if n = 0 then () else lemma_log2_pow2 (n - 1)
 

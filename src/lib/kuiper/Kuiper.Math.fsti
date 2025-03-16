@@ -4,6 +4,21 @@ open FStar.Mul
 
 include Kuiper.Divides
 
+let even (n : int) : GTot bool = n % 2 = 0
+let odd (n : int)  : GTot bool = n % 2 = 1
+
+val even_odd (n : int) :
+  Lemma (even n <==> not (odd n))
+        [SMTPat (even n); SMTPat (odd n)]
+
+(* Cannot use patterns here, + and * are builtin
+   so they would not be reliable. Just call them. *)
+val even_2x (n : int) :
+  Lemma (ensures even (2 * n))
+
+val odd_2x1 (n : int) :
+  Lemma (ensures odd (2 * n + 1))
+
 let rec log2 (n:pos) : GTot (r:nat{r < n}) =
   if n = 1 then 0 else 1 + log2 (n / 2)
 
