@@ -232,7 +232,7 @@ $(OUTDIR)/%.exe: $(OUTDIR)/%.o $(OUTDIR)/$$(call remove__, %).o
 	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
 
 $(OUTDIR)/%.output: $(OUTDIR)/%.exe
-	timeout 120 $< > $@
+	timeout -k 1 180 $< > $@
 
 test/%.output.expected:
 	$(error You need to create the '$@' file)

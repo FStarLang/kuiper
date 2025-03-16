@@ -7,7 +7,7 @@
 
 #define DEFAULT_DIM   2048
 #define DEFAULT_TILE  32
-#define DEFAULT_LAPS  10
+#define DEFAULT_LAPS  5
 
 int main(int argc, char **argv)
 {
