@@ -22,32 +22,44 @@ define newline
 
 endef
 
-.fstar.touch: $(shell find FStar/src FStar/ulib -type f) FStar/Makefile
+FStar/Makefile:
+	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+karamel/Makefile:
+	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+pulse/Makefile:
+	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+
+.fstar.src.touch: .force
+	[ -f $@ ] || touch $@
+	find FStar/ -type f -newer $@ -exec touch $@ \; -quit
+
+.fstar.touch: .fstar.src.touch
 	@echo FSTAR
 	$(MAKE) -C FStar ADMIT=1
 	$(MAKE) -C FStar ADMIT=1 PREFIX=$(CURDIR)/inst install
+	@touch .fstar.src.touch # building will change files
 	@touch $@
 
-FStar/Makefile:
-	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+.krml.src.touch: .force
+	[ -f $@ ] || touch $@
+	find karamel -type f -newer $@ -exec touch $@ \; -quit
 
-.krml.touch: $(shell find karamel/ -type f)
+.krml.touch: .krml.src.touch karamel/Makefile
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
-	@# is minimal enough?
 	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel ADMIT=1 minimal
+	@touch .krml.src.touch # building will change files
 	@touch $@
 
-karamel/Makefile:
-	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
+.pulse.src.touch: .force
+	[ -f $@ ] || touch $@
+	find pulse -type f -newer $@ -exec touch $@ \; -quit
 
-.pulse.touch: .fstar.touch $(shell find pulse/ -type f) pulse/Makefile
+.pulse.touch: .fstar.touch .pulse.src.touch pulse/Makefile
 	@echo PULSE
 	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) ADMIT=1 plugin
+	@touch .pulse.src.touch # building will change files
 	@touch $@
-
-pulse/Makefile:
-	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
 .PHONY: prepare
 prepare: .fstar.touch .krml.touch .pulse.touch
