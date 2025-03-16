@@ -8,7 +8,7 @@ module SZ = FStar.SizeT
 
 inline_for_extraction
 let m_size : sz = 1024sz
-let size : n:(erased nat){reveal n == SZ.v m_size} = SZ.v m_size
+let size = m_size
 
 [@@coercion]
 inline_for_extraction
@@ -120,8 +120,8 @@ fn block_teardown
   rewrite each SZ.v m_size as size;
 
   (* Why is this needed? *)
-  bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
-  bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 ga2 #1.0R);
+  bigstar_uneta () #3 #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
+  bigstar_uneta () #4 #0 #size #(gpu_pts_to_array1 ga2 #1.0R);
   bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 gr  #1.0R);
 
   // Unslicing

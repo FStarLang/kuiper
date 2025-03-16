@@ -75,6 +75,7 @@ fn varray_abs
   gpu_pts_to_ref (core a);
   let a' : varray vw = core a;
   rewrite each core a as a';
+  rewrite each len0 as len;
   fold varray_pts_to #t #len #vt #vw a' #1.0R v;
   a'
 }
@@ -252,7 +253,9 @@ fn varray_read_cell
 {
   let ci = cidx cw i;
   unfold varray_pts_to_cell a #f (cit_to_it vw i) v0;
-  let r = B.gpu_array_read #et #len #ci #(ci+1) a #f ci;
+  rewrite each (cit_to_it vw i |~> vw.ibij) as ci;
+  let r = B.gpu_array_read #et #len #ci #(ci+1) a #f (cidx cw i);
+  rewrite each SZ.v ci as (cit_to_it vw i |~> vw.ibij);
   fold varray_pts_to_cell a #f (cit_to_it vw i) v0;
   r
 }
@@ -275,9 +278,11 @@ fn varray_write_cell
 {
   let ci = cidx cw i;
   unfold varray_pts_to_cell a (cit_to_it vw i) v0;
+  rewrite each (cit_to_it vw i |~> vw.ibij) as ci;
   B.gpu_array_write #_ #_ #ci #(ci+1) a ci v1;
   with s'. assert (B.gpu_pts_to_slice a ci (ci+1) s');
   Kuiper.Seq.Common.lem_one_elem s' v1;
+  rewrite each SZ.v ci as (cit_to_it vw i |~> vw.ibij);
   fold varray_pts_to_cell a (cit_to_it vw i) v1;
   ()
 }

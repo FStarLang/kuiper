@@ -26,7 +26,7 @@ val gpu_pts_to_slice
   (#sz:nat)
   ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
-  (i : nat)
+  ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
 : slprop

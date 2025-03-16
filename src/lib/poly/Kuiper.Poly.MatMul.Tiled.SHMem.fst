@@ -221,7 +221,7 @@ fn kf
         m4_pts_to gA #(f /. mlayout_size lC) eA **
         m4_pts_to gB #(f /. mlayout_size lC) eB **
         (exists* x. gpu_pts_to_slice ar tid (tid + 1) x) **
-        (exists* x. gpu_pts_to_slice ar (tid + tile*tile) (tid + tile*tile+1) x) **
+        (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x) **
         // (exists* arv. gpu_pts_to_array ar arv) **
         gpu
   {
@@ -229,11 +229,11 @@ fn kf
     let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
     let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
     gpu_array_write #_ #_ #(tid) #(tid + 1) ar tid v1;
-    gpu_array_write #_ #_ #(tid + tile*tile) #(tid + tile*tile + 1) ar (tid +^ tile *^ tile) v2;
+    gpu_array_write #_ #_ #(tid + tile*^tile) #(tid + tile*^tile + 1) ar (tid +^ tile *^ tile) v2;
 
     fakesync ();
     drop_ (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
-    drop_ (exists* x. gpu_pts_to_slice ar (tid + tile*tile) (tid + tile*tile+1) x);
+    drop_ (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
     assume (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
 
     let mut sk : sz = 0sz;
@@ -261,9 +261,9 @@ fn kf
     };
 
     fakesync ();
-    drop_ (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
     assume (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
-    assume (exists* x. gpu_pts_to_slice ar (tid + tile*tile) (tid + tile*tile+1) x);
+    assume (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
+    drop_ (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
 
     bk := vbk +^ 1sz;
   };

@@ -240,9 +240,9 @@ fn d_reduce
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
   assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
-  (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner a tid (tid + pow2 0) s ss);
-  (**)fold (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
-  (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + pow2 0) s);
+  (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner a tid (tid + 1) s ss);
+  (**)fold (gpu_pts_to_slice_sum a tid (tid + 1) s);
+  (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + 1) s);
 
   open FStar.SizeT;
   while (let it = !n; (spow2 it <^ nth))

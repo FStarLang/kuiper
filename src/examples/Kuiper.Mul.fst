@@ -37,5 +37,6 @@ fn kf (#size : erased nat{size > 0}) (* do NOT use erased pos, inference suffers
   gpu_array_write #_ #_ #bid #(bid + 1) ar bid v;
   (**)with sr. assert gpu_pts_to_slice ar bid (bid + 1) sr;
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[ebid]];
+  rewrite each SZ.v bid as ebid;
   ()
 }

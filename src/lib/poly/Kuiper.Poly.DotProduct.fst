@@ -146,7 +146,7 @@ fn kf
   assert (pure (Seq.equal s' seq![pmul s1 s2 @! tid]));
 
   (* Reduction *)
-  HR.d_reduce lena ga1 #(pmul s1 s2) #() etid ();
+  HR.d_reduce lena ga1 #(pmul s1 s2) #() tid ();
 
   fold (kpost lena ga1 ga2 s1 s2 tid);
   ()

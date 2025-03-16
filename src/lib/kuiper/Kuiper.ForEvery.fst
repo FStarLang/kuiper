@@ -452,9 +452,10 @@ fn forevery_zip
   ensures
     forall+ (x:a). p1 x ** p2 x
 {
-  unfold forevery a (fun x -> p1 x);
+  rewrite forevery a (fun x -> p1 x)
+       as bigstar #1 0 (cardinal a #_) (fun i -> p1 (of_nat i));
   unfold forevery a (fun x -> p2 x);
-  bigstar_zip 0 (cardinal a #_) _ _;
+  bigstar_zip #1 0 (cardinal a #_) _ _;
   fold forevery a (fun x -> p1 x ** p2 x);
 }
 

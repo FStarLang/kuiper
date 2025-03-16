@@ -44,14 +44,15 @@ fn kf_exp
     gpu_pts_to_array1 a ebid **
     block_id lena ebid
 {
-  let i = get_bid ();
+  let i = get_bid (); rewrite each ebid as SZ.v i;
   assert (pure (i < lena));
   assert (pure (SZ.v i == ebid));
-  unfold gpu_pts_to_array1 a ebid;
+  unfold gpu_pts_to_array1 a i;
   let x = gpu_array_read #_ #_ #i #(i+1) a i;
   let x = exp x;
   gpu_array_write #_ #_ #i #(i+1) a i x;
-  fold gpu_pts_to_array1 a ebid;
+  fold gpu_pts_to_array1 a i;
+  rewrite each SZ.v i as ebid;
   ()
 }
 
@@ -91,14 +92,15 @@ fn kf_div
     gpu_pts_to_array1 a ebid **
     block_id lena ebid
 {
-  let i = get_bid ();
+  let i = get_bid (); rewrite each ebid as SZ.v i;
   assert (pure (i < lena));
   assert (pure (SZ.v i == ebid));
-  unfold gpu_pts_to_array1 a ebid;
+  unfold gpu_pts_to_array1 a i;
   let x = gpu_array_read #_ #_ #i #(i+1) a i;
   let x = x `div` d;
   gpu_array_write #_ #_ #i #(i+1) a i x;
-  fold gpu_pts_to_array1 a ebid;
+  fold gpu_pts_to_array1 a i;
+  rewrite each SZ.v i as ebid;
   ()
 }
 
