@@ -1,0 +1,17 @@
+module WithPure
+#lang-pulse
+
+open Pulse.Nolib
+
+ghost
+fn intro_with_pure
+  (p : prop)
+  (v : squash p -> slprop)
+  (_ : squash p)
+  requires pure p ** v ()
+  ensures  emp
+{
+  assert (v ());
+  assert (exists* s. v s);
+  admit();
+}
