@@ -10,6 +10,7 @@ open Kuiper.Poly.MatMulGPU.Type
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.MatMul
+open Kuiper.Matrix { gpu_matrix }
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
 unfold
@@ -85,8 +86,38 @@ type fixed_repr_matmul_cpu_ty
                 MS.matmul (from_seq (rA rows shared) sa)
                           (from_seq (rB shared cols) sb)))
 
+unfold
+inline_for_extraction
+type fixed_repr_matmul_gpu_ty
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| crepr rA |}
+  {| crepr rB |}
+  {| crepr rC |}
+=
+  (#rows : szp) ->
+  (#shared : szp) -> (* concrete args *)
+  (#cols : szp{three_fits rows shared cols}) ->
+  (gA : gpu_matrix et (rA rows shared)) ->
+  (gB : gpu_matrix et (rB shared cols)) ->
+  (gC : gpu_matrix et (rC rows cols)) ->
+  (#ma : ematrix et rows shared) ->
+  (#mb : ematrix et shared cols) ->
+  (#mc0 : ematrix et rows cols) ->
+  stt unit
+    (requires
+      (cpu ** (gA |-> ma) ** (gB |-> mb)) **
+      (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
+        is not needed for all kernels. *)
+      (pure (three_fits rows shared cols) **
+      pure (rows * cols <= max_blocks) **
+      (gC |-> mc0)))
+    (ensures fun _ ->
+      (cpu ** (gA |-> ma) ** (gB |-> mb)) **
+      (gC |-> MS.matmul ma mb))
+
 inline_for_extraction noextract
-val specialize_to_type_and_reprs
+val specialize_to_type_and_reprs_cpu
   (matmul_gpu : matmul_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
@@ -94,3 +125,13 @@ val specialize_to_type_and_reprs
   {| cB : crepr rB |}
   {| cC : crepr rC |}
   : fixed_repr_matmul_cpu_ty et rA rB rC #cA #cB #cC
+
+inline_for_extraction noextract
+val specialize_to_type_and_reprs_gpu
+  (matmul_gpu : matmul_gpu_ty)
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
+  : fixed_repr_matmul_gpu_ty et rA rB rC #cA #cB #cC

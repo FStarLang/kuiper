@@ -168,7 +168,7 @@ fn matmul_transpose_gpu
 }
 
 inline_for_extraction noextract
-fn specialize_to_type_and_reprs
+fn specialize_to_type_and_reprs_cpu
   (matmul_gpu : matmul_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
@@ -198,4 +198,36 @@ fn specialize_to_type_and_reprs
                        (from_seq (rB shared cols) sb))
 {
   matmul_cpu matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
+}
+
+inline_for_extraction noextract
+fn specialize_to_type_and_reprs_gpu
+  (matmul_gpu : matmul_gpu_ty)
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
+  (#rows #shared : szp) (* concrete args *)
+  (#cols : szp{three_fits rows shared cols})
+  (gA : gpu_matrix et (rA rows shared))
+  (gB : gpu_matrix et (rB shared cols))
+  (gC : gpu_matrix et (rC rows cols))
+  (#ma : ematrix et rows shared)
+  (#mb : ematrix et shared cols)
+  (#mc0 : ematrix et rows cols)
+  preserves
+    cpu **
+    (gA |-> ma) **
+    (gB |-> mb)
+  requires
+    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
+       is not needed for all kernels. *)
+    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
+    pure (rows * cols <= max_blocks) **
+    (gC |-> mc0)
+  ensures
+    gC |-> MS.matmul ma mb
+{
+  matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
