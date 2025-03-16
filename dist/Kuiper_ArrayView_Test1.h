@@ -14,7 +14,7 @@ void Kuiper_ArrayView_Test1_write1(uint32_t *a);
 
 void Kuiper_ArrayView_Test1_write2(uint32_t *a);
 
-void Kuiper_ArrayView_Test1_write3(uint32_t *a);
+void Kuiper_ArrayView_Test1_write3(uint32_t *p);
 
 
 #define __Kuiper_ArrayView_Test1_H_DEFINED
