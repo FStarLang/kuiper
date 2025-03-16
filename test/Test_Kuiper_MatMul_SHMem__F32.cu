@@ -1,6 +1,6 @@
-#include "Kuiper_MatMul_Tiled_SHMem.h"
+#include "Kuiper_MatMul_SHMem.h"
 
-#define stem         Kuiper_MatMul_Tiled_SHMem_g_matmul_
+#define stem         Kuiper_MatMul_SHMem_g_matmul_
 #define et           float
 #define et_lbl       f32
 #define PRIet        "f"

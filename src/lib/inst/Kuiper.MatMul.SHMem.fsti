@@ -1,4 +1,4 @@
-module Kuiper.MatMul.Tiled.SHMem
+module Kuiper.MatMul.SHMem
 
 #lang-pulse
 open Kuiper

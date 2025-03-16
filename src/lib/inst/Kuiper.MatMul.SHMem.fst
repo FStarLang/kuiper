@@ -1,4 +1,4 @@
-module Kuiper.MatMul.Tiled.SHMem
+module Kuiper.MatMul.SHMem
 
 #lang-pulse
 open Kuiper
@@ -8,7 +8,7 @@ open Kuiper.Poly.MatMulCPU {
   matmul_gpu_tiled
 }
 open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
-module P = Kuiper.Poly.MatMul.Tiled.SHMem
+module P = Kuiper.Poly.MatMul.SHMem
 
 let matmul_f32_rrr tile   = spec_cpu (matmul_gpu_tiled P.matmul_gpu tile) f32 RM RM RM
 let matmul_f64_rrr tile   = spec_cpu (matmul_gpu_tiled P.matmul_gpu tile) f64 RM RM RM

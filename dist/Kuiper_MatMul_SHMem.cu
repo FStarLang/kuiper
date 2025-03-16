@@ -1,6 +1,6 @@
 
 
-#include "Kuiper_MatMul_Tiled_SHMem.h"
+#include "Kuiper_MatMul_SHMem.h"
 
 __global__
 
@@ -47,7 +47,7 @@ __hoisted_0(
 }
 
 float_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f32_rrr(
+*Kuiper_MatMul_SHMem_matmul_f32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -143,7 +143,7 @@ __hoisted_1(
 }
 
 double_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f64_rrr(
+*Kuiper_MatMul_SHMem_matmul_f64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -239,7 +239,7 @@ __hoisted_2(
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u32_rrr(
+*Kuiper_MatMul_SHMem_matmul_u32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -332,7 +332,7 @@ __hoisted_3(
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u64_rrr(
+*Kuiper_MatMul_SHMem_matmul_u64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -425,7 +425,7 @@ __hoisted_4(
 }
 
 float_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f32_ccc(
+*Kuiper_MatMul_SHMem_matmul_f32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -521,7 +521,7 @@ __hoisted_5(
 }
 
 double_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f64_ccc(
+*Kuiper_MatMul_SHMem_matmul_f64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -617,7 +617,7 @@ __hoisted_6(
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u32_ccc(
+*Kuiper_MatMul_SHMem_matmul_u32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -710,7 +710,7 @@ __hoisted_7(
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u64_ccc(
+*Kuiper_MatMul_SHMem_matmul_u64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -802,7 +802,7 @@ __hoisted_8(
 }
 
 float_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f32_tile32_rrr(
+*Kuiper_MatMul_SHMem_matmul_f32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -895,7 +895,7 @@ __hoisted_9(
 }
 
 double_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f64_tile32_rrr(
+*Kuiper_MatMul_SHMem_matmul_f64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -988,7 +988,7 @@ __hoisted_10(
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u32_tile32_rrr(
+*Kuiper_MatMul_SHMem_matmul_u32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1078,7 +1078,7 @@ __hoisted_11(
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u64_tile32_rrr(
+*Kuiper_MatMul_SHMem_matmul_u64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1168,7 +1168,7 @@ __hoisted_12(
 }
 
 float_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f32_tile32_ccc(
+*Kuiper_MatMul_SHMem_matmul_f32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1261,7 +1261,7 @@ __hoisted_13(
 }
 
 double_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f64_tile32_ccc(
+*Kuiper_MatMul_SHMem_matmul_f64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1354,7 +1354,7 @@ __hoisted_14(
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u32_tile32_ccc(
+*Kuiper_MatMul_SHMem_matmul_u32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1444,7 +1444,7 @@ __hoisted_15(
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u64_tile32_ccc(
+*Kuiper_MatMul_SHMem_matmul_u64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1534,7 +1534,7 @@ __hoisted_16(
 }
 
 float_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f32_tile16_rrr(
+*Kuiper_MatMul_SHMem_matmul_f32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1627,7 +1627,7 @@ __hoisted_17(
 }
 
 double_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f64_tile16_rrr(
+*Kuiper_MatMul_SHMem_matmul_f64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1720,7 +1720,7 @@ __hoisted_18(
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u32_tile16_rrr(
+*Kuiper_MatMul_SHMem_matmul_u32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1810,7 +1810,7 @@ __hoisted_19(
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u64_tile16_rrr(
+*Kuiper_MatMul_SHMem_matmul_u64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1900,7 +1900,7 @@ __hoisted_20(
 }
 
 float_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f32_tile16_ccc(
+*Kuiper_MatMul_SHMem_matmul_f32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1993,7 +1993,7 @@ __hoisted_21(
 }
 
 double_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_f64_tile16_ccc(
+*Kuiper_MatMul_SHMem_matmul_f64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2086,7 +2086,7 @@ __hoisted_22(
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u32_tile16_ccc(
+*Kuiper_MatMul_SHMem_matmul_u32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2176,7 +2176,7 @@ __hoisted_23(
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_SHMem_matmul_u64_tile16_ccc(
+*Kuiper_MatMul_SHMem_matmul_u64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2267,7 +2267,7 @@ __hoisted_24(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f32_rrr(
+Kuiper_MatMul_SHMem_g_matmul_f32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2349,7 +2349,7 @@ __hoisted_25(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f64_rrr(
+Kuiper_MatMul_SHMem_g_matmul_f64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2431,7 +2431,7 @@ __hoisted_26(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u32_rrr(
+Kuiper_MatMul_SHMem_g_matmul_u32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2513,7 +2513,7 @@ __hoisted_27(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u64_rrr(
+Kuiper_MatMul_SHMem_g_matmul_u64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2595,7 +2595,7 @@ __hoisted_28(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f32_ccc(
+Kuiper_MatMul_SHMem_g_matmul_f32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2677,7 +2677,7 @@ __hoisted_29(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f64_ccc(
+Kuiper_MatMul_SHMem_g_matmul_f64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2759,7 +2759,7 @@ __hoisted_30(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u32_ccc(
+Kuiper_MatMul_SHMem_g_matmul_u32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2841,7 +2841,7 @@ __hoisted_31(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u64_ccc(
+Kuiper_MatMul_SHMem_g_matmul_u64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2922,7 +2922,7 @@ __hoisted_32(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f32_tile32_rrr(
+Kuiper_MatMul_SHMem_g_matmul_f32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3001,7 +3001,7 @@ __hoisted_33(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f64_tile32_rrr(
+Kuiper_MatMul_SHMem_g_matmul_f64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3080,7 +3080,7 @@ __hoisted_34(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u32_tile32_rrr(
+Kuiper_MatMul_SHMem_g_matmul_u32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3159,7 +3159,7 @@ __hoisted_35(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u64_tile32_rrr(
+Kuiper_MatMul_SHMem_g_matmul_u64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3238,7 +3238,7 @@ __hoisted_36(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f32_tile32_ccc(
+Kuiper_MatMul_SHMem_g_matmul_f32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3317,7 +3317,7 @@ __hoisted_37(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f64_tile32_ccc(
+Kuiper_MatMul_SHMem_g_matmul_f64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3396,7 +3396,7 @@ __hoisted_38(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u32_tile32_ccc(
+Kuiper_MatMul_SHMem_g_matmul_u32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3475,7 +3475,7 @@ __hoisted_39(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u64_tile32_ccc(
+Kuiper_MatMul_SHMem_g_matmul_u64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3554,7 +3554,7 @@ __hoisted_40(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f32_tile16_rrr(
+Kuiper_MatMul_SHMem_g_matmul_f32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3633,7 +3633,7 @@ __hoisted_41(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f64_tile16_rrr(
+Kuiper_MatMul_SHMem_g_matmul_f64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3712,7 +3712,7 @@ __hoisted_42(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u32_tile16_rrr(
+Kuiper_MatMul_SHMem_g_matmul_u32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3791,7 +3791,7 @@ __hoisted_43(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u64_tile16_rrr(
+Kuiper_MatMul_SHMem_g_matmul_u64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3870,7 +3870,7 @@ __hoisted_44(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f32_tile16_ccc(
+Kuiper_MatMul_SHMem_g_matmul_f32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3949,7 +3949,7 @@ __hoisted_45(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_f64_tile16_ccc(
+Kuiper_MatMul_SHMem_g_matmul_f64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -4028,7 +4028,7 @@ __hoisted_46(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u32_tile16_ccc(
+Kuiper_MatMul_SHMem_g_matmul_u32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -4107,7 +4107,7 @@ __hoisted_47(
 }
 
 void
-Kuiper_MatMul_Tiled_SHMem_g_matmul_u64_tile16_ccc(
+Kuiper_MatMul_SHMem_g_matmul_u64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
