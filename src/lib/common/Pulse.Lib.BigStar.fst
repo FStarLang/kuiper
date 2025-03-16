@@ -482,7 +482,7 @@ fn rec bigstar_zip'
   } else {
     bigstar_pop #u1;
     bigstar_pop #u2;
-    bigstar_zip' #_ #_ #u3 #lo #hi (m+1) n f g;
+    bigstar_zip' #u1 #_ #u3 #lo #hi (m+1) n f g;
     fold (comb f g m);
     bigstar_push #u3 m n (fun (i: nat { m <= i /\ i < n }) -> comb f g i);
   }
