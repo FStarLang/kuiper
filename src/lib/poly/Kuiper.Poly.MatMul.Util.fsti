@@ -60,6 +60,10 @@ fn matmul_tiled_sub_dotprod
   (i : szlt tile)
   (j : szlt tile)
   (#fA #fB : perm)
+  (v0 : et)
+  (* ^ This takes a v0 and adds the products into it,
+  to make sure we compute everything left-nested form,
+  and hence have an exact result. *)
   preserves
     gpu **
     m4_pts_to gA #fA eA **

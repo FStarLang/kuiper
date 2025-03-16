@@ -80,6 +80,7 @@ fn matmul_tiled_sub_dotprod
   (i : szlt tile)
   (j : szlt tile)
   (#fA #fB : perm)
+  (v0 : et)
   preserves
     gpu **
     m4_pts_to gA #fA eA **
@@ -89,7 +90,7 @@ fn matmul_tiled_sub_dotprod
   // ensures
   //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
 {
-  let mut sum : et = zero #et #_;
+  let mut sum = v0;
   let mut k   : sz = 0sz;
 
   while (let vk = !k; SZ.(vk <^ tile))
@@ -153,9 +154,9 @@ fn matmul_tiled_dotprod
         gpu
   {
     let vbk = !bk;
-    let sub = matmul_tiled_sub_dotprod gA gB bi vbk bj i j;
     let s = !sum;
-    sum := s `add` sub;
+    let s' = matmul_tiled_sub_dotprod gA gB bi vbk bj i j s;
+    sum := s';
     bk := vbk +^ 1sz;
   };
   !sum
