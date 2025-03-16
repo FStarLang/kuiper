@@ -9,139 +9,134 @@
 
 et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 {
-	et *m3 = (et *) calloc(rows * cols, sizeof(et));
-	int i, j, k;
-	for (i = 0; i < rows; i++) {
-		for (k = 0; k < shared; k++) {
-			for (j = 0; j < cols; j++) {
-				m3[i * cols + j] +=
-				    m1[i * shared + k] * m2[k * cols + j];
-			}
-		}
-	}
-	return m3;
+    et *m3 = (et *) calloc(rows * cols, sizeof(et));
+    int i, j, k;
+    for (i = 0; i < rows; i++) {
+        for (k = 0; k < shared; k++) {
+            for (j = 0; j < cols; j++) {
+                m3[i * cols + j] += m1[i * shared + k] * m2[k * cols + j];
+            }
+        }
+    }
+    return m3;
 }
 
 /* m1 is GPU-side result, m2 is CPU-computed result */
 void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 {
-	int i, j;
-	et *m1 = (et *) calloc(sizeof(et), rows * cols);
-	cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(et),
-		   cudaMemcpyDeviceToHost);
-	for (i = 0; i < rows; i++) {
-		for (j = 0; j < cols; j++) {
-			bool ok;
+    int i, j;
+    et *m1 = (et *) calloc(sizeof(et), rows * cols);
+    cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(et), cudaMemcpyDeviceToHost);
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            bool ok;
 #ifdef EXACT
-			ok = m1[i * cols + j] == m2[i * cols + j];
+            ok = m1[i * cols + j] == m2[i * cols + j];
 #else
-			/* Check if the relative error is less than TOLERANCE */
-			et diff = m1[i * cols + j] - m2[i * cols + j];
-			ok = (diff / (double)m2[i * cols + j]) <= TOLERANCE;
+            /* Check if the relative error is less than TOLERANCE */
+            et diff = m1[i * cols + j] - m2[i * cols + j];
+            ok = (diff / (double)m2[i * cols + j]) <= TOLERANCE;
 #endif
-			if (!ok) {
-				printf("Error at pos (%d, %d): %" PRIet " != %"
-				       PRIet "\n", i, j, m1[i * cols + j],
-				       m2[i * cols + j]);
-				free(m1);
-				exit(1);
-			}
-		}
-	}
-	free(m1);
+            if (!ok) {
+                printf("Error at pos (%d, %d): %" PRIet " != %"
+                       PRIet "\n", i, j, m1[i * cols + j], m2[i * cols + j]);
+                free(m1);
+                exit(1);
+            }
+        }
+    }
+    free(m1);
 }
 
 int main(int argc, char **argv)
 {
-	int i, j;
-	int laps = DEFAULT_LAPS;
-	size_t rows = DEFAULT_DIM;
-	size_t shared = DEFAULT_DIM;
-	size_t cols = DEFAULT_DIM;
-	size_t tile = DEFAULT_TILE;
-	bool check = true;
+    int i, j;
+    int laps = DEFAULT_LAPS;
+    size_t rows = DEFAULT_DIM;
+    size_t shared = DEFAULT_DIM;
+    size_t cols = DEFAULT_DIM;
+    size_t tile = DEFAULT_TILE;
+    bool check = true;
 
-	if (argc != 1 && argc != 7) {
-		printf
-		    ("Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n",
-		     argv[0]);
-		return 1;
-	} else if (argc == 7) {
-		laps = atoi(argv[1]);
-		rows = atoi(argv[2]);
-		shared = atoi(argv[3]);
-		cols = atoi(argv[4]);
-		tile = atoi(argv[5]);
-		check = atoi(argv[6]) != 0;
-	}
+    if (argc != 1 && argc != 7) {
+        printf
+            ("Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n",
+             argv[0]);
+        return 1;
+    } else if (argc == 7) {
+        laps = atoi(argv[1]);
+        rows = atoi(argv[2]);
+        shared = atoi(argv[3]);
+        cols = atoi(argv[4]);
+        tile = atoi(argv[5]);
+        check = atoi(argv[6]) != 0;
+    }
 
-	printf("Laps = %d\n", laps);
-	printf("Rows = %lu\n", rows);
-	printf("Shared = %lu\n", shared);
-	printf("Columns = %lu\n", cols);
-	printf("Tile = %lu\n", tile);
-	printf("Check = %d\n", check);
+    printf("Laps = %d\n", laps);
+    printf("Rows = %lu\n", rows);
+    printf("Shared = %lu\n", shared);
+    printf("Columns = %lu\n", cols);
+    printf("Tile = %lu\n", tile);
+    printf("Check = %d\n", check);
 
-	et *m1_cpu, *m2_cpu, *m3_cpu;
-	m1_cpu = (et *) malloc(rows * shared * sizeof(et));
-	m2_cpu = (et *) malloc(shared * cols * sizeof(et));
+    et *m1_cpu, *m2_cpu, *m3_cpu;
+    m1_cpu = (et *) malloc(rows * shared * sizeof(et));
+    m2_cpu = (et *) malloc(shared * cols * sizeof(et));
 
-	for (i = 0; i < rows; i++) {
-		for (j = 0; j < shared; j++) {
-			m1_cpu[i * shared + j] = 2 * i + j;
-		}
-	}
-	for (i = 0; i < shared; i++) {
-		for (j = 0; j < cols; j++) {
-			m2_cpu[i * cols + j] = i + j;
-		}
-	}
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < shared; j++) {
+            m1_cpu[i * shared + j] = 2 * i + j;
+        }
+    }
+    for (i = 0; i < shared; i++) {
+        for (j = 0; j < cols; j++) {
+            m2_cpu[i * cols + j] = i + j;
+        }
+    }
 
-	if (check)
-		m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
+    if (check)
+        m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
 
-	et *m1 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * shared);
-	et *m2 = (et *) KPR_GPU_ALLOC(sizeof(et), shared * cols);
-	et *m3 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * cols);
+    et *m1 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * shared);
+    et *m2 = (et *) KPR_GPU_ALLOC(sizeof(et), shared * cols);
+    et *m3 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * cols);
 
-	cudaMemcpy(m1, m1_cpu, rows * shared * sizeof(et),
-		   cudaMemcpyHostToDevice);
-	cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et),
-		   cudaMemcpyHostToDevice);
+    cudaMemcpy(m1, m1_cpu, rows * shared * sizeof(et), cudaMemcpyHostToDevice);
+    cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
 
-	for (int l = 0; l < laps; l++) {
-		float t;
-		fprintf(stderr, "Dynamic tile = %d\n", tile);
-		TIME_void(TOKENPASTE3(stem, et_lbl, _rrr)
-			  (tile, rows, shared, cols, m1, m2, m3), &t);
-		fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-			(rows * shared * cols * 2.0) / t / 1e9);
-		if (check)
-			cmp(rows, cols, m3, m3_cpu);
-	}
-	for (int l = 0; l < laps; l++) {
-		float t;
-		fprintf(stderr, "Static tile = 16\n");
-		TIME_void(TOKENPASTE3(stem, et_lbl, _tile16_rrr)
-			  (rows, shared, cols, m1, m2, m3), &t);
-		fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-			(rows * shared * cols * 2.0) / t / 1e9);
-		if (check)
-			cmp(rows, cols, m3, m3_cpu);
-	}
-	for (int l = 0; l < laps; l++) {
-		float t;
-		fprintf(stderr, "Static tile = 32\n");
-		TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)
-			  (rows, shared, cols, m1, m2, m3), &t);
-		fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-			(rows * shared * cols * 2.0) / t / 1e9);
-		if (check)
-			cmp(rows, cols, m3, m3_cpu);
-	}
-	cudaFree(m3);
+    for (int l = 0; l < laps; l++) {
+        float t;
+        fprintf(stderr, "Dynamic tile = %d\n", tile);
+        TIME_void(TOKENPASTE3(stem, et_lbl, _rrr)
+                  (tile, rows, shared, cols, m1, m2, m3), &t);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
+                (rows * shared * cols * 2.0) / t / 1e9);
+        if (check)
+            cmp(rows, cols, m3, m3_cpu);
+    }
+    for (int l = 0; l < laps; l++) {
+        float t;
+        fprintf(stderr, "Static tile = 16\n");
+        TIME_void(TOKENPASTE3(stem, et_lbl, _tile16_rrr)
+                  (rows, shared, cols, m1, m2, m3), &t);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
+                (rows * shared * cols * 2.0) / t / 1e9);
+        if (check)
+            cmp(rows, cols, m3, m3_cpu);
+    }
+    for (int l = 0; l < laps; l++) {
+        float t;
+        fprintf(stderr, "Static tile = 32\n");
+        TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)
+                  (rows, shared, cols, m1, m2, m3), &t);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
+                (rows * shared * cols * 2.0) / t / 1e9);
+        if (check)
+            cmp(rows, cols, m3, m3_cpu);
+    }
+    cudaFree(m3);
 
-	printf("OK\n");
+    printf("OK\n");
 
-	return 0;
+    return 0;
 }

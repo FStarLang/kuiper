@@ -6,27 +6,27 @@
 /* It would be nicer to write a purely-Pulse test. */
 int main()
 {
-	uint32_t *a;
-	uint32_t *ga;
-	const size_t siz = 1024;
+    uint32_t *a;
+    uint32_t *ga;
+    const size_t siz = 1024;
 
-	a = (uint32_t *) malloc(siz * sizeof a[0]);
-	ga = (uint32_t *) KPR_GPU_ALLOC(sizeof ga[0], siz);
+    a = (uint32_t *) malloc(siz * sizeof a[0]);
+    ga = (uint32_t *) KPR_GPU_ALLOC(sizeof ga[0], siz);
 
-	int i;
+    int i;
 
-	for (i = 0; i < siz; i++)
-		a[i] = i;
+    for (i = 0; i < siz; i++)
+        a[i] = i;
 
-	MUST(cudaMemcpy(ga, a, siz * sizeof(uint32_t), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, siz * sizeof(uint32_t), cudaMemcpyHostToDevice));
 
-	Kuiper_HReduce_reduce_u32_plus(siz, ga);
+    Kuiper_HReduce_reduce_u32_plus(siz, ga);
 
-	MUST(cudaMemcpy(a, ga, siz * sizeof(uint32_t), cudaMemcpyDeviceToHost));
-	MUST(cudaFree(ga));
+    MUST(cudaMemcpy(a, ga, siz * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+    MUST(cudaFree(ga));
 
-	printf("%" PRIu32 "\n", a[0]);
-	free(a);
+    printf("%" PRIu32 "\n", a[0]);
+    free(a);
 
-	return 0;
+    return 0;
 }

@@ -4,7 +4,7 @@
 
 int main()
 {
-	uint64_t x = Kuiper_Async1_main();
-	printf("x = %lu\n", x);
-	return 0;
+    uint64_t x = Kuiper_Async1_main();
+    printf("x = %lu\n", x);
+    return 0;
 }

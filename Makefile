@@ -55,7 +55,7 @@ lint:
 	( cd extraction && git sed 's/ *$$//' )
 	( cd src && ../scripts/find-pulse-noix.sh )
 	( cd src && ../scripts/check-attrs.sh )
-	indent -linux test/*.cu && rm -f test/*.cu~
+	indent -linux -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.{cu,c.inc}~
 
 .PHONY: list-admits
 list-admits:
