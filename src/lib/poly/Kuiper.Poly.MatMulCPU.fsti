@@ -49,6 +49,13 @@ val matmul_cpu
   (matmul_gpu : matmul_gpu_ty)
   : matmul_cpu_ty
 
+(* Does dynamic checks to ensure that the dimensions are multiples of tile. *)
+inline_for_extraction noextract
+val matmul_gpu_tiled
+  (matmul_gpu : tiled_matmul_gpu_ty)
+  (tile : valid_tile)
+  : matmul_gpu_ty
+
 unfold
 inline_for_extraction
 type fixed_repr_matmul_cpu_ty

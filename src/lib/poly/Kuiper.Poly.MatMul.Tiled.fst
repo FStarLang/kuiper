@@ -253,7 +253,7 @@ let mk_kernel
 }
 
 inline_for_extraction noextract
-fn matmul_gpu_tiled
+fn matmul_gpu
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : szp)
@@ -281,63 +281,4 @@ fn matmul_gpu_tiled
     gC |-> MS.matmul eA eB
 {
   launch_sync (mk_kernel tile gA gB gC ());
-}
-
-(* This will dinamically abort if the dimensions (rows/shared/cols) are not
-   multiples of tile. *)
-inline_for_extraction noextract
-fn matmul_gpu
-  (tile : valid_tile)
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| cA : clayout lA |}
-  {| cB : clayout lB |}
-  {| cC : clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  (#eA : EM.ematrix et rows shared)
-  (#eB : EM.ematrix et shared cols)
-  (#eC : EM.ematrix et rows cols)
-  preserves
-    cpu **
-    (gA |-> eA) **
-    (gB |-> eB)
-  requires
-    pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
-  ensures
-    gC |-> MS.matmul eA eB
-{
-  dguard (rows   %^ tile = 0sz);
-  dguard (shared %^ tile = 0sz);
-  dguard (cols   %^ tile = 0sz);
-  let mrows   = rows   /^ tile;
-  let mshared = shared /^ tile;
-  let mcols   = cols   /^ tile;
-
-  let lA4 : mlayout4 mrows  mshared tile tile = lA;
-  let gA4 = M4.from_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
-  let lB4 : mlayout4 mshared mcols tile tile = lB;
-  let gB4 = M4.from_matrix2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
-  let lC4 : mlayout4 mrows  mcols tile tile = lC;
-  let gC4 = M4.from_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
-  matmul_gpu_tiled tile
-    #et #_ #mrows #mshared #mcols
-    lA4 lB4 lC4
-    #(M4.clayout4_from_clayout tile cA)
-    #(M4.clayout4_from_clayout tile cB)
-    #(M4.clayout4_from_clayout tile cC)
-    gA4 gB4 gC4;
-
-  let gA' = M4.to_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
-  M.core_match gA gA'; rewrite each gA' as gA;
-  let gB' = M4.to_matrix2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
-  M.core_match gB gB'; rewrite each gB' as gB;
-  let gC' = M4.to_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
-  M.core_match gC gC'; rewrite each gC' as gC;
-  ()
 }
