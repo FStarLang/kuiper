@@ -1,4 +1,4 @@
-module WithPure
+module WithPureTest
 #lang-pulse
 
 open Pulse.Nolib
