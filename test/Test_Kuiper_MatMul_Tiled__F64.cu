@@ -1,6 +1,6 @@
 #include "Kuiper_MatMul_Tiled.h"
 
-#define stem         Kuiper_MatMul_Tiled_matmul_
+#define stem         Kuiper_MatMul_Tiled_g_matmul_
 #define et           double
 #define et_lbl       f64
 #define PRIet        "f"
