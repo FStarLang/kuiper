@@ -345,7 +345,8 @@ fn from_matrix2
   returns
     gA4 : gpu_matrix et lA
   ensures
-    gA4 |-> eA
+    (gA4 |-> eA) **
+    pure (core gA4 == M.core gA)
 
 fn to_matrix2
   (tile : erased nat)
@@ -359,4 +360,5 @@ fn to_matrix2
   returns
     gA : M.gpu_matrix et lA
   ensures
-    gA |-> eA
+    (gA |-> eA) **
+    pure (core gA4 == M.core gA)
