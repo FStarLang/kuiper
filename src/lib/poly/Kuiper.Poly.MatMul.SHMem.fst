@@ -292,6 +292,7 @@ fn kf
       assert (pure (SZ.v sidx1 < tile * tile));
       let v1 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx1;
       let sidx2 = vsk *^ tile +^ bcol +^ tile *^ tile;
+      assert (pure (vsk *^ tile +^ bcol < tile *^ tile));
       assert (pure (SZ.v sidx2 < 2sz *^ tile *^ tile));
       let v2 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx2;
       let v = v1 `mul` v2;
