@@ -63,8 +63,7 @@ let kpre
   : slprop
   =
   kpre1 tile gA gB gC eA eB f bid tid **
-  gpu_pts_to_array1 ar tid **
-  gpu_pts_to_array1 ar (tid + tile *^ tile) **
+  (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
   shmem_tok ar
 
 (* NO FUNCTIONAL SPEC RIGHT NOW *)
@@ -113,8 +112,7 @@ let kpost
   : slprop
   =
   kpost1 tile gA gB gC eA eB f bid tid **
-  gpu_pts_to_array1 ar tid **
-  gpu_pts_to_array1 ar (tid + tile *^ tile)
+  (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x)
 
 inline_for_extraction noextract
 fn fakesync ()
@@ -197,9 +195,6 @@ fn kf
   let tid = get_tid (); rewrite each etid as SZ.v tid;
   let ar = obtain_shmem ear; rewrite each ear as ar;
 
-  unfold gpu_pts_to_array1 ar tid;
-  unfold gpu_pts_to_array1 ar (tid + tile *^ tile);
-
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
 
@@ -218,21 +213,25 @@ fn kf
         pts_to #_ #et sum sumv **
         m4_pts_to gA #(f /. mlayout_size lC) eA **
         m4_pts_to gB #(f /. mlayout_size lC) eB **
-        (exists* x. gpu_pts_to_slice ar tid (tid + 1) x) **
-        (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x) **
-        // (exists* arv. gpu_pts_to_array ar arv) **
+        (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
         gpu
   {
     let vbk = !bk;
     let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
-    gpu_array_write #_ #_ #(tid) #(tid + 1) ar tid v1;
     let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
+
+    fakesync ();
+    assume (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
+    assume (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
+    drop_ (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x);
+
+    gpu_array_write #_ #_ #(tid) #(tid + 1) ar tid v1;
     gpu_array_write #_ #_ #(tid + tile*^tile) #(tid + tile*^tile + 1) ar (tid +^ tile *^ tile) v2;
 
     fakesync ();
     drop_ (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
     drop_ (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
-    assume (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
+    assume (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x);
 
     let mut sk : sz = 0sz;
     while (let vsk = !sk; SZ.(vsk <^ tile))
@@ -243,7 +242,7 @@ fn kf
           pts_to #_ #et sum sumv **
           m4_pts_to gA #(f /. mlayout_size lC) eA **
           m4_pts_to gB #(f /. mlayout_size lC) eB **
-          (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x) **
+          (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
           gpu
     {
       assume (pure False);
@@ -258,11 +257,6 @@ fn kf
       sk := vsk +^ 1sz;
     };
 
-    fakesync ();
-    assume (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
-    assume (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
-    drop_ (exists* x. gpu_pts_to_slice ar #0.5R 0 (2sz *^ tile *^ tile) x);
-
     bk := vbk +^ 1sz;
   };
 
@@ -276,9 +270,6 @@ fn kf
       M4.gpu_matrix_pts_to_cell gC
         (ebid / mcols) (ebid % mcols)
         (etid / tile) (etid % tile) v';
-
-  fold gpu_pts_to_array1 ar tid;
-  fold gpu_pts_to_array1 ar (tid + tile *^ tile);
 
   rewrite each SZ.v tid as reveal etid;
   rewrite each ar as ear;
