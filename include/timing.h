@@ -65,4 +65,9 @@ static int time_par = 0;
 /* Similar a TIMEREP, para statements. */
 #define TIMEREP_void(n, stmt, v) __TIMEREP(#stmt, n, (stmt, 1), v)
 
+// Find another home
+#define __TOKENPASTE(x, y) x ## y
+#define TOKENPASTE(x, y) __TOKENPASTE(x, y)
+#define TOKENPASTE3(x, y,z) TOKENPASTE(TOKENPASTE(x, y), z)
+
 #endif
