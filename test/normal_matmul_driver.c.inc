@@ -5,7 +5,7 @@
 
 #include "matmul_common.c.inc"
 
-#define DEFAULT_DIM   4096
+#define DEFAULT_DIM   2048
 #define DEFAULT_LAPS  10
 
 int main(int argc, char **argv)
@@ -50,15 +50,16 @@ int main(int argc, char **argv)
         }
     }
 
-    if (check)
-        TIME_void(m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu), NULL);
-
-    et *m1 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * shared);
-    et *m2 = (et *) KPR_GPU_ALLOC(sizeof(et), shared * cols);
-    et *m3 = (et *) KPR_GPU_ALLOC(sizeof(et), rows * cols);
+    et *m1 = (et *) kpr_wait_alloc(sizeof(et), rows * shared);
+    et *m2 = (et *) kpr_wait_alloc(sizeof(et), shared * cols);
+    et *m3 = (et *) kpr_wait_alloc(sizeof(et), rows * cols);
 
     cudaMemcpy(m1, m1_cpu, rows * shared * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
+
+    /* If we're gonna check, prepare the known-good result. */
+    if (check)
+        TIME_void(m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu), NULL);
 
     for (int l = 0; l < laps; l++) {
         float t;

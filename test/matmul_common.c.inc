@@ -1,3 +1,6 @@
+#include <unistd.h>
+
+const char *progname = NULL;
 
 et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 {
@@ -38,4 +41,23 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
         }
     }
     free(m1);
+}
+
+/* When running several tests in parallel, we may exhaust the memory
+of the GPU. This silly wrapper will just wait and keep retrying if
+the allocation fails.
+*/
+static void * kpr_wait_alloc(size_t sz, size_t len)
+{
+    void *ret;
+    cudaError rc;
+
+    rc = cudaMalloc (&ret, sz*len);
+    while (rc == cudaErrorMemoryAllocation) {
+        fprintf(stderr, "%s: Waiting for GPU memory...\n", progname);
+        sleep (5);
+        rc = cudaMalloc (&ret, sz*len);
+    }
+    MUST(rc);
+    return ret;
 }
