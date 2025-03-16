@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
     for (int l = 0; l < laps; l++) {
         float t;
-        fprintf(stderr, "Dynamic tile = %d\n", tile);
+        fprintf(stderr, "Dynamic tile = %zu\n", tile);
         TIME_void(TOKENPASTE3(stem, et_lbl, _rrr)
                   (tile, rows, shared, cols, m1, m2, m3), &t);
         fprintf(stderr, "Estimated GFLOPS: %.3f\n",
