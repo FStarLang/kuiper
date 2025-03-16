@@ -5,6 +5,7 @@
 
 #define DEFAULT_DIM   2048
 #define DEFAULT_TILE  32
+#define DEFAULT_LAPS  5
 
 et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 {
@@ -44,7 +45,7 @@ void cmp (size_t rows, size_t cols, et *m1,  et* m2) {
 int main(int argc, char **argv)
 {
 	int i, j;
-	int laps = 1;
+	int laps = DEFAULT_LAPS;
 	size_t rows = DEFAULT_DIM;
 	size_t shared = DEFAULT_DIM;
 	size_t cols = DEFAULT_DIM;
