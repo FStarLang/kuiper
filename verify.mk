@@ -192,8 +192,8 @@ $(OUTDIR)/%.krml: | .fstar.touch
 		$<
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
-$(OUTDIR)/%.cu: MOD=$(subst _,.,$(basename $(notdir $<)))
-$(OUTDIR)/%.cu: $(OUTDIR)/%.krml .krml.touch
+$(OUTDIR)/%.cu $(OUTDIR)/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
+$(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
@@ -208,9 +208,14 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 
 remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
+.SECONDEXPANSION:
+$(OUTDIR)/Test_%.o: test/Test_%.cu include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
+	$(call msg,"NVCC")
+	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
+
 # argh
 .SECONDEXPANSION:
-$(OUTDIR)/%.exe: $(OUTDIR)/$$(call remove__, %).o test/%.cu
+$(OUTDIR)/%.exe: $(OUTDIR)/%.o $(OUTDIR)/$$(call remove__, %).o
 	$(call msg,"NVLD")
 	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
 
