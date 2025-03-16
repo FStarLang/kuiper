@@ -193,6 +193,8 @@ jobs:
         uses: actions/download-artifact@master
         with:
           name: test-executables
+          path: obj/
+      - run: chmod +x obj/*.exe
 
       - name: Run bench script
         run: |
