@@ -243,11 +243,6 @@ NOTEST += Test_Kuiper_Softmax__F16
 # operators. Forget it for now, but we should be principled about using
 # the correct feature flags or whatever.
 
-# matmultile is WIP
-NOTEST += Test_Kuiper_MatMulTile_Async
-NOTEST += Test_Kuiper_MatMulTile
-NOTEST += Test_Kuiper_MatMulTileF32
-
 TESTS := $(filter-out $(NOTEST), $(TESTS))
 
 # Extract everything in src/examples
