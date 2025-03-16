@@ -41,10 +41,14 @@ static int time_par = 0;
  * imprime el tiempo que tardó en computar la expresión
  * y lo guarda en v (si v != NULL).
  */
-#define TIME(expr, v) __TIME(#expr, expr, v)
+#define TIME0(expr, v) __TIME(#expr, expr, v)
+/* Extra indirection expands stmt before we stringify it. */
+#define TIME(expr, v) TIME0(expr, v)
 
 /* Similar pero para statements. */
-#define TIME_void(stmt, v) __TIME(#stmt, (stmt, 1), v)
+#define TIME_void0(stmt, v) __TIME(#stmt, (stmt, 1), v)
+/* Extra indirection expands stmt before we stringify it. */
+#define TIME_void(stmt, v) TIME_void0(stmt, v)
 
 #define __TIMEREP(s, n, expr, v)		\
 	__TIME(s,				\
