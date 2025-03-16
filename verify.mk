@@ -209,7 +209,7 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
 .SECONDEXPANSION:
-$(OUTDIR)/Test_%.o: test/Test_%.cu include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
+$(OUTDIR)/Test_%.o: test/Test_%.cu test/*.c.inc include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
