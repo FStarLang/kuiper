@@ -13,6 +13,20 @@ open Kuiper.SizeT
 there is no runtime representation for it, nor a handle-like
 type, as this models the builtin CUDA __syncthreads() function. *)
 
+type barrier_side (n:nat) =
+  it : nat ->
+  tid : natlt n ->
+  slprop
+
+type barrier_transform (#n:nat) (p q : barrier_side n) =
+  it:nat ->
+  stt_ghost unit emp_inames
+           (requires bigstar 0 n (p it))
+           (ensures  fun _ -> bigstar 0 n (q it))
+
+(* A token representing that there is a barrier in scope.
+   This is a ghost token, and is not used at runtime. *)
+
 (* A token representing that
    1) There is a barrier in scope
    2) We are thread 'tid' in the group
@@ -23,8 +37,7 @@ type, as this models the builtin CUDA __syncthreads() function. *)
 *)
 val barrier_tok
   (#n:nat)
-  (p : (it:nat -> tid:natlt n -> slprop))
-  (q : (it:nat -> tid:natlt n -> slprop))
+  (p q : barrier_side n)
   (it : nat)
   (tid : natlt n)
   : slprop
@@ -37,11 +50,8 @@ val barrier_tok
 ghost
 fn mk_barrier
   (n: nat { 0 < n /\ n <= max_threads })
-  (p : (it:nat -> tid:natlt n -> slprop))
-  (q : (it:nat -> tid:natlt n -> slprop))
-  (pf : (it:nat -> stt_ghost unit emp_inames
-                  (requires bigstar 0 n (p it))
-                  (ensures  fun _ -> bigstar 0 n (q it))))
+  (p q : barrier_side n)
+  (pf : barrier_transform p q)
   requires block_setup_tok n
   ensures  block_setup_tok n ** bigstar 0 n (barrier_tok p q 0)
 
@@ -51,8 +61,7 @@ fn mk_barrier
 fn barrier_wait
   ()
   (#n : erased nat)
-  (#p : (it:nat -> tid:natlt n -> slprop))
-  (#q : (it:nat -> tid:natlt n -> slprop))
+  (#p #q : barrier_side n)
   (#it : erased nat)
   (#tid : enatlt n)
   requires barrier_tok p q  it    tid ** p it tid
