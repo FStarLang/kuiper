@@ -3,11 +3,9 @@ module Kuiper.Poly.MatMul.SHMem
 #lang-pulse
 
 open Kuiper
-module M4  = Kuiper.Matrix4
-module MS = Kuiper.Spec.MatMul
-module SZ = FStar.SizeT
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
+open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 
 open Kuiper.Matrix4 {
   gpu_matrix as gpu_matrix4,
@@ -17,9 +15,78 @@ open Kuiper.Matrix4 {
   clayout4
 }
 
+module M4  = Kuiper.Matrix4
+module MS = Kuiper.Spec.MatMul
+module SZ = FStar.SizeT
+module B = Kuiper.Barrier
+
+(* The barrier flip-flops between an initial state
+where every threads shares all of the array, and
+a second state where each thread owns two cells
+of the array, related to their tid.
+
+So in even steps, they give their shared ownership,
+and receive their cells. (p)
+*)
+
+(* To verify functional correctness: the existentials here should be made
+precise, and parametrize this over the starting input matrices. *)
+let barrier_p
+  (#et : Type0) {| scalar et |}
+  (tile : valid_tile)
+  (ar : gpu_array et (2sz *^ tile *^ tile))
+  : B.barrier_side (tile *^ tile) =
+  fun it tid ->
+    if even it
+    then (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x)
+    else (
+      (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x) **
+      (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x)
+    )
+
+(* Same thing, switching the condition. *)
+let barrier_q
+  (#et : Type0) {| scalar et |}
+  (tile : valid_tile)
+  (ar : gpu_array et (2sz *^ tile *^ tile))
+  : B.barrier_side (tile *^ tile) =
+  fun it tid ->
+    if odd it
+    then (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x)
+    else (
+      (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x) **
+      (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x)
+    )
+
 (* without shmem ownership *)
 unfold
 let kpre1
+  (#et : Type0) {| scalar et |}
+  (#mrows #mshared #mcols : szp)
+  (tile : valid_tile)
+  (#lA : mlayout4 mrows   mshared tile tile)
+  (#lB : mlayout4 mshared mcols   tile tile)
+  (#lC : mlayout4 mrows   mcols   tile tile)
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (gC : gpu_matrix4 et lC)
+  (eA : ematrix4 et mrows mshared tile tile)
+  (eB : ematrix4 et mshared mcols tile tile)
+  (f : perm)
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (tile * tile))
+  : slprop
+  =
+  m4_pts_to gA #(f /. mlayout_size lC) eA **
+  m4_pts_to gB #(f /. mlayout_size lC) eB **
+  (exists* v.
+    m4_pts_to_cell gC #1.0R
+      (bid / mcols) (bid % mcols)
+      (tid / tile) (tid % tile) v)
+
+(* NO FUNCTIONAL SPEC RIGHT NOW *)
+unfold
+let kpost1
   (#et : Type0) {| scalar et |}
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
@@ -64,33 +131,9 @@ let kpre
   =
   kpre1 tile gA gB gC eA eB f bid tid **
   (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
+  B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) 0 tid **
   shmem_tok ar
 
-(* NO FUNCTIONAL SPEC RIGHT NOW *)
-unfold
-let kpost1
-  (#et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols : szp)
-  (tile : valid_tile)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (gC : gpu_matrix4 et lC)
-  (eA : ematrix4 et mrows mshared tile tile)
-  (eB : ematrix4 et mshared mcols tile tile)
-  (f : perm)
-  (bid : natlt (mrows * mcols))
-  (tid : natlt (tile * tile))
-  : slprop
-  =
-  m4_pts_to gA #(f /. mlayout_size lC) eA **
-  m4_pts_to gB #(f /. mlayout_size lC) eB **
-  (exists* v.
-    m4_pts_to_cell gC #1.0R
-      (bid / mcols) (bid % mcols)
-      (tid / tile) (tid % tile) v)
 
 unfold
 let kpost
@@ -112,23 +155,8 @@ let kpost
   : slprop
   =
   kpost1 tile gA gB gC eA eB f bid tid **
-  (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x)
-
-inline_for_extraction noextract
-fn fakesync ()
-  requires emp
-  ensures emp
-{
-  open Kuiper.Barrier.RPM;
-  let p : rpm_t 1 = (fun _ _ _ -> emp);
-  assume (mbarrier_tok 1 p 0 0);
-  assume (row p 0 0);
-  mbarrier_wait ();
-  drop_ (mbarrier_tok 1 p 1 0);
-  drop_ (col p 1 0);
-  ()
-}
-
+  (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
+  B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * mshared) tid
 
 inline_for_extraction noextract
 fn eqplus
@@ -214,24 +242,36 @@ fn kf
         m4_pts_to gA #(f /. mlayout_size lC) eA **
         m4_pts_to gB #(f /. mlayout_size lC) eB **
         (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
+        B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
         gpu
   {
     let vbk = !bk;
     let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
     let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
 
-    fakesync ();
-    assume (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
-    assume (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
-    drop_ (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x);
+    (* This assert should not be needed. *)
+    assert B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid;
+    even_2x vbk;
+    assert (pure (even (2 * vbk)));
+    rewrite (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x)
+         as (barrier_p tile ar (2 * vbk) tid);
+    B.barrier_wait ();
+    rewrite (barrier_q tile ar (2 * vbk) tid)
+         as ((exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x) **
+             (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x));
 
     gpu_array_write #_ #_ #(tid) #(tid + 1) ar tid v1;
     gpu_array_write #_ #_ #(tid + tile*^tile) #(tid + tile*^tile + 1) ar (tid +^ tile *^ tile) v2;
 
-    fakesync ();
-    drop_ (exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x);
-    drop_ (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x);
-    assume (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x);
+    assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
+    odd_2x1 vbk;
+    assert (pure (odd (2 * vbk + 1)));
+    rewrite ((exists* x. gpu_pts_to_slice ar (tid) (tid + 1) x) **
+             (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x))
+         as (barrier_p tile ar (2 * vbk + 1) tid);
+    B.barrier_wait ();
+    rewrite (barrier_q tile ar (2 * vbk + 1) tid)
+         as (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x);
 
     let mut sk : sz = 0sz;
     while (let vsk = !sk; SZ.(vsk <^ tile))
@@ -255,6 +295,7 @@ fn kf
       assert (pure (SZ.v sidx1 < tile * tile));
       let v1 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx1;
       let sidx2 = vsk *^ tile +^ bcol +^ tile *^ tile;
+      assert (pure (SZ.v sidx2 < 2sz *^ tile *^ tile));
       let v2 = gpu_array_read #_ #(2sz *^ tile *^ tile) #0 #(2sz *^ tile *^ tile) ar sidx2;
       let v = v1 `mul` v2;
       eqplus sum v;
