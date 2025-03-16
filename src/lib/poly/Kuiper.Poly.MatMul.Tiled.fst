@@ -3,12 +3,10 @@ module Kuiper.Poly.MatMul.Tiled
 #lang-pulse
 
 open Kuiper
-module M   = Kuiper.Matrix
 module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
 module MU = Kuiper.Poly.MatMul.Util
 module SZ = FStar.SizeT
-module EM = Kuiper.EMatrix
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
 
