@@ -54,6 +54,7 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 		if (!(b)) {							\
 			fprintf(stderr, "*** ABORTING ***\n");			\
 			fprintf(stderr, "This guard failed: %s\n", #b);		\
+			fprintf(stderr, "At " __FILE__ ":%d\n", __LINE__);	\
 			abort();						\
 		}								\
 	} while(0)
@@ -64,6 +65,7 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 		if (!(b)) {							\
 			fprintf(stderr, "*** ABORTING ***\n");			\
 			fprintf(stderr, "This assertion failed: %s\n", #b);	\
+			fprintf(stderr, "At " __FILE__ ":%d\n", __LINE__);	\
 			abort();						\
 		}								\
 	} while(0)
