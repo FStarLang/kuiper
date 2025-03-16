@@ -6,7 +6,6 @@
 #include "matmul_common.c.inc"
 
 #define DEFAULT_DIM   4096
-#define DEFAULT_TILE  32
 #define DEFAULT_LAPS  10
 
 int main(int argc, char **argv)
@@ -16,28 +15,24 @@ int main(int argc, char **argv)
     size_t rows = DEFAULT_DIM;
     size_t shared = DEFAULT_DIM;
     size_t cols = DEFAULT_DIM;
-    size_t tile = DEFAULT_TILE;
     bool check = true;
 
-    if (argc != 1 && argc != 7) {
+    if (argc != 1 && argc != 6) {
         printf
-            ("Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n",
-             argv[0]);
+            ("Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
         return 1;
-    } else if (argc == 7) {
+    } else if (argc == 6) {
         laps = atoi(argv[1]);
         rows = atoi(argv[2]);
         shared = atoi(argv[3]);
         cols = atoi(argv[4]);
-        tile = atoi(argv[5]);
-        check = atoi(argv[6]) != 0;
+        check = atoi(argv[5]) != 0;
     }
 
     printf("Laps = %d\n", laps);
     printf("Rows = %lu\n", rows);
     printf("Shared = %lu\n", shared);
     printf("Columns = %lu\n", cols);
-    printf("Tile = %lu\n", tile);
     printf("Check = %d\n", check);
 
     et *m1_cpu, *m2_cpu, *m3_cpu;
@@ -67,28 +62,7 @@ int main(int argc, char **argv)
 
     for (int l = 0; l < laps; l++) {
         float t;
-        fprintf(stderr, "Dynamic tile = %d\n", tile);
         TIME_void(TOKENPASTE3(stem, et_lbl, _rrr)
-                  (tile, rows, shared, cols, m1, m2, m3), &t);
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-                (rows * shared * cols * 2.0) / t / 1e9);
-        if (check)
-            cmp(rows, cols, m3, m3_cpu);
-    }
-    for (int l = 0; l < laps; l++) {
-        float t;
-        fprintf(stderr, "Static tile = 16\n");
-        TIME_void(TOKENPASTE3(stem, et_lbl, _tile16_rrr)
-                  (rows, shared, cols, m1, m2, m3), &t);
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-                (rows * shared * cols * 2.0) / t / 1e9);
-        if (check)
-            cmp(rows, cols, m3, m3_cpu);
-    }
-    for (int l = 0; l < laps; l++) {
-        float t;
-        fprintf(stderr, "Static tile = 32\n");
-        TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)
                   (rows, shared, cols, m1, m2, m3), &t);
         fprintf(stderr, "Estimated GFLOPS: %.3f\n",
                 (rows * shared * cols * 2.0) / t / 1e9);
