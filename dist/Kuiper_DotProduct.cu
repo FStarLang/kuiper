@@ -6,18 +6,22 @@ __global__
 
 static void __hoisted_0(size_t lena, float_t *ga1, float_t *ga2)
 {
-  size_t tid = threadIdx_x();
-  ga1[tid] *= ga2[tid];
-  size_t tid1 = threadIdx_x();
+  float_t v11 = ga1[threadIdx_x()];
+  float_t vm = v11 * ga2[threadIdx_x()];
+  ga1[threadIdx_x()] = vm;
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid1 + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((tid1 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        ga1[tid1] += ga1[nextid];
+      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+      {
+        float_t s1 = ga1[threadIdx_x()];
+        float_t s = s1 + ga1[nextid];
+        ga1[threadIdx_x()] = s;
+      }
     n = it + (size_t)1U;
   }
 }
@@ -45,18 +49,22 @@ __global__
 
 static void __hoisted_1(size_t lena, double_t *ga1, double_t *ga2)
 {
-  size_t tid = threadIdx_x();
-  ga1[tid] *= ga2[tid];
-  size_t tid1 = threadIdx_x();
+  double_t v11 = ga1[threadIdx_x()];
+  double_t vm = v11 * ga2[threadIdx_x()];
+  ga1[threadIdx_x()] = vm;
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid1 + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((tid1 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        ga1[tid1] += ga1[nextid];
+      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+      {
+        double_t s1 = ga1[threadIdx_x()];
+        double_t s = s1 + ga1[nextid];
+        ga1[threadIdx_x()] = s;
+      }
     n = it + (size_t)1U;
   }
 }
@@ -84,18 +92,22 @@ __global__
 
 static void __hoisted_2(size_t lena, uint32_t *ga1, uint32_t *ga2)
 {
-  size_t tid = threadIdx_x();
-  ga1[tid] *= ga2[tid];
-  size_t tid1 = threadIdx_x();
+  uint32_t v11 = ga1[threadIdx_x()];
+  uint32_t vm = v11 * ga2[threadIdx_x()];
+  ga1[threadIdx_x()] = vm;
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid1 + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((tid1 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        ga1[tid1] += ga1[nextid];
+      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+      {
+        uint32_t s1 = ga1[threadIdx_x()];
+        uint32_t s = s1 + ga1[nextid];
+        ga1[threadIdx_x()] = s;
+      }
     n = it + (size_t)1U;
   }
 }
@@ -121,18 +133,22 @@ __global__
 
 static void __hoisted_3(size_t lena, uint64_t *ga1, uint64_t *ga2)
 {
-  size_t tid = threadIdx_x();
-  ga1[tid] *= ga2[tid];
-  size_t tid1 = threadIdx_x();
+  uint64_t v11 = ga1[threadIdx_x()];
+  uint64_t vm = v11 * ga2[threadIdx_x()];
+  ga1[threadIdx_x()] = vm;
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid1 + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((tid1 & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        ga1[tid1] += ga1[nextid];
+      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+      {
+        uint64_t s1 = ga1[threadIdx_x()];
+        uint64_t s = s1 + ga1[nextid];
+        ga1[threadIdx_x()] = s;
+      }
     n = it + (size_t)1U;
   }
 }

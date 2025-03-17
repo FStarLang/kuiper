@@ -4,9 +4,8 @@
 
 __device__
 
-void Kuiper_Mul_kf(uint64_t *a1, uint64_t *a2, uint64_t *ar)
+void Kuiper_Mul_kf(uint64_t *a1, uint64_t *a2, uint64_t *ar, size_t bid)
 {
-  size_t bid = blockIdx_x();
   ar[bid] = a1[bid] * a2[bid];
 }
 

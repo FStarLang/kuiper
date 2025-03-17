@@ -14,16 +14,19 @@ __global__
 
 static void __hoisted_1(size_t lena, float_t *a_)
 {
-  size_t tid = threadIdx_x();
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((tid & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        a_[tid] += a_[nextid];
+      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+      {
+        float_t s1 = a_[threadIdx_x()];
+        float_t s = s1 + a_[nextid];
+        a_[threadIdx_x()] = s;
+      }
     n = it + (size_t)1U;
   }
 }
@@ -72,16 +75,19 @@ __global__
 
 static void __hoisted_4(size_t lena, double_t *a_)
 {
-  size_t tid = threadIdx_x();
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = tid + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((tid & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        a_[tid] += a_[nextid];
+      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+      {
+        double_t s1 = a_[threadIdx_x()];
+        double_t s = s1 + a_[nextid];
+        a_[threadIdx_x()] = s;
+      }
     n = it + (size_t)1U;
   }
 }
