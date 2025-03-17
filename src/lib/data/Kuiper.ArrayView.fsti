@@ -128,6 +128,22 @@ instance has_pts_to (#a:Type) (#len : nat) (#vt:Type) (#vw : aview a len vt)
   pts_to = varray_pts_to;
 }
 
+ghost
+fn varray_pts_to_ref
+  (#t:Type0)
+  (#len : erased nat)
+  (#vt:Type0)
+  (#vw : aview t len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased vt)
+  preserves
+    varray_pts_to a #f v
+  ensures
+    pure (SZ.fits len)
+
+inline_for_extraction noextract
+
 (* These are really ghost steps only... but
 since the varray type encodes the view as an argument,
 _abs must return a new array. This is so we do not
@@ -137,7 +153,6 @@ picking the wrong view.
 
 But the current setting means we cannot do these shifts in ghost code...
 so maybe that's a bullet we should bite. *)
-inline_for_extraction noextract
 ghost
 fn varray_concr
   (#t:Type0)

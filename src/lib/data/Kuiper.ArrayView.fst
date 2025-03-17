@@ -41,7 +41,25 @@ let varray_pts_to
   =
     B.gpu_pts_to_array a #f (to_seq vw v)
 
-inline_for_extraction noextract
+ghost
+fn varray_pts_to_ref
+  (#t:Type0)
+  (#len : erased nat)
+  (#vt:Type0)
+  (#vw : aview t len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased vt)
+  preserves
+    varray_pts_to a #f v
+  ensures
+    pure (SZ.fits len)
+{
+  unfold varray_pts_to a #f v;
+  B.gpu_pts_to_slice_ref a 0 len;
+  fold varray_pts_to a #f v;
+}
+
 ghost
 fn varray_concr
   (#t:Type0)

@@ -103,8 +103,19 @@ instance has_pts_to
   : has_pts_to (gpu_matrix a l) (ematrix4 a mrows mcols brows bcols) = {
   pts_to = gpu_matrix_pts_to;
 }
+ghost
+fn gpu_matrix_pts_to_ref
+  (#et:Type)
+  (#mrows #mcols #brows #bcols : nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (g : gpu_matrix et l)
+  (#f : perm)
+  (#em : ematrix4 et mrows mcols brows bcols)
+  preserves
+    gpu_matrix_pts_to g #f em
+  ensures
+    pure (SZ.fits (mlayout_size l))
 
-inline_for_extraction noextract
 ghost
 fn gpu_matrix_concr
   (#et:Type)

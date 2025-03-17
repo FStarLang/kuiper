@@ -59,7 +59,24 @@ let gpu_matrix_pts_to
   : slprop
   = A.varray_pts_to gm #f em
 
-inline_for_extraction noextract
+ghost
+fn gpu_matrix_pts_to_ref
+  (#et:Type)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  preserves
+    gpu_matrix_pts_to g #f em
+  ensures
+    pure (SZ.fits (rows * cols))
+{
+  unfold gpu_matrix_pts_to g #f em;
+  A.varray_pts_to_ref g;
+  fold gpu_matrix_pts_to g #f em;
+}
+
 ghost
 fn gpu_matrix_concr
   (#et:Type)
