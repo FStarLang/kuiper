@@ -53,8 +53,8 @@ let aview_2tile2
       [@@inline_let] let i, n = divmod (SZ.v tile * SZ.v tile) n in
       [@@inline_let] let j, k = divmod (SZ.v tile) n in
       AIdx i j k);
-    ff_gg = magic();
-    gg_ff = magic();
+    ff_gg = (fun _ -> ());
+    gg_ff = (fun _ -> admit());
   };
 }
 
@@ -74,8 +74,8 @@ instance cview_2tile2
       [@@inline_let] let i, n = s_divmod (tile *^ tile) n in
       [@@inline_let] let j, k = s_divmod tile n in
       CIdx i j k <: cit tile);
-    ff_gg = magic();
-    gg_ff = magic();
+    ff_gg = (fun _ -> ());
+    gg_ff = (fun _ -> admit());
   }
 }
 
