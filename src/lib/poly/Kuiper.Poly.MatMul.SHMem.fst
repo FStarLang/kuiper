@@ -386,9 +386,11 @@ fn kf
            as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 1sz brow bcol)) x;
     AV.varray_write_cell ar (CIdx 0sz brow bcol) v1;
     AV.varray_write_cell ar (CIdx 1sz brow bcol) v2;
+    l1 #et tile 0sz brow bcol;
     with x.
       rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 0sz brow bcol)) x
            as varray_pts_to_cell ar (AIdx 0 (tid / tile) (tid % tile)) x;
+    l1 #et tile 1sz brow bcol;
     with x.
       rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 1sz brow bcol)) x
            as varray_pts_to_cell ar (AIdx 1 (tid / tile) (tid % tile)) x;
