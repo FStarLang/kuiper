@@ -101,23 +101,20 @@ fn kf
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#f : perm)
-  (ebid : enatlt2 mrows mcols)
-  (etid : enatlt2 tile  tile)
+  (bid : szlt2 mrows mcols)
+  (tid : szlt2 tile  tile)
   ()
   requires
     gpu **
-    kpre tile gA gB gC eA eB f ebid etid **
-    thread_id (tile * tile) etid **
-    block_id (mrows * mcols) ebid
+    kpre tile gA gB gC eA eB f bid tid **
+    thread_id (tile * tile) tid **
+    block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost tile gA gB gC eA eB f ebid etid **
-    thread_id (tile * tile) etid **
-    block_id (mrows * mcols) ebid
+    kpost tile gA gB gC eA eB f bid tid **
+    thread_id (tile * tile) tid **
+    block_id (mrows * mcols) bid
 {
-  let bid = get_bid (); rewrite each ebid as SZ.v bid;
-  let tid = get_tid (); rewrite each etid as SZ.v tid;
-
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
 
@@ -140,8 +137,8 @@ fn kf
       M4.gpu_matrix_pts_to_cell gC mrow mcol brow bcol v'
     as
       M4.gpu_matrix_pts_to_cell gC
-        (ebid / mcols) (ebid % mcols)
-        (etid / tile) (etid % tile) v';
+        (bid / mcols) (bid % mcols)
+        (tid / tile) (tid % tile) v';
 
   ()
 }

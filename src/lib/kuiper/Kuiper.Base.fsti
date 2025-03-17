@@ -48,24 +48,11 @@ fn get_gdim ()
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nblk)
 
-fn get_bid ()
-  preserves block_id 'nblk 'bid
-  requires  emp
-  returns   x : SZ.t
-  ensures   pure (SZ.v x == 'bid)
-
 fn get_bdim ()
   preserves thread_id 'nthr 'tid
   requires  emp
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nthr)
-
-fn get_tid ()
-  preserves thread_id 'nthr 'tid
-  requires  emp
-  returns   x : SZ.t
-  ensures   pure (SZ.v x == 'tid)
-
 
 // let thread_index (n: tid_t): GTot (i: nat { i < gdim_x n * bdim_x n }) = (
 //   assert ((bidx_x n + 1) * bdim_x n <= gdim_x n * bdim_x n);

@@ -79,21 +79,21 @@ fn sync_device () (#e:epoch_t)
 //       (fun _ -> block_setup_tok nthr ** (forall+ (i : natlt nthr). shared_pre ar bid i)))
 //   (k :
 //     (ar: erased (gpu_array a smem_sz)) ->
-//     (ebid : enatlt nblk) ->
-//     (etid : enatlt nthr) ->
+//     (bid : enatlt nblk) ->
+//     (tid : enatlt nthr) ->
 //     stt unit
 //       (         gpu **
-//                 block_id nblk ebid **
-//                 thread_id nthr etid **
+//                 block_id nblk bid **
+//                 thread_id nthr tid **
 //                 shmem_tok ar **
-//                 shared_pre ar ebid etid **
-//                 pre ebid etid)
+//                 shared_pre ar bid tid **
+//                 pre bid tid)
 //       (fun _ -> gpu **
-//                 block_id nblk ebid **
-//                 thread_id nthr etid **
+//                 block_id nblk bid **
+//                 thread_id nthr tid **
 //                 // shmem_tok ar **
-//                 shared_post ar ebid etid **
-//                 post ebid etid)
+//                 shared_post ar bid tid **
+//                 post bid tid)
 //   )
 //   (#e : epoch_t)
 //   requires

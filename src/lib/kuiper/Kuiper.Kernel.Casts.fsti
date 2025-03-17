@@ -1,12 +1,12 @@
 module Kuiper.Kernel.Casts
 #lang-pulse
 
-open FStar.Ghost
 open Pulse.Lib.Core
 open Kuiper.Common
 open Kuiper.ForEvery
 open Kuiper.Base
 open Kuiper.Kernel.Desc
+open Kuiper.SizeT
 module SZ = FStar.SizeT
 
 (* PLEASE NOTE: the types here are very order sensitive. Make
@@ -72,20 +72,20 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
   );
 
   f : (
-    ebid : enatlt nblk ->
-    etid : enatlt nthr ->
+    bid : szlt nblk ->
+    tid : szlt nthr ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre ebid etid **
-         thread_id nthr etid **
-         block_id nblk ebid)
+         kpre bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost ebid etid **
-         thread_id nthr etid **
-         block_id nblk ebid)
+         kpost bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
   );
 }
 
@@ -123,17 +123,17 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
   );
 
   f : (
-    etid : enatlt nthr ->
+    tid : szlt nthr ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre etid **
-         thread_id nthr etid)
+         kpre tid **
+         thread_id nthr tid)
       (ensures fun _ ->
          gpu **
-         kpost etid **
-         thread_id nthr etid)
+         kpost tid **
+         thread_id nthr tid)
   );
 }
 
@@ -169,17 +169,17 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
   );
 
   f : (
-    ebid : enatlt nblk ->
+    bid : szlt nblk ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre ebid **
-         block_id nblk ebid)
+         kpre bid **
+         block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost ebid **
-         block_id nblk ebid)
+         kpost bid **
+         block_id nblk bid)
   );
 }
 

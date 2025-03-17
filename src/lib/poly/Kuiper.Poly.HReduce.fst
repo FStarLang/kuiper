@@ -222,19 +222,17 @@ fn d_reduce
   (a : gpu_array et nth)
   (#s :  erased (seq et))
   (#_ : squash (Seq.length s == nth))
-  (etid : enatlt nth)
+  (tid : szlt nth)
   ()
   requires
     gpu **
-    kpre nth a s etid **
-    thread_id nth etid
+    kpre nth a s tid **
+    thread_id nth tid
   ensures
     gpu **
-    kpost nth a s etid **
-    thread_id nth etid
+    kpost nth a s tid **
+    thread_id nth tid
 {
-  let tid = get_tid (); rewrite each etid as SZ.v tid;
-
   (* Reduction *)
   let mut n = 0sz;
 
@@ -338,7 +336,7 @@ fn reduce
   // launch_kernel_n_m_barrier 1sz lena
   //   #(kpre  1 lena a 'va)
   //   #(kpost 1 lena a 'va)
-  //   (fun etid -> kk lena a etid);
+  //   (fun tid -> kk lena a tid);
 
   // forevery_singleton_elim #(natlt 1) (fun bid -> forall+ (tid:natlt lena). kpost 1 lena a 'va bid tid);
   // forevery_tostar #(natlt lena) _;

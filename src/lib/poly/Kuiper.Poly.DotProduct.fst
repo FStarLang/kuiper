@@ -119,18 +119,17 @@ fn kf
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : erased (seq et))
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
-  (etid : enatlt lena)
+  (tid : szlt lena)
   ()
   requires
     gpu **
-    kpre lena ga1 ga2 s1 s2 etid **
-    thread_id lena etid
+    kpre lena ga1 ga2 s1 s2 tid **
+    thread_id lena tid
   ensures
     gpu **
-    kpost lena ga1 ga2 s1 s2 etid **
-    thread_id lena etid
+    kpost lena ga1 ga2 s1 s2 tid **
+    thread_id lena tid
 {
-  let tid = get_tid (); rewrite each etid as tid;
   (**)unfold (kpre lena ga1 ga2 s1 s2 tid);
 
   let v1 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga1 tid #_;
@@ -179,21 +178,21 @@ let dp_kernel
 // ghost
 // fn setup
 //   (nthr: nat { 0 < nthr /\ nthr <= 1024 })
-//   (ear: gpu_array et nthr)
+//   (ar: gpu_array et nthr)
 //   (bid: nat)
 //   (gr: gpu_array et nthr)
 //   (s1 s2: erased (seq et))
 //   (#_: squash ( len s1 == nthr /\ len s2 == nthr ))
-//   requires block_setup_tok nthr ** (exists* v. gpu_pts_to_array #et #nthr ear #1.0R v)
-//   ensures  block_setup_tok nthr ** (forall+ (tid : natlt nthr). shared_pre nthr ear gr s1 s2 0 0 tid)
+//   requires block_setup_tok nthr ** (exists* v. gpu_pts_to_array #et #nthr ar #1.0R v)
+//   ensures  block_setup_tok nthr ** (forall+ (tid : natlt nthr). shared_pre nthr ar gr s1 s2 0 0 tid)
 // {
-//   mk_mbarrier nthr (HR.barrier_matrix nthr ear (pmul s1 s2));
-//   gpu_array_slice_1_underspec ear;
-//   bigstar_zip 0 nthr (gpu_pts_to_array1 ear) (mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0);
+//   mk_mbarrier nthr (HR.barrier_matrix nthr ar (pmul s1 s2));
+//   gpu_array_slice_1_underspec ar;
+//   bigstar_zip 0 nthr (gpu_pts_to_array1 ar) (mbarrier_tok nthr (HR.barrier_matrix nthr ar (pmul s1 s2)) 0);
 //   rewrite each nthr as Enumerable.cardinal (natlt nthr) #_;
 //   forevery_fromstar #(natlt nthr) (fun i ->
-//     gpu_pts_to_array1 ear i **
-//     mbarrier_tok nthr (HR.barrier_matrix nthr ear (pmul s1 s2)) 0 i);
+//     gpu_pts_to_array1 ar i **
+//     mbarrier_tok nthr (HR.barrier_matrix nthr ar (pmul s1 s2)) 0 i);
 //   ()
 // }
 

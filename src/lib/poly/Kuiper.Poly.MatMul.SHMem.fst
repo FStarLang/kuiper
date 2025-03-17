@@ -297,29 +297,29 @@ fn kf
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#f : perm)
   (ear : erased (gpu_array et (2sz *^ tile *^ tile)))
-  (ebid : enatlt2 mrows mcols)
-  (etid : enatlt2 tile  tile)
+  (bid : szlt2 mrows mcols)
+  (tid : szlt2 tile  tile)
   ()
   requires
     gpu **
-    kpre tile gA gB gC eA eB f ear ebid etid **
-    thread_id (tile * tile) etid **
-    block_id (mrows * mcols) ebid
+    kpre tile gA gB gC eA eB f ear bid tid **
+    thread_id (tile * tile) tid **
+    block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost tile gA gB gC eA eB f ear ebid etid **
-    thread_id (tile * tile) etid **
-    block_id (mrows * mcols) ebid
+    kpost tile gA gB gC eA eB f ear bid tid **
+    thread_id (tile * tile) tid **
+    block_id (mrows * mcols) bid
 {
   gpu_pts_to_ref ear;
-  let bid = get_bid (); rewrite each reveal ebid as SZ.v bid;
-  let tid = get_tid (); rewrite each reveal etid as SZ.v tid;
+  // let bid = get_bid (); rewrite each reveal bid as SZ.v bid;
+  // let tid = get_tid (); rewrite each reveal tid as SZ.v tid;
 
   let ar0 = obtain_shmem ear; rewrite each ear as ar0;
   unfold barrier_tok tile ar0 0 tid;
 
   // Does not work:
-  // rewrite each AV.from_array #et #(2sz *^ tile *^ tile) #(ematrix et tile tile & ematrix et tile tile) ear (aview_2tile2 et tile)
+  // rewrite each AV.from_array #et #(2sz *^ tile *^ tile) #(ematrix et tile tile & ematrix et tile tile) ar (aview_2tile2 et tile)
   //           as ar;
   AV.varray_abs' (aview_2tile2 et tile) ar0;
   let ar = AV.from_array (aview_2tile2 et tile <: erased _) ar0;
@@ -440,11 +440,11 @@ fn kf
       M4.gpu_matrix_pts_to_cell gC mrow mcol brow bcol v'
     as
       M4.gpu_matrix_pts_to_cell gC
-        (ebid / mcols) (ebid % mcols)
-        (etid / tile) (etid % tile) v';
+        (bid / mcols) (bid % mcols)
+        (tid / tile) (tid % tile) v';
 
   AV.varray_concr ar;
-  rewrite each SZ.v tid as reveal etid;
+  rewrite each SZ.v tid as reveal tid;
   rewrite each ar as AV.from_array (aview_2tile2 et tile) ar0;
   with x1.
     rewrite

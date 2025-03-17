@@ -112,19 +112,18 @@ fn kf
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == reveal nn})
   (i : iname)
-  (ebid : enatlt (SZ.v nn))
+  (bid : szlt (SZ.v nn))
   ()
   requires
     gpu **
-    kpre (SZ.v nn) a v_a r done i ebid **
-    block_id (SZ.v nn) ebid
+    kpre (SZ.v nn) a v_a r done i bid **
+    block_id (SZ.v nn) bid
   ensures
     gpu **
-    kpost (SZ.v nn) a v_a r done i ebid **
-    block_id (SZ.v nn) ebid
+    kpost (SZ.v nn) a v_a r done i bid **
+    block_id (SZ.v nn) bid
 {
   assume (pure (len v_a == reveal nn));
-  let bid = get_bid (); rewrite each ebid as SZ.v bid;
   later_credit_buy 1;
   later_credit_buy 1;
   (* Read array at idx *)
@@ -133,7 +132,7 @@ fn kf
       returns v : et
       ensures
         gpu **
-        block_id (SZ.v nn) ebid **
+        block_id (SZ.v nn) bid **
         gref_pts_to (done @! bid) #0.5R false **
         later (inv_p (SZ.v nn) a v_a r done) **
         pure (v == v_a @! SZ.v bid) **
@@ -154,7 +153,7 @@ fn kf
     let _ = atomic_add r v;
     bigstar_ghost_upd_lemma done _ _ ;
     assume (pure False); (* FIXME *)
-    rewrite each SZ.v bid as ebid;
+    rewrite each SZ.v bid as bid;
     fold (inv_p (SZ.v nn) a v_a r done);
     later_intro (inv_p (SZ.v nn) a v_a r done);
   }
@@ -312,7 +311,7 @@ fn reduce
   // launch_kernel_n_blocks n
   //   #(kpre  (SZ.v n) a v_a gr done i)
   //   #(kpost (SZ.v n) a v_a gr done i)
-  //   (fun etid -> k (hide n) a gr done i v_a etid);
+  //   (fun tid -> k (hide n) a gr done i v_a tid);
 
   // forevery_tostar #(natlt (SZ.v n))
   //   (kpost (SZ.v n) a v_a gr done i);

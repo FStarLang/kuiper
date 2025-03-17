@@ -82,28 +82,24 @@ fn kf
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#f : perm)
-  (ebid : enatlt (divup (rows *^ cols) 1024sz))
-  (etid : enatlt 1024sz)
+  (bid : szlt (divup (rows *^ cols) 1024sz))
+  (tid : szlt 1024sz)
   ()
   requires
     gpu **
-    kpre gA gB gC eA eB f ebid etid **
-    thread_id (1024) etid **
-    block_id (divup (rows * cols) 1024) ebid
+    kpre gA gB gC eA eB f bid tid **
+    thread_id (1024) tid **
+    block_id (divup (rows * cols) 1024) bid
   ensures
     gpu **
-    kpost gA gB gC eA eB f ebid etid **
-    thread_id (1024) etid **
-    block_id (divup (rows * cols) 1024) ebid
+    kpost gA gB gC eA eB f bid tid **
+    thread_id (1024) tid **
+    block_id (divup (rows * cols) 1024) bid
 {
-  let bid = get_bid ();
-  let tid = get_tid ();
   let id = bid *^ 1024sz +^ tid;
 
   if SZ.lt id (rows *^ cols) {
-    rewrite each in_bounds (SZ.v rows) (SZ.v cols) ebid etid as true;
-    rewrite each ebid as SZ.v bid;
-    rewrite each etid as SZ.v tid;
+    rewrite each in_bounds (SZ.v rows) (SZ.v cols) (SZ.v bid) (SZ.v tid) as true;
 
     let trow, tcol = s_divmod cols id;
     with i0 j0 v0.
@@ -124,10 +120,10 @@ fn kf
       M.gpu_matrix_pts_to_cell gC trow tcol
         (MS.matmul_single eA eB trow tcol shared)
     as
-      (if (in_bounds rows cols ebid etid)
+      (if (in_bounds rows cols bid tid)
        then
-         M.gpu_matrix_pts_to_cell gC ((ebid * 1024 + etid) / cols) ((ebid * 1024 + etid) % cols)
-          (MS.matmul_single eA eB ((ebid * 1024 + etid) / cols) ((ebid * 1024 + etid) % cols) shared)
+         M.gpu_matrix_pts_to_cell gC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
+          (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
        else emp);
 
     ()
@@ -135,17 +131,17 @@ fn kf
     (* Out of bounds, do nothing *)
     (* Funny, we need to go via emp to convince Pulse. *)
     rewrite
-      (if in_bounds rows cols ebid etid
+      (if in_bounds rows cols bid tid
        then
          exists* v.
-           M.gpu_matrix_pts_to_cell gC #1.0R ((ebid * 1024 + etid) / cols) ((ebid * 1024 + etid) % cols) v
+           M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) v
        else
          emp)
     as emp;
     rewrite emp as
-      (if in_bounds rows cols ebid etid
-       then M.gpu_matrix_pts_to_cell gC ((ebid * 1024 + etid) / cols) ((ebid * 1024 + etid) % cols)
-             (MS.matmul_single eA eB ((ebid * 1024 + etid) / cols) ((ebid * 1024 + etid) % cols) shared)
+      (if in_bounds rows cols bid tid
+       then M.gpu_matrix_pts_to_cell gC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
+             (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
        else emp);
   }
 }

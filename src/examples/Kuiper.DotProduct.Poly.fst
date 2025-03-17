@@ -28,38 +28,36 @@ fn kf
   (#et:Type0) {| scalar et |}
   (#size : erased nat)
   (ga1 ga2 r : gpu_array et size)
-  (etid : enatlt size)
+  (tid : szlt size)
   ()
   requires
     gpu **
-    kpre size ga1 ga2 r etid **
-    thread_id size etid
+    kpre size ga1 ga2 r tid **
+    thread_id size tid
   ensures
     gpu **
-    kpost size ga1 ga2 r etid **
-    thread_id size etid
+    kpost size ga1 ga2 r tid **
+    thread_id size tid
 {
-  let id = get_tid ();
-  rewrite each etid as SZ.v id;
   (* r[id] = ga1[id] * ga2[id] *)
 
-  (**)unfold (kpre size ga1 ga2 r id);
+  (**)unfold (kpre size ga1 ga2 r tid);
 
-  (**)unfold (gpu_pts_to_array1 ga1 id);
-  let v1 = gpu_array_read #_ #(reveal size) #id #(id+1) ga1 id;
+  (**)unfold (gpu_pts_to_array1 ga1 tid);
+  let v1 = gpu_array_read #_ #(reveal size) #tid #(tid+1) ga1 tid;
 
-  (**)unfold (gpu_pts_to_array1 ga2 id);
-  let v2 = gpu_array_read #_ #(reveal size) #id #(id+1) ga2 id;
+  (**)unfold (gpu_pts_to_array1 ga2 tid);
+  let v2 = gpu_array_read #_ #(reveal size) #tid #(tid+1) ga2 tid;
 
   let v = v1 `mul` v2;
 
-  (**)unfold (gpu_pts_to_array1 r id);
-  gpu_array_write #_ #(reveal size) #id #(id+1) r id v;
+  (**)unfold (gpu_pts_to_array1 r tid);
+  gpu_array_write #_ #(reveal size) #tid #(tid+1) r tid v;
 
-  (**)fold (gpu_pts_to_array1 r id);
-  (**)fold (gpu_pts_to_array1 ga1 id);
-  (**)fold (gpu_pts_to_array1 ga2 id);
-  (**)fold (kpost size ga1 ga2 r id);
+  (**)fold (gpu_pts_to_array1 r tid);
+  (**)fold (gpu_pts_to_array1 ga1 tid);
+  (**)fold (gpu_pts_to_array1 ga2 tid);
+  (**)fold (kpost size ga1 ga2 r tid);
   ()
 }
 
@@ -94,8 +92,6 @@ fn block_setup
 
   forevery_rw_size size (SZ.v m_size);
 }
-
-#set-options "--print_implicits"
 
 ghost
 fn block_teardown

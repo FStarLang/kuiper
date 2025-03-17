@@ -257,6 +257,71 @@ let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
   | MLE_Name p -> Some (string_of_mlpath p, tyargs, args)
   | _ -> None
 
+let rec ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : mlexpr =
+  match e.expr with
+  | MLE_Const _ -> e
+  | MLE_Var v' -> if v = v' then e' else e
+  | MLE_Name _ -> e
+  | MLE_Let ((flavor, lbs), e2) ->
+    let lbs' = lbs |> List.map (fun lb -> {lb with mllb_def = ml_subst lb.mllb_def v e'}) in
+    let e2' = ml_subst e2 v e' in
+    { e with expr = MLE_Let ((flavor, lbs'), e2') }
+  | MLE_App (head, args) ->
+    let head' = ml_subst head v e' in
+    let args' = List.map (fun arg -> ml_subst arg v e') args in
+    { e with expr = MLE_App (head', args') }
+  | MLE_TApp (head, args) ->
+    let head' = ml_subst head v e' in
+    { e with expr = MLE_TApp (head', args) }
+  | MLE_Fun (bs, e2) ->
+    (* fully named, no clashses should occur. *)
+    let e2' = ml_subst e2 v e' in
+    { e with expr = MLE_Fun (bs, e2') }
+  | MLE_Match (e1, branches) ->
+    let e1' = ml_subst e1 v e' in
+    let branches' =
+      branches |> List.map (fun (p, e2, e3) ->
+        let e2' = BU.map_opt e2 (fun e2 -> ml_subst e2 v e') in
+        let e3' = ml_subst e3 v e' in
+        (p, e2', e3')
+      )
+    in
+    { e with expr = MLE_Match (e1', branches') }
+  | MLE_Coerce (e1, t1, t2) ->
+    let e1' = ml_subst e1 v e' in
+    { e with expr = MLE_Coerce (e1', t1, t2) }
+  | MLE_Seq es ->
+    let es' = List.map (fun e -> ml_subst e v e') es in
+    { e with expr = MLE_Seq es' }
+  | MLE_Tuple es ->
+    let es' = List.map (fun e -> ml_subst e v e') es in
+    { e with expr = MLE_Tuple es' }
+  | MLE_Record (p, t, fields) ->
+    let fields' = List.map (fun (f, e) -> f, ml_subst e v e') fields in
+    { e with expr = MLE_Record (p, t, fields') }
+  | MLE_Proj (e1, f) ->
+    let e1' = ml_subst e1 v e' in
+    { e with expr = MLE_Proj (e1', f) }
+  | MLE_If (e1, e2, e3) ->
+    let e1' = ml_subst e1 v e' in
+    let e2' = ml_subst e2 v e' in
+    let e3' = BU.map_opt e3 (fun e3 -> ml_subst e3 v e') in
+    { e with expr = MLE_If (e1', e2', e3') }
+  | MLE_Raise (p, args) ->
+    let args' = List.map (fun arg -> ml_subst arg v e') args in
+    { e with expr = MLE_Raise (p, args') }
+  | MLE_Try (e1, branches) ->
+    let e1' = ml_subst e1 v e' in
+    let branches' =
+      branches |> List.map (fun (p, e2, e3) ->
+        let e2' = BU.map_opt e2 (fun e2 -> ml_subst e2 v e') in
+        let e3' = ml_subst e3 v e' in
+        (p, e2', e3')
+      )
+    in
+    { e with expr = MLE_Try (e1', branches') }
+  | _ -> e
+
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
@@ -281,14 +346,8 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Base.get_gdim", [], [ _unit; _erasednblk; _erasednbid ] ->
     EApp (EQualified ([], "gridDim_x"), [ EUnit ])
 
-  | "Kuiper.Base.get_bid", [], [ _unit; _erasednblk; _erasednbid ] ->
-    EApp (EQualified ([], "blockIdx_x"), [ EUnit ])
-
   | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
     EApp (EQualified ([], "blockDim_x"), [ EUnit ])
-
-  | "Kuiper.Base.get_tid", [], [ _unit; _erasednthr; _erasedntid ] ->
-    EApp (EQualified ([], "threadIdx_x"), [ EUnit ])
 
   | "Kuiper.SizeT.sizet_to_u32", [], [ sz ] ->
     ECast (cb sz, TInt UInt32)
@@ -444,27 +503,63 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         let sized_a = assoc' "shmem_type_is_sized" fields in
         let smem_sz = assoc' "shmem_sz" fields in
         let kf = assoc' "f" fields in
-        let rec drop_n_binders (e:mlexpr) n =
+        // BU.print1 "GGG kf = %s\n" (mlexpr_to_string kf);
+        // let rec drop_n_binders (e:mlexpr) n =
+        //   match e.expr with
+        //   | MLE_Fun (bs, body) when List.length bs = n -> body
+        //   | MLE_Fun (bs, body) when List.length bs > n ->
+        //     let bs = drop n bs in
+        //     { e with expr = MLE_Fun (bs, body) }
+        //   | MLE_Fun (bs, body) when List.length bs < n ->
+        //     drop_n_binders body (n - List.length bs)
+        //   | _ -> failwith ("launch_kernel: not enough binders: " ^ show e)
+        // in
+        let get_one_binder (e:mlexpr) : mlbinder & mlexpr =
           match e.expr with
-          | MLE_Fun (bs, body) when List.length bs = n -> body
-          | MLE_Fun (bs, body) when List.length bs > n ->
-            let bs = drop n bs in
-            { e with expr = MLE_Fun (bs, body) }
-          | MLE_Fun (bs, body) when List.length bs < n ->
-            drop_n_binders body (n - List.length bs)
-          | _ -> failwith ("launch_kernel: not enough binders: " ^ show e)
+          | MLE_Fun ([b], body) -> b, body
+          | MLE_Fun (b::bs, body) ->
+            b, { e with expr = MLE_Fun (bs, body) } (* type is wrong, but it doesn't matter *)
+          | _ -> failwith ("launch_kernel: no binder for: " ^ show e)
         in
-        let rec drop_last_n_args (e:mlexpr) n =
-          match e.expr with
-          | MLE_App (head, args) when List.length args = n -> head
-          | MLE_App (head, args) when List.length args > n ->
-            let args = drop n args in
-            { e with expr = MLE_App (head, args) }
-          | MLE_App (head, args) when List.length args < n ->
-            drop_last_n_args head (n - List.length args)
-          | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
+        // let rec drop_last_n_args (e:mlexpr) n =
+        //   match e.expr with
+        //   | MLE_App (head, args) when List.length args = n -> head
+        //   | MLE_App (head, args) when List.length args > n ->
+        //     let args = drop n args in
+        //     { e with expr = MLE_App (head, args) }
+        //   | MLE_App (head, args) when List.length args < n ->
+        //     drop_last_n_args head (n - List.length args)
+        //   | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
+        // in
+        let apply_lam (f : mlexpr) (v : mlexpr) : mlexpr =
+          let b, body = get_one_binder f in
+          ml_subst body b.mlbinder_name v
         in
-        let kf = drop_n_binders kf 4 in
+        // let ml_shmem : mlexpr =
+        //   MLE_Name ([], "KPR_SHMEM")
+        //   |> with_ty ml_int_ty (* hack, it doesn't really matter what type this is *)
+        //   |> (fun x -> MLE_App (x, [ml_unit]))
+        //   |> with_ty ml_int_ty (* hack, it doesn't really matter what type this is *)
+        // in
+        let ml_blockidx : mlexpr =
+          MLE_Name ([], "blockIdx_x")
+          |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t"))
+          |> (fun x -> MLE_App (x, [ml_unit]))
+          |> with_ty (MLTY_Var "FStar.SizeT.t")
+        in
+        let ml_threadidx : mlexpr =
+          MLE_Name ([], "threadIdx_x")
+          |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t"))
+          |> (fun x -> MLE_App (x, [ml_unit]))
+          |> with_ty (MLTY_Var "FStar.SizeT.t")
+        in
+        // let kf = apply_lam kf ml_shmem in
+        // FIXME: concretizing the shmem argument does not work, for some reason
+        // it shows up as erased in the original MLexpr.
+        let kf = apply_lam kf ml_unit in
+        let kf = apply_lam kf ml_blockidx in
+        let kf = apply_lam kf ml_threadidx in
+        let kf = apply_lam kf ml_unit in
         let kf = hoist env kf in
         let hd, rest_args = head_and_args kf in
         if Nil? rest_args then

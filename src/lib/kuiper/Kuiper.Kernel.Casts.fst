@@ -1,7 +1,6 @@
 module Kuiper.Kernel.Casts
 #lang-pulse
 
-open FStar.Ghost
 open Pulse.Lib.Core
 open Kuiper.Common
 open Kuiper.ForEvery
@@ -32,8 +31,8 @@ let kmn_as_kfull
   setup = (magic ());
   teardown = (magic ());
 
-  kpre  = (fun _ear -> kpre);
-  kpost = (fun _ear -> kpost);
+  kpre  = (fun _ar -> kpre);
+  kpost = (fun _ar -> kpost);
 
   block_setup = magic();
   block_teardown = magic();
@@ -65,7 +64,7 @@ let km1_as_kmn (#full_pre #full_post : slprop)
   block_setup = magic();
   block_teardown = magic();
 
-  f = (fun ebid _etid -> admit(); f ebid);
+  f = (fun bid _tid -> admit(); f bid);
 }
 
 inline_for_extraction noextract
@@ -92,7 +91,7 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
   block_setup = magic();
   block_teardown = magic();
 
-  f = (fun _ebid etid () -> Kuiper.Frame.frame_right1 _ (f etid));
+  f = (fun _bid tid () -> Kuiper.Frame.frame_right1 _ (f tid));
 }
 
 inline_for_extraction noextract
@@ -111,7 +110,7 @@ let k11_as_k1n (#full_pre #full_post : slprop)
   kpre  = (fun _tid -> full_pre);
   kpost = (fun _tid -> full_post);
 
-  f = (fun _etid () -> Kuiper.Frame.frame_right1 _ f);
+  f = (fun _tid () -> Kuiper.Frame.frame_right1 _ f);
 }
 
 [@@coercion]

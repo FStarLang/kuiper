@@ -33,26 +33,26 @@ fn kf_exp
   (#et : Type0) {| floating et |}
   (#lena : erased nat)
   (a : gpu_array et lena)
-  (ebid : enatlt lena)
+  (bid : szlt lena)
   ()
   requires
     gpu **
-    gpu_pts_to_array1 a ebid **
-    block_id lena ebid
+    gpu_pts_to_array1 a bid **
+    block_id lena bid
   ensures
     gpu **
-    gpu_pts_to_array1 a ebid **
-    block_id lena ebid
+    gpu_pts_to_array1 a bid **
+    block_id lena bid
 {
-  let i = get_bid (); rewrite each ebid as SZ.v i;
+  let i = bid; rewrite each bid as i;
   assert (pure (i < lena));
-  assert (pure (SZ.v i == ebid));
+  assert (pure (SZ.v i == bid));
   unfold gpu_pts_to_array1 a i;
   let x = gpu_array_read #_ #_ #i #(i+1) a i;
   let x = exp x;
   gpu_array_write #_ #_ #i #(i+1) a i x;
   fold gpu_pts_to_array1 a i;
-  rewrite each SZ.v i as ebid;
+  rewrite each i as bid;
   ()
 }
 
@@ -81,26 +81,26 @@ fn kf_div
   (#lena : erased nat)
   (a : gpu_array et lena)
   (d : et)
-  (ebid : enatlt lena)
+  (bid : szlt lena)
   ()
   requires
     gpu **
-    gpu_pts_to_array1 a ebid **
-    block_id lena ebid
+    gpu_pts_to_array1 a bid **
+    block_id lena bid
   ensures
     gpu **
-    gpu_pts_to_array1 a ebid **
-    block_id lena ebid
+    gpu_pts_to_array1 a bid **
+    block_id lena bid
 {
-  let i = get_bid (); rewrite each ebid as SZ.v i;
+  let i = bid; rewrite each bid as i;
   assert (pure (i < lena));
-  assert (pure (SZ.v i == ebid));
+  assert (pure (SZ.v i == bid));
   unfold gpu_pts_to_array1 a i;
   let x = gpu_array_read #_ #_ #i #(i+1) a i;
   let x = x `div` d;
   gpu_array_write #_ #_ #i #(i+1) a i x;
   fold gpu_pts_to_array1 a i;
-  rewrite each SZ.v i as ebid;
+  rewrite each i as bid;
   ()
 }
 

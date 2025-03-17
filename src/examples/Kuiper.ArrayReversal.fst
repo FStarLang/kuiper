@@ -281,10 +281,10 @@ let kpre
   (size:sz)
   (a:gpu_array ty size)
   (s:seq ty{ len s == SZ.v size })
-  (ebid : natlt (SZ.v size / 2))
+  (bid : natlt (SZ.v size / 2))
   : slprop =
-  gpu_pts_to_cell a #1.0R ebid (Seq.index s ebid) **
-  gpu_pts_to_cell a #1.0R (SZ.v size - ebid - 1) (index_flip s ebid)
+  gpu_pts_to_cell a #1.0R bid (Seq.index s bid) **
+  gpu_pts_to_cell a #1.0R (SZ.v size - bid - 1) (index_flip s bid)
 
 unfold
 let kpost
@@ -292,10 +292,10 @@ let kpost
   (size:sz)
   (a:gpu_array ty size)
   (s:seq ty{ len s == SZ.v size })
-  (ebid : natlt (SZ.v size / 2))
+  (bid : natlt (SZ.v size / 2))
   : slprop =
-  gpu_pts_to_cell a #1.0R ebid (Seq.index (reverse_spec s) ebid) **
-  gpu_pts_to_cell a #1.0R (SZ.v size - ebid - 1) (index_flip (reverse_spec s) ebid)
+  gpu_pts_to_cell a #1.0R bid (Seq.index (reverse_spec s) bid) **
+  gpu_pts_to_cell a #1.0R (SZ.v size - bid - 1) (index_flip (reverse_spec s) bid)
 
 inline_for_extraction noextract
 fn kf
@@ -303,19 +303,18 @@ fn kf
   (size:sz)
   (a:gpu_array ty size)
   (#s:erased (Seq.seq ty) { len s == SZ.v size })
-  (ebid : enatlt (SZ.v (size `div` 2sz))) (* pretty awful.. *)
+  (bid : szlt (SZ.v (size `div` 2sz))) (* pretty awful.. *)
   ()
 requires
   gpu **
-  kpre size a s ebid **
-  block_id (size /^ 2sz) ebid
+  kpre size a s bid **
+  block_id (size /^ 2sz) bid
 ensures
   gpu **
-  kpost size a s ebid **
-  block_id (size /^ 2sz) ebid
+  kpost size a s bid **
+  block_id (size /^ 2sz) bid
 {
-  let idx = get_bid ();
-  rewrite each ebid as SZ.v idx;
+  let idx = bid; rewrite each bid as idx;
   let idx' = (size - idx - 1sz);
   rewrite each (SZ.v size - SZ.v idx - 1) as idx';
   let uu = read_cell a idx;
@@ -323,7 +322,7 @@ ensures
   write_cell a idx vv;
   write_cell a idx' uu;
   rewrite each SZ.v idx' as (SZ.v size - SZ.v idx - 1);
-  rewrite each SZ.v idx  as ebid;
+  rewrite each idx as bid;
   ()
 }
 

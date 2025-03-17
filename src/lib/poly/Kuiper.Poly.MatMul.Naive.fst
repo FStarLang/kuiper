@@ -68,29 +68,27 @@ fn kf
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#f : perm)
-  (ebid : enatlt (rows *^ cols))
+  (bid : szlt (rows *^ cols))
   ()
   requires
     gpu **
-    kpre gA gB gC eA eB f ebid **
-    block_id (rows *^ cols) ebid
+    kpre gA gB gC eA eB f bid **
+    block_id (rows *^ cols) bid
   ensures
     gpu **
-    kpost gA gB gC eA eB f ebid **
-    block_id (rows *^ cols) ebid
+    kpost gA gB gC eA eB f bid **
+    block_id (rows *^ cols) bid
 {
-  let id = get_bid (); rewrite each ebid as SZ.v id;
-
-  let trow = SZ.div id cols;
-  let tcol = SZ.rem id cols;
-  rewrite each (SZ.v id / SZ.v cols) as trow;
-  rewrite each (SZ.v id % SZ.v cols) as tcol;
+  let trow = SZ.div bid cols;
+  let tcol = SZ.rem bid cols;
+  rewrite each (SZ.v bid / SZ.v cols) as trow;
+  rewrite each (SZ.v bid % SZ.v cols) as tcol;
 
   let s = MU.matmul_dotprod gA gB trow tcol;
   M.gpu_matrix_write_cell gC trow tcol s;
 
-  rewrite each SZ.v trow as (ebid / cols);
-  rewrite each SZ.v tcol as (ebid % cols);
+  rewrite each SZ.v trow as (bid / cols);
+  rewrite each SZ.v tcol as (bid % cols);
   ()
 }
 

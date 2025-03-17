@@ -91,20 +91,20 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   );
 
   f : (
-    ear  : erased (gpu_array shmem_type shmem_sz) ->
-    ebid : enatlt nblk ->
-    etid : enatlt nthr ->
+    ear : erased (gpu_array shmem_type shmem_sz) ->
+    bid : szlt nblk ->
+    tid : szlt nthr ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre ear ebid etid **
-         thread_id nthr etid **
-         block_id nblk ebid)
+         kpre ear bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost ear ebid etid **
-         thread_id nthr etid **
-         block_id nblk ebid)
+         kpost ear bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
   );
 }
