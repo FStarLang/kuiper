@@ -19,7 +19,7 @@ fn matmul_cpu
   (matmul_gpu : matmul_gpu_ty)
   (#et : Type0) {| scalar et |}
   (#rows #shared : szp) (* concrete args *)
-  (#cols : szp{three_fits rows shared cols})
+  (#cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
@@ -37,7 +37,7 @@ fn matmul_cpu
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
-    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
+    pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks)
   returns
     c : vec et
@@ -143,7 +143,7 @@ fn matmul_transpose_gpu
   (#et : Type0) {| scalar et |}
   (#rows : szp)
   (#shared : szp)
-  (#cols : szp{three_fits rows shared cols})
+  (#cols : szp)
   (gA : M.gpu_matrix et (R.row_major rows shared))
   (gB : M.gpu_matrix et (R.row_major shared cols))
   (gC : M.gpu_matrix et (R.row_major cols rows))
@@ -154,12 +154,18 @@ fn matmul_transpose_gpu
     cpu **
     (gA |-> eA) ** (gB |-> eB)
   requires
-    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
+    pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
     gC |-> mtranspose (MS.matmul eA eB)
 {
+  (* Recall that the lengths fit. We don't get a good error without this,
+     but the problem is that we cannot call the crepr instance for gA/gB/gC
+     without this fact. *)
+  M.gpu_matrix_pts_to_ref gA;
+  M.gpu_matrix_pts_to_ref gB;
+  M.gpu_matrix_pts_to_ref gC;
   let gC' = Kuiper.Ghost.Transpose.ghost_transpose1 gC;
   matmul_gpu gA gB gC';
   let gC'' = Kuiper.Ghost.Transpose.ghost_transpose2 gC';
@@ -177,7 +183,7 @@ fn specialize_to_type_and_reprs_cpu
   {| cB : crepr rB |}
   {| cC : crepr rC |}
   (#rows #shared : szp) (* concrete args *)
-  (#cols : szp{three_fits rows shared cols})
+  (#cols : szp)
   (a : vec et)
   (b : vec et)
   (#sa : erased (seq et){ len sa == rows * shared })
@@ -189,7 +195,7 @@ fn specialize_to_type_and_reprs_cpu
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
-    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
+    pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks)
   returns
     c : vec et
@@ -198,6 +204,9 @@ fn specialize_to_type_and_reprs_cpu
              MS.matmul (from_seq (rA rows shared) sa)
                        (from_seq (rB shared cols) sb))
 {
+  Pulse.Lib.Vec.pts_to_len a;
+  Pulse.Lib.Vec.pts_to_len b;
+
   matmul_cpu matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
 }
 
@@ -209,8 +218,7 @@ fn specialize_to_type_and_reprs_gpu
   {| cA : crepr rA |}
   {| cB : crepr rB |}
   {| cC : crepr rC |}
-  (#rows #shared : szp) (* concrete args *)
-  (#cols : szp{three_fits rows shared cols})
+  (#rows #shared #cols : szp) (* concrete args *)
   (gA : gpu_matrix et (rA rows shared))
   (gB : gpu_matrix et (rB shared cols))
   (gC : gpu_matrix et (rC rows cols))
@@ -224,11 +232,15 @@ fn specialize_to_type_and_reprs_gpu
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
-    pure (SZ.fits (rows * shared) /\ SZ.fits (shared * cols) /\ SZ.fits (rows * cols)) **
+    pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks) **
     (gC |-> mc0)
   ensures
     gC |-> MS.matmul ma mb
 {
+  M.gpu_matrix_pts_to_ref gA;
+  M.gpu_matrix_pts_to_ref gB;
+  M.gpu_matrix_pts_to_ref gC;
+
   matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }

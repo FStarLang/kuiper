@@ -10,6 +10,7 @@ open Kuiper.Poly.MatMulGPU.Type
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.MatMul
+module SZ = FStar.SizeT
 open Kuiper.Matrix { gpu_matrix }
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
@@ -21,7 +22,7 @@ type matmul_cpu_ty
   {| scalar et |} ->
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
-  (#cols : szp{three_fits rows shared cols}) ->
+  (#cols : szp) ->
   (#lA : mlayout rows shared) ->
   (#lB : mlayout shared cols) ->
   (#lC : mlayout rows cols) ->
@@ -37,7 +38,7 @@ type matmul_cpu_ty
       (cpu ** (a |-> sa) ** (b |-> sb)) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
-      (pure (three_fits rows shared cols) **
+      (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks)))
     (ensures fun c ->
       (cpu ** (a |-> sa) ** (b |-> sb)) **
@@ -68,7 +69,7 @@ type fixed_repr_matmul_cpu_ty
 =
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
-  (#cols : szp{three_fits rows shared cols}) ->
+  (#cols : szp) ->
   (a : vec et) ->
   (b : vec et) ->
   (#sa : erased (seq et){ len sa == rows * shared }) ->
@@ -78,7 +79,7 @@ type fixed_repr_matmul_cpu_ty
       (cpu ** (a |-> sa) ** (b |-> sb)) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
-      (pure (three_fits rows shared cols) **
+      (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks)))
     (ensures fun c ->
       (cpu ** (a |-> sa) ** (b |-> sb)) **
@@ -97,7 +98,7 @@ type fixed_repr_matmul_gpu_ty
 =
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
-  (#cols : szp{three_fits rows shared cols}) ->
+  (#cols : szp) ->
   (gA : gpu_matrix et (rA rows shared)) ->
   (gB : gpu_matrix et (rB shared cols)) ->
   (gC : gpu_matrix et (rC rows cols)) ->
@@ -109,7 +110,7 @@ type fixed_repr_matmul_gpu_ty
       (cpu ** (gA |-> ma) ** (gB |-> mb)) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
-      (pure (three_fits rows shared cols) **
+      (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks) **
       (gC |-> mc0)))
     (ensures fun _ ->

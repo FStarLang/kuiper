@@ -267,6 +267,8 @@ fn kf
              (exists* x. gpu_pts_to_slice ar (tid + tile*^tile) (tid + tile*^tile+1) x))
          as (barrier_p tile ar (2 * vbk + 1) tid);
     B.barrier_wait ();
+    even_2x (vbk + 1);
+    assert (pure (even (2 * vbk + 2)));
     rewrite (barrier_q tile ar (2 * vbk + 1) tid)
          as (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x);
 

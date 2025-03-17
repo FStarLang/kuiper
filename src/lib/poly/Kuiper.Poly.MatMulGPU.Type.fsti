@@ -20,7 +20,7 @@ type matmul_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
   (#rows : szp) ->
   (#shared : szp) ->
-  (#cols : szp{three_fits rows shared cols}) ->
+  (#cols : szp) ->
   (#lA : mlayout rows shared) ->
   (#lB : mlayout shared cols) ->
   (#lC : mlayout rows cols) ->
