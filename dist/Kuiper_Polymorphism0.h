@@ -3,7 +3,6 @@
 #ifndef __Kuiper_Polymorphism0_H
 #define __Kuiper_Polymorphism0_H
 
-
 #include <kuiper.h>
 
 __device__

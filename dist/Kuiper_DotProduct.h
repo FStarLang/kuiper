@@ -3,7 +3,6 @@
 #ifndef __Kuiper_DotProduct_H
 #define __Kuiper_DotProduct_H
 
-
 #include <kuiper.h>
 
 float_t Kuiper_DotProduct_dotprod_f32(size_t lena, float_t *a1, float_t *a2);

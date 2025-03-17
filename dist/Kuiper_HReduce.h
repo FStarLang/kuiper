@@ -3,7 +3,6 @@
 #ifndef __Kuiper_HReduce_H
 #define __Kuiper_HReduce_H
 
-
 #include <kuiper.h>
 
 void Kuiper_HReduce_reduce_f16_plus(size_t lena, half_t *a);

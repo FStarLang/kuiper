@@ -3,7 +3,6 @@
 #ifndef __Kuiper_Add2_H
 #define __Kuiper_Add2_H
 
-
 #include <kuiper.h>
 
 float_t Kuiper_Add2_padd_f32(float_t x, float_t y);

@@ -3,7 +3,6 @@
 #ifndef __Kuiper_Add_H
 #define __Kuiper_Add_H
 
-
 #include <kuiper.h>
 
 float_t Kuiper_Add_pincr_f32(float_t x);

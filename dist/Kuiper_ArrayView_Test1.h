@@ -3,7 +3,6 @@
 #ifndef __Kuiper_ArrayView_Test1_H
 #define __Kuiper_ArrayView_Test1_H
 
-
 #include <kuiper.h>
 
 uint32_t Kuiper_ArrayView_Test1_test(uint32_t *a);

@@ -3,7 +3,6 @@
 #ifndef __Kuiper_MatMul_Naive2_H
 #define __Kuiper_MatMul_Naive2_H
 
-
 #include <kuiper.h>
 
 float_t

@@ -3,7 +3,6 @@
 #ifndef __Kuiper_AtomicReduce_H
 #define __Kuiper_AtomicReduce_H
 
-
 #include <kuiper.h>
 
 uint32_t Kuiper_AtomicReduce_reduce_u32(size_t n, uint32_t *a);

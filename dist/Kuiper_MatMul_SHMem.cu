@@ -31,16 +31,14 @@ __hoisted_0(
     float_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     float_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -129,16 +127,14 @@ __hoisted_1(
     double_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     double_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -227,16 +223,14 @@ __hoisted_2(
     uint32_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     uint32_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -322,16 +316,14 @@ __hoisted_3(
     uint64_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     uint64_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -417,16 +409,14 @@ __hoisted_4(
     float_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     float_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -515,16 +505,14 @@ __hoisted_5(
     double_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     double_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -613,16 +601,14 @@ __hoisted_6(
     uint32_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     uint32_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -708,16 +694,14 @@ __hoisted_7(
     uint64_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     uint64_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -802,15 +786,14 @@ __hoisted_8(
     float_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     float_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -896,15 +879,14 @@ __hoisted_9(
     double_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     double_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -990,15 +972,14 @@ __hoisted_10(
     uint32_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     uint32_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1081,15 +1062,14 @@ __hoisted_11(
     uint64_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     uint64_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1172,15 +1152,14 @@ __hoisted_12(
     float_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     float_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1266,15 +1245,14 @@ __hoisted_13(
     double_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     double_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1360,15 +1338,14 @@ __hoisted_14(
     uint32_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     uint32_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1451,15 +1428,14 @@ __hoisted_15(
     uint64_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     uint64_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1542,14 +1518,14 @@ __hoisted_16(
     float_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     float_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1635,14 +1611,14 @@ __hoisted_17(
     double_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     double_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1728,14 +1704,14 @@ __hoisted_18(
     uint32_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     uint32_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1818,14 +1794,14 @@ __hoisted_19(
     uint64_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     uint64_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -1908,14 +1884,14 @@ __hoisted_20(
     float_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     float_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2001,14 +1977,14 @@ __hoisted_21(
     double_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     double_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2094,14 +2070,14 @@ __hoisted_22(
     uint32_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     uint32_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2184,14 +2160,14 @@ __hoisted_23(
     uint64_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     uint64_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2275,16 +2251,14 @@ __hoisted_24(
     float_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     float_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2359,16 +2333,14 @@ __hoisted_25(
     double_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     double_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2443,16 +2415,14 @@ __hoisted_26(
     uint32_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     uint32_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2527,16 +2497,14 @@ __hoisted_27(
     uint64_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
     uint64_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2611,16 +2579,14 @@ __hoisted_28(
     float_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     float_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2695,16 +2661,14 @@ __hoisted_29(
     double_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     double_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2779,16 +2743,14 @@ __hoisted_30(
     uint32_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     uint32_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2863,16 +2825,14 @@ __hoisted_31(
     uint64_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
     uint64_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
     __syncthreads();
-    ar[(size_t)0U * tile * tile + brow * tile + bcol] = v1;
-    ar[(size_t)1U * tile * tile + brow * tile + bcol] = v2;
+    ar[tile * tile + brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < tile)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U * tile * tile + brow * tile + vsk] *
-          ar[(size_t)1U * tile * tile + vsk * tile + bcol];
+      sum += ar[tile * tile + brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -2946,15 +2906,14 @@ __hoisted_32(
     float_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     float_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3026,15 +2985,14 @@ __hoisted_33(
     double_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     double_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3106,15 +3064,14 @@ __hoisted_34(
     uint32_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     uint32_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3186,15 +3143,14 @@ __hoisted_35(
     uint64_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
     uint64_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3266,15 +3222,14 @@ __hoisted_36(
     float_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     float_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3346,15 +3301,14 @@ __hoisted_37(
     double_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     double_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3426,15 +3380,14 @@ __hoisted_38(
     uint32_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     uint32_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3506,15 +3459,14 @@ __hoisted_39(
     uint64_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
     uint64_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)32U + bcol] = v1;
+    ar[brow * (size_t)32U + bcol] = v1;
     ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)32U)
     {
       size_t vsk = sk;
-      sum +=
-        ar[(size_t)0U + brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3586,14 +3538,14 @@ __hoisted_40(
     float_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     float_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3665,14 +3617,14 @@ __hoisted_41(
     double_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     double_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3744,14 +3696,14 @@ __hoisted_42(
     uint32_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     uint32_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3823,14 +3775,14 @@ __hoisted_43(
     uint64_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
     uint64_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3902,14 +3854,14 @@ __hoisted_44(
     float_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     float_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -3981,14 +3933,14 @@ __hoisted_45(
     double_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     double_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -4060,14 +4012,14 @@ __hoisted_46(
     uint32_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     uint32_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;
@@ -4139,14 +4091,14 @@ __hoisted_47(
     uint64_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
     uint64_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
     __syncthreads();
-    ar[(size_t)0U + brow * (size_t)16U + bcol] = v1;
+    ar[brow * (size_t)16U + bcol] = v1;
     ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
     __syncthreads();
     size_t sk = (size_t)0U;
     while (sk < (size_t)16U)
     {
       size_t vsk = sk;
-      sum += ar[(size_t)0U + brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
       sk = vsk + (size_t)1U;
     }
     bk = vbk + (size_t)1U;

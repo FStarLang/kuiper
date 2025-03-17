@@ -3,7 +3,6 @@
 #ifndef __Kuiper_DotProduct_Poly_H
 #define __Kuiper_DotProduct_Poly_H
 
-
 #include <kuiper.h>
 
 extern size_t Kuiper_DotProduct_Poly_m_size;

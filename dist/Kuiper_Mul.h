@@ -3,7 +3,6 @@
 #ifndef __Kuiper_Mul_H
 #define __Kuiper_Mul_H
 
-
 #include <kuiper.h>
 
 __device__
