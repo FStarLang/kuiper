@@ -92,13 +92,14 @@ fn varray_concr
   (#vt:Type0)
   (#vw : aview t len vt)
   (a : varray vw)
+  (#f : perm)
   (#v : erased vt)
   requires
-    a |-> v
+    varray_pts_to a #f v
   ensures
-    core a |-> to_seq vw v
+    gpu_pts_to_array (core a) #f (to_seq vw v)
 {
-  unfold varray_pts_to a v;
+  unfold varray_pts_to a #f v;
 }
 
 ghost
