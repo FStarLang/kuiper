@@ -292,8 +292,90 @@ fn unfactor_array
   ensures
     gpu_pts_to_array a va
 {
-  (* everything above is clearly reversible *)
-  admit();
+  open Kuiper.Enumerable;
+  forevery_unfactor len d1 d2 (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
+  forevery_tostar #(natlt len) _;
+  rewrite each (cardinal (natlt len) #_) as len;
+  Kuiper.Array.gpu_array_unslice_1 a;
+}
+
+ghost
+fn block_setup
+  (#et:Type0) {| scalar et |}
+  (lena : szp { lena < max_threads })
+  (a : gpu_array et lena)
+  (#va : erased (seq et) { Seq.length va == SZ.v lena })
+  ()
+requires
+  block_setup_tok lena **
+  gpu_pts_to_array a va
+ensures
+  block_setup_tok lena **
+  (forall+ (i : natlt lena). kpre lena a va i) **
+  emp
+{
+  open Kuiper.Enumerable;
+  gpu_array_slice_1 a;
+  mk_mbarrier lena (barrier_matrix lena a va);
+  bigstar_zip 0 (sizet_to_nat lena) _
+      (RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va) 0);
+  rewrite each (SZ.v lena) as cardinal (natlt lena) #_;
+  forevery_fromstar #(natlt lena) (fun i -> kpre lena a va i);
+}
+
+ghost
+fn block_teardown
+  (#et:Type0) {| scalar et |}
+  (lena : szp { lena < max_threads })
+  (a : gpu_array et lena)
+  (#va : erased (seq et) { Seq.length va == SZ.v lena })
+  ()
+requires
+  (forall+ (i : natlt lena). kpost lena a va i) **
+  emp
+ensures
+  (exists* va'. gpu_pts_to_array a #1.0R va')
+{
+  open Kuiper.Enumerable;
+  forevery_tostar #(natlt lena) _;
+  rewrite each
+    (Kuiper.Enumerable.cardinal (natlt (SZ.v lena))
+            #(Kuiper.Enumerable.enumerable_natlt (SZ.v lena)))
+    as lena;
+  bigstar_extract #0 0 lena (fun i -> kpost lena a va #() i) 0;
+  if_elim_true _;
+  unfold (gpu_pts_to_slice_sum a 0 lena va);
+  with pp ff. assert (if_ pp ff);
+  rewrite each pp as true;
+  if_elim_true _;
+  bigstar_emp_elim #_ #0 #0;
+  with _a _b _c _d. assert (RPM.mbarrier_tok _a _b _c _d);
+  drop_ (RPM.mbarrier_tok _a _b _c _d);
+  ghost
+  fn mapper (j: nat{b2t (1 <= j) /\ b2t (j < SZ.v lena)})
+  requires
+      if_ (op_Equality #int j 0)
+        (gpu_pts_to_slice_sum
+            a
+            0
+            (SZ.v lena)
+            (reveal #(seq et) va)) **
+      (exists* (it: nat).
+          RPM.mbarrier_tok (SZ.v lena)
+            (barrier_matrix (SZ.v lena) a (reveal #(seq et) va))
+            it
+            j)
+  ensures
+    emp
+  {
+    with pp ff. assert (if_ pp ff);
+    rewrite each pp as false;
+    if_elim_false _;
+    with _a _b _c _d. assert (RPM.mbarrier_tok _a _b _c _d);
+    drop_ (RPM.mbarrier_tok _a _b _c _d);
+  };
+  bigstar_map #_ #_ #1 #lena mapper;
+  bigstar_emp_elim #_ #1 #lena;
 }
 
 inline_for_extraction noextract
@@ -309,8 +391,8 @@ let kernel
   nthr = lena;
   f = d_reduce lena a #va;
 
-  block_teardown = magic();
-  block_setup = magic();
+  block_teardown = block_teardown lena a #va;
+  block_setup = block_setup lena a #va;
   kpost = kpost lena a va;
   kpre =  kpre lena a va;
   frame = emp;
@@ -330,29 +412,4 @@ fn reduce
 {
   gpu_pts_to_ref a; (* recall length, automate *)
   launch_sync (kernel lena a);
-
-  // factor_array lena a 1 lena;
-
-  // launch_kernel_n_m_barrier 1sz lena
-  //   #(kpre  1 lena a 'va)
-  //   #(kpost 1 lena a 'va)
-  //   (fun tid -> kk lena a tid);
-
-  // forevery_singleton_elim #(natlt 1) (fun bid -> forall+ (tid:natlt lena). kpost 1 lena a 'va bid tid);
-  // forevery_tostar #(natlt lena) _;
-
-  // bigstar_extract 0 lena (kpost 1 lena a 'va 0) 0;
-  // if_elim_true _;
-
-  // unfold (gpu_pts_to_slice_sum a 0 lena 'va);
-  // // if_elim_true _;
-  // (* ^ Bad unification from matching, instead of trying to prove that the condition
-  //    of if_ p f is true (to match it with if_ true ?u) it picks ?u = if_ p f. *)
-  // with pp ff. assert (if_ pp ff);
-  // rewrite each pp as true;
-  // if_elim_true _;
-  // bigstar_emp_elim #_ #0 #0;
-  // bigstar_emp_elim' #_ #1 #lena _;
-
-  // ()
 }
