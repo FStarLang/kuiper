@@ -13,6 +13,7 @@ module M  = Kuiper.Matrix
 module M4 = Kuiper.Matrix4
 open Kuiper.Matrix4 { mlayout4, clayout4 }
 module R = Kuiper.Matrix.Reprs
+module GT = Kuiper.Ghost.Transpose
 
 inline_for_extraction noextract
 fn matmul_cpu
@@ -120,11 +121,12 @@ fn matmul_gpu_tiled
     gA4 gB4 gC4;
 
   let gA' = M4.to_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
-  M.core_match gA gA'; rewrite each gA' as gA;
   let gB' = M4.to_matrix2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
-  M.core_match gB gB'; rewrite each gB' as gB;
   let gC' = M4.to_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
-  M.core_match gC gC'; rewrite each gC' as gC;
+
+  rewrite each gA' as gA;
+  rewrite each gB' as gB;
+  rewrite each gC' as gC;
   ()
 }
 
@@ -166,11 +168,9 @@ fn matmul_transpose_gpu
   M.gpu_matrix_pts_to_ref gA;
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
-  let gC' = Kuiper.Ghost.Transpose.ghost_transpose1 gC;
-  matmul_gpu gA gB gC';
-  let gC'' = Kuiper.Ghost.Transpose.ghost_transpose2 gC';
-  M.core_match gC gC'';
-  rewrite each gC'' as gC;
+  GT.ghost_transpose1 gC;
+  matmul_gpu gA gB (GT.row2col gC);
+  GT.ghost_transpose1_back gC;
   ()
 }
 

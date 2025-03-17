@@ -71,6 +71,14 @@ val gpu_matrix
   : Type0
 
 inline_for_extraction noextract
+val from_array
+  (#a : Type0)
+  (#mrows #mcols #brows #bcols : erased nat)
+  (l : mlayout4 mrows mcols brows bcols)
+  (arr : gpu_array a (mlayout_size l))
+  : gpu_matrix a l
+
+inline_for_extraction noextract
 val core
   (#et : Type)
   (#mrows #mcols #brows #bcols : erased nat)
@@ -78,13 +86,21 @@ val core
   (g : gpu_matrix et l)
   : gpu_array et (mlayout_size l)
 
-val core_match
+val lem_core_from_array
   (#et : Type)
   (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
-  (g1 g2 : gpu_matrix et l)
-  : Lemma (requires core g1 == core g2)
-          (ensures g1 == g2)
+  (g : gpu_matrix et l)
+  : Lemma (ensures from_array l (core g) == g)
+          [SMTPat (core g)]
+
+val lem_from_array_core
+  (#et : Type)
+  (#mrows #mcols #brows #bcols : erased nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (p : gpu_array et (mlayout_size l))
+  : Lemma (ensures core (from_array l p) == p)
+          [SMTPat (from_array l p)]
 
 val gpu_matrix_pts_to
   (#et:Type) (#mrows #mcols #brows #bcols : nat)
@@ -128,20 +144,31 @@ fn gpu_matrix_concr
   ensures
     core g |-> to_seq l em
 
-inline_for_extraction noextract
+ghost
 fn gpu_matrix_abs
   (#et:Type)
   (#mrows #mcols #brows #bcols : erased nat)
   (l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
+  (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
   requires
-    p |-> to_seq l em
-  returns
-    g' : gpu_matrix et l
+    gpu_pts_to_array p #f (to_seq l em)
   ensures
-    pure (core g' == p) **
-    (g' |-> em)
+    gpu_matrix_pts_to (from_array l p) #f em
+
+ghost
+fn gpu_matrix_abs'
+  (#et:Type)
+  (#mrows #mcols #brows #bcols : erased nat)
+  (l : mlayout4 mrows mcols brows bcols)
+  (p : gpu_array et (mlayout_size l))
+  (#f : perm)
+  (#s : erased (seq et){Seq.length s == mlayout_size l})
+  requires
+    gpu_pts_to_array p #f s
+  ensures
+    gpu_matrix_pts_to (from_array l p) #f (from_seq l s)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc0

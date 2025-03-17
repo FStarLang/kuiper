@@ -87,8 +87,26 @@ let gpu_matrix
   : Type0
   = A.varray (aview_from_mlayout et l)
 
+let from_array l p = A.from_array (aview_from_mlayout _ l) p
 let core g = A.core g
-let core_match g1 g2 = A.core_match g1 g2
+
+let lem_core_from_array
+  (#et : Type)
+  (#mrows #mcols #brows #bcols : erased nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (g : gpu_matrix et l)
+  : Lemma (ensures from_array l (core g) == g)
+          [SMTPat (core g)]
+  = ()
+
+let lem_from_array_core
+  (#et : Type)
+  (#mrows #mcols #brows #bcols : erased nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (p : gpu_array et (mlayout_size l))
+  : Lemma (ensures core (from_array l p) == p)
+          [SMTPat (from_array l p)]
+  = admit()
 
 let gpu_matrix_pts_to
   (#et:Type) (#mrows #mcols #brows #bcols : nat)
@@ -135,28 +153,46 @@ fn gpu_matrix_concr
   a'
 }
 
-inline_for_extraction noextract
+ghost
 fn gpu_matrix_abs
   (#et:Type)
   (#mrows #mcols #brows #bcols : erased nat)
   (l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
+  (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
   requires
-    p |-> to_seq l em
-  returns
-    g' : gpu_matrix et l
+    gpu_pts_to_array p #f (to_seq l em)
   ensures
-    pure (core g' == p) **
-    (g' |-> em)
+    gpu_matrix_pts_to (from_array l p) #f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  with v.
-    rewrite p |-> v
-         as p |-> A.to_seq (aview_from_mlayout et l) em;
-  let g' = A.varray_abs (aview_from_mlayout et l) p;
-  fold gpu_matrix_pts_to g' em;
-  g'
+  assert (pure (to_seq l em == A.to_seq (aview_from_mlayout et l) em));
+  // Does not work:
+  // rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
+  admit(); // FIXME, reveal hell
+  rewrite gpu_pts_to_array p #f (to_seq   #_ #(mrows * brows) #(mcols * bcols) l em)
+       as gpu_pts_to_array p #f (A.to_seq #_ #((mrows * brows) * (mcols * bcols)) (aview_from_mlayout et l) em);
+  A.varray_abs (aview_from_mlayout et l) p;
+  fold gpu_matrix_pts_to (from_array l p) #f em;
+}
+
+ghost
+fn gpu_matrix_abs'
+  (#et:Type)
+  (#mrows #mcols #brows #bcols : erased nat)
+  (l : mlayout4 mrows mcols brows bcols)
+  (p : gpu_array et (mlayout_size l))
+  (#f : perm)
+  (#s : erased (seq et){Seq.length s == mlayout_size l})
+  requires
+    gpu_pts_to_array p #f s
+  ensures
+    gpu_matrix_pts_to (from_array l p) #f (from_seq l s)
+
+{
+  rewrite each s as to_seq l (from_seq l s);
+  gpu_matrix_abs l p;
 }
 
 inline_for_extraction noextract
@@ -517,6 +553,7 @@ fn from_matrix2
   (* NICE ! *)
   M.gpu_matrix_concr gA;
   gpu_matrix_abs lA (M.core gA);
+  from_array lA (M.core gA);
 }
 
 inline_for_extraction
@@ -537,4 +574,5 @@ fn to_matrix2
 {
   gpu_matrix_concr gA4;
   M.gpu_matrix_abs lA (core gA4);
+  M.from_array lA (core gA4);
 }

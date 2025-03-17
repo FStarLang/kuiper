@@ -7,7 +7,23 @@ open Kuiper.Matrix
 module Repr = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 
-inline_for_extraction noextract
+unfold
+let row2col
+  (#et : Type)
+  (#rows #cols : erased nat)
+  (m : gpu_matrix et (Repr.row_major rows cols))
+  : gpu_matrix et (Repr.col_major cols rows) =
+  from_array (Repr.col_major cols rows) (core m)
+
+unfold
+let col2row
+  (#et : Type)
+  (#rows #cols : erased nat)
+  (m : gpu_matrix et (Repr.col_major rows cols))
+  : gpu_matrix et (Repr.row_major cols rows) =
+  from_array (Repr.row_major cols rows) (core m)
+
+ghost
 fn ghost_transpose1
   (#et:Type)
   (#rows #cols : erased nat)
@@ -15,13 +31,10 @@ fn ghost_transpose1
   (#m : ematrix et rows cols)
   requires
     gA |-> m
-  returns
-    gA' : gpu_matrix et (Repr.col_major cols rows)
   ensures
-    pure (core gA == core gA') **
-    (gA' |-> mtranspose m)
+    row2col gA |-> mtranspose m
 
-inline_for_extraction noextract
+ghost
 fn ghost_transpose2
   (#et:Type)
   (#rows #cols : erased nat)
@@ -29,8 +42,27 @@ fn ghost_transpose2
   (#m : ematrix et rows cols)
   requires
     gA |-> m
-  returns
-    gA' : gpu_matrix et (Repr.row_major cols rows)
   ensures
-    pure (core gA == core gA') **
-    (gA' |-> mtranspose m)
+    col2row gA |-> mtranspose m
+
+ghost
+fn ghost_transpose1_back
+  (#et:Type)
+  (#rows #cols : erased nat)
+  (gA : gpu_matrix et (Repr.row_major rows cols))
+  (#m : ematrix et cols rows)
+  requires
+    row2col gA |-> m
+  ensures
+    gA |-> mtranspose m
+
+ghost
+fn ghost_transpose2_back
+  (#et:Type)
+  (#rows #cols : erased nat)
+  (gA : gpu_matrix et (Repr.col_major rows cols))
+  (#m : ematrix et cols rows)
+  requires
+    col2row gA |-> m
+  ensures
+    gA |-> mtranspose m

@@ -29,8 +29,33 @@ let to_seq_upd (#a:Type) (#len:nat) (#vt:Type)
 let varray #a #len #vt vw =
   B.gpu_array a len
 
+inline_for_extraction noextract
+let from_array
+  (#a : Type0) (#len : erased nat) (#vt : Type)
+  (vw : aview a len vt)
+  (arr : gpu_array a len)
+  : varray vw
+  = arr
+
 let core a = a
-let core_match a1 a2 = ()
+
+let lem_from_array_core
+  (#a : Type)
+  (#len : erased nat)
+  (#vt : Type) (#vw : aview a len vt)
+  (arr : varray vw)
+  : Lemma (ensures from_array vw (core arr) == arr)
+          [SMTPat (core arr)]
+  = ()
+
+let lem_core_from_array
+  (#a : Type)
+  (#len : erased nat)
+  (#vt : Type) (#vw : aview a len vt)
+  (p : gpu_array a len)
+  : Lemma (ensures core (from_array vw p) == p)
+          [SMTPat (from_array vw p)]
+  = ()
 
 let varray_pts_to
   (#et:Type) (#len : nat) (#vt:_) (#vw : aview et len vt)
@@ -76,26 +101,37 @@ fn varray_concr
   unfold varray_pts_to a v;
 }
 
-inline_for_extraction noextract
+ghost
 fn varray_abs
   (#t:Type0)
   (#len : erased nat)
   (#vt:Type0) (vw : aview t len vt)
   (a : gpu_array t len)
+  (#f : perm)
   (#v : erased vt)
   requires
-    a |-> to_seq vw v
-  returns
-    av : varray vw
+    gpu_pts_to_array a #f (to_seq vw v)
   ensures
-    pure (core av == a) **
-    (av |-> v)
+    varray_pts_to (from_array vw a) #f v
 {
-  gpu_pts_to_ref a;
-  let av : varray vw = a;
-  rewrite each a as av;
-  fold varray_pts_to #t #len #vt #vw av #1.0R v;
-  av
+  fold varray_pts_to #t #len #vt #vw a #f v;
+}
+
+ghost
+fn varray_abs'
+  (#t:Type0)
+  (#len : erased nat)
+  (#vt:Type0) (vw : aview t len vt)
+  (a : gpu_array t len)
+  (#f : perm)
+  (#v : erased (seq t){Seq.length v == len})
+  requires
+    gpu_pts_to_array a #f v
+  ensures
+    varray_pts_to (from_array vw a) #f (from_seq vw v)
+{
+  rewrite each v as to_seq vw (from_seq vw v);
+  varray_abs vw a;
 }
 
 inline_for_extraction noextract

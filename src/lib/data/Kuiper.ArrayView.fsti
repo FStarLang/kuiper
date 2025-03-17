@@ -31,7 +31,7 @@ class cview (#a : Type) (#len : erased nat) (#vt : Type) (avw : aview a len vt) 
 
   (* a concrete index type *)
   cit : Type0;
-  (* with translation to/from machine integers *)
+  (* with a concrete translation to/from machine integers *)
   cibij : cit =~ szlt len;
   (* this also implies it =~ cit *)
 }
@@ -93,10 +93,20 @@ let cidx
   (#vw : aview a len vt) (cw : cview vw)
   (cit : cw.cit)
   : c:sz{c == cw.cibij.ff cit}
-  = match cw with {cibij} -> cibij.ff cit
+  = //cw.cibij.ff cit
+  match cw with {cibij} -> cibij.ff cit
 
 inline_for_extraction noextract
 val varray (#a : Type0) (#len : nat) (#vt : Type) (vw : aview a len vt) : Type0
+
+inline_for_extraction noextract
+val from_array
+  (#a : Type0)
+  (#len : erased nat)
+  (#vt : Type)
+  (vw : aview a len vt)
+  (arr : gpu_array a len)
+  : varray vw
 
 inline_for_extraction noextract
 val core
@@ -104,16 +114,23 @@ val core
   (#len : erased nat)
   (#vt : Type) (#vw : aview a len vt)
   (g : varray vw)
-  : Kuiper.Array.gpu_array a len
+  : arr : Kuiper.Array.gpu_array a len { from_array vw arr == g }
 
-val core_match
-  (#et : Type)
+val lem_from_array_core
+  (#a : Type)
   (#len : erased nat)
-  (#vt : Type)
-  (#vw : aview et len vt)
-  (a1 a2 : varray vw)
-  : Lemma (requires core a1 == core a2)
-          (ensures  a1 == a2)
+  (#vt : Type) (#vw : aview a len vt)
+  (arr : varray vw)
+  : Lemma (ensures from_array vw (core arr) == arr)
+          [SMTPat (core arr)]
+
+val lem_core_from_array
+  (#a : Type)
+  (#len : erased nat)
+  (#vt : Type) (#vw : aview a len vt)
+  (p : gpu_array a len)
+  : Lemma (ensures core (from_array vw p) == p)
+          [SMTPat (from_array vw p)]
 
 val varray_pts_to
   (#a:Type) (#len : nat) (#vt:_) (#vw : aview a len vt)
@@ -142,17 +159,6 @@ fn varray_pts_to_ref
   ensures
     pure (SZ.fits len)
 
-inline_for_extraction noextract
-
-(* These are really ghost steps only... but
-since the varray type encodes the view as an argument,
-_abs must return a new array. This is so we do not
-expose that the varray type does not really use the layout
-argument. Exposing that may bring in some dangers wrt typeclass resolution
-picking the wrong view.
-
-But the current setting means we cannot do these shifts in ghost code...
-so maybe that's a bullet we should bite. *)
 ghost
 fn varray_concr
   (#t:Type0)
@@ -166,20 +172,31 @@ fn varray_concr
   ensures
     core a |-> to_seq vw v
 
-inline_for_extraction noextract
+ghost
 fn varray_abs
   (#t:Type0)
   (#len : erased nat)
   (#vt:Type0) (vw : aview t len vt)
   (a : gpu_array t len)
+  (#f : perm)
   (#v : erased vt)
   requires
-    a |-> to_seq vw v
-  returns
-    av : varray vw
+    gpu_pts_to_array a #f (to_seq vw v)
   ensures
-    pure (core av == a) **
-    (av |-> v)
+    varray_pts_to (from_array vw a) #f v
+
+ghost
+fn varray_abs'
+  (#t:Type0)
+  (#len : erased nat)
+  (#vt:Type0) (vw : aview t len vt)
+  (a : gpu_array t len)
+  (#f : perm)
+  (#v : erased (seq t){Seq.length v == len})
+  requires
+    gpu_pts_to_array a #f v
+  ensures
+    varray_pts_to (from_array vw a) #f (from_seq vw v)
 
 inline_for_extraction noextract
 fn varray_alloc0

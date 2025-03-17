@@ -32,8 +32,6 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   block_pre  : natlt nblk -> slprop;
   block_post : natlt nblk -> slprop;
 
-  block_frame : gpu_array shmem_type shmem_sz -> natlt nblk -> slprop;
-
   setup : (
     unit ->
     stt_ghost unit emp_inames
@@ -61,6 +59,8 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
     natlt nblk ->
     natlt nthr ->
     slprop;
+
+  block_frame : gpu_array shmem_type shmem_sz -> natlt nblk -> slprop;
 
   block_setup : (
     (ar: gpu_array shmem_type shmem_sz) ->

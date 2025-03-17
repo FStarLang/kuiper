@@ -159,25 +159,43 @@ fn write2 (a : varray (reverse_view u32 50))
   ensures  a |-> R (Seq.upd s 0 123ul)
 { varray_write a 0sz 123ul; }
 
+let seq_rev (#a:Type) (s:seq a) : seq a =
+  Seq.init (Seq.length s) (fun i -> Seq.index s (Seq.length s - 1 - i))
 
 (* awkward, we should be able to start from a random array (not "core a")
    and use abs on it. *)
-(* fixed! *)
+(* fixed! but fill in proofs... *)
 fn write3
   (p : gpu_array u32 50)
   (#s : erased (lseq u32 50))
   preserves gpu
-  requires p |-> to_seq (reverse_view u32 50) (R s)
-  ensures  p |-> Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul
+  requires p |-> s
+  ensures  p |-> Seq.upd s 49 123ul
 {
-  let a' = varray_abs (reverse_view u32 50) p;
+  varray_abs' (reverse_view u32 50) p;
+  let a' = from_array (reverse_view u32 50) p;
+  assert (pure (Seq.equal (to_seq (reverse_view u32 50) (from_seq (reverse_view u32 50) s)) s));
+  ();
+  assert from_array (reverse_view u32 50) p |-> from_seq (reverse_view u32 50) s;
+  rewrite
+    from_array (reverse_view u32 50) p |-> from_seq (reverse_view u32 50) s
+  as
+    a' |-> from_seq (reverse_view u32 50) s;
+  assume (pure (from_seq (reverse_view u32 50) s == R (seq_rev s)));
+  ();
+  rewrite
+    a' |-> from_seq (reverse_view u32 50) s
+  as
+    a' |-> R (seq_rev s);
   write2 a';
+  assert a' |-> R (Seq.upd (seq_rev s) 0 123ul);
+  assert (pure (Seq.equal (Seq.upd (seq_rev s) 0 123ul) (seq_rev (Seq.upd s 49 123ul))));
+  assert a' |-> R (seq_rev (Seq.upd s 49 123ul));
   varray_concr a';
-  rewrite each core #UInt32.t #(hide #nat 50) #(_reverse UInt32.t 50)
-          #(reverse_view UInt32.t 50) a' as p;
-
-  assert (pure (Seq.equal
-    (Seq.upd (to_seq (reverse_view u32 50) (R s)) 49 123ul)
-    (to_seq (reverse_view u32 50) (R (Seq.upd s 0 123ul)))));
+  rewrite
+    core a' |-> to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)))
+  as
+    p |-> to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)));
+  assume (pure (Seq.equal (to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)))) (Seq.upd s 49 123ul)));
   ();
 }

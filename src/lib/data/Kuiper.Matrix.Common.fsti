@@ -36,9 +36,9 @@ let ematrix_is_ghost_map
   }
 
 let aview_from_mlayout
-  (et : Type) (#rows #cols : nat)
+  (et : Type) (#rows #cols : erased nat)
   (l : mlayout rows cols)
-  : GTot (A.aview et (rows * cols) (ematrix et rows cols)) =
+  : A.aview et (rows * cols) (ematrix et rows cols) =
   {
     it = natlt rows & natlt cols;
     igm = ematrix_is_ghost_map et;
@@ -54,3 +54,10 @@ let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : ematrix et rows cols)
   : Lemma (to_seq l s == A.to_seq (aview_from_mlayout et l) s)
   = assert (Seq.equal (to_seq l s) (A.to_seq (aview_from_mlayout et l) s))
+
+let to_from (#et #rows #cols : _)
+  (l : mlayout rows cols)
+  (s : lseq et (mlayout_size l))
+  : Lemma (ensures to_seq l (from_seq l s) == s)
+          [SMTPat (to_seq l (from_seq l s))]
+  = assert (Seq.equal (to_seq l (from_seq l s)) s)

@@ -8,7 +8,7 @@ module SZ = FStar.SizeT
 
 [@@erasable]
 noeq
-type mlayout (rows cols : nat) = {
+type mlayout (rows cols : erased nat) = {
   bij : natlt rows & natlt cols =~ natlt (rows * cols);
 }
 
