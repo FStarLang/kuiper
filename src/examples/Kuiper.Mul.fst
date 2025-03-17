@@ -3,7 +3,6 @@ module Kuiper.Mul
 
 open Kuiper
 module U64 = FStar.UInt64
-module SZ = FStar.SizeT
 
 unfold let op_String_Access = Seq.index
 

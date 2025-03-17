@@ -34,9 +34,11 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 #endif
             if (!ok) {
                 fprintf(stderr, "Error at pos (%d, %d): %" PRIet " != %"
-                       PRIet "\n", i, j, m1[i * cols + j], m2[i * cols + j]);
-                fprintf(stderr, "::error::%s -- Error at pos (%d, %d): %" PRIet " != %"
-                       PRIet "\n", progname, i, j, m1[i * cols + j], m2[i * cols + j]);
+                        PRIet "\n", i, j, m1[i * cols + j], m2[i * cols + j]);
+                fprintf(stderr,
+                        "::error::%s -- Error at pos (%d, %d): %" PRIet " != %"
+                        PRIet "\n", progname, i, j, m1[i * cols + j],
+                        m2[i * cols + j]);
                 free(m1);
                 exit(1);
             }
