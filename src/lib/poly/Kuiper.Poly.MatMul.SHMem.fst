@@ -354,7 +354,7 @@ fn kf
     invariant b.
       exists* (vbk : SZ.t{vbk <= mshared}) sumv.
         pure (b == (SZ.v vbk < mshared)) **
-        pts_to bk vbk **
+        pts_to #_ #sz bk vbk **
         pts_to #_ #et sum sumv **
         m4_pts_to gA #(f /. mlayout_size lC) eA **
         m4_pts_to gB #(f /. mlayout_size lC) eB **
@@ -415,7 +415,7 @@ fn kf
       invariant b.
         exists* (vsk : SZ.t{vsk <= tile}) sumv.
           pure (b == (SZ.v vsk < tile)) **
-          pts_to sk vsk **
+          pts_to #_ #sz sk vsk **
           pts_to #_ #et sum sumv **
           m4_pts_to gA #(f /. mlayout_size lC) eA **
           m4_pts_to gB #(f /. mlayout_size lC) eB **
