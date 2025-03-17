@@ -65,10 +65,10 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
     (bid: natlt nblk) ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (i : natlt nthr). kpre bid i) **
+        (forall+ (i : natlt nthr). kpost bid i) **
         block_frame bid)
       (ensures fun _ ->
-        block_pre bid)
+        block_post bid)
   );
 
   f : (
