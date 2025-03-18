@@ -543,14 +543,14 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
         // in
         let ml_blockidx : mlexpr =
           MLE_Name ([], "blockIdx_x")
-          |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t"))
-          |> (fun x -> MLE_App (x, [ml_unit]))
+          (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
+          (* |> (fun x -> MLE_App (x, [ml_unit])) *)
           |> with_ty (MLTY_Var "FStar.SizeT.t")
         in
         let ml_threadidx : mlexpr =
           MLE_Name ([], "threadIdx_x")
-          |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t"))
-          |> (fun x -> MLE_App (x, [ml_unit]))
+          (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
+          (* |> (fun x -> MLE_App (x, [ml_unit])) *)
           |> with_ty (MLTY_Var "FStar.SizeT.t")
         in
         // let kf = apply_lam kf ml_shmem in
