@@ -24,7 +24,7 @@ int main(int argc, char **argv)
         shared = atoi(argv[3]);
         cols = atoi(argv[4]);
         check = atoi(argv[5]) != 0;
-    } if (argc == 1) {
+    } else if (argc == 1) {
         /* use defaults */
     } else {
         fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);

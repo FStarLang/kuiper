@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         cols = atoi(argv[4]);
         tile = atoi(argv[5]);
         check = atoi(argv[6]) != 0;
-    } if (argc == 1) {
+    } else if (argc == 1) {
         /* use defaults */
     } else {
         fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n", argv[0]);
