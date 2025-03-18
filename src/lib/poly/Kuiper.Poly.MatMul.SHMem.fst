@@ -38,6 +38,33 @@ type cit (tile : erased nat) = | CIdx : szlt 2  -> szlt tile  -> szlt tile  -> c
 
 // FIXME: the erased here should not be needed, this is an erasable type,
 // but again inference and re-checking is hurt badly without it.
+
+inline_for_extraction noextract
+let ff_2tile2 (tile : valid_tile) (i : ait tile) : natlt (2 * tile * tile) =
+  [@@inline_let] let AIdx i j k = i in
+  (i * SZ.v tile * SZ.v tile + j * SZ.v tile + k)
+
+inline_for_extraction noextract
+let gg_2tile2 (tile : valid_tile) (n : natlt (2 * tile * tile)) : ait tile =
+  [@@inline_let] let i, n = divmod (SZ.v tile * SZ.v tile) n in
+  [@@inline_let] let j, k = divmod (SZ.v tile) n in
+  AIdx i j k
+
+let gg_ff_2tile2
+  (tile : valid_tile)
+  (aidx : ait tile)
+  : squash (gg_2tile2 tile (ff_2tile2 tile aidx) == aidx)
+  =
+    let AIdx i j k = aidx in
+    calc (==) {
+      gg_2tile2 tile (ff_2tile2 tile (AIdx i j k));
+      == {}
+      gg_2tile2 tile (i * tile * tile + j * tile + k);
+      == {}
+      AIdx i j k;
+    };
+    ()
+
 let aview_2tile2
   (et : Type0)
   (tile : valid_tile)
@@ -46,15 +73,10 @@ let aview_2tile2
   it = ait tile; // natlt 2 & natlt tile & natlt tile;
   igm = magic ();
   ibij = {
-    ff = (fun (i : ait tile) ->
-      [@@inline_let] let AIdx i j k = i in
-      (i * SZ.v tile * SZ.v tile + j * SZ.v tile + k) <: natlt (2 * tile * tile));
-    gg = (fun (n : natlt (2 * tile * tile)) ->
-      [@@inline_let] let i, n = divmod (SZ.v tile * SZ.v tile) n in
-      [@@inline_let] let j, k = divmod (SZ.v tile) n in
-      AIdx i j k);
+    ff = ff_2tile2 tile;
+    gg = gg_2tile2 tile;
     ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> admit());
+    gg_ff = gg_ff_2tile2 tile;
   };
 }
 
