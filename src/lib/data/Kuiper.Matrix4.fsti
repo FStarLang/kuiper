@@ -352,7 +352,7 @@ fn gpu_matrix_implode
 inline_for_extraction noextract
 fn gpu_matrix_from_array
   (#et:Type0) {| sized et |}
-  (#mrows #mcols #brows #bcols : szp)
+  (#mrows #mcols #brows #bcols : SZ.t)
   (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (a : vec et)
@@ -362,6 +362,7 @@ fn gpu_matrix_from_array
     (a |-> s) **
     cpu
   requires
+    pure (mlayout_size l > 0) **
     (gm |-> em)
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
@@ -380,6 +381,7 @@ fn gpu_matrix_to_array
     (gm |-> em) **
     cpu
   requires
+    pure (mlayout_size l > 0) **
     (a |-> s)
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **

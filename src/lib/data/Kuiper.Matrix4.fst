@@ -479,7 +479,7 @@ fn gpu_matrix_implode
 inline_for_extraction noextract
 fn gpu_matrix_from_array
   (#et:Type0) {| sized et |}
-  (#mrows #mcols #brows #bcols : szp)
+  (#mrows #mcols #brows #bcols : SZ.t)
   (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
   (a : vec et)
@@ -489,6 +489,9 @@ fn gpu_matrix_from_array
     (a |-> s) **
     cpu
   requires
+    (* silly, but this shows that the multiplication below does not overflow.
+    If we had a mul_underspec, we would not need this, I think. *)
+    pure (mlayout_size l > 0) **
     (gm |-> em)
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
@@ -497,8 +500,6 @@ fn gpu_matrix_from_array
   Pulse.Lib.Vec.pts_to_len a;
   assert (pure (SZ.fits (mlayout_size l)));
   unfold gpu_matrix_pts_to gm #1.0R em;
-  assume (pure (SZ.fits ((mrows * brows))));
-  assume (pure (SZ.fits ((mcols * bcols)))); (* fixme: put somewhere. *)
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_from_array #_ #_ #sz gm a;
   from_seq_rel l s;
@@ -518,6 +519,8 @@ fn gpu_matrix_to_array
     (gm |-> em) **
     cpu
   requires
+    (* same *)
+    pure (mlayout_size l > 0) **
     (a |-> s)
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
@@ -526,8 +529,6 @@ fn gpu_matrix_to_array
   Pulse.Lib.Vec.pts_to_len a;
   open FStar.SizeT;
   unfold gpu_matrix_pts_to gm #1.0R em;
-  assume (pure (SZ.fits ((mrows * brows))));
-  assume (pure (SZ.fits ((mcols * bcols)))); (* fixme: put somewhere. *)
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_to_array #_ #_ #sz a gm;
   to_seq_rel l em;
