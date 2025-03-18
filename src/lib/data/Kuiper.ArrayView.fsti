@@ -241,6 +241,30 @@ fn varray_read_cell
     varray_pts_to_cell a #f (cit_to_it vw i) v **
     pure (v == v0)
 
+(* This variant helps to avoid having to rewrite the pts_to
+   into the proper shape at then call _write_cell, and then rewrite
+   it back. *)
+inline_for_extraction noextract
+fn varray_read_cell'
+  (#et:Type)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
+  (a : varray vw)
+  (i : cw.cit)
+  (ai : erased vw.it)
+  (#f : perm)
+  (#v0 : erased et)
+  requires
+    gpu **
+    varray_pts_to_cell a #f ai v0 **
+    pure (ai == cit_to_it vw i)
+  returns
+    v : et
+  ensures
+    gpu **
+    varray_pts_to_cell a #f ai v **
+    pure (v == v0)
+
 inline_for_extraction noextract
 fn varray_write_cell
   (#et:Type)
@@ -256,6 +280,27 @@ fn varray_write_cell
   ensures
     gpu **
     varray_pts_to_cell a (cit_to_it vw i) v1
+
+(* This variant helps to avoid having to rewrite the pts_to
+   into the proper shape at then call _write_cell, and then rewrite
+   it back. *)
+inline_for_extraction noextract
+fn varray_write_cell'
+  (#et:Type)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt) {| cw : cview vw |}
+  (a : varray vw)
+  (i : cw.cit)
+  (ai : erased vw.it)
+  (v1 : et)
+  (#v0 : erased et)
+  requires
+    gpu **
+    varray_pts_to_cell a ai v0 **
+    pure (ai == cit_to_it vw i)
+  ensures
+    gpu **
+    varray_pts_to_cell a ai v1
 
 (* Note: the functions below take a constraint for enumerable vw.it,
    even if there is an enumeration in vw.ibij. We do this since it's
