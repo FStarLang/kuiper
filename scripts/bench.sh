@@ -10,9 +10,9 @@ TILE=8
 # tiles internally, so this is not a good test.
 
 # Just one lap of the naivest-one, it takes like a minute.
-./obj/Test_Kuiper_MatMul_Naive__F32.exe 1 $DIM $DIM $DIM 0
-./obj/Test_Kuiper_MatMul_Naive2__F32.exe $LAPS $DIM $DIM $DIM 0
-./obj/Test_Kuiper_MatMul_Tiled__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
-./obj/Test_Kuiper_MatMul_SHMem__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
+./obj/Test_Kuiper_GEMM_Naive__F32.exe 1 $DIM $DIM $DIM 0
+./obj/Test_Kuiper_GEMM_Naive2__F32.exe $LAPS $DIM $DIM $DIM 0
+./obj/Test_Kuiper_GEMM_Tiled__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
+./obj/Test_Kuiper_GEMM_SHMem__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
 
 exit 0
