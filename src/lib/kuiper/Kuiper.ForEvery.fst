@@ -382,6 +382,19 @@ fn forevery_uneta
 }
 
 ghost
+fn forevery_rw_type
+  (a:Type0) {| d : enumerable a |}
+  (b:Type{a == b})
+  (f : a -> slprop)
+  requires
+    forall+ (x:a). f x
+  ensures
+    forevery b #d (fun (x:b) -> f x)
+{
+  ();
+}
+
+ghost
 fn forevery_rw_size
   (n1 : nat)
   (n2 : nat{n1 == n2})

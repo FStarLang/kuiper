@@ -342,7 +342,7 @@ ensures
     (Kuiper.Enumerable.cardinal (natlt (SZ.v lena))
             #(Kuiper.Enumerable.enumerable_natlt (SZ.v lena)))
     as lena;
-  bigstar_extract #0 0 lena (fun i -> kpost lena a va #() i) 0;
+  bigstar_extract #0 0 lena (fun i -> kpost lena a va #() (Kuiper.Enumerable.of_nat i)) 0;
   if_elim_true _;
   unfold (gpu_pts_to_slice_sum a 0 lena va);
   with pp ff. assert (if_ pp ff);
@@ -354,7 +354,7 @@ ensures
   ghost
   fn mapper (j: nat{b2t (1 <= j) /\ b2t (j < SZ.v lena)})
   requires
-      if_ (op_Equality #int j 0)
+      if_ (op_Equality #int (Kuiper.Enumerable.of_nat #(natlt lena) j) 0)
         (gpu_pts_to_slice_sum
             a
             0
@@ -364,7 +364,7 @@ ensures
           RPM.mbarrier_tok (SZ.v lena)
             (barrier_matrix (SZ.v lena) a (reveal #(seq et) va))
             it
-            j)
+            (Kuiper.Enumerable.of_nat #(natlt lena) j))
   ensures
     emp
   {

@@ -382,15 +382,22 @@ fn gpu_matrix_explode
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_explode gm;
-  (* Change the type... convince pulse. *)
-  with (ty:Type0) d ff. assert forevery ty #d ff;
-  rewrite forevery ty #d ff as forevery (natlt rows & natlt cols) #d ff;
-
-  forevery_ext #(natlt rows & natlt cols)
-    (fun i -> A.varray_pts_to_cell gm #f i ((aview_from_mlayout et l).igm.acc em i))
-    (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2));
-  forevery_unflatten #(natlt rows) #_ #(natlt cols)
-    (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
+  forevery_rw_type (aview_from_mlayout et l).it (natlt rows & natlt cols) _;
+  ghost
+  fn aux (rc : natlt rows & natlt cols)
+    requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc)
+    ensures  gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2)
+  {
+    rewrite each rc as (rc._1, rc._2);
+    fold gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2);
+  };
+  forevery_map #(natlt rows & natlt cols)
+    (fun rc -> A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
+    (fun rc -> gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2))
+    aux;
+  forevery_unflatten #(natlt rows) #_ #(natlt cols) (fun r c ->
+    gpu_matrix_pts_to_cell gm #f r c (macc em r c));
+  ()
 }
 
 ghost

@@ -127,7 +127,8 @@ fn setup
   // Sharing the output matrix (splitting each cell)
   M.gpu_matrix_explode #_ gC;
 
-  forevery_unfactor' (rows *^ cols) rows cols _;
+  forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
+    M.gpu_matrix_pts_to_cell gC r c (macc eC r c));
 
   // Join resources into a single bigstar
   forevery_zip #(natlt2 rows cols)
@@ -145,7 +146,7 @@ fn setup
       M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
     ensures
-      kpre gA gB gC eA eB 1.0R (Kuiper.Enumerable.of_nat #(natlt2 rows cols) i)
+      kpre gA gB gC eA eB 1.0R i
   {
     ()
   };
@@ -153,7 +154,7 @@ fn setup
     (fun i ->
       (M.gpu_matrix_pts_to gA #(1.0R /. (rows *^ cols)) eA **
       M.gpu_matrix_pts_to gB #(1.0R /. (rows *^ cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)))
+      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i / cols) (i % cols)))
     _
     aux1;
 }

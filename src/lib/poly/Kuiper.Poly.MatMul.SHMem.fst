@@ -620,7 +620,7 @@ let mk_kernel
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  tile gA gB gC eA eB 1.0R bid tid);
   block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 tile gA gB gC eA eB 1.0R bid tid);
-  setup      = (fun () -> setup tile gA gB gC #eA #eB #eC ());
+  setup      = setup tile gA gB gC #eA #eB #eC;
   teardown   = teardown tile gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _ar _bid -> emp);
