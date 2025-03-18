@@ -265,6 +265,8 @@ TESTS := $(filter-out $(NOTEST), $(TESTS))
 extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst))))
 # Extract everything in src/lib/inst, they are the C api for the library
 extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst))))
+# And src/lib/inst/gemm...
+extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/gemm/%.fst,obj/%.cu,$(wildcard src/lib/inst/gemm/*.fst))))
 # *Build* every executable in test/, we can do this without a GPU
 extraction-targets: $(patsubst %,obj/%.exe,$(TESTS))
 
