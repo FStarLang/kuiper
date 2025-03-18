@@ -103,7 +103,7 @@ let normal_view (et:Type) (len:nat) : aview et len (_normal et len) =
 
 noeq
 inline_for_extraction noextract
-type _reverse et len = | R of erased (lseq et len)
+type _reverse et len = | R : rv:erased (lseq et len) -> _reverse et len
 
 inline_for_extraction noextract
 let bij__reverse (et len : _) : (erased (lseq et len) =~ _reverse et len) = {
@@ -164,7 +164,7 @@ let seq_rev (#a:Type) (s:seq a) : seq a =
 
 (* awkward, we should be able to start from a random array (not "core a")
    and use abs on it. *)
-(* fixed! but fill in proofs... *)
+(* fixed! but could be nicer. *)
 fn write3
   (p : gpu_array u32 50)
   (#s : erased (lseq u32 50))
@@ -181,7 +181,8 @@ fn write3
     from_array (reverse_view u32 50) p |-> from_seq (reverse_view u32 50) s
   as
     a' |-> from_seq (reverse_view u32 50) s;
-  assume (pure (from_seq (reverse_view u32 50) s == R (seq_rev s)));
+  assert (pure (Seq.equal (R?.rv (from_seq (reverse_view u32 50) s))
+               (seq_rev s)));
   ();
   rewrite
     a' |-> from_seq (reverse_view u32 50) s
@@ -196,6 +197,6 @@ fn write3
     core a' |-> to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)))
   as
     p |-> to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)));
-  assume (pure (Seq.equal (to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)))) (Seq.upd s 49 123ul)));
+  assert (pure (Seq.equal (to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)))) (Seq.upd s 49 123ul)));
   ();
 }

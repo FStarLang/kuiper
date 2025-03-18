@@ -3,8 +3,6 @@ module Kuiper.IsReduction
 open Kuiper.Functions
 open FStar.Seq
 
-let is_permutation (#a:Type) (s1 s2 :seq a) : prop = magic()
-
 let lemma_Singl z f r =
   let pf : is_reduction z f seq![r] r = Singl r in
   Squash.return_squash pf
@@ -21,15 +19,7 @@ let rec __ac_eq_foldl
   | Split s1 s2 r1 r2 pf1 pf2 ->
     let _ = __ac_eq_foldl z f s1 r1 pf1 in
     let _ = __ac_eq_foldl z f s2 r2 pf2 in
-    (* Prove *)
-    assume (f (Kuiper.Seq.Common.seq_fold_left f z s1) (Kuiper.Seq.Common.seq_fold_left f z s2)
-             ==
-           Kuiper.Seq.Common.seq_fold_left f z s);
-    ()
-  | Perm s1 s2 r perm pf' ->
-    admit();
-    let _ = __ac_eq_foldl z f s1 r pf' in
-    ()
+    Kuiper.Seq.Common.lemma_seq_fold_left_sum z f s1 s2
 
 (* We should really make this easier in F*, it's just grabbing the proof of is_reduction and
 making it concrete to call the lemma above. *)

@@ -9,8 +9,6 @@ open Kuiper.Len
 open Kuiper.Array
 open Kuiper.Conditional
 
-val is_permutation (#a:Type) (s1 s2 : seq a) : prop
-
 noeq
 type is_reduction (#a:Type0) (z:a) (f : a -> a -> a) : (s : seq a) -> (r : a) -> Type0 =
   | Emp :
@@ -23,12 +21,13 @@ type is_reduction (#a:Type0) (z:a) (f : a -> a -> a) : (s : seq a) -> (r : a) ->
     is_reduction z f s1 r1 ->
     is_reduction z f s2 r2 ->
     is_reduction z f (s1 `Seq.append` s2) (f r1 r2)
-  | Perm :
-    s1:seq a -> s2:seq a ->
-    r:a ->
-    is_permutation s1 s2 ->
-    is_reduction z f s1 r ->
-    is_reduction z f s2 r
+  // Add at some point:
+  // | Perm :
+  //   s1:seq a -> s2:seq a ->
+  //   r:a ->
+  //   is_permutation s1 s2 ->
+  //   is_reduction z f s1 r ->
+  //   is_reduction z f s2 r
 
 val lemma_Singl (#a:Type0) (z:a) (f : a -> a -> a) (r : a)
   : Lemma (is_reduction z f seq![r] r)
