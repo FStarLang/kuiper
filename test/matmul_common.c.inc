@@ -33,7 +33,7 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 #else
             /* Check if the relative error is less than TOLERANCE */
             et diff = m1[i * cols + j] - m2[i * cols + j];
-            ok = ((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
+            ok = fabs((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
 #endif
             if (!ok) {
                 fprintf(stderr, "Error at pos (%d, %d): %" PRIet " != %"
