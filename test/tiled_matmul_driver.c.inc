@@ -71,6 +71,7 @@ int main(int argc, char **argv)
     if (check)
         TIME_void(m3_cpu = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu), NULL);
 
+#ifndef NODYNTILE
     for (int l = 0; l < laps; l++) {
         float t;
         fprintf(stderr, "Dynamic tile = %zu\n", tile);
@@ -91,6 +92,7 @@ int main(int argc, char **argv)
         if (check)
             cmp(rows, cols, m3, m3_cpu);
     }
+#endif
     for (int l = 0; l < laps; l++) {
         float t;
         fprintf(stderr, "Static tile = 32\n");
