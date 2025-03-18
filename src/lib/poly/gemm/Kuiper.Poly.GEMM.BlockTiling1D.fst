@@ -717,7 +717,7 @@ let mk_kernel
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   (_ : squash (mrows * mcols <= max_blocks
-               /\ tile * tile <= max_threads))
+               /\ tile <= max_threads))
   : kernel_desc
       ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
       ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.mmcomb comb eC eA eB))
