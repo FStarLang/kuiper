@@ -51,7 +51,7 @@ let gemm_single
   (col : nat{col < columns})
   (to : nat{to <= shared})
   : GTot et
-  = comb 
+  = comb
       (macc m0 row col)
       (matmul_single m1 m2 row col to)
 

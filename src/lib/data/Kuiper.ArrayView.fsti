@@ -8,7 +8,6 @@ open Kuiper.Bijection
 open Kuiper.GhostMap { is_ghost_map }
 open Kuiper.View
 open FStar.FunctionalExtensionality { (^->>) }
-module F = FStar.FunctionalExtensionality
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 

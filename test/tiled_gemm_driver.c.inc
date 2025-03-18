@@ -29,7 +29,7 @@ int main(int argc, char **argv)
         /* use defaults */
     } else {
         fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns>]\n",
-             argv[0]);
+                argv[0]);
         return 1;
     }
 
@@ -76,8 +76,7 @@ int main(int argc, char **argv)
         // I think the below is more accurate, but I'm reusing the
         // same formula from the sgemm.cu benchsuite
         // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-                (double)flops / t / 1e9);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n", (double)flops / t / 1e9);
     }
 
     cudaFree(m1);
