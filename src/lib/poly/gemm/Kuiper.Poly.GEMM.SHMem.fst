@@ -33,10 +33,12 @@ module AV = Kuiper.ArrayView
 
 (**************
 Here is how we to define the shared memory view, just pasting
-two row-major views together. The problem is that trying to use
-indices like Inl (i / tile, i % tile) below does not work well:
-apparenltly bidirectionality is not kicking in and
+two row-major views together. The one problem with this is that trying
+to use indices like Inl (i / tile, i % tile) below does not work well:
+apparently bidirectionality is not kicking in and
 the types are inferred to be int/SZ.t instead of the proper refinements.
+So, instead, we define mkAIdx and mkCIdx functions that return the right
+types, and use them in the code below.
 ***************)
 
 module MC = Kuiper.Matrix.Common
@@ -86,17 +88,6 @@ let mkCIdx (#tile:valid_tile) (i : szlt 2) (j : szlt tile) (k : szlt tile) : cit
   // match i with
   // | 0sz -> Inl (j, k)
   // | 1sz -> Inr (j, k)
-
-
-// let l2
-//   (#et : Type0)
-//   (tile : valid_tile)
-//   (i : natlt 2)
-//   (j : natlt tile)
-//   (k : natlt tile)
-//   : Lemma (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx i j k) == mkAIdx i j k)
-//   = ()
-
 
 (* The barrier flip-flops between an initial state
 where every threads shares all of the array, and
