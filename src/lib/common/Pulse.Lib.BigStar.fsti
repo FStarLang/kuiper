@@ -295,17 +295,6 @@ fn bigstar_paste
   requires bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
   ensures  bigstar #u1 n1 n2 f
 
-
-ghost
-fn bigstar_exists
-  (#a : Type0) // TODO: arbitrary type doesn't work here?
-  (#u1 : int)
-  (#m : nat)
-  (#n : nat {m <= n})
-  (#f: a -> (i: nat{m <= i /\ i < n} -> slprop))
-  requires bigstar #u1 m n (fun i -> exists* (x: a). f x i)
-  ensures  exists* (x: (i:nat { m <= i /\ i < n }) -> a). bigstar #u1 m n (fun i -> f (x i) i)
-
 ghost
 fn bigstar_flatten
   (#u1 #u2 : int)

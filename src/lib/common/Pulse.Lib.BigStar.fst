@@ -752,20 +752,6 @@ fn bigstar_unflatten
   admit(); (* reverse the _flatten *)
 }
 
-(* Axiom of choice. *)
-ghost
-fn bigstar_exists
-  (#a : Type0) // TODO: arbitrary type doesn't work here?
-  (#u1 : int)
-  (#m : nat)
-  (#n : nat {m <= n})
-  (#f: a -> (i: nat{m <= i /\ i < n} -> slprop))
-  requires bigstar #u1 m n (fun i -> exists* (x: a). f x i)
-  ensures  exists* (xf : (i: nat{m <= i /\ i < n} -> a)). bigstar #u1 m n (fun i -> f (xf i) i)
-{
-  admit();
-}
-
 module Set = FStar.FiniteSet.Base
 let rec bigstar_except
   (#u1: int)
