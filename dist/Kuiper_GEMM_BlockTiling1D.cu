@@ -3349,8 +3349,8 @@ __hoisted_32(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] =
-      alpha * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -3454,8 +3454,8 @@ __hoisted_33(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] =
-      alpha * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -3558,8 +3558,8 @@ __hoisted_34(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] =
-      alpha * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -3662,8 +3662,8 @@ __hoisted_35(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] =
-      alpha * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)32U + vrow) * cols + mcol * (size_t)32U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -3767,8 +3767,8 @@ __hoisted_36(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] =
-      alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -3872,8 +3872,8 @@ __hoisted_37(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] =
-      alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -3976,8 +3976,8 @@ __hoisted_38(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] =
-      alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4080,8 +4080,8 @@ __hoisted_39(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] =
-      alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4185,8 +4185,8 @@ __hoisted_40(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] =
-      alpha * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4290,8 +4290,8 @@ __hoisted_41(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] =
-      alpha * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4394,8 +4394,8 @@ __hoisted_42(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] =
-      alpha * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4498,8 +4498,8 @@ __hoisted_43(
   {
     size_t vrow = row;
     gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] =
-      alpha * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
-        beta * sums[vrow];
+      beta * gC4[(mrow * (size_t)16U + vrow) * cols + mcol * (size_t)16U + bcol] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4603,8 +4603,8 @@ __hoisted_44(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] =
-      alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4708,8 +4708,8 @@ __hoisted_45(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] =
-      alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4812,8 +4812,8 @@ __hoisted_46(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] =
-      alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }
@@ -4916,8 +4916,8 @@ __hoisted_47(
   {
     size_t vrow = row;
     gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] =
-      alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
-        beta * sums[vrow];
+      beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + vrow] +
+        alpha * sums[vrow];
     row = vrow + (size_t)1U;
   }
 }

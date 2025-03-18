@@ -4088,7 +4088,7 @@ __hoisted_48(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4175,7 +4175,7 @@ __hoisted_49(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4262,7 +4262,7 @@ __hoisted_50(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4349,7 +4349,7 @@ __hoisted_51(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4436,7 +4436,7 @@ __hoisted_52(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4523,7 +4523,7 @@ __hoisted_53(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4610,7 +4610,7 @@ __hoisted_54(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4697,7 +4697,7 @@ __hoisted_55(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4783,7 +4783,7 @@ __hoisted_56(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -4867,7 +4867,7 @@ __hoisted_57(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -4951,7 +4951,7 @@ __hoisted_58(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -5035,7 +5035,7 @@ __hoisted_59(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -5119,7 +5119,7 @@ __hoisted_60(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5203,7 +5203,7 @@ __hoisted_61(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5287,7 +5287,7 @@ __hoisted_62(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5371,7 +5371,7 @@ __hoisted_63(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5455,7 +5455,7 @@ __hoisted_64(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5539,7 +5539,7 @@ __hoisted_65(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5623,7 +5623,7 @@ __hoisted_66(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5707,7 +5707,7 @@ __hoisted_67(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5791,7 +5791,7 @@ __hoisted_68(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
@@ -5875,7 +5875,7 @@ __hoisted_69(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
@@ -5959,7 +5959,7 @@ __hoisted_70(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
@@ -6043,7 +6043,7 @@ __hoisted_71(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
