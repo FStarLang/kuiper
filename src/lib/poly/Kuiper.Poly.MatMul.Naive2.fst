@@ -90,12 +90,12 @@ fn kf
   requires
     gpu **
     kpre gA gB gC eA eB eC f bid tid **
-    thread_id (1024) tid **
+    thread_id 1024 tid **
     block_id (divup (rows * cols) 1024) bid
   ensures
     gpu **
     kpost gA gB gC eA eB f bid tid **
-    thread_id (1024) tid **
+    thread_id 1024 tid **
     block_id (divup (rows * cols) 1024) bid
 {
   (* Should remove this admit by constraining the sizes, but it's
