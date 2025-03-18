@@ -56,7 +56,7 @@ fn matmul_cpu
 
   with vc. assert gC |-> vc;
 
-  matmul_gpu gA gB gC;
+  matmul_gpu MS.comb2 gA gB gC;
 
   let c = Pulse.Lib.Vec.alloc #et zero (SZ.mul rows cols);
   M.gpu_matrix_to_array c gC;
@@ -64,6 +64,8 @@ fn matmul_cpu
   M.gpu_matrix_free gA;
   M.gpu_matrix_free gB;
   M.gpu_matrix_free gC;
+
+  MS.matmul_is_gemm vc (from_seq lA sa) (from_seq lB sb);
 
   c
 }
@@ -75,6 +77,7 @@ fn matmul_gpu_tiled
   (tiled_matmul_gpu : tiled_matmul_gpu_ty)
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : (et -> et -> et))
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -96,7 +99,7 @@ fn matmul_gpu_tiled
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
-    gC |-> MS.matmul eA eB
+    gC |-> MS.gemm comb eC eA eB
 {
   dassert (tile `SZ.gt` 0sz);
   dguard (rows   %^ tile = 0sz);
@@ -113,7 +116,9 @@ fn matmul_gpu_tiled
   let lC4 : mlayout4 mrows  mcols tile tile = lC;
   let gC4 = M4.from_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
   tiled_matmul_gpu tile
-    #et #_ #mrows #mshared #mcols
+    #et #_
+    comb
+    #mrows #mshared #mcols
     lA4 lB4 lC4
     #(M4.clayout4_from_clayout tile cA)
     #(M4.clayout4_from_clayout tile cB)
@@ -127,6 +132,7 @@ fn matmul_gpu_tiled
   rewrite each gA' as gA;
   rewrite each gB' as gB;
   rewrite each gC' as gC;
+  // MS.matmul_is_gemm eC eA eB;
   ()
 }
 
@@ -169,13 +175,13 @@ fn matmul_transpose_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
   GT.ghost_transpose1 gC;
-  matmul_gpu gA gB (GT.row2col gC);
+  matmul_gpu MS.comb2 gA gB (GT.row2col gC);
   GT.ghost_transpose1_back gC;
   ()
 }
 
 inline_for_extraction noextract
-fn specialize_to_type_and_reprs_cpu
+fn specialize_as_matmul_to_type_and_reprs_cpu
   (matmul_gpu : matmul_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
@@ -211,7 +217,7 @@ fn specialize_to_type_and_reprs_cpu
 }
 
 inline_for_extraction noextract
-fn specialize_to_type_and_reprs_gpu
+fn specialize_as_matmul_to_type_and_reprs_gpu
   (matmul_gpu : matmul_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
@@ -242,5 +248,5 @@ fn specialize_to_type_and_reprs_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
 
-  matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
+  matmul_gpu #et #_ MS.comb2 #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }

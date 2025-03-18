@@ -133,6 +133,7 @@ let barrier_q
 unfold
 let kpre1
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout4 mrows   mshared tile tile)
@@ -159,6 +160,7 @@ let kpre1
 unfold
 let kpost1
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout4 mrows   mshared tile tile)
@@ -195,6 +197,7 @@ let barrier_tok
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout4 mrows   mshared tile tile)
@@ -211,7 +214,7 @@ let kpre
   (tid : natlt (tile * tile))
   : slprop
   =
-  kpre1 tile gA gB gC eA eB f bid tid **
+  kpre1 comb tile gA gB gC eA eB f bid tid **
   (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
   barrier_tok tile ar 0 tid **
   shmem_tok ar
@@ -220,6 +223,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout4 mrows   mshared tile tile)
@@ -236,7 +240,7 @@ let kpost
   (tid : natlt (tile * tile))
   : slprop
   =
-  kpost1 tile gA gB gC eA eB f bid tid **
+  kpost1 comb tile gA gB gC eA eB f bid tid **
   (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
   barrier_tok tile ar (2 * mshared) tid
 
@@ -284,6 +288,7 @@ inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -303,12 +308,12 @@ fn kf
   ()
   requires
     gpu **
-    kpre tile gA gB gC eA eB f ear bid tid **
+    kpre comb tile gA gB gC eA eB f ear bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost tile gA gB gC eA eB f ear bid tid **
+    kpost comb tile gA gB gC eA eB f ear bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
 {
@@ -433,7 +438,9 @@ fn kf
   };
 
   let s = !sum;
-  M4.gpu_matrix_write_cell gC mrow mcol brow bcol s;
+  let v0 = M4.gpu_matrix_read_cell gC mrow mcol brow bcol;
+  let v1 = comb v0 s;
+  M4.gpu_matrix_write_cell gC mrow mcol brow bcol v1;
 
   with v'.
     rewrite
@@ -461,6 +468,7 @@ ghost
 fn setup
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -482,7 +490,7 @@ fn setup
   ensures
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
-      kpre1 tile gA gB gC eA eB 1.0R bid tid) **
+      kpre1 comb tile gA gB gC eA eB 1.0R bid tid) **
     emp (* frame *)
 {
   admit();
@@ -492,6 +500,7 @@ ghost
 fn block_setup
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -512,11 +521,11 @@ fn block_setup
     block_setup_tok (tile *^ tile) **
     (exists* v. gpu_pts_to_array ar #1.0R v) **
     (forall+ (tid : natlt2 tile  tile).
-      kpre1 tile gA gB gC eA eB 1.0R bid tid)
+      kpre1 comb tile gA gB gC eA eB 1.0R bid tid)
   ensures
     block_setup_tok (tile *^ tile) **
     (forall+ (tid : natlt2 tile  tile).
-      kpre tile gA gB gC eA eB 1.0R ar bid tid) **
+      kpre comb tile gA gB gC eA eB 1.0R ar bid tid) **
     emp (* frame *)
 {
   admit();
@@ -526,6 +535,7 @@ ghost
 fn block_teardown
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -544,12 +554,12 @@ fn block_teardown
   ()
   requires
     (forall+ (tid : natlt2 tile  tile).
-      kpost tile gA gB gC eA eB 1.0R ar bid tid) **
+      kpost comb tile gA gB gC eA eB 1.0R ar bid tid) **
     emp (* frame *)
   ensures
     (exists* v. gpu_pts_to_array ar #1.0R v) **
     (forall+ (tid : natlt2 tile  tile).
-      kpost1 tile gA gB gC eA eB 1.0R bid tid)
+      kpost1 comb tile gA gB gC eA eB 1.0R bid tid)
 {
   admit();
 }
@@ -558,6 +568,7 @@ ghost
 fn teardown
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -575,12 +586,12 @@ fn teardown
   requires
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
-      kpost1 tile gA gB gC eA eB 1.0R bid tid) **
+      kpost1 comb tile gA gB gC eA eB 1.0R bid tid) **
     emp (* frame *)
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
-    (gC |-> MS.matmul eA eB)
+    (gC |-> MS.gemm comb eC eA eB)
 {
   admit();
 }
@@ -589,6 +600,7 @@ inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -606,7 +618,7 @@ let mk_kernel
                /\ tile * tile <= max_threads))
   : kernel_desc
       ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
-      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.matmul eA eB))
+      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.gemm comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
@@ -616,25 +628,26 @@ let mk_kernel
   shmem_sz = (2sz *^ tile *^ tile);
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  tile gA gB gC eA eB 1.0R bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 tile gA gB gC eA eB 1.0R bid tid);
-  setup      = setup tile gA gB gC #eA #eB #eC;
-  teardown   = teardown tile gA gB gC #eA #eB #eC;
+  block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  comb tile gA gB gC eA eB 1.0R bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
+  setup      = setup    tile comb gA gB gC #eA #eB #eC;
+  teardown   = teardown tile comb gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup    tile gA gB gC #eA #eB #eC;
-  block_teardown = block_teardown tile gA gB gC #eA #eB #eC;
+  block_setup    = block_setup    tile comb gA gB gC #eA #eB #eC;
+  block_teardown = block_teardown tile comb gA gB gC #eA #eB #eC;
 
-  kpre      = kpre  tile gA gB gC eA eB 1.0R;
-  kpost     = kpost tile gA gB gC eA eB 1.0R;
+  kpre      = kpre  comb tile gA gB gC eA eB 1.0R;
+  kpost     = kpost comb tile gA gB gC eA eB 1.0R;
 
-  f = kf tile #et #_ #mrows #mshared #mcols gA gB gC #eA #eB #1.0R;
+  f = kf tile #et #_ comb #mrows #mshared #mcols gA gB gC #eA #eB #1.0R;
 }
 
 inline_for_extraction noextract
 fn matmul_gpu
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#mrows #mshared #mcols : szp)
   (lA : mlayout4 mrows   mshared tile tile)
   (lB : mlayout4 mshared mcols   tile tile)
@@ -657,8 +670,8 @@ fn matmul_gpu
     pure (tile * tile <= max_threads) **
     (gC |-> eC)
   ensures
-    gC |-> MS.matmul eA eB
+    gC |-> MS.gemm comb eC eA eB
 {
   dassert (tile `SZ.gt` 0sz);
-  launch_sync (mk_kernel tile gA gB gC ());
+  launch_sync (mk_kernel tile comb gA gB gC ());
 }

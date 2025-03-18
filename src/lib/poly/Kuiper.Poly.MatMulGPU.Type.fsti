@@ -3,7 +3,7 @@ module Kuiper.Poly.MatMulGPU.Type
 #lang-pulse
 
 open Kuiper
-open Kuiper.EMatrix { ematrix }
+open Kuiper.EMatrix { ematrix, matrix_comb }
 open Kuiper.EMatrix4 { ematrix4 }
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.MatMul
@@ -18,6 +18,7 @@ unfold
 inline_for_extraction
 type matmul_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
+  (comb : (et -> et -> et)) ->
   (#rows : szp) ->
   (#shared : szp) ->
   (#cols : szp) ->
@@ -41,7 +42,7 @@ type matmul_gpu_ty =
        (gC |-> eC)))
     (ensures fun _ ->
       (cpu ** (gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.matmul eA eB))
+      (gC |-> MS.gemm comb eC eA eB))
 
 (* The type of GPU-side matmuls that only work over already
 tiled matrices. *)
@@ -50,6 +51,7 @@ inline_for_extraction
 type tiled_matmul_gpu_ty =
   (tile : valid_tile) ->
   (#et : Type0) -> {| scalar et |} ->
+  (comb : (et -> et -> et)) ->
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->
@@ -73,4 +75,4 @@ type tiled_matmul_gpu_ty =
        (gC |-> eC)))
     (ensures fun _ ->
       (cpu ** (gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.matmul eA eB))
+      (gC |-> MS.gemm comb eC eA eB))

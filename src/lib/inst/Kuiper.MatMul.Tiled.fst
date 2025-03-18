@@ -3,8 +3,8 @@ module Kuiper.MatMul.Tiled
 #lang-pulse
 open Kuiper
 open Kuiper.Poly.MatMulCPU {
-  specialize_to_type_and_reprs_cpu as spec_cpu,
-  specialize_to_type_and_reprs_gpu as spec_gpu,
+  specialize_as_matmul_to_type_and_reprs_cpu as spec_cpu,
+  specialize_as_matmul_to_type_and_reprs_gpu as spec_gpu,
   matmul_gpu_tiled
 }
 open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }

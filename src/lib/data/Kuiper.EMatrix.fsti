@@ -43,6 +43,12 @@ val macc_pat (#et :Type) (#rows #cols : nat)
   : Lemma (macc m i j == m.f (i, j))
           [SMTPat (m.f (i, j))]
 
+let matrix_comb (#et:Type) (#rows #cols : nat)
+  (f : et -> et -> et)
+  (m1 m2 : ematrix et rows cols)
+  : ematrix et rows cols
+  = mkM fun i j -> f (macc m1 i j) (macc m2 i j)
+
 let mtranspose (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
   : ematrix et cols rows

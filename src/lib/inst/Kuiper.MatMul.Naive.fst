@@ -3,8 +3,8 @@ module Kuiper.MatMul.Naive
 #lang-pulse
 open Kuiper
 open Kuiper.Poly.MatMulCPU {
-  specialize_to_type_and_reprs_cpu as spec_cpu,
-  specialize_to_type_and_reprs_gpu as spec_gpu
+  specialize_as_matmul_to_type_and_reprs_cpu as spec_cpu,
+  specialize_as_matmul_to_type_and_reprs_gpu as spec_gpu
 }
 open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
 module P = Kuiper.Poly.MatMul.Naive

@@ -6,6 +6,9 @@ any weak modulo-associativity spec. *)
 open Kuiper
 open Kuiper.EMatrix
 
+inline_for_extraction noextract
+let comb2 (#et:Type) (x y : et) : et = y
+
 // computes
 // sum_{i=0}{to} m1[row][i] * m2[i][col]
 // when to=shared, it computes the (row,col) cell of m1*m2
@@ -28,6 +31,21 @@ let rec matmul_single
       (mul (macc m1 row (to - 1))
            (macc m2 (to - 1) col))
   )
+
+let gemm_single
+  (#et:Type) {| scalar et |}
+  (comb : (et -> et -> et))
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (m0 : ematrix et rows columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (to : nat{to <= shared})
+  : GTot et
+  = comb 
+      (macc m0 row col)
+      (matmul_single m1 m2 row col to)
 
 val matmul_single_lemma
   (#et:Type) {| scalar et |}
@@ -61,3 +79,22 @@ val lemma_matmul_index
   (i : nat{ i < rows })
   (j : nat{ j < columns })
 : Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j shared)
+
+let gemm
+  (#et:Type) {| scalar et |}
+  (comb : (et -> et -> et))
+  (#rows #shared #columns : nat)
+  (m0 : ematrix et rows columns)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+: ematrix et rows columns
+= matrix_comb comb m0 (matmul m1 m2)
+
+val matmul_is_gemm
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m0 : ematrix et rows columns)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  : Lemma (gemm comb2 m0 m1 m2 == matmul m1 m2)
+          [SMTPat (gemm comb2 m0 m1 m2)]

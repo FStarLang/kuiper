@@ -17,6 +17,7 @@ let in_bounds (rows cols bid tid : nat) : GTot bool =
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : nat)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -44,6 +45,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : nat)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -53,6 +55,7 @@ let kpost
   (gC : M.gpu_matrix et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
+  (eC : ematrix et rows cols)
   (f : perm)
   (bid : natlt (divup (rows * cols) 1024sz))
   (tid : natlt 1024sz)
@@ -63,13 +66,14 @@ let kpost
     M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
     M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
     M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
-      (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
+      (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
    else
      emp)
 
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : SZ.t)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -89,12 +93,12 @@ fn kf
   ()
   requires
     gpu **
-    kpre gA gB gC eA eB eC f bid tid **
+    kpre comb gA gB gC eA eB eC f bid tid **
     thread_id 1024 tid **
     block_id (divup (rows * cols) 1024) bid
   ensures
     gpu **
-    kpost gA gB gC eA eB f bid tid **
+    kpost comb gA gB gC eA eB eC f bid tid **
     thread_id 1024 tid **
     block_id (divup (rows * cols) 1024) bid
 {
@@ -120,7 +124,9 @@ fn kf
     assert (pure (tcol < cols));
 
     let s = MU.matmul_dotprod gA gB trow tcol;
-    M.gpu_matrix_write_cell gC trow tcol s;
+    let v0 = M.gpu_matrix_read_cell gC trow tcol;
+    let v1 = comb v0 s;
+    M.gpu_matrix_write_cell gC trow tcol v1;
 
     assert (pure (SZ.v trow == id / cols));
     assert (pure (SZ.v tcol == id % cols));
@@ -128,14 +134,14 @@ fn kf
       M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
       M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
       M.gpu_matrix_pts_to_cell gC trow tcol
-        (MS.matmul_single eA eB trow tcol shared)
+        (MS.gemm_single comb eA eB eC trow tcol shared)
     as
       (if (in_bounds rows cols bid tid)
        then
         M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
         M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
         M.gpu_matrix_pts_to_cell gC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
-         (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
+         (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
        else emp);
 
     ()
@@ -158,7 +164,7 @@ fn kf
          M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
          M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
          M.gpu_matrix_pts_to_cell gC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
-           (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
        else emp);
   }
 }
@@ -166,6 +172,7 @@ fn kf
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -188,17 +195,17 @@ fn setup
   ensures
     (forall+ (bid : natlt (sdivup (rows *^ cols) 1024sz))
             (tid : natlt 1024).
-      kpre gA gB gC eA eB eC 1.0R bid tid) **
+      kpre comb gA gB gC eA eB eC 1.0R bid tid) **
     emp (* frame *)
 {
-  Kuiper.Poly.MatMul.Naive.setup gA gB gC #eA #eB #eC ();
+  Kuiper.Poly.MatMul.Naive.setup comb gA gB gC #eA #eB #eC ();
 
   (* At this point we split the matrices in cells. We now factor
   that forall+ into chunks of 1024. But first, we gotta pad it with empties. *)
 
   assert (pure ((sdivup (rows *^ cols) 1024sz) * 1024 >= rows *^ cols));
   forevery_pad (rows *^ cols) (SZ.v (sdivup (rows *^ cols) 1024sz) * 1024)
-    (fun (rc : natlt (rows *^ cols)) -> Naive.kpre gA gB gC eA eB eC 1.0R rc);
+    (fun (rc : natlt (rows *^ cols)) -> Naive.kpre comb gA gB gC eA eB eC 1.0R rc);
   forevery_factor
     ((sdivup (rows *^ cols) 1024sz) * 1024)
     (sdivup (rows *^ cols) 1024sz)
@@ -215,13 +222,14 @@ fn setup
          M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
            (macc eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols))
        else emp)
-    (fun bid tid -> kpre gA gB gC eA eB eC 1.0R bid tid);
+    (fun bid tid -> kpre comb gA gB gC eA eB eC 1.0R bid tid);
   ();
 }
 
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -234,28 +242,29 @@ fn teardown
   (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   ()
   requires
     (forall+ (bid : natlt (sdivup (rows *^ cols) 1024sz))
             (tid : natlt 1024).
-      kpost gA gB gC eA eB 1.0R bid tid) **
+      kpost comb gA gB gC eA eB eC 1.0R bid tid) **
     emp (* frame *)
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
-    (gC |-> MS.matmul eA eB)
+    (gC |-> MS.gemm comb eC eA eB)
 {
   (* Idem. *)
   forevery_ext_2 #(natlt (sdivup (rows *^ cols) 1024sz)) #_ #(natlt 1024)
-    (fun bid tid -> kpost gA gB gC eA eB 1.0R bid tid)
+    (fun bid tid -> kpost comb gA gB gC eA eB eC 1.0R bid tid)
     (fun (bid : natlt (sdivup (rows *^ cols) 1024sz)) (tid : natlt 1024) ->
        if bid * 1024 + tid < rows *^ cols
        then
          M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
          M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
          M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
-           (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
        else emp);
   forevery_unfactor'
     ((sdivup (rows *^ cols) 1024sz) * 1024)
@@ -267,7 +276,7 @@ fn teardown
          M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
          M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
          M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
-           (MS.matmul_single eA eB ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
        else emp);
   forevery_ext #(natlt (sdivup (rows *^ cols) 1024sz * 1024))
     (fun i ->
@@ -276,7 +285,7 @@ fn teardown
          M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
          M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
          M.gpu_matrix_pts_to_cell gC #1.0R ((i/1024 * 1024 + i%1024) / cols) ((i/1024 * 1024 + i%1024) % cols)
-           (MS.matmul_single eA eB ((i/1024 * 1024 + i%1024) / cols) ((i/1024 * 1024 + i%1024) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((i/1024 * 1024 + i%1024) / cols) ((i/1024 * 1024 + i%1024) % cols) shared)
        else emp)
     (fun i ->
        if i < rows *^ cols
@@ -284,21 +293,22 @@ fn teardown
          M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
          M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
          M.gpu_matrix_pts_to_cell gC #1.0R (i / cols) (i % cols)
-           (MS.matmul_single eA eB (i / cols) (i % cols) shared)
+           (MS.gemm_single comb eA eB eC (i / cols) (i % cols) shared)
        else emp);
   forevery_unpad (rows *^ cols) (SZ.v (sdivup (rows *^ cols) 1024sz) * 1024)
     (fun (i : natlt (rows *^ cols)) ->
          M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
          M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB **
          M.gpu_matrix_pts_to_cell gC #1.0R (i / cols) (i % cols)
-           (MS.matmul_single eA eB (i / cols) (i % cols) shared)
+           (MS.gemm_single comb eA eB eC (i / cols) (i % cols) shared)
        );
-  Naive.teardown gA gB gC #eA #eB ();
+  Naive.teardown comb gA gB gC #eA #eB #eC ();
 }
 
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -317,7 +327,7 @@ let kdesc
     (((gA |-> eA) ** (gB |-> eB)) **
      ((gC |-> eC)))
     (((gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.matmul eA eB))
+      (gC |-> MS.gemm comb eC eA eB))
 =
 {
   nblk = sdivup (rows *^ cols) 1024sz;
@@ -325,24 +335,25 @@ let kdesc
 
   frame = emp;
 
-  block_pre  = (fun bid -> forall+ (tid : natlt 1024). kpre gA gB gC eA eB eC 1.0R bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt 1024). kpost gA gB gC eA eB 1.0R bid tid);
-  setup    = setup gA gB gC #eA #eB #eC ();
-  teardown = teardown gA gB gC #eA #eB ();
+  block_pre  = (fun bid -> forall+ (tid : natlt 1024). kpre  comb gA gB gC eA eB eC 1.0R bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt 1024). kpost comb gA gB gC eA eB eC 1.0R bid tid);
+  setup    = setup    comb gA gB gC #eA #eB #eC ();
+  teardown = teardown comb gA gB gC #eA #eB ();
 
   block_setup = (fun bid -> Kuiper.Frame.emp_intro_r ());
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
   block_frame = (fun _bid -> emp);
 
-  kpre  = kpre gA gB gC eA eB eC 1.0R;
-  kpost = kpost gA gB gC eA eB 1.0R;
+  kpre  = kpre  comb gA gB gC eA eB eC 1.0R;
+  kpost = kpost comb gA gB gC eA eB eC 1.0R;
 
-  f = kf gA gB gC #eA #eB #eC #1.0R;
+  f = kf comb gA gB gC #eA #eB #eC #1.0R;
 }
 
 inline_for_extraction noextract
 fn matmul_gpu
   (#et : Type0) {| scalar et |}
+  (comb : et -> et -> et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -364,7 +375,7 @@ fn matmul_gpu
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
-    gC |-> MS.matmul eA eB
+    gC |-> MS.gemm comb eC eA eB
 {
-  launch_sync (kdesc gA gB gC #eA #eB #eC ());
+  launch_sync (kdesc comb gA gB gC #eA #eB #eC ());
 }
