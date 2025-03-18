@@ -7,43 +7,6 @@ open Kuiper.GhostMap
 open Kuiper.EMatrix
 module A = Kuiper.ArrayView
 module T = FStar.Tactics.V2
-
-inline_for_extraction noextract
-let cview_from_clayout_ff
-  (et : Type)
-  (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
-  : szlt rows & szlt cols -> szlt (rows * cols)
-  = fun (i, j) -> c.c_to i j <: szlt (rows * cols)
-
-inline_for_extraction noextract
-let cview_from_clayout_gg
-  (et : Type)
-  (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
-  : szlt (rows * cols) -> szlt rows & szlt cols
-  = fun x -> (c.c_from1 x, c.c_from2 x)
-
-inline_for_extraction noextract
-instance cview_from_clayout
-  (et : Type)
-  (#rows #cols : erased nat)
-  (l : mlayout rows cols)
-  (c : clayout l)
-  : A.cview (aview_from_mlayout et l) =
-{
-  lenfits = ();
-  cit = szlt rows & szlt cols;
-  cibij = {
-    ff = cview_from_clayout_ff et c;
-    gg = cview_from_clayout_gg et c;
-    ff_gg = ez;
-    gg_ff = ez;
-  };
-}
-
 let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
   A.varray (aview_from_mlayout et #rows #cols l)
 

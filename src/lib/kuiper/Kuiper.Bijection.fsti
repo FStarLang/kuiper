@@ -160,3 +160,47 @@ let bij_sz_prod (n1:SZ.t) (n2:SZ.t{SZ.fits (SZ.v n1 * SZ.v n2)})
     ff_gg = ez;
     gg_ff = ez;
   }
+
+inline_for_extraction noextract
+let bij_either (#a #b #c #d : Type)
+  (ab : a =~ b) (cd : c =~ d) : (either a c =~ either b d) =
+{
+  ff = (fun x -> match x with
+    | Inl x -> Inl (ab.ff x)
+    | Inr y -> Inr (cd.ff y));
+  gg = (fun x -> match x with
+    | Inl x -> Inl (ab.gg x)
+    | Inr y -> Inr (cd.gg y));
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
+let bij_nat_sum (n1 n2 : nat)
+  : (either (natlt n1) (natlt n2) =~ natlt (n1 + n2)) =
+{
+  ff = (fun (x : either (natlt n1) (natlt n2)) ->
+    (match x with
+     | Inl i -> i
+     | Inr j -> n1 + j) <: natlt (n1 + n2));
+  gg = (fun (i : natlt (n1 + n2)) ->
+    if i < n1
+    then Inl i
+    else Inr (i - n1));
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
+let bij_sz_sum (n1 : sz) (n2 : sz{SZ.fits (SZ.v n1 + SZ.v n2)})
+  : (either (szlt n1) (szlt n2) =~ szlt (n1 + n2)) =
+{
+  ff = (fun (x : either (szlt n1) (szlt n2)) ->
+    (match x with
+     | Inl i -> i
+     | Inr j -> n1 +^ j) <: szlt (n1 + n2));
+  gg = (fun (i : szlt (n1 + n2)) ->
+    if i `SZ.lt` n1
+    then Inl i
+    else Inr (i -^ n1));
+  ff_gg = ez;
+  gg_ff = ez;
+}

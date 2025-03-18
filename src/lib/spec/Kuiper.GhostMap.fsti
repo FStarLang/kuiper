@@ -41,3 +41,11 @@ val ghost_map_upd
   : Lemma (gm.bij.ff (gm.upd m i e) == oplus (gm.bij.ff m) i e)
           [SMTPatOr [[SMTPat (gm.bij.ff (gm.upd m i e))];
                      [SMTPat (oplus (gm.bij.ff m) i e)]]]
+
+val is_ghost_map_prod
+  (#et : Type0)
+  (#ma #ia : Type0)
+  (#mb #ib : Type0)
+  (gm1 : is_ghost_map ma ia et)
+  (gm2 : is_ghost_map mb ib et)
+  : is_ghost_map (ma & mb) (either ia ib) et
