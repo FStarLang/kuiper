@@ -376,11 +376,11 @@ fn bring_2cols
         gpu
   {
     let vi = !i;
-    let v1 = M4.gpu_matrix_read gA mrow mk vi tid;
-    let v2 = M4.gpu_matrix_read gB mk mcol vi tid;
     unfold own_2_cols tile ar tid;
     forevery_extract #(natlt tile) vi _;
+    let v1 = M4.gpu_matrix_read gA mrow mk vi tid;
     AV.varray_write_cell' ar (mkCIdx 0sz vi tid) (mkAIdx 0 vi tid) v1;
+    let v2 = M4.gpu_matrix_read gB mk mcol vi tid;
     AV.varray_write_cell' ar (mkCIdx 1sz vi tid) (mkAIdx 1 vi tid) v2;
     Pulse.Lib.Trade.elim_trade _ _;
     fold own_2_cols tile ar tid;
