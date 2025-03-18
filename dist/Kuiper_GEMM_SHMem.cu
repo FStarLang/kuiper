@@ -1,6 +1,6 @@
 
 
-#include "Kuiper_MatMul_Tiled.h"
+#include "Kuiper_GEMM_SHMem.h"
 
 __global__
 
@@ -16,6 +16,7 @@ __hoisted_0(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -25,24 +26,26 @@ __hoisted_0(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    float_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    float_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Tiled_matmul_f32_rrr(
+*Kuiper_GEMM_SHMem_matmul_f32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -70,8 +73,8 @@ float_t
   KPR_KCALL(__hoisted_0,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -107,6 +110,7 @@ __hoisted_1(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -116,24 +120,26 @@ __hoisted_1(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    double_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    double_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Tiled_matmul_f64_rrr(
+*Kuiper_GEMM_SHMem_matmul_f64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -161,8 +167,8 @@ double_t
   KPR_KCALL(__hoisted_1,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -198,6 +204,7 @@ __hoisted_2(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -207,24 +214,26 @@ __hoisted_2(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint32_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    uint32_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_matmul_u32_rrr(
+*Kuiper_GEMM_SHMem_matmul_u32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -252,8 +261,8 @@ uint32_t
   KPR_KCALL(__hoisted_2,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -286,6 +295,7 @@ __hoisted_3(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -295,24 +305,26 @@ __hoisted_3(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint64_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    uint64_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_matmul_u64_rrr(
+*Kuiper_GEMM_SHMem_matmul_u64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -340,8 +352,8 @@ uint64_t
   KPR_KCALL(__hoisted_3,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -374,6 +386,7 @@ __hoisted_4(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -383,24 +396,26 @@ __hoisted_4(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    float_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    float_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Tiled_matmul_f32_ccc(
+*Kuiper_GEMM_SHMem_matmul_f32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -428,8 +443,8 @@ float_t
   KPR_KCALL(__hoisted_4,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -465,6 +480,7 @@ __hoisted_5(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -474,24 +490,26 @@ __hoisted_5(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    double_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    double_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Tiled_matmul_f64_ccc(
+*Kuiper_GEMM_SHMem_matmul_f64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -519,8 +537,8 @@ double_t
   KPR_KCALL(__hoisted_5,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -556,6 +574,7 @@ __hoisted_6(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -565,24 +584,26 @@ __hoisted_6(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint32_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    uint32_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_matmul_u32_ccc(
+*Kuiper_GEMM_SHMem_matmul_u32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -610,8 +631,8 @@ uint32_t
   KPR_KCALL(__hoisted_6,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -644,6 +665,7 @@ __hoisted_7(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -653,24 +675,26 @@ __hoisted_7(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint64_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    uint64_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_matmul_u64_ccc(
+*Kuiper_GEMM_SHMem_matmul_u64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -698,8 +722,8 @@ uint64_t
   KPR_KCALL(__hoisted_7,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -731,6 +755,7 @@ __hoisted_8(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -740,24 +765,26 @@ __hoisted_8(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    float_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    float_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Tiled_matmul_f32_tile32_rrr(
+*Kuiper_GEMM_SHMem_matmul_f32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -784,8 +811,8 @@ float_t
   KPR_KCALL(__hoisted_8,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -819,6 +846,7 @@ __hoisted_9(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -828,24 +856,26 @@ __hoisted_9(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    double_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    double_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Tiled_matmul_f64_tile32_rrr(
+*Kuiper_GEMM_SHMem_matmul_f64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -872,8 +902,8 @@ double_t
   KPR_KCALL(__hoisted_9,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -907,6 +937,7 @@ __hoisted_10(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -916,24 +947,26 @@ __hoisted_10(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint32_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    uint32_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_matmul_u32_tile32_rrr(
+*Kuiper_GEMM_SHMem_matmul_u32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -960,8 +993,8 @@ uint32_t
   KPR_KCALL(__hoisted_10,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -992,6 +1025,7 @@ __hoisted_11(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -1001,24 +1035,26 @@ __hoisted_11(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint64_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    uint64_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_matmul_u64_tile32_rrr(
+*Kuiper_GEMM_SHMem_matmul_u64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1045,8 +1081,8 @@ uint64_t
   KPR_KCALL(__hoisted_11,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -1077,6 +1113,7 @@ __hoisted_12(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -1086,24 +1123,26 @@ __hoisted_12(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    float_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    float_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Tiled_matmul_f32_tile32_ccc(
+*Kuiper_GEMM_SHMem_matmul_f32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1130,8 +1169,8 @@ float_t
   KPR_KCALL(__hoisted_12,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -1165,6 +1204,7 @@ __hoisted_13(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -1174,24 +1214,26 @@ __hoisted_13(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    double_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    double_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Tiled_matmul_f64_tile32_ccc(
+*Kuiper_GEMM_SHMem_matmul_f64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1218,8 +1260,8 @@ double_t
   KPR_KCALL(__hoisted_13,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -1253,6 +1295,7 @@ __hoisted_14(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -1262,24 +1305,26 @@ __hoisted_14(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint32_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    uint32_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_matmul_u32_tile32_ccc(
+*Kuiper_GEMM_SHMem_matmul_u32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1306,8 +1351,8 @@ uint32_t
   KPR_KCALL(__hoisted_14,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -1338,6 +1383,7 @@ __hoisted_15(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -1347,24 +1393,26 @@ __hoisted_15(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint64_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    uint64_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_matmul_u64_tile32_ccc(
+*Kuiper_GEMM_SHMem_matmul_u64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1391,8 +1439,8 @@ uint64_t
   KPR_KCALL(__hoisted_15,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -1423,6 +1471,7 @@ __hoisted_16(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1432,24 +1481,26 @@ __hoisted_16(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    float_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    float_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Tiled_matmul_f32_tile16_rrr(
+*Kuiper_GEMM_SHMem_matmul_f32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1476,8 +1527,8 @@ float_t
   KPR_KCALL(__hoisted_16,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -1511,6 +1562,7 @@ __hoisted_17(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1520,24 +1572,26 @@ __hoisted_17(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    double_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    double_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Tiled_matmul_f64_tile16_rrr(
+*Kuiper_GEMM_SHMem_matmul_f64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1564,8 +1618,8 @@ double_t
   KPR_KCALL(__hoisted_17,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -1599,6 +1653,7 @@ __hoisted_18(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1608,24 +1663,26 @@ __hoisted_18(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint32_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    uint32_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_matmul_u32_tile16_rrr(
+*Kuiper_GEMM_SHMem_matmul_u32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1652,8 +1709,8 @@ uint32_t
   KPR_KCALL(__hoisted_18,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -1684,6 +1741,7 @@ __hoisted_19(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1693,24 +1751,26 @@ __hoisted_19(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint64_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    uint64_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_matmul_u64_tile16_rrr(
+*Kuiper_GEMM_SHMem_matmul_u64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1737,8 +1797,8 @@ uint64_t
   KPR_KCALL(__hoisted_19,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -1769,6 +1829,7 @@ __hoisted_20(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1778,24 +1839,26 @@ __hoisted_20(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    float_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    float_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Tiled_matmul_f32_tile16_ccc(
+*Kuiper_GEMM_SHMem_matmul_f32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1822,8 +1885,8 @@ float_t
   KPR_KCALL(__hoisted_20,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -1857,6 +1920,7 @@ __hoisted_21(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1866,24 +1930,26 @@ __hoisted_21(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    double_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    double_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Tiled_matmul_f64_tile16_ccc(
+*Kuiper_GEMM_SHMem_matmul_f64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1910,8 +1976,8 @@ double_t
   KPR_KCALL(__hoisted_21,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -1945,6 +2011,7 @@ __hoisted_22(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -1954,24 +2021,26 @@ __hoisted_22(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint32_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    uint32_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Tiled_matmul_u32_tile16_ccc(
+*Kuiper_GEMM_SHMem_matmul_u32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -1998,8 +2067,8 @@ uint32_t
   KPR_KCALL(__hoisted_22,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -2030,6 +2099,7 @@ __hoisted_23(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -2039,24 +2109,26 @@ __hoisted_23(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint64_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    uint64_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Tiled_matmul_u64_tile16_ccc(
+*Kuiper_GEMM_SHMem_matmul_u64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2083,8 +2155,8 @@ uint64_t
   KPR_KCALL(__hoisted_23,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -2116,6 +2188,7 @@ __hoisted_24(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2125,24 +2198,26 @@ __hoisted_24(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    float_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    float_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f32_rrr(
+Kuiper_GEMM_SHMem_g_matmul_f32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2166,8 +2241,8 @@ Kuiper_MatMul_Tiled_g_matmul_f32_rrr(
   KPR_KCALL(__hoisted_24,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -2193,6 +2268,7 @@ __hoisted_25(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2202,24 +2278,26 @@ __hoisted_25(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    double_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    double_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f64_rrr(
+Kuiper_GEMM_SHMem_g_matmul_f64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2243,8 +2321,8 @@ Kuiper_MatMul_Tiled_g_matmul_f64_rrr(
   KPR_KCALL(__hoisted_25,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -2270,6 +2348,7 @@ __hoisted_26(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2279,24 +2358,26 @@ __hoisted_26(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint32_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    uint32_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u32_rrr(
+Kuiper_GEMM_SHMem_g_matmul_u32_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2320,8 +2401,8 @@ Kuiper_MatMul_Tiled_g_matmul_u32_rrr(
   KPR_KCALL(__hoisted_26,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -2347,6 +2428,7 @@ __hoisted_27(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2356,24 +2438,26 @@ __hoisted_27(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint64_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    uint64_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u64_rrr(
+Kuiper_GEMM_SHMem_g_matmul_u64_rrr(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2397,8 +2481,8 @@ Kuiper_MatMul_Tiled_g_matmul_u64_rrr(
   KPR_KCALL(__hoisted_27,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     shared,
     cols,
@@ -2424,6 +2508,7 @@ __hoisted_28(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2433,24 +2518,26 @@ __hoisted_28(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    float_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    float_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f32_ccc(
+Kuiper_GEMM_SHMem_g_matmul_f32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2474,8 +2561,8 @@ Kuiper_MatMul_Tiled_g_matmul_f32_ccc(
   KPR_KCALL(__hoisted_28,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -2501,6 +2588,7 @@ __hoisted_29(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2510,24 +2598,26 @@ __hoisted_29(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    double_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    double_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f64_ccc(
+Kuiper_GEMM_SHMem_g_matmul_f64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2551,8 +2641,8 @@ Kuiper_MatMul_Tiled_g_matmul_f64_ccc(
   KPR_KCALL(__hoisted_29,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -2578,6 +2668,7 @@ __hoisted_30(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2587,24 +2678,26 @@ __hoisted_30(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint32_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    uint32_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u32_ccc(
+Kuiper_GEMM_SHMem_g_matmul_u32_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2628,8 +2721,8 @@ Kuiper_MatMul_Tiled_g_matmul_u32_ccc(
   KPR_KCALL(__hoisted_30,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -2655,6 +2748,7 @@ __hoisted_31(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / tile;
@@ -2664,24 +2758,26 @@ __hoisted_31(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < tile)
+    uint64_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    uint64_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u64_ccc(
+Kuiper_GEMM_SHMem_g_matmul_u64_ccc(
   size_t tile,
   size_t rows,
   size_t shared,
@@ -2705,8 +2801,8 @@ Kuiper_MatMul_Tiled_g_matmul_u64_ccc(
   KPR_KCALL(__hoisted_31,
     mrows * mcols,
     tile * tile,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
     tile,
     rows,
     shared,
@@ -2731,6 +2827,7 @@ __hoisted_32(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -2740,24 +2837,26 @@ __hoisted_32(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    float_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    float_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f32_tile32_rrr(
+Kuiper_GEMM_SHMem_g_matmul_f32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2780,8 +2879,8 @@ Kuiper_MatMul_Tiled_g_matmul_f32_tile32_rrr(
   KPR_KCALL(__hoisted_32,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -2805,6 +2904,7 @@ __hoisted_33(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -2814,24 +2914,26 @@ __hoisted_33(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    double_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    double_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f64_tile32_rrr(
+Kuiper_GEMM_SHMem_g_matmul_f64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2854,8 +2956,8 @@ Kuiper_MatMul_Tiled_g_matmul_f64_tile32_rrr(
   KPR_KCALL(__hoisted_33,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -2879,6 +2981,7 @@ __hoisted_34(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -2888,24 +2991,26 @@ __hoisted_34(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint32_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    uint32_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u32_tile32_rrr(
+Kuiper_GEMM_SHMem_g_matmul_u32_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -2928,8 +3033,8 @@ Kuiper_MatMul_Tiled_g_matmul_u32_tile32_rrr(
   KPR_KCALL(__hoisted_34,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -2953,6 +3058,7 @@ __hoisted_35(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -2962,24 +3068,26 @@ __hoisted_35(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint64_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    uint64_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + vk] *
-          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u64_tile32_rrr(
+Kuiper_GEMM_SHMem_g_matmul_u64_tile32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3002,8 +3110,8 @@ Kuiper_MatMul_Tiled_g_matmul_u64_tile32_rrr(
   KPR_KCALL(__hoisted_35,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     shared,
     cols,
     mshared,
@@ -3027,6 +3135,7 @@ __hoisted_36(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -3036,24 +3145,26 @@ __hoisted_36(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    float_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    float_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f32_tile32_ccc(
+Kuiper_GEMM_SHMem_g_matmul_f32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3076,8 +3187,8 @@ Kuiper_MatMul_Tiled_g_matmul_f32_tile32_ccc(
   KPR_KCALL(__hoisted_36,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -3101,6 +3212,7 @@ __hoisted_37(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -3110,24 +3222,26 @@ __hoisted_37(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    double_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    double_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f64_tile32_ccc(
+Kuiper_GEMM_SHMem_g_matmul_f64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3150,8 +3264,8 @@ Kuiper_MatMul_Tiled_g_matmul_f64_tile32_ccc(
   KPR_KCALL(__hoisted_37,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -3175,6 +3289,7 @@ __hoisted_38(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -3184,24 +3299,26 @@ __hoisted_38(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint32_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    uint32_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u32_tile32_ccc(
+Kuiper_GEMM_SHMem_g_matmul_u32_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3224,8 +3341,8 @@ Kuiper_MatMul_Tiled_g_matmul_u32_tile32_ccc(
   KPR_KCALL(__hoisted_38,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -3249,6 +3366,7 @@ __hoisted_39(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)32U;
@@ -3258,24 +3376,26 @@ __hoisted_39(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)32U)
+    uint64_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    uint64_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + brow] *
-          gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u64_tile32_ccc(
+Kuiper_GEMM_SHMem_g_matmul_u64_tile32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3298,8 +3418,8 @@ Kuiper_MatMul_Tiled_g_matmul_u64_tile32_ccc(
   KPR_KCALL(__hoisted_39,
     mrows * mcols,
     (size_t)1024U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)2048U,
     rows,
     shared,
     mshared,
@@ -3323,6 +3443,7 @@ __hoisted_40(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3332,24 +3453,26 @@ __hoisted_40(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    float_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    float_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f32_tile16_rrr(
+Kuiper_GEMM_SHMem_g_matmul_f32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3372,8 +3495,8 @@ Kuiper_MatMul_Tiled_g_matmul_f32_tile16_rrr(
   KPR_KCALL(__hoisted_40,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -3397,6 +3520,7 @@ __hoisted_41(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3406,24 +3530,26 @@ __hoisted_41(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    double_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    double_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f64_tile16_rrr(
+Kuiper_GEMM_SHMem_g_matmul_f64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3446,8 +3572,8 @@ Kuiper_MatMul_Tiled_g_matmul_f64_tile16_rrr(
   KPR_KCALL(__hoisted_41,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -3471,6 +3597,7 @@ __hoisted_42(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3480,24 +3607,26 @@ __hoisted_42(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint32_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    uint32_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u32_tile16_rrr(
+Kuiper_GEMM_SHMem_g_matmul_u32_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3520,8 +3649,8 @@ Kuiper_MatMul_Tiled_g_matmul_u32_tile16_rrr(
   KPR_KCALL(__hoisted_42,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -3545,6 +3674,7 @@ __hoisted_43(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3554,24 +3684,26 @@ __hoisted_43(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint64_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    uint64_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + vk] *
-          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + bcol];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u64_tile16_rrr(
+Kuiper_GEMM_SHMem_g_matmul_u64_tile16_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3594,8 +3726,8 @@ Kuiper_MatMul_Tiled_g_matmul_u64_tile16_rrr(
   KPR_KCALL(__hoisted_43,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     shared,
     cols,
     mshared,
@@ -3619,6 +3751,7 @@ __hoisted_44(
   float_t *gC4
 )
 {
+  float_t *ar = (float_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3628,24 +3761,26 @@ __hoisted_44(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    float_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    float_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    float_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f32_tile16_ccc(
+Kuiper_GEMM_SHMem_g_matmul_f32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3668,8 +3803,8 @@ Kuiper_MatMul_Tiled_g_matmul_f32_tile16_ccc(
   KPR_KCALL(__hoisted_44,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -3693,6 +3828,7 @@ __hoisted_45(
   double_t *gC4
 )
 {
+  double_t *ar = (double_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3702,24 +3838,26 @@ __hoisted_45(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    double_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    double_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    double_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_f64_tile16_ccc(
+Kuiper_GEMM_SHMem_g_matmul_f64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3742,8 +3880,8 @@ Kuiper_MatMul_Tiled_g_matmul_f64_tile16_ccc(
   KPR_KCALL(__hoisted_45,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -3767,6 +3905,7 @@ __hoisted_46(
   uint32_t *gC4
 )
 {
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3776,24 +3915,26 @@ __hoisted_46(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint32_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint32_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    uint32_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u32_tile16_ccc(
+Kuiper_GEMM_SHMem_g_matmul_u32_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3816,8 +3957,8 @@ Kuiper_MatMul_Tiled_g_matmul_u32_tile16_ccc(
   KPR_KCALL(__hoisted_46,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)4U,
+    (size_t)512U,
     rows,
     shared,
     mshared,
@@ -3841,6 +3982,7 @@ __hoisted_47(
   uint64_t *gC4
 )
 {
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
   size_t mrow = blockIdx_x() / mcols;
   size_t mcol = blockIdx_x() % mcols;
   size_t brow = threadIdx_x() / (size_t)16U;
@@ -3850,24 +3992,26 @@ __hoisted_47(
   while (bk < mshared)
   {
     size_t vbk = bk;
-    uint64_t sum1 = sum;
-    size_t k = (size_t)0U;
-    while (k < (size_t)16U)
+    uint64_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    uint64_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
     {
-      size_t vk = k;
-      sum1 +=
-        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + brow] *
-          gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + vk];
-      k = vk + (size_t)1U;
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
     }
-    sum = sum1;
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] = sum;
 }
 
 void
-Kuiper_MatMul_Tiled_g_matmul_u64_tile16_ccc(
+Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -3890,8 +4034,8 @@ Kuiper_MatMul_Tiled_g_matmul_u64_tile16_ccc(
   KPR_KCALL(__hoisted_47,
     mrows * mcols,
     (size_t)256U,
-    (size_t)1U,
-    (size_t)0U,
+    (size_t)8U,
+    (size_t)512U,
     rows,
     shared,
     mshared,

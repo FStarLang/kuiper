@@ -1,31 +1,26 @@
 
 
-#include "Kuiper_MatMul_Naive2.h"
+#include "Kuiper_GEMM_Naive.h"
 
 __global__
 
-static void
-__hoisted_0(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
+static void __hoisted_0(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  float_t sum = (float_t)0.0f;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    float_t sum = (float_t)0.0f;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Naive2_matmul_f32_rrr(
+*Kuiper_GEMM_Naive_matmul_f32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -39,11 +34,10 @@ float_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_0,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -64,28 +58,23 @@ float_t
 
 __global__
 
-static void
-__hoisted_1(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
+static void __hoisted_1(size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  double_t sum = (double_t)0.0l;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    double_t sum = (double_t)0.0l;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Naive2_matmul_f64_rrr(
+*Kuiper_GEMM_Naive_matmul_f64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -99,11 +88,10 @@ double_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_1,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -124,28 +112,23 @@ double_t
 
 __global__
 
-static void
-__hoisted_2(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
+static void __hoisted_2(size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint32_t sum = 0U;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint32_t sum = 0U;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Naive2_matmul_u32_rrr(
+*Kuiper_GEMM_Naive_matmul_u32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -159,11 +142,10 @@ uint32_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_2,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -181,28 +163,23 @@ uint32_t
 
 __global__
 
-static void
-__hoisted_3(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
+static void __hoisted_3(size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint64_t sum = 0ULL;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint64_t sum = 0ULL;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Naive2_matmul_u64_rrr(
+*Kuiper_GEMM_Naive_matmul_u64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -216,11 +193,10 @@ uint64_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_3,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -241,25 +217,21 @@ __global__
 static void
 __hoisted_4(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  float_t sum = (float_t)0.0f;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    float_t sum = (float_t)0.0f;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 float_t
-*Kuiper_MatMul_Naive2_matmul_f32_ccc(
+*Kuiper_GEMM_Naive_matmul_f32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -273,8 +245,8 @@ float_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_4,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -301,25 +273,21 @@ __global__
 static void
 __hoisted_5(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  double_t sum = (double_t)0.0l;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    double_t sum = (double_t)0.0l;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 double_t
-*Kuiper_MatMul_Naive2_matmul_f64_ccc(
+*Kuiper_GEMM_Naive_matmul_f64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -333,8 +301,8 @@ double_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_5,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -361,25 +329,21 @@ __global__
 static void
 __hoisted_6(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint32_t sum = 0U;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint32_t sum = 0U;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 uint32_t
-*Kuiper_MatMul_Naive2_matmul_u32_ccc(
+*Kuiper_GEMM_Naive_matmul_u32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -393,8 +357,8 @@ uint32_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_6,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -418,25 +382,21 @@ __global__
 static void
 __hoisted_7(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint64_t sum = 0ULL;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint64_t sum = 0ULL;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 uint64_t
-*Kuiper_MatMul_Naive2_matmul_u64_ccc(
+*Kuiper_GEMM_Naive_matmul_u64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -450,8 +410,8 @@ uint64_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_7,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -472,28 +432,23 @@ uint64_t
 
 __global__
 
-static void
-__hoisted_8(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
+static void __hoisted_8(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  float_t sum = (float_t)0.0f;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    float_t sum = (float_t)0.0f;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f32_rrr(
+Kuiper_GEMM_Naive_g_matmul_f32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -503,11 +458,10 @@ Kuiper_MatMul_Naive2_g_matmul_f32_rrr(
 )
 {
   KPR_KCALL(__hoisted_8,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -518,28 +472,23 @@ Kuiper_MatMul_Naive2_g_matmul_f32_rrr(
 
 __global__
 
-static void
-__hoisted_9(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
+static void __hoisted_9(size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  double_t sum = (double_t)0.0l;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    double_t sum = (double_t)0.0l;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f64_rrr(
+Kuiper_GEMM_Naive_g_matmul_f64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -549,11 +498,10 @@ Kuiper_MatMul_Naive2_g_matmul_f64_rrr(
 )
 {
   KPR_KCALL(__hoisted_9,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -564,28 +512,23 @@ Kuiper_MatMul_Naive2_g_matmul_f64_rrr(
 
 __global__
 
-static void
-__hoisted_10(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
+static void __hoisted_10(size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint32_t sum = 0U;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint32_t sum = 0U;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u32_rrr(
+Kuiper_GEMM_Naive_g_matmul_u32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -595,11 +538,10 @@ Kuiper_MatMul_Naive2_g_matmul_u32_rrr(
 )
 {
   KPR_KCALL(__hoisted_10,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -610,28 +552,23 @@ Kuiper_MatMul_Naive2_g_matmul_u32_rrr(
 
 __global__
 
-static void
-__hoisted_11(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
+static void __hoisted_11(size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint64_t sum = 0ULL;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint64_t sum = 0ULL;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
-    }
-    gC[trow * cols + tcol] = sum;
+    size_t vk = k;
+    sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
+    k = vk + (size_t)1U;
   }
+  gC[trow * cols + tcol] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u64_rrr(
+Kuiper_GEMM_Naive_g_matmul_u64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -641,11 +578,10 @@ Kuiper_MatMul_Naive2_g_matmul_u64_rrr(
 )
 {
   KPR_KCALL(__hoisted_11,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
-    rows,
     shared,
     cols,
     gA,
@@ -659,25 +595,21 @@ __global__
 static void
 __hoisted_12(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  float_t sum = (float_t)0.0f;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    float_t sum = (float_t)0.0f;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f32_ccc(
+Kuiper_GEMM_Naive_g_matmul_f32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -687,8 +619,8 @@ Kuiper_MatMul_Naive2_g_matmul_f32_ccc(
 )
 {
   KPR_KCALL(__hoisted_12,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -705,25 +637,21 @@ __global__
 static void
 __hoisted_13(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  double_t sum = (double_t)0.0l;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    double_t sum = (double_t)0.0l;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f64_ccc(
+Kuiper_GEMM_Naive_g_matmul_f64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -733,8 +661,8 @@ Kuiper_MatMul_Naive2_g_matmul_f64_ccc(
 )
 {
   KPR_KCALL(__hoisted_13,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -751,25 +679,21 @@ __global__
 static void
 __hoisted_14(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint32_t sum = 0U;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint32_t sum = 0U;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u32_ccc(
+Kuiper_GEMM_Naive_g_matmul_u32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -779,8 +703,8 @@ Kuiper_MatMul_Naive2_g_matmul_u32_ccc(
 )
 {
   KPR_KCALL(__hoisted_14,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,
@@ -797,25 +721,21 @@ __global__
 static void
 __hoisted_15(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  size_t trow = blockIdx_x() / cols;
+  size_t tcol = blockIdx_x() % cols;
+  size_t k = (size_t)0U;
+  uint64_t sum = 0ULL;
+  while (k < shared)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
-    size_t k = (size_t)0U;
-    uint64_t sum = 0ULL;
-    while (k < shared)
-    {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
-    }
-    gC[tcol * rows + trow] = sum;
+    size_t vk = k;
+    sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
+    k = vk + (size_t)1U;
   }
+  gC[tcol * rows + trow] = sum;
 }
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u64_ccc(
+Kuiper_GEMM_Naive_g_matmul_u64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -825,8 +745,8 @@ Kuiper_MatMul_Naive2_g_matmul_u64_ccc(
 )
 {
   KPR_KCALL(__hoisted_15,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
-    (size_t)1024U,
+    rows * cols,
+    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,

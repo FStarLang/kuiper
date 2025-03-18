@@ -1,12 +1,12 @@
 
 
-#ifndef __Kuiper_MatMul_Naive2_H
-#define __Kuiper_MatMul_Naive2_H
+#ifndef __Kuiper_GEMM_Naive_H
+#define __Kuiper_GEMM_Naive_H
 
 #include <kuiper.h>
 
 float_t
-*Kuiper_MatMul_Naive2_matmul_f32_rrr(
+*Kuiper_GEMM_Naive_matmul_f32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -15,7 +15,7 @@ float_t
 );
 
 double_t
-*Kuiper_MatMul_Naive2_matmul_f64_rrr(
+*Kuiper_GEMM_Naive_matmul_f64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -24,7 +24,7 @@ double_t
 );
 
 uint32_t
-*Kuiper_MatMul_Naive2_matmul_u32_rrr(
+*Kuiper_GEMM_Naive_matmul_u32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -33,7 +33,7 @@ uint32_t
 );
 
 uint64_t
-*Kuiper_MatMul_Naive2_matmul_u64_rrr(
+*Kuiper_GEMM_Naive_matmul_u64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -42,7 +42,7 @@ uint64_t
 );
 
 float_t
-*Kuiper_MatMul_Naive2_matmul_f32_ccc(
+*Kuiper_GEMM_Naive_matmul_f32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -51,7 +51,7 @@ float_t
 );
 
 double_t
-*Kuiper_MatMul_Naive2_matmul_f64_ccc(
+*Kuiper_GEMM_Naive_matmul_f64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -60,7 +60,7 @@ double_t
 );
 
 uint32_t
-*Kuiper_MatMul_Naive2_matmul_u32_ccc(
+*Kuiper_GEMM_Naive_matmul_u32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -69,7 +69,7 @@ uint32_t
 );
 
 uint64_t
-*Kuiper_MatMul_Naive2_matmul_u64_ccc(
+*Kuiper_GEMM_Naive_matmul_u64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -78,7 +78,7 @@ uint64_t
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f32_rrr(
+Kuiper_GEMM_Naive_g_matmul_f32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -88,7 +88,7 @@ Kuiper_MatMul_Naive2_g_matmul_f32_rrr(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f64_rrr(
+Kuiper_GEMM_Naive_g_matmul_f64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -98,7 +98,7 @@ Kuiper_MatMul_Naive2_g_matmul_f64_rrr(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u32_rrr(
+Kuiper_GEMM_Naive_g_matmul_u32_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -108,7 +108,7 @@ Kuiper_MatMul_Naive2_g_matmul_u32_rrr(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u64_rrr(
+Kuiper_GEMM_Naive_g_matmul_u64_rrr(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -118,7 +118,7 @@ Kuiper_MatMul_Naive2_g_matmul_u64_rrr(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f32_ccc(
+Kuiper_GEMM_Naive_g_matmul_f32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -128,7 +128,7 @@ Kuiper_MatMul_Naive2_g_matmul_f32_ccc(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_f64_ccc(
+Kuiper_GEMM_Naive_g_matmul_f64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -138,7 +138,7 @@ Kuiper_MatMul_Naive2_g_matmul_f64_ccc(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u32_ccc(
+Kuiper_GEMM_Naive_g_matmul_u32_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -148,7 +148,7 @@ Kuiper_MatMul_Naive2_g_matmul_u32_ccc(
 );
 
 void
-Kuiper_MatMul_Naive2_g_matmul_u64_ccc(
+Kuiper_GEMM_Naive_g_matmul_u64_ccc(
   size_t rows,
   size_t shared,
   size_t cols,
@@ -158,5 +158,5 @@ Kuiper_MatMul_Naive2_g_matmul_u64_ccc(
 );
 
 
-#define __Kuiper_MatMul_Naive2_H_DEFINED
+#define __Kuiper_GEMM_Naive_H_DEFINED
 #endif
