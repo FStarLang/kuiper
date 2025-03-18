@@ -5,6 +5,7 @@ open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
 open Pulse.Lib.BigStar
+open Pulse.Lib.Trade
 
 let forevery a p =
   bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
@@ -587,4 +588,64 @@ fn forevery_unpad
     (fun i -> ());
   bigstar_emp_elim #_ #n1 #n2;
   forevery_fromnat n1 p;
+}
+
+ghost
+fn forevery_extract
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p z ** (p z @==> forall+ (x:a). p x)
+{
+  ghost
+  fn aux2 (x : a)
+    requires (if to_nat x = to_nat z then p z else emp) ** (if to_nat x <> to_nat z then p x else emp)
+    ensures  p x
+  {
+    let b = to_nat x = to_nat z;
+    if b {
+      rewrite (if to_nat x = to_nat z then p z else emp) as  p x;
+      rewrite (if to_nat x <> to_nat z then p x else emp) as emp;
+    } else {
+      rewrite (if to_nat x = to_nat z then p z else emp) as  emp;
+      rewrite (if to_nat x <> to_nat z then p x else emp) as p x;
+    }
+  };
+  ghost
+  fn aux1 (x : a)
+    requires p x
+    ensures  (if to_nat x = to_nat z then p z else emp) ** (if to_nat x <> to_nat z then p x else emp)
+  {
+    let b = to_nat x = to_nat z;
+    if b {
+      rewrite p x as (if to_nat x = to_nat z then p z else emp);
+      rewrite emp as (if to_nat x <> to_nat z then p x else emp);
+    } else {
+      rewrite emp as (if to_nat x = to_nat z then p z else emp);
+      rewrite p x as (if to_nat x <> to_nat z then p x else emp);
+    }
+  };
+  forevery_map _ _ aux1;
+  forevery_unzip #a _ _;
+  assume (pure ((forall+ (x:a). if to_nat x = to_nat z then p z else emp) == p z));
+  rewrite (forall+ (x:a). if to_nat x = to_nat z then p z else emp) as p z;
+
+  ghost
+  fn goback ()
+    requires (forall+ (x:a). if to_nat x <> to_nat z then p x else emp) ** p z
+    ensures  forall+ (x:a). p x
+  {
+    rewrite p z as (forall+ (x:a). if to_nat x = to_nat z then p x else emp);
+    forevery_zip #a (fun x -> if to_nat x = to_nat z then p x else emp)
+      (fun x -> if to_nat x <> to_nat z then p x else emp);
+    forevery_map _ _ aux2;
+  };
+
+  intro_trade
+    (p z) (forall+ (x:a). p x)
+    (forall+ (x:a). if to_nat x <> to_nat z then p x else emp)
+    goback;
 }

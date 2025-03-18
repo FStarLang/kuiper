@@ -6,6 +6,7 @@ open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
 open Pulse.Lib.BigStar
+open Pulse.Lib.Trade
 
 val forevery
   (a:Type) {| enumerable a |}
@@ -369,3 +370,13 @@ fn forevery_unpad
     forall+ (i : natlt n2). pad_f n2 p i
   ensures
     forall+ (i : natlt n1). p i
+
+ghost
+fn forevery_extract
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p z ** (p z @==> forall+ (x:a). p x)
