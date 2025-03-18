@@ -21,7 +21,7 @@ open Kuiper.Matrix4 {
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout4 mrows   mshared tile tile)
@@ -49,7 +49,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout4 mrows   mshared tile tile)
@@ -77,7 +77,7 @@ let kpost
 let block_pre
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (nblk : pos)
   (ar: gpu_array et (2sz *^ tile *^ tile))
   (bid : natlt nblk)
@@ -93,7 +93,7 @@ inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -156,7 +156,7 @@ ghost
 fn setup
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -188,7 +188,7 @@ ghost
 fn teardown
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -220,7 +220,7 @@ inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
@@ -263,7 +263,7 @@ inline_for_extraction noextract
 fn matmul_gpu
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : et -> et -> et)
+  (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (lA : mlayout4 mrows   mshared tile tile)
   (lB : mlayout4 mshared mcols   tile tile)

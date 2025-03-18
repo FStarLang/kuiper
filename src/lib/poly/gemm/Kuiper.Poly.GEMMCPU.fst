@@ -76,7 +76,7 @@ fn matmul_gpu_tiled
   (tiled_matmul_gpu : tiled_matmulcomb_gpu_ty)
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)

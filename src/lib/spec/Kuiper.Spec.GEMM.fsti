@@ -42,7 +42,7 @@ let rec matmul_single
 
 let gemm_single
   (#et:Type) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
@@ -90,7 +90,7 @@ val lemma_matmul_index
 
 let mmcomb
   (#et:Type) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #columns : nat)
   (m0 : ematrix et rows columns)
   (m1 : ematrix et rows shared)

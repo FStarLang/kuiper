@@ -13,7 +13,7 @@ open Kuiper.Matrix.Reprs.Type
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : nat)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -40,7 +40,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : nat)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -63,7 +63,7 @@ let kpost
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : SZ.t)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -107,7 +107,7 @@ fn kf
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -164,7 +164,7 @@ fn setup
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -240,7 +240,7 @@ fn teardown
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -275,7 +275,7 @@ let kdesc
 inline_for_extraction noextract
 fn matmul_gpu
   (#et : Type0) {| scalar et |}
-  (comb : (et -> et -> et))
+  (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)

@@ -49,7 +49,7 @@ unfold
 inline_for_extraction
 type matmulcomb_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
-  (comb : (et -> et -> et)) ->
+  (comb : binop et) ->
   (#rows : szp) ->
   (#shared : szp) ->
   (#cols : szp) ->
@@ -65,7 +65,7 @@ inline_for_extraction
 type tiled_matmulcomb_gpu_ty =
   (tile : valid_tile) ->
   (#et : Type0) -> {| scalar et |} ->
-  (comb : (et -> et -> et)) ->
+  (comb : binop et) ->
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->

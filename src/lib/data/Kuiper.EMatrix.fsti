@@ -44,7 +44,7 @@ val macc_pat (#et :Type) (#rows #cols : nat)
           [SMTPat (m.f (i, j))]
 
 let matrix_comb (#et:Type) (#rows #cols : nat)
-  (f : et -> et -> et)
+  (f : binop et)
   (m1 m2 : ematrix et rows cols)
   : ematrix et rows cols
   = mkM fun i j -> f (macc m1 i j) (macc m2 i j)
