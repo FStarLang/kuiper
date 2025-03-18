@@ -20,6 +20,8 @@ et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 /* m1 is GPU-side result, m2 is CPU-computed result */
 void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 {
+    fprintf(stderr, "Checking result...\n");
+    int nerrs = 0;
     int i, j;
     et *m1 = (et *) calloc(sizeof(et), rows * cols);
     cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(et), cudaMemcpyDeviceToHost);
@@ -31,7 +33,7 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 #else
             /* Check if the relative error is less than TOLERANCE */
             et diff = m1[i * cols + j] - m2[i * cols + j];
-            ok = (diff / (double)m2[i * cols + j]) <= TOLERANCE;
+            ok = ((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
 #endif
             if (!ok) {
                 fprintf(stderr, "Error at pos (%d, %d): %" PRIet " != %"
@@ -40,8 +42,11 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
                         "::error::%s -- Error at pos (%d, %d): %" PRIet " != %"
                         PRIet "\n", progname, i, j, m1[i * cols + j],
                         m2[i * cols + j]);
-                free(m1);
-                exit(1);
+                nerrs++;
+                if (nerrs >= 10) {
+                    free(m1);
+                    exit(1);
+                }
             }
         }
     }
