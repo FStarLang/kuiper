@@ -21,7 +21,8 @@ let aview_sum
   ibij = bij_either vw1.ibij vw2.ibij `bij_comp` bij_nat_sum _ _;
 }
 
-instance cview_sum
+inline_for_extraction noextract
+let cview_sum
   (#a:Type)
   (#len1:sz) (#vt1:Type)
   (#len2:sz) (#vt2:Type)

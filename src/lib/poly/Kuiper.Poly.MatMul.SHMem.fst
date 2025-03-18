@@ -32,7 +32,7 @@ module AV = Kuiper.ArrayView
 
 
 (**************
-This would be the way to define the shared memory view, just pasting
+Here is how we to define the shared memory view, just pasting
 two row-major views together. The problem is that trying to use
 indices like Inl (i / tile, i % tile) below does not work well:
 apparenltly bidirectionality is not kicking in and
@@ -41,7 +41,7 @@ the types are inferred to be int/SZ.t instead of the proper refinements.
 
 module MC = Kuiper.Matrix.Common
 module R  = Kuiper.Matrix.Reprs
-let aview_2tile2_sum
+let aview_2tile2
   (et : Type0)
   (tile : valid_tile)
   : aview et (2sz *^ tile *^ tile) (ematrix et tile tile & ematrix et tile tile)
@@ -50,10 +50,10 @@ let aview_2tile2_sum
     (MC.aview_from_mlayout et (R.row_major tile tile))
 
 inline_for_extraction noextract
-instance cview_2tile2_sum
+instance cview_2tile2
   (et : Type0)
   (tile : valid_tile)
-  : cview (aview_2tile2_sum et tile)
+  : cview (aview_2tile2 et tile)
   = Kuiper.View.Sum.cview_sum
       #_
       #(tile *^ tile) #_ #(tile *^ tile) #_
@@ -63,85 +63,30 @@ instance cview_2tile2_sum
 
 (**************)
 
-(* these types help avoid bad inference, and mismatches in the implicit arguments
-of tuple constructors. *)
-type ait (tile : erased nat) = | AIdx : natlt 2 -> natlt tile -> natlt tile -> ait tile
-inline_for_extraction noextract
-type cit (tile : erased nat) = | CIdx : szlt 2  -> szlt tile  -> szlt tile  -> cit tile
-
-// FIXME: the erased here should not be needed, this is an erasable type,
-// but again inference and re-checking is hurt badly without it.
+type ait (tile : valid_tile) = either (natlt tile & natlt tile) (natlt tile & natlt tile)
 
 inline_for_extraction noextract
-let ff_2tile2 (tile : valid_tile) (i : ait tile) : natlt (2 * tile * tile) =
-  [@@inline_let] let AIdx i j k = i in
-  (i * SZ.v tile * SZ.v tile + j * SZ.v tile + k)
+type cit (tile : valid_tile) = either (szlt tile & szlt tile) (szlt tile & szlt tile)
+
+let chk1 et (tile : valid_tile) = assert ((aview_2tile2 et tile).it == ait tile)
+let chk2 et (tile : valid_tile) = assert_norm ((cview_2tile2 et tile).cit == cit tile)
+
+let mkAIdx (#tile:valid_tile) (i : natlt 2) (j : natlt tile) (k : natlt tile) : ait tile =
+  match i with
+  | 0 -> Inl (j, k)
+  | 1 -> Inr (j, k)
 
 inline_for_extraction noextract
-let gg_2tile2 (tile : valid_tile) (n : natlt (2 * tile * tile)) : ait tile =
-  [@@inline_let] let i, n = divmod (SZ.v tile * SZ.v tile) n in
-  [@@inline_let] let j, k = divmod (SZ.v tile) n in
-  AIdx i j k
+let mkCIdx (#tile:valid_tile) (i : szlt 2) (j : szlt tile) (k : szlt tile) : cit tile =
+  (* FIXME!!!! A match with machine integers does not reduce.
+     We have to use the if-then-else form to get C code out. *)
+  if i = 0sz
+  then Inl (j, k)
+  else Inr (j, k)
+  // match i with
+  // | 0sz -> Inl (j, k)
+  // | 1sz -> Inr (j, k)
 
-let gg_ff_2tile2
-  (tile : valid_tile)
-  (aidx : ait tile)
-  : squash (gg_2tile2 tile (ff_2tile2 tile aidx) == aidx)
-  =
-    let AIdx i j k = aidx in
-    calc (==) {
-      gg_2tile2 tile (ff_2tile2 tile (AIdx i j k));
-      == {}
-      gg_2tile2 tile (i * tile * tile + j * tile + k);
-      == {}
-      AIdx i j k;
-    };
-    ()
-
-let aview_2tile2
-  (et : Type0)
-  (tile : valid_tile)
-  : aview et (2sz *^ tile *^ tile) (ematrix et tile tile & ematrix et tile tile)
-= {
-  it = ait tile; // natlt 2 & natlt tile & natlt tile;
-  igm = magic ();
-  ibij = {
-    ff = ff_2tile2 tile;
-    gg = gg_2tile2 tile;
-    ff_gg = (fun _ -> ());
-    gg_ff = gg_ff_2tile2 tile;
-  };
-}
-
-inline_for_extraction noextract
-instance cview_2tile2
-  (et : Type0)
-  (tile : valid_tile)
-  : cview (aview_2tile2 et tile)
-= {
-  lenfits = ();
-  cit = cit tile; // szlt 2 & szlt tile & szlt tile;
-  cibij = {
-    ff = (fun cidx ->
-      [@@inline_let] let CIdx i j k = cidx in
-      (i *^ tile *^ tile +^ j *^ tile +^ k) <: szlt (2sz *^ tile *^ tile));
-    gg = (fun (n : szlt (2sz *^ tile *^ tile))  ->
-      [@@inline_let] let i, n = s_divmod (tile *^ tile) n in
-      [@@inline_let] let j, k = s_divmod tile n in
-      CIdx i j k <: cit tile);
-    ff_gg = (fun _ -> ());
-    gg_ff = (fun _ -> admit());
-  }
-}
-
-let l1
-  (#et : Type0)
-  (tile : valid_tile)
-  (i : szlt 2)
-  (j : szlt tile)
-  (k : szlt tile)
-  : Lemma (AV.cit_to_it (aview_2tile2 et tile) (CIdx i j k) == AIdx i j k)
-  = ()
 
 // let l2
 //   (#et : Type0)
@@ -149,7 +94,7 @@ let l1
 //   (i : natlt 2)
 //   (j : natlt tile)
 //   (k : natlt tile)
-//   : Lemma (AV.cit_to_it (aview_2tile2 et tile) (CIdx i j k) == AIdx i j k)
+//   : Lemma (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx i j k) == mkAIdx i j k)
 //   = ()
 
 
@@ -173,8 +118,8 @@ let barrier_p
     if even it
     then (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x)
     else (
-      (exists* x. varray_pts_to_cell ar (AIdx 0 (tid / tile) (tid % tile)) x) **
-      (exists* x. varray_pts_to_cell ar (AIdx 1 (tid / tile) (tid % tile)) x)
+      (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
+      (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x)
     )
 
 let barrier_q
@@ -328,7 +273,8 @@ the shared memory array as a flat buffer, and computing compound
 indices into it. We should instead split in two, and use
 two adjacent Matrix2 views on it, which would eliminate all of this.
 
-This is now done, but this function is still very slow. I tried to remove
+This is now done, but this function is still a bit slow (it got much
+better after tweaks to the matcher). I tried to remove
 the (tid/tile) (tid%tile) mentions in the context replacing them with
 brow,bow, but that didn't work. It is somewhat faster than before.. and
 seems a bit more stable.
@@ -367,8 +313,6 @@ fn kf
     block_id (mrows * mcols) bid
 {
   gpu_pts_to_ref ear;
-  // let bid = get_bid (); rewrite each reveal bid as SZ.v bid;
-  // let tid = get_tid (); rewrite each reveal tid as SZ.v tid;
 
   let ar0 = obtain_shmem ear; rewrite each ear as ar0;
   unfold barrier_tok tile ar0 0 tid;
@@ -429,33 +373,32 @@ fn kf
          as (barrier_p tile ar (2 * vbk) tid);
     B.barrier_wait ();
     rewrite (barrier_q tile ar (2 * vbk) tid)
-         as (exists* x. varray_pts_to_cell ar (AIdx 0 (tid / tile) (tid % tile)) x) **
-            (exists* x. varray_pts_to_cell ar (AIdx 1 (tid / tile) (tid % tile)) x);
+         as (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
+            (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x);
 
     (* tedious *)
     with x.
-      rewrite varray_pts_to_cell ar (AIdx 0 (tid / tile) (tid % tile)) x
-           as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 0sz brow bcol)) x;
+      rewrite varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x
+           as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 0sz brow bcol)) x;
     with x.
-      rewrite varray_pts_to_cell ar (AIdx 1 (tid / tile) (tid % tile)) x
-           as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 1sz brow bcol)) x;
-    AV.varray_write_cell ar (CIdx 0sz brow bcol) v1;
-    AV.varray_write_cell ar (CIdx 1sz brow bcol) v2;
-    l1 #et tile 0sz brow bcol;
+      rewrite varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x
+           as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 1sz brow bcol)) x;
+    let here = 1sz;
+    AV.varray_write_cell ar (mkCIdx 0sz brow bcol) v1;
+    AV.varray_write_cell ar (mkCIdx 1sz brow bcol) v2;
     with x.
-      rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 0sz brow bcol)) x
-           as varray_pts_to_cell ar (AIdx 0 (tid / tile) (tid % tile)) x;
-    l1 #et tile 1sz brow bcol;
+      rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 0sz brow bcol)) x
+           as varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x;
     with x.
-      rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (CIdx 1sz brow bcol)) x
-           as varray_pts_to_cell ar (AIdx 1 (tid / tile) (tid % tile)) x;
+      rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 1sz brow bcol)) x
+           as varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x;
 
 
     assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
     odd_2x1 vbk;
     assert (pure (odd (2 * vbk + 1)));
-    rewrite (exists* x. varray_pts_to_cell ar (AIdx 0 (tid / tile) (tid % tile)) x) **
-            (exists* x. varray_pts_to_cell ar (AIdx 1 (tid / tile) (tid % tile)) x)
+    rewrite (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
+            (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x)
          as (barrier_p tile ar (2 * vbk + 1) tid);
     B.barrier_wait ();
     even_2x (vbk + 1);
@@ -478,8 +421,8 @@ fn kf
           gpu
     {
       let vsk = !sk;
-      let v1 = AV.varray_read ar (CIdx #tile 0sz brow vsk);
-      let v2 = AV.varray_read ar (CIdx #tile 1sz vsk bcol);
+      let v1 = AV.varray_read ar (mkCIdx #tile 0sz brow vsk);
+      let v2 = AV.varray_read ar (mkCIdx #tile 1sz vsk bcol);
 
       let v = v1 `mul` v2;
       eqplus sum v;

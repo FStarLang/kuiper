@@ -190,17 +190,26 @@ let bij_nat_sum (n1 n2 : nat)
   gg_ff = ez;
 }
 
+inline_for_extraction noextract
+let bij_sz_sum_ff (n1 : sz) (n2 : sz{SZ.fits (SZ.v n1 + SZ.v n2)})
+  : either (szlt n1) (szlt n2) -> szlt (n1 + n2)
+  = fun x -> (match x with
+    | Inl i -> i
+    | Inr j -> n1 +^ j)
+
+inline_for_extraction noextract
+let bij_sz_sum_gg (n1 : sz) (n2 : sz{SZ.fits (SZ.v n1 + SZ.v n2)})
+  : szlt (n1 + n2) -> either (szlt n1) (szlt n2)
+  = fun i -> if i `SZ.lt` n1
+    then Inl i
+    else Inr (i -^ n1)
+
+inline_for_extraction noextract
 let bij_sz_sum (n1 : sz) (n2 : sz{SZ.fits (SZ.v n1 + SZ.v n2)})
   : (either (szlt n1) (szlt n2) =~ szlt (n1 + n2)) =
 {
-  ff = (fun (x : either (szlt n1) (szlt n2)) ->
-    (match x with
-     | Inl i -> i
-     | Inr j -> n1 +^ j) <: szlt (n1 + n2));
-  gg = (fun (i : szlt (n1 + n2)) ->
-    if i `SZ.lt` n1
-    then Inl i
-    else Inr (i -^ n1));
+  ff = bij_sz_sum_ff n1 n2;
+  gg = bij_sz_sum_gg n1 n2;
   ff_gg = ez;
   gg_ff = ez;
 }
