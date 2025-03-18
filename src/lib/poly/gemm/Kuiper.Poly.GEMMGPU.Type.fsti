@@ -16,15 +16,16 @@ type valid_tile = tile:szp{tile * tile <= max_threads}
 
 unfold
 inline_for_extraction
-type matmul_gpu_ty =
-  (#et : Type0) -> {| scalar et |} ->
-  (comb : (et -> et -> et)) ->
-  (#rows : szp) ->
-  (#shared : szp) ->
-  (#cols : szp) ->
-  (#lA : mlayout rows shared) ->
-  (#lB : mlayout shared cols) ->
-  (#lC : mlayout rows cols) ->
+type matmulcomb_gpu_fixed_ty
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#rows : szp)
+  (#shared : szp)
+  (#cols : szp)
+  (lA : mlayout rows shared)
+  (lB : mlayout shared cols)
+  (lC : mlayout rows cols)
+=
   {| clayout lA |} ->
   {| clayout lB |} ->
   {| clayout lC |} ->
@@ -42,13 +43,26 @@ type matmul_gpu_ty =
        (gC |-> eC)))
     (ensures fun _ ->
       (cpu ** (gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.gemm comb eC eA eB))
+      (gC |-> MS.mmcomb comb eC eA eB))
+
+unfold
+inline_for_extraction
+type matmulcomb_gpu_ty =
+  (#et : Type0) -> {| scalar et |} ->
+  (comb : (et -> et -> et)) ->
+  (#rows : szp) ->
+  (#shared : szp) ->
+  (#cols : szp) ->
+  (#lA : mlayout rows shared) ->
+  (#lB : mlayout shared cols) ->
+  (#lC : mlayout rows cols) ->
+  matmulcomb_gpu_fixed_ty comb lA lB lC
 
 (* The type of GPU-side matmuls that only work over already
 tiled matrices. *)
 unfold
 inline_for_extraction
-type tiled_matmul_gpu_ty =
+type tiled_matmulcomb_gpu_ty =
   (tile : valid_tile) ->
   (#et : Type0) -> {| scalar et |} ->
   (comb : (et -> et -> et)) ->
@@ -75,4 +89,4 @@ type tiled_matmul_gpu_ty =
        (gC |-> eC)))
     (ensures fun _ ->
       (cpu ** (gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.gemm comb eC eA eB))
+      (gC |-> MS.mmcomb comb eC eA eB))

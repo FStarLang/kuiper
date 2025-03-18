@@ -17,7 +17,7 @@ module GT = Kuiper.Ghost.Transpose
 
 inline_for_extraction noextract
 fn matmul_cpu
-  (matmul_gpu : matmul_gpu_ty)
+  (matmul_gpu : matmulcomb_gpu_ty)
   (#et : Type0) {| scalar et |}
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
@@ -65,8 +65,6 @@ fn matmul_cpu
   M.gpu_matrix_free gB;
   M.gpu_matrix_free gC;
 
-  MS.matmul_is_gemm vc (from_seq lA sa) (from_seq lB sb);
-
   c
 }
 
@@ -74,7 +72,7 @@ fn matmul_cpu
    multiples of tile. *)
 inline_for_extraction noextract
 fn matmul_gpu_tiled
-  (tiled_matmul_gpu : tiled_matmul_gpu_ty)
+  (tiled_matmul_gpu : tiled_matmulcomb_gpu_ty)
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : (et -> et -> et))
@@ -99,7 +97,7 @@ fn matmul_gpu_tiled
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
-    gC |-> MS.gemm comb eC eA eB
+    gC |-> MS.mmcomb comb eC eA eB
 {
   dassert (tile `SZ.gt` 0sz);
   dguard (rows   %^ tile = 0sz);
@@ -132,7 +130,6 @@ fn matmul_gpu_tiled
   rewrite each gA' as gA;
   rewrite each gB' as gB;
   rewrite each gC' as gC;
-  // MS.matmul_is_gemm eC eA eB;
   ()
 }
 
@@ -147,7 +144,7 @@ Basically:
 *)
 inline_for_extraction noextract
 fn matmul_transpose_gpu
-  (matmul_gpu : matmul_gpu_ty)
+  (matmul_gpu : matmulcomb_gpu_ty)
   (#et : Type0) {| scalar et |}
   (#rows : szp)
   (#shared : szp)
@@ -181,44 +178,44 @@ fn matmul_transpose_gpu
 }
 
 inline_for_extraction noextract
-fn specialize_as_matmul_to_type_and_reprs_cpu
-  (matmul_gpu : matmul_gpu_ty)
+fn specialize_as_gemm_to_type_and_reprs_gpu
+  (matmul_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
   {| cB : crepr rB |}
   {| cC : crepr rC |}
-  (#rows #shared : szp) (* concrete args *)
-  (#cols : szp)
-  (a : vec et)
-  (b : vec et)
-  (#sa : erased (seq et){ len sa == rows * shared })
-  (#sb : erased (seq et){ len sb == shared * cols })
+  (alpha beta : et)
+  (#rows #shared #cols : szp) (* concrete args *)
+  (gA : gpu_matrix et (rA rows shared))
+  (gB : gpu_matrix et (rB shared cols))
+  (gC : gpu_matrix et (rC rows cols))
+  (#ma : ematrix et rows shared)
+  (#mb : ematrix et shared cols)
+  (#mc0 : ematrix et rows cols)
   preserves
     cpu **
-    (a |-> sa) **
-    (b |-> sb)
+    (gA |-> ma) **
+    (gB |-> mb)
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
     pure (SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks)
-  returns
-    c : vec et
+    pure (rows * cols <= max_blocks) **
+    (gC |-> mc0)
   ensures
-    (c |-> to_seq (rC rows cols) <|
-             MS.matmul (from_seq (rA rows shared) sa)
-                       (from_seq (rB shared cols) sb))
+    gC |-> MS.gemm alpha beta mc0 ma mb
 {
-  Pulse.Lib.Vec.pts_to_len a;
-  Pulse.Lib.Vec.pts_to_len b;
+  M.gpu_matrix_pts_to_ref gA;
+  M.gpu_matrix_pts_to_ref gB;
+  M.gpu_matrix_pts_to_ref gC;
 
-  matmul_cpu matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
+  matmul_gpu #et #_ (MS.lincomb alpha beta) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
 
 inline_for_extraction noextract
 fn specialize_as_matmul_to_type_and_reprs_gpu
-  (matmul_gpu : matmul_gpu_ty)
+  (matmul_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
@@ -250,3 +247,50 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
 
   matmul_gpu #et #_ MS.comb2 #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
+
+inline_for_extraction noextract
+fn cpu_wrap_matmul
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
+  (matmul_gpu : matmulcomb_gpu_ty)
+  (#rows #shared : szp) (* concrete args *)
+  (#cols : szp)
+  (a : vec et)
+  (b : vec et)
+  (#sa : erased (seq et){ len sa == rows * shared })
+  (#sb : erased (seq et){ len sb == shared * cols })
+  preserves
+    cpu **
+    (a |-> sa) **
+    (b |-> sb)
+  requires
+    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
+       is not needed for all kernels. *)
+    pure (SZ.fits (rows * cols)) **
+    pure (rows * cols <= max_blocks)
+  returns
+    c : vec et
+  ensures
+    (c |-> to_seq (rC rows cols) <|
+             MS.matmul (from_seq (rA rows shared) sa)
+                       (from_seq (rB shared cols) sb))
+{
+  Pulse.Lib.Vec.pts_to_len a;
+  Pulse.Lib.Vec.pts_to_len b;
+
+  matmul_cpu matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
+}
+
+inline_for_extraction noextract
+let specialize_as_matmul_to_type_and_reprs_cpu
+  (matmul_gpu : matmulcomb_gpu_ty)
+  (et : Type0) {| scalar et |}
+  (rA rB rC : mrepr)
+  {| cA : crepr rA |}
+  {| cB : crepr rB |}
+  {| cC : crepr rC |}
+  : fixed_repr_matmul_cpu_ty et rA rB rC #cA #cB #cC
+  = cpu_wrap_matmul et rA rB rC matmul_gpu

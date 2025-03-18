@@ -9,6 +9,14 @@ open Kuiper.EMatrix
 inline_for_extraction noextract
 let comb2 (#et:Type) (x y : et) : et = y
 
+inline_for_extraction noextract
+let lincomb
+  (#et:Type) {| scalar et |}
+  (alpha beta : et)
+  (x y : et)
+  : et
+  = add (mul alpha x) (mul beta y)
+
 // computes
 // sum_{i=0}{to} m1[row][i] * m2[i][col]
 // when to=shared, it computes the (row,col) cell of m1*m2
@@ -80,7 +88,7 @@ val lemma_matmul_index
   (j : nat{ j < columns })
 : Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j shared)
 
-let gemm
+let mmcomb
   (#et:Type) {| scalar et |}
   (comb : (et -> et -> et))
   (#rows #shared #columns : nat)
@@ -96,5 +104,15 @@ val matmul_is_gemm
   (m0 : ematrix et rows columns)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
-  : Lemma (gemm comb2 m0 m1 m2 == matmul m1 m2)
-          [SMTPat (gemm comb2 m0 m1 m2)]
+  : Lemma (mmcomb comb2 m0 m1 m2 == matmul m1 m2)
+          [SMTPat (mmcomb comb2 m0 m1 m2)]
+
+let gemm
+  (#et:Type) {| scalar et |}
+  (alpha beta : et)
+  (#rows #shared #columns : nat)
+  (m0 : ematrix et rows columns)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+: ematrix et rows columns
+= matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)

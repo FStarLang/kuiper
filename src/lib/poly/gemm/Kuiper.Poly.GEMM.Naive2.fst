@@ -253,7 +253,7 @@ fn teardown
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
-    (gC |-> MS.gemm comb eC eA eB)
+    (gC |-> MS.mmcomb comb eC eA eB)
 {
   (* Idem. *)
   forevery_ext_2 #(natlt (sdivup (rows *^ cols) 1024sz)) #_ #(natlt 1024)
@@ -327,7 +327,7 @@ let kdesc
     (((gA |-> eA) ** (gB |-> eB)) **
      ((gC |-> eC)))
     (((gA |-> eA) ** (gB |-> eB)) **
-      (gC |-> MS.gemm comb eC eA eB))
+      (gC |-> MS.mmcomb comb eC eA eB))
 =
 {
   nblk = sdivup (rows *^ cols) 1024sz;
@@ -375,7 +375,7 @@ fn matmul_gpu
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
-    gC |-> MS.gemm comb eC eA eB
+    gC |-> MS.mmcomb comb eC eA eB
 {
   launch_sync (kdesc comb gA gB gC #eA #eB #eC ());
 }

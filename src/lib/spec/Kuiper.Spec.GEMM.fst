@@ -54,6 +54,6 @@ let matmul_is_gemm
   (m0 : ematrix et rows columns)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
-  : Lemma (gemm comb2 m0 m1 m2 == matmul m1 m2)
-          [SMTPat (gemm comb2 m0 m1 m2)]
-  = ematrix_ext (gemm comb2 m0 m1 m2) (matmul m1 m2)
+  : Lemma (mmcomb comb2 m0 m1 m2 == matmul m1 m2)
+          [SMTPat (mmcomb comb2 m0 m1 m2)]
+  = ematrix_ext (mmcomb comb2 m0 m1 m2) (matmul m1 m2)

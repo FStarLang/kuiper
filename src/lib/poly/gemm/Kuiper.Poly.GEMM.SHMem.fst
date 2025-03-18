@@ -591,7 +591,7 @@ fn teardown
   ensures
     (gA |-> eA) **
     (gB |-> eB) **
-    (gC |-> MS.gemm comb eC eA eB)
+    (gC |-> MS.mmcomb comb eC eA eB)
 {
   admit();
 }
@@ -618,7 +618,7 @@ let mk_kernel
                /\ tile * tile <= max_threads))
   : kernel_desc
       ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
-      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.gemm comb eC eA eB))
+      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
@@ -670,7 +670,7 @@ fn matmul_gpu
     pure (tile * tile <= max_threads) **
     (gC |-> eC)
   ensures
-    gC |-> MS.gemm comb eC eA eB
+    gC |-> MS.mmcomb comb eC eA eB
 {
   dassert (tile `SZ.gt` 0sz);
   launch_sync (mk_kernel tile comb gA gB gC ());

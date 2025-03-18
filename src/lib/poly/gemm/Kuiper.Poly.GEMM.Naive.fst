@@ -257,7 +257,7 @@ let kdesc
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
     ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
-    ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.gemm comb eC eA eB))
+    ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = rows *^ cols;
 
@@ -297,7 +297,7 @@ fn matmul_gpu
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
-    gC |-> MS.gemm comb eC eA eB
+    gC |-> MS.mmcomb comb eC eA eB
 {
   launch_sync (kdesc comb gA gB gC ());
 }
