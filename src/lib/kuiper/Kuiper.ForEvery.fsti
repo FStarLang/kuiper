@@ -341,3 +341,31 @@ fn forevery_map_2
     forall+ (x:a) (y:b). p1 x y
   ensures
     forall+ (x:a) (y:b). p2 x y
+
+unfold
+let pad_f (#n1 : nat) (n2 : nat{n1 <= n2})
+  (f : natlt n1 -> slprop)
+  : natlt n2 -> slprop =
+  fun i ->
+    if i < n1 then f i else emp
+
+ghost
+fn forevery_pad
+  (n1 : nat)
+  (n2 : nat{n1 <= n2})
+  (p : natlt n1 -> slprop)
+  requires
+    forall+ (i : natlt n1). p i
+  ensures
+    forall+ (i : natlt n2). pad_f n2 p i
+
+
+ghost
+fn forevery_unpad
+  (n1 : nat)
+  (n2 : nat{n1 <= n2})
+  (p : natlt n1 -> slprop)
+  requires
+    forall+ (i : natlt n2). pad_f n2 p i
+  ensures
+    forall+ (i : natlt n1). p i

@@ -536,3 +536,55 @@ fn forevery_map_2
                           (fun y -> p2 x y)
                           (f x));
 }
+
+ghost
+fn forevery_pad
+  (n1 : nat)
+  (n2 : nat{n1 <= n2})
+  (p : natlt n1 -> slprop)
+  requires
+    forall+ (i : natlt n1). p i
+  ensures
+    forall+ (i : natlt n2). pad_f n2 p i
+{
+  forevery_tonat n1 _;
+  bigstar_emp_intro n1 n2;
+  bigstar_extensionality
+    0 n1
+    (fun i -> p i)
+    (fun i -> if i < n1 then p i else emp)
+    (fun i -> ());
+  bigstar_extensionality
+    n1 n2
+    (fun i -> emp)
+    (fun i -> if i < n1 then p i else emp)
+    (fun i -> ());
+  bigstar_paste #_ #0 #n2 n1 #(fun i -> if i < n1 then p i else emp);
+  forevery_fromnat n2 (fun i -> pad_f n2 p i);
+}
+
+ghost
+fn forevery_unpad
+  (n1 : nat)
+  (n2 : nat{n1 <= n2})
+  (p : natlt n1 -> slprop)
+  requires
+    forall+ (i : natlt n2). pad_f n2 p i
+  ensures
+    forall+ (i : natlt n1). p i
+{
+  forevery_tonat n2 (pad_f n2 p);
+  bigstar_cut #_ #0 #n2 n1 #(fun i -> if i < n1 then p i else emp);
+  bigstar_extensionality
+    0 n1
+    (fun i -> if i < n1 then p i else emp)
+    (fun i -> p i)
+    (fun i -> ());
+  bigstar_extensionality
+    n1 n2
+    (fun i -> if i < n1 then p i else emp)
+    (fun i -> emp)
+    (fun i -> ());
+  bigstar_emp_elim #_ #n1 #n2;
+  forevery_fromnat n1 p;
+}

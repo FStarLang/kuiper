@@ -276,6 +276,27 @@ fn bigstar_permute
   ensures  bigstar #u1 m n (fun i -> f (p.f i))
 
 ghost
+fn bigstar_cut
+  (#u1 : int)
+  (#n1 : nat)
+  (#n2 : nat{n1 <= n2})
+  (n3 : nat{n1 <= n3 /\ n3 <= n2})
+  (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
+  requires bigstar #u1 n1 n2 f
+  ensures  bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
+
+ghost
+fn bigstar_paste
+  (#u1 : int)
+  (#n1 : nat)
+  (#n2 : nat{n1 <= n2})
+  (n3 : nat{n1 <= n3 /\ n3 <= n2})
+  (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
+  requires bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
+  ensures  bigstar #u1 n1 n2 f
+
+
+ghost
 fn bigstar_exists
   (#a : Type0) // TODO: arbitrary type doesn't work here?
   (#u1 : int)
