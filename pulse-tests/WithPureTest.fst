@@ -13,5 +13,6 @@ fn intro_with_pure
 {
   assert (v ());
   assert (exists* s. v s);
-  admit();
+  with s. assert v s;
+  drop_ (v s);
 }
