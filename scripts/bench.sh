@@ -16,4 +16,7 @@ TILE=8
 ./obj/Test_Kuiper_GEMM_SHMem__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
 ./obj/Test_Kuiper_GEMM_SHMem__F32_GEMM.exe $LAPS $DIM $DIM $DIM
 
+./obj/Test_Kuiper_GEMM_BlockTiling1D__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
+./obj/Test_Kuiper_GEMM_BlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM
+
 exit 0
