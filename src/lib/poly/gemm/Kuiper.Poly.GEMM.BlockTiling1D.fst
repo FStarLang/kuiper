@@ -147,6 +147,7 @@ let kpre1
   (tid : natlt tile)
   : slprop
   =
+  (* mlayout_size lC: wrong, should be (mrows*mcols)*tile *)
   m4_pts_to gA #(f /. mlayout_size lC) eA **
   m4_pts_to gB #(f /. mlayout_size lC) eB **
   (* each thread owns a column *)
@@ -695,6 +696,13 @@ fn teardown
     (gB |-> eB) **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
+  forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
+    (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
+  forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
+  forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
+  forevery_tostar #(natlt2 mrows mcols & natlt tile) (fun _tid -> m4_pts_to gA #(1.0R /. mlayout_size lC) eA);
+
+    // (fun (bid, tid) -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
   admit();
 }
 
