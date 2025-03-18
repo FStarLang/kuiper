@@ -263,18 +263,47 @@ fn incr
   eqplus r one;
 }
 
-(* TODO: This function is REALLY slow to check since we are using
-the shared memory array as a flat buffer, and computing compound
-indices into it. We should instead split in two, and use
-two adjacent Matrix2 views on it, which would eliminate all of this.
+inline_for_extraction noextract
+fn subproduct
+  (#et : Type0) {| scalar et |}
+  (tile : valid_tile)
+  (acc : ref et)
+  (ar : varray (aview_2tile2 et tile))
+  (i j : szlt tile)
+  (#acc0 : erased et)
+  (#ar0 : erased _)
+  (#f : perm)
+  preserves
+    gpu **
+    AV.varray_pts_to ar #f ar0
+  requires
+    acc |-> acc0
+  ensures
+    exists* acc'.
+      acc |-> acc'
+{
+  let mut sk : sz = 0sz;
+  while (let vsk = !sk; SZ.(vsk <^ tile))
+    invariant b.
+      exists* (vsk : SZ.t{vsk <= tile}) accv.
+        pure (b == (SZ.v vsk < tile)) **
+        pts_to #_ #sz sk vsk **
+        pts_to #_ #et acc accv **
+        AV.varray_pts_to ar #f ar0 **
+        gpu
+  {
+    let vsk = !sk;
+    let v1 = AV.varray_read ar (mkCIdx #tile 0sz i vsk);
+    let v2 = AV.varray_read ar (mkCIdx #tile 1sz vsk j);
 
-This is now done, but this function is still a bit slow (it got much
-better after tweaks to the matcher). I tried to remove
-the (tid/tile) (tid%tile) mentions in the context replacing them with
-brow,bow, but that didn't work. It is somewhat faster than before.. and
-seems a bit more stable.
+    let v = v1 `mul` v2;
+    eqplus acc v;
+    sk := vsk +^ 1sz;
+  };
+}
 
-The even/odd reasoning is also annoying, it stumps Z3. *)
+(* TODO: Find out where the time is going when checking this function,
+it feels a lot slower than the others. *)
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -389,27 +418,13 @@ fn kf
     rewrite (barrier_q tile ar (2 * vbk + 1) tid)
          as (exists* x. AV.varray_pts_to ar #(1.0R /. (tile *^ tile)) x);
 
-    let mut sk : sz = 0sz;
-    while (let vsk = !sk; SZ.(vsk <^ tile))
-      invariant b.
-        exists* (vsk : SZ.t{vsk <= tile}) sumv.
-          pure (b == (SZ.v vsk < tile)) **
-          pts_to #_ #sz sk vsk **
-          pts_to #_ #et sum sumv **
-          m4_pts_to gA #(f /. mlayout_size lC) eA **
-          m4_pts_to gB #(f /. mlayout_size lC) eB **
-          (exists* x. AV.varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
-          gpu
-    {
-      let vsk = !sk;
-      let v1 = AV.varray_read ar (mkCIdx #tile 0sz brow vsk);
-      let v2 = AV.varray_read ar (mkCIdx #tile 1sz vsk bcol);
+    (* At this point the SHMem cache is filled with the submatrices
+       and we have RO permission to it. Compute product for our cell in
+       the tile and add to sum. *)
 
-      let v = v1 `mul` v2;
-      eqplus sum v;
-      sk := vsk +^ 1sz;
-    };
+    subproduct tile sum ar brow bcol;
 
+    (* Move to next tile *)
     bk := vbk +^ 1sz;
   };
 
