@@ -65,7 +65,7 @@ lint: lint-c lint-fstar
 
 .PHONY: list-admits
 list-admits:
-	-git grep -w 'assume_\|assume\|admit' src
+	-git grep -w 'assume_\|assume\|admit\|magic' src
 
 .PHONY: wc
 wc:
