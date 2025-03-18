@@ -11,14 +11,10 @@ static void __hoisted_0(size_t lena, half_t *a)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        half_t s1 = a[threadIdx_x()];
-        half_t s = __hadd(s1, a[nextid]);
-        a[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a[threadIdx.x] = __hadd(a[threadIdx_x], a[nextid]);
     n = it + (size_t)1U;
   }
 }
@@ -38,14 +34,10 @@ static void __hoisted_1(size_t lena, float_t *a)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        float_t s1 = a[threadIdx_x()];
-        float_t s = s1 + a[nextid];
-        a[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a[threadIdx.x] += a[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -65,14 +57,10 @@ static void __hoisted_2(size_t lena, double_t *a)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        double_t s1 = a[threadIdx_x()];
-        double_t s = s1 + a[nextid];
-        a[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a[threadIdx.x] += a[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -92,14 +80,10 @@ static void __hoisted_3(size_t lena, uint32_t *a)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        uint32_t s1 = a[threadIdx_x()];
-        uint32_t s = s1 + a[nextid];
-        a[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a[threadIdx.x] += a[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -119,14 +103,10 @@ static void __hoisted_4(size_t lena, uint64_t *a)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        uint64_t s1 = a[threadIdx_x()];
-        uint64_t s = s1 + a[nextid];
-        a[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a[threadIdx.x] += a[nextid];
     n = it + (size_t)1U;
   }
 }

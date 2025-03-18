@@ -7,11 +7,10 @@ __global__
 static void
 __hoisted_0(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     while (k < shared)
@@ -67,11 +66,10 @@ __global__
 static void
 __hoisted_1(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     while (k < shared)
@@ -127,11 +125,10 @@ __global__
 static void
 __hoisted_2(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     while (k < shared)
@@ -184,11 +181,10 @@ __global__
 static void
 __hoisted_3(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     while (k < shared)
@@ -241,11 +237,10 @@ __global__
 static void
 __hoisted_4(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     while (k < shared)
@@ -301,11 +296,10 @@ __global__
 static void
 __hoisted_5(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     while (k < shared)
@@ -361,11 +355,10 @@ __global__
 static void
 __hoisted_6(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     while (k < shared)
@@ -418,11 +411,10 @@ __global__
 static void
 __hoisted_7(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     while (k < shared)
@@ -475,11 +467,10 @@ __global__
 static void
 __hoisted_8(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     while (k < shared)
@@ -521,11 +512,10 @@ __global__
 static void
 __hoisted_9(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     while (k < shared)
@@ -567,11 +557,10 @@ __global__
 static void
 __hoisted_10(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     while (k < shared)
@@ -613,11 +602,10 @@ __global__
 static void
 __hoisted_11(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     while (k < shared)
@@ -659,11 +647,10 @@ __global__
 static void
 __hoisted_12(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     while (k < shared)
@@ -705,11 +692,10 @@ __global__
 static void
 __hoisted_13(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB, double_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     while (k < shared)
@@ -751,11 +737,10 @@ __global__
 static void
 __hoisted_14(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     while (k < shared)
@@ -797,11 +782,10 @@ __global__
 static void
 __hoisted_15(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-  size_t id = blockIdx_x() * (size_t)1024U + threadIdx_x();
-  if (id < rows * cols)
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < rows * cols)
   {
-    size_t trow = id / cols;
-    size_t tcol = id % cols;
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / cols;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     while (k < shared)

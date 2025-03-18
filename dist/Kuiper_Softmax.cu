@@ -6,8 +6,7 @@ __global__
 
 static void __hoisted_0(float_t *ga)
 {
-  size_t i = blockIdx_x();
-  ga[i] = exp(ga[i]);
+  ga[blockIdx.x] = exp(ga[blockIdx_x]);
 }
 
 __global__
@@ -19,14 +18,10 @@ static void __hoisted_1(size_t lena, float_t *a_)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        float_t s1 = a_[threadIdx_x()];
-        float_t s = s1 + a_[nextid];
-        a_[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a_[threadIdx.x] += a_[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -35,8 +30,7 @@ __global__
 
 static void __hoisted_2(float_t *ga, float_t avg)
 {
-  size_t i = blockIdx_x();
-  ga[i] /= avg;
+  ga[blockIdx.x] /= avg;
 }
 
 void Kuiper_Softmax_softmax_f32(size_t lena, float_t *a)
@@ -67,8 +61,7 @@ __global__
 
 static void __hoisted_3(double_t *ga)
 {
-  size_t i = blockIdx_x();
-  ga[i] = exp(ga[i]);
+  ga[blockIdx.x] = exp(ga[blockIdx_x]);
 }
 
 __global__
@@ -80,14 +73,10 @@ static void __hoisted_4(size_t lena, double_t *a_)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        double_t s1 = a_[threadIdx_x()];
-        double_t s = s1 + a_[nextid];
-        a_[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        a_[threadIdx.x] += a_[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -96,8 +85,7 @@ __global__
 
 static void __hoisted_5(double_t *ga, double_t avg)
 {
-  size_t i = blockIdx_x();
-  ga[i] /= avg;
+  ga[blockIdx.x] /= avg;
 }
 
 void Kuiper_Softmax_softmax_f64(size_t lena, double_t *a)
