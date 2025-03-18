@@ -30,6 +30,39 @@ open Kuiper.ArrayView {
 }
 module AV = Kuiper.ArrayView
 
+
+(**************
+This would be the way to define the shared memory view, just pasting
+two row-major views together. The problem is that trying to use
+indices like Inl (i / tile, i % tile) below does not work well:
+apparenltly bidirectionality is not kicking in and
+the types are inferred to be int/SZ.t instead of the proper refinements.
+***************)
+
+module MC = Kuiper.Matrix.Common
+module R  = Kuiper.Matrix.Reprs
+let aview_2tile2_sum
+  (et : Type0)
+  (tile : valid_tile)
+  : aview et (2sz *^ tile *^ tile) (ematrix et tile tile & ematrix et tile tile)
+= Kuiper.View.Sum.aview_sum
+    (MC.aview_from_mlayout et (R.row_major tile tile))
+    (MC.aview_from_mlayout et (R.row_major tile tile))
+
+inline_for_extraction noextract
+instance cview_2tile2_sum
+  (et : Type0)
+  (tile : valid_tile)
+  : cview (aview_2tile2_sum et tile)
+  = Kuiper.View.Sum.cview_sum
+      #_
+      #(tile *^ tile) #_ #(tile *^ tile) #_
+      _ (Kuiper.Matrix.cview_from_clayout _ _ solve) (* FIXME: just 'solve' should work? *)
+      _ (Kuiper.Matrix.cview_from_clayout _ _ solve)
+      ()
+
+(**************)
+
 (* these types help avoid bad inference, and mismatches in the implicit arguments
 of tuple constructors. *)
 type ait (tile : erased nat) = | AIdx : natlt 2 -> natlt tile -> natlt tile -> ait tile
