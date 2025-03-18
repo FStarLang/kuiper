@@ -71,8 +71,6 @@ ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
 
 FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
 
-ROOTS := $(call FILTER_OUT,MatMulOpt,$(ROOTS))
-
 CACHEDIR := obj
 OUTDIR   := obj
 
@@ -269,9 +267,6 @@ extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,ob
 extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/gemm/%.fst,obj/%.cu,$(wildcard src/lib/inst/gemm/*.fst))))
 # *Build* every executable in test/, we can do this without a GPU
 extraction-targets: $(patsubst %,obj/%.exe,$(TESTS))
-
-# ^ nasty
-# obj/Kuiper_MatMulTileF32_Async.cu
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
