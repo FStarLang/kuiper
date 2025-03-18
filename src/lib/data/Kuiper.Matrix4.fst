@@ -452,8 +452,20 @@ fn gpu_matrix_explode
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_explode gm;
   (* Change the type... convince pulse. *)
-  with (ty:Type0) d ff. assert forevery ty #d ff;
-  rewrite forevery ty #d ff as forevery (natlt (mrows * brows) & natlt (mcols * bcols)) #d ff;
+  forevery_rw_type
+    (aview_from_mlayout et l).it
+    (natlt (mrows * brows) & natlt (mcols * bcols))
+    (fun rc ->
+      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));
+  forevery_ext #(natlt (mrows * brows) & natlt (mcols * bcols))
+    (fun rc ->
+      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
+    (fun rc ->
+      A.varray_pts_to_cell gm #f (rc._1, rc._2) (EMatrix.macc em rc._1 rc._2));
+  forevery_unflatten #(natlt (mrows * brows)) #_ #(natlt (mcols * bcols))
+    (fun r c ->
+      A.varray_pts_to_cell gm #f (r, c) (EMatrix.macc em r c));
+  forevery_factor (mrows * brows) mrows brows _;
   (* tedious... *)
   admit();
 }
