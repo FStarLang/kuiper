@@ -16,7 +16,7 @@ fn kmn_as_kfull_block_setup
   (bid: natlt k.nblk)
   ()
 requires
-  block_setup_tok k.nthr 
+  block_setup_tok k.nthr
   **
   (exists* v. gpu_pts_to_array ar #1.0R v) **
   k.block_pre bid

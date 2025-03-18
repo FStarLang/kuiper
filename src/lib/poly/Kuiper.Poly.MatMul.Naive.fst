@@ -22,14 +22,19 @@ let kpre
   (gC : M.gpu_matrix et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
+  (eC : ematrix et rows cols)
   (f : perm)
   (tid : nat{ tid < rows * cols })
   : slprop
   =
+  (* Note: as far as this algorithm is concerned, we could have
+  an existential for the gC cell and not state anything interesting.
+  However it is actually more comfortable to not have an existential here,
+  and we will need it anyway for the  GEMM. *)
   M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
   M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
-  (exists* v.
-    M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols) v)
+  M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
+    (macc eC (tid / cols) (tid % cols))
 
 unfold
 let kpost
@@ -67,12 +72,13 @@ fn kf
   (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
   (#f : perm)
   (bid : szlt (rows *^ cols))
   ()
   requires
     gpu **
-    kpre gA gB gC eA eB f bid **
+    kpre gA gB gC eA eB eC f bid **
     block_id (rows *^ cols) bid
   ensures
     gpu **
@@ -115,7 +121,7 @@ fn setup
     (gC |-> eC)
   ensures
     (forall+ (rc : natlt (rows *^ cols)).
-      kpre gA gB gC eA eB 1.0R rc) **
+      kpre gA gB gC eA eB eC 1.0R rc) **
     emp (* frame *)
 {
   // Sharing the input matrices (splitting permissions)
@@ -138,25 +144,14 @@ fn setup
     _
     (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
 
-  // Rewrite inside the bigstar
-  ghost
-  fn aux1 (i : natlt2 rows cols)
-    requires
-      (M.gpu_matrix_pts_to gA #(1.0R /. (rows * cols)) eA **
-      M.gpu_matrix_pts_to gB #(1.0R /. (rows * cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols))
-    ensures
-      kpre gA gB gC eA eB 1.0R i
-  {
-    ()
-  };
-  forevery_map #(natlt2 rows cols)
+  (* We're done actually, but the encoding will not match the lambdas. *)
+  forevery_ext #(natlt2 rows cols)
     (fun i ->
-      (M.gpu_matrix_pts_to gA #(1.0R /. (rows *^ cols)) eA **
-      M.gpu_matrix_pts_to gB #(1.0R /. (rows *^ cols)) eB) **
+      M.gpu_matrix_pts_to gA #(1.0R /. (rows *^ cols)) eA **
+      M.gpu_matrix_pts_to gB #(1.0R /. (rows *^ cols)) eB **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i / cols) (i % cols)))
-    _
-    aux1;
+    (fun i ->
+      kpre gA gB gC eA eB eC 1.0R i);
 }
 
 ghost
@@ -261,10 +256,10 @@ let kdesc
   setup = setup gA gB gC #eA #eB #eC;
   teardown = teardown gA gB gC #eA #eB;
 
-  kpre  = kpre gA gB gC eA eB 1.0R;
+  kpre  = kpre gA gB gC eA eB eC 1.0R;
   kpost = kpost gA gB gC eA eB 1.0R;
 
-  f = kf gA gB gC #eA #eB #1.0R;
+  f = kf gA gB gC #eA #eB #eC #1.0R;
 }
 
 inline_for_extraction noextract
