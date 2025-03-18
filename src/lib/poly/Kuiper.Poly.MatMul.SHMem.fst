@@ -15,7 +15,7 @@ open Kuiper.Matrix4 {
   clayout4
 }
 
-module M4  = Kuiper.Matrix4
+module M4 = Kuiper.Matrix4
 module MS = Kuiper.Spec.MatMul
 module SZ = FStar.SizeT
 module B = Kuiper.Barrier

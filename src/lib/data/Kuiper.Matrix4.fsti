@@ -2,13 +2,14 @@ module Kuiper.Matrix4
 #lang-pulse
 
 open Kuiper
-module EM = Kuiper.EMatrix
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Common
 open Kuiper.Matrix.Reprs.Type
-module T = FStar.Tactics.V2
+
+module EM = Kuiper.EMatrix
+module T  = FStar.Tactics.V2
 module SZ = FStar.SizeT
-module M = Kuiper.Matrix
+module M  = Kuiper.Matrix
 
 unfold
 inline_for_extraction noextract

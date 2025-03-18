@@ -270,9 +270,6 @@ fn forevery_rw_size2
     forall+ (i : natlt n1) (j : natlt n3). p i j
   ensures
     forall+ (i : natlt n2) (j : natlt n4). p i j
-{
-  admit();
-}
 
 ghost
 fn forevery_factor

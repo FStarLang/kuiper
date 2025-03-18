@@ -408,6 +408,21 @@ fn forevery_rw_size
 }
 
 ghost
+fn forevery_rw_size2
+  (n1 : nat)
+  (n2 : nat{n1 == n2})
+  (n3 : nat)
+  (n4 : nat{n3 == n4})
+  (#p : natlt n1 -> natlt n3 -> slprop)
+  requires
+    forall+ (i : natlt n1) (j : natlt n3). p i j
+  ensures
+    forall+ (i : natlt n2) (j : natlt n4). p i j
+{
+  ();
+}
+
+ghost
 fn forevery_factor
   (n : nat)
   (d1 : nat) (d2 : nat { n == d1 * d2 })
