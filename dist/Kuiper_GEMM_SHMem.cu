@@ -4046,3 +4046,2043 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(
   cudaDeviceSynchronize();
 }
 
+__global__
+
+static void
+__hoisted_48(
+  size_t tile,
+  float_t alpha,
+  float_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  float_t *gA4,
+  float_t *gB4,
+  float_t *gC4
+)
+{
+  float_t *ar = (float_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  float_t sum = (float_t)0.0f;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    float_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    float_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
+    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f32_rrr(
+  size_t tile,
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  float_t *gA4 = gA;
+  float_t *gB4 = gB;
+  float_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_48,
+    mrows * mcols,
+    tile * tile,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_49(
+  size_t tile,
+  double_t alpha,
+  double_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  double_t *gA4,
+  double_t *gB4,
+  double_t *gC4
+)
+{
+  double_t *ar = (double_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  double_t sum = (double_t)0.0l;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    double_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    double_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
+    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f64_rrr(
+  size_t tile,
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  double_t *gA4 = gA;
+  double_t *gB4 = gB;
+  double_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_49,
+    mrows * mcols,
+    tile * tile,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_50(
+  size_t tile,
+  uint32_t alpha,
+  uint32_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  uint32_t *gA4,
+  uint32_t *gB4,
+  uint32_t *gC4
+)
+{
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  uint32_t sum = 0U;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint32_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    uint32_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
+    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u32_rrr(
+  size_t tile,
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  uint32_t *gA4 = gA;
+  uint32_t *gB4 = gB;
+  uint32_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_50,
+    mrows * mcols,
+    tile * tile,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_51(
+  size_t tile,
+  uint64_t alpha,
+  uint64_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  uint64_t *gA4,
+  uint64_t *gB4,
+  uint64_t *gC4
+)
+{
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  uint64_t sum = 0ULL;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint64_t v1 = gA4[(mrow * tile + brow) * shared + vbk * tile + bcol];
+    uint64_t v2 = gB4[(vbk * tile + brow) * cols + mcol * tile + bcol];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
+    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u64_rrr(
+  size_t tile,
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  uint64_t *gA4 = gA;
+  uint64_t *gB4 = gB;
+  uint64_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_51,
+    mrows * mcols,
+    tile * tile,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_52(
+  size_t tile,
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  float_t *gA4,
+  float_t *gB4,
+  float_t *gC4
+)
+{
+  float_t *ar = (float_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  float_t sum = (float_t)0.0f;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    float_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    float_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
+    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f32_ccc(
+  size_t tile,
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  float_t *gA4 = gA;
+  float_t *gB4 = gB;
+  float_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_52,
+    mrows * mcols,
+    tile * tile,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_53(
+  size_t tile,
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  double_t *gA4,
+  double_t *gB4,
+  double_t *gC4
+)
+{
+  double_t *ar = (double_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  double_t sum = (double_t)0.0l;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    double_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    double_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
+    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f64_ccc(
+  size_t tile,
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  double_t *gA4 = gA;
+  double_t *gB4 = gB;
+  double_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_53,
+    mrows * mcols,
+    tile * tile,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_54(
+  size_t tile,
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  uint32_t *gA4,
+  uint32_t *gB4,
+  uint32_t *gC4
+)
+{
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  uint32_t sum = 0U;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint32_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    uint32_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
+    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u32_ccc(
+  size_t tile,
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  uint32_t *gA4 = gA;
+  uint32_t *gB4 = gB;
+  uint32_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_54,
+    mrows * mcols,
+    tile * tile,
+    (size_t)4U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_55(
+  size_t tile,
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  uint64_t *gA4,
+  uint64_t *gB4,
+  uint64_t *gC4
+)
+{
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / tile;
+  size_t bcol = threadIdx_x() % tile;
+  uint64_t sum = 0ULL;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint64_t v1 = gA4[(vbk * tile + bcol) * rows + mrow * tile + brow];
+    uint64_t v2 = gB4[(mcol * tile + bcol) * shared + vbk * tile + brow];
+    __syncthreads();
+    ar[brow * tile + bcol] = v1;
+    ar[tile * tile + brow * tile + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < tile)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * tile + vsk] * ar[tile * tile + vsk * tile + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
+    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u64_ccc(
+  size_t tile,
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_GUARD(rows % tile == (size_t)0U);
+  KPR_GUARD(shared % tile == (size_t)0U);
+  KPR_GUARD(cols % tile == (size_t)0U);
+  size_t mrows = rows / tile;
+  size_t mshared = shared / tile;
+  size_t mcols = cols / tile;
+  uint64_t *gA4 = gA;
+  uint64_t *gB4 = gB;
+  uint64_t *gC4 = gC;
+  KPR_ASSERT(tile > (size_t)0U);
+  KPR_KCALL(__hoisted_55,
+    mrows * mcols,
+    tile * tile,
+    (size_t)8U,
+    (size_t)2U * tile * tile,
+    tile,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_56(
+  float_t alpha,
+  float_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  float_t *gA4,
+  float_t *gB4,
+  float_t *gC4
+)
+{
+  float_t *ar = (float_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  float_t sum = (float_t)0.0f;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    float_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    float_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
+    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f32_tile32_rrr(
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  float_t *gA4 = gA;
+  float_t *gB4 = gB;
+  float_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_56,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)4U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_57(
+  double_t alpha,
+  double_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  double_t *gA4,
+  double_t *gB4,
+  double_t *gC4
+)
+{
+  double_t *ar = (double_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  double_t sum = (double_t)0.0l;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    double_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    double_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
+    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f64_tile32_rrr(
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  double_t *gA4 = gA;
+  double_t *gB4 = gB;
+  double_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_57,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)8U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_58(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  uint32_t *gA4,
+  uint32_t *gB4,
+  uint32_t *gC4
+)
+{
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  uint32_t sum = 0U;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint32_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    uint32_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
+    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u32_tile32_rrr(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  uint32_t *gA4 = gA;
+  uint32_t *gB4 = gB;
+  uint32_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_58,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)4U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_59(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  uint64_t *gA4,
+  uint64_t *gB4,
+  uint64_t *gC4
+)
+{
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  uint64_t sum = 0ULL;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint64_t v1 = gA4[(mrow * (size_t)32U + brow) * shared + vbk * (size_t)32U + bcol];
+    uint64_t v2 = gB4[(vbk * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
+    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u64_tile32_rrr(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  uint64_t *gA4 = gA;
+  uint64_t *gB4 = gB;
+  uint64_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_59,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)8U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_60(
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  float_t *gA4,
+  float_t *gB4,
+  float_t *gC4
+)
+{
+  float_t *ar = (float_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  float_t sum = (float_t)0.0f;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    float_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    float_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
+    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f32_tile32_ccc(
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  float_t *gA4 = gA;
+  float_t *gB4 = gB;
+  float_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_60,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)4U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_61(
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  double_t *gA4,
+  double_t *gB4,
+  double_t *gC4
+)
+{
+  double_t *ar = (double_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  double_t sum = (double_t)0.0l;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    double_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    double_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
+    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f64_tile32_ccc(
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  double_t *gA4 = gA;
+  double_t *gB4 = gB;
+  double_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_61,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)8U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_62(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  uint32_t *gA4,
+  uint32_t *gB4,
+  uint32_t *gC4
+)
+{
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  uint32_t sum = 0U;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint32_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    uint32_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
+    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u32_tile32_ccc(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  uint32_t *gA4 = gA;
+  uint32_t *gB4 = gB;
+  uint32_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_62,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)4U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_63(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  uint64_t *gA4,
+  uint64_t *gB4,
+  uint64_t *gC4
+)
+{
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)32U;
+  size_t bcol = threadIdx_x() % (size_t)32U;
+  uint64_t sum = 0ULL;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint64_t v1 = gA4[(vbk * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow];
+    uint64_t v2 = gB4[(mcol * (size_t)32U + bcol) * shared + vbk * (size_t)32U + brow];
+    __syncthreads();
+    ar[brow * (size_t)32U + bcol] = v1;
+    ar[(size_t)1024U + brow * (size_t)32U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)32U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)32U + vsk] * ar[(size_t)1024U + vsk * (size_t)32U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
+    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u64_tile32_ccc(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
+  size_t mrows = rows / (size_t)32U;
+  size_t mshared = shared / (size_t)32U;
+  size_t mcols = cols / (size_t)32U;
+  uint64_t *gA4 = gA;
+  uint64_t *gB4 = gB;
+  uint64_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_63,
+    mrows * mcols,
+    (size_t)1024U,
+    (size_t)8U,
+    (size_t)2048U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_64(
+  float_t alpha,
+  float_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  float_t *gA4,
+  float_t *gB4,
+  float_t *gC4
+)
+{
+  float_t *ar = (float_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  float_t sum = (float_t)0.0f;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    float_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    float_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
+    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f32_tile16_rrr(
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  float_t *gA4 = gA;
+  float_t *gB4 = gB;
+  float_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_64,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)4U,
+    (size_t)512U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_65(
+  double_t alpha,
+  double_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  double_t *gA4,
+  double_t *gB4,
+  double_t *gC4
+)
+{
+  double_t *ar = (double_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  double_t sum = (double_t)0.0l;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    double_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    double_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
+    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f64_tile16_rrr(
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  double_t *gA4 = gA;
+  double_t *gB4 = gB;
+  double_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_65,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)8U,
+    (size_t)512U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_66(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  uint32_t *gA4,
+  uint32_t *gB4,
+  uint32_t *gC4
+)
+{
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  uint32_t sum = 0U;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint32_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    uint32_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
+    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u32_tile16_rrr(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  uint32_t *gA4 = gA;
+  uint32_t *gB4 = gB;
+  uint32_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_66,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)4U,
+    (size_t)512U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_67(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t shared,
+  size_t cols,
+  size_t mshared,
+  size_t mcols,
+  uint64_t *gA4,
+  uint64_t *gB4,
+  uint64_t *gC4
+)
+{
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  uint64_t sum = 0ULL;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint64_t v1 = gA4[(mrow * (size_t)16U + brow) * shared + vbk * (size_t)16U + bcol];
+    uint64_t v2 = gB4[(vbk * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
+    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u64_tile16_rrr(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  uint64_t *gA4 = gA;
+  uint64_t *gB4 = gB;
+  uint64_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_67,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)8U,
+    (size_t)512U,
+    alpha,
+    beta,
+    shared,
+    cols,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_68(
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  float_t *gA4,
+  float_t *gB4,
+  float_t *gC4
+)
+{
+  float_t *ar = (float_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  float_t sum = (float_t)0.0f;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    float_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    float_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
+    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f32_tile16_ccc(
+  float_t alpha,
+  float_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  float_t *gA4 = gA;
+  float_t *gB4 = gB;
+  float_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_68,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)4U,
+    (size_t)512U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_69(
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  double_t *gA4,
+  double_t *gB4,
+  double_t *gC4
+)
+{
+  double_t *ar = (double_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  double_t sum = (double_t)0.0l;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    double_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    double_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
+    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_f64_tile16_ccc(
+  double_t alpha,
+  double_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  double_t *gA4 = gA;
+  double_t *gB4 = gB;
+  double_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_69,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)8U,
+    (size_t)512U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_70(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  uint32_t *gA4,
+  uint32_t *gB4,
+  uint32_t *gC4
+)
+{
+  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  uint32_t sum = 0U;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint32_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    uint32_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
+    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u32_tile16_ccc(
+  uint32_t alpha,
+  uint32_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  uint32_t *gA4 = gA;
+  uint32_t *gB4 = gB;
+  uint32_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_70,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)4U,
+    (size_t)512U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
+__global__
+
+static void
+__hoisted_71(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t mshared,
+  size_t mcols,
+  uint64_t *gA4,
+  uint64_t *gB4,
+  uint64_t *gC4
+)
+{
+  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  size_t mrow = blockIdx_x() / mcols;
+  size_t mcol = blockIdx_x() % mcols;
+  size_t brow = threadIdx_x() / (size_t)16U;
+  size_t bcol = threadIdx_x() % (size_t)16U;
+  uint64_t sum = 0ULL;
+  size_t bk = (size_t)0U;
+  while (bk < mshared)
+  {
+    size_t vbk = bk;
+    uint64_t v1 = gA4[(vbk * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow];
+    uint64_t v2 = gB4[(mcol * (size_t)16U + bcol) * shared + vbk * (size_t)16U + brow];
+    __syncthreads();
+    ar[brow * (size_t)16U + bcol] = v1;
+    ar[(size_t)256U + brow * (size_t)16U + bcol] = v2;
+    __syncthreads();
+    size_t sk = (size_t)0U;
+    while (sk < (size_t)16U)
+    {
+      size_t vsk = sk;
+      sum += ar[brow * (size_t)16U + vsk] * ar[(size_t)256U + vsk * (size_t)16U + bcol];
+      sk = vsk + (size_t)1U;
+    }
+    bk = vbk + (size_t)1U;
+  }
+  gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
+    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+}
+
+void
+Kuiper_GEMM_SHMem_g_gemm_u64_tile16_ccc(
+  uint64_t alpha,
+  uint64_t beta,
+  size_t rows,
+  size_t shared,
+  size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC
+)
+{
+  KPR_ASSERT(true);
+  KPR_GUARD(rows % (size_t)16U == (size_t)0U);
+  KPR_GUARD(shared % (size_t)16U == (size_t)0U);
+  KPR_GUARD(cols % (size_t)16U == (size_t)0U);
+  size_t mrows = rows / (size_t)16U;
+  size_t mshared = shared / (size_t)16U;
+  size_t mcols = cols / (size_t)16U;
+  uint64_t *gA4 = gA;
+  uint64_t *gB4 = gB;
+  uint64_t *gC4 = gC;
+  KPR_ASSERT(true);
+  KPR_KCALL(__hoisted_71,
+    mrows * mcols,
+    (size_t)256U,
+    (size_t)8U,
+    (size_t)512U,
+    alpha,
+    beta,
+    rows,
+    shared,
+    mshared,
+    mcols,
+    gA4,
+    gB4,
+    gC4);
+  cudaDeviceSynchronize();
+}
+
