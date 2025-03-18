@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include "test-common.h"
 
 const char *progname = NULL;
 

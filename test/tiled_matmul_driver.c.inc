@@ -1,4 +1,5 @@
 #include "timing.h"
+#include "test-common.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -21,18 +22,18 @@ int main(int argc, char **argv)
 
     progname = argv[0];
 
-    if (argc != 1 && argc != 7) {
-        printf
-            ("Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n",
-             argv[0]);
-        return 1;
-    } else if (argc == 7) {
+    if (argc == 7) {
         laps = atoi(argv[1]);
         rows = atoi(argv[2]);
         shared = atoi(argv[3]);
         cols = atoi(argv[4]);
         tile = atoi(argv[5]);
         check = atoi(argv[6]) != 0;
+    } if (argc == 1) {
+        /* use defaults */
+    } else {
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <tile> <check>]\n", argv[0]);
+        return 1;
     }
 
     printf("Laps = %d\n", laps);

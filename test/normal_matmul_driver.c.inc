@@ -18,16 +18,17 @@ int main(int argc, char **argv)
     size_t cols = DEFAULT_DIM;
     bool check = true;
 
-    if (argc != 1 && argc != 6) {
-        printf
-            ("Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
-        return 1;
-    } else if (argc == 6) {
+    if (argc == 6) {
         laps = atoi(argv[1]);
         rows = atoi(argv[2]);
         shared = atoi(argv[3]);
         cols = atoi(argv[4]);
         check = atoi(argv[5]) != 0;
+    } if (argc == 1) {
+        /* use defaults */
+    } else {
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
+        return 1;
     }
 
     printf("Laps = %d\n", laps);

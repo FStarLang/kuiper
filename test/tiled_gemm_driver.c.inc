@@ -1,4 +1,5 @@
 #include "timing.h"
+#include "test-common.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -19,16 +20,17 @@ int main(int argc, char **argv)
 
     progname = argv[0];
 
-    if (argc != 1 && argc != 5) {
-        printf
-            ("Usage: %s [<laps> <rows> <shared> <columns>]\n",
-             argv[0]);
-        return 1;
-    } else if (argc == 7) {
+    if (argc == 5) {
         laps = atoi(argv[1]);
         rows = atoi(argv[2]);
         shared = atoi(argv[3]);
         cols = atoi(argv[4]);
+    } else if (argc == 1) {
+        /* use defaults */
+    } else {
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns>]\n",
+             argv[0]);
+        return 1;
     }
 
     printf("Laps = %d\n", laps);
@@ -70,8 +72,12 @@ int main(int argc, char **argv)
         fprintf(stderr, "Static tile = 32\n");
         TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)
                   (GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &t);
+        uint64_t flops = (rows * shared * cols * 2.0);
+        // I think the below is more accurate, but I'm reusing the
+        // same formula from the sgemm.cu benchsuite
+        // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
         fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-                (rows * shared * cols * 2.0 + rows * cols * 3) / t / 1e9);
+                (double)flops / t / 1e9);
     }
 
     cudaFree(m1);
