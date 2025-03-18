@@ -372,23 +372,8 @@ fn kf
          as (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
             (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x);
 
-    (* tedious *)
-    with x.
-      rewrite varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x
-           as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 0sz brow bcol)) x;
-    with x.
-      rewrite varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x
-           as varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 1sz brow bcol)) x;
-    let here = 1sz;
-    AV.varray_write_cell ar (mkCIdx 0sz brow bcol) v1;
-    AV.varray_write_cell ar (mkCIdx 1sz brow bcol) v2;
-    with x.
-      rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 0sz brow bcol)) x
-           as varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x;
-    with x.
-      rewrite varray_pts_to_cell ar (AV.cit_to_it (aview_2tile2 et tile) (mkCIdx 1sz brow bcol)) x
-           as varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x;
-
+    AV.varray_write_cell' ar (mkCIdx 0sz brow bcol) (mkAIdx 0 (tid / tile) (tid % tile)) v1;
+    AV.varray_write_cell' ar (mkCIdx 1sz brow bcol) (mkAIdx 1 (tid / tile) (tid % tile)) v2;
 
     assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
     odd_2x1 vbk;
