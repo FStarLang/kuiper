@@ -217,6 +217,7 @@ $(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
 	sed -i 's/blockDim_x/blockDix.x/' $@
 	sed -i 's/blockIdx_x/blockIdx.x/' $@
 	sed -i 's/gridDim_x/gridDim.x/' $@
+	sed -i '/__global__/{n;/^$$/d}' $@
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include

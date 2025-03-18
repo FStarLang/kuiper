@@ -3,7 +3,6 @@
 #include "Kuiper_GEMM_BlockTiling1D.h"
 
 __global__
-
 static void
 __hoisted_0(
   size_t shared,
@@ -113,7 +112,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_1(
   size_t shared,
@@ -223,7 +221,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_2(
   size_t shared,
@@ -329,7 +326,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_3(
   size_t shared,
@@ -435,7 +431,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_4(
   size_t rows,
@@ -545,7 +540,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_5(
   size_t rows,
@@ -655,7 +649,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_6(
   size_t rows,
@@ -761,7 +754,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_7(
   size_t rows,
@@ -867,7 +859,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_8(
   size_t shared,
@@ -977,7 +968,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_9(
   size_t shared,
@@ -1087,7 +1077,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_10(
   size_t shared,
@@ -1193,7 +1182,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_11(
   size_t shared,
@@ -1299,7 +1287,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_12(
   size_t rows,
@@ -1409,7 +1396,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_13(
   size_t rows,
@@ -1519,7 +1505,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_14(
   size_t rows,
@@ -1625,7 +1610,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_15(
   size_t rows,
@@ -1731,7 +1715,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_16(
   size_t shared,
@@ -1827,7 +1810,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_17(
   size_t shared,
@@ -1923,7 +1905,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_18(
   size_t shared,
@@ -2018,7 +1999,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_19(
   size_t shared,
@@ -2113,7 +2093,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_20(
   size_t rows,
@@ -2209,7 +2188,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_21(
   size_t rows,
@@ -2305,7 +2283,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_22(
   size_t rows,
@@ -2400,7 +2377,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_23(
   size_t rows,
@@ -2495,7 +2471,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_24(
   size_t shared,
@@ -2591,7 +2566,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_25(
   size_t shared,
@@ -2687,7 +2661,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_26(
   size_t shared,
@@ -2782,7 +2755,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_27(
   size_t shared,
@@ -2877,7 +2849,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_28(
   size_t rows,
@@ -2973,7 +2944,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_29(
   size_t rows,
@@ -3069,7 +3039,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_30(
   size_t rows,
@@ -3164,7 +3133,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_31(
   size_t rows,
@@ -3259,7 +3227,6 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_32(
   float_t alpha,
@@ -3363,7 +3330,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_33(
   double_t alpha,
@@ -3467,7 +3433,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_34(
   uint32_t alpha,
@@ -3570,7 +3535,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_35(
   uint64_t alpha,
@@ -3673,7 +3637,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_36(
   float_t alpha,
@@ -3777,7 +3740,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_37(
   double_t alpha,
@@ -3881,7 +3843,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_38(
   uint32_t alpha,
@@ -3984,7 +3945,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_39(
   uint64_t alpha,
@@ -4087,7 +4047,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_40(
   float_t alpha,
@@ -4191,7 +4150,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_41(
   double_t alpha,
@@ -4295,7 +4253,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_42(
   uint32_t alpha,
@@ -4398,7 +4355,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_43(
   uint64_t alpha,
@@ -4501,7 +4457,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_44(
   float_t alpha,
@@ -4605,7 +4560,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_45(
   double_t alpha,
@@ -4709,7 +4663,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_46(
   uint32_t alpha,
@@ -4812,7 +4765,6 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_47(
   uint64_t alpha,

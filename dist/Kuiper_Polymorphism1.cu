@@ -12,7 +12,6 @@ static void kswap__uint64_t(uint64_t *r1, uint64_t *r2)
 }
 
 __global__
-
 static void __hoisted_0(uint64_t *gr1, uint64_t *gr2)
 {
   kswap__uint64_t(gr1, gr2);
@@ -42,7 +41,6 @@ static void kswap__float_t(float_t *r1, float_t *r2)
 }
 
 __global__
-
 static void __hoisted_1(float_t *gr1, float_t *gr2)
 {
   kswap__float_t(gr1, gr2);

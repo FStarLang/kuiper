@@ -3,7 +3,6 @@
 #include "Kuiper_HReduce.h"
 
 __global__
-
 static void __hoisted_0(size_t lena, half_t *a)
 {
   size_t n = (size_t)0U;
@@ -26,7 +25,6 @@ void Kuiper_HReduce_reduce_f16_plus(size_t lena, half_t *a)
 }
 
 __global__
-
 static void __hoisted_1(size_t lena, float_t *a)
 {
   size_t n = (size_t)0U;
@@ -49,7 +47,6 @@ void Kuiper_HReduce_reduce_f32_plus(size_t lena, float_t *a)
 }
 
 __global__
-
 static void __hoisted_2(size_t lena, double_t *a)
 {
   size_t n = (size_t)0U;
@@ -72,7 +69,6 @@ void Kuiper_HReduce_reduce_f64_plus(size_t lena, double_t *a)
 }
 
 __global__
-
 static void __hoisted_3(size_t lena, uint32_t *a)
 {
   size_t n = (size_t)0U;
@@ -95,7 +91,6 @@ void Kuiper_HReduce_reduce_u32_plus(size_t lena, uint32_t *a)
 }
 
 __global__
-
 static void __hoisted_4(size_t lena, uint64_t *a)
 {
   size_t n = (size_t)0U;

@@ -3,7 +3,6 @@
 #include "Kuiper_GEMM_SHMem.h"
 
 __global__
-
 static void
 __hoisted_0(
   size_t tile,
@@ -97,7 +96,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_1(
   size_t tile,
@@ -191,7 +189,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_2(
   size_t tile,
@@ -282,7 +279,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_3(
   size_t tile,
@@ -373,7 +369,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_4(
   size_t tile,
@@ -467,7 +462,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_5(
   size_t tile,
@@ -561,7 +555,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_6(
   size_t tile,
@@ -652,7 +645,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_7(
   size_t tile,
@@ -743,7 +735,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_8(
   size_t shared,
@@ -834,7 +825,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_9(
   size_t shared,
@@ -925,7 +915,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_10(
   size_t shared,
@@ -1013,7 +1002,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_11(
   size_t shared,
@@ -1101,7 +1089,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_12(
   size_t rows,
@@ -1192,7 +1179,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_13(
   size_t rows,
@@ -1283,7 +1269,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_14(
   size_t rows,
@@ -1371,7 +1356,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_15(
   size_t rows,
@@ -1459,7 +1443,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_16(
   size_t shared,
@@ -1550,7 +1533,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_17(
   size_t shared,
@@ -1641,7 +1623,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_18(
   size_t shared,
@@ -1729,7 +1710,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_19(
   size_t shared,
@@ -1817,7 +1797,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_20(
   size_t rows,
@@ -1908,7 +1887,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_21(
   size_t rows,
@@ -1999,7 +1977,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_22(
   size_t rows,
@@ -2087,7 +2064,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_23(
   size_t rows,
@@ -2175,7 +2151,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_24(
   size_t tile,
@@ -2255,7 +2230,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_25(
   size_t tile,
@@ -2335,7 +2309,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_26(
   size_t tile,
@@ -2415,7 +2388,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_27(
   size_t tile,
@@ -2495,7 +2467,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_28(
   size_t tile,
@@ -2575,7 +2546,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_29(
   size_t tile,
@@ -2655,7 +2625,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_30(
   size_t tile,
@@ -2735,7 +2704,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_31(
   size_t tile,
@@ -2815,7 +2783,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_32(
   size_t shared,
@@ -2892,7 +2859,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_33(
   size_t shared,
@@ -2969,7 +2935,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_34(
   size_t shared,
@@ -3046,7 +3011,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_35(
   size_t shared,
@@ -3123,7 +3087,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_36(
   size_t rows,
@@ -3200,7 +3163,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_37(
   size_t rows,
@@ -3277,7 +3239,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_38(
   size_t rows,
@@ -3354,7 +3315,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_39(
   size_t rows,
@@ -3431,7 +3391,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_40(
   size_t shared,
@@ -3508,7 +3467,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_41(
   size_t shared,
@@ -3585,7 +3543,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_42(
   size_t shared,
@@ -3662,7 +3619,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_43(
   size_t shared,
@@ -3739,7 +3695,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_44(
   size_t rows,
@@ -3816,7 +3771,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_45(
   size_t rows,
@@ -3893,7 +3847,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_46(
   size_t rows,
@@ -3970,7 +3923,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_47(
   size_t rows,
@@ -4047,7 +3999,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_48(
   size_t tile,
@@ -4134,7 +4085,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_49(
   size_t tile,
@@ -4221,7 +4171,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_50(
   size_t tile,
@@ -4308,7 +4257,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_51(
   size_t tile,
@@ -4395,7 +4343,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_52(
   size_t tile,
@@ -4482,7 +4429,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_53(
   size_t tile,
@@ -4569,7 +4515,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_54(
   size_t tile,
@@ -4656,7 +4601,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_55(
   size_t tile,
@@ -4743,7 +4687,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_56(
   float_t alpha,
@@ -4827,7 +4770,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_57(
   double_t alpha,
@@ -4911,7 +4853,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_58(
   uint32_t alpha,
@@ -4995,7 +4936,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_59(
   uint64_t alpha,
@@ -5079,7 +5019,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_60(
   float_t alpha,
@@ -5163,7 +5102,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_61(
   double_t alpha,
@@ -5247,7 +5185,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_62(
   uint32_t alpha,
@@ -5331,7 +5268,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_63(
   uint64_t alpha,
@@ -5415,7 +5351,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_64(
   float_t alpha,
@@ -5499,7 +5434,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_65(
   double_t alpha,
@@ -5583,7 +5517,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_66(
   uint32_t alpha,
@@ -5667,7 +5600,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_67(
   uint64_t alpha,
@@ -5751,7 +5683,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_68(
   float_t alpha,
@@ -5835,7 +5766,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_69(
   double_t alpha,
@@ -5919,7 +5849,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_70(
   uint32_t alpha,
@@ -6003,7 +5932,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_71(
   uint64_t alpha,

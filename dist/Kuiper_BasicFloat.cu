@@ -3,7 +3,6 @@
 #include "Kuiper_BasicFloat.h"
 
 __global__
-
 static void __hoisted_0(float_t *gr)
 {
   *gr += (float_t)1.0f;
