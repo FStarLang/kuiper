@@ -14,6 +14,7 @@ module M4 = Kuiper.Matrix4
 open Kuiper.Matrix4 { mlayout4, clayout4 }
 module R = Kuiper.Matrix.Reprs
 module GT = Kuiper.Ghost.Transpose
+module MC = Kuiper.Matrix.Casts
 
 inline_for_extraction noextract
 fn matmul_cpu
@@ -107,12 +108,12 @@ fn matmul_gpu_tiled
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
 
-  let lA4 : mlayout4 mrows  mshared tile tile = lA;
-  let gA4 = M4.from_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
-  let lB4 : mlayout4 mshared mcols tile tile = lB;
-  let gB4 = M4.from_matrix2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
-  let lC4 : mlayout4 mrows  mcols tile tile = lC;
-  let gC4 = M4.from_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
+  let lA4 : mlayout4 mrows   mshared tile tile = lA;
+  let lB4 : mlayout4 mshared mcols  tile tile = lB;
+  let lC4 : mlayout4 mrows   mcols  tile tile = lC;
+  let gA4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
+  let gB4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
+  let gC4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
   tiled_matmul_gpu tile
     #et #_
     comb
@@ -123,9 +124,9 @@ fn matmul_gpu_tiled
     #(M4.clayout4_from_clayout tile cC)
     gA4 gB4 gC4;
 
-  let gA' = M4.to_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
-  let gB' = M4.to_matrix2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
-  let gC' = M4.to_matrix2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
+  let gA' = MC.m4_to_m2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
+  let gB' = MC.m4_to_m2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
+  let gC' = MC.m4_to_m2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
 
   rewrite each gA' as gA;
   rewrite each gB' as gB;

@@ -6,10 +6,8 @@ open Kuiper.EMatrix4
 open Kuiper.Matrix.Common
 open Kuiper.Matrix.Reprs.Type
 
-module EM = Kuiper.EMatrix
 module T  = FStar.Tactics.V2
 module SZ = FStar.SizeT
-module M  = Kuiper.Matrix
 
 unfold
 inline_for_extraction noextract
@@ -387,33 +385,3 @@ fn gpu_matrix_to_array
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
     (a |-> to_seq l em)
-
-fn from_matrix2
-  (tile : erased nat)
-  (mrows mcols : erased nat)
-  (#et : Type0) {| scalar et |}
-  (#lA : mlayout4 mrows mcols tile tile)
-  (gA : M.gpu_matrix et lA)
-  (#eA : EM.ematrix et _ _)
-  requires
-    gA |-> eA
-  returns
-    gA4 : gpu_matrix et lA
-  ensures
-    (gA4 |-> eA) **
-    pure (core gA4 == M.core gA)
-
-fn to_matrix2
-  (tile : erased nat)
-  (mrows mcols : erased nat)
-  (#et : Type0) {| scalar et |}
-  (#lA : mlayout4 mrows mcols tile tile)
-  (gA4 : gpu_matrix et lA)
-  (#eA : EM.ematrix et _ _)
-  requires
-    gA4 |-> eA
-  returns
-    gA : M.gpu_matrix et lA
-  ensures
-    (gA |-> eA) **
-    pure (core gA4 == M.core gA)
