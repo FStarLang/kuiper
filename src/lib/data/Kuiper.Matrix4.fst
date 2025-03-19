@@ -334,13 +334,25 @@ fn gpu_matrix_write
     gpu_matrix_pts_to gm (mupd em bi bj i j v)
 {
   unfold gpu_matrix_pts_to gm em;
-  A.varray_write gm (bi, bj, i, j) v;
+  let cit = (bi, bj, i, j);
+  A.varray_write gm cit v;
   let m' = mupd em bi bj i j v;
-  assume (pure (
+  assert (pure (
     m'
     `Kuiper.EMatrix4.equal`
+    mupd em bi bj i j v));
+  assert (pure (A.cit_to_it (aview_from_mlayout et l) #(cview_from_clayout4 et cl) (bi, bj, i, j) ==
+    Mktuple2 #(natlt (mrows * brows)) #(natlt (mcols * bcols))
+      (SZ.v bi * brows + SZ.v i)
+      (SZ.v bj * bcols + SZ.v j))
+  );
+  assume (pure (
+    mupd em bi bj i j v
+    `Kuiper.EMatrix4.equal`
     (aview_from_mlayout et l).igm.upd
-      em (A.cit_to_it (aview_from_mlayout et l) #(cview_from_clayout4 et cl) (bi, bj, i, j)) v));
+      em (Mktuple2 #(natlt (mrows * brows)) #(natlt (mcols * bcols))
+      (SZ.v bi * brows + SZ.v i)
+      (SZ.v bj * bcols + SZ.v j)) v));
   fold gpu_matrix_pts_to gm (mupd em bi bj i j v);
 }
 

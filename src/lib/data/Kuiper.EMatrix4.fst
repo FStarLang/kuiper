@@ -4,7 +4,7 @@ module Kuiper.EMatrix4
 open Kuiper
 module M = Kuiper.EMatrix
 
-let macc_pat (#et:Type) (#mrows #brows #mcols #bcols : nat)
+let macc_pat (#et:Type) (#mrows #mcols #brows #bcols : nat)
   (m : ematrix4 et mrows mcols brows bcols)
   (bi : natlt mrows)
   (bj : natlt mcols)
