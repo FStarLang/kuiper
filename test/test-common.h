@@ -22,7 +22,7 @@ static void *kpr_wait_alloc(size_t sz, size_t len)
     while ((rc = cudaMalloc(&ret, sz * len)) == cudaErrorMemoryAllocation &&
            tries-- > 0) {
         fprintf(stderr, "%s: Waiting for GPU memory...\n", progname);
-        sleep(5);
+        sleep(1);
     }
     MUST(rc);
     return ret;
