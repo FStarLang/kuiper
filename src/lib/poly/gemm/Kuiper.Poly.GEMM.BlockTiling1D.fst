@@ -264,9 +264,10 @@ fn subproduct
       let vi = !i;
       let v1 = AV.varray_read ar (mkCIdx #tile 0sz vi vsk);
 
-      let sum0 = Pulse.Lib.Array.op_Array_Access acc vi;
+      open Pulse.Lib.Array;
+      let sum0 = acc.(vi);
       let sum1 = sum0 `add` (v1 `mul` v2);
-      Pulse.Lib.Array.op_Array_Assignment acc vi sum1;
+      acc.(vi) <- sum1;
       i := vi +^ 1sz;
     };
     sk := vsk +^ 1sz;
@@ -470,7 +471,8 @@ fn kf
           as m4_pts_to_cell gC mrow mcol vrow bcol v0;
 
     let v0 = M4.gpu_matrix_read_cell gC mrow mcol vrow bcol;
-    let v1 = Pulse.Lib.Array.op_Array_Access sums vrow;
+    open Pulse.Lib.Array;
+    let v1 = sums.(vrow);
     let v' = comb v0 v1;
     M4.gpu_matrix_write_cell gC mrow mcol vrow bcol v';
 
