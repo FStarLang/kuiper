@@ -18,8 +18,7 @@ __hoisted_0(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)32U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -95,8 +94,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -120,8 +118,7 @@ __hoisted_1(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)32U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -197,8 +194,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -418,8 +414,7 @@ __hoisted_4(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)32U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -495,8 +490,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -520,8 +514,7 @@ __hoisted_5(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)32U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -597,8 +590,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -818,8 +810,7 @@ __hoisted_8(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)16U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -895,8 +886,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -920,8 +910,7 @@ __hoisted_9(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)16U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -997,8 +986,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1218,8 +1206,7 @@ __hoisted_12(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)16U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -1295,8 +1282,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1320,8 +1306,7 @@ __hoisted_13(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)16U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -1397,8 +1382,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1618,8 +1602,7 @@ __hoisted_16(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)32U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -1706,8 +1689,7 @@ __hoisted_17(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)32U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -1968,8 +1950,7 @@ __hoisted_20(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)32U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -2056,8 +2037,7 @@ __hoisted_21(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)32U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -2318,8 +2298,7 @@ __hoisted_24(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)16U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -2406,8 +2385,7 @@ __hoisted_25(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)16U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -2668,8 +2646,7 @@ __hoisted_28(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)16U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -2756,8 +2733,7 @@ __hoisted_29(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)16U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -3020,8 +2996,7 @@ __hoisted_32(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)32U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -3116,8 +3091,7 @@ __hoisted_33(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)32U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -3402,8 +3376,7 @@ __hoisted_36(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)32U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -3498,8 +3471,7 @@ __hoisted_37(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[32U];
-  for (uint32_t _i = 0U; _i < (size_t)32U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)32U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -3784,8 +3756,7 @@ __hoisted_40(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)16U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -3880,8 +3851,7 @@ __hoisted_41(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)16U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -4166,8 +4136,7 @@ __hoisted_44(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (float_t)0.0f;
+  memset(sums, 0U, (size_t)16U * sizeof (float_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {
@@ -4262,8 +4231,7 @@ __hoisted_45(
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sums[16U];
-  for (uint32_t _i = 0U; _i < (size_t)16U; ++_i)
-    sums[_i] = (double_t)0.0l;
+  memset(sums, 0U, (size_t)16U * sizeof (double_t));
   size_t bk = (size_t)0U;
   while (bk < mshared)
   {

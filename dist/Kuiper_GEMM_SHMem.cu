@@ -86,8 +86,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -179,8 +178,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -452,8 +450,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -545,8 +542,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -808,8 +804,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -891,8 +886,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1134,8 +1128,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1217,8 +1210,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1460,8 +1452,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1543,8 +1534,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1786,8 +1776,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1869,8 +1858,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
