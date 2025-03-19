@@ -188,7 +188,7 @@ depend.pdf: .depend .force
 	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(EXTRACT) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
-	sed -i 's/^digraph {/& ratio=1;/' .depend.simpl
+	sed -i 's/^digraph{/& ratio=1;/' .depend.simpl
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
