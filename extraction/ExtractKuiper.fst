@@ -332,10 +332,16 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   match Some?.v x with
   (******** ASSERTIONS ********)
   | "Kuiper.Assert.dassert", [], [ x ] ->
-    EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
+    if x.expr = MLE_Const (MLC_Bool true)
+    then EUnit
+    else
+      EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
 
   | "Kuiper.Assert.dguard", [], [ x ] ->
-    EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
+    if x.expr = MLE_Const (MLC_Bool true)
+    then EUnit
+    else
+      EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
 
   (******** SIZET, missing from F* ********)
   | "Kuiper.SizeT.sizet_and", [], [ x; y ] ->
