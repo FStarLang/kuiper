@@ -55,8 +55,8 @@ lint-c:
 lint-fstar:
 	./FStar/.scripts/remove_all_unused_opens.sh extraction
 	./FStar/.scripts/remove_all_unused_opens.sh src
-	( cd src && git sed 's/ *$$//' )
-	( cd extraction && git sed 's/ *$$//' )
+	( cd src && git sed 's/[[:space:]]*$$//' )
+	( cd extraction && git sed 's/[[:space:]]*$$//' )
 	( cd src && ../scripts/find-pulse-noix.sh )
 	( cd src && ../scripts/check-attrs.sh )
 

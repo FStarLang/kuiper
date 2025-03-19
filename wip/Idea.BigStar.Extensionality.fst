@@ -34,7 +34,7 @@ let bigstar_equiv
 (* Maybe as: *)
 let equate_via (_:'a) : unit = ()
 [@@equate_via bigstar_equiv]
-val bigstar' 
+val bigstar'
   (m : nat)
   (n : nat {m <= n})
   (f : (i:nat { m <= i /\ i < n } -> slprop))
