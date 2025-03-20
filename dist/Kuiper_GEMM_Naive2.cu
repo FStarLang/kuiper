@@ -37,7 +37,7 @@ float_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_0,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -94,7 +94,7 @@ double_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_1,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -151,7 +151,7 @@ uint32_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_2,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -206,7 +206,7 @@ uint64_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_3,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -261,7 +261,7 @@ float_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_4,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -318,7 +318,7 @@ double_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_5,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -375,7 +375,7 @@ uint32_t
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_6,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -430,7 +430,7 @@ uint64_t
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
   KPR_KCALL(__hoisted_7,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -481,7 +481,7 @@ Kuiper_GEMM_Naive2_g_matmul_f32_rrr(
 )
 {
   KPR_KCALL(__hoisted_8,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -525,7 +525,7 @@ Kuiper_GEMM_Naive2_g_matmul_f64_rrr(
 )
 {
   KPR_KCALL(__hoisted_9,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -569,7 +569,7 @@ Kuiper_GEMM_Naive2_g_matmul_u32_rrr(
 )
 {
   KPR_KCALL(__hoisted_10,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -613,7 +613,7 @@ Kuiper_GEMM_Naive2_g_matmul_u64_rrr(
 )
 {
   KPR_KCALL(__hoisted_11,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -657,7 +657,7 @@ Kuiper_GEMM_Naive2_g_matmul_f32_ccc(
 )
 {
   KPR_KCALL(__hoisted_12,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -701,7 +701,7 @@ Kuiper_GEMM_Naive2_g_matmul_f64_ccc(
 )
 {
   KPR_KCALL(__hoisted_13,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -745,7 +745,7 @@ Kuiper_GEMM_Naive2_g_matmul_u32_ccc(
 )
 {
   KPR_KCALL(__hoisted_14,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
@@ -789,7 +789,7 @@ Kuiper_GEMM_Naive2_g_matmul_u64_ccc(
 )
 {
   KPR_KCALL(__hoisted_15,
-    (rows * cols + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (rows * cols + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,

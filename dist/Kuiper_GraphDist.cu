@@ -55,7 +55,9 @@ static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
     {
       size_t vk = k;
       uint16_t s = sum;
-      sum = Kuiper_GraphDist_add(s, Kuiper_GraphDist_mult(a[trow * size + vk], a[vk * size + tcol]));
+      sum =
+        Kuiper_GraphDist_add_(s,
+          Kuiper_GraphDist_mult(a[trow * size + vk], a[vk * size + tcol]));
       k = vk + (size_t)1U;
     }
     uint16_t s = sum;
@@ -66,7 +68,7 @@ static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
 void Kuiper_GraphDist_matmul_dist_gpu(size_t size, uint16_t *a, uint16_t *b)
 {
   KPR_KCALL(__hoisted_0,
-    (size * size + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (size * size + (size_t)1023U) / (size_t)1024U,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
