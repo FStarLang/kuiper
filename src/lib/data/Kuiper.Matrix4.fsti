@@ -199,7 +199,7 @@ fn gpu_matrix_free
 ghost
 fn gpu_matrix_share_n
   (#et:Type0)
-  (#uid: int)
+  (#[T.exact (`0)]uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)

@@ -87,6 +87,7 @@ val lemma_matmul_index
   (i : nat{ i < rows })
   (j : nat{ j < columns })
 : Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j shared)
+        [SMTPat (matmul_single m1 m2 i j shared)]
 
 let mmcomb
   (#et:Type) {| scalar et |}

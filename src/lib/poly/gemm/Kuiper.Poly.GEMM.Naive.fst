@@ -132,13 +132,13 @@ fn setup
     emp (* frame *)
 {
   // Sharing the input matrices (splitting permissions)
-  M.gpu_matrix_share_n #_ #0 gA (rows *^ cols);
+  M.gpu_matrix_share_n gA (rows *^ cols);
   forevery_fromstar #(natlt2 rows cols) _;
-  M.gpu_matrix_share_n #_ #0 gB (rows *^ cols);
+  M.gpu_matrix_share_n gB (rows *^ cols);
   forevery_fromstar #(natlt2 rows cols) _;
 
   // Sharing the output matrix (splitting each cell)
-  M.gpu_matrix_explode #_ gC;
+  M.gpu_matrix_explode gC;
 
   forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
     M.gpu_matrix_pts_to_cell gC r c (macc eC r c));
@@ -225,8 +225,13 @@ fn teardown
     ensures
       M.gpu_matrix_pts_to_cell gC r c (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
-    MS.lemma_matmul_index eA eB r c;
-    () (* BUG! Should not be needed. *)
+    ()
+    // MS.lemma_matmul_index eA eB r c;
+    // ^has smtpat now
+    (* If it doesn't have an SMTPat, we should just be able to call it,
+    but we currently require an extra ;() to make pure elimination kick
+    in (I think). *)
+    // () (* BUG! Should not be needed. *)
   };
   forevery_map_2 #(natlt rows) #_ #(natlt cols)
     (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c shared))
