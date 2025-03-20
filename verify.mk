@@ -188,7 +188,7 @@ depend.pdf: .depend .force
 	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(EXTRACT) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
-	sed -i 's/^digraph {/& ratio=1;/' .depend.simpl
+	sed -i 's/^digraph{/& ratio=1;/' .depend.simpl
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
@@ -213,6 +213,11 @@ $(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
+	sed -i 's/threadIdx_x/threadIdx.x/' $@
+	sed -i 's/blockDim_x/blockDix.x/' $@
+	sed -i 's/blockIdx_x/blockIdx.x/' $@
+	sed -i 's/gridDim_x/gridDim.x/' $@
+	sed -i '/__global__/{n;/^$$/d}' $@
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include

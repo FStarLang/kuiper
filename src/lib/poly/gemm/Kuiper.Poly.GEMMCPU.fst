@@ -211,7 +211,7 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
 
-  matmul_gpu #et #_ (MS.lincomb alpha beta) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
+  matmul_gpu #et #_ (MS.lincomb beta alpha) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
 
 inline_for_extraction noextract

@@ -3,25 +3,18 @@
 #include "Kuiper_DotProduct.h"
 
 __global__
-
 static void __hoisted_0(size_t lena, float_t *ga1, float_t *ga2)
 {
-  float_t v11 = ga1[threadIdx_x()];
-  float_t vm = v11 * ga2[threadIdx_x()];
-  ga1[threadIdx_x()] = vm;
+  ga1[threadIdx.x] *= ga2[threadIdx_x];
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        float_t s1 = ga1[threadIdx_x()];
-        float_t s = s1 + ga1[nextid];
-        ga1[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        ga1[threadIdx.x] += ga1[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -46,25 +39,18 @@ float_t Kuiper_DotProduct_dotprod_f32(size_t lena, float_t *a1, float_t *a2)
 }
 
 __global__
-
 static void __hoisted_1(size_t lena, double_t *ga1, double_t *ga2)
 {
-  double_t v11 = ga1[threadIdx_x()];
-  double_t vm = v11 * ga2[threadIdx_x()];
-  ga1[threadIdx_x()] = vm;
+  ga1[threadIdx.x] *= ga2[threadIdx_x];
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        double_t s1 = ga1[threadIdx_x()];
-        double_t s = s1 + ga1[nextid];
-        ga1[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        ga1[threadIdx.x] += ga1[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -89,25 +75,18 @@ double_t Kuiper_DotProduct_dotprod_f64(size_t lena, double_t *a1, double_t *a2)
 }
 
 __global__
-
 static void __hoisted_2(size_t lena, uint32_t *ga1, uint32_t *ga2)
 {
-  uint32_t v11 = ga1[threadIdx_x()];
-  uint32_t vm = v11 * ga2[threadIdx_x()];
-  ga1[threadIdx_x()] = vm;
+  ga1[threadIdx.x] *= ga2[threadIdx_x];
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        uint32_t s1 = ga1[threadIdx_x()];
-        uint32_t s = s1 + ga1[nextid];
-        ga1[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        ga1[threadIdx.x] += ga1[nextid];
     n = it + (size_t)1U;
   }
 }
@@ -130,25 +109,18 @@ uint32_t Kuiper_DotProduct_dotprod_u32(size_t lena, uint32_t *a1, uint32_t *a2)
 }
 
 __global__
-
 static void __hoisted_3(size_t lena, uint64_t *ga1, uint64_t *ga2)
 {
-  uint64_t v11 = ga1[threadIdx_x()];
-  uint64_t vm = v11 * ga2[threadIdx_x()];
-  ga1[threadIdx_x()] = vm;
+  ga1[threadIdx.x] *= ga2[threadIdx_x];
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
     size_t it = n;
     __syncthreads();
-    size_t nextid = threadIdx_x() + (size_t)(1U << (uint32_t)it);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
-      if ((threadIdx_x() & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-      {
-        uint64_t s1 = ga1[threadIdx_x()];
-        uint64_t s = s1 + ga1[nextid];
-        ga1[threadIdx_x()] = s;
-      }
+      if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
+        ga1[threadIdx.x] += ga1[nextid];
     n = it + (size_t)1U;
   }
 }

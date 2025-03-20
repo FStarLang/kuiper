@@ -3,7 +3,6 @@
 #include "Kuiper_GEMM_SHMem.h"
 
 __global__
-
 static void
 __hoisted_0(
   size_t tile,
@@ -17,10 +16,10 @@ __hoisted_0(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -97,7 +96,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_1(
   size_t tile,
@@ -111,10 +109,10 @@ __hoisted_1(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -191,7 +189,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_2(
   size_t tile,
@@ -205,10 +202,10 @@ __hoisted_2(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -282,7 +279,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_3(
   size_t tile,
@@ -296,10 +292,10 @@ __hoisted_3(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -373,7 +369,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_4(
   size_t tile,
@@ -387,10 +382,10 @@ __hoisted_4(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -467,7 +462,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_5(
   size_t tile,
@@ -481,10 +475,10 @@ __hoisted_5(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -561,7 +555,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_6(
   size_t tile,
@@ -575,10 +568,10 @@ __hoisted_6(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -652,7 +645,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_7(
   size_t tile,
@@ -666,10 +658,10 @@ __hoisted_7(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -743,7 +735,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_8(
   size_t shared,
@@ -756,10 +747,10 @@ __hoisted_8(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -834,7 +825,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_9(
   size_t shared,
@@ -847,10 +837,10 @@ __hoisted_9(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -925,7 +915,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_10(
   size_t shared,
@@ -938,10 +927,10 @@ __hoisted_10(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1013,7 +1002,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_11(
   size_t shared,
@@ -1026,10 +1014,10 @@ __hoisted_11(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1101,7 +1089,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_12(
   size_t rows,
@@ -1114,10 +1101,10 @@ __hoisted_12(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1192,7 +1179,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_13(
   size_t rows,
@@ -1205,10 +1191,10 @@ __hoisted_13(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1283,7 +1269,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_14(
   size_t rows,
@@ -1296,10 +1281,10 @@ __hoisted_14(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1371,7 +1356,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_15(
   size_t rows,
@@ -1384,10 +1368,10 @@ __hoisted_15(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1459,7 +1443,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_16(
   size_t shared,
@@ -1472,10 +1455,10 @@ __hoisted_16(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1550,7 +1533,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_17(
   size_t shared,
@@ -1563,10 +1545,10 @@ __hoisted_17(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1641,7 +1623,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_18(
   size_t shared,
@@ -1654,10 +1635,10 @@ __hoisted_18(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1729,7 +1710,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_19(
   size_t shared,
@@ -1742,10 +1722,10 @@ __hoisted_19(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1817,7 +1797,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_20(
   size_t rows,
@@ -1830,10 +1809,10 @@ __hoisted_20(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1908,7 +1887,6 @@ float_t
 }
 
 __global__
-
 static void
 __hoisted_21(
   size_t rows,
@@ -1921,10 +1899,10 @@ __hoisted_21(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -1999,7 +1977,6 @@ double_t
 }
 
 __global__
-
 static void
 __hoisted_22(
   size_t rows,
@@ -2012,10 +1989,10 @@ __hoisted_22(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2087,7 +2064,6 @@ uint32_t
 }
 
 __global__
-
 static void
 __hoisted_23(
   size_t rows,
@@ -2100,10 +2076,10 @@ __hoisted_23(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2175,7 +2151,6 @@ uint64_t
 }
 
 __global__
-
 static void
 __hoisted_24(
   size_t tile,
@@ -2189,10 +2164,10 @@ __hoisted_24(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2255,7 +2230,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_25(
   size_t tile,
@@ -2269,10 +2243,10 @@ __hoisted_25(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2335,7 +2309,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_26(
   size_t tile,
@@ -2349,10 +2322,10 @@ __hoisted_26(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2415,7 +2388,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_27(
   size_t tile,
@@ -2429,10 +2401,10 @@ __hoisted_27(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2495,7 +2467,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_28(
   size_t tile,
@@ -2509,10 +2480,10 @@ __hoisted_28(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2575,7 +2546,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_29(
   size_t tile,
@@ -2589,10 +2559,10 @@ __hoisted_29(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2655,7 +2625,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_30(
   size_t tile,
@@ -2669,10 +2638,10 @@ __hoisted_30(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2735,7 +2704,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_31(
   size_t tile,
@@ -2749,10 +2717,10 @@ __hoisted_31(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2815,7 +2783,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_32(
   size_t shared,
@@ -2828,10 +2795,10 @@ __hoisted_32(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2892,7 +2859,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_33(
   size_t shared,
@@ -2905,10 +2871,10 @@ __hoisted_33(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -2969,7 +2935,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_34(
   size_t shared,
@@ -2982,10 +2947,10 @@ __hoisted_34(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3046,7 +3011,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_35(
   size_t shared,
@@ -3059,10 +3023,10 @@ __hoisted_35(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3123,7 +3087,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_36(
   size_t rows,
@@ -3136,10 +3099,10 @@ __hoisted_36(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3200,7 +3163,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_37(
   size_t rows,
@@ -3213,10 +3175,10 @@ __hoisted_37(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3277,7 +3239,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_38(
   size_t rows,
@@ -3290,10 +3251,10 @@ __hoisted_38(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3354,7 +3315,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_39(
   size_t rows,
@@ -3367,10 +3327,10 @@ __hoisted_39(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3431,7 +3391,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_40(
   size_t shared,
@@ -3444,10 +3403,10 @@ __hoisted_40(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3508,7 +3467,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_41(
   size_t shared,
@@ -3521,10 +3479,10 @@ __hoisted_41(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3585,7 +3543,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_42(
   size_t shared,
@@ -3598,10 +3555,10 @@ __hoisted_42(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3662,7 +3619,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_43(
   size_t shared,
@@ -3675,10 +3631,10 @@ __hoisted_43(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3739,7 +3695,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_44(
   size_t rows,
@@ -3752,10 +3707,10 @@ __hoisted_44(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3816,7 +3771,6 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_45(
   size_t rows,
@@ -3829,10 +3783,10 @@ __hoisted_45(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3893,7 +3847,6 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_46(
   size_t rows,
@@ -3906,10 +3859,10 @@ __hoisted_46(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -3970,7 +3923,6 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_47(
   size_t rows,
@@ -3983,10 +3935,10 @@ __hoisted_47(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4047,7 +3999,6 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_48(
   size_t tile,
@@ -4063,10 +4014,10 @@ __hoisted_48(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4088,7 +4039,7 @@ __hoisted_48(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4134,7 +4085,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_49(
   size_t tile,
@@ -4150,10 +4100,10 @@ __hoisted_49(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4175,7 +4125,7 @@ __hoisted_49(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4221,7 +4171,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_50(
   size_t tile,
@@ -4237,10 +4186,10 @@ __hoisted_50(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4262,7 +4211,7 @@ __hoisted_50(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4308,7 +4257,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_51(
   size_t tile,
@@ -4324,10 +4272,10 @@ __hoisted_51(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4349,7 +4297,7 @@ __hoisted_51(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] =
-    alpha * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + beta * sum;
+    beta * gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] + alpha * sum;
 }
 
 void
@@ -4395,7 +4343,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_rrr(
 }
 
 __global__
-
 static void
 __hoisted_52(
   size_t tile,
@@ -4411,10 +4358,10 @@ __hoisted_52(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4436,7 +4383,7 @@ __hoisted_52(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4482,7 +4429,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_53(
   size_t tile,
@@ -4498,10 +4444,10 @@ __hoisted_53(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4523,7 +4469,7 @@ __hoisted_53(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4569,7 +4515,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_54(
   size_t tile,
@@ -4585,10 +4530,10 @@ __hoisted_54(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4610,7 +4555,7 @@ __hoisted_54(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4656,7 +4601,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_55(
   size_t tile,
@@ -4672,10 +4616,10 @@ __hoisted_55(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / tile;
-  size_t bcol = threadIdx_x() % tile;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / tile;
+  size_t bcol = threadIdx.x % tile;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4697,7 +4641,7 @@ __hoisted_55(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] =
-    alpha * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + beta * sum;
+    beta * gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] + alpha * sum;
 }
 
 void
@@ -4743,7 +4687,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_ccc(
 }
 
 __global__
-
 static void
 __hoisted_56(
   float_t alpha,
@@ -4758,10 +4701,10 @@ __hoisted_56(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4783,7 +4726,7 @@ __hoisted_56(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -4827,7 +4770,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_57(
   double_t alpha,
@@ -4842,10 +4784,10 @@ __hoisted_57(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4867,7 +4809,7 @@ __hoisted_57(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -4911,7 +4853,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_58(
   uint32_t alpha,
@@ -4926,10 +4867,10 @@ __hoisted_58(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -4951,7 +4892,7 @@ __hoisted_58(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -4995,7 +4936,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_59(
   uint64_t alpha,
@@ -5010,10 +4950,10 @@ __hoisted_59(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5035,7 +4975,7 @@ __hoisted_59(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] =
-    alpha * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)32U + brow) * cols + mcol * (size_t)32U + bcol] + alpha * sum;
 }
 
 void
@@ -5079,7 +5019,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_rrr(
 }
 
 __global__
-
 static void
 __hoisted_60(
   float_t alpha,
@@ -5094,10 +5033,10 @@ __hoisted_60(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5119,7 +5058,7 @@ __hoisted_60(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5163,7 +5102,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_61(
   double_t alpha,
@@ -5178,10 +5116,10 @@ __hoisted_61(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5203,7 +5141,7 @@ __hoisted_61(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5247,7 +5185,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_62(
   uint32_t alpha,
@@ -5262,10 +5199,10 @@ __hoisted_62(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5287,7 +5224,7 @@ __hoisted_62(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5331,7 +5268,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_63(
   uint64_t alpha,
@@ -5346,10 +5282,10 @@ __hoisted_63(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)32U;
-  size_t bcol = threadIdx_x() % (size_t)32U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)32U;
+  size_t bcol = threadIdx.x % (size_t)32U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5371,7 +5307,7 @@ __hoisted_63(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] =
-    alpha * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)32U + bcol) * rows + mrow * (size_t)32U + brow] + alpha * sum;
 }
 
 void
@@ -5415,7 +5351,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_ccc(
 }
 
 __global__
-
 static void
 __hoisted_64(
   float_t alpha,
@@ -5430,10 +5365,10 @@ __hoisted_64(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5455,7 +5390,7 @@ __hoisted_64(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5499,7 +5434,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_65(
   double_t alpha,
@@ -5514,10 +5448,10 @@ __hoisted_65(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5539,7 +5473,7 @@ __hoisted_65(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5583,7 +5517,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_66(
   uint32_t alpha,
@@ -5598,10 +5531,10 @@ __hoisted_66(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5623,7 +5556,7 @@ __hoisted_66(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5667,7 +5600,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_67(
   uint64_t alpha,
@@ -5682,10 +5614,10 @@ __hoisted_67(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5707,7 +5639,7 @@ __hoisted_67(
     bk = vbk + (size_t)1U;
   }
   gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] =
-    alpha * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + beta * sum;
+    beta * gC4[(mrow * (size_t)16U + brow) * cols + mcol * (size_t)16U + bcol] + alpha * sum;
 }
 
 void
@@ -5751,7 +5683,6 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_rrr(
 }
 
 __global__
-
 static void
 __hoisted_68(
   float_t alpha,
@@ -5766,10 +5697,10 @@ __hoisted_68(
 )
 {
   float_t *ar = (float_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   float_t sum = (float_t)0.0f;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5791,7 +5722,7 @@ __hoisted_68(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
@@ -5835,7 +5766,6 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_69(
   double_t alpha,
@@ -5850,10 +5780,10 @@ __hoisted_69(
 )
 {
   double_t *ar = (double_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   double_t sum = (double_t)0.0l;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5875,7 +5805,7 @@ __hoisted_69(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
@@ -5919,7 +5849,6 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_70(
   uint32_t alpha,
@@ -5934,10 +5863,10 @@ __hoisted_70(
 )
 {
   uint32_t *ar = (uint32_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint32_t sum = 0U;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -5959,7 +5888,7 @@ __hoisted_70(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void
@@ -6003,7 +5932,6 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_ccc(
 }
 
 __global__
-
 static void
 __hoisted_71(
   uint64_t alpha,
@@ -6018,10 +5946,10 @@ __hoisted_71(
 )
 {
   uint64_t *ar = (uint64_t *)KPR_SHMEM();
-  size_t mrow = blockIdx_x() / mcols;
-  size_t mcol = blockIdx_x() % mcols;
-  size_t brow = threadIdx_x() / (size_t)16U;
-  size_t bcol = threadIdx_x() % (size_t)16U;
+  size_t mrow = blockIdx.x / mcols;
+  size_t mcol = blockIdx.x % mcols;
+  size_t brow = threadIdx.x / (size_t)16U;
+  size_t bcol = threadIdx.x % (size_t)16U;
   uint64_t sum = 0ULL;
   size_t bk = (size_t)0U;
   while (bk < mshared)
@@ -6043,7 +5971,7 @@ __hoisted_71(
     bk = vbk + (size_t)1U;
   }
   gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] =
-    alpha * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + beta * sum;
+    beta * gC4[(mcol * (size_t)16U + bcol) * rows + mrow * (size_t)16U + brow] + alpha * sum;
 }
 
 void

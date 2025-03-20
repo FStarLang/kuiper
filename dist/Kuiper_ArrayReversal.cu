@@ -3,13 +3,11 @@
 #include "Kuiper_ArrayReversal.h"
 
 __global__
-
 static void __hoisted_0(size_t size, uint64_t *a)
 {
-  size_t idx = blockIdx_x();
-  size_t idx_ = size - idx - (size_t)1U;
-  uint64_t uu = a[idx];
-  a[idx] = a[idx_];
+  size_t idx_ = size - blockIdx.x - (size_t)1U;
+  uint64_t uu = a[blockIdx.x];
+  a[blockIdx.x] = a[idx_];
   a[idx_] = uu;
 }
 

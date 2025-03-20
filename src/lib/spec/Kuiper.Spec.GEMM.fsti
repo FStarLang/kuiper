@@ -115,4 +115,4 @@ let gemm
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
-= matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)
+= matrix_comb (lincomb beta alpha) m0 (matmul m1 m2)
