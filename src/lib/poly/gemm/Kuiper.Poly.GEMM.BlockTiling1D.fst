@@ -6,6 +6,7 @@ open Kuiper
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
+open Kuiper.View.TwoTiles { aview_2tile2, mkAIdx, mkCIdx }
 
 open Kuiper.Matrix4 {
   gpu_matrix as gpu_matrix4,
@@ -22,72 +23,11 @@ module B = Kuiper.Barrier
 
 open Kuiper.EMatrix { ematrix }
 open Kuiper.ArrayView {
-  aview,
-  cview,
   varray,
   varray_pts_to,
   varray_pts_to_cell
 }
 module AV = Kuiper.ArrayView
-
-
-(**************
-Here is how we to define the shared memory view, just pasting
-two row-major views together. The one problem with this is that trying
-to use indices like Inl (i / tile, i % tile) below does not work well:
-apparently bidirectionality is not kicking in and
-the types are inferred to be int/SZ.t instead of the proper refinements.
-So, instead, we define mkAIdx and mkCIdx functions that return the right
-types, and use them in the code below.
-***************)
-
-module MC = Kuiper.Matrix.Common
-module R  = Kuiper.Matrix.Reprs
-let aview_2tile2
-  (et : Type0)
-  (tile : valid_tile)
-  : aview et (2sz *^ tile *^ tile) (ematrix et tile tile & ematrix et tile tile)
-= Kuiper.View.Sum.aview_sum
-    (MC.aview_from_mlayout et (R.row_major tile tile))
-    (MC.aview_from_mlayout et (R.row_major tile tile))
-
-inline_for_extraction noextract
-instance cview_2tile2
-  (et : Type0)
-  (tile : valid_tile)
-  : cview (aview_2tile2 et tile)
-  = Kuiper.View.Sum.cview_sum
-      #_
-      #(tile *^ tile) #_ #(tile *^ tile) #_
-      _ (Kuiper.Matrix.cview_from_clayout _ _ solve) (* FIXME: just 'solve' should work? *)
-      _ (Kuiper.Matrix.cview_from_clayout _ _ solve)
-      ()
-
-(**************)
-
-type ait (tile : valid_tile) = either (natlt tile & natlt tile) (natlt tile & natlt tile)
-
-inline_for_extraction noextract
-type cit (tile : valid_tile) = either (szlt tile & szlt tile) (szlt tile & szlt tile)
-
-let chk1 et (tile : valid_tile) = assert ((aview_2tile2 et tile).it == ait tile)
-let chk2 et (tile : valid_tile) = assert_norm ((cview_2tile2 et tile).cit == cit tile)
-
-let mkAIdx (#tile:valid_tile) (i : natlt 2) (j : natlt tile) (k : natlt tile) : ait tile =
-  match i with
-  | 0 -> Inl (j, k)
-  | 1 -> Inr (j, k)
-
-inline_for_extraction noextract
-let mkCIdx (#tile:valid_tile) (i : szlt 2) (j : szlt tile) (k : szlt tile) : cit tile =
-  (* FIXME!!!! A match with machine integers does not reduce.
-     We have to use the if-then-else form to get C code out. *)
-  if i = 0sz
-  then Inl (j, k)
-  else Inr (j, k)
-  // match i with
-  // | 0sz -> Inl (j, k)
-  // | 1sz -> Inr (j, k)
 
 (* The barrier flip-flops between an initial state
 where every threads shares all of the array, and
@@ -324,10 +264,10 @@ fn subproduct
       let vi = !i;
       let v1 = AV.varray_read ar (mkCIdx #tile 0sz vi vsk);
 
-      let v = v1 `mul` v2;
-      let v0 = Pulse.Lib.Array.op_Array_Access acc vi;
-      let v' = v0 `add` v;
-      Pulse.Lib.Array.op_Array_Assignment acc vi v';
+      open Pulse.Lib.Array;
+      let sum0 = acc.(vi);
+      let sum1 = sum0 `add` (v1 `mul` v2);
+      acc.(vi) <- sum1;
       i := vi +^ 1sz;
     };
     sk := vsk +^ 1sz;
@@ -481,10 +421,6 @@ fn kf
     (* At this point we exclusively own a full column of the SHMEM
        cache. Populate it. *)
     bring_2cols tile gA gB ar mrow vbk mcol tid;
-    // let v1 = M4.gpu_matrix_read gA mrow vbk vbk bcol;
-    // let v2 = M4.gpu_matrix_read gB vbk mcol vbk bcol;
-    // AV.varray_write_cell' ar (mkCIdx 0sz vbk bcol) (mkAIdx 0 (tid / tile) (tid % tile)) v1;
-    // AV.varray_write_cell' ar (mkCIdx 1sz vbk bcol) (mkAIdx 1 (tid / tile) (tid % tile)) v2;
 
     assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
     odd_2x1 vbk;
@@ -535,7 +471,8 @@ fn kf
           as m4_pts_to_cell gC mrow mcol vrow bcol v0;
 
     let v0 = M4.gpu_matrix_read_cell gC mrow mcol vrow bcol;
-    let v1 = Pulse.Lib.Array.op_Array_Access sums vrow;
+    open Pulse.Lib.Array;
+    let v1 = sums.(vrow);
     let v' = comb v0 v1;
     M4.gpu_matrix_write_cell gC mrow mcol vrow bcol v';
 

@@ -1,6 +1,10 @@
 default: all
 include .common.mk
 
+all: verify-all
+all: extraction-targets
+all: build-targets
+
 .PHONY: .force
 .force:
 
@@ -133,7 +137,6 @@ KRML := $(KRML_HOME)/krml				\
 # This sandwich is needed so all is the first rule (and not
 # something in the include), and verify-all can refer to ALL_CHECKED_FILES,
 # which is empty before including .depend. Sigh.
-all: verify-all extraction-targets
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),echo-fstar)
 ifneq ($(MAKECMDGOALS),echo-krml)
@@ -230,7 +233,7 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
 .SECONDEXPANSION:
-$(OUTDIR)/Test_%.o: test/Test_%.cu test/*.c.inc include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
+$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
@@ -273,7 +276,7 @@ extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,ob
 # And src/lib/inst/gemm...
 extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/gemm/%.fst,obj/%.cu,$(wildcard src/lib/inst/gemm/*.fst))))
 # *Build* every executable in test/, we can do this without a GPU
-extraction-targets: $(patsubst %,obj/%.exe,$(TESTS))
+build-targets: $(patsubst %,obj/%.exe,$(TESTS))
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))

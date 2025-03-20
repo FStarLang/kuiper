@@ -12,6 +12,10 @@ prepare:
 test:
 	+$(MAKE) -f verify.mk test
 
+.PHONY: extraction-targets
+extraction-targets:
+	+$(MAKE) -f verify.mk extraction-targets
+
 .PHONY: echo-fstar
 echo-fstar:
 	+$(MAKE) -f verify.mk $@
@@ -43,7 +47,7 @@ clean:
 clean-full: clean
 	git submodule foreach git clean -dXf
 
-dist: all
+dist: extraction-targets
 	rm -f dist/*
 	cp obj/*.cu obj/*.h dist
 
@@ -55,8 +59,8 @@ lint-c:
 lint-fstar:
 	./FStar/.scripts/remove_all_unused_opens.sh extraction
 	./FStar/.scripts/remove_all_unused_opens.sh src
-	( cd src && git sed 's/ *$$//' )
-	( cd extraction && git sed 's/ *$$//' )
+	( cd src && git sed 's/[[:space:]]*$$//' )
+	( cd extraction && git sed 's/[[:space:]]*$$//' )
 	( cd src && ../scripts/find-pulse-noix.sh )
 	( cd src && ../scripts/check-attrs.sh )
 

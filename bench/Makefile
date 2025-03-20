@@ -1,2 +1,7 @@
-bench: runner.cu sgemm.cu
-	nvcc -O3 -I . runner.cu sgemm.cu -o $@ -lcublas
+.SUFFIXES:
+
+bench: runner.o sgemm.o
+	nvcc -O3 $^ -o $@ -lcublas
+
+%.o: %.cu
+	nvcc -I . -c $< -o $@

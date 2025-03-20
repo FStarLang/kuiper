@@ -67,4 +67,4 @@ maybe_cygwin_path=$(if $(findstring $(OS),Windows_NT),$(shell cygpath -m $(1)),$
 .DELETE_ON_ERROR:
 
 # No default rules
-.SUFIXES:
+.SUFFIXES:

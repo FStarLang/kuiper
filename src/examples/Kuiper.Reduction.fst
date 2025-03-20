@@ -69,7 +69,7 @@ fn k_reduce_and_set
 }
 
 inline_for_extraction noextract
-[@@noextract_to "krml"]	
+[@@noextract_to "krml"]
 fn copy_to_gpu
   (#t:Type0)
   {| d : sized t |}
@@ -87,7 +87,7 @@ fn copy_to_gpu
 }
 
 inline_for_extraction noextract
-[@@noextract_to "krml"]	
+[@@noextract_to "krml"]
 fn reduce
   (#t : Type0)
   {| d : scalar t |}

@@ -83,8 +83,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -173,8 +172,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -437,8 +435,7 @@ float_t
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -527,8 +524,7 @@ double_t
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -761,35 +757,27 @@ float_t
   float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_8,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -848,35 +836,27 @@ double_t
   double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_9,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -935,29 +915,22 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_10,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -1019,29 +992,22 @@ uint64_t
   uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_11,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -1103,35 +1069,27 @@ float_t
   float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_12,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1190,35 +1148,27 @@ double_t
   double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_13,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1277,29 +1227,22 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_14,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -1361,29 +1304,22 @@ uint64_t
   uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_15,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -1445,35 +1381,27 @@ float_t
   float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_16,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1532,35 +1460,27 @@ double_t
   double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_17,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1619,29 +1539,22 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_18,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -1703,29 +1616,22 @@ uint64_t
   uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_19,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -1787,35 +1693,27 @@ float_t
   float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_20,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (float_t)0.0f;
+    memset(c, 0U, rows * cols * sizeof (float_t));
   MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1874,35 +1772,27 @@ double_t
   double_t *gC = (double_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_21,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
   if (c != NULL)
-    for (uint32_t _i = 0U; _i < rows * cols; ++_i)
-      c[_i] = (double_t)0.0l;
+    memset(c, 0U, rows * cols * sizeof (double_t));
   MUST(cudaMemcpy(c, gC, (size_t)8U * (rows * cols), cudaMemcpyDeviceToHost));
   MUST(cudaFree(gA));
   MUST(cudaFree(gB));
@@ -1961,29 +1851,22 @@ uint32_t
   uint32_t *gC = (uint32_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_22,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -2045,29 +1928,22 @@ uint64_t
   uint64_t *gC = (uint64_t *)KPR_GPU_ALLOC((size_t)8U, rows * cols);
   MUST(cudaMemcpy(gA, a, (size_t)8U * (rows * shared), cudaMemcpyHostToDevice));
   MUST(cudaMemcpy(gB, b, (size_t)8U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_23,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -2733,29 +2609,22 @@ Kuiper_GEMM_Tiled_g_matmul_f32_tile32_rrr(
   float_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_32,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -2806,29 +2675,22 @@ Kuiper_GEMM_Tiled_g_matmul_f64_tile32_rrr(
   double_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_33,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -2879,29 +2741,22 @@ Kuiper_GEMM_Tiled_g_matmul_u32_tile32_rrr(
   uint32_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_34,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -2952,29 +2807,22 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile32_rrr(
   uint64_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_35,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3025,29 +2873,22 @@ Kuiper_GEMM_Tiled_g_matmul_f32_tile32_ccc(
   float_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_36,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3098,29 +2939,22 @@ Kuiper_GEMM_Tiled_g_matmul_f64_tile32_ccc(
   double_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_37,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3171,29 +3005,22 @@ Kuiper_GEMM_Tiled_g_matmul_u32_tile32_ccc(
   uint32_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_38,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3244,29 +3071,22 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile32_ccc(
   uint64_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mrows = rows / (size_t)32U;
-  size_t mshared = shared / (size_t)32U;
   size_t mcols = cols / (size_t)32U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_39,
-    mrows * mcols,
+    rows / (size_t)32U * mcols,
     (size_t)1024U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)32U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3317,29 +3137,22 @@ Kuiper_GEMM_Tiled_g_matmul_f32_tile16_rrr(
   float_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_40,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3390,29 +3203,22 @@ Kuiper_GEMM_Tiled_g_matmul_f64_tile16_rrr(
   double_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_41,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3463,29 +3269,22 @@ Kuiper_GEMM_Tiled_g_matmul_u32_tile16_rrr(
   uint32_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_42,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3536,29 +3335,22 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile16_rrr(
   uint64_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_43,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     shared,
     cols,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3609,29 +3401,22 @@ Kuiper_GEMM_Tiled_g_matmul_f32_tile16_ccc(
   float_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  float_t *gA4 = gA;
-  float_t *gB4 = gB;
-  float_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_44,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3682,29 +3467,22 @@ Kuiper_GEMM_Tiled_g_matmul_f64_tile16_ccc(
   double_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  double_t *gA4 = gA;
-  double_t *gB4 = gB;
-  double_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_45,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3755,29 +3533,22 @@ Kuiper_GEMM_Tiled_g_matmul_u32_tile16_ccc(
   uint32_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint32_t *gA4 = gA;
-  uint32_t *gB4 = gB;
-  uint32_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_46,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 
@@ -3828,29 +3599,22 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile16_ccc(
   uint64_t *gC
 )
 {
-  KPR_ASSERT(true);
   KPR_GUARD(rows % (size_t)16U == (size_t)0U);
   KPR_GUARD(shared % (size_t)16U == (size_t)0U);
   KPR_GUARD(cols % (size_t)16U == (size_t)0U);
-  size_t mrows = rows / (size_t)16U;
-  size_t mshared = shared / (size_t)16U;
   size_t mcols = cols / (size_t)16U;
-  uint64_t *gA4 = gA;
-  uint64_t *gB4 = gB;
-  uint64_t *gC4 = gC;
-  KPR_ASSERT(true);
   KPR_KCALL(__hoisted_47,
-    mrows * mcols,
+    rows / (size_t)16U * mcols,
     (size_t)256U,
     (size_t)1U,
     (size_t)0U,
     rows,
     shared,
-    mshared,
+    shared / (size_t)16U,
     mcols,
-    gA4,
-    gB4,
-    gC4);
+    gA,
+    gB,
+    gC);
   cudaDeviceSynchronize();
 }
 

@@ -33,14 +33,12 @@ let kpre
   (tid : natlt 1024sz)
   : slprop
   =
-  (if in_bounds rows cols bid tid
-   then
+  if in_bounds rows cols bid tid then (
     M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
     M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
     M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
        (macc eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols))
-   else
-     emp)
+   ) else emp
 
 unfold
 let kpost
@@ -61,14 +59,12 @@ let kpost
   (tid : natlt 1024sz)
   : slprop
   =
-  (if in_bounds rows cols bid tid
-   then
-    M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
-    M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
-    M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
-      (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
-   else
-     emp)
+  if in_bounds rows cols bid tid then (
+   M.gpu_matrix_pts_to gA #(f /. (rows * cols)) eA **
+   M.gpu_matrix_pts_to gB #(f /. (rows * cols)) eB **
+   M.gpu_matrix_pts_to_cell gC #1.0R ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols)
+     (MS.gemm_single comb eA eB eC ((bid * 1024 + tid) / cols) ((bid * 1024 + tid) % cols) shared)
+  ) else emp
 
 inline_for_extraction noextract
 fn kf

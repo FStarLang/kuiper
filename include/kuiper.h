@@ -22,13 +22,14 @@ typedef half half_t; /* crutch */
 #include <cuda_runtime.h>
 
 static inline
-void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
+void __MUST(cudaError_t rc, const char * str, const char * func, const char *fname, int line)
 {
 	if (rc != cudaSuccess) {
 		fprintf(stderr, "*** ABORTING ***\n");
-		fprintf(stderr, "This call failed: %s\n", str);
-		fprintf(stderr, "At file %s, line %d\n", fname, line);
-		fprintf(stderr, "CUDA error: %s\n", cudaGetErrorString(rc));
+		fprintf(stderr, " This call failed: %s\n", str);
+		fprintf(stderr, " At file %s, line %d\n", fname, line);
+		fprintf(stderr, " In function %s\n", func);
+		fprintf(stderr, " CUDA error: %s\n", cudaGetErrorString(rc));
 		exit(1);
 	}
 }
@@ -37,24 +38,25 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
  * All kernel calls extract to this. The shared memory will just
  * be zero if not used, etc.
  */
-#define KPR_KCALL(foo, nblk, nthr, e_size, cnt, ...)		\
-	do {									\
-		foo<<<nblk, nthr, ((e_size) * (cnt))>>>(__VA_ARGS__);		\
-		__MUST(cudaGetLastError(), "kcall", __FILE__, __LINE__);	\
+#define KPR_KCALL(foo, nblk, nthr, e_size, cnt, ...)					\
+	do {										\
+		foo<<<nblk, nthr, ((e_size) * (cnt))>>>(__VA_ARGS__);			\
+		__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);	\
 	} while (0)
 
-#define KPR_SHMEM()							\
-	({								\
-		extern __shared__ char a[];				\
-		a;							\
+#define KPR_SHMEM()									\
+	({										\
+		extern __shared__ char a[];						\
+		a;									\
 	})
 
 #define KPR_GUARD(b)								\
 	do {									\
 		if (!(b)) {							\
 			fprintf(stderr, "*** ABORTING ***\n");			\
-			fprintf(stderr, "This guard failed: %s\n", #b);		\
-			fprintf(stderr, "At " __FILE__ ":%d\n", __LINE__);	\
+			fprintf(stderr, " Guard failed: %s\n", #b);		\
+			fprintf(stderr, " In function %s\n", __func__);		\
+			fprintf(stderr, " At " __FILE__ ":%d\n", __LINE__);	\
 			abort();						\
 		}								\
 	} while(0)
@@ -64,8 +66,9 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 	do {									\
 		if (!(b)) {							\
 			fprintf(stderr, "*** ABORTING ***\n");			\
-			fprintf(stderr, "This assertion failed: %s\n", #b);	\
-			fprintf(stderr, "At " __FILE__ ":%d\n", __LINE__);	\
+			fprintf(stderr, " Assertion failed: %s\n", #b);		\
+			fprintf(stderr, " In function %s\n", __func__);		\
+			fprintf(stderr, " At " __FILE__ ":%d\n", __LINE__);	\
 			abort();						\
 		}								\
 	} while(0)
@@ -73,8 +76,7 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 #define KPR_ASSERT(b)
 #endif
 
-#define MUST(e)								\
-	__MUST(e, #e, __FILE__, __LINE__)
+#define MUST(e)			__MUST(e, #e, __func__, __FILE__, __LINE__)
 
 #define KRML_HOST_MALLOC            malloc
 #define KRML_HOST_CALLOC            calloc
@@ -90,17 +92,17 @@ void __MUST(cudaError_t rc, const char * str, const char *fname, int line)
 #define KRML_HOST_EXIT(rc)          exit(rc)
 
 static inline
-void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char *str, const char *fname,
+void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char * func, const char *str, const char *fname,
 			     int line)
 {
 	void *ret = NULL;
 	KRML_CHECK_SIZE(sz, len);
-	__MUST(cudaMalloc(&ret, sz*len), str, fname, line);
+	__MUST(cudaMalloc(&ret, sz*len), str, func, fname, line);
 	return ret;
 }
 
 #define KPR_GPU_ALLOC(sz, len)						\
-	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #sz ", " #len ")", __FILE__, __LINE__)
+	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #sz ", " #len ")", __func__, __FILE__, __LINE__)
 
 static inline
 void INFO ()
