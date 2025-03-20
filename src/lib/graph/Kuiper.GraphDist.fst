@@ -3,7 +3,7 @@ module Kuiper.GraphDist
 #lang-pulse
 open Kuiper
 open Kuiper.Scalars
-module P = Kuiper.Poly.GEMM.Naive
+module P = Kuiper.Poly.GEMM.Naive2 (* cannot use tiled ones without making dimensions a multiple of tile size *)
 module R = Kuiper.Matrix.Reprs
 module M = Kuiper.Matrix
 open Kuiper.EMatrix { ematrix }
@@ -39,21 +39,25 @@ Every other number is a concrete distance. *)
 inline_for_extraction noextract
 type dist = u16
 
+[@@CPrologue "__device__"]
 inline_for_extraction noextract
 let mindist (x : dist) (y : dist) : dist =
   let open FStar.UInt16 in
   if x `lt` y then x else y
 
+[@@CPrologue "__device__"]
 let add (x y : dist) : dist =
   if UInt16.eq x 0us then y
   else if UInt16.eq y 0us then x
   else mindist x y
 
+[@@CPrologue "__device__"]
 let add' (x y : dist) : d:dist{d == add x y} =
   if UInt16.eq x 0us || (not (UInt16.eq y 0us) && UInt16.lt y x)
   then y
   else x
 
+[@@CPrologue "__device__"]
 let mult x y : dist =
   if UInt16.eq x 0us || UInt16.eq y 0us then 0us
   else x `Scalars.add` y
@@ -86,7 +90,7 @@ fn matmul_dist_gpu
   assert (a |-> ea);
   assume (a |-> ea); (* assume another one... cannot call matmul on a fraction, yet. *)
 
-  P.matmul_gpu #dist #scalar_dist (fun _old nw -> nw) a a b;
+  P.matmul_gpu #dist #scalar_dist add' a a b;
 
   drop_ (a |-> ea);
 }
