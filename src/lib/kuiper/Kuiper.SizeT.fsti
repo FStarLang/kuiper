@@ -88,7 +88,8 @@ let three_fits (a b c : nat) : prop =
 inline_for_extraction noextract
 let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
   let open FStar.SizeT in
-  (x +^ y -^ 1sz) `div` y
+  (* Parenthesizing like such allows constant folding when y is a constant. *)
+  (x +^ (y -^ 1sz)) `div` y
 
 let lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
   : Lemma (SZ.v (sdivup x y) == divup (SZ.v x) (SZ.v y))
