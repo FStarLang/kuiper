@@ -277,6 +277,7 @@ EXTRACT += $(wildcard src/examples/*.fst)
 EXTRACT += $(wildcard src/lib/inst/*.fst)
 # And src/lib/inst/gemm...
 EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
+EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
 
 extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
