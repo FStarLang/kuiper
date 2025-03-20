@@ -52,23 +52,17 @@ METRICS_STR=$(IFS=,; echo "${METRICS[*]}")
 EXECUTABLES=(
     "Test_Kuiper_GEMM_Naive__F32.exe"
     "Test_Kuiper_GEMM_Naive2__F32.exe"
-    "Test_Kuiper_GEMM_Naive__U64.exe"
-    "Test_Kuiper_GEMM_Naive2__U64.exe"
+    "Test_Kuiper_GEMM_Naive__F64.exe"
+    "Test_Kuiper_GEMM_Naive2__F64.exe"
 )
 
 TILED_EXECUTABLES=(
-    "Test_Kuiper_GEMM_BlockTiling1D__F32.exe"
-    "Test_Kuiper_GEMM_BlockTiling1D__F64.exe"
-    "Test_Kuiper_GEMM_BlockTiling1D__U32.exe"
-    "Test_Kuiper_GEMM_BlockTiling1D__U64.exe"
-    "Test_Kuiper_GEMM_SHMem__F32.exe"
-    "Test_Kuiper_GEMM_SHMem__F64.exe"
-    "Test_Kuiper_GEMM_SHMem__U32.exe"
-    "Test_Kuiper_GEMM_SHMem__U64.exe"
     "Test_Kuiper_GEMM_Tiled__F32.exe"
+    "Test_Kuiper_GEMM_SHMem__F32.exe"
+    "Test_Kuiper_GEMM_BlockTiling1D__F32.exe"
     "Test_Kuiper_GEMM_Tiled__F64.exe"
-    "Test_Kuiper_GEMM_Tiled__U32.exe"
-    "Test_Kuiper_GEMM_Tiled__U64.exe"
+    "Test_Kuiper_GEMM_SHMem__F64.exe"
+    "Test_Kuiper_GEMM_BlockTiling1D__F64.exe"
 )
 
 # Check if ncu is available when profiling is enabled
