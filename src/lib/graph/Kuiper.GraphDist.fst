@@ -67,7 +67,7 @@ instance scalar_dist : scalar dist = {
   is_sized = { size = 2sz };
   zero = D 0us;
   one = D 1us;
-  add = add;
+  add = add';
   mul = mult;
 }
 
