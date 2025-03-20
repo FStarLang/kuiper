@@ -188,7 +188,7 @@ echo-krml:
 depgraph: depend.pdf
 depend.pdf: .depend .force
 	$(call msg, "DEPEND GRAPH", $(SRC))
-	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(EXTRACT) $(DEPFLAGS) -o .depend.graph
+	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
 	sed -i 's/^digraph{/& ratio=1;/' .depend.simpl
@@ -269,14 +269,23 @@ NOTEST += Test_Kuiper_Softmax__F16
 
 TESTS := $(filter-out $(NOTEST), $(TESTS))
 
+EXTRACT :=
+
 # Extract everything in src/examples
-extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/examples/%.fst,obj/%.cu,$(wildcard src/examples/*.fst))))
+EXTRACT += $(wildcard src/examples/*.fst)
 # Extract everything in src/lib/inst, they are the C api for the library
-extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/%.fst,obj/%.cu,$(wildcard src/lib/inst/*.fst))))
+EXTRACT += $(wildcard src/lib/inst/*.fst)
 # And src/lib/inst/gemm...
-extraction-targets: $(subst _cu,.cu,$(subst .,_,$(patsubst src/lib/inst/gemm/%.fst,obj/%.cu,$(wildcard src/lib/inst/gemm/*.fst))))
+EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
+
+extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
+
+BUILD :=
+
 # *Build* every executable in test/, we can do this without a GPU
-build-targets: $(patsubst %,obj/%.exe,$(TESTS))
+BUILD += $(patsubst %,obj/%.exe,$(TESTS))
+
+build-targets: $(BUILD)
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
