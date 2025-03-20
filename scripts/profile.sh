@@ -26,9 +26,7 @@ mkdir -p "$NCU_REPORTS_DIR" "$REPORTS_DIR"
 LAPS=10
 TILE=8
 
-#DIMS=("2048" "4096" "8192" "16384")
-
-DIMS=("9216" "10240")
+DIMS=("2048" "4096" "8192" "16384" "9216" "10240")
 
 METRICS=(
     smsp__sass_thread_inst_executed_op_fadd_pred_on.sum
