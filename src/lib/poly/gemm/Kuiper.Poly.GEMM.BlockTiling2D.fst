@@ -63,7 +63,7 @@ let own_2_mats
   (ar : varray (aview_2tile2 et (tile *^ browscols)))
   (tid : natlt (tile * tile))
   : slprop =
-    forall+ (ii : natlt browscols). forall+ (jj : natlt browscols).
+    forall+ (ii : natlt browscols) (jj : natlt browscols).
       (exists* x. varray_pts_to_cell ar (mkAIdx 0 (ii * tile + tid / tile) (jj * tile + tid % tile)) x) **
       (exists* x. varray_pts_to_cell ar (mkAIdx 1 (ii * tile + tid / tile) (jj * tile + tid % tile)) x)
 
@@ -110,7 +110,8 @@ let kpre1
   m4_pts_to gA #(f /. mlayout_size lC) eA **
   m4_pts_to gB #(f /. mlayout_size lC) eB **
   (* each thread owns a square *)
-  (exists* v. gpu_matrix_pts_to2 (M6.gpu_matrix6_to_gpu_matrix2 gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile)) v)
+  forall+ (x: natlt tcols) (y: natlt trows). (exists* v.
+    m6_pts_to_cell gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile) y x v)
 
 (* NO FUNCTIONAL SPEC RIGHT NOW *)
 unfold
@@ -135,7 +136,8 @@ let kpost1
   m4_pts_to gA #(f /. mlayout_size lC) eA **
   m4_pts_to gB #(f /. mlayout_size lC) eB **
   (* each thread owns a square *)
-  (exists* v. gpu_matrix_pts_to2 (M6.gpu_matrix6_to_gpu_matrix2 gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile)) v)
+  (forall+ (x: natlt tcols) (y: natlt trows). exists* v. 
+    m6_pts_to_cell gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile) y x v)
 
 let barrier_tok
   (#et : Type0)
@@ -380,6 +382,9 @@ fn bring_2cols
     own_2_mats browscols tile ar tid
 {
   let tidrow, tidcol = s_divmod tile tid;
+  assert pure (tid / tile == tidrow /\ tid % tile == tidcol);
+  assert pure (SZ.fits (2sz *^ (tile *^ browscols) *^ (tile *^ browscols)));
+
   let mut i = 0sz;
   while (let vi = !i; SZ.(vi <^ (browscols *^ browscols)))
     invariant b.
@@ -393,6 +398,7 @@ fn bring_2cols
   {
     let vi = !i;
     let vrow, vcol = s_divmod browscols vi;
+    assert pure (vi / browscols == vrow /\ vi % browscols == vcol);
     assert pure (vrow < browscols /\ vcol < browscols);
     let vrow' = vrow *^ tile +^ tidrow;
     let vcol' = vcol *^ tile +^ tidcol;
@@ -400,12 +406,24 @@ fn bring_2cols
     unfold own_2_mats browscols tile ar tid;
     forevery_extract #(natlt browscols) vrow _;
     forevery_extract #(natlt browscols) vcol _;
+    with x. rewrite AV.varray_pts_to_cell ar (mkAIdx 0 (vrow * tile + tid / tile) (vcol * tile + tid % tile)) x
+                 as AV.varray_pts_to_cell ar (mkAIdx 0 vrow' vcol') x;
+    with x. rewrite AV.varray_pts_to_cell ar (mkAIdx 1 (vrow * tile + tid / tile) (vcol * tile + tid % tile)) x
+                 as AV.varray_pts_to_cell ar (mkAIdx 1 vrow' vcol') x;
+
     let v1 = M4.gpu_matrix_read gA mrow mk vrow' vcol';
+    // assume pure (mkAIdx 0 vrow' vcol' == Kuiper.View.cit_to_it (aview_2tile2 et (tile *^ browscols)) (mkCIdx #(tile *^ browscols) 0sz vrow' vcol'));
     admit();
-    AV.varray_write_cell' ar (mkCIdx 0sz vrow' vcol') (mkAIdx 0 vrow' vcol') v1;
+    AV.varray_write_cell' ar (mkCIdx #(tile *^ browscols) 0sz vrow' vcol') (mkAIdx 0 vrow' vcol') v1;
     let v2 = M4.gpu_matrix_read gB mk mcol vrow' vcol';
     AV.varray_write_cell' ar (mkCIdx 1sz vrow' vcol') (mkAIdx 1 vrow' vcol') v2;
-    Pulse.Lib.Trade.elim_trade _ _;
+
+    with x. rewrite AV.varray_pts_to_cell ar (mkAIdx 0 vrow' vcol') x
+                 as AV.varray_pts_to_cell ar (mkAIdx 0 (vrow * tile + tid / tile) (vcol * tile + tid % tile)) x;
+    with x. rewrite AV.varray_pts_to_cell ar (mkAIdx 1 vrow' vcol') x
+                 as AV.varray_pts_to_cell ar (mkAIdx 1 (vrow * tile + tid / tile) (vcol * tile + tid % tile)) x;
+    Pulse.Lib.Trade.elim_trade ((exists* x. varray_pts_to_cell ar (mkAIdx 0 (vrow * tile + tid / tile) (vcol * tile + tid % tile)) x) **
+                                (exists* x. varray_pts_to_cell ar (mkAIdx 1 (vrow * tile + tid / tile) (vcol * tile + tid % tile)) x)) _;
     Pulse.Lib.Trade.elim_trade _ _;
     fold own_2_mats browscols tile ar tid;
     i := vi +^ 1sz;
@@ -475,8 +493,8 @@ fn kf
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile tid;
-  // assert (pure (SZ.v bcol == tid % tile));
-  // assert (pure (bcol < tile));
+  assert pure (bid / mcols == mrow /\ bid % mcols == mcol);
+  assert pure (tid / tile == brow /\ tid % tile == bcol);
 
   (* thread-local result cache *)
   let mut sums : Pulse.Lib.Array.array et = [| zero #et #_ ; trows *^ tcols |];
@@ -542,31 +560,36 @@ fn kf
         pure (b == (SZ.v vidx < trows * tcols)) **
         pts_to #_ #sz idx vidx **
         pts_to #_ #(seq et) sums sumv **
-        (exists* v. gpu_matrix_pts_to2 (M6.gpu_matrix6_to_gpu_matrix2 gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile)) v) **
+        (forall+ (x: natlt tcols) (y: natlt trows). exists* v.
+          m6_pts_to_cell gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile) y x v) **
         gpu
   {
     let vidx = !idx;
     let row, col = s_divmod tcols vidx;
-    // forevery_extract #(natlt tile) (SZ.v vrow) _;
+    forevery_extract #(natlt tcols) (SZ.v col) _;
+    forevery_extract #(natlt trows) (SZ.v row) _;
+    with v. rewrite m6_pts_to_cell gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile) row col v
+                 as m6_pts_to_cell gC mrow mcol brow bcol row col v;
 
     // (* tedious *)
     // with bi0 bj0 i0 j0 v0.
     //   rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
     //       as m4_pts_to_cell gC mrow mcol vrow bcol v0;
 
-    let layout = (M6.mlayout6_to_mlayout2 #et lC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile));
-    admit();
-    let clayout = M6.clayout6_to_clayout2 #et lC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile);
-    let v0 = M2.gpu_matrix_read #_ #_ #_ #layout #clayout (M6.gpu_matrix6_to_gpu_matrix2 gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile)) row col;
+    let v0 = M6.gpu_matrix_read_cell gC mrow mcol brow bcol row col;
     open Pulse.Lib.Array;
     let v1 = sums.(vidx);
     let v' = comb v0 v1;
-    M4.gpu_matrix_write_cell gC row col v';
+    M6.gpu_matrix_write_cell gC mrow mcol brow bcol row col v';
 
     // with bi0 bj0 i0 j0 v0.
     //   rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
     //       as m4_pts_to_cell gC (bid / mcols) (bid % mcols) vrow tid v0;
 
+    with v. rewrite m6_pts_to_cell gC mrow mcol brow bcol row col v
+                 as m6_pts_to_cell gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile) row col v;
+    Pulse.Lib.Trade.elim_trade (exists* v. m6_pts_to_cell gC (bid / mcols) (bid % mcols) (tid / tile) (tid % tile) row col v) _;
+    Pulse.Lib.Trade.elim_trade _ _;
     idx := vidx +^ 1sz;
     // Pulse.Lib.Trade.elim_trade _
     //   (forall+ (ii : natlt tile).
