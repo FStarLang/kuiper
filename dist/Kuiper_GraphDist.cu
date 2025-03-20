@@ -1,0 +1,78 @@
+
+
+#include "Kuiper_GraphDist.h"
+
+bool Kuiper_GraphDist_uu___is_D(uint16_t projectee)
+{
+  KRML_MAYBE_UNUSED_VAR(projectee);
+  return true;
+}
+
+__device__
+
+uint16_t Kuiper_GraphDist_add(uint16_t x, uint16_t y)
+{
+  if (x == 0U)
+    return y;
+  else if (y == 0U)
+    return x;
+  else if (x < y)
+    return x;
+  else
+    return y;
+}
+
+__device__
+
+uint16_t Kuiper_GraphDist_add_(uint16_t x, uint16_t y)
+{
+  if (x == 0U || !(y == 0U) && y < x)
+    return y;
+  else
+    return x;
+}
+
+__device__
+
+uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y)
+{
+  if (x == 0U || y == 0U)
+    return 0U;
+  else
+    return (uint32_t)x + (uint32_t)y;
+}
+
+__global__
+static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
+{
+  if (blockIdx.x * (size_t)1024U + threadIdx.x < size * size)
+  {
+    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / size;
+    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % size;
+    size_t k = (size_t)0U;
+    uint16_t sum = 0U;
+    while (k < size)
+    {
+      size_t vk = k;
+      uint16_t s = sum;
+      sum = Kuiper_GraphDist_add(s, Kuiper_GraphDist_mult(a[trow * size + vk], a[vk * size + tcol]));
+      k = vk + (size_t)1U;
+    }
+    uint16_t s = sum;
+    b[trow * size + tcol] = Kuiper_GraphDist_add_(b[trow * size + tcol], s);
+  }
+}
+
+void Kuiper_GraphDist_matmul_dist_gpu(size_t size, uint16_t *a, uint16_t *b)
+{
+  KPR_KCALL(__hoisted_0,
+    (size * size + (size_t)1024U - (size_t)1U) / (size_t)1024U,
+    (size_t)1024U,
+    (size_t)1U,
+    (size_t)0U,
+    size,
+    a,
+    b);
+  cudaDeviceSynchronize();
+}
+
