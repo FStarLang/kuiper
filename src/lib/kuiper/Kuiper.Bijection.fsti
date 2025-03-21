@@ -20,8 +20,16 @@ type bijection (a b : Type) = {
   ff_gg : x:_ -> squash (ff (gg x) == x);
   gg_ff : x:_ -> squash (gg (ff x) == x);
 }
-
 let ( =~ ) a b = bijection a b
+
+let mk_bijection
+  (#a #b : _)
+  (ff : a -> b)
+  (gg : b -> a)
+  (ff_gg : (x:b -> squash (ff (gg x) == x)))
+  (gg_ff : (x:a -> squash (gg (ff x) == x)))
+  : (a =~ b) =
+  Mkbijection ff gg ff_gg gg_ff
 
 let bij_unit_natlt1 : bijection unit (natlt 1) = {
   ff = (fun _ -> 0 <: natlt 1);

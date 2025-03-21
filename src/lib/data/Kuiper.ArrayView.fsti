@@ -11,16 +11,6 @@ open FStar.FunctionalExtensionality { (^->>) }
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
-(* Avoid ghost effect when using projector. *)
-inline_for_extraction noextract
-let cidx
-  (#a : Type) (#len : erased nat) (#vt : Type)
-  (#vw : aview a len vt) (cw : cview vw)
-  (cit : cw.cit)
-  : c:sz{c == cw.cibij.ff cit}
-  = //cw.cibij.ff cit
-  match cw with {cibij} -> cibij.ff cit
-
 inline_for_extraction noextract
 val varray (#a : Type0) (#len : nat) (#vt : Type) (vw : aview a len vt) : Type0
 
@@ -186,14 +176,12 @@ fn varray_read
   (i : cw.cit)
   (#f : perm)
   (#v : erased vt)
-  requires
+  preserves
     gpu **
     varray_pts_to a #f v
   returns
     e : et
   ensures
-    gpu **
-    varray_pts_to a #f v **
     pure (e == vw.igm.acc v (cit_to_it vw i))
 
 inline_for_extraction noextract
@@ -205,12 +193,12 @@ fn varray_write
   (i : cw.cit)
   (e : et)
   (#v0 : erased vt)
+  preserves
+    gpu
   requires
-    gpu **
-    (a |-> v0)
+    a |-> v0
   ensures
-    gpu **
-    (a |-> vw.igm.upd v0 (cit_to_it vw i) e)
+    a |-> vw.igm.upd v0 (cit_to_it vw i) e
 
 (* Ownership over a single index. *)
 val varray_pts_to_cell
@@ -231,13 +219,13 @@ fn varray_read_cell
   (i : cw.cit)
   (#f : perm)
   (#v0 : erased et)
+  preserves
+    gpu
   requires
-    gpu **
     varray_pts_to_cell a #f (cit_to_it vw i) v0
   returns
     v : et
   ensures
-    gpu **
     varray_pts_to_cell a #f (cit_to_it vw i) v **
     pure (v == v0)
 
@@ -254,14 +242,14 @@ fn varray_read_cell'
   (ai : erased vw.it)
   (#f : perm)
   (#v0 : erased et)
+  preserves
+    gpu
   requires
-    gpu **
     varray_pts_to_cell a #f ai v0 **
     pure (ai == cit_to_it vw i)
   returns
     v : et
   ensures
-    gpu **
     varray_pts_to_cell a #f ai v **
     pure (v == v0)
 
@@ -274,11 +262,11 @@ fn varray_write_cell
   (i : cw.cit)
   (v1 : et)
   (#v0 : erased et)
+  preserves
+    gpu
   requires
-    gpu **
     varray_pts_to_cell a (cit_to_it vw i) v0
   ensures
-    gpu **
     varray_pts_to_cell a (cit_to_it vw i) v1
 
 (* This variant helps to avoid having to rewrite the pts_to
@@ -294,12 +282,12 @@ fn varray_write_cell'
   (ai : erased vw.it)
   (v1 : et)
   (#v0 : erased et)
+  preserves
+    gpu
   requires
-    gpu **
     varray_pts_to_cell a ai v0 **
     pure (ai == cit_to_it vw i)
   ensures
-    gpu **
     varray_pts_to_cell a ai v1
 
 (* Note: the functions below take a constraint for enumerable vw.it,
