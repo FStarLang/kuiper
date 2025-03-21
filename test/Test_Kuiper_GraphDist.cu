@@ -10,7 +10,7 @@ const char *progname;
 #define et uint16_t
 #define DEFAULT_DIM   1026
 
-void print_matrix (et *m, size_t size)
+void print_matrix(et *m, size_t size)
 {
     printf("\n\n");
     for (size_t i = 0; i < size; i++) {
@@ -21,7 +21,7 @@ void print_matrix (et *m, size_t size)
     }
 }
 
-void print_cuda_matrix (et *m, size_t size)
+void print_cuda_matrix(et *m, size_t size)
 {
     et *m_cpu = (et *) malloc(size * size * sizeof(et));
     cudaMemcpy(m_cpu, m, size * size * sizeof(et), cudaMemcpyDeviceToHost);
@@ -42,9 +42,7 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr,
-                "Usage: %s [<size> <check>]\n",
-                argv[0]);
+        fprintf(stderr, "Usage: %s [<size> <check>]\n", argv[0]);
         return 1;
     }
 
@@ -57,7 +55,7 @@ int main(int argc, char **argv)
     /* This constructs a path graph: 0 -> 1 -> 2 -> ... -> size-1 */
     for (i = 0; i < size; i++) {
         for (j = 0; j < size; j++) {
-            m1_cpu[i * size + j] = j == i+1 ? 1 : 0;
+            m1_cpu[i * size + j] = j == i + 1 ? 1 : 0;
         }
     }
 
@@ -79,12 +77,14 @@ int main(int argc, char **argv)
     cudaFree(m2);
 
     if (check) {
-        cudaMemcpy(m1_cpu, m1, size * size * sizeof(et), cudaMemcpyDeviceToHost);
+        cudaMemcpy(m1_cpu, m1, size * size * sizeof(et),
+                   cudaMemcpyDeviceToHost);
 
         for (i = 0; i < size; i++) {
             for (j = 0; j < size; j++) {
                 if (m1_cpu[i * size + j] != (j > i ? j - i : 0)) {
-                    fprintf(stderr, "Error: m1[%d][%d] = %d\n", i, j, m1_cpu[i * size + j]);
+                    fprintf(stderr, "Error: m1[%d][%d] = %d\n", i, j,
+                            m1_cpu[i * size + j]);
                     return 1;
                 }
             }
