@@ -13,6 +13,7 @@ let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : (a ^->> b) =
     else f x'
 
 (* This type shows that mt is essentially a ghost map from it to et. *)
+(* FIXME: why even provide acc and upd if we have the bijection? *)
 [@@erasable]
 noeq
 type is_ghost_map (mt : Type) (it : Type) (et : Type) = {
