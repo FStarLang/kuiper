@@ -26,6 +26,16 @@ class clayout4
   parent : clayout l;
 }
 
+#push-options "--warn_error -288"
+let clayout4_fits
+  (#mrows #mcols #brows #bcols : nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (c : clayout4 l)
+  : Lemma (SZ.fits (mlayout_size l))
+          [SMTPat (has_type c (clayout4 l))]
+  = clayout_fits c.parent
+#pop-options
+
 inline_for_extraction noextract
 let clayout4_from_clayout
   (#rows #cols : szp)

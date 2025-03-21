@@ -25,9 +25,6 @@ type aview (a : Type) (len : nat) (vt : Type) = {
 
 inline_for_extraction noextract
 class cview (#a : Type) (#len : erased nat) (#vt : Type) (avw : aview a len vt) = {
-  (* the length is actually realizable. *)
-  lenfits : squash (SZ.fits len);
-
   (* a concrete index type *)
   cit : Type0;
   (* with a concrete translation to/from machine integers *)
@@ -59,7 +56,7 @@ let cit_to_it
   = (SZ.v (i |~> cw.cibij)) <~| vw.ibij
 
 let cit_of_it
-  (#a:Type) (#len:nat) (#vt:Type)
+  (#a:Type) (#len:nat{SZ.fits len}) (#vt:Type)
   (vw : aview a len vt) {| cw : cview vw |}
   (i: vw.it)
   : GTot cw.cit

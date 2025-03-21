@@ -8,7 +8,6 @@ open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 inline_for_extraction noextract
 instance crepr_row_major : crepr row_major = {
   map = fun rows cols -> {
-      lenfits = ();
       m_cols = cols;
       m_rows = rows;
       c_to    = (fun i j -> i *^ cols +^ j);
@@ -20,7 +19,6 @@ instance crepr_row_major : crepr row_major = {
 inline_for_extraction noextract
 instance crepr_col_major : crepr col_major = {
   map = fun rows cols -> {
-      lenfits = ();
       m_cols = cols;
       m_rows = rows;
       c_to    = (fun i j -> j *^ rows +^ i);
@@ -32,7 +30,6 @@ instance crepr_col_major : crepr col_major = {
 inline_for_extraction noextract
 instance crepr_row_major_mirror : crepr row_major_mirror = {
   map = fun rows cols -> {
-      lenfits = ();
       m_cols = cols;
       m_rows = rows;
       c_to    = (fun i j -> rows *^ cols -^ 1sz -^ i *^ cols -^ j);

@@ -16,7 +16,7 @@ let cview_from_clayout_ff
   (#l : mlayout rows cols)
   (c : clayout l)
   : szlt rows & szlt cols -> szlt (rows * cols)
-  = fun (i, j) -> c.c_to i j <: szlt (rows * cols)
+  = fun (i, j) -> c.c_to i j
 
 inline_for_extraction noextract
 let cview_from_clayout_gg
@@ -35,7 +35,6 @@ instance cview_from_clayout
   (c : clayout l)
   : ArrayView.cview (aview_from_mlayout et l) =
 {
-  lenfits = ();
   cit = szlt rows & szlt cols;
   cibij = {
     ff = cview_from_clayout_ff et c;

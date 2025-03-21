@@ -333,7 +333,7 @@ fn kf
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : SZ.t)
+  (#mrows #mshared #mcols : szp)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
@@ -360,7 +360,6 @@ fn kf
     kpost comb tile gA gB gC eA eB f ear bid tid **
     thread_id tile tid **
     block_id (mrows * mcols) bid
-
 {
   gpu_pts_to_ref ear;
 

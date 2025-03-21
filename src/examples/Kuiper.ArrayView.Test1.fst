@@ -122,14 +122,12 @@ inline_for_extraction noextract
 instance cnormal_view et (len : nat{SZ.fits len}) : cview (normal_view et len) = {
   cit = szlt len;
   cibij = bij_self _;
-  lenfits = ();
 }
 
 inline_for_extraction noextract
 instance creverse_view et (len : nat{SZ.fits len}) : cview (reverse_view et len) = {
   cit = szlt len;
   cibij = bij_sz_rev len;
-  lenfits = ();
 }
 
 fn test (a : varray (normal_view u32 50))
@@ -137,27 +135,30 @@ fn test (a : varray (normal_view u32 50))
   requires a |-> N 's
   returns u32
   ensures a |-> N 's
-{ varray_read a 0sz; }
+{ varray_read #_ #_ #_ #_ #(cnormal_view _ _) a 0sz; }
+// ^ FIXME: bad inference? tc resolution gets called to provide
+// a bijection instead of a cview?!
 
 fn test2 (a : varray (reverse_view u32 50))
   preserves gpu
   requires a |-> R 's
   returns u32
   ensures a |-> R 's
-{ varray_read a 0sz; }
+{ varray_read #_ #_ #_ #_ #(creverse_view _ _) a 0sz; }
+// ^ idem
 
 fn write1 (a : varray (normal_view u32 50))
   preserves gpu
   requires a |-> N 's
   ensures  a |-> N (Seq.upd 's 0 123ul)
-{ varray_write a 0sz 123ul; }
+{ varray_write #_ #_ #_ #_ #(cnormal_view _ _) a 0sz 123ul; }
 
 fn write2 (a : varray (reverse_view u32 50))
   (#s : erased (lseq u32 50))
   preserves gpu
   requires a |-> R s
   ensures  a |-> R (Seq.upd s 0 123ul)
-{ varray_write a 0sz 123ul; }
+{ varray_write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul; }
 
 let seq_rev (#a:Type) (s:seq a) : seq a =
   Seq.init (Seq.length s) (fun i -> Seq.index s (Seq.length s - 1 - i))

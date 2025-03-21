@@ -33,7 +33,6 @@ let cview_sum
   (_ : squash (SZ.fits (len1 + len2)))
   : cview (aview_sum vw1 vw2)
 = {
-  lenfits = ();
   cit = either cw1.cit cw2.cit;
   cibij = bij_either cw1.cibij cw2.cibij `bij_comp` bij_sz_sum len1 len2;
 }

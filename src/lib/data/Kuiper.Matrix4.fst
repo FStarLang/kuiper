@@ -69,7 +69,6 @@ instance cview_from_clayout4
   (c : clayout4 l)
   : A.cview (aview_from_mlayout et l) =
 {
-  lenfits = c.parent.lenfits;
   cit = cit l;
   cibij = {
     ff = cview_from_clayout_ff et c;
