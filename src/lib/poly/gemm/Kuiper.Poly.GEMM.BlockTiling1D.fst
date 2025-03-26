@@ -203,19 +203,6 @@ fn eqplus
 }
 
 inline_for_extraction noextract
-fn incr
-  (#et : Type0) {| scalar et |}
-  (r : ref et)
-  (#v0 : erased et)
-  requires
-    r |-> v0
-  ensures
-    r |-> (v0 `add #et` one)
-{
-  eqplus r one;
-}
-
-inline_for_extraction noextract
 fn subproduct
   (#et : Type0) {| scalar et |}
   (tile : valid_tile)
