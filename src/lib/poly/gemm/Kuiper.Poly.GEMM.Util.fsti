@@ -65,6 +65,7 @@ fn matmul_tiled_sub_dotprod
   to make sure we compute everything left-nested form,
   and hence have an exact result. *)
   preserves
+    gpu **
     (gA |-> Fraction fA eA) **
     (gB |-> Fraction fB eB)
   returns
