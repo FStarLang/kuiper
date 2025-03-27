@@ -374,7 +374,7 @@ let gpu_matrix_pts_to_cell
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
-  (#mrows #mcols #brows #bcols : nat)
+  (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols) {| cl : clayout4 l |}
   (gm : gpu_matrix et l)
   (bi : szlt mrows)
@@ -413,7 +413,7 @@ fn gpu_matrix_read_cell
 inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
-  (#mrows #mcols #brows #bcols : nat)
+  (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols) {| clayout4 l |}
   (gm : gpu_matrix et l)
   (bi : szlt mrows)
