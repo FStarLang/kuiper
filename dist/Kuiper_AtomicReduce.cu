@@ -3,6 +3,9 @@
 #include "Kuiper_AtomicReduce.h"
 
 __global__
+/**
+  hoisted when extracting reduce_u32
+*/
 static void __hoisted_0(uint32_t *a, uint32_t *gr)
 {
   atomic_add_u32(gr, a[blockIdx.x]);
@@ -21,6 +24,9 @@ uint32_t Kuiper_AtomicReduce_reduce_u32(size_t n, uint32_t *a)
 }
 
 __global__
+/**
+  hoisted when extracting reduce_u64
+*/
 static void __hoisted_1(uint64_t *a, uint64_t *gr)
 {
   atomic_add_u64(gr, a[blockIdx.x]);
@@ -39,6 +45,9 @@ uint64_t Kuiper_AtomicReduce_reduce_u64(size_t n, uint64_t *a)
 }
 
 __global__
+/**
+  hoisted when extracting reduce_f32
+*/
 static void __hoisted_2(float_t *a, float_t *gr)
 {
   atomic_add_f32(gr, a[blockIdx.x]);
@@ -57,6 +66,9 @@ float_t Kuiper_AtomicReduce_reduce_f32(size_t n, float_t *a)
 }
 
 __global__
+/**
+  hoisted when extracting reduce_f64
+*/
 static void __hoisted_3(double_t *a, double_t *gr)
 {
   atomic_add_f64(gr, a[blockIdx.x]);

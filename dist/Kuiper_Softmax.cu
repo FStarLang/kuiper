@@ -3,12 +3,18 @@
 #include "Kuiper_Softmax.h"
 
 __global__
+/**
+  hoisted when extracting softmax_f32
+*/
 static void __hoisted_0(float_t *ga)
 {
   ga[blockIdx.x] = exp(ga[blockIdx_x]);
 }
 
 __global__
+/**
+  hoisted when extracting softmax_f32
+*/
 static void __hoisted_1(size_t lena, float_t *a_)
 {
   size_t n = (size_t)0U;
@@ -25,6 +31,9 @@ static void __hoisted_1(size_t lena, float_t *a_)
 }
 
 __global__
+/**
+  hoisted when extracting softmax_f32
+*/
 static void __hoisted_2(float_t *ga, float_t avg)
 {
   ga[blockIdx.x] /= avg;
@@ -55,12 +64,18 @@ void Kuiper_Softmax_softmax_f32(size_t lena, float_t *a)
 }
 
 __global__
+/**
+  hoisted when extracting softmax_f64
+*/
 static void __hoisted_3(double_t *ga)
 {
   ga[blockIdx.x] = exp(ga[blockIdx_x]);
 }
 
 __global__
+/**
+  hoisted when extracting softmax_f64
+*/
 static void __hoisted_4(size_t lena, double_t *a_)
 {
   size_t n = (size_t)0U;
@@ -77,6 +92,9 @@ static void __hoisted_4(size_t lena, double_t *a_)
 }
 
 __global__
+/**
+  hoisted when extracting softmax_f64
+*/
 static void __hoisted_5(double_t *ga, double_t avg)
 {
   ga[blockIdx.x] /= avg;

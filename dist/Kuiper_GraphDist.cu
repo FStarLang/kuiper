@@ -43,6 +43,9 @@ uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y)
 }
 
 __global__
+/**
+  hoisted when extracting matmul_dist_gpu
+*/
 static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
 {
   if (blockIdx.x * (size_t)1024U + threadIdx.x < size * size)

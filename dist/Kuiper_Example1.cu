@@ -3,6 +3,9 @@
 #include "Kuiper_Example1.h"
 
 __global__
+/**
+  hoisted when extracting main
+*/
 static void __hoisted_0(uint64_t *gr)
 {
   *gr += 1ULL;

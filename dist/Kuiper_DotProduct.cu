@@ -3,6 +3,9 @@
 #include "Kuiper_DotProduct.h"
 
 __global__
+/**
+  hoisted when extracting dotprod_f32
+*/
 static void __hoisted_0(size_t lena, float_t *ga1, float_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx_x];
@@ -39,6 +42,9 @@ float_t Kuiper_DotProduct_dotprod_f32(size_t lena, float_t *a1, float_t *a2)
 }
 
 __global__
+/**
+  hoisted when extracting dotprod_f64
+*/
 static void __hoisted_1(size_t lena, double_t *ga1, double_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx_x];
@@ -75,6 +81,9 @@ double_t Kuiper_DotProduct_dotprod_f64(size_t lena, double_t *a1, double_t *a2)
 }
 
 __global__
+/**
+  hoisted when extracting dotprod_u32
+*/
 static void __hoisted_2(size_t lena, uint32_t *ga1, uint32_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx_x];
@@ -109,6 +118,9 @@ uint32_t Kuiper_DotProduct_dotprod_u32(size_t lena, uint32_t *a1, uint32_t *a2)
 }
 
 __global__
+/**
+  hoisted when extracting dotprod_u64
+*/
 static void __hoisted_3(size_t lena, uint64_t *ga1, uint64_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx_x];

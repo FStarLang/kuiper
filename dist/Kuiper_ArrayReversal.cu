@@ -3,6 +3,9 @@
 #include "Kuiper_ArrayReversal.h"
 
 __global__
+/**
+  hoisted when extracting reverse_u64
+*/
 static void __hoisted_0(size_t size, uint64_t *a)
 {
   size_t idx_ = size - blockIdx.x - (size_t)1U;
