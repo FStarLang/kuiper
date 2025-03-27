@@ -34,8 +34,8 @@ fn matmul_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    M.gpu_matrix_pts_to gA #fA eA **
-    M.gpu_matrix_pts_to gB #fB eB
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   returns
     res : et
   ensures
@@ -65,9 +65,8 @@ fn matmul_tiled_sub_dotprod
   to make sure we compute everything left-nested form,
   and hence have an exact result. *)
   preserves
-    gpu **
-    m4_pts_to gA #fA eA **
-    m4_pts_to gB #fB eB
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   returns
     res : et
   // ensures
@@ -92,8 +91,8 @@ fn matmul_tiled_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    m4_pts_to gA #fA eA **
-    m4_pts_to gB #fB eB
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   returns
     res : et
   // ensures

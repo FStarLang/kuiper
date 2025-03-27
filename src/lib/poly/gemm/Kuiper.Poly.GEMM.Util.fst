@@ -27,8 +27,8 @@ fn matmul_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    M.gpu_matrix_pts_to gA #fA eA **
-    M.gpu_matrix_pts_to gB #fB eB
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   returns
     res : et
   ensures
@@ -43,8 +43,8 @@ fn matmul_dotprod
         pure (0 <= shared /\ b == (SZ.v vk < shared) /\ vk <= shared /\ vk >= 0) **
         pts_to k vk **
         pts_to #_ #et sum (MS.matmul_single eA eB i j vk) **
-        M.gpu_matrix_pts_to gA #fA eA **
-        M.gpu_matrix_pts_to gB #fB eB **
+        (gA |-> Fraction fA eA) **
+        (gB |-> Fraction fB eB) **
         gpu
   {
     let vk = !k;
@@ -83,8 +83,8 @@ fn matmul_tiled_sub_dotprod
   (v0 : et)
   preserves
     gpu **
-    m4_pts_to gA #fA eA **
-    m4_pts_to gB #fB eB
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   returns
     res : et
   // ensures
@@ -99,8 +99,8 @@ fn matmul_tiled_sub_dotprod
         pure (0 <= tile /\ b == (SZ.v vk < tile) /\ vk <= tile /\ vk >= 0) **
         pts_to k vk **
         pts_to #_ #et sum sumv **
-        m4_pts_to gA #fA eA **
-        m4_pts_to gB #fB eB **
+        (gA |-> Fraction fA eA) **
+        (gB |-> Fraction fB eB) **
         gpu
   {
     let vk = !k;
@@ -133,8 +133,8 @@ fn matmul_tiled_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    m4_pts_to gA #fA eA **
-    m4_pts_to gB #fB eB
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   returns
     res : et
   // ensures
@@ -149,8 +149,8 @@ fn matmul_tiled_dotprod
         pure (0 <= shared /\ b == (SZ.v vbk < shared) /\ vbk <= shared /\ vbk >= 0) **
         pts_to bk vbk **
         pts_to #_ #et sum sumv **
-        m4_pts_to gA #fA eA **
-        m4_pts_to gB #fB eB **
+        (gA |-> Fraction fA eA) **
+        (gB |-> Fraction fB eB) **
         gpu
   {
     let vbk = !bk;
