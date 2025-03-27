@@ -88,9 +88,9 @@ fn matmul_dist_gpu
     exists* eb'. b |-> eb'
 {
   assert (a |-> ea);
-  assume (a |-> ea); (* assume another one... cannot call matmul on a fraction, yet. *)
+  M.gpu_matrix_share_2 a;
 
   P.mmcomb_gpu add' a a b;
 
-  drop_ (a |-> ea);
+  M.gpu_matrix_gather_2 a;
 }

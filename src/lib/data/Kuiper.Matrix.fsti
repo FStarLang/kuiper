@@ -202,6 +202,30 @@ fn gpu_matrix_gather_n
   ensures
     gpu_matrix_pts_to gm #f em
 
+ghost
+fn gpu_matrix_share_2
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  requires
+    gm |-> em
+  ensures
+    (gm |-> Fraction 0.5R em) ** (gm |-> Fraction 0.5R em)
+
+ghost
+fn gpu_matrix_gather_2
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  requires
+    (gm |-> Fraction 0.5R em) ** (gm |-> Fraction 0.5R em)
+  ensures
+    gm |-> em
+
 inline_for_extraction noextract
 fn gpu_matrix_read
   (#et:Type0)
