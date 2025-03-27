@@ -131,15 +131,15 @@ fn kf
     assert (pure (SZ.v trow == id / cols));
     assert (pure (SZ.v tcol == id % cols));
     rewrite
-      M.gpu_matrix_pts_to gA #(fA /. (rows * cols)) eA **
-      M.gpu_matrix_pts_to gB #(fB /. (rows * cols)) eB **
+      (gA |-> Fraction (fA /. (rows * cols)) eA) **
+      (gB |-> Fraction (fB /. (rows * cols)) eB) **
       M.gpu_matrix_pts_to_cell gC trow tcol
         (MS.gemm_single comb eA eB eC trow tcol shared)
     as
       (if (in_bounds rows cols bid tid)
        then
-        M.gpu_matrix_pts_to gA #(fA /. (rows * cols)) eA **
-        M.gpu_matrix_pts_to gB #(fB /. (rows * cols)) eB **
+        (gA |-> Fraction (fA /. (rows * cols)) eA) **
+        (gB |-> Fraction (fB /. (rows * cols)) eB) **
         M.gpu_matrix_pts_to_cell gC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
          (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
        else emp);
@@ -151,8 +151,8 @@ fn kf
     rewrite
       (if in_bounds rows cols bid tid
        then
-         M.gpu_matrix_pts_to gA #(fA /. (rows * cols)) eA **
-         M.gpu_matrix_pts_to gB #(fB /. (rows * cols)) eB **
+         (gA |-> Fraction (fA /. (rows * cols)) eA) **
+         (gB |-> Fraction (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
             (macc eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
        else
@@ -161,8 +161,8 @@ fn kf
     rewrite emp as
       (if in_bounds rows cols bid tid
        then
-         M.gpu_matrix_pts_to gA #(fA /. (rows * cols)) eA **
-         M.gpu_matrix_pts_to gB #(fB /. (rows * cols)) eB **
+         (gA |-> Fraction (fA /. (rows * cols)) eA) **
+         (gB |-> Fraction (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
            (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
        else emp);

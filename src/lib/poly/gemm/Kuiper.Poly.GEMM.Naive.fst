@@ -149,8 +149,8 @@ fn setup
 
   // Join resources into a single bigstar
   forevery_zip #(natlt2 rows cols)
-    (fun _ -> M.gpu_matrix_pts_to gA #(fA /. (rows *^ cols)) eA)
-    (fun _ -> M.gpu_matrix_pts_to gB #(fB /. (rows *^ cols)) eB);
+    (fun _ -> gA |-> Fraction (fA /. (rows *^ cols)) eA)
+    (fun _ -> gB |-> Fraction (fB /. (rows *^ cols)) eB);
   forevery_zip #(natlt2 rows cols)
     _
     (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
@@ -158,8 +158,8 @@ fn setup
   (* We're done actually, but the encoding will not match the lambdas. *)
   forevery_ext #(natlt2 rows cols)
     (fun i ->
-      M.gpu_matrix_pts_to gA #(fA /. (rows *^ cols)) eA **
-      M.gpu_matrix_pts_to gB #(fB /. (rows *^ cols)) eB **
+      (gA |-> Fraction (fA /. (rows *^ cols)) eA) **
+      (gB |-> Fraction (fB /. (rows *^ cols)) eB) **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb gA gB gC eA eB eC fA fB i);
@@ -198,10 +198,10 @@ fn teardown
   forevery_unzip #(natlt2 rows cols) _ _;
 
   forevery_tostar #(natlt2 rows cols)
-    (fun i -> M.gpu_matrix_pts_to gA #(fA /. (rows * cols)) eA);
+    (fun i -> gA |-> Fraction (fA /. (rows * cols)) eA);
   M.gpu_matrix_gather_n gA _;
   forevery_tostar #(natlt2 rows cols)
-    (fun i -> M.gpu_matrix_pts_to gB #(fB /. (rows * cols)) eB);
+    (fun i -> gB |-> Fraction (fB /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
   forevery_factor (rows *^ cols) rows cols _;
