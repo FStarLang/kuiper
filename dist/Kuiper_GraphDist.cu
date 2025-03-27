@@ -10,21 +10,7 @@ bool Kuiper_GraphDist_uu___is_D(uint16_t projectee)
 
 __device__
 
-uint16_t Kuiper_GraphDist_add(uint16_t x, uint16_t y)
-{
-  if (x == 0U)
-    return y;
-  else if (y == 0U)
-    return x;
-  else if (x < y)
-    return x;
-  else
-    return y;
-}
-
-__device__
-
-uint16_t Kuiper_GraphDist_add_(uint16_t x, uint16_t y)
+static uint16_t add_(uint16_t x, uint16_t y)
 {
   if (x == 0U || !(y == 0U) && y < x)
     return y;
@@ -34,7 +20,7 @@ uint16_t Kuiper_GraphDist_add_(uint16_t x, uint16_t y)
 
 __device__
 
-uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y)
+static uint16_t mult(uint16_t x, uint16_t y)
 {
   if (x == 0U || y == 0U)
     return 0U;
@@ -58,13 +44,11 @@ static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
     {
       size_t vk = k;
       uint16_t s = sum;
-      sum =
-        Kuiper_GraphDist_add_(s,
-          Kuiper_GraphDist_mult(a[trow * size + vk], a[vk * size + tcol]));
+      sum = add_(s, mult(a[trow * size + vk], a[vk * size + tcol]));
       k = vk + (size_t)1U;
     }
     uint16_t s = sum;
-    b[trow * size + tcol] = Kuiper_GraphDist_add_(b[trow * size + tcol], s);
+    b[trow * size + tcol] = add_(b[trow * size + tcol], s);
   }
 }
 
