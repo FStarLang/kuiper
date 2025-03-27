@@ -39,25 +39,25 @@ Every other number is a concrete distance. *)
 inline_for_extraction
 type dist = | D : v:u16 -> dist
 
-[@@CPrologue "__device__"]
+// [@@CPrologue "__device__"]
 inline_for_extraction noextract
-let mindist (x y : dist) : dist =
+let mindist (x y : dist) : GTot dist =
   let open FStar.UInt16 in
   if x.v `lt` y.v then x else y
 
-[@@CPrologue "__device__"]
-let add (x y : dist) : dist =
+// [@@CPrologue "__device__"]
+let add (x y : dist) : GTot dist =
   if UInt16.eq x.v 0us then y
   else if UInt16.eq y.v 0us then x
   else mindist x y
 
-[@@CPrologue "__device__"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 let add' (x y : dist) : d:dist{d == add x y} =
   if UInt16.eq x.v 0us || (not (UInt16.eq y.v 0us) && UInt16.lt y.v x.v)
   then y
   else x
 
-[@@CPrologue "__device__"]
+[@@CPrologue "__device__"; "KrmlPrivate"]
 let mult (x y : dist) : dist =
   if UInt16.eq x.v 0us || UInt16.eq y.v 0us then D 0us
   else D (x.v `Scalars.add` y.v)
