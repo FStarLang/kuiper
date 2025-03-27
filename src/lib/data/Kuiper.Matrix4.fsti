@@ -148,10 +148,11 @@ fn gpu_matrix_concr
   (#l : mlayout4 mrows mcols brows bcols)
   (g : gpu_matrix et l)
   (#em : ematrix4 et mrows mcols brows bcols)
+  (#f : perm)
   requires
-    g |-> em
+    g |-> Fraction f em
   ensures
-    core g |-> to_seq l em
+    core g |-> Fraction f (to_seq l em)
 
 ghost
 fn gpu_matrix_abs

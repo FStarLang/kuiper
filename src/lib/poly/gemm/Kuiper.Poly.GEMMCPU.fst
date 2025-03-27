@@ -85,15 +85,17 @@ fn mmcomb_gpu_tiled
   {| cB : clayout lB |}
   {| cC : clayout lC |}
   (gA : M.gpu_matrix et lA)
+  (#fA : perm)
   (gB : M.gpu_matrix et lB)
+  (#fB : perm)
   (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> eA) **
-    (gB |-> eB)
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   requires
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)

@@ -115,10 +115,11 @@ fn gpu_matrix_concr
   (#l : mlayout rows cols)
   (g : gpu_matrix et l)
   (#em : ematrix et rows cols)
+  (#f : perm)
   requires
-    g |-> em
+    g |-> Fraction f em
   ensures
-    core g |-> to_seq l em
+    core g |-> Fraction f (to_seq l em)
 
 ghost
 fn gpu_matrix_abs
@@ -128,9 +129,9 @@ fn gpu_matrix_abs
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    gpu_pts_to_array p #f (to_seq l em)
+    p |-> Fraction f (to_seq l em)
   ensures
-    gpu_matrix_pts_to (from_array l p) #f em
+    from_array l p |-> Fraction f em
 
 ghost
 fn gpu_matrix_abs'

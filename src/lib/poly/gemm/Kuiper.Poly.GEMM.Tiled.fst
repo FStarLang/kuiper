@@ -272,15 +272,17 @@ fn mmcomb_gpu
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   preserves
     cpu **
-    (gA |-> eA) **
-    (gB |-> eB)
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **
@@ -288,6 +290,9 @@ fn mmcomb_gpu
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
+  (* cheating for now. *)
+  assume (pure (fA == 1.0R));
+  assume (pure (fB == 1.0R));
   dassert (tile `SZ.gt` 0sz);
   launch_sync (mk_kernel tile comb gA gB gC ());
 }

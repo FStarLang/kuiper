@@ -141,12 +141,13 @@ fn gpu_matrix_concr
   (#l : mlayout4 mrows mcols brows bcols)
   (g : gpu_matrix et l)
   (#em : ematrix4 et mrows mcols brows bcols)
+  (#f : perm)
   requires
-    g |-> em
+    g |-> Fraction f em
   ensures
-    core g |-> to_seq l em
+    core g |-> Fraction f (to_seq l em)
 {
-  unfold gpu_matrix_pts_to g #1.0R em;
+  unfold gpu_matrix_pts_to g #f em;
   let a' = A.varray_concr g;
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
   a'

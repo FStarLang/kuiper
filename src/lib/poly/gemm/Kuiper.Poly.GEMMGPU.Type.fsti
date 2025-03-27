@@ -30,7 +30,9 @@ type matmulcomb_gpu_fixed_ty
   {| clayout lB |} ->
   {| clayout lC |} ->
   (gA : M.gpu_matrix et lA) ->
+  (#fA : perm) ->
   (gB : M.gpu_matrix et lB) ->
+  (#fB : perm) ->
   (gC : M.gpu_matrix et lC) ->
   (#eA : ematrix et rows shared) ->
   (#eB : ematrix et shared cols) ->
@@ -38,11 +40,11 @@ type matmulcomb_gpu_fixed_ty
   (* This has a preserves. *)
   stt unit
     (requires
-      (cpu ** (gA |-> eA) ** (gB |-> eB)) **
+      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
       (pure (rows * cols <= max_blocks) **
        (gC |-> eC)))
     (ensures fun _ ->
-      (cpu ** (gA |-> eA) ** (gB |-> eB)) **
+      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
       (gC |-> MS.mmcomb comb eC eA eB))
 
 unfold
@@ -76,17 +78,19 @@ type tiled_matmulcomb_gpu_ty =
   {| M4.clayout4 lB |} ->
   {| M4.clayout4 lC |} ->
   (gA : M4.gpu_matrix et lA) ->
+  (#fA : perm) ->
   (gB : M4.gpu_matrix et lB) ->
+  (#fB : perm) ->
   (gC : M4.gpu_matrix et lC) ->
   (#eA : ematrix4 et mrows   mshared tile tile) ->
   (#eB : ematrix4 et mshared mcols   tile tile) ->
   (#eC : ematrix4 et mrows   mcols   tile tile) ->
   stt unit
     (requires
-      (cpu ** (gA |-> eA) ** (gB |-> eB)) **
+      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
       (pure (mrows * mcols <= max_blocks) **
        pure (tile * tile <= max_threads) **
        (gC |-> eC)))
     (ensures fun _ ->
-      (cpu ** (gA |-> eA) ** (gB |-> eB)) **
+      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
       (gC |-> MS.mmcomb comb eC eA eB))

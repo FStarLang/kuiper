@@ -84,9 +84,9 @@ fn varray_concr
   (#f : perm)
   (#v : erased vt)
   requires
-    varray_pts_to a #f v
+    a |-> Fraction f v
   ensures
-    gpu_pts_to_array (core a) #f (to_seq vw v)
+    core a |-> Fraction f (to_seq vw v)
 
 ghost
 fn varray_abs
@@ -97,9 +97,9 @@ fn varray_abs
   (#f : perm)
   (#v : erased vt)
   requires
-    gpu_pts_to_array a #f (to_seq vw v)
+    a |-> Fraction f (to_seq vw v)
   ensures
-    varray_pts_to (from_array vw a) #f v
+    from_array vw a |-> Fraction f v
 
 ghost
 fn varray_abs'

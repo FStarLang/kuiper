@@ -75,13 +75,13 @@ let kpre1
   (gC : gpu_matrix4 et lC)
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
-  (f : perm)
+  (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
   : slprop
   =
-  m4_pts_to gA #(f /. mlayout_size lC) eA **
-  m4_pts_to gB #(f /. mlayout_size lC) eB **
+  (gA |-> Fraction (fA /. mlayout_size lC) eA) **
+  (gB |-> Fraction (fB /. mlayout_size lC) eB) **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -102,13 +102,13 @@ let kpost1
   (gC : gpu_matrix4 et lC)
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
-  (f : perm)
+  (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
   : slprop
   =
-  m4_pts_to gA #(f /. mlayout_size lC) eA **
-  m4_pts_to gB #(f /. mlayout_size lC) eB **
+  (gA |-> Fraction (fA /. mlayout_size lC) eA) **
+  (gB |-> Fraction (fB /. mlayout_size lC) eB) **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -139,13 +139,13 @@ let kpre
   (gC : gpu_matrix4 et lC)
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
-  (f : perm)
+  (fA fB : perm)
   (ar : gpu_array et (2sz *^ tile *^ tile))
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
   : slprop
   =
-  kpre1 comb tile gA gB gC eA eB f bid tid **
+  kpre1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
   barrier_tok tile ar 0 tid **
   shmem_tok ar
@@ -165,13 +165,13 @@ let kpost
   (gC : gpu_matrix4 et lC)
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
-  (f : perm)
+  (fA fB : perm)
   (ar : gpu_array et (2sz *^ tile *^ tile))
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
   : slprop
   =
-  kpost1 comb tile gA gB gC eA eB f bid tid **
+  kpost1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
   barrier_tok tile ar (2 * mshared) tid
 
@@ -188,19 +188,6 @@ fn eqplus
 {
   let v0 = !r;
   r := v0 `add` v;
-}
-
-inline_for_extraction noextract
-fn incr
-  (#et : Type0) {| scalar et |}
-  (r : ref et)
-  (#v0 : erased et)
-  requires
-    r |-> v0
-  ensures
-    r |-> (v0 `add #et` one)
-{
-  eqplus r one;
 }
 
 inline_for_extraction noextract
@@ -261,19 +248,19 @@ fn kf
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
-  (#f : perm)
+  (#fA #fB : perm)
   (ear : erased (gpu_array et (2sz *^ tile *^ tile)))
   (bid : szlt2 mrows mcols)
   (tid : szlt2 tile  tile)
   ()
   requires
     gpu **
-    kpre comb tile gA gB gC eA eB f ear bid tid **
+    kpre comb tile gA gB gC eA eB fA fB ear bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost comb tile gA gB gC eA eB f ear bid tid **
+    kpost comb tile gA gB gC eA eB fA fB ear bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
 {
@@ -320,8 +307,8 @@ fn kf
         pure (b == (SZ.v vbk < mshared)) **
         pts_to #_ #sz bk vbk **
         pts_to #_ #et sum sumv **
-        m4_pts_to gA #(f /. mlayout_size lC) eA **
-        m4_pts_to gB #(f /. mlayout_size lC) eB **
+        (gA |-> Fraction (fA /. mlayout_size lC) eA) **
+        (gB |-> Fraction (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
         B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
         gpu
@@ -408,20 +395,22 @@ fn setup
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
   requires
-    (gA |-> eA) **
-    (gB |-> eB) **
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB) **
     (gC |-> eC)
   ensures
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
-      kpre1 comb tile gA gB gC eA eB 1.0R bid tid) **
+      kpre1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
 {
   admit();
@@ -440,7 +429,9 @@ fn block_setup
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
@@ -452,11 +443,11 @@ fn block_setup
     block_setup_tok (tile *^ tile) **
     (exists* v. gpu_pts_to_array ar #1.0R v) **
     (forall+ (tid : natlt2 tile  tile).
-      kpre1 comb tile gA gB gC eA eB 1.0R bid tid)
+      kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
     block_setup_tok (tile *^ tile) **
     (forall+ (tid : natlt2 tile  tile).
-      kpre comb tile gA gB gC eA eB 1.0R ar bid tid) **
+      kpre comb tile gA gB gC eA eB fA fB ar bid tid) **
     emp (* frame *)
 {
   admit();
@@ -475,7 +466,9 @@ fn block_teardown
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
@@ -485,12 +478,12 @@ fn block_teardown
   ()
   requires
     (forall+ (tid : natlt2 tile  tile).
-      kpost comb tile gA gB gC eA eB 1.0R ar bid tid) **
+      kpost comb tile gA gB gC eA eB fA fB ar bid tid) **
     emp (* frame *)
   ensures
     (exists* v. gpu_pts_to_array ar #1.0R v) **
     (forall+ (tid : natlt2 tile  tile).
-      kpost1 comb tile gA gB gC eA eB 1.0R bid tid)
+      kpost1 comb tile gA gB gC eA eB fA fB bid tid)
 {
   admit();
 }
@@ -508,7 +501,9 @@ fn teardown
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
@@ -517,11 +512,11 @@ fn teardown
   requires
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
-      kpost1 comb tile gA gB gC eA eB 1.0R bid tid) **
+      kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> eA) **
-    (gB |-> eB) **
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB) **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   admit();
@@ -540,7 +535,9 @@ let mk_kernel
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
@@ -548,8 +545,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc
-      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> eC))
-      ((gA |-> eA) ** (gB |-> eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> eC))
+      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
@@ -559,19 +556,19 @@ let mk_kernel
   shmem_sz = (2sz *^ tile *^ tile);
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  comb tile gA gB gC eA eB 1.0R bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
+  block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  comb tile gA gB gC eA eB fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 comb tile gA gB gC eA eB fA fB bid tid);
   setup      = setup    tile comb gA gB gC #eA #eB #eC;
   teardown   = teardown tile comb gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup    tile comb gA gB gC #eA #eB #eC;
-  block_teardown = block_teardown tile comb gA gB gC #eA #eB #eC;
+  block_setup    = block_setup    tile comb gA #fA gB #fB gC #eA #eB #eC;
+  block_teardown = block_teardown tile comb gA #fA gB #fB gC #eA #eB #eC;
 
-  kpre      = kpre  comb tile gA gB gC eA eB 1.0R;
-  kpost     = kpost comb tile gA gB gC eA eB 1.0R;
+  kpre      = kpre  comb tile gA gB gC eA eB fA fB;
+  kpost     = kpost comb tile gA gB gC eA eB fA fB;
 
-  f = kf tile #et #_ comb #mrows #mshared #mcols gA gB gC #eA #eB #1.0R;
+  f = kf tile #et #_ comb #mrows #mshared #mcols gA gB gC #eA #eB;
 }
 
 inline_for_extraction noextract
@@ -587,15 +584,17 @@ fn mmcomb_gpu
   {| clayout4 lB |}
   {| clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   preserves
     cpu **
-    (gA |-> eA) **
-    (gB |-> eB)
+    (gA |-> Fraction fA eA) **
+    (gB |-> Fraction fB eB)
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **
