@@ -48,13 +48,13 @@ type matmul_cpu_ty
 
 inline_for_extraction noextract
 val matmul_cpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   : matmul_cpu_ty
 
 (* Does dynamic checks to ensure that the dimensions are multiples of tile. *)
 inline_for_extraction noextract
-val matmul_gpu_tiled
-  (matmul_gpu : tiled_matmulcomb_gpu_ty)
+val mmcomb_gpu_tiled
+  (mmcomb_gpu : tiled_matmulcomb_gpu_ty)
   (tile : valid_tile)
   : matmulcomb_gpu_ty
 
@@ -121,7 +121,7 @@ type fixed_repr_gemm_gpu_ty
 
 unfold
 inline_for_extraction
-type fixed_repr_matmul_gpu_ty
+type fixed_repr_mmcomb_gpu_ty
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| crepr rA |}
@@ -151,7 +151,7 @@ type fixed_repr_matmul_gpu_ty
 
 inline_for_extraction noextract
 val specialize_as_gemm_to_type_and_reprs_gpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
@@ -161,17 +161,17 @@ val specialize_as_gemm_to_type_and_reprs_gpu
 
 inline_for_extraction noextract
 val specialize_as_matmul_to_type_and_reprs_gpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
   {| cB : crepr rB |}
   {| cC : crepr rC |}
-  : fixed_repr_matmul_gpu_ty et rA rB rC #cA #cB #cC
+  : fixed_repr_mmcomb_gpu_ty et rA rB rC #cA #cB #cC
 
 // inline_for_extraction noextract
 // val specialize_as_gemm_to_type_and_reprs_gpu
-//   (matmul_gpu : matmul_gpu_ty)
+//   (mmcomb_gpu : mmcomb_gpu_ty)
 //   (et : Type0) {| scalar et |}
 //   (rA rB rC : mrepr)
 //   {| cA : crepr rA |}
@@ -181,7 +181,7 @@ val specialize_as_matmul_to_type_and_reprs_gpu
 
 inline_for_extraction noextract
 val specialize_as_matmul_to_type_and_reprs_cpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}

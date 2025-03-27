@@ -71,7 +71,7 @@ instance scalar_dist : scalar dist = {
   mul = mult;
 }
 
-// let mult_dist = P.matmul_gpu #dist #scalar_dist
+// let mult_dist = P.mmcomb_gpu #dist #scalar_dist
 
 fn matmul_dist_gpu
   (#size : szp)
@@ -90,7 +90,7 @@ fn matmul_dist_gpu
   assert (a |-> ea);
   assume (a |-> ea); (* assume another one... cannot call matmul on a fraction, yet. *)
 
-  P.matmul_gpu add' a a b;
+  P.mmcomb_gpu add' a a b;
 
   drop_ (a |-> ea);
 }

@@ -350,7 +350,7 @@ let kdesc
 }
 
 inline_for_extraction noextract
-fn matmul_gpu
+fn mmcomb_gpu
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)

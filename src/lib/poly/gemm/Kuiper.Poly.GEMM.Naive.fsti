@@ -9,4 +9,4 @@ open Kuiper
 open Kuiper.Poly.GEMMGPU.Type
 
 inline_for_extraction noextract
-val matmul_gpu : matmulcomb_gpu_ty
+val mmcomb_gpu : matmulcomb_gpu_ty

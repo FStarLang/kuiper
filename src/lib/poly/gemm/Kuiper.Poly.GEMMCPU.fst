@@ -18,7 +18,7 @@ module MC = Kuiper.Matrix.Casts
 
 inline_for_extraction noextract
 fn matmul_cpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (#et : Type0) {| scalar et |}
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
@@ -57,7 +57,7 @@ fn matmul_cpu
 
   with vc. assert gC |-> vc;
 
-  matmul_gpu MS.comb2 gA gB gC;
+  mmcomb_gpu MS.comb2 gA gB gC;
 
   let c = Pulse.Lib.Vec.alloc #et zero (SZ.mul rows cols);
   M.gpu_matrix_to_array c gC;
@@ -72,8 +72,8 @@ fn matmul_cpu
 (* This will dinamically abort if the dimensions (rows/shared/cols) are not
    multiples of tile. *)
 inline_for_extraction noextract
-fn matmul_gpu_tiled
-  (tiled_matmul_gpu : tiled_matmulcomb_gpu_ty)
+fn mmcomb_gpu_tiled
+  (tiled_mmcomb_gpu : tiled_matmulcomb_gpu_ty)
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -114,7 +114,7 @@ fn matmul_gpu_tiled
   let gA4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
   let gB4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
   let gC4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
-  tiled_matmul_gpu tile
+  tiled_mmcomb_gpu tile
     #et #_
     comb
     #mrows #mshared #mcols
@@ -145,7 +145,7 @@ Basically:
 *)
 inline_for_extraction noextract
 fn matmul_transpose_gpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (#et : Type0) {| scalar et |}
   (#rows : szp)
   (#shared : szp)
@@ -173,14 +173,14 @@ fn matmul_transpose_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
   GT.ghost_transpose1 gC;
-  matmul_gpu MS.comb2 gA gB (GT.row2col gC);
+  mmcomb_gpu MS.comb2 gA gB (GT.row2col gC);
   GT.ghost_transpose1_back gC;
   ()
 }
 
 inline_for_extraction noextract
 fn specialize_as_gemm_to_type_and_reprs_gpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
@@ -211,12 +211,12 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
 
-  matmul_gpu #et #_ (MS.lincomb beta alpha) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
+  mmcomb_gpu #et #_ (MS.lincomb beta alpha) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
 
 inline_for_extraction noextract
 fn specialize_as_matmul_to_type_and_reprs_gpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
@@ -246,7 +246,7 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
 
-  matmul_gpu #et #_ MS.comb2 #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
+  mmcomb_gpu #et #_ MS.comb2 #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
 
 inline_for_extraction noextract
@@ -256,7 +256,7 @@ fn cpu_wrap_matmul
   {| cA : crepr rA |}
   {| cB : crepr rB |}
   {| cC : crepr rC |}
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
   (a : vec et)
@@ -282,16 +282,16 @@ fn cpu_wrap_matmul
   Pulse.Lib.Vec.pts_to_len a;
   Pulse.Lib.Vec.pts_to_len b;
 
-  matmul_cpu matmul_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
+  matmul_cpu mmcomb_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
 }
 
 inline_for_extraction noextract
 let specialize_as_matmul_to_type_and_reprs_cpu
-  (matmul_gpu : matmulcomb_gpu_ty)
+  (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA |}
   {| cB : crepr rB |}
   {| cC : crepr rC |}
   : fixed_repr_matmul_cpu_ty et rA rB rC #cA #cB #cC
-  = cpu_wrap_matmul et rA rB rC matmul_gpu
+  = cpu_wrap_matmul et rA rB rC mmcomb_gpu

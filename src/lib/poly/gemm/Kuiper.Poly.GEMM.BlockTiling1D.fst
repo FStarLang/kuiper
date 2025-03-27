@@ -677,7 +677,7 @@ let mk_kernel
 }
 
 inline_for_extraction noextract
-fn matmul_gpu
+fn mmcomb_gpu
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : binop et)
