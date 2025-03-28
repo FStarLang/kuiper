@@ -394,14 +394,14 @@ fn gpu_array_cut
   (arr : gpu_array a sz)
   (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
   (k : SZ.t{ k <= sz })
-  (#s : erased (seq a){ Seq.length s == sz })
+  (#s : lseq a sz)
   requires
-    gpu_pts_to_array arr #f s
+    (arr |-> Fraction f s)
   returns
     p : (gpu_array a k & gpu_array a (sz - k))
   ensures
-    gpu_pts_to_array p._1 #f (seq_take k s) **
-    gpu_pts_to_array p._2 #f (seq_drop k s) **
+    (p._1 |-> Fraction f (seq_take k s)) **
+    (p._2 |-> Fraction f (seq_drop k s)) **
     adjacent p._1 p._2
 
 ghost
@@ -410,12 +410,12 @@ fn gpu_array_paste
   (#sz1 #sz2 : nat)
   (arr1 : gpu_array a sz1)
   (arr2 : gpu_array a sz2)
-  (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
+  (#f : perm)
   requires
-    gpu_pts_to_array arr1 #f 's1 **
-    gpu_pts_to_array arr2 #f 's2 **
+    (arr1 |-> Fraction f 's1) **
+    (arr2 |-> Fraction f 's2) **
     adjacent arr1 arr2
   returns
     arr : gpu_array a (sz1 + sz2)
   ensures
-    gpu_pts_to_array arr #f (Seq.append 's1 's2)
+    arr |-> Fraction f (Seq.append 's1 's2)

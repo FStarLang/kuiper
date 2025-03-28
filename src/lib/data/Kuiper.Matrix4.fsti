@@ -128,6 +128,7 @@ instance has_pts_to
   : has_pts_to (gpu_matrix a l) (ematrix4 a mrows mcols brows bcols) = {
   pts_to = gpu_matrix_pts_to;
 }
+
 ghost
 fn gpu_matrix_pts_to_ref
   (#et:Type)
@@ -144,7 +145,7 @@ fn gpu_matrix_pts_to_ref
 ghost
 fn gpu_matrix_concr
   (#et:Type)
-  (#mrows #mcols #brows #bcols : erased nat)
+  (#mrows #mcols #brows #bcols : nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (g : gpu_matrix et l)
   (#em : ematrix4 et mrows mcols brows bcols)
@@ -157,28 +158,28 @@ fn gpu_matrix_concr
 ghost
 fn gpu_matrix_abs
   (#et:Type)
-  (#mrows #mcols #brows #bcols : erased nat)
+  (#mrows #mcols #brows #bcols : nat)
   (l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
   requires
-    gpu_pts_to_array p #f (to_seq l em)
+    p |-> Fraction f (to_seq l em)
   ensures
-    gpu_matrix_pts_to (from_array l p) #f em
+    from_array l p |-> Fraction f em
 
 ghost
 fn gpu_matrix_abs'
   (#et:Type)
-  (#mrows #mcols #brows #bcols : erased nat)
+  (#mrows #mcols #brows #bcols : nat)
   (l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
-  (#s : erased (seq et){Seq.length s == mlayout_size l})
+  (#s : lseq et (mlayout_size l))
   requires
-    gpu_pts_to_array p #f s
+    p |-> Fraction f s
   ensures
-    gpu_matrix_pts_to (from_array l p) #f (from_seq l s)
+    from_array l p |-> Fraction f (from_seq l s)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc0

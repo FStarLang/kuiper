@@ -190,7 +190,7 @@ let dp_kernel
   (#_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   : kernel_desc
       ((ga2 |-> s2) ** (ga1 |-> s1))
-      ((ga2 |-> s2) ** (exists* s1'. gpu_pts_to_array ga1 #1.0R s1' **
+      ((ga2 |-> s2) ** (exists* s1'. (ga1 |-> s1') **
                                      pure (len s1' == len s1 /\ squash (is_reduction zero add (pmul s1 s2) (Seq.head s1')))))
   = {
     nthr = lena;

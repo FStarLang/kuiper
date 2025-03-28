@@ -266,7 +266,7 @@ fn factor_array
   (d1 d2 : nat)
   (#va : seq et { Seq.length va == len /\ len == d1 * d2})
   requires
-    gpu_pts_to_array a va
+    a |-> va
   ensures
     forall+ (i1:natlt d1) (i2:natlt d2).
       gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
@@ -290,7 +290,7 @@ fn unfactor_array
     forall+ (i1:natlt d1) (i2:natlt d2).
       gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
   ensures
-    gpu_pts_to_array a va
+    a |-> va
 {
   open Kuiper.Enumerable;
   forevery_unfactor len d1 d2 (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
@@ -308,7 +308,7 @@ fn block_setup
   ()
 requires
   block_setup_tok lena **
-  gpu_pts_to_array a va
+  (a |-> va)
 ensures
   block_setup_tok lena **
   (forall+ (i : natlt lena). kpre lena a va i) **
@@ -334,7 +334,7 @@ requires
   (forall+ (i : natlt lena). kpost lena a va i) **
   emp
 ensures
-  (exists* va'. gpu_pts_to_array a #1.0R va')
+  (exists* va'. a |-> va')
 {
   open Kuiper.Enumerable;
   forevery_tostar #(natlt lena) _;
@@ -385,8 +385,8 @@ let kernel
   (a : gpu_array et lena)
   (#va : erased (seq et) { Seq.length va == SZ.v lena })
 : kernel_desc_1_n
-    (gpu_pts_to_array a va)
-    (exists* va'. gpu_pts_to_array a #1.0R va')
+    (a |-> va)
+    (exists* va'. a |-> va')
 = {
   nthr = lena;
   f = d_reduce lena a #va;
@@ -405,10 +405,10 @@ fn reduce
   (a : gpu_array et lena)
   requires
     cpu **
-    gpu_pts_to_array a 'va
+    (a |-> 'va)
   ensures
     cpu **
-    (exists* va'. gpu_pts_to_array a va') (* underspec *)
+    (exists* va'. a |-> va') (* underspec *)
 {
   gpu_pts_to_ref a; (* recall length, automate *)
   launch_sync (kernel lena a);

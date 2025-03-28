@@ -137,7 +137,7 @@ fn gpu_matrix_pts_to_ref
 ghost
 fn gpu_matrix_concr
   (#et:Type)
-  (#mrows #mcols #brows #bcols : erased nat)
+  (#mrows #mcols #brows #bcols : nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (g : gpu_matrix et l)
   (#em : ematrix4 et mrows mcols brows bcols)
@@ -156,23 +156,19 @@ fn gpu_matrix_concr
 ghost
 fn gpu_matrix_abs
   (#et:Type)
-  (#mrows #mcols #brows #bcols : erased nat)
+  (#mrows #mcols #brows #bcols : nat)
   (l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
   requires
-    gpu_pts_to_array p #f (to_seq l em)
+    p |-> Fraction f (to_seq l em)
   ensures
-    gpu_matrix_pts_to (from_array l p) #f em
+    from_array l p |-> Fraction f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  assert (pure (to_seq l em == A.to_seq (aview_from_mlayout et l) em));
-  // Does not work:
-  // rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
-  admit(); // FIXME, reveal hell
-  rewrite gpu_pts_to_array p #f (to_seq   #_ #(mrows * brows) #(mcols * bcols) l em)
-       as gpu_pts_to_array p #f (A.to_seq #_ #((mrows * brows) * (mcols * bcols)) (aview_from_mlayout et l) em);
+  (* FIXME: need to provide implicits very precisely. *)
+  rewrite each to_seq #et #(mrows `op_Multiply` brows) #(mcols `op_Multiply` bcols) l em as A.to_seq (aview_from_mlayout et l) em;
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
@@ -180,15 +176,15 @@ fn gpu_matrix_abs
 ghost
 fn gpu_matrix_abs'
   (#et:Type)
-  (#mrows #mcols #brows #bcols : erased nat)
+  (#mrows #mcols #brows #bcols : nat)
   (l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
-  (#s : erased (seq et){Seq.length s == mlayout_size l})
+  (#s : lseq et (mlayout_size l))
   requires
-    gpu_pts_to_array p #f s
+    p |-> Fraction f s
   ensures
-    gpu_matrix_pts_to (from_array l p) #f (from_seq l s)
+    from_array l p |-> Fraction f (from_seq l s)
 
 {
   rewrite each s as to_seq l (from_seq l s);

@@ -95,7 +95,7 @@ fn varray_abs
   (#vt:Type0) (vw : aview t len vt)
   (a : gpu_array t len)
   (#f : perm)
-  (#v : erased vt)
+  (#v : vt)
   requires
     a |-> Fraction f (to_seq vw v)
   ensures
@@ -108,11 +108,11 @@ fn varray_abs'
   (#vt:Type0) (vw : aview t len vt)
   (a : gpu_array t len)
   (#f : perm)
-  (#v : erased (seq t){Seq.length v == len})
+  (#v : lseq t len)
   requires
-    gpu_pts_to_array a #f v
+    a |-> Fraction f v
   ensures
-    varray_pts_to (from_array vw a) #f (from_seq vw v)
+    from_array vw a |-> Fraction f (from_seq vw v)
 
 inline_for_extraction noextract
 fn varray_alloc0

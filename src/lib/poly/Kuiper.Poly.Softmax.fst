@@ -15,9 +15,10 @@ fn arr_read_1
   (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
-  requires cpu ** gpu_pts_to_array a #f 'va ** pure (len > 0)
+  preserves cpu ** (a |-> Fraction f 'va)
+  requires pure (len > 0)
   returns  x : et
-  ensures  cpu ** gpu_pts_to_array a #f 'va ** pure (Seq.length 'va > 0 /\ x == Seq.head 'va)
+  ensures  pure (Seq.length 'va > 0 /\ x == Seq.head 'va)
 {
   gpu_pts_to_ref a; (* automate *)
   let ca = Pulse.Lib.Vec.alloc init 1sz;
@@ -62,8 +63,8 @@ let kexp
   (lena : szp{ lena < max_blocks })
   (a : gpu_array et lena)
 : kernel_desc
-    (exists* s. gpu_pts_to_array a #1.0R s)
-    (exists* s. gpu_pts_to_array a #1.0R s) =
+    (exists* s. a |-> s)
+    (exists* s. a |-> s) =
 {
   nblk = lena;
   f = kf_exp a;
@@ -111,8 +112,8 @@ let kdiv
   (a : gpu_array et lena)
   (d : et)
 : kernel_desc
-    (exists* s. gpu_pts_to_array a #1.0R s)
-    (exists* s. gpu_pts_to_array a #1.0R s) =
+    (exists* s. a |-> s)
+    (exists* s. a |-> s) =
 {
   nblk = lena;
   f = kf_div a d;
@@ -129,8 +130,9 @@ fn softmax_gpu
   (#et : Type0) {| floating et |}
   (#lena : szp { lena < max_threads })
   (a : gpu_array et lena)
-  requires cpu ** gpu_pts_to_array a 'va ** pure (lena > 0 /\ lena <= max_blocks)
-  ensures  cpu ** (exists* v'. gpu_pts_to_array a v')
+  preserves cpu
+  requires (a |-> 'va) ** pure (lena > 0 /\ lena <= max_blocks)
+  ensures  (exists* v'. a |-> v')
 {
   gpu_pts_to_ref a; (* recall length, automate *)
 
@@ -155,8 +157,9 @@ fn softmax
   (#et : Type0) {| floating et |}
   (#lena : szp { lena < max_threads })
   (a : Vec.lvec et lena)
-  requires cpu ** (a |-> 'va) ** pure (lena > 0 /\ lena <= max_blocks)
-  ensures  cpu ** (exists* v'. a |-> v')
+  preserves cpu
+  requires (a |-> 'va) ** pure (lena > 0 /\ lena <= max_blocks)
+  ensures  (exists* v'. a |-> v')
 {
   let ga = Array.gpu_array_alloc #et lena;
   Array.gpu_memcpy_host_to_device ga a lena;

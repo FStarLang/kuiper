@@ -91,9 +91,9 @@ fn gpu_matrix_abs
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    gpu_pts_to_array p #f (to_seq l em)
+    p |-> Fraction f (to_seq l em)
   ensures
-    gpu_matrix_pts_to (from_array l p) #f em
+    from_array l p |-> Fraction f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
   rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
@@ -107,11 +107,11 @@ fn gpu_matrix_abs'
   (#rows #cols : erased nat) (l : mlayout rows cols)
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
-  (#s : erased (seq et){Seq.length s == mlayout_size l})
+  (#s : lseq et (mlayout_size l))
   requires
-    gpu_pts_to_array p #f s
+    p |-> Fraction f s
   ensures
-    gpu_matrix_pts_to (from_array l p) #f (from_seq l s)
+    from_array l p |-> Fraction f (from_seq l s)
 {
   rewrite each s as to_seq l (from_seq l s);
   gpu_matrix_abs l p;

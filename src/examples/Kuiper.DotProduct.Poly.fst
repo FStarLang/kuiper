@@ -68,9 +68,9 @@ fn block_setup
     requires
       block_setup_tok m_size **
       (exists* s1 s2 sr.
-        gpu_pts_to_array ga1 #1.0R s1 **
-        gpu_pts_to_array ga2 #1.0R s2 **
-        gpu_pts_to_array gr #1.0R sr)
+        (ga1 |-> s1) **
+        (ga2 |-> s2) **
+        (gr |-> sr))
     ensures
       block_setup_tok m_size **
       (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
@@ -102,9 +102,9 @@ fn block_teardown
       emp (* frame *)
     ensures
       (exists* s1 s2 sr.
-        gpu_pts_to_array ga1 #1.0R s1 **
-        gpu_pts_to_array ga2 #1.0R s2 **
-        gpu_pts_to_array gr #1.0R sr)
+        (ga1 |-> s1) **
+        (ga2 |-> s2) **
+        (gr |-> sr))
 {
   forevery_rw_size (SZ.v m_size) size;
   forevery_tonat size
@@ -131,13 +131,13 @@ inline_for_extraction noextract
 let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   : kernel_desc
       (exists* s1 s2 sr.
-        gpu_pts_to_array ga1 #1.0R s1 **
-        gpu_pts_to_array ga2 #1.0R s2 **
-        gpu_pts_to_array r #1.0R sr)
+        (ga1 |-> s1) **
+        (ga2 |-> s2) **
+        (r |-> sr))
       (exists* s1 s2 sr.
-        gpu_pts_to_array ga1 #1.0R s1 **
-        gpu_pts_to_array ga2 #1.0R s2 **
-        gpu_pts_to_array r #1.0R sr)
+        (ga1 |-> s1) **
+        (ga2 |-> s2) **
+        (r |-> sr))
 = {
   f = kf #et ga1 ga2 r;
   nthr = m_size;

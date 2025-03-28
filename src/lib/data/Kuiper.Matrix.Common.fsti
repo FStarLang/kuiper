@@ -7,13 +7,13 @@ open Kuiper.GhostMap
 open Kuiper.Matrix.Reprs.Type
 module A = Kuiper.ArrayView
 
-let from_seq (#et:Type) (#rows #cols : _)
+let from_seq (#et:Type) (#rows #cols : nat)
   (l : mlayout rows cols)
   (s : lseq et (rows * cols))
   : ematrix et rows cols
   = mkM fun i j -> s @! l.bij.ff (i,j)
 
-let to_seq (#et:Type) (#rows #cols : _)
+let to_seq (#et:Type) (#rows #cols : nat)
   (l : mlayout rows cols)
   (m : ematrix et rows cols)
   : GTot (lseq et (rows * cols))

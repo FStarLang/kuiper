@@ -57,7 +57,7 @@ let varray_pts_to
   (v : vt)
   : slprop
   =
-    B.gpu_pts_to_array a #f (to_seq vw v)
+    a |-> Fraction f (to_seq vw v)
 
 ghost
 fn varray_pts_to_ref
@@ -88,9 +88,9 @@ fn varray_concr
   (#f : perm)
   (#v : erased vt)
   requires
-    varray_pts_to a #f v
+    a |-> Fraction f v
   ensures
-    gpu_pts_to_array (core a) #f (to_seq vw v)
+    core a |-> Fraction f (to_seq vw v)
 {
   unfold varray_pts_to a #f v;
 }
@@ -102,11 +102,11 @@ fn varray_abs
   (#vt:Type0) (vw : aview t len vt)
   (a : gpu_array t len)
   (#f : perm)
-  (#v : erased vt)
+  (#v : vt)
   requires
-    gpu_pts_to_array a #f (to_seq vw v)
+    a |-> Fraction f (to_seq vw v)
   ensures
-    varray_pts_to (from_array vw a) #f v
+    from_array vw a |-> Fraction f v
 {
   fold varray_pts_to #t #len #vt #vw a #f v;
 }
@@ -118,11 +118,11 @@ fn varray_abs'
   (#vt:Type0) (vw : aview t len vt)
   (a : gpu_array t len)
   (#f : perm)
-  (#v : erased (seq t){Seq.length v == len})
+  (#v : lseq t len)
   requires
-    gpu_pts_to_array a #f v
+      a |-> Fraction f v
   ensures
-    varray_pts_to (from_array vw a) #f (from_seq vw v)
+    from_array vw a |-> Fraction f (from_seq vw v)
 {
   rewrite each v as to_seq vw (from_seq vw v);
   varray_abs vw a;

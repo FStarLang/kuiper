@@ -139,11 +139,11 @@ fn gpu_matrix_abs'
   (#rows #cols : erased nat) (l : mlayout rows cols)
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
-  (#s : erased (seq et){Seq.length s == mlayout_size l})
+  (#s : lseq et (mlayout_size l))
   requires
-    gpu_pts_to_array p #f s
+    p |-> Fraction f s
   ensures
-    gpu_matrix_pts_to (from_array l p) #f (from_seq l s)
+    from_array l p |-> Fraction f (from_seq l s)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc0

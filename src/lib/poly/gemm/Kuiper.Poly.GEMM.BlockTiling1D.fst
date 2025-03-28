@@ -228,9 +228,9 @@ fn subproduct
     invariant b.
       exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
         pure (b == (SZ.v vsk < tile)) **
-        pts_to #_ #sz sk vsk **
-        pts_to #_ #(seq et) acc accv **
-        AV.varray_pts_to ar #f ar0 **
+        (sk |-> vsk) **
+        (acc |-> accv) **
+        (ar |-> Fraction f ar0) **
         gpu
   {
     let vsk = !sk;
@@ -243,9 +243,9 @@ fn subproduct
       invariant b.
         exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile)).
           pure (b == (SZ.v vi < tile)) **
-          pts_to #_ #sz i vi **
-          pts_to #_ #(seq et) acc accv **
-          AV.varray_pts_to ar #f ar0 **
+          (i |-> vi) **
+          (acc |-> accv) **
+          (ar |-> Fraction f ar0) **
           gpu
     {
       let vi = !i;
@@ -296,7 +296,7 @@ fn bring_2cols
     invariant b.
       exists* (vi : SZ.t{vi <= tile}).
         pure (b == (SZ.v vi < tile)) **
-        pts_to #_ #sz i vi **
+        (i |-> vi) **
         (gA |-> Fraction fA eA) **
         (gB |-> Fraction fB eB) **
         own_2_cols tile ar tid **
@@ -385,8 +385,8 @@ fn kf
     invariant b.
       exists* (vbk : SZ.t{vbk <= mshared}) (sumv : lseq et tile).
         pure (b == (SZ.v vbk < mshared)) **
-        pts_to #_ #sz bk vbk **
-        pts_to #_ #(seq et) sums sumv **
+        (bk |-> vbk) **
+        (sums |-> sumv) **
         (gA |-> Fraction (fA /. mlayout_size lC) eA) **
         (gB |-> Fraction (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. tile) x) **
@@ -440,8 +440,8 @@ fn kf
     invariant b.
       exists* (vrow : SZ.t{vrow <= tile}) (sumv : lseq et tile).
         pure (b == (SZ.v vrow < tile)) **
-        pts_to #_ #sz row vrow **
-        pts_to #_ #(seq et) sums sumv **
+        (row |-> vrow) **
+        (sums |-> sumv) **
         (forall+ (ii : natlt tile).
           (exists* v.
             m4_pts_to_cell gC #1.0R
@@ -550,7 +550,7 @@ fn block_setup
   ()
   requires
     block_setup_tok tile **
-    (exists* v. gpu_pts_to_array ar #1.0R v) **
+    (exists* v. ar |-> v) **
     (forall+ (tid : natlt tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures

@@ -47,7 +47,7 @@ let barrier_p
   : B.barrier_side (tile *^ tile) =
   fun it tid ->
     if even it
-    then (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x)
+    then (exists* (x : _ & _). ar |-> Fraction (1.0R /. (tile *^ tile)) x)
     else (
       (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
       (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x)
@@ -202,7 +202,7 @@ fn subproduct
   (#f : perm)
   preserves
     gpu **
-    AV.varray_pts_to ar #f ar0
+    (ar |-> Fraction f ar0)
   requires
     acc |-> acc0
   ensures
@@ -214,9 +214,9 @@ fn subproduct
     invariant b.
       exists* (vsk : SZ.t{vsk <= tile}) accv.
         pure (b == (SZ.v vsk < tile)) **
-        pts_to #_ #sz sk vsk **
-        pts_to #_ #et acc accv **
-        AV.varray_pts_to ar #f ar0 **
+        (sk |-> vsk) **
+        (acc |-> accv) **
+        (ar |-> Fraction f ar0) **
         gpu
   {
     let vsk = !sk;
@@ -305,8 +305,8 @@ fn kf
     invariant b.
       exists* (vbk : SZ.t{vbk <= mshared}) sumv.
         pure (b == (SZ.v vbk < mshared)) **
-        pts_to #_ #sz bk vbk **
-        pts_to #_ #et sum sumv **
+        (bk |-> vbk) **
+        (sum |-> sumv) **
         (gA |-> Fraction (fA /. mlayout_size lC) eA) **
         (gB |-> Fraction (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
@@ -321,7 +321,7 @@ fn kf
     assert B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid;
     even_2x vbk;
     assert (pure (even (2 * vbk)));
-    rewrite (exists* x. AV.varray_pts_to ar #(1.0R /. (tile *^ tile)) x)
+    rewrite (exists* (x : _ & _). ar |-> Fraction (1.0R /. (tile *^ tile)) x)
          as (barrier_p tile ar (2 * vbk) tid);
     B.barrier_wait ();
     rewrite (barrier_q tile ar (2 * vbk) tid)
@@ -343,7 +343,7 @@ fn kf
     assert (pure (2 * (vbk + 1) == 2 * vbk + 2));
     assert (pure (even (2 * vbk + 2)));
     rewrite (barrier_q tile ar (2 * vbk + 1) tid)
-         as (exists* x. AV.varray_pts_to ar #(1.0R /. (tile *^ tile)) x);
+         as (exists* (x : _ & _). ar |-> Fraction (1.0R /. (tile *^ tile)) x);
 
     (* At this point the SHMem cache is filled with the submatrices
        and we have RO permission to it. Compute product for our cell in
@@ -375,7 +375,7 @@ fn kf
     rewrite
       gpu_pts_to_array (AV.core (AV.from_array (aview_2tile2 et tile) ar0)) #(1.0R /. (tile *^ tile)) x1
     as
-      gpu_pts_to_array ar0 #(1.0R /. (tile *^ tile)) x1;
+      ar0 |-> Fraction (1.0R /. (tile *^ tile)) x1;
   rewrite each ar0 as ear;
   fold barrier_tok tile ear (2 * mshared) tid;
 
@@ -441,7 +441,7 @@ fn block_setup
   ()
   requires
     block_setup_tok (tile *^ tile) **
-    (exists* v. gpu_pts_to_array ar #1.0R v) **
+    (exists* v. ar |-> v) **
     (forall+ (tid : natlt2 tile  tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
@@ -481,7 +481,7 @@ fn block_teardown
       kpost comb tile gA gB gC eA eB fA fB ar bid tid) **
     emp (* frame *)
   ensures
-    (exists* v. gpu_pts_to_array ar #1.0R v) **
+    (exists* v. ar |-> v) **
     (forall+ (tid : natlt2 tile  tile).
       kpost1 comb tile gA gB gC eA eB fA fB bid tid)
 {
