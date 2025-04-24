@@ -43,6 +43,7 @@ ENV HOME /home/$USER
 
 # Install OCaml
 ARG OCAML_VERSION=5.3
+RUN opam update --yes
 RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing
 RUN opam option depext-run-installs=true
 ENV OPAMYES=1
