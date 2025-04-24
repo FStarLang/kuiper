@@ -42,9 +42,9 @@ USER $USER
 ENV HOME /home/$USER
 
 # Install OCaml
-ARG OCAML_VERSION=5.3
-RUN opam update --yes
+ARG OCAML_VERSION=5.3.0
 RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing
+RUN opam update --yes
 RUN opam option depext-run-installs=true
 ENV OPAMYES=1
 RUN opam install --yes batteries zarith stdint yojson dune menhir menhirLib pprint sedlex ppxlib process ppx_deriving ppx_deriving_yojson memtrace visitors uucp wasm fix mtime
