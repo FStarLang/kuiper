@@ -210,14 +210,8 @@ fn subproduct
       acc |-> acc'
 {
   let mut sk : sz = 0sz;
-  while (let vsk = !sk; SZ.(vsk <^ tile))
-    invariant b.
-      exists* (vsk : SZ.t{vsk <= tile}) accv.
-        pure (b == (SZ.v vsk < tile)) **
-        (sk |-> vsk) **
-        (acc |-> accv) **
-        (ar |-> Fraction f ar0) **
-        gpu
+  nuwhile (below sk tile)
+    invariant live sk ** live acc
   {
     let vsk = !sk;
     let v1 = AV.varray_read ar (mkCIdx #tile 0sz i vsk);
@@ -301,17 +295,14 @@ fn kf
   let mut sum : et = zero #et #_;
   let mut bk  : sz = 0sz;
 
-  while (let vbk = !bk; SZ.(vbk <^ mshared))
-    invariant b.
-      exists* (vbk : SZ.t{vbk <= mshared}) sumv.
-        pure (b == (SZ.v vbk < mshared)) **
+  nuwhile (below bk mshared)
+    invariant
+      exists* (vbk : SZ.t{vbk <= mshared}).
         (bk |-> vbk) **
-        (sum |-> sumv) **
-        (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-        (gB |-> Fraction (fB /. mlayout_size lC) eB) **
-        (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
-        B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
-        gpu
+        B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid
+    invariant live sum
+    invariant
+      exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x
   {
     let vbk = !bk;
     let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;

@@ -215,6 +215,18 @@ fn iteration
   }
 }
 
+fn spow2_below (i : ref SZ.t) (b : SZ.t)
+  (#vi : erased sz {reveal vi < 32})
+  preserves i |-> vi
+  returns res : bool
+  ensures
+    pure (res <==> (spow2 vi < b))
+{
+  open FStar.SizeT;
+  let vi = !i;
+  (spow2 vi <^ b);
+}
+
 inline_for_extraction noextract
 fn d_reduce
   (#et:Type0) {| scalar et |}
@@ -243,14 +255,13 @@ fn d_reduce
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + 1) s);
 
   open FStar.SizeT;
-  while (let it = !n; (spow2 it <^ nth))
-    invariant c.
-      exists* (it:sz).
-        gpu **
+  nuwhile (spow2_below n nth)
+    invariant
+      exists* (it : sz).
         pts_to n it **
         mbarrier_tok nth (barrier_matrix nth a s) it tid **
         if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
-        pure (c == (pow2 it < nth) /\ SZ.v it < 32)
+        pure (it < 32)
   {
     let it = !n;
     iteration nth a s tid it;

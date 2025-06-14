@@ -224,14 +224,9 @@ fn subproduct
       (acc |-> acc')
 {
   let mut sk : sz = 0sz;
-  while (let vsk = !sk; SZ.(vsk <^ tile))
-    invariant b.
-      exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
-        pure (b == (SZ.v vsk < tile)) **
-        (sk |-> vsk) **
-        (acc |-> accv) **
-        (ar |-> Fraction f ar0) **
-        gpu
+  nuwhile (below sk tile)
+    invariant live sk
+    invariant exists* (accv : erased (lseq et tile)). acc |-> accv
   {
     let vsk = !sk;
     let mut i = 0sz;
@@ -239,14 +234,9 @@ fn subproduct
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
     let v2 = AV.varray_read ar (mkCIdx #tile 1sz vsk j);
-    while (let vi = !i; SZ.(vi <^ tile))
-      invariant b.
-        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile)).
-          pure (b == (SZ.v vi < tile)) **
-          (i |-> vi) **
-          (acc |-> accv) **
-          (ar |-> Fraction f ar0) **
-          gpu
+    nuwhile (below i tile)
+      invariant live i
+      invariant exists* (accv : erased (lseq et tile)). acc |-> accv
     {
       let vi = !i;
       let v1 = AV.varray_read ar (mkCIdx #tile 0sz vi vsk);
@@ -292,15 +282,8 @@ fn bring_2cols
     own_2_cols tile ar tid
 {
   let mut i = 0sz;
-  while (let vi = !i; SZ.(vi <^ tile))
-    invariant b.
-      exists* (vi : SZ.t{vi <= tile}).
-        pure (b == (SZ.v vi < tile)) **
-        (i |-> vi) **
-        (gA |-> Fraction fA eA) **
-        (gB |-> Fraction fB eB) **
-        own_2_cols tile ar tid **
-        gpu
+  nuwhile (below i tile)
+    invariant live i
   {
     let vi = !i;
     unfold own_2_cols tile ar tid;
@@ -381,17 +364,13 @@ fn kf
   let mut sums : Pulse.Lib.Array.array et = [| zero #et #_ ; tile |];
   let mut bk  : sz = 0sz;
 
-  while (let vbk = !bk; SZ.(vbk <^ mshared))
-    invariant b.
-      exists* (vbk : SZ.t{vbk <= mshared}) (sumv : lseq et tile).
-        pure (b == (SZ.v vbk < mshared)) **
+  nuwhile (below bk mshared)
+    invariant
+      exists* (vbk : SZ.t{vbk <= mshared}).
         (bk |-> vbk) **
-        (sums |-> sumv) **
-        (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-        (gB |-> Fraction (fB /. mlayout_size lC) eB) **
-        (exists* x. varray_pts_to ar #(1.0R /. tile) x) **
-        B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
-        gpu
+        B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid
+    invariant exists* (sumv : lseq et tile). sums |-> sumv
+    invariant exists* x. varray_pts_to ar #(1.0R /. tile) x
   {
     let vbk = !bk;
 
@@ -436,18 +415,8 @@ fn kf
 
   let mut row : sz = 0sz;
   Pulse.Lib.Array.pts_to_len sums;
-  while (let vrow = !row; SZ.(vrow <^ tile))
-    invariant b.
-      exists* (vrow : SZ.t{vrow <= tile}) (sumv : lseq et tile).
-        pure (b == (SZ.v vrow < tile)) **
-        (row |-> vrow) **
-        (sums |-> sumv) **
-        (forall+ (ii : natlt tile).
-          (exists* v.
-            m4_pts_to_cell gC #1.0R
-              (bid / mcols) (bid % mcols)
-              ii tid v)) **
-        gpu
+  nuwhile (below row tile)
+    invariant live row
   {
     let vrow = !row;
     forevery_extract #(natlt tile) (SZ.v vrow) _;

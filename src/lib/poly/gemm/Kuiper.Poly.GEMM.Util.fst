@@ -37,15 +37,11 @@ fn matmul_dotprod
   let mut k : sz = 0sz;
   let mut sum : et = zero #et #_;
 
-  while (let vk = !k; SZ.(vk <^ shared))
-    invariant b.
+  nuwhile (below k shared)
+    invariant
       exists* (vk : SZ.t{vk <= shared}).
-        pure (0 <= shared /\ b == (SZ.v vk < shared) /\ vk <= shared /\ vk >= 0) **
-        pts_to k vk **
-        pts_to #_ #et sum (MS.matmul_single eA eB i j vk) **
-        (gA |-> Fraction fA eA) **
-        (gB |-> Fraction fB eB) **
-        gpu
+        (k |-> vk) **
+        (sum |-> MS.matmul_single eA eB i j vk)
   {
     let vk = !k;
     let s = !sum;
@@ -93,15 +89,9 @@ fn matmul_tiled_sub_dotprod
   let mut sum = v0;
   let mut k   : sz = 0sz;
 
-  while (let vk = !k; SZ.(vk <^ tile))
-    invariant b.
-      exists* (vk : SZ.t{vk <= tile}) sumv.
-        pure (0 <= tile /\ b == (SZ.v vk < tile) /\ vk <= tile /\ vk >= 0) **
-        pts_to k vk **
-        pts_to #_ #et sum sumv **
-        (gA |-> Fraction fA eA) **
-        (gB |-> Fraction fB eB) **
-        gpu
+  nuwhile (below k tile)
+    (* NB: no functional correctness *)
+    invariant live k ** live sum
   {
     let vk = !k;
     let s = !sum;
@@ -143,15 +133,9 @@ fn matmul_tiled_dotprod
   let mut sum : et = zero #et #_;
   let mut bk  : sz = 0sz;
 
-  while (let vbk = !bk; SZ.(vbk <^ shared))
-    invariant b.
-      exists* (vbk : SZ.t{vbk <= shared}) sumv.
-        pure (0 <= shared /\ b == (SZ.v vbk < shared) /\ vbk <= shared /\ vbk >= 0) **
-        pts_to bk vbk **
-        pts_to #_ #et sum sumv **
-        (gA |-> Fraction fA eA) **
-        (gB |-> Fraction fB eB) **
-        gpu
+  nuwhile (below bk shared)
+    (* NB: no functional correctness *)
+    invariant live bk ** live sum
   {
     let vbk = !bk;
     let s = !sum;

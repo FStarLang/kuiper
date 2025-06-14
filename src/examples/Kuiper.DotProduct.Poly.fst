@@ -10,6 +10,7 @@ inline_for_extraction
 let m_size : sz = 1024sz
 let size = m_size
 
+
 [@@coercion]
 inline_for_extraction
 let uint32_to_sizet x = FStar.SizeT.uint32_to_sizet x
@@ -160,17 +161,16 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   let mut i = 0sz;
   let mut a = zero #et #_;
 
-  while (let v = !i; (v `SZ.op_Less_Hat` m_size))
-     invariant b.
-       exists* v va. pts_to i v ** pts_to a va **
-       (exists* (s:seq et). (a1 |-> s) ** pure (len s == size)) **
-       (exists* (s:seq et). (a2 |-> s) ** pure (len s == size)) **
-       pure (b == (SZ.v v < size))
+  nuwhile (below i m_size)
+    invariant live i ** live a
+    invariant (exists* (s:seq et). (a1 |-> s) ** pure (len s == size))
+    invariant (exists* (s:seq et). (a2 |-> s) ** pure (len s == size))
   {
     let v = !i;
     let va = !a;
     a1.(v) <- va;
     a2.(v) <- va;
+
     i := SZ.add v 1sz;
     a := va `add` one #et;
     ()
@@ -178,6 +178,8 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   let ga1 = gpu_array_alloc #et m_size;
   let ga2 = gpu_array_alloc #et m_size;
+
+
 
   Kuiper.Array.gpu_memcpy_host_to_device ga1 a1 m_size;
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 m_size;
@@ -193,12 +195,8 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   i := 0sz;
   let mut psum = zero #et #_;
-  while (let v = !i; (v `SZ.op_Less_Hat` m_size))
-     invariant b. exists* vi vpsum.
-       pts_to i vi **
-       pts_to psum vpsum  **
-       (exists* (s : seq et). (ar |-> s) ** pure (len s == size)) **
-       pure (b == (SZ.v vi < size))
+  nuwhile (below i m_size)
+    invariant live i ** live psum
   {
     let vi = !i;
     let ri = ar.(vi);

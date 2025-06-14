@@ -44,3 +44,19 @@ unfold let en2r (i:erased nat) : real = Real.of_int i
 
 [@@coercion; pulse_unfold]
 unfold let sz2r (i:sz) : real = Real.of_int i
+
+(* A bit of a crutch for now. *)
+#lang-pulse
+fn below (r : ref sz) (x : sz)
+  preserves
+    r |-> 'vr
+  returns
+    res : bool
+  ensures
+    pure (res == (SizeT.v 'vr < SizeT.v x))
+{
+  let vr = !r;
+  FStar.SizeT.(vr <^ x)
+}
+
+unfold let live (#a:Type) (r : ref a) = exists* va. r |-> va

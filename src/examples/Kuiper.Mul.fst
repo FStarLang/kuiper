@@ -18,8 +18,8 @@ fn kf (#size : erased nat{size > 0}) (* do NOT use erased pos, inference suffers
   (bid : szlt size)
   preserves
     gpu ** block_id size bid **
-    pts_to a1 #(1.0R /. size) s1 **
-    pts_to a2 #(1.0R /. size) s2 **
+    (a1 |-> Fraction (1.0R /. size) s1) **
+    (a2 |-> Fraction (1.0R /. size) s2) **
     emp
   requires
     gpu_pts_to_slice ar bid (bid + 1) 's
