@@ -28,6 +28,10 @@ let kpre
   (tid : nat{ tid < rows * cols })
   : slprop
   =
+  (* Note: as far as this algorithm is concerned, we could have
+  an existential for the gC cell and not state anything interesting.
+  However it is actually more comfortable to not have an existential here,
+  and we will need it anyway for the  GEMM. *)
   (gA |-> Fraction (fA /. (rows * cols)) eA) **
   (gB |-> Fraction (fB /. (rows * cols)) eB) **
   M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
@@ -55,8 +59,6 @@ let kpost
   (gB |-> Fraction (fB /. (rows * cols)) eB) **
   M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
     (MS.gemm_single comb eA eB eC (tid / cols) (tid % cols) shared)
-
-// #set-options "--print_implicits --z3rlimit 1"
 
 inline_for_extraction noextract
 fn kf
@@ -102,6 +104,7 @@ fn kf
   ()
 }
 
+#set-options "--print_implicits"
 
 ghost
 fn setup
@@ -266,12 +269,8 @@ let kdesc
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
-    ((gA |-> Fraction fA eA) **
-     (gB |-> Fraction fB eB) **
-     (gC |-> eC))
-    ((gA |-> Fraction fA eA) **
-     (gB |-> Fraction fB eB) **
-     (gC |-> MS.mmcomb comb eC eA eB))
+    ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> eC))
+    ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = rows *^ cols;
 

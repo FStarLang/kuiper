@@ -30,8 +30,14 @@ fn k_reduce
   let mut i = 0sz;
   let mut r : tt = zero #tt #d;
 
-  nuwhile (below i size)
-    invariant live i ** live r
+  while (let vi = !i; (FStar.SizeT.op_Less_Hat vi size))
+    invariant b.
+      exists* vi vr.
+        gpu ** // infer automatically
+        GA.gpu_pts_to_slice a 0 (SZ.v size) v ** // infer automatically
+        (i |-> vi) **
+        (r |-> vr) **
+        pure (b == (vi <^ size))
   {
     let vi = !i;
     // FIXME: using #t instead of #tt (t = SizeT.t) gives a terrible error
