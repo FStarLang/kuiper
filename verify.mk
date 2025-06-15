@@ -94,6 +94,7 @@ FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract some
 FSTAR_FLAGS += --z3version 4.13.3
 FSTAR_FLAGS += --initial_fuel 0 --initial_ifuel 0
 FSTAR_FLAGS += --ext kuiper
+FSTAR_FLAGS += --ext optimize_let_vc
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext context_pruning
 FSTAR_FLAGS += --ext no_krml_private
