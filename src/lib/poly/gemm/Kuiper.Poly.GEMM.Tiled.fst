@@ -38,8 +38,8 @@ let kpre
   (tid : natlt (tile * tile))
   : slprop
   =
-  (gA |-> Fraction fA eA) **
-  (gB |-> Fraction fB eB) **
+  (gA |-> Frac fA eA) **
+  (gB |-> Frac fB eB) **
   m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
       (tid / tile) (tid % tile) (macc eC (bid / mcols) (bid % mcols)
@@ -66,8 +66,8 @@ let kpost
   (tid : natlt (tile * tile))
   : slprop
   =
-  (gA |-> Fraction fA eA) **
-  (gB |-> Fraction fB eB) **
+  (gA |-> Frac fA eA) **
+  (gB |-> Frac fB eB) **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -174,8 +174,8 @@ fn setup
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
   requires
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> eC)
   ensures
     (forall+ (bid : natlt2 mrows mcols)
@@ -213,8 +213,8 @@ fn teardown
       kpost comb tile gA gB gC eA eB eC fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   admit();
@@ -243,8 +243,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc_m_n
-      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> eC))
-      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
@@ -287,8 +287,8 @@ fn mmcomb_gpu
   (#eC : ematrix4 et mrows   mcols   tile tile)
   preserves
     cpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **

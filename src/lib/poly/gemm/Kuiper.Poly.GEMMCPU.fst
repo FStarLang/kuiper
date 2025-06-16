@@ -94,8 +94,8 @@ fn mmcomb_gpu_tiled
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   requires
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)

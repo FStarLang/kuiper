@@ -117,9 +117,9 @@ fn gpu_matrix_concr
   (#em : ematrix et rows cols)
   (#f : perm)
   requires
-    g |-> Fraction f em
+    g |-> Frac f em
   ensures
-    core g |-> Fraction f (to_seq l em)
+    core g |-> Frac f (to_seq l em)
 
 ghost
 fn gpu_matrix_abs
@@ -129,9 +129,9 @@ fn gpu_matrix_abs
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    p |-> Fraction f (to_seq l em)
+    p |-> Frac f (to_seq l em)
   ensures
-    from_array l p |-> Fraction f em
+    from_array l p |-> Frac f em
 
 ghost
 fn gpu_matrix_abs'
@@ -141,9 +141,9 @@ fn gpu_matrix_abs'
   (#f : perm)
   (#s : lseq et (mlayout_size l))
   requires
-    p |-> Fraction f s
+    p |-> Frac f s
   ensures
-    from_array l p |-> Fraction f (from_seq l s)
+    from_array l p |-> Frac f (from_seq l s)
 
 inline_for_extraction noextract
 fn gpu_matrix_alloc0
@@ -212,7 +212,7 @@ fn gpu_matrix_share_2
   requires
     gm |-> em
   ensures
-    (gm |-> Fraction 0.5R em) ** (gm |-> Fraction 0.5R em)
+    (gm |-> Frac 0.5R em) ** (gm |-> Frac 0.5R em)
 
 ghost
 fn gpu_matrix_gather_2
@@ -222,7 +222,7 @@ fn gpu_matrix_gather_2
   (gm : gpu_matrix et l)
   (#em : ematrix et rows cols)
   requires
-    (gm |-> Fraction 0.5R em) ** (gm |-> Fraction 0.5R em)
+    (gm |-> Frac 0.5R em) ** (gm |-> Frac 0.5R em)
   ensures
     gm |-> em
 

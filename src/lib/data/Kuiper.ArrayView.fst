@@ -57,7 +57,7 @@ let varray_pts_to
   (v : vt)
   : slprop
   =
-    a |-> Fraction f (to_seq vw v)
+    a |-> Frac f (to_seq vw v)
 
 ghost
 fn varray_pts_to_ref
@@ -88,9 +88,9 @@ fn varray_concr
   (#f : perm)
   (#v : erased vt)
   requires
-    a |-> Fraction f v
+    a |-> Frac f v
   ensures
-    core a |-> Fraction f (to_seq vw v)
+    core a |-> Frac f (to_seq vw v)
 {
   unfold varray_pts_to a #f v;
 }
@@ -104,9 +104,9 @@ fn varray_abs
   (#f : perm)
   (#v : vt)
   requires
-    a |-> Fraction f (to_seq vw v)
+    a |-> Frac f (to_seq vw v)
   ensures
-    from_array vw a |-> Fraction f v
+    from_array vw a |-> Frac f v
 {
   fold varray_pts_to #t #len #vt #vw a #f v;
 }
@@ -120,9 +120,9 @@ fn varray_abs'
   (#f : perm)
   (#v : lseq t len)
   requires
-      a |-> Fraction f v
+      a |-> Frac f v
   ensures
-    from_array vw a |-> Fraction f (from_seq vw v)
+    from_array vw a |-> Frac f (from_seq vw v)
 {
   rewrite each v as to_seq vw (from_seq vw v);
   varray_abs vw a;

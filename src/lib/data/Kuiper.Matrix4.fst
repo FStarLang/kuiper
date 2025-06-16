@@ -143,9 +143,9 @@ fn gpu_matrix_concr
   (#em : ematrix4 et mrows mcols brows bcols)
   (#f : perm)
   requires
-    g |-> Fraction f em
+    g |-> Frac f em
   ensures
-    core g |-> Fraction f (to_seq l em)
+    core g |-> Frac f (to_seq l em)
 {
   unfold gpu_matrix_pts_to g #f em;
   let a' = A.varray_concr g;
@@ -162,9 +162,9 @@ fn gpu_matrix_abs
   (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
   requires
-    p |-> Fraction f (to_seq l em)
+    p |-> Frac f (to_seq l em)
   ensures
-    from_array l p |-> Fraction f em
+    from_array l p |-> Frac f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
   (* FIXME: need to provide implicits very precisely. *)
@@ -182,9 +182,9 @@ fn gpu_matrix_abs'
   (#f : perm)
   (#s : lseq et (mlayout_size l))
   requires
-    p |-> Fraction f s
+    p |-> Frac f s
   ensures
-    from_array l p |-> Fraction f (from_seq l s)
+    from_array l p |-> Frac f (from_seq l s)
 
 {
   rewrite each s as to_seq l (from_seq l s);

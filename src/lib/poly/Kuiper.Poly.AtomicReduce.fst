@@ -43,7 +43,7 @@ let inv_p
     seq bool {len v_done >= len done /\ len v_done >= len v_a})
     v_r.
     ((a |-> v_a) ** (r |-> v_r) **
-    bigstar 0 (len done) (fun i -> done @! i |-> Fraction 0.5R (v_done @! i))) **
+    bigstar 0 (len done) (fun i -> done @! i |-> Frac 0.5R (v_done @! i))) **
     pure (contributions nn v_done v_a v_r zero)
 
 unfold
@@ -57,7 +57,7 @@ let kpre
   (i:iname)
   (tid : natlt nn)
 =
-  (done @! tid |-> Fraction 0.5R false) **
+  (done @! tid |-> Frac 0.5R false) **
   inv i (inv_p nn a v_a r done)
 
 unfold
@@ -71,7 +71,7 @@ let kpost
   (i:iname)
   (tid : natlt nn)
 =
-  (done @! tid |-> Fraction 0.5R true) **
+  (done @! tid |-> Frac 0.5R true) **
   inv i (inv_p nn a v_a r done)
 
 ghost
@@ -80,13 +80,13 @@ fn bigstar_ghost_upd_lemma
   (v_done : seq bool{len v_done >= len done})
   (tid : nat{tid < len done})
   preserves
-    bigstar 0 (len done) (fun i -> done @! i |-> Fraction 0.5R (v_done @! i))
+    bigstar 0 (len done) (fun i -> done @! i |-> Frac 0.5R (v_done @! i))
   requires
-    (done @! tid |-> Fraction 0.5R false)
+    (done @! tid |-> Frac 0.5R false)
   // returns
   //   v_done' : (v_done' : seq bool{len v_done' >= len done})
   ensures
-    (done @! tid |-> Fraction 0.5R true)
+    (done @! tid |-> Frac 0.5R true)
 {
   admit();
 }
@@ -133,7 +133,7 @@ fn kf
       ensures
         gpu **
         block_id (SZ.v nn) bid **
-        (done @! bid |-> Fraction 0.5R false) **
+        (done @! bid |-> Frac 0.5R false) **
         later (inv_p (SZ.v nn) a v_a r done) **
         pure (v == v_a @! SZ.v bid) **
         later_credit 1
@@ -190,7 +190,7 @@ fn setup
   (r : gpu_ref et)
   requires
     cpu **
-    (a |-> Fraction f v_a) **
+    (a |-> Frac f v_a) **
     (r |-> zero #et) **
     pure (SZ.v n <= 1024)
   returns
@@ -200,7 +200,7 @@ fn setup
     cpu
     ** W.with_pure (len done == SZ.v n) (fun _ ->
        bigstar 0 (SZ.v n) (fun tid ->
-        (done @! tid |-> Fraction 0.5R false) **
+        (done @! tid |-> Frac 0.5R false) **
         inv i (inv_p (SZ.v n) a v_a r done))
     ))
 {
@@ -222,10 +222,10 @@ fn teardown
   requires
     pure (len done == SZ.v n) **
     bigstar 0 (SZ.v n) (fun tid ->
-     (done @! tid |-> Fraction 0.5R true) **
+     (done @! tid |-> Frac 0.5R true) **
      inv i (inv_p (SZ.v n) a v_a r done))
   ensures
-    (a |-> Fraction f v_a) **
+    (a |-> Frac f v_a) **
     (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a) **
     pure (SZ.v n <= 1024)
 {
@@ -247,9 +247,9 @@ let kdesc
   (done : erased (seq (gref bool)){len done == SZ.v n})
   (i : iname)
 : kernel_desc
-    ((a |-> Fraction f v_a) **
+    ((a |-> Frac f v_a) **
       (r |-> r0))
-    ((a |-> Fraction f v_a) **
+    ((a |-> Frac f v_a) **
       (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a))
  = {
   nblk = n;
@@ -271,13 +271,13 @@ fn reduce
   requires
     cpu **
     pure (f == 1.0R) **
-    (a |-> Fraction f v_a) **
+    (a |-> Frac f v_a) **
     pure (SZ.v n > 0 /\ SZ.v n <= 1024)
   returns
     r : et
   ensures
     cpu **
-    (a |-> Fraction f v_a) **
+    (a |-> Frac f v_a) **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
   let mut r = zero #et #_;

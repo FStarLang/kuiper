@@ -84,9 +84,9 @@ fn varray_concr
   (#f : perm)
   (#v : erased vt)
   requires
-    a |-> Fraction f v
+    a |-> Frac f v
   ensures
-    core a |-> Fraction f (to_seq vw v)
+    core a |-> Frac f (to_seq vw v)
 
 ghost
 fn varray_abs
@@ -97,9 +97,9 @@ fn varray_abs
   (#f : perm)
   (#v : vt)
   requires
-    a |-> Fraction f (to_seq vw v)
+    a |-> Frac f (to_seq vw v)
   ensures
-    from_array vw a |-> Fraction f v
+    from_array vw a |-> Frac f v
 
 ghost
 fn varray_abs'
@@ -110,9 +110,9 @@ fn varray_abs'
   (#f : perm)
   (#v : lseq t len)
   requires
-    a |-> Fraction f v
+    a |-> Frac f v
   ensures
-    from_array vw a |-> Fraction f (from_seq vw v)
+    from_array vw a |-> Frac f (from_seq vw v)
 
 inline_for_extraction noextract
 fn varray_alloc0

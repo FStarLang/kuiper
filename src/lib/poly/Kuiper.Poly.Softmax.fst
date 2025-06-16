@@ -15,7 +15,7 @@ fn arr_read_1
   (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
-  preserves cpu ** (a |-> Fraction f 'va)
+  preserves cpu ** (a |-> Frac f 'va)
   requires pure (len > 0)
   returns  x : et
   ensures  pure (Seq.length 'va > 0 /\ x == Seq.head 'va)

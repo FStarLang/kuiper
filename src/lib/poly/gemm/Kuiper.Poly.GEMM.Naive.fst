@@ -32,8 +32,8 @@ let kpre
   an existential for the gC cell and not state anything interesting.
   However it is actually more comfortable to not have an existential here,
   and we will need it anyway for the  GEMM. *)
-  (gA |-> Fraction (fA /. (rows * cols)) eA) **
-  (gB |-> Fraction (fB /. (rows * cols)) eB) **
+  (gA |-> Frac (fA /. (rows * cols)) eA) **
+  (gB |-> Frac (fB /. (rows * cols)) eB) **
   M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
     (macc eC (tid / cols) (tid % cols))
 
@@ -55,8 +55,8 @@ let kpost
   (tid : nat{ tid < rows * cols })
   : slprop
   =
-  (gA |-> Fraction (fA /. (rows * cols)) eA) **
-  (gB |-> Fraction (fB /. (rows * cols)) eB) **
+  (gA |-> Frac (fA /. (rows * cols)) eA) **
+  (gB |-> Frac (fB /. (rows * cols)) eB) **
   M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
     (MS.gemm_single comb eA eB eC (tid / cols) (tid % cols) shared)
 
@@ -127,8 +127,8 @@ fn setup
   (#eC : ematrix et rows cols)
   ()
   requires
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> eC)
   ensures
     (forall+ (rc : natlt (rows *^ cols)).
@@ -149,8 +149,8 @@ fn setup
 
   // Join resources into a single bigstar
   forevery_zip #(natlt2 rows cols)
-    (fun _ -> gA |-> Fraction (fA /. (rows *^ cols)) eA)
-    (fun _ -> gB |-> Fraction (fB /. (rows *^ cols)) eB);
+    (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
+    (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB);
   forevery_zip #(natlt2 rows cols)
     _
     (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
@@ -158,8 +158,8 @@ fn setup
   (* We're done actually, but the encoding will not match the lambdas. *)
   forevery_ext #(natlt2 rows cols)
     (fun i ->
-      (gA |-> Fraction (fA /. (rows *^ cols)) eA) **
-      (gB |-> Fraction (fB /. (rows *^ cols)) eB) **
+      (gA |-> Frac (fA /. (rows *^ cols)) eA) **
+      (gB |-> Frac (fB /. (rows *^ cols)) eB) **
       M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb gA gB gC eA eB eC fA fB i);
@@ -190,18 +190,18 @@ fn teardown
       kpost comb gA gB gC eA eB eC fA fB rc) **
     emp (* frame *)
   ensures
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> matrix_comb comb eC (MS.matmul eA eB))
 {
   forevery_unzip #(natlt2 rows cols) _ _;
   forevery_unzip #(natlt2 rows cols) _ _;
 
   forevery_tostar #(natlt2 rows cols)
-    (fun i -> gA |-> Fraction (fA /. (rows * cols)) eA);
+    (fun i -> gA |-> Frac (fA /. (rows * cols)) eA);
   M.gpu_matrix_gather_n gA _;
   forevery_tostar #(natlt2 rows cols)
-    (fun i -> gB |-> Fraction (fB /. (rows * cols)) eB);
+    (fun i -> gB |-> Frac (fB /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
   forevery_factor (rows *^ cols) rows cols _;
@@ -269,8 +269,8 @@ let kdesc
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
-    ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> eC))
-    ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+    ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
+    ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = rows *^ cols;
 
@@ -306,8 +306,8 @@ fn mmcomb_gpu
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   requires
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)

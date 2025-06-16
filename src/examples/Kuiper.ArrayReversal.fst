@@ -77,7 +77,7 @@ fn explode_cells
   (#f : perm)
   (#s : lseq a sz)
 requires
-  arr |-> Fraction f s
+  arr |-> Frac f s
 ensures
   bigstar 0 sz (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
 {
@@ -109,7 +109,7 @@ fn implode_cells
 requires
   bigstar 0 sz (fun (i:idx 0 sz) -> gpu_pts_to_cell arr #f i (Seq.index s i))
 ensures
-  arr |-> Fraction f s
+  arr |-> Frac f s
 {
   ghost
   fn cell_to_slice (i:nat { 0 <= i /\ i < sz })

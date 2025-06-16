@@ -20,11 +20,11 @@ type reduce_ty
   (requires
     cpu **
     pure (f == 1.0R) **
-    (a |-> Fraction f v_a) **
+    (a |-> Frac f v_a) **
     pure (SZ.v n > 0 /\ SZ.v n <= 1024))
   (ensures fun r ->
     cpu **
-    (a |-> Fraction f v_a) **
+    (a |-> Frac f v_a) **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a))
 
 inline_for_extraction noextract

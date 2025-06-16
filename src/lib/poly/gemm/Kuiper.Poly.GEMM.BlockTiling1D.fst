@@ -88,8 +88,8 @@ let kpre1
   : slprop
   =
   (* mlayout_size lC: wrong, should be (mrows*mcols)*tile *)
-  (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-  (gB |-> Fraction (fB /. mlayout_size lC) eB) **
+  (gA |-> Frac (fA /. mlayout_size lC) eA) **
+  (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (* each thread owns a column *)
   (forall+ (ii : natlt tile).
     (exists* v.
@@ -117,8 +117,8 @@ let kpost1
   (tid : natlt tile)
   : slprop
   =
-  (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-  (gB |-> Fraction (fB /. mlayout_size lC) eB) **
+  (gA |-> Frac (fA /. mlayout_size lC) eA) **
+  (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (* each thread owns a column *)
   (forall+ (ii : natlt tile).
     (exists* v.
@@ -230,7 +230,7 @@ fn subproduct
         pure (b == (SZ.v vsk < tile)) **
         (sk |-> vsk) **
         (acc |-> accv) **
-        (ar |-> Fraction f ar0) **
+        (ar |-> Frac f ar0) **
         gpu
   {
     let vsk = !sk;
@@ -245,7 +245,7 @@ fn subproduct
           pure (b == (SZ.v vi < tile)) **
           (i |-> vi) **
           (acc |-> accv) **
-          (ar |-> Fraction f ar0) **
+          (ar |-> Frac f ar0) **
           gpu
     {
       let vi = !i;
@@ -283,12 +283,12 @@ fn bring_2cols
   preserves
     gpu
   requires
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     own_2_cols tile ar tid
   ensures
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     own_2_cols tile ar tid
 {
   let mut i = 0sz;
@@ -297,8 +297,8 @@ fn bring_2cols
       exists* (vi : SZ.t{vi <= tile}).
         pure (b == (SZ.v vi < tile)) **
         (i |-> vi) **
-        (gA |-> Fraction fA eA) **
-        (gB |-> Fraction fB eB) **
+        (gA |-> Frac fA eA) **
+        (gB |-> Frac fB eB) **
         own_2_cols tile ar tid **
         gpu
   {
@@ -387,8 +387,8 @@ fn kf
         pure (b == (SZ.v vbk < mshared)) **
         (bk |-> vbk) **
         (sums |-> sumv) **
-        (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-        (gB |-> Fraction (fB /. mlayout_size lC) eB) **
+        (gA |-> Frac (fA /. mlayout_size lC) eA) **
+        (gB |-> Frac (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. tile) x) **
         B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
         gpu
@@ -513,8 +513,8 @@ fn setup
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
   requires
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> eC)
   ensures
     (forall+ (bid : natlt2 mrows mcols)
@@ -624,8 +624,8 @@ fn teardown
       kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
@@ -661,8 +661,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile <= max_threads))
   : kernel_desc
-      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> eC))
-      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile;
@@ -709,8 +709,8 @@ fn mmcomb_gpu
   (#eC : ematrix4 et mrows   mcols   tile tile)
   preserves
     cpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **

@@ -40,11 +40,11 @@ type matmulcomb_gpu_fixed_ty
   (* This has a preserves. *)
   stt unit
     (requires
-      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
       (pure (rows * cols <= max_blocks) **
        (gC |-> eC)))
     (ensures fun _ ->
-      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
       (gC |-> MS.mmcomb comb eC eA eB))
 
 unfold
@@ -87,10 +87,10 @@ type tiled_matmulcomb_gpu_ty =
   (#eC : ematrix4 et mrows   mcols   tile tile) ->
   stt unit
     (requires
-      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
       (pure (mrows * mcols <= max_blocks) **
        pure (tile * tile <= max_threads) **
        (gC |-> eC)))
     (ensures fun _ ->
-      (cpu ** (gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB)) **
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
       (gC |-> MS.mmcomb comb eC eA eB))

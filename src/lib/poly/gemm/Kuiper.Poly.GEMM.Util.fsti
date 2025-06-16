@@ -34,8 +34,8 @@ fn matmul_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   returns
     res : et
   ensures
@@ -66,8 +66,8 @@ fn matmul_tiled_sub_dotprod
   and hence have an exact result. *)
   preserves
     gpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   returns
     res : et
   // ensures
@@ -92,8 +92,8 @@ fn matmul_tiled_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   returns
     res : et
   // ensures

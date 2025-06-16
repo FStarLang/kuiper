@@ -396,12 +396,12 @@ fn gpu_array_cut
   (k : SZ.t{ k <= sz })
   (#s : lseq a sz)
   requires
-    (arr |-> Fraction f s)
+    (arr |-> Frac f s)
   returns
     p : (gpu_array a k & gpu_array a (sz - k))
   ensures
-    (p._1 |-> Fraction f (seq_take k s)) **
-    (p._2 |-> Fraction f (seq_drop k s)) **
+    (p._1 |-> Frac f (seq_take k s)) **
+    (p._2 |-> Frac f (seq_drop k s)) **
     adjacent p._1 p._2
 
 ghost
@@ -412,10 +412,10 @@ fn gpu_array_paste
   (arr2 : gpu_array a sz2)
   (#f : perm)
   requires
-    (arr1 |-> Fraction f 's1) **
-    (arr2 |-> Fraction f 's2) **
+    (arr1 |-> Frac f 's1) **
+    (arr2 |-> Frac f 's2) **
     adjacent arr1 arr2
   returns
     arr : gpu_array a (sz1 + sz2)
   ensures
-    arr |-> Fraction f (Seq.append 's1 's2)
+    arr |-> Frac f (Seq.append 's1 's2)

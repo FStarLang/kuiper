@@ -69,17 +69,17 @@ fn gpu_matrix_concr
   (#em : ematrix et rows cols)
   (#f : perm)
   requires
-    g |-> Fraction f em
+    g |-> Frac f em
   ensures
-    core g |-> Fraction f (to_seq l em)
+    core g |-> Frac f (to_seq l em)
 {
   unfold gpu_matrix_pts_to g #f em;
   A.varray_concr g;
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et #rows #cols l) em)));
   // should work:
   // rewrite each A.core g as core g;
-  rewrite A.core g |-> Fraction f (A.to_seq (aview_from_mlayout et l) em)
-       as core g |-> Fraction f (to_seq l em);
+  rewrite A.core g |-> Frac f (A.to_seq (aview_from_mlayout et l) em)
+       as core g |-> Frac f (to_seq l em);
   ()
 }
 
@@ -91,9 +91,9 @@ fn gpu_matrix_abs
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    p |-> Fraction f (to_seq l em)
+    p |-> Frac f (to_seq l em)
   ensures
-    from_array l p |-> Fraction f em
+    from_array l p |-> Frac f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
   rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
@@ -109,9 +109,9 @@ fn gpu_matrix_abs'
   (#f : perm)
   (#s : lseq et (mlayout_size l))
   requires
-    p |-> Fraction f s
+    p |-> Frac f s
   ensures
-    from_array l p |-> Fraction f (from_seq l s)
+    from_array l p |-> Frac f (from_seq l s)
 {
   rewrite each s as to_seq l (from_seq l s);
   gpu_matrix_abs l p;
@@ -219,7 +219,7 @@ fn gpu_matrix_share_2
   requires
     gm |-> em
   ensures
-    (gm |-> Fraction 0.5R em) ** (gm |-> Fraction 0.5R em)
+    (gm |-> Frac 0.5R em) ** (gm |-> Frac 0.5R em)
 {
   admit(); // boring
 }
@@ -232,7 +232,7 @@ fn gpu_matrix_gather_2
   (gm : gpu_matrix et l)
   (#em : ematrix et rows cols)
   requires
-    (gm |-> Fraction 0.5R em) ** (gm |-> Fraction 0.5R em)
+    (gm |-> Frac 0.5R em) ** (gm |-> Frac 0.5R em)
   ensures
     gm |-> em
 {

@@ -47,7 +47,7 @@ let barrier_p
   : B.barrier_side (tile *^ tile) =
   fun it tid ->
     if even it
-    then (exists* (x : _ & _). ar |-> Fraction (1.0R /. (tile *^ tile)) x)
+    then (exists* (x : _ & _). ar |-> Frac (1.0R /. (tile *^ tile)) x)
     else (
       (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
       (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x)
@@ -80,8 +80,8 @@ let kpre1
   (tid : natlt (tile * tile))
   : slprop
   =
-  (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-  (gB |-> Fraction (fB /. mlayout_size lC) eB) **
+  (gA |-> Frac (fA /. mlayout_size lC) eA) **
+  (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -107,8 +107,8 @@ let kpost1
   (tid : natlt (tile * tile))
   : slprop
   =
-  (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-  (gB |-> Fraction (fB /. mlayout_size lC) eB) **
+  (gA |-> Frac (fA /. mlayout_size lC) eA) **
+  (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
     m4_pts_to_cell gC #1.0R
       (bid / mcols) (bid % mcols)
@@ -202,7 +202,7 @@ fn subproduct
   (#f : perm)
   preserves
     gpu **
-    (ar |-> Fraction f ar0)
+    (ar |-> Frac f ar0)
   requires
     acc |-> acc0
   ensures
@@ -216,7 +216,7 @@ fn subproduct
         pure (b == (SZ.v vsk < tile)) **
         (sk |-> vsk) **
         (acc |-> accv) **
-        (ar |-> Fraction f ar0) **
+        (ar |-> Frac f ar0) **
         gpu
   {
     let vsk = !sk;
@@ -307,8 +307,8 @@ fn kf
         pure (b == (SZ.v vbk < mshared)) **
         (bk |-> vbk) **
         (sum |-> sumv) **
-        (gA |-> Fraction (fA /. mlayout_size lC) eA) **
-        (gB |-> Fraction (fB /. mlayout_size lC) eB) **
+        (gA |-> Frac (fA /. mlayout_size lC) eA) **
+        (gB |-> Frac (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
         B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
         gpu
@@ -321,7 +321,7 @@ fn kf
     assert B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid;
     even_2x vbk;
     assert (pure (even (2 * vbk)));
-    rewrite (exists* (x : _ & _). ar |-> Fraction (1.0R /. (tile *^ tile)) x)
+    rewrite (exists* (x : _ & _). ar |-> Frac (1.0R /. (tile *^ tile)) x)
          as (barrier_p tile ar (2 * vbk) tid);
     B.barrier_wait ();
     rewrite (barrier_q tile ar (2 * vbk) tid)
@@ -343,7 +343,7 @@ fn kf
     assert (pure (2 * (vbk + 1) == 2 * vbk + 2));
     assert (pure (even (2 * vbk + 2)));
     rewrite (barrier_q tile ar (2 * vbk + 1) tid)
-         as (exists* (x : _ & _). ar |-> Fraction (1.0R /. (tile *^ tile)) x);
+         as (exists* (x : _ & _). ar |-> Frac (1.0R /. (tile *^ tile)) x);
 
     (* At this point the SHMem cache is filled with the submatrices
        and we have RO permission to it. Compute product for our cell in
@@ -375,7 +375,7 @@ fn kf
     rewrite
       gpu_pts_to_array (AV.core (AV.from_array (aview_2tile2 et tile) ar0)) #(1.0R /. (tile *^ tile)) x1
     as
-      ar0 |-> Fraction (1.0R /. (tile *^ tile)) x1;
+      ar0 |-> Frac (1.0R /. (tile *^ tile)) x1;
   rewrite each ar0 as ear;
   fold barrier_tok tile ear (2 * mshared) tid;
 
@@ -404,8 +404,8 @@ fn setup
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
   requires
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> eC)
   ensures
     (forall+ (bid : natlt2 mrows mcols)
@@ -515,8 +515,8 @@ fn teardown
       kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB) **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   admit();
@@ -545,8 +545,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc
-      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> eC))
-      ((gA |-> Fraction fA eA) ** (gB |-> Fraction fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
+      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
@@ -593,8 +593,8 @@ fn mmcomb_gpu
   (#eC : ematrix4 et mrows   mcols   tile tile)
   preserves
     cpu **
-    (gA |-> Fraction fA eA) **
-    (gB |-> Fraction fB eB)
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **
