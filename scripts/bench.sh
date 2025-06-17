@@ -23,4 +23,12 @@ echo "CUBLAS:"
 make -C bench
 ./bench/bench 0
 
+echo "bespoke 1d blocktiling"
+make -C bench
+./bench/bench 4
+
+echo "bespoke 2d blocktiling"
+make -C bench
+./bench/bench 5
+
 exit 0
