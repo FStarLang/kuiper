@@ -19,16 +19,24 @@ TILE=8
 ./obj/Test_Kuiper_GEMM_BlockTiling1D__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
 ./obj/Test_Kuiper_GEMM_BlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM
 
-echo "CUBLAS:"
 make -C bench
+
+echo "CUBLAS:"
 ./bench/bench 0
 
+echo "bespoke naive"
+./bench/bench 1
+
+echo "bespoke gmem coallesce"
+./bench/bench 2
+
+echo "bespoke shmem"
+./bench/bench 3
+
 echo "bespoke 1d blocktiling"
-make -C bench
 ./bench/bench 4
 
 echo "bespoke 2d blocktiling"
-make -C bench
 ./bench/bench 5
 
 exit 0
