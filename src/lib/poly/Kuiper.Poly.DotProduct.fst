@@ -54,63 +54,10 @@ let kpost
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
-  = gpu_pts_to_slice ga2 #(1.0R /. lena) tid (tid + 1) seq![s2 @! tid] **
+  = gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
     (exists* it.
       mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2)) it tid) **
     (if_ (tid = 0) (gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2)))
-
-// noextract inline_for_extraction
-// fn fixup
-//   (nth: erased nat { 0 < nth /\ nth <= 1024 })
-//   (ar: gpu_array et nth)
-//   (r: gpu_array et nth)
-//   (s1 s2: erased (seq et))
-//   (#_: squash (len s1 = nth /\ len s2 = nth))
-//   (tid: SZ.t { SZ.v tid < nth })
-//   requires gpu **
-//     if_ (SZ.v tid = 0) (exists* sr. gpu_pts_to_array r sr) **
-//     HR.kpost ar (pmul s1 s2) tid
-//   ensures  gpu **
-//     if_ (SZ.v tid = 0) (exists* sr. gpu_pts_to_array r sr) **
-//     HR.kpost ar (pmul s1 s2) tid
-// {
-//   let dot_v = hide (pmul s1 s2);
-//   if (tid = 0sz) {
-//     rewrite each (SZ.v tid = 0) as true;
-//     if_elim_true (exists* sr. gpu_pts_to_array r sr);
-
-//     // Duplicate
-//     if_elim_true (HR.gpu_pts_to_slice_sum ar 0 nth dot_v);
-
-//     unfold (HR.gpu_pts_to_slice_sum ar 0 nth dot_v);
-//     if_elim_true (exists* v. HR.gpu_pts_to_slice_sum_inner ar 0 nth dot_v v);
-
-//     let vv = gpu_array_read #et #nth #0 #nth ar 0sz; (* CONCRETE STEP *)
-//     with cv. assert (gpu_pts_to_array r cv);
-//     gpu_pts_to_ref r;
-//     gpu_array_write #et #nth #0 #nth r 0sz vv; (* CONCRETE STEP *)
-
-//     with v1. assert (gpu_pts_to_slice ar 0 nth v1);
-//     // assert (pure (Seq.index v1 0 == HR.sum dot_v));
-//     fold HR.gpu_pts_to_slice_sum_inner #_ #_ #nth ar 0 nth dot_v v1;
-//     if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #_ #_ #nth ar 0 nth dot_v v);
-//     fold HR.gpu_pts_to_slice_sum ar 0 nth dot_v;
-
-//     with v2. assert (gpu_pts_to_slice r 0 nth v2);
-//     fold HR.gpu_pts_to_slice_sum_inner #_ #_ #nth r 0 nth dot_v v2;
-//     if_intro_true (exists* v. HR.gpu_pts_to_slice_sum_inner #_ #_ #nth r 0 nth dot_v v);
-//     fold HR.gpu_pts_to_slice_sum r 0 nth dot_v;
-
-//     if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0  (1 * nth) (pmul s1 s2));
-//     if_intro_true' (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum ar 0 (1 * nth) (pmul s1 s2));
-//   } else {
-//     rewrite each (SZ.v tid = 0) as false;
-//     if_elim_false (exists* sr. gpu_pts_to_array r sr);
-//     if_intro_false (HR.gpu_pts_to_slice_sum r 0 nth dot_v);
-//     rewrite (if_ false (HR.gpu_pts_to_slice_sum r 0 nth dot_v))
-//          as (if_ (SZ.v tid = 0) (HR.gpu_pts_to_slice_sum r 0 (1 * nth) (pmul s1 s2)));
-//   }
-// }
 
 inline_for_extraction noextract
 fn kf
