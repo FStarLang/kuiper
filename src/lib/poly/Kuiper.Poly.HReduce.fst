@@ -60,7 +60,7 @@ let barrier_matrix
 ghost
 fn mk_barrier_pre
   (#et:Type0) {| scalar et |}
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
   (r : gpu_array et nth)
   (vv: erased (seq et))
   (#_: squash (len vv == nth))
@@ -95,7 +95,7 @@ let kpre
   (#_: squash (len s == lena))
   (tid : natlt lena)
   : slprop =
-    gpu_pts_to_slice a tid (tid +1) seq![Seq.index s tid] **
+    gpu_pts_to_slice a tid (tid +1) seq![s @! tid] **
     mbarrier_tok lena (barrier_matrix lena a s) 0 tid
 
 unfold
@@ -113,7 +113,7 @@ let kpost
 inline_for_extraction
 fn iteration
   (#et:Type0) {| scalar et |}
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= 1024 })
+  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
   (r : gpu_array et nth)
   (vv: erased (seq et))
   (#_: squash (len vv == nth))
@@ -171,12 +171,10 @@ fn iteration
       if_elim_true _;
 
       (**)unfold (gpu_pts_to_slice_sum #et r tid nextid vv);
-      (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r tid nextid vv s);
       let s1 = gpu_array_read #et #_ #tid #nextid r tid;
       (**)assert (pure (squash (is_reduction #et Kuiper.Scalars.zero Kuiper.Scalars.add (Seq.slice vv tid nextid) s1)));
 
       (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
-      (**)if_elim_true (exists* s. gpu_pts_to_slice_sum_inner r nextid end_ vv s);
       let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
       (**)assert (pure (squash (is_reduction zero add (Seq.slice vv nextid end_) s2)));
 
@@ -188,7 +186,6 @@ fn iteration
 
       (**)gpu_slice_concat #et #(SZ.v nth) r tid nextid end_;
       (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
-      (**)if_intro_true (exists* s. gpu_pts_to_slice_sum_inner r tid end_ vv s);
       (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
       (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
       (**)rewrite
@@ -216,11 +213,11 @@ fn iteration
 }
 
 inline_for_extraction noextract
-fn d_reduce
+fn kf
   (#et:Type0) {| scalar et |}
   (nth : szp { nth <= max_threads })
   (a : gpu_array et nth)
-  (#s :  erased (seq et))
+  (#s : erased (seq et))
   (#_ : squash (Seq.length s == nth))
   (tid : szlt nth)
   ()
@@ -238,7 +235,6 @@ fn d_reduce
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
   assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
-  (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner a tid (tid + 1) s ss);
   (**)fold (gpu_pts_to_slice_sum a tid (tid + 1) s);
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + 1) s);
 
@@ -345,9 +341,6 @@ ensures
   bigstar_extract #0 0 lena (fun i -> kpost lena a va #() (Kuiper.Enumerable.of_nat i)) 0;
   if_elim_true _;
   unfold (gpu_pts_to_slice_sum a 0 lena va);
-  with pp ff. assert (if_ pp ff);
-  rewrite each pp as true;
-  if_elim_true _;
   bigstar_emp_elim #_ #0 #0;
   with _a _b _c _d. assert (RPM.mbarrier_tok _a _b _c _d);
   drop_ (RPM.mbarrier_tok _a _b _c _d);
@@ -389,10 +382,10 @@ let kernel
     (exists* va'. a |-> va')
 = {
   nthr = lena;
-  f = d_reduce lena a #va;
+  f = kf lena a #va;
 
-  block_teardown = block_teardown lena a #va;
   block_setup = block_setup lena a #va;
+  block_teardown = block_teardown lena a #va;
   kpost = kpost lena a va;
   kpre =  kpre lena a va;
   frame = emp;

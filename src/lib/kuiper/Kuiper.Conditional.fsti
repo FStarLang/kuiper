@@ -6,7 +6,7 @@ open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
 
 [@@no_mkeys]
-let if_ (b: bool) (p: slprop): slprop = (cond b p emp)
+let if_ (b: bool) (p: slprop): slprop = cond b p emp
 
 // REWRITE
 

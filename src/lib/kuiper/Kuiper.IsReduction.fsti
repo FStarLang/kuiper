@@ -86,4 +86,4 @@ let gpu_pts_to_slice_sum
   (j:nat)
   (v: seq et)
 : slprop
-= if_ (i < j && j <= sz) (exists* s. gpu_pts_to_slice_sum_inner r i j v s)
+= exists* s. gpu_pts_to_slice_sum_inner r i j v s
