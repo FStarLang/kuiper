@@ -217,10 +217,10 @@ $(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR) $<
-	sed -i 's/threadIdx_x/threadIdx.x/' $@
-	sed -i 's/blockDim_x/blockDix.x/' $@
-	sed -i 's/blockIdx_x/blockIdx.x/' $@
-	sed -i 's/gridDim_x/gridDim.x/' $@
+	sed -i 's/threadIdx_x/threadIdx.x/g' $@
+	sed -i 's/blockDim_x/blockDix.x/g' $@
+	sed -i 's/blockIdx_x/blockIdx.x/g' $@
+	sed -i 's/gridDim_x/gridDim.x/g' $@
 	sed -i '/__global__/{n;/^$$/d}' $@
 
 NVCC_FLAGS += -O3
