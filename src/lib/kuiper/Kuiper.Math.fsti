@@ -82,7 +82,7 @@ val div_pow2_lemma_4 (n tid: nat)
 
 val div_pow2_lemma_2 (it tid: nat)
   : Lemma (
-      ~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it)
+      ~(div_pow2 (it + 1) (tid + pow2 it)) /\ div_pow2 it (tid + pow2 it) // TODO: remove + pow2 it? It's equivalent
       <==>
       div_pow2 (it + 1) tid
     )

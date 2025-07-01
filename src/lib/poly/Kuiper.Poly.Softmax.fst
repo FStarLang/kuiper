@@ -143,6 +143,8 @@ fn softmax_gpu
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
   Kuiper.Poly.HReduce.reduce lena a';
+  with s.
+    unfold Kuiper.IsReduction.gpu_pts_to_slice_sum a' 0 lena s;
   let avg = arr_read_1 zero a';
   gpu_array_free a';
 

@@ -44,13 +44,11 @@ val thread_id (nthr : nat) (tid : nat) : slprop
 (* Get a concrete value for the number of blocks (~ gridDim.x) *)
 fn get_gdim ()
   preserves block_id 'nblk 'bid
-  requires  emp
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nblk)
 
 fn get_bdim ()
   preserves thread_id 'nthr 'tid
-  requires  emp
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nthr)
 

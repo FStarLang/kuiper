@@ -14,7 +14,7 @@ module U32 = FStar.UInt32
 
 [@@CPrologue "__device__"]
 noextract inline_for_extraction
-let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 (SZ.v s)} =
+let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 s} =
   (* Computing 2^s by 1<<s *)
   SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s))
 
@@ -25,7 +25,7 @@ let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
   sizet_and tid SZ.(spow2 i -^ 1sz) = 0sz
 
 let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
-  Lemma (sdiv_pow2 i tid <==> div_pow2 (SZ.v i) (SZ.v tid))
+  Lemma (sdiv_pow2 i tid == div_pow2 i tid)
         [SMTPat (sdiv_pow2 i tid)]
 = sizet_and_div_pow2 tid (spow2 i) i;
   calc (==) {
@@ -172,7 +172,7 @@ fn iteration
 
       (**)unfold (gpu_pts_to_slice_sum #et r tid nextid vv);
       let s1 = gpu_array_read #et #_ #tid #nextid r tid;
-      (**)assert (pure (squash (is_reduction #et Kuiper.Scalars.zero Kuiper.Scalars.add (Seq.slice vv tid nextid) s1)));
+      (**)assert (pure (squash (is_reduction zero add (Seq.slice vv tid nextid) s1)));
 
       (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
       let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
@@ -188,16 +188,15 @@ fn iteration
       (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
       (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
       (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);
+      // Step below optional right now, but good practice?
       (**)rewrite
-      (**)  if_ true (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv))
+      (**)  if_ true
+      (**)      (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv))
       (**)as
       (**)  if_ (div_pow2 (SZ.v it + 1) (SZ.v tid))
-      (**)    (gpu_pts_to_slice_sum r
-      (**)        (SZ.v tid)
-      (**)        (min (SZ.v tid + pow2 (SZ.v it + 1)) (SZ.v nth))
-      (**)        (reveal vv));
-      ();
+      (**)      (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv));
     } else {
+      (* no-op *)
       if_elim_false _;
       if_intro_false (gpu_pts_to_slice_sum r tid end_ vv);
     }
@@ -235,22 +234,22 @@ fn kf
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
   assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
+  // (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner a tid (tid + 1) s ss);
   (**)fold (gpu_pts_to_slice_sum a tid (tid + 1) s);
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + 1) s);
 
   open FStar.SizeT;
-  while (let it = !n; (spow2 it <^ nth))
+  while ((spow2 !n <^ nth))
     invariant c.
       exists* (it:sz).
         gpu **
-        pts_to n it **
+        (n |-> it) **
         mbarrier_tok nth (barrier_matrix nth a s) it tid **
-        if_ (div_pow2 (SZ.v it) (SZ.v tid)) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
-        pure (c == (pow2 it < nth) /\ SZ.v it < 32)
+        if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
+        pure (c == (pow2 it < nth) /\ it < 32)
   {
-    let it = !n;
-    iteration nth a s tid it;
-    n := it +^ 1sz;
+    iteration nth a s tid !n;
+    n := !n +^ 1sz;
   };
 }
 
@@ -313,8 +312,10 @@ ensures
   open Kuiper.Enumerable;
   gpu_array_slice_1 a;
   mk_mbarrier lena (barrier_matrix lena a va);
-  bigstar_zip 0 (sizet_to_nat lena) _
-      (RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va) 0);
+  bigstar_zip 0 lena
+      _
+      (RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va) 0)
+    ;
   rewrite each (SZ.v lena) as cardinal (natlt lena) #_;
   forevery_fromstar #(natlt lena) (fun i -> kpre lena a va i);
 }
@@ -330,7 +331,7 @@ requires
   (forall+ (i : natlt lena). kpost lena a va i) **
   emp
 ensures
-  (exists* va'. a |-> va')
+  gpu_pts_to_slice_sum a 0 lena va
 {
   open Kuiper.Enumerable;
   forevery_tostar #(natlt lena) _;
@@ -338,14 +339,8 @@ ensures
     (Kuiper.Enumerable.cardinal (natlt (SZ.v lena))
             #(Kuiper.Enumerable.enumerable_natlt (SZ.v lena)))
     as lena;
-  bigstar_extract #0 0 lena (fun i -> kpost lena a va #() (Kuiper.Enumerable.of_nat i)) 0;
-  if_elim_true _;
-  unfold (gpu_pts_to_slice_sum a 0 lena va);
-  bigstar_emp_elim #_ #0 #0;
-  with _a _b _c _d. assert (RPM.mbarrier_tok _a _b _c _d);
-  drop_ (RPM.mbarrier_tok _a _b _c _d);
   ghost
-  fn mapper (j: nat{b2t (1 <= j) /\ b2t (j < SZ.v lena)})
+  fn mapper (j: nat{b2t (0 <= j) /\ b2t (j < SZ.v lena)})
   requires
       if_ (op_Equality #int (Kuiper.Enumerable.of_nat #(natlt lena) j) 0)
         (gpu_pts_to_slice_sum
@@ -359,16 +354,19 @@ ensures
             it
             (Kuiper.Enumerable.of_nat #(natlt lena) j))
   ensures
-    emp
+      if_ (op_Equality #int j 0)
+        (gpu_pts_to_slice_sum
+            a
+            0
+            (SZ.v lena)
+            (reveal #(seq et) va))
   {
-    with pp ff. assert (if_ pp ff);
-    rewrite each pp as false;
-    if_elim_false _;
-    with _a _b _c _d. assert (RPM.mbarrier_tok _a _b _c _d);
-    drop_ (RPM.mbarrier_tok _a _b _c _d);
+    with a b c d. assert (RPM.mbarrier_tok a b c d);
+    drop_ (RPM.mbarrier_tok a b c d);
+    ();
   };
-  bigstar_map #_ #_ #1 #lena mapper;
-  bigstar_emp_elim #_ #1 #lena;
+  bigstar_map #_ #_ #0 #lena mapper;
+  bigstar_if_elim #0 #0 #(SZ.v lena) 0 _;
 }
 
 inline_for_extraction noextract
@@ -379,7 +377,7 @@ let kernel
   (#va : erased (seq et) { Seq.length va == SZ.v lena })
 : kernel_desc_1_n
     (a |-> va)
-    (exists* va'. a |-> va')
+    (gpu_pts_to_slice_sum a 0 lena va)
 = {
   nthr = lena;
   f = kf lena a #va;
@@ -401,7 +399,7 @@ fn reduce
     (a |-> 'va)
   ensures
     cpu **
-    (exists* va'. a |-> va') (* underspec *)
+    gpu_pts_to_slice_sum a 0 lena 'va
 {
   gpu_pts_to_ref a; (* recall length, automate *)
   launch_sync (kernel lena a);

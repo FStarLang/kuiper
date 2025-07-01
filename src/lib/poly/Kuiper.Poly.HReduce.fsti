@@ -5,7 +5,7 @@ module Kuiper.Poly.HReduce
 open Kuiper
 
 inline_for_extraction noextract
-type reduce_ty (et : Type0) =
+type reduce_ty (et : Type0) {| scalar et |} =
   (lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena) ->
   (#va : erased (seq et)) ->
@@ -15,7 +15,7 @@ type reduce_ty (et : Type0) =
     gpu_pts_to_array a va)
   (ensures fun _ ->
     cpu **
-    (exists* va'. gpu_pts_to_array a va'))
+    Kuiper.IsReduction.gpu_pts_to_slice_sum a 0 lena va)
 
 inline_for_extraction noextract
 val reduce (#et:Type0) {| scalar et |} :

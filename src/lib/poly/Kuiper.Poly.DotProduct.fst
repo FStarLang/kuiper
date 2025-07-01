@@ -93,7 +93,7 @@ fn kf
   assert (gpu_pts_to_slice ga1 tid (tid+1) (seq![pmul s1 s2 @! tid]));
 
   (* Reduction *)
-  HR.d_reduce lena ga1 #(pmul s1 s2) #() tid ();
+  HR.kf lena ga1 #(pmul s1 s2) #() tid ();
 
   fold (kpost lena ga1 ga2 s1 s2 tid);
   ()
