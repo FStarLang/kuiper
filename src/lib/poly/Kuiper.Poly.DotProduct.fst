@@ -132,8 +132,8 @@ fn kf
 {
   (**)unfold (kpre lena ga1 ga2 s1 s2 tid);
 
-  let v1 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga1 tid #_;
-  let v2 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga2 tid #_;
+  let v1 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga1 tid;
+  let v2 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga2 tid;
 
   let vm = mul v1 v2;
 

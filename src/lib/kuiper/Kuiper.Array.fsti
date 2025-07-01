@@ -14,7 +14,7 @@ open Kuiper.Seq.Common
 
 module SZ = FStar.SizeT
 
-val gpu_array (a:Type u#0) (sz:nat) : Type u#0
+val gpu_array (a : Type u#0) (sz : nat) : Type u#0
 
 (* FIXME: I think having nat here, which forces to use erased nat
    in concrete functions, hurts Pulse inference a lot. Try to make all
@@ -43,7 +43,9 @@ let gpu_pts_to_array
   gpu_pts_to_slice x #f 0 sz v
 
 unfold
-instance has_pts_to_gpu_arr (a:Type) (sz : _) : has_pts_to (gpu_array a sz) (Seq.seq a) = {
+instance has_pts_to_gpu_arr (a:Type) (sz : _) :
+  has_pts_to (gpu_array a sz) (Seq.seq a) =
+{
   pts_to = gpu_pts_to_array;
 }
 
@@ -66,8 +68,7 @@ fn gpu_pts_to_ref
   (#f : perm)
   (x:gpu_array a sz)
   (#v : seq a)
-  preserves pts_to x #f v
-  requires emp
+  preserves x |-> Frac f v
   ensures  pure (Seq.length v == sz /\ SZ.fits sz)
 
 noextract
@@ -76,8 +77,7 @@ fn gpu_array_alloc
   {| sized a |}
   (sz : SZ.t)
   preserves cpu
-  requires emp
-  returns  x : gpu_array a (SZ.v sz)
+  returns   x : gpu_array a (SZ.v sz)
   ensures
     exists* (s:seq a). (x |-> s) ** pure (Seq.length s == sz)
 

@@ -218,7 +218,7 @@ fn iteration
 inline_for_extraction noextract
 fn d_reduce
   (#et:Type0) {| scalar et |}
-  (nth : szp { nth <= 1024 })
+  (nth : szp { nth <= max_threads })
   (a : gpu_array et nth)
   (#s :  erased (seq et))
   (#_ : squash (Seq.length s == nth))

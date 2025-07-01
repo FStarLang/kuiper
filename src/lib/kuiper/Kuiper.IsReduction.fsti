@@ -12,15 +12,23 @@ open Kuiper.Conditional
 noeq
 type is_reduction (#a:Type0) (z:a) (f : a -> a -> a) : (s : seq a) -> (r : a) -> Type0 =
   | Emp :
-    is_reduction z f seq![] z
+    seq![] `is_reduction z f` z
   | Singl :
     r:a ->
-    is_reduction z f seq![r] r
+    seq![r] `is_reduction z f` r
   | Split :
     s1:seq a -> s2:seq a -> r1:a -> r2:a ->
-    is_reduction z f s1 r1 ->
-    is_reduction z f s2 r2 ->
-    is_reduction z f (s1 `Seq.append` s2) (f r1 r2)
+    s1 `is_reduction z f` r1 ->
+    s2 `is_reduction z f` r2 ->
+    (s1 `Seq.append` s2) `is_reduction z f` (r1 `f` r2)
+
+(*
+  [1;2] `is_reduction` 1 + 2
+  [1;2] `is_reduction` (1 + 2) + 0
+  [1;2] `is_reduction` 0 + (1 + 2)
+  ....
+ *)
+
   // Add at some point:
   // | Perm :
   //   s1:seq a -> s2:seq a ->
