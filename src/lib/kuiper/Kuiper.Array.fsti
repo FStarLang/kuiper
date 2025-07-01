@@ -99,13 +99,15 @@ fn gpu_array_read
   (#j  : erased nat{i <= j /\ j <= sz})
   (r:gpu_array a sz)
   (#f:perm)
-  (idx : SZ.t {i <= SZ.v idx /\ SZ.v idx < j})
+  (idx : SZ.t)
   (#s : erased (seq a))
-  preserves gpu ** gpu_pts_to_slice #a #sz r #f i j s
-  requires emp
+  preserves gpu
+  preserves gpu_pts_to_slice #a #sz r #f i j s
+  requires pure (i <= SZ.v idx /\ SZ.v idx < j)
   returns  x:a
   ensures  pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
-                  x == Seq.index s (SZ.v idx - i))
+                 i <= SZ.v idx /\ SZ.v idx < j /\
+                 x == Seq.index s (SZ.v idx - i))
 
 [@@noextract_to "krml"]
 fn gpu_array_write
