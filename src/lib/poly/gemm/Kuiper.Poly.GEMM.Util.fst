@@ -47,15 +47,14 @@ fn matmul_dotprod
         (gB |-> Frac fB eB) **
         gpu
   {
-    let vk = !k;
     let s = !sum;
-    let v1 = M.gpu_matrix_read gA i vk;
-    let v2 = M.gpu_matrix_read gB vk j;
+    let v1 = M.gpu_matrix_read gA i !k;
+    let v2 = M.gpu_matrix_read gB !k j;
 
     sum := s `add` mul v1 v2;
-    k := SZ.add vk 1sz;
+    k := SZ.add !k 1sz;
 
-    (**)MS.matmul_single_lemma eA eB i j (vk + 1);
+    (**)MS.matmul_single_lemma eA eB i j !k;
     ();
   };
   !sum
