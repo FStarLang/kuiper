@@ -117,9 +117,9 @@ fn setup
   // mk_mbarrier nthr (HR.barrier_matrix nthr ar (pmul s1 s2));
   mk_mbarrier lena (HR.barrier_matrix lena ga1 (pmul s1 s2));
   gpu_array_slice_1 ga1;
-  bigstar_zip 0 lena _ _;
-  gpu_array_slice_1 ga2;
-  bigstar_zip 0 lena _ _;
+  // bigstar_zip 0 lena _ _;
+  // gpu_array_slice_1 ga2;
+  // bigstar_zip 0 lena _ _;
   // slice
   // bigstar_zip 0 nthr (gpu_pts_to_array1 ar) (mbarrier_tok nthr (HR.barrier_matrix nthr ar (pmul s1 s2)) 0);
   // rewrite each nthr as Enumerable.cardinal (natlt nthr) #_;

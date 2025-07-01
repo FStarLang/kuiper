@@ -208,7 +208,6 @@ fn bigstar_commute
   requires bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> f i j))
   ensures  bigstar #u2 m1 n1 (fun (j: nat{m1 <= j /\ j < n1}) -> bigstar #u1 m0 n0 (fun (i: nat{m0 <= i /\ i < n0}) -> f i j))
 
-[@@allow_ambiguous]
 ghost
 fn bigstar_zip
   (#u1 #u2 : int)
