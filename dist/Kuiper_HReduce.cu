@@ -16,7 +16,7 @@ static void __hoisted_0(size_t lena, half_t *a)
     size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)it);
     if (nextid < lena)
       if ((threadIdx.x & (size_t)(1U << (uint32_t)(it + (size_t)1U)) - (size_t)1U) == (size_t)0U)
-        a[threadIdx.x] = __hadd(a[threadIdx_x], a[nextid]);
+        a[threadIdx.x] = __hadd(a[threadIdx.x], a[nextid]);
     n = it + (size_t)1U;
   }
 }

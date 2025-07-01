@@ -8,7 +8,7 @@ __global__
 */
 static void __hoisted_0(float_t *ga)
 {
-  ga[blockIdx.x] = exp(ga[blockIdx_x]);
+  ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
 
 __global__
@@ -69,7 +69,7 @@ __global__
 */
 static void __hoisted_3(double_t *ga)
 {
-  ga[blockIdx.x] = exp(ga[blockIdx_x]);
+  ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
 
 __global__
