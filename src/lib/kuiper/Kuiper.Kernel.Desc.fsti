@@ -96,6 +96,7 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
     tid : szlt nthr ->
     unit ->
     stt unit
+      (* This seems to be missing shmem_tok ear *)
       (requires
          gpu **
          kpre ear bid tid **

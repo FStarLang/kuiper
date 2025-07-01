@@ -36,8 +36,8 @@ let kpre
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
-  = gpu_pts_to_slice ga1                 tid (tid + 1) seq![s1 @! tid] **
-    gpu_pts_to_slice ga2 #(1.0R /. lena) tid (tid + 1) seq![s2 @! tid] **
+  = gpu_pts_to_slice ga1 tid (tid + 1) seq![s1 @! tid] **
+    gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
     mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2)) 0 tid
 
 (* ^ Note how the instantiation of the barrier states (pmul s1 s2) regarless
@@ -79,17 +79,18 @@ fn kf
 {
   (**)unfold (kpre lena ga1 ga2 s1 s2 tid);
 
-  let v1 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga1 tid;
-  let v2 = gpu_array_read #et #(SZ.v lena) #tid #(tid + 1) ga2 tid;
+  let v1 = gpu_array_read #_ #_ #tid #(tid + 1) ga1 tid;
+  let v2 = gpu_array_read #_ #_ #tid #(tid + 1) ga2 tid;
 
   let vm = mul v1 v2;
 
-  gpu_array_write #et #(SZ.v lena) #(SZ.v tid) #(hide (SZ.v tid+1)) ga1 tid vm;
+  gpu_array_write #_ #_ #tid #(tid + 1) ga1 tid vm;
 
   (* Convince the SMT solver that these sequences are equal *)
   with s'.
     assert (gpu_pts_to_slice ga1 tid (tid+1) s');
   assert (pure (Seq.equal s' seq![pmul s1 s2 @! tid]));
+  assert (gpu_pts_to_slice ga1 tid (tid+1) (seq![pmul s1 s2 @! tid]));
 
   (* Reduction *)
   HR.d_reduce lena ga1 #(pmul s1 s2) #() tid ();
@@ -173,9 +174,6 @@ fn dotprod
   Pulse.Lib.Vec.pts_to_len a1;
   Pulse.Lib.Vec.pts_to_len a2;
 
-  (* swap space *)
-  let ar = V.alloc #et zero 1sz;
-
   let ga1 = gpu_array_alloc #et lena;
   let ga2 = gpu_array_alloc #et lena;
 
@@ -191,6 +189,9 @@ fn dotprod
   assert (pure (Seq.length v1 == lena));
   assert (pure (Seq.length v2 == lena));
   assert (pure (0sz + 1sz <= lena));
+
+  (* swap space *)
+  let ar = V.alloc #et zero 1sz;
   (* inference sucks here, what's going on? *)
   Kuiper.Array.gpu_memcpy_device_to_host' #_ #_ #1 ar 0sz #_ ga1 0sz 1sz;
 
@@ -198,10 +199,10 @@ fn dotprod
   gpu_array_free ga2;
 
   let dp = ar.(0sz);
+  V.free ar;
 
   (* Finally, ensure that the reduction must be sum *)
   Kuiper.IsReduction.ac_eq_foldl zero add (pmul v1 v2) dp;
 
-  V.free ar;
   dp
 }

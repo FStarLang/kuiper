@@ -116,13 +116,15 @@ fn gpu_array_write
   (#i: erased nat)
   (#j: erased nat{i <= j /\ j <= sz})
   (r:gpu_array a sz)
-  (idx : SZ.t{i <= SZ.v idx /\ SZ.v idx < j})
+  (idx : SZ.t)
   (v : a)
   (#s : erased (seq a))
   preserves gpu
+  requires pure (i <= SZ.v idx /\ SZ.v idx < j)
   requires gpu_pts_to_slice #a #sz r #1.0R i j s
   ensures  (exists* (s':seq a). gpu_pts_to_slice #a #sz r #1.0R i j s' **
               pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
+                    i <= SZ.v idx /\ SZ.v idx < j /\
                     s' == Seq.upd s (SZ.v idx - i) v))
 
 fn gpu_memcpy_host_to_device
@@ -137,7 +139,7 @@ fn gpu_memcpy_host_to_device
   (#gv : erased (seq a))
   preserves
     cpu **
-    pts_to src_arr #f v
+    (src_arr |-> Frac f v)
   requires
     (dst_garr |-> gv) **
     pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
@@ -184,7 +186,7 @@ fn gpu_memcpy_device_to_host
   (#gv : erased (seq a))
   preserves
     cpu **
-    pts_to src_garr #f gv
+    (src_garr |-> Frac f gv)
   requires
     (dst_arr |-> v) **
     pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
@@ -230,7 +232,7 @@ fn gpu_memcpy_device_to_device
   (#gv : erased (seq a))
   preserves
     cpu **
-    pts_to src_garr #f gv
+    (src_garr |-> Frac f gv)
   requires
     (dst_arr |-> v) **
     pure (SZ.v cnt == sz /\ (Seq.length gv == sz \/ Seq.length v == sz))
@@ -258,7 +260,7 @@ fn gpu_array_slice_1
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
   requires pts_to arr #f v
-  ensures  bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) seq![Seq.index v i])
+  ensures  bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) seq![v @! i])
 
 ghost
 fn gpu_array_unslice_1
@@ -267,7 +269,7 @@ fn gpu_array_unslice_1
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
-  requires bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) seq![Seq.index v i])
+  requires bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) seq![v @! i])
   ensures  pts_to arr #f v
 
 ghost
@@ -277,7 +279,7 @@ fn gpu_array_slice_1_underspec
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a))
-  requires pts_to arr #f v
+  requires arr |-> Frac f v
   ensures  bigstar #uid 0 sz (gpu_pts_to_array1 arr #f)
 
 ghost
@@ -287,7 +289,7 @@ fn gpu_array_unslice_1_underspec
   (arr : gpu_array a sz)
   (#f : perm)
   requires bigstar #uid 0 sz (gpu_pts_to_array1 arr #f)
-  ensures exists* v. pts_to arr #f v
+  ensures exists* (v : seq a). arr |-> Frac f v
 
 ghost
 fn gpu_slice_concat
@@ -299,34 +301,6 @@ fn gpu_slice_concat
   (i n m:nat)
   requires gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
   ensures  gpu_pts_to_slice arr #f i m (Seq.append s1 s2)
-
-ghost
-fn gpu_slice_slice_1_underspec
-  (#uid: int) (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  (#v : erased (seq a))
-  (i n:nat)
-  (m: nat { i <= m /\ m <= n })
-  requires gpu_pts_to_slice arr #f i n v
-  ensures
-    bigstar #uid 0 (m - i) (fun x -> gpu_pts_to_array1 arr #f (x + i)) **
-    gpu_pts_to_slice arr #f m n v
-
-ghost
-fn gpu_slice_unslice_1_underspec
-  (#uid: int) (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  (i n:nat)
-  (m: nat { i <= m /\ m <= n })
-  requires
-    bigstar #uid 0 (m - i) (fun x -> gpu_pts_to_array1 arr #f (x + i)) ** (exists* v. gpu_pts_to_slice arr #f m n v)
-  ensures
-    exists* v.
-      gpu_pts_to_slice arr #f i n v
 
 ghost
 fn gpu_slice_empty_elim
@@ -343,9 +317,10 @@ fn gpu_slice_share
   (arr : gpu_array a sz)
   (m n:nat)
   (k: nat { k > 0 })
-  requires gpu_pts_to_slice arr #'f m n 'v
+  (#f : perm)
+  requires gpu_pts_to_slice arr #f m n 'v
   ensures
-    bigstar #uid 0 k (fun x -> gpu_pts_to_slice arr #('f /. Real.of_int k) m n 'v)
+    bigstar #uid 0 k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
 
 ghost
 fn gpu_slice_gather
@@ -356,7 +331,7 @@ fn gpu_slice_gather
   (k: nat { k > 0 })
   (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
   requires
-    bigstar #uid 0 k (fun x -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
+    bigstar #uid 0 k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
   ensures gpu_pts_to_slice arr #f m n 'v
 
 ghost
