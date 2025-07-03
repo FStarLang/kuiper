@@ -1,5 +1,23 @@
 module Kuiper.Spec.GEMM
 
+let rec matmul_single
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (to : nat{to <= shared})
+  : GTot et (decreases to)
+  =
+  if reveal to = 0 then zero
+  else (
+    add
+      (matmul_single m1 m2 row col (to - 1))
+      (mul (macc m1 row (to - 1))
+           (macc m2 (to - 1) col))
+  )
+
 let matmul_single_lemma
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)

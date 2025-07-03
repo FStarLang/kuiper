@@ -22,7 +22,7 @@ let lincomb
 // when to=shared, it computes the (row,col) cell of m1*m2
 // the sum  is associated to the left, i.e.
 // ((zero + m1[row][0] * m2[0][col]) + m1[row][1] * m2[1][col]) + ...
-let rec matmul_single
+val matmul_single
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
@@ -30,15 +30,7 @@ let rec matmul_single
   (row : nat{row < rows})
   (col : nat{col < columns})
   (to : nat{to <= shared})
-  : GTot et (decreases to)
-  =
-  if reveal to = 0 then zero
-  else (
-    add
-      (matmul_single m1 m2 row col (to - 1))
-      (mul (macc m1 row (to - 1))
-           (macc m2 (to - 1) col))
-  )
+  : GTot et
 
 let gemm_single
   (#et:Type) {| scalar et |}
@@ -54,6 +46,19 @@ let gemm_single
   = comb
       (macc m0 row col)
       (matmul_single m1 m2 row col to)
+
+val matmul_zero_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+: Lemma
+  (ensures (
+    matmul_single m1 m2 row col 0 == zero
+  ))
+  [SMTPat (matmul_single m1 m2 row col 0)]
 
 val matmul_single_lemma
   (#et:Type) {| scalar et |}
@@ -71,6 +76,7 @@ val matmul_single_lemma
       (matmul_single m1 m2 row col (to - 1))
       (mul (macc m1 row (to-1)) (macc m2 (to-1) col))
   ))
+  // [SMTPat (matmul_single m1 m2 row col to)]
 
 val matmul
   (#et:Type) {| scalar et |}
