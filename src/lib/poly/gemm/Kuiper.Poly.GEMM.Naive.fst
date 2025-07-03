@@ -92,16 +92,11 @@ fn kf
   let trow = SZ.div bid cols; assert (rewrites_to trow (SZ.div bid cols));
   let tcol = SZ.rem bid cols; assert (rewrites_to tcol (SZ.rem bid cols));
 
-  rewrite each (SZ.v bid / SZ.v cols) as SZ.v (bid /^ cols);
-  rewrite each (SZ.v bid % SZ.v cols) as SZ.v (bid %^ cols);
-
   let s = MU.matmul_dotprod gA gB trow tcol;
   let v0 = M.gpu_matrix_read_cell gC trow tcol;
   let v1 = comb v0 s;
   M.gpu_matrix_write_cell gC trow tcol v1;
 
-  rewrite each (SZ.v (bid /^ cols)) as (SZ.v bid / SZ.v cols);
-  rewrite each (SZ.v (bid %^ cols)) as (SZ.v bid % SZ.v cols);
   ()
 }
 
