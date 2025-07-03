@@ -18,6 +18,19 @@ let rec matmul_single
            (macc m2 (to - 1) col))
   )
 
+let matmul_zero_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+: Lemma
+  (ensures (
+    matmul_single m1 m2 row col 0 == zero
+  ))
+  = ()
+
 let matmul_single_lemma
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
