@@ -187,7 +187,7 @@ fn partition_cells_inv
   (#f : perm)
   (#s:seq a { len s == SZ.v size })
 requires
-  bigstar 0 (SZ.v (size `div` 2sz)) (fun i ->
+  bigstar 0 (SZ.v size / 2) (fun i ->
     gpu_pts_to_cell arr #f i (Seq.index s i) **
     gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
 ensures
@@ -211,7 +211,7 @@ ensures
   };
 
   bigstar_map
-    #_ #_ #0 #(size `div` 2sz)
+    #_ #_ #0 #(SZ.v size / 2)
     #(fun i ->
       gpu_pts_to_cell arr #f i (Seq.index s i) **
       gpu_pts_to_cell arr #f (SZ.v size - i - 1) (index_flip s i))
@@ -223,11 +223,9 @@ ensures
         size
         (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i)));
 
-  bigstar_partition_inv size (size `div` 2sz)
+  bigstar_partition_inv size (SZ.v size / 2)
       (fun i -> gpu_pts_to_cell arr #f i (Seq.index s i))
       (disjoint_partitions_range size);
-
-
 }
 
 inline_for_extraction
@@ -361,7 +359,7 @@ fn teardown
   ensures
     a |-> reverse_spec s
 {
-  forevery_tostar #(natlt (size `div` 2sz))
+  forevery_tostar #(natlt (size /^ 2sz))
     (fun tid ->
       gpu_pts_to_cell a #1.0R tid (Seq.index (reverse_spec s) tid) **
       gpu_pts_to_cell a #1.0R (SZ.v size - tid - 1) (index_flip (reverse_spec s) tid));

@@ -370,10 +370,9 @@ fn kf
 
   AV.varray_concr ar;
   rewrite each SZ.v tid as reveal tid;
-  rewrite each ar as AV.from_array (aview_2tile2 et tile) ar0;
   with x1.
     rewrite
-      gpu_pts_to_array (AV.core (AV.from_array (aview_2tile2 et tile) ar0)) #(1.0R /. (tile *^ tile)) x1
+      gpu_pts_to_array (AV.core ar) #(1.0R /. (tile *^ tile)) x1
     as
       ar0 |-> Frac (1.0R /. (tile *^ tile)) x1;
   rewrite each ar0 as ear;
