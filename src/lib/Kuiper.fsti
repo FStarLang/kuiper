@@ -2,7 +2,7 @@ module Kuiper
 
 include FStar.Mul
 
-include FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
+include FStar.SizeT { div as (/^), rem as (%^), (+^), (-^), ( *^ )  }
 
 include Pulse
 include Pulse.Lib.BigStar
