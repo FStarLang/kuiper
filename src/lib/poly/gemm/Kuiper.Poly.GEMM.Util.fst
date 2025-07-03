@@ -41,17 +41,16 @@ fn matmul_dotprod
     invariant b.
       exists* (vk : SZ.t{vk <= shared}).
         pure (0 <= shared /\ b == (SZ.v vk < shared) /\ vk <= shared /\ vk >= 0) **
-        pts_to k vk **
-        pts_to #_ #et sum (MS.matmul_single eA eB i j vk) **
+        (k |-> vk) **
+        (sum |-> MS.matmul_single eA eB i j vk) **
         (gA |-> Frac fA eA) **
         (gB |-> Frac fB eB) **
         gpu
   {
-    let s = !sum;
     let v1 = M.gpu_matrix_read gA i !k;
     let v2 = M.gpu_matrix_read gB !k j;
 
-    sum := s `add` mul v1 v2;
+    sum := !sum `add` mul v1 v2;
     k := SZ.add !k 1sz;
 
     (**)MS.matmul_single_lemma eA eB i j !k;
