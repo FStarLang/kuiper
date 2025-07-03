@@ -17,9 +17,8 @@ __hoisted_0(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -77,9 +76,8 @@ __hoisted_1(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -137,9 +135,8 @@ __hoisted_2(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
     uint32_t sum = 0U;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -195,9 +192,8 @@ __hoisted_3(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -253,9 +249,8 @@ __hoisted_4(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -313,9 +308,8 @@ __hoisted_5(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -373,9 +367,8 @@ __hoisted_6(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
     uint32_t sum = 0U;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -431,9 +424,8 @@ __hoisted_7(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -489,9 +481,8 @@ __hoisted_8(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -536,9 +527,8 @@ __hoisted_9(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -583,9 +573,8 @@ __hoisted_10(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
     uint32_t sum = 0U;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -630,9 +619,8 @@ __hoisted_11(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[trow * shared + vk] * gB[vk * cols + tcol];
-      k = vk + (size_t)1U;
+      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      k += (size_t)1U;
     }
     gC[trow * cols + tcol] = sum;
   }
@@ -677,9 +665,8 @@ __hoisted_12(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, 
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -724,9 +711,8 @@ __hoisted_13(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -771,9 +757,8 @@ __hoisted_14(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
     uint32_t sum = 0U;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
@@ -818,9 +803,8 @@ __hoisted_15(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      size_t vk = k;
-      sum += gA[vk * rows + trow] * gB[tcol * shared + vk];
-      k = vk + (size_t)1U;
+      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      k += (size_t)1U;
     }
     gC[tcol * rows + trow] = sum;
   }
