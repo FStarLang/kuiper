@@ -18,7 +18,6 @@ uint64_t Kuiper_Async1_gread(uint64_t *gr)
 }
 
 __global__
-
 /**
   hoisted when extracting main
 */
@@ -28,7 +27,6 @@ static void __hoisted_0(uint64_t *r1)
 }
 
 __global__
-
 /**
   hoisted when extracting main
 */
@@ -38,7 +36,6 @@ static void __hoisted_1(uint64_t *r2)
 }
 
 __global__
-
 /**
   hoisted when extracting main
 */
@@ -48,7 +45,6 @@ static void __hoisted_2(uint64_t *r3)
 }
 
 __global__
-
 /**
   hoisted when extracting main
 */
@@ -58,7 +54,6 @@ static void __hoisted_3(uint64_t *r4)
 }
 
 __global__
-
 /**
   hoisted when extracting main
 */
@@ -68,7 +63,6 @@ static void __hoisted_4(uint64_t *r5)
 }
 
 __global__
-
 /**
   hoisted when extracting main
 */

@@ -3,7 +3,6 @@
 #include "Kuiper_Example1.h"
 
 __global__
-
 /**
   hoisted when extracting main
 */
