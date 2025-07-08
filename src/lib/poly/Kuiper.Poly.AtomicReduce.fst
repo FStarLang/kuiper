@@ -152,7 +152,6 @@ fn kf
     unfold (inv_p (SZ.v nn) a v_a r done);
     let _ = atomic_add r v;
     bigstar_ghost_upd_lemma done _ _ ;
-    rewrite each SZ.v bid as bid;
     assume (pure False); (* FIXME *)
     fold (inv_p (SZ.v nn) a v_a r done);
     later_intro (inv_p (SZ.v nn) a v_a r done);
