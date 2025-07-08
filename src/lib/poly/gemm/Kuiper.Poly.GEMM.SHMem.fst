@@ -369,7 +369,6 @@ fn kf
         (tid / tile) (tid % tile) v';
 
   AV.varray_concr ar;
-  rewrite each SZ.v tid as reveal tid;
   with x1.
     rewrite
       gpu_pts_to_array (AV.core ar) #(1.0R /. (tile *^ tile)) x1
