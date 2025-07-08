@@ -143,7 +143,9 @@ ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),echo-fstar)
 ifneq ($(MAKECMDGOALS),echo-krml)
 ifneq ($(MAKECMDGOALS),.fstar.touch)
+ifneq ($(MAKECMDGOALS),.pulse.touch)
 include .depend
+endif
 endif
 endif
 endif
