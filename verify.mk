@@ -142,7 +142,9 @@ KRML := $(KRML_HOME)/krml				\
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),echo-fstar)
 ifneq ($(MAKECMDGOALS),echo-krml)
+ifneq ($(MAKECMDGOALS),.fstar.touch)
 include .depend
+endif
 endif
 endif
 endif
