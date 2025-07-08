@@ -37,7 +37,7 @@ fn matmul_dotprod
   let mut k : sz = 0sz;
   let mut sum : et = zero #et #_;
 
-  while (let vk = !k; SZ.(vk <^ shared))
+  while (SZ.(!k <^ shared))
     invariant b.
       exists* (vk : SZ.t{vk <= shared}).
         pure (0 <= shared /\ b == (SZ.v vk < shared) /\ vk <= shared /\ vk >= 0) **
