@@ -77,9 +77,7 @@ fn kf
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  {| clayout lA, clayout lB, clayout lC |}
   (gA : M.gpu_matrix et lA)
   (#fA : perm)
   (gB : M.gpu_matrix et lB)
@@ -177,9 +175,7 @@ fn setup
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  {| clayout lA, clayout lB, clayout lC |}
   (gA : M.gpu_matrix et lA)
   (#fA : perm)
   (gB : M.gpu_matrix et lB)
@@ -238,9 +234,7 @@ fn teardown
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  {| clayout lA, clayout lB, clayout lC |}
   (gA : M.gpu_matrix et lA)
   (#fA : perm)
   (gB : M.gpu_matrix et lB)
@@ -319,9 +313,7 @@ let kdesc
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  {| clayout lA, clayout lB, clayout lC |}
   (gA : M.gpu_matrix et lA)
   (#fA : perm)
   (gB : M.gpu_matrix et lB)
@@ -366,9 +358,7 @@ fn mmcomb_gpu
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
-  {| clayout lA |}
-  {| clayout lB |}
-  {| clayout lC |}
+  {| clayout lA, clayout lB, clayout lC |}
   (gA : M.gpu_matrix et lA)
   (#fA : perm)
   (gB : M.gpu_matrix et lB)

@@ -11,7 +11,7 @@ module SZ = FStar.SizeT
 module W = Pulse.Lib.WithPure
 
 let rec contributions
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn : nat)
   (v_done : seq bool)
   (v_a : seq et{len v_done >= len v_a})
@@ -48,7 +48,7 @@ let inv_p
 
 unfold
 let kpre
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn: nat)
   (a : gpu_array et nn)
   (v_a : seq et)
@@ -62,7 +62,7 @@ let kpre
 
 unfold
 let kpost
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn: nat)
   (a : gpu_array et nn)
   (v_a : seq et)
@@ -93,7 +93,7 @@ fn bigstar_ghost_upd_lemma
 
 assume
 val contributions_lemma
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn: nat)
   (v_done : seq bool)
   (v_a : seq et{len v_done >= len v_a})
@@ -105,7 +105,7 @@ val contributions_lemma
 
 inline_for_extraction noextract
 fn kf
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#nn: SZ.t)
   (a : gpu_array et (SZ.v nn))
   (#v_a : erased (seq et))
@@ -160,7 +160,7 @@ fn kf
 
 ghost
 fn done_lemma
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn: erased nat)
   (a : gpu_array et nn)
   (r : gpu_ref et)
@@ -181,7 +181,7 @@ fn done_lemma
 
 ghost
 fn setup
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (n : sz)
   (a : gpu_array et n)
   (#f : perm)
@@ -208,7 +208,7 @@ fn setup
 
 ghost
 fn teardown
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (n : sz)
   (a : gpu_array et n)
   (#f : perm)
@@ -233,7 +233,7 @@ fn teardown
 
 inline_for_extraction noextract
 let kdesc
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (n : szp{n < max_blocks})
   (a : gpu_array et n)
   (#f : perm)
@@ -262,7 +262,7 @@ let kdesc
 
 inline_for_extraction noextract
 fn reduce
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (n : szp {n < max_blocks})
   (a : gpu_array et n)
   (#f : perm)

@@ -16,8 +16,7 @@ fn matmul_dotprod
   (#rows #shared #cols : SZ.t)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
-  {| clayout lA |}
-  {| clayout lB |}
+  {| clayout lA, clayout lB |}
   (gA : M.gpu_matrix et lA)
   (gB : M.gpu_matrix et lB)
   (#eA : ematrix et rows shared)
@@ -66,8 +65,7 @@ fn matmul_tiled_sub_dotprod
   (#rows #shared #cols #tile : SZ.t)
   (#lA : mlayout4 rows shared tile tile)
   (#lB : mlayout4 shared cols tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
+  {| clayout4 lA, clayout4 lB |}
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
   (#eA : ematrix4 et rows shared tile tile)
@@ -118,8 +116,7 @@ fn matmul_tiled_dotprod
   (#rows #shared #cols #tile : SZ.t)
   (#lA : mlayout4 rows shared tile tile)
   (#lB : mlayout4 shared cols tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
+  {| clayout4 lA, clayout4 lB |}
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
   (#eA : ematrix4 et rows shared tile tile)

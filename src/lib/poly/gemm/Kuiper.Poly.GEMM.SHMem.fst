@@ -240,9 +240,7 @@ fn kf
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (gB : gpu_matrix4 et lB)
   (gC : gpu_matrix4 et lC)
@@ -389,9 +387,7 @@ fn setup
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)
   (gB : gpu_matrix4 et lB)
@@ -423,9 +419,7 @@ fn block_setup
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)
   (gB : gpu_matrix4 et lB)
@@ -460,9 +454,7 @@ fn block_teardown
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)
   (gB : gpu_matrix4 et lB)
@@ -495,9 +487,7 @@ fn teardown
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)
   (gB : gpu_matrix4 et lB)
@@ -529,9 +519,7 @@ let mk_kernel
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)
   (gB : gpu_matrix4 et lB)
@@ -578,9 +566,7 @@ fn mmcomb_gpu
   (lA : mlayout4 mrows   mshared tile tile)
   (lB : mlayout4 mshared mcols   tile tile)
   (lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA |}
-  {| clayout4 lB |}
-  {| clayout4 lC |}
+  {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)
   (gB : gpu_matrix4 et lB)
