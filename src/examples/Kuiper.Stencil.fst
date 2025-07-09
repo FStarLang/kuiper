@@ -8,7 +8,7 @@ open Kuiper.Poly.Stencil
 
 let stencil3x3_f32_add_rr (#rows #cols : (x:szp{x >= 3}))
 =
-  specialize_host_simple_stencil f32 (fun _ _ -> one) row_major row_major 
+  specialize_host_simple_stencil f32 (fun _ _ -> one) row_major row_major
     #_ #_ #rows #cols
 
 open FStar.UInt32
@@ -21,5 +21,5 @@ let stencil i j =
 
 let stencil3x3_i32_add_mul2_rc (#rows #cols : (x:szp{x >= 3}))
 =
-  specialize_host_simple_stencil u32 stencil row_major col_major 
+  specialize_host_simple_stencil u32 stencil row_major col_major
     #_ #_ #rows #cols

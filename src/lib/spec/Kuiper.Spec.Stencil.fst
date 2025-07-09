@@ -28,8 +28,8 @@ let stencil_result_at_idx
   =
   let neighbor = neighborhood_at eIn (i + 1) (j + 1)
   in
-    ((neighbor @! 0) `mul` (stencil 0 0)) `add` ((neighbor @! 1) `mul` (stencil 0 1)) `add` ((neighbor @! 2) `mul` (stencil 0 2)) `add` 
-    ((neighbor @! 3) `mul` (stencil 1 0)) `add` ((neighbor @! 4) `mul` (stencil 1 1)) `add` ((neighbor @! 5) `mul` (stencil 1 2)) `add` 
+    ((neighbor @! 0) `mul` (stencil 0 0)) `add` ((neighbor @! 1) `mul` (stencil 0 1)) `add` ((neighbor @! 2) `mul` (stencil 0 2)) `add`
+    ((neighbor @! 3) `mul` (stencil 1 0)) `add` ((neighbor @! 4) `mul` (stencil 1 1)) `add` ((neighbor @! 5) `mul` (stencil 1 2)) `add`
     ((neighbor @! 6) `mul` (stencil 2 0)) `add` ((neighbor @! 7) `mul` (stencil 2 1)) `add` ((neighbor @! 8) `mul` (stencil 2 2))
 
 let stencil_result

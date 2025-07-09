@@ -140,7 +140,7 @@ fn setup
 
   forevery_zip #(natlt (rows *^ cols))
     _
-    (fun rc -> 
+    (fun rc ->
       (exists* vv. M.gpu_matrix_pts_to_cell gOut (rc / cols) (rc % cols) vv));
     // M.gpu_matrix_pts_to_cell gOut (i/cols) (i%cols) (macc eOut (i/cols) (i%cols)));
 
@@ -223,7 +223,7 @@ fn teardown
     (fun r c -> M.gpu_matrix_pts_to_cell gOut r c (STS.stencil_result_at_idx stencil eIn r c))
     _
     convert_single_res_to_access_on_entire_res;
-  
+
   M.gpu_matrix_implode gOut;
 }
 
