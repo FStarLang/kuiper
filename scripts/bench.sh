@@ -24,8 +24,9 @@ make -C bench
 echo "CUBLAS:"
 ./bench/bench 0
 
-echo "bespoke naive"
-./bench/bench 1
+# This takes like 15 minutes
+# echo "bespoke naive"
+# ./bench/bench 1
 
 echo "bespoke gmem coallesce"
 ./bench/bench 2
