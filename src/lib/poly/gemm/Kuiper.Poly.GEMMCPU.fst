@@ -185,9 +185,7 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
+  {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
   (alpha beta : et)
   (#rows #shared #cols : szp) (* concrete args *)
   (gA : gpu_matrix et (rA rows shared))
@@ -221,9 +219,7 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
+  {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
   (#rows #shared #cols : szp) (* concrete args *)
   (gA : gpu_matrix et (rA rows shared))
   (gB : gpu_matrix et (rB shared cols))
@@ -255,9 +251,7 @@ inline_for_extraction noextract
 fn cpu_wrap_matmul
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
+  {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
@@ -292,8 +286,6 @@ let specialize_as_matmul_to_type_and_reprs_cpu
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
-  : fixed_repr_matmul_cpu_ty et rA rB rC #cA #cB #cC
+  {| crepr rA, crepr rB, crepr rC |}
+  : fixed_repr_matmul_cpu_ty et rA rB rC
   = cpu_wrap_matmul et rA rB rC mmcomb_gpu

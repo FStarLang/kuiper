@@ -63,9 +63,7 @@ inline_for_extraction
 type fixed_repr_matmul_cpu_ty
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| crepr rA |}
-  {| crepr rB |}
-  {| crepr rC |}
+  {| crepr rA, crepr rB, crepr rC |}
 =
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
@@ -92,9 +90,7 @@ inline_for_extraction
 type fixed_repr_gemm_gpu_ty
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| crepr rA |}
-  {| crepr rB |}
-  {| crepr rC |}
+  {| crepr rA, crepr rB, crepr rC |}
 =
   (alpha : et) ->
   (beta : et) ->
@@ -124,9 +120,7 @@ inline_for_extraction
 type fixed_repr_mmcomb_gpu_ty
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| crepr rA |}
-  {| crepr rB |}
-  {| crepr rC |}
+  {| crepr rA, crepr rB, crepr rC |}
 =
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
@@ -154,20 +148,16 @@ val specialize_as_gemm_to_type_and_reprs_gpu
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
-  : fixed_repr_gemm_gpu_ty et rA rB rC #cA #cB #cC
+  {| crepr rA, crepr rB, crepr rC |}
+  : fixed_repr_gemm_gpu_ty et rA rB rC
 
 inline_for_extraction noextract
 val specialize_as_matmul_to_type_and_reprs_gpu
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
-  : fixed_repr_mmcomb_gpu_ty et rA rB rC #cA #cB #cC
+  {| crepr rA, crepr rB, crepr rC |}
+  : fixed_repr_mmcomb_gpu_ty et rA rB rC
 
 // inline_for_extraction noextract
 // val specialize_as_gemm_to_type_and_reprs_gpu
@@ -184,7 +174,5 @@ val specialize_as_matmul_to_type_and_reprs_cpu
   (mmcomb_gpu : matmulcomb_gpu_ty)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
-  {| cA : crepr rA |}
-  {| cB : crepr rB |}
-  {| cC : crepr rC |}
-  : fixed_repr_matmul_cpu_ty et rA rB rC #cA #cB #cC
+  {| crepr rA, crepr rB, crepr rC |}
+  : fixed_repr_matmul_cpu_ty et rA rB rC
