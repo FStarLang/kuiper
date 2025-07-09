@@ -23,8 +23,7 @@ let matmul_zero_lemma
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
-  (row : nat{row < rows})
-  (col : nat{col < columns})
+  (row col : nat{row < rows /\ col < columns})
 : Lemma
   (ensures (
     matmul_single m1 m2 row col 0 == zero
