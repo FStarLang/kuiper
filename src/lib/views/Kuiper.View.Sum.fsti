@@ -21,6 +21,9 @@ let aview_sum
   ibij = bij_either vw1.ibij vw2.ibij `bij_comp` bij_nat_sum _ _;
 }
 
+// Note: maybe len1/len2 should be nats, and the relevant size_t
+// should come from the cview of each. I.e. having a cview
+// for an array implies you have a concrete value for its length.
 inline_for_extraction noextract
 let cview_sum
   (#a:Type)

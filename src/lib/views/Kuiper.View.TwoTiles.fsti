@@ -28,7 +28,7 @@ types, and use them in the code below.
 let aview_2tile2
   (et : Type0)
   (tile : valid_tile)
-  : aview et (2sz *^ tile *^ tile) (ematrix et tile tile & ematrix et tile tile)
+  : aview et (2 * tile * tile) (ematrix et tile tile & ematrix et tile tile)
 = Kuiper.View.Sum.aview_sum
     (MC.aview_from_mlayout et (R.row_major tile tile))
     (MC.aview_from_mlayout et (R.row_major tile tile))

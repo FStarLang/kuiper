@@ -106,8 +106,8 @@ fn kf
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   (#fA #fB : perm)
-  (bid : szlt2 mrows mcols)
-  (tid : szlt2 tile  tile)
+  (bid : szlt (mrows * mcols))
+  (tid : szlt (tile  * tile))
   ()
   requires
     gpu **

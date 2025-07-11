@@ -168,6 +168,7 @@ fn setup
 
 }
 
+#push-options "--z3rlimit 20"
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
@@ -204,7 +205,7 @@ fn teardown
     (fun (r:natlt rows) (c:natlt cols) ->
       M.gpu_matrix_pts_to_cell gOut ((r * cols + c) / cols) ((r * cols + c) % cols)
          (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn
-            ((r * SZ.v cols + c) / SZ.v cols) ((r * SZ.v cols + c) % SZ.v cols)))
+            ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
       M.gpu_matrix_pts_to_cell gOut r c (
         STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn r c));
@@ -226,7 +227,7 @@ fn teardown
 
   M.gpu_matrix_implode gOut;
 }
-
+#pop-options
 
 inline_for_extraction noextract
 let kdesc

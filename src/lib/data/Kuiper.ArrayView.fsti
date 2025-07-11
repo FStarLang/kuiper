@@ -12,7 +12,8 @@ module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
 inline_for_extraction noextract
-val varray (#a : Type0) (#len : nat) (#vt : Type) (vw : aview a len vt) : Type0
+new
+val varray (#a : Type0) (#len : erased nat) (#vt : Type) (vw : aview a len vt) : Type0
 
 inline_for_extraction noextract
 val from_array
@@ -48,7 +49,7 @@ val lem_core_from_array
           [SMTPat (from_array vw p)]
 
 val varray_pts_to
-  (#a:Type) (#len : nat) (#vt:_) (#vw : aview a len vt)
+  (#a:Type) (#len : erased nat) (#vt:_) (#vw : aview a len vt)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
   (v : vt)

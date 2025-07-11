@@ -129,7 +129,7 @@ let kpost1
 let barrier_tok
   (#et : Type0)
   (tile : valid_tile)
-  (ar: gpu_array et (2sz *^ tile *^ tile))
+  (ar: gpu_array et (2 * tile * tile))
   (it : nat)
   (tid : natlt tile)
   : slprop
@@ -152,13 +152,13 @@ let kpre
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
-  (ar : gpu_array et (2sz *^ tile *^ tile))
+  (ar : gpu_array et (2 * tile * tile))
   (bid : natlt (mrows * mcols))
   (tid : natlt tile)
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_slice ar #(1.0R /. tile) 0 (2sz *^ tile *^ tile) x) **
+  (exists* x. gpu_pts_to_slice ar #(1.0R /. tile) 0 (2 * tile * tile) x) **
   barrier_tok tile ar 0 tid **
   shmem_tok ar
 
@@ -178,13 +178,13 @@ let kpost
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
-  (ar : gpu_array et (2sz *^ tile *^ tile))
+  (ar : gpu_array et (2 * tile * tile))
   (bid : natlt (mrows * mcols))
   (tid : natlt tile)
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_slice ar #(1.0R /. tile) 0 (2sz *^ tile *^ tile) x) **
+  (exists* x. gpu_pts_to_slice ar #(1.0R /. tile) 0 (2 * tile * tile) x) **
   barrier_tok tile ar (2 * mshared) tid
 
 inline_for_extraction noextract
@@ -331,8 +331,8 @@ fn kf
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
-  (ear : erased (gpu_array et (2sz *^ tile *^ tile)))
-  (bid : szlt2 mrows mcols)
+  (ear : erased (gpu_array et (2 * tile * tile)))
+  (bid : szlt (mrows * mcols))
   (tid : szlt tile)
   ()
   requires
@@ -352,22 +352,10 @@ fn kf
   unfold barrier_tok tile ar0 0 tid;
 
   // Does not work:
-  // rewrite each AV.from_array #et #(2sz *^ tile *^ tile) #(ematrix et tile tile & ematrix et tile tile) ar (aview_2tile2 et tile)
-  //           as ar;
   AV.varray_abs' (aview_2tile2 et tile) ar0;
-  let ar = AV.from_array (aview_2tile2 et tile <: erased _) ar0;
-  rewrite
-    B.barrier_tok (barrier_p tile (AV.from_array (aview_2tile2 et tile) ar0))
-                  (barrier_q tile (AV.from_array (aview_2tile2 et tile) ar0)) 0 tid
-  as
-    B.barrier_tok (barrier_p tile ar)
-                  (barrier_q tile ar) 0 tid;
-
-  with x0.
-    rewrite
-      AV.varray_pts_to (AV.from_array (aview_2tile2 et tile) ar0) #(1.0R /. tile) x0
-    as
-      AV.varray_pts_to ar #(1.0R /. tile) x0;
+  let ar = AV.from_array (aview_2tile2 et tile) ar0;
+  rewrite each AV.from_array (aview_2tile2 et tile) ar0
+            as ar;
 
   let mrow, mcol = s_divmod mcols bid;
   let bcol = tid;
@@ -536,8 +524,8 @@ fn block_setup
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
-  (ar : gpu_array et (2sz *^ tile *^ tile))
-  (bid : natlt (mrows *^ mcols))
+  (ar : gpu_array et (2 * tile * tile))
+  (bid : natlt (mrows * mcols))
   ()
   requires
     block_setup_tok tile **
@@ -571,8 +559,8 @@ fn block_teardown
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
-  (ar : gpu_array et (2sz *^ tile *^ tile))
-  (bid : natlt (mrows *^ mcols))
+  (ar : gpu_array et (2 * tile * tile))
+  (bid : natlt (mrows * mcols))
   ()
   requires
     (forall+ (tid : natlt tile).

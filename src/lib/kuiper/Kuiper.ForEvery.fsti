@@ -42,7 +42,9 @@ fn forevery_ext_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
   (f : a -> b -> slprop)
-  (g : a -> b -> slprop { forall x y. f x y == g x y})
+  (g : a -> b -> slprop)
+  requires
+    pure (forall x y. f x y == g x y)
   requires
     forall+ (x:a) (y:b). f x y
   ensures
