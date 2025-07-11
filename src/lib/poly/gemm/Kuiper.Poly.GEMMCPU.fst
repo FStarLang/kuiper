@@ -244,7 +244,10 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
 
-  mmcomb_gpu #et #_ MS.comb2 #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
+  mmcomb_gpu MS.comb2
+    #rows #shared #cols
+    #(rA _ _) #(rB _ _) #(rC _ _)
+    gA gB gC;
 }
 
 inline_for_extraction noextract
@@ -278,7 +281,10 @@ fn cpu_wrap_matmul
   Pulse.Lib.Vec.pts_to_len a;
   Pulse.Lib.Vec.pts_to_len b;
 
-  matmul_cpu mmcomb_gpu #et #_ #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) a b #sa #sb
+  matmul_cpu mmcomb_gpu
+    #_ #_ #rows #shared #cols
+    #(rA _ _) #(rB _ _) #(rC _ _)
+    a b
 }
 
 inline_for_extraction noextract
