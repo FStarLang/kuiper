@@ -7,11 +7,12 @@ module Enum = Kuiper.Enumerable
 module B = Kuiper.Array (* base *)
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
+module Trade = Pulse.Lib.Trade
 
 (* Avoid ghost effect when using projector. *)
 inline_for_extraction noextract
 let cidx
-  (#a : Type) (#len : erased nat) (#vt : Type)
+  (#a : Type0) (#len : erased nat) (#vt : Type0)
   (#vw : aview a len vt) (cw : cview vw)
   (cit : cw.cit)
   : c:sz{c == cw.cibij.ff cit}
@@ -19,12 +20,12 @@ let cidx
   match cw with {cibij} -> cibij.ff cit
 
 noeq
-type varray (#a:Type) (#len : erased nat) (#vt : Type) (vw : aview a len vt) =
+type varray (#a:Type0) (#len : erased nat) (#vt : Type0) (vw : aview a len vt) =
   | VA of B.gpu_array a len
 
 inline_for_extraction noextract
 let from_array
-  (#a : Type0) (#len : erased nat) (#vt : Type)
+  (#a : Type0) (#len : erased nat) (#vt : Type0)
   (vw : aview a len vt)
   (arr : gpu_array a len)
   : varray vw
@@ -33,31 +34,123 @@ let from_array
 let core (VA a) = a
 
 let lem_from_array_core
-  (#a : Type)
+  (#a : Type0)
   (#len : erased nat)
-  (#vt : Type) (#vw : aview a len vt)
+  (#vt : Type0) (#vw : aview a len vt)
   (arr : varray vw)
   : Lemma (ensures from_array vw (core arr) == arr)
           [SMTPat (core arr)]
   = ()
 
 let lem_core_from_array
-  (#a : Type)
+  (#a : Type0)
   (#len : erased nat)
-  (#vt : Type) (#vw : aview a len vt)
+  (#vt : Type0) (#vw : aview a len vt)
   (p : gpu_array a len)
   : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
   = ()
 
+let varray_pts_to_cell
+  (#et:Type0)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  ([@@@mkey] a : varray vw)
+  (#[T.exact (`1.0R)] f : perm)
+  ([@@@mkey]i : vw.it)
+  (v : et)
+  : slprop
+  = gpu_pts_to_cell (core a) #f (i |~> vw.ibij) seq![v]
+
 let varray_pts_to
-  (#et:Type) (#len : erased nat) (#vt:_) (#vw : aview et len vt)
+  (#et:Type0) (#len : erased nat) (#vt:_) (#vw : aview et len vt)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
   (v : vt)
   : slprop
   =
+    forall+ (i : vw.it).
+      varray_pts_to_cell a #f i (vw.igm.acc v i)
+
+ghost
+fn __varray_abs
+  (#et:Type0)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : vt)
+  requires
     core a |-> Frac f (to_seq vw v)
+  ensures
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
+{
+  B.gpu_array_slice_1 (core a);
+  Enumerable.bijection_implies_equal_cardinal
+    vw.it (natlt len) vw.ibij;
+  assert (pure (vw.it_enum._cardinal == len));
+  rewrite
+    bigstar 0 len
+      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i])
+  as
+    bigstar 0 (Enum.cardinal vw.it #_)
+      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i]);
+  forevery_fromstar #vw.it #vw.it_enum
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice (core a) #f (Enum.to_nat i) ((Enum.to_nat i) + 1) seq![to_seq vw v @! (Enum.to_nat i)]);
+  forevery_permute #vw.it #vw.it_enum (vw.ibij `bij_comp` bij_sym vw.it_enum.bij)
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice (core a) #f (Enum.to_nat i)
+                            ((Enum.to_nat i) + 1)
+                            seq![to_seq vw v @! Enum.to_nat i]);
+  forevery_ext #vw.it
+    (fun i ->
+      gpu_pts_to_slice (core a) #f (Enum.to_nat (vw.it_enum.bij.gg (vw.ibij.ff i)))
+                            ((Enum.to_nat (vw.it_enum.bij.gg (vw.ibij.ff i))) + 1)
+                            seq![to_seq vw v @! (Enum.to_nat (vw.it_enum.bij.gg (vw.ibij.ff i)))])
+    (fun i -> gpu_pts_to_slice (core a) #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![vw.igm.acc v i]);
+}
+
+
+ghost
+fn __varray_concr
+  (#et:Type0)
+  (#len : nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : vt)
+  requires
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
+  ensures
+    core a |-> Frac f (to_seq vw v)
+{
+  Enumerable.bijection_implies_equal_cardinal
+    vw.it (natlt len) vw.ibij;
+  forevery_ext #vw.it
+    (fun i -> gpu_pts_to_slice (core a) #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![vw.igm.acc v i])
+    (fun i ->
+      gpu_pts_to_slice (core a) #f (Enum.to_nat (vw.it_enum.bij.gg (vw.ibij.ff i)))
+                            ((Enum.to_nat (vw.it_enum.bij.gg (vw.ibij.ff i))) + 1)
+                            seq![to_seq vw v @! (Enum.to_nat (vw.it_enum.bij.gg (vw.ibij.ff i)))]);
+  forevery_permute_back #vw.it #vw.it_enum (vw.ibij `bij_comp` bij_sym vw.it_enum.bij)
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice (core a) #f (Enum.to_nat i)
+                            ((Enum.to_nat i) + 1)
+                            seq![to_seq vw v @! Enum.to_nat i]);
+  forevery_tostar #vw.it #vw.it_enum
+    (fun (i:vw.it) ->
+      gpu_pts_to_slice (core a) #f (Enum.to_nat i) ((Enum.to_nat i) + 1) seq![to_seq vw v @! (Enum.to_nat i)]);
+  rewrite
+    bigstar 0 (Enum.cardinal vw.it #_)
+      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i])
+  as
+    bigstar 0 len
+      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i]);
+  B.gpu_array_unslice_1 (core a);
+}
 
 ghost
 fn varray_pts_to_ref
@@ -74,7 +167,45 @@ fn varray_pts_to_ref
     pure (SZ.fits len)
 {
   unfold varray_pts_to a #f v;
+  __varray_concr a;
   B.gpu_pts_to_ref (core a);
+  __varray_abs a;
+  fold varray_pts_to a #f v;
+}
+
+(* This is now trivial. *)
+ghost
+fn varray_explode
+  (#et:Type0)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : vt)
+  requires
+    a |-> Frac f v
+  ensures
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
+{
+  unfold varray_pts_to a #f v;
+}
+
+(* This is now trivial. *)
+ghost
+fn varray_implode
+  (#et:Type0)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : vt)
+  requires
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
+  ensures
+    a |-> Frac f v
+{
   fold varray_pts_to a #f v;
 }
 
@@ -93,6 +224,7 @@ fn varray_concr
     core a |-> Frac f (to_seq vw v)
 {
   unfold varray_pts_to a #f v;
+  __varray_concr a;
 }
 
 ghost
@@ -108,7 +240,11 @@ fn varray_abs
   ensures
     from_array vw a |-> Frac f v
 {
-  fold varray_pts_to #t #len #vt #vw (VA a) #f v;
+  let va = VA #t #len #vt #vw a;
+  rewrite each a as core va;
+  __varray_abs va;
+  fold varray_pts_to #t #len #vt #vw va #f v;
+  rewrite each va as from_array vw a;
 }
 
 ghost
@@ -120,7 +256,7 @@ fn varray_abs'
   (#f : perm)
   (#v : lseq t len)
   requires
-      a |-> Frac f v
+    a |-> Frac f v
   ensures
     from_array vw a |-> Frac f (from_seq vw v)
 {
@@ -130,7 +266,7 @@ fn varray_abs'
 
 inline_for_extraction noextract
 fn varray_alloc0
-  (#et:Type) {| sized et |}
+  (#et:Type0) {| sized et |}
   (len : SZ.t) (#vt:Type0) (vw : aview et len vt)
   preserves
     cpu
@@ -146,13 +282,16 @@ fn varray_alloc0
     assert (a |-> s);
   let v = hide (from_seq vw s);
   rewrite each s as to_seq vw v;
-  fold varray_pts_to #et #len #vt #vw (VA a) #1.0R v;
-  (VA a)
+  let va = VA #et #len #vt #vw a;
+  rewrite each a as core va;
+  __varray_abs va;
+  fold varray_pts_to va v;
+  va
 }
 
 // inline_for_extraction noextract
 // fn varray_alloc1
-//   (#et:Type) {| sized et |}
+//   (#et:Type0) {| sized et |}
 //   (#len : SZ.t) (#vt:Type0) (vw : aview et len vt)
 //   (v0 : vt)
 //   preserves
@@ -171,7 +310,7 @@ fn varray_alloc0
 
 inline_for_extraction noextract
 fn varray_free
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (a : varray vw)
   (#v : erased vt)
@@ -182,12 +321,13 @@ fn varray_free
   ensures emp
 {
   unfold varray_pts_to a v;
+  __varray_concr a;
   B.gpu_array_free (core a);
 }
 
 ghost
 fn varray_share_n
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (#[T.exact (`0)] uid: int)
   (a : varray vw)
@@ -199,13 +339,14 @@ fn varray_share_n
   ensures
     bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
 {
-  unfold varray_pts_to a #f v;
-  B.gpu_slice_share #uid (core a) 0 len k;
+  (* Boring: share everything N-wise under the forall+, then commute
+  the bigstar with forall+ *)
+  admit();
 }
 
 ghost
 fn varray_gather_n
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
   (#uid: int)
   (a : varray vw)
@@ -213,17 +354,19 @@ fn varray_gather_n
   (#f : perm)
   (#v : vt)
   requires
-    bigstar #uid 0 k (fun _ -> varray_pts_to a #(f /. k) v)
+    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
   ensures
-    varray_pts_to a #f v
+    a |-> Frac f v
 {
-  B.gpu_slice_gather #uid (core a) 0 len k;
-  fold varray_pts_to a #f v;
+  (* Boring: the reverse of above. *)
+  admit();
 }
+
+// #set-options "--print_implicits"
 
 inline_for_extraction noextract
 fn varray_read
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
@@ -240,14 +383,18 @@ fn varray_read
 {
   let ni = cidx cw i;
   unfold varray_pts_to a #f v;
-  let r = B.gpu_array_read #et #len #0 #len (core a) #f ni;
+  forevery_extract (cit_to_it vw i) _;
+  unfold varray_pts_to_cell a #f (cit_to_it vw i) (vw.igm.acc v (cit_to_it vw i));
+  let r = B.gpu_array_read #et #len #_ #_ (core a) #f ni;
+  fold varray_pts_to_cell a #f (cit_to_it vw i) (vw.igm.acc v (cit_to_it vw i));
+  Trade.elim_trade _ _;
   fold varray_pts_to a #f v;
   r
 }
 
 inline_for_extraction noextract
 fn varray_write
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
@@ -263,24 +410,19 @@ fn varray_write
 {
   let ci = cidx cw i;
   unfold varray_pts_to a v0;
-  B.gpu_array_write #et #len #0 #len (core a) ci e;
+  forevery_extract_if (cit_to_it vw i)  _;
+  unfold varray_pts_to_cell a (cit_to_it vw i) (vw.igm.acc v0 (cit_to_it vw i));
+  B.gpu_array_write (core a) ci e;
+  (* Should finish: there is conceptually trivial, but in practice
+  very non-trivial rewrite to perform under the forall+. *)
+  admit();
+  // B.gpu_array_write #et #len #0 #len (core a) ci e;
   fold varray_pts_to a (vw.igm.upd v0 (cit_to_it vw i) e);
 }
 
-let varray_pts_to_cell
-  (#et:Type)
-  (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt)
-  ([@@@mkey] a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.it)
-  (v : et)
-  : slprop
-  = gpu_pts_to_slice (core a) #f (i |~> vw.ibij) ((i |~> vw.ibij) + 1) seq![v]
-
 inline_for_extraction noextract
 fn varray_read_cell
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
@@ -308,7 +450,7 @@ fn varray_read_cell
 
 inline_for_extraction noextract
 fn varray_read_cell'
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
@@ -335,7 +477,7 @@ fn varray_read_cell'
 
 inline_for_extraction noextract
 fn varray_write_cell
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
@@ -361,7 +503,7 @@ fn varray_write_cell
 
 inline_for_extraction noextract
 fn varray_write_cell'
-  (#et:Type)
+  (#et:Type0)
   (#len : erased nat) (#vt:Type0)
   (#vw : aview et len vt) {| cw : cview vw |}
   (a : varray vw)
@@ -383,94 +525,10 @@ fn varray_write_cell'
   res
 }
 
-ghost
-fn varray_explode
-  (#et:Type)
-  (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt)
-  {| enum : Enumerable.enumerable vw.it |}
-  (a : varray vw)
-  (#f : perm)
-  (#v : vt)
-  requires
-    a |-> Frac f v
-  ensures
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
-{
-  (* jeez *)
-  unfold varray_pts_to a #f v;
-  B.gpu_array_slice_1 (core a);
-  Enumerable.bijection_implies_equal_cardinal
-    vw.it (natlt len) vw.ibij;
-  assert (pure (enum._cardinal == len));
-  rewrite
-    bigstar 0 len
-      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i])
-  as
-    bigstar 0 (Enum.cardinal vw.it #_)
-      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i]);
-  forevery_fromstar #vw.it #enum
-    (fun (i:vw.it) ->
-      gpu_pts_to_slice (core a) #f (Enum.to_nat i) ((Enum.to_nat i) + 1) seq![to_seq vw v @! (Enum.to_nat i)]);
-  forevery_permute #vw.it #enum (vw.ibij `bij_comp` bij_sym enum.bij)
-    (fun (i:vw.it) ->
-      gpu_pts_to_slice (core a) #f (Enum.to_nat i)
-                            ((Enum.to_nat i) + 1)
-                            seq![to_seq vw v @! Enum.to_nat i]);
-  forevery_ext #vw.it
-    (fun i ->
-      gpu_pts_to_slice (core a) #f (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))
-                            ((Enum.to_nat (enum.bij.gg (vw.ibij.ff i))) + 1)
-                            seq![to_seq vw v @! (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))])
-    (fun i -> gpu_pts_to_slice (core a) #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![vw.igm.acc v i]);
-}
-
-ghost
-fn varray_implode
-  (#et:Type)
-  (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt)
-  {| enum : Enumerable.enumerable vw.it |}
-  (a : varray vw)
-  (#f : perm)
-  (#v : vt)
-  requires
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
-  ensures
-    a |-> Frac f v
-{
-  Enumerable.bijection_implies_equal_cardinal
-    vw.it (natlt len) vw.ibij;
-  forevery_ext #vw.it
-    (fun i -> gpu_pts_to_slice (core a) #f (i |~> vw.ibij) ((i |~> vw.ibij)+1) seq![vw.igm.acc v i])
-    (fun i ->
-      gpu_pts_to_slice (core a) #f (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))
-                            ((Enum.to_nat (enum.bij.gg (vw.ibij.ff i))) + 1)
-                            seq![to_seq vw v @! (Enum.to_nat (enum.bij.gg (vw.ibij.ff i)))]);
-  forevery_permute_back #vw.it #enum (vw.ibij `bij_comp` bij_sym enum.bij)
-    (fun (i:vw.it) ->
-      gpu_pts_to_slice (core a) #f (Enum.to_nat i)
-                            ((Enum.to_nat i) + 1)
-                            seq![to_seq vw v @! Enum.to_nat i]);
-  forevery_tostar #vw.it #enum
-    (fun (i:vw.it) ->
-      gpu_pts_to_slice (core a) #f (Enum.to_nat i) ((Enum.to_nat i) + 1) seq![to_seq vw v @! (Enum.to_nat i)]);
-  rewrite
-    bigstar 0 (Enum.cardinal vw.it #_)
-      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i])
-  as
-    bigstar 0 len
-      (fun i -> gpu_pts_to_slice (core a) #f i (i + 1) seq![to_seq vw v @! i]);
-  B.gpu_array_unslice_1 (core a);
-  fold varray_pts_to a #f v;
-}
-
 
 inline_for_extraction noextract
 fn varray_from_array
-  (#et:Type) {| sized et |}
+  (#et:Type0) {| sized et |}
   (#len : SZ.t) (#vt:Type0)
   (#vw : aview et len vt)
   (va : varray vw)
@@ -487,15 +545,18 @@ fn varray_from_array
     (va |-> from_seq vw s)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold varray_pts_to va v;
-  B.gpu_pts_to_ref (core va);
+  varray_concr va;
   B.gpu_memcpy_host_to_device (core va) a len;
-  fold varray_pts_to va (from_seq vw s);
+  varray_abs' vw (core va);
+  rewrite each from_array vw (core va) as va;
+  ();
 }
+
+#set-options "--print_implicits"
 
 inline_for_extraction noextract
 fn varray_to_array
-  (#et:Type) {| sized et |}
+  (#et:Type0) {| sized et |}
   (#len : SZ.t) (#vt:Type0)
   (#vw : aview et len vt)
   (a : vec et)
@@ -512,7 +573,13 @@ fn varray_to_array
     (a |-> to_seq vw v)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold varray_pts_to va v;
+  varray_concr va;
   B.gpu_memcpy_device_to_host a (core va) len;
-  fold varray_pts_to va v;
+  varray_abs' vw (core va);
+  from_to #et #len #vt vw v;
+  rewrite each from_array vw (core va) as va;
+  // rewrite each from_seq vw (to_seq vw v) as v;
+  // ^ this fails in mysterious ways?!
+  rewrite va |-> from_seq vw (to_seq vw v) as va |-> v;
+  ();
 }

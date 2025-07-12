@@ -17,11 +17,20 @@ noeq
 type aview (a : Type) (len : nat) (vt : Type) = {
   (* abstract index type *)
   it : Type0;
+  (* that is enumerable *)
+  // [@@@Tactics.Typeclasses.tcinstance] // make the projector eligible for typeclass resolution
+  it_enum : Enumerable.enumerable it;
   (* the view is essentially a map ... *)
   igm : is_ghost_map vt it a;
   (* ... from an enumerable type *)
   ibij : it =~ natlt len;
 }
+
+unfold
+instance view_of_aview_index (#a #len #vt : _)
+  (vw : aview a len vt)
+  : Enumerable.enumerable vw.it
+  = vw.it_enum
 
 inline_for_extraction noextract
 class cview (#a : Type) (#len : erased nat) (#vt : Type) (avw : aview a len vt) = {
@@ -81,6 +90,12 @@ val to_from (#a:Type) (#len:nat) (#vt:Type)
   (s : lseq a len)
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
+
+val from_to (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (v : vt)
+  : Lemma (ensures from_seq vw (to_seq vw v) == v)
+          [SMTPat (from_seq vw (to_seq vw v))]
 
 val to_seq_upd (#a:Type) (#len:nat) (#vt:Type)
   (vw : aview a len vt)

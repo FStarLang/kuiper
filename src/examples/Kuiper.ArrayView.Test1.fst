@@ -44,6 +44,7 @@ let lseq_is_ghost_map (et:Type) (len:nat) : is_ghost_map (erased (lseq et len)) 
 let aview_bij (et len vt vt' : _) (vw : aview et len vt) (b : vt =~ vt')
   : aview et len vt' = {
   it   = vw.it;
+  it_enum = vw.it_enum;
   igm  = {
     bij = bij_sym b `bij_comp` vw.igm.bij;
     acc = (fun v i   -> vw.igm.acc (b.gg v) i);
@@ -73,6 +74,7 @@ let bij_sz_rev (len:nat{SZ.fits len}) : (szlt len =~ szlt len) = {
 let base_view (et len : _) : aview et len (erased (lseq et len)) =
 {
   it   = natlt len;
+  it_enum = solve;
   igm  = lseq_is_ghost_map et len;
   ibij = bij_self _;
 }
@@ -80,6 +82,7 @@ let base_view (et len : _) : aview et len (erased (lseq et len)) =
 let r_base_view (et len : _) : aview et len (erased (lseq et len)) =
 {
   it   = natlt len;
+  it_enum = solve;
   igm  = lseq_is_ghost_map et len;
   ibij = bij_nat_rev _;
 }

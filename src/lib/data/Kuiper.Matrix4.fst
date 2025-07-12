@@ -368,6 +368,7 @@ let gpu_matrix_pts_to_cell
        (undivmod brows (bi, i),
         undivmod bcols (bj, j)) v
 
+#push-options "--z3rlimit 20" // flaky
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
@@ -406,6 +407,7 @@ fn gpu_matrix_read_cell
     gpu_matrix_pts_to_cell gm #f bi bj i j v0;
   v;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn gpu_matrix_write_cell

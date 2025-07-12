@@ -17,6 +17,7 @@ let aview_sum
   : aview a (len1 + len2) (vt1 & vt2)
 = {
   it = either vw1.it vw2.it;
+  it_enum = Kuiper.Enumerable.enumerable_sum _ _ #vw1.it_enum #vw2.it_enum;
   igm = is_ghost_map_prod vw1.igm vw2.igm;
   ibij = bij_either vw1.ibij vw2.ibij `bij_comp` bij_nat_sum _ _;
 }

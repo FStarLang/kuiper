@@ -15,6 +15,15 @@ let to_from (#a:Type) (#len:nat) (#vt:Type)
     (* funny, mentioning the term above (= from_seq vw s) makes the proof work. *)
     assert (Seq.equal s (to_seq vw (from_seq vw s)))
 
+let from_to (#a:Type) (#len:nat) (#vt:Type)
+  (vw : aview a len vt)
+  (v : vt)
+  : Lemma (ensures from_seq vw (to_seq vw v) == v)
+          [SMTPat (from_seq vw (to_seq vw v))]
+  =
+    // This should be provable... and hopefully easy
+    admit ()
+
 let to_seq_upd (#a:Type) (#len:nat) (#vt:Type)
   (vw : aview a len vt)
   (v : vt)

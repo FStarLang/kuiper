@@ -382,3 +382,15 @@ fn forevery_extract
     forall+ (x:a). p x
   ensures
     p z ** (p z @==> forall+ (x:a). p x)
+
+ghost
+fn forevery_extract_if
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p z **
+    (forall+ (x:a).
+      if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)

@@ -40,6 +40,14 @@ instance enumerable_prod (t1 t2 : Type)
   bij = bij_prod d1.bij d2.bij `bij_comp` bij_nat_prod;
 }
 
+instance enumerable_sum (t1 t2 : Type)
+  {| d1 : enumerable t1 |} {| d2 : enumerable t2 |}
+  : enumerable (either t1 t2)
+= {
+  _cardinal = cardinal t1 #_ + cardinal t2 #_;
+  bij = bij_either d1.bij d2.bij `bij_comp` bij_nat_sum _ _;
+}
+
 val bijection_implies_equal_cardinal
   (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}
   (bij : bijection a b)

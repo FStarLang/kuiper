@@ -13,7 +13,7 @@ module SZ = FStar.SizeT
 
 inline_for_extraction noextract
 new
-val varray (#a : Type0) (#len : erased nat) (#vt : Type) (vw : aview a len vt) : Type0
+val varray (#a : Type0) (#len : erased nat) (#vt : Type0) (vw : aview a len vt) : Type0
 
 inline_for_extraction noextract
 val from_array
@@ -48,6 +48,16 @@ val lem_core_from_array
   : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
 
+(* Ownership over a single index. *)
+val varray_pts_to_cell
+  (#et:Type)
+  (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
+  ([@@@mkey] a : varray vw)
+  (#[T.exact (`1.0R)] f : perm)
+  ([@@@mkey]i : vw.it)
+  (v : et)
+  : slprop
+
 val varray_pts_to
   (#a:Type) (#len : erased nat) (#vt:_) (#vw : aview a len vt)
   ([@@@mkey] a : varray vw)
@@ -74,6 +84,43 @@ fn varray_pts_to_ref
     varray_pts_to a #f v
   ensures
     pure (SZ.fits len)
+
+(* Note: the functions below use the Enumerable instance for vw.it
+   that is inside the aview record.
+   We do this since it's
+   not necessary for that enumeration to match the one in the typeclass system.
+   For example, for a matrix view, that enumeration can be anything
+   depending on the layout chosen, but the enumeration we want for the
+   **abstract indices** is just lexicographic. *)
+
+ghost
+fn varray_explode
+  (#et:Type)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : vt)
+  requires
+    a |-> Frac f v
+  ensures
+    forall+ (i : vw.it).
+      varray_pts_to_cell a #f i (vw.igm.acc v i)
+
+ghost
+fn varray_implode
+  (#et:Type)
+  (#len : erased nat) (#vt:Type0)
+  (#vw : aview et len vt)
+  (a : varray vw)
+  (#f : perm)
+  (#v : vt)
+  requires
+    forall+ (i : vw.it).
+      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
+  ensures
+    varray_pts_to a #f v
+
 
 ghost
 fn varray_concr
@@ -201,16 +248,6 @@ fn varray_write
   ensures
     a |-> vw.igm.upd v0 (cit_to_it vw i) e
 
-(* Ownership over a single index. *)
-val varray_pts_to_cell
-  (#et:Type)
-  (#len : erased nat) (#vt:Type0) (#vw : aview et len vt)
-  ([@@@mkey] a : varray vw)
-  (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.it)
-  (v : et)
-  : slprop
-
 inline_for_extraction noextract
 fn varray_read_cell
   (#et:Type)
@@ -290,43 +327,6 @@ fn varray_write_cell'
     pure (ai == cit_to_it vw i)
   ensures
     varray_pts_to_cell a ai v1
-
-(* Note: the functions below take a constraint for enumerable vw.it,
-   even if there is an enumeration in vw.ibij. We do this since it's
-   not necessary for that enumeration to match the one in the typeclass system.
-   For example, for a matrix view, that enumeration can be anything
-   depending on the layout chosen, but the enumeration we want for the
-   **abstract indices** is just lexicographic. *)
-
-ghost
-fn varray_explode
-  (#et:Type)
-  (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt)
-  {| Enumerable.enumerable vw.it |}
-  (a : varray vw)
-  (#f : perm)
-  (#v : vt)
-  requires
-    varray_pts_to a #f v
-  ensures
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
-
-ghost
-fn varray_implode
-  (#et:Type)
-  (#len : erased nat) (#vt:Type0)
-  (#vw : aview et len vt)
-  {| Enumerable.enumerable vw.it |}
-  (a : varray vw)
-  (#f : perm)
-  (#v : vt)
-  requires
-    forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
-  ensures
-    varray_pts_to a #f v
 
 (* memcpys *)
 

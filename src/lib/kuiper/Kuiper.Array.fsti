@@ -32,6 +32,18 @@ val gpu_pts_to_slice
 : slprop
 
 unfold
+let gpu_pts_to_cell
+  (#a:Type u#0)
+  (#sz:nat)
+  ([@@@mkey] x:gpu_array a sz)
+  (#[exact (`1.0R)] f : perm)
+  ([@@@mkey] i : nat)
+  (v : seq a)
+: slprop
+=
+  gpu_pts_to_slice x #f i (i + 1) v
+
+unfold
 let gpu_pts_to_array
   (#a:Type u#0)
   (#sz:nat)

@@ -41,6 +41,7 @@ let aview_from_mlayout
   : A.aview et (rows * cols) (ematrix et rows cols) =
   {
     it = natlt rows & natlt cols;
+    it_enum = Kuiper.Enumerable.enumerable_prod _ _;
     igm = ematrix_is_ghost_map et;
     ibij = l.bij;
   }
