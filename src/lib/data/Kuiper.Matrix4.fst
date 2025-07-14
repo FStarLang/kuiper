@@ -409,6 +409,7 @@ fn gpu_matrix_read_cell
 }
 #pop-options
 
+#push-options "--z3rlimit 20" // flaky
 inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
@@ -444,6 +445,7 @@ fn gpu_matrix_write_cell
   rewrite A.varray_pts_to_cell gm i1 lv1 as
     gpu_matrix_pts_to_cell gm bi bj i j v1;
 }
+#pop-options
 
 ghost
 fn gpu_matrix_explode
