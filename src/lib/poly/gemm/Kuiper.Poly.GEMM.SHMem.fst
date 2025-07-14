@@ -229,7 +229,7 @@ fn subproduct
   };
 }
 
-let resize_arr 
+let resize_arr
   (#et:Type)
   (#len1 : erased nat)
   (g : gpu_array et len1)
