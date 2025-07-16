@@ -90,7 +90,6 @@ let kpre1
   (* mlayout_size lC: wrong, should be (mrows*mcols)*tile *)
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
-  (* each thread owns a column *)
   (forall+ (ii : natlt tile).
     (exists* v.
       m4_pts_to_cell gC #1.0R
@@ -119,7 +118,6 @@ let kpost1
   =
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
-  (* each thread owns a column *)
   (forall+ (ii : natlt tile).
     (exists* v.
       m4_pts_to_cell gC #1.0R
@@ -214,7 +212,7 @@ fn subproduct
   (#f : perm)
   preserves
     gpu **
-    AV.varray_pts_to ar #f ar0
+    (ar |-> Frac f ar0)
   requires
     pure (Seq.length acc0 == tile) **
     (acc |-> acc0)
@@ -224,7 +222,7 @@ fn subproduct
       (acc |-> acc')
 {
   let mut sk : sz = 0sz;
-  while (let vsk = !sk; SZ.(vsk <^ tile))
+  while (SZ.(!sk <^ tile))
     invariant b.
       exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
         pure (b == (SZ.v vsk < tile)) **
@@ -233,31 +231,31 @@ fn subproduct
         (ar |-> Frac f ar0) **
         gpu
   {
-    let vsk = !sk;
     let mut i = 0sz;
     (* We can read v2 out of the inner loop, this is extremely
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
-    let v2 = AV.varray_read ar (mkCIdx #tile 1sz vsk j);
-    while (let vi = !i; SZ.(vi <^ tile))
+    let v2 = AV.varray_read ar (mkCIdx #tile 1sz !sk j);
+    while (SZ.(!i <^ tile))
       invariant b.
-        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile)).
+        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile))
+          (vsk : SZ.t{vsk < tile}).
           pure (b == (SZ.v vi < tile)) **
           (i |-> vi) **
+          (sk |-> vsk) **
           (acc |-> accv) **
           (ar |-> Frac f ar0) **
           gpu
     {
-      let vi = !i;
-      let v1 = AV.varray_read ar (mkCIdx #tile 0sz vi vsk);
+      let v1 = AV.varray_read ar (mkCIdx #tile 0sz !i !sk);
 
       open Pulse.Lib.Array;
-      let sum0 = acc.(vi);
+      let sum0 = acc.(!i);
       let sum1 = sum0 `add` (v1 `mul` v2);
-      acc.(vi) <- sum1;
-      i := vi +^ 1sz;
+      acc.(!i) <- sum1;
+      i := !i +^ 1sz;
     };
-    sk := vsk +^ 1sz;
+    sk := !sk +^ 1sz;
   }
 }
 
@@ -392,7 +390,7 @@ fn kf
 
     (* At this point we exclusively own a full column of the SHMEM
        cache. Populate it. *)
-    bring_2cols tile gA gB ar mrow vbk mcol tid;
+    bring_2cols tile gA gB ar mrow !bk mcol tid;
 
     assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
     odd_2x1 vbk;
@@ -414,14 +412,14 @@ fn kf
     subproduct tile sums ar bcol;
 
     (* Move to next tile *)
-    bk := vbk +^ 1sz;
+    bk := !bk +^ 1sz;
   };
 
   (* Write all the accumulated sums. *)
 
   let mut row : sz = 0sz;
   Pulse.Lib.Array.pts_to_len sums;
-  while (let vrow = !row; SZ.(vrow <^ tile))
+  while (SZ.(!row <^ tile))
     invariant b.
       exists* (vrow : SZ.t{vrow <= tile}) (sumv : lseq et tile).
         pure (b == (SZ.v vrow < tile)) **
@@ -442,17 +440,17 @@ fn kf
       rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
           as m4_pts_to_cell gC mrow mcol vrow bcol v0;
 
-    let v0 = M4.gpu_matrix_read_cell gC mrow mcol vrow bcol;
+    let v0 = M4.gpu_matrix_read_cell gC mrow mcol !row bcol;
     open Pulse.Lib.Array;
-    let v1 = sums.(vrow);
+    let v1 = sums.(!row);
     let v' = comb v0 v1;
-    M4.gpu_matrix_write_cell gC mrow mcol vrow bcol v';
+    M4.gpu_matrix_write_cell gC mrow mcol !row bcol v';
 
     with bi0 bj0 i0 j0 v0.
       rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
           as m4_pts_to_cell gC (bid / mcols) (bid % mcols) vrow tid v0;
 
-    row := vrow +^ 1sz;
+    row := !row +^ 1sz;
     Pulse.Lib.Trade.elim_trade _
       (forall+ (ii : natlt tile).
         (exists* v.

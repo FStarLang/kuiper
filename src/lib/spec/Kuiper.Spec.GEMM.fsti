@@ -41,11 +41,10 @@ let gemm_single
   (m0 : ematrix et rows columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
-  (to : nat{to <= shared})
   : GTot et
   = comb
       (macc m0 row col)
-      (matmul_single m1 m2 row col to)
+      (matmul_single m1 m2 row col shared)
 
 val matmul_zero_lemma
   (#et:Type) {| scalar et |}

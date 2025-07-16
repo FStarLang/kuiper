@@ -31,7 +31,7 @@ fn matmul_dotprod
   returns
     res : et
   ensures
-    pure (res == MS.matmul_single #et #_ #rows #shared #cols eA eB i j shared)
+    pure (res == MS.matmul_single eA eB i j shared)
 {
   let mut k : sz = 0sz;
   let mut sum : et = zero #et #_;
@@ -39,7 +39,7 @@ fn matmul_dotprod
   while (SZ.(!k <^ shared))
     invariant b.
       exists* (vk : SZ.t{vk <= shared}).
-        pure (0 <= shared /\ b == (SZ.v vk < shared) /\ vk <= shared /\ vk >= 0) **
+        pure (b == (SZ.v vk < shared)) **
         (k |-> vk) **
         (sum |-> MS.matmul_single eA eB i j vk) **
         (gA |-> Frac fA eA) **

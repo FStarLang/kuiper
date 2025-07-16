@@ -25,17 +25,17 @@ let kpre
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
   (fA fB : perm)
-  (tid : nat{ tid < rows * cols })
+  (bid : nat{ bid < rows * cols })
   : slprop
   =
   (* Note: as far as this algorithm is concerned, we could have
   an existential for the gC cell and not state anything interesting.
   However it is actually more comfortable to not have an existential here,
-  and we will need it anyway for the  GEMM. *)
+  and we will need it anyway for the GEMM. *)
   (gA |-> Frac (fA /. (rows * cols)) eA) **
   (gB |-> Frac (fB /. (rows * cols)) eB) **
-  M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
-    (macc eC (tid / cols) (tid % cols))
+  M.gpu_matrix_pts_to_cell gC #1.0R (bid / cols) (bid % cols)
+    (macc eC (bid / cols) (bid % cols))
 
 unfold
 let kpost
@@ -52,13 +52,13 @@ let kpost
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
   (fA fB : perm)
-  (tid : nat{ tid < rows * cols })
+  (bid : nat{ bid < rows * cols })
   : slprop
   =
   (gA |-> Frac (fA /. (rows * cols)) eA) **
   (gB |-> Frac (fB /. (rows * cols)) eB) **
-  M.gpu_matrix_pts_to_cell gC #1.0R (tid / cols) (tid % cols)
-    (MS.gemm_single comb eA eB eC (tid / cols) (tid % cols) shared)
+  M.gpu_matrix_pts_to_cell gC #1.0R (bid / cols) (bid % cols)
+    (MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
 
 inline_for_extraction noextract
 fn kf
@@ -76,7 +76,7 @@ fn kf
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   (#fA #fB : perm)
-  (bid : szlt (rows *^ cols))
+  (bid : szlt (rows * cols))
   ()
   requires
     gpu **
@@ -197,7 +197,7 @@ fn teardown
   (* we get things back with some arithmetic in it *)
   assert (forall+ (r:natlt rows) (c:natlt cols).
       M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols) shared));
+         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)));
 
   (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
@@ -205,17 +205,17 @@ fn teardown
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
       M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols) shared))
+         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c shared));
+      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c));
 
   assert (forall+ r c.
-      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c shared));
+      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c));
 
   ghost
   fn aux (r:natlt rows) (c:natlt cols)
     requires
-      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c shared)
+      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c)
     ensures
       M.gpu_matrix_pts_to_cell gC r c (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
@@ -228,7 +228,7 @@ fn teardown
     // () (* BUG! Should not be needed. *)
   };
   forevery_map_2 #(natlt rows) #_ #(natlt cols)
-    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c shared))
+    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
     _
     aux;
 

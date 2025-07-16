@@ -146,7 +146,7 @@ let kpre
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
+  (exists* x. gpu_pts_to_array ar #(1.0R /. (tile * tile)) x) **
   barrier_tok tile ar 0 tid **
   shmem_tok ar
 
@@ -172,7 +172,7 @@ let kpost
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_slice ar #(1.0R /. (tile *^ tile)) 0 (2sz *^ tile *^ tile) x) **
+  (exists* x. gpu_pts_to_array ar #(1.0R /. (tile * tile)) x) **
   barrier_tok tile ar (2 * mshared) tid
 
 inline_for_extraction noextract
@@ -228,13 +228,6 @@ fn subproduct
     sk := vsk +^ 1sz;
   };
 }
-
-let resize_arr
-  (#et:Type)
-  (#len1 : erased nat)
-  (g : gpu_array et len1)
-  (len2 : erased nat{len1 == len2})
-  : gpu_array et len2 = g
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)

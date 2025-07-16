@@ -66,7 +66,7 @@ let kpost
     (gA |-> Frac (fA /. (rows * cols)) eA) **
     (gB |-> Frac (fB /. (rows * cols)) eB) **
     M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-      (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
+      (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
   ) else emp
 
 inline_for_extraction noextract
@@ -109,7 +109,7 @@ fn kf
   let id = bid *^ blocksz +^ tid;
 
   if SZ.lt id (rows *^ cols) {
-    rewrite each in_bounds (SZ.v rows) (SZ.v cols) (SZ.v bid) (SZ.v tid) as true;
+    rewrite each in_bounds rows cols bid tid as true;
 
     let trow, tcol = s_divmod cols id;
     with i0 j0 v0.
@@ -132,19 +132,13 @@ fn kf
       (gA |-> Frac (fA /. (rows * cols)) eA) **
       (gB |-> Frac (fB /. (rows * cols)) eB) **
       M.gpu_matrix_pts_to_cell gC trow tcol
-        (MS.gemm_single comb eA eB eC trow tcol shared)
-    as
-      (if (in_bounds rows cols bid tid)
-       then
-        (gA |-> Frac (fA /. (rows * cols)) eA) **
-        (gB |-> Frac (fB /. (rows * cols)) eB) **
-        M.gpu_matrix_pts_to_cell gC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-         (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
-       else emp);
+        (MS.gemm_single comb eA eB eC trow tcol)
+    as kpost comb gA gB gC eA eB eC fA fB bid tid;
 
     ()
   } else {
     (* Out of bounds, do nothing *)
+    assert (pure (in_bounds rows cols bid tid == false));
     (* Funny, we need to go via emp to convince Pulse. *)
     rewrite
       (if in_bounds rows cols bid tid
@@ -156,13 +150,14 @@ fn kf
        else
          emp)
     as emp;
-    rewrite emp as
+    rewrite emp
+    as
       (if in_bounds rows cols bid tid
        then
          (gA |-> Frac (fA /. (rows * cols)) eA) **
          (gB |-> Frac (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
        else emp);
   }
 }
@@ -224,8 +219,6 @@ fn setup
   ();
 }
 
-#set-options "--print_implicits"
-
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
@@ -264,7 +257,7 @@ fn teardown
         (gA |-> Frac (fA /. (rows * cols)) eA) **
         (gB |-> Frac (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
        else emp);
   forevery_unfactor'
     ((sdivup (rows *^ cols) blocksz) * blocksz)
@@ -276,7 +269,7 @@ fn teardown
          (gA |-> Frac (fA /. (rows * cols)) eA) **
          (gB |-> Frac (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
        else emp);
   forevery_ext #(natlt (sdivup (rows *^ cols) blocksz * blocksz))
     (fun i ->
@@ -285,7 +278,7 @@ fn teardown
          (gA |-> Frac (fA /. (rows * cols)) eA) **
          (gB |-> Frac (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC #1.0R ((i/blocksz * blocksz + i%blocksz) / cols) ((i/blocksz * blocksz + i%blocksz) % cols)
-           (MS.gemm_single comb eA eB eC ((i/blocksz * blocksz + i%blocksz) / cols) ((i/blocksz * blocksz + i%blocksz) % cols) shared)
+           (MS.gemm_single comb eA eB eC ((i/blocksz * blocksz + i%blocksz) / cols) ((i/blocksz * blocksz + i%blocksz) % cols))
        else emp)
     (fun i ->
        if i < rows *^ cols
@@ -293,14 +286,14 @@ fn teardown
          (gA |-> Frac (fA /. (rows * cols)) eA) **
          (gB |-> Frac (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC #1.0R (i / cols) (i % cols)
-           (MS.gemm_single comb eA eB eC (i / cols) (i % cols) shared)
+           (MS.gemm_single comb eA eB eC (i / cols) (i % cols))
        else emp);
   forevery_unpad (rows *^ cols) (SZ.v (sdivup (rows *^ cols) blocksz) * blocksz)
     (fun (i : natlt (rows *^ cols)) ->
          (gA |-> Frac (fA /. (rows * cols)) eA) **
          (gB |-> Frac (fB /. (rows * cols)) eB) **
          M.gpu_matrix_pts_to_cell gC #1.0R (i / cols) (i % cols)
-           (MS.gemm_single comb eA eB eC (i / cols) (i % cols) shared)
+           (MS.gemm_single comb eA eB eC (i / cols) (i % cols))
        );
   Naive.teardown comb gA gB gC #eA #eB #eC ();
 }
