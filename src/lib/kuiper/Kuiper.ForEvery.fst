@@ -689,11 +689,12 @@ fn forevery_boolean_split
       (if b x then emp else p x) ** (if b x then p x else emp)
   {
     if (b x) {
-      assume (pure (p x == emp ** p x));
+      emp_unit (p x);
       rewrite p x
            as (if b x then emp else p x) ** (if b x then p x else emp);
     } else {
-      assume (pure (p x == p x ** emp));
+      emp_unit (p x);
+      star_comm (p x) emp;
       rewrite p x
            as (if b x then emp else p x) ** (if b x then p x else emp);
     };
