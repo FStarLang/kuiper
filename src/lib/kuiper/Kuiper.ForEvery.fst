@@ -667,3 +667,93 @@ fn forevery_extract_if
   (* Boring, but clearly provable. *)
   admit ();
 }
+
+// let test (x : slprop) =
+//   assert (x == x ** emp)
+
+ghost
+fn forevery_boolean_split
+  (#a:Type0) {| enumerable a |}
+  (b : a -> bool)
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    (forall+ (x:a). if b x then emp else p x) **
+    (forall+ (x:a). if b x then p x else emp)
+{
+  ghost
+  fn aux (x:a)
+    requires p x
+    ensures
+      (if b x then emp else p x) ** (if b x then p x else emp)
+  {
+    if (b x) {
+      assume (pure (p x == emp ** p x));
+      rewrite p x
+           as (if b x then emp else p x) ** (if b x then p x else emp);
+    } else {
+      assume (pure (p x == p x ** emp));
+      rewrite p x
+           as (if b x then emp else p x) ** (if b x then p x else emp);
+    };
+  };
+  forevery_map _ _ aux;
+  forevery_unzip #a _ _;
+  ();
+}
+
+ghost
+fn forevery_boolean_join
+  (#a:Type0) {| enumerable a |}
+  (b : a -> bool)
+  (p1 p2 : a -> slprop)
+  requires
+    (forall+ (x:a). if b x then p1 x else emp) **
+    (forall+ (x:a). if b x then emp else p2 x)
+  ensures
+    (forall+ (x:a). if b x then p1 x else p2 x)
+{
+  ghost
+  fn aux (x:a)
+    requires
+      (if b x then p1 x else emp) ** (if b x then emp else p2 x)
+    ensures
+      (if b x then p1 x else p2 x)
+  {
+    if (b x) {
+      rewrite p1 x as (if b x then p1 x else p2 x);
+    } else {
+      rewrite p2 x as (if b x then p1 x else p2 x);
+    };
+  };
+  forevery_zip #a
+    (fun x -> if b x then p1 x else emp)
+    (fun x -> if b x then emp else p2 x);
+  forevery_map _ _ aux;
+  ();
+}
+
+ghost
+fn forevery_boolean_equal_sides
+  (#a:Type0) {| enumerable a |}
+  (b : a -> bool)
+  (p : a -> slprop)
+  requires
+    (forall+ (x:a). if b x then p x else p x)
+  ensures
+    (forall+ (x:a). p x)
+{
+  ghost
+  fn aux (x:a)
+    requires
+      (if b x then p x else p x)
+    ensures
+      p x
+  {
+    rewrite (if b x then p x else p x) as p x;
+    ();
+  };
+  forevery_map _ _ aux;
+  ();
+}
