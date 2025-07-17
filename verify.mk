@@ -227,6 +227,8 @@ $(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
 	sed -i 's/blockIdx_x/blockIdx.x/g' $@
 	sed -i 's/gridDim_x/gridDim.x/g' $@
 	sed -i '/__global__/{n;/^$$/d}' $@
+	# make sure to cast the damn KPR_SHMEM
+	sed -i 's/\([a-zA-Z_0-9]*\) \*\([a-zA-Z_0-9]*\) = KPR_SHMEM();/\1 *\2 = (\1*)KPR_SHMEM();/' $@
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include

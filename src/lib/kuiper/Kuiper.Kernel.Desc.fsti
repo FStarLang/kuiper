@@ -10,13 +10,6 @@ open Kuiper.Base
 open Kuiper.SizeT
 module SZ = FStar.SizeT
 
-val shmem_tok
-  (#a:Type u#0)
-  {| Kuiper.Sized.sized a |}
-  (#sz:nat)
-  (ar:gpu_array a sz)
-: slprop
-
 noeq
 inline_for_extraction noextract
 type kernel_desc (full_pre : slprop) (full_post : slprop) = {
@@ -91,20 +84,19 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   );
 
   f : (
-    ear : erased (gpu_array shmem_type shmem_sz) ->
+    ar :  gpu_array shmem_type shmem_sz ->
     bid : szlt nblk ->
     tid : szlt nthr ->
     unit ->
     stt unit
-      (* This seems to be missing shmem_tok ear *)
       (requires
          gpu **
-         kpre ear bid tid **
+         kpre ar bid tid **
          thread_id nthr tid **
          block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost ear bid tid **
+         kpost ar bid tid **
          thread_id nthr tid **
          block_id nblk bid)
   );

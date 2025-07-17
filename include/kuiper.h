@@ -47,7 +47,7 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 #define KPR_SHMEM()									\
 	({										\
 		extern __shared__ char a[];						\
-		a;									\
+		(void*)a;								\
 	})
 
 #define KPR_GUARD(b)								\

@@ -11,8 +11,11 @@ open FStarC.Extraction
 open FStarC.Extraction.ML
 open FStarC.Extraction.ML.Syntax
 open FStarC.Const
+open FStarC.Errors
+open FStarC.Pprint
 
 open FStarC.Class.Show
+open FStarC.Class.PP
 
 let rec drop n (lst : list 'a) : list 'a =
   match lst with
@@ -202,9 +205,11 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   in
   if List.length fvs <> List.length fvs0
   then
-    failwith ("Hoist: free variables do not match: " ^ show e0 ^ "\n" ^
-                   "fvs0 = " ^ show fvs0 ^ "\n" ^
-                   "fvs = " ^ show fvs);
+    raise_error0 Fatal_ExtractionUnsupported [
+      text "Hoist: free variables do not match:" ^/^ pp e0;
+      text "fvs0 =" ^/^ pp fvs0;
+      text "fvs =" ^/^ pp fvs;
+    ];
   // BU.print1_warning "fvs = %s\n" (show fvs);
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
@@ -258,6 +263,8 @@ let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
   | MLE_Name p -> Some (string_of_mlpath p, tyargs, args)
   | _ -> None
 
+(* Substitutes the variable [v] in the expression [e] with the expression [e'].
+   i.e e[v := e']. *)
 let rec ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : mlexpr =
   match e.expr with
   | MLE_Const _ -> e
@@ -321,7 +328,9 @@ let rec ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : mlexpr =
       )
     in
     { e with expr = MLE_Try (e1', branches') }
-  | _ -> e
+  | MLE_CTor (p, args) ->
+    let args' = List.map (fun arg -> ml_subst arg v e') args in
+    { e with expr = MLE_CTor (p, args') }
 
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -485,14 +494,6 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.AtomicOps.gpu_faa_f32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
-  (******** OBTAIN SHMEM ********)
-
-  | "Kuiper.Kernel.Base.obtain_shmem", [ty], [ sized_a; sz; earr ] ->
-    // let sz : mlexpr = get_sizet sz in
-    // let e_size = get_sizet sized_a in
-    ECast (EApp (EQualified ([], "KPR_SHMEM"), [EUnit]),
-           TBuf (translate_type env ty))
-
   (******** KERNEL CALL ********)
 
   (* The single kcall! *)
@@ -542,12 +543,12 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
           let b, body = get_one_binder f in
           ml_subst body b.mlbinder_name v
         in
-        // let ml_shmem : mlexpr =
-        //   MLE_Name ([], "KPR_SHMEM")
-        //   |> with_ty ml_int_ty (* hack, it doesn't really matter what type this is *)
-        //   |> (fun x -> MLE_App (x, [ml_unit]))
-        //   |> with_ty ml_int_ty (* hack, it doesn't really matter what type this is *)
-        // in
+        let ml_shmem : mlexpr =
+          MLE_Name ([], "KPR_SHMEM")
+          |> with_ty ml_int_ty (* hack, it doesn't really matter what type this is *)
+          |> (fun x -> MLE_App (x, [ml_unit]))
+          |> with_ty MLTY_Top
+        in
         let ml_blockidx : mlexpr =
           MLE_Name ([], "blockIdx_x")
           (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
@@ -560,10 +561,18 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
           (* |> (fun x -> MLE_App (x, [ml_unit])) *)
           |> with_ty (MLTY_Var "FStar.SizeT.t")
         in
-        // let kf = apply_lam kf ml_shmem in
+        let remove_stupid_let (e : mlexpr) : mlexpr =
+          match e.expr with
+          | MLE_Let ((NonRec, [lb]), e) ->
+            let { mllb_name = id; mllb_def = e' } = lb in
+            ml_subst e id e'
+          | _ -> failwith "remove_stupid_let: not there"
+        in
+        let kf = apply_lam kf ml_shmem in
+        let kf = remove_stupid_let kf in // ???
         // FIXME: concretizing the shmem argument does not work, for some reason
         // it shows up as erased in the original MLexpr.
-        let kf = apply_lam kf ml_unit in
+        // let kf = apply_lam kf ml_unit in
         let kf = apply_lam kf ml_blockidx in
         let kf = apply_lam kf ml_threadidx in
         let kf = apply_lam kf ml_unit in

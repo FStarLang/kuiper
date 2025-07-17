@@ -31,17 +31,6 @@ fn launch_kernel_full
     pledge0 (epoch_done e') full_post **
     pure (e' >= e)
 
-(* Conretize the erased pointer to shared memory. *)
-noextract
-fn obtain_shmem
-  (#a:Type u#0)
-  {| Kuiper.Sized.sized a |}
-  (#sz : erased nat)
-  (ear : erased (gpu_array a sz))
-  requires shmem_tok ear
-  returns  ar : gpu_array a sz
-  ensures  pure (reveal ear == ar)
-
 (* Sync the device: wait for all pending kernels. *)
 noextract
 fn sync_device () (#e:epoch_t)

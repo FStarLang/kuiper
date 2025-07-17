@@ -157,8 +157,7 @@ let kpre
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_slice ar #(1.0R /. tile) 0 (2 * tile * tile) x) **
-  barrier_tok tile ar 0 tid **
-  shmem_tok ar
+  barrier_tok tile ar 0 tid
 
 
 unfold
@@ -329,24 +328,23 @@ fn kf
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
-  (ear : erased (gpu_array et (2 * tile * tile)))
+  (ar0 : gpu_array et (2 * tile * tile))
   (bid : szlt (mrows * mcols))
   (tid : szlt tile)
   ()
   requires
     gpu **
-    kpre comb tile gA gB gC eA eB fA fB ear bid tid **
+    kpre comb tile gA gB gC eA eB fA fB ar0 bid tid **
     thread_id tile tid **
     block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost comb tile gA gB gC eA eB fA fB ear bid tid **
+    kpost comb tile gA gB gC eA eB fA fB ar0 bid tid **
     thread_id tile tid **
     block_id (mrows * mcols) bid
 {
-  gpu_pts_to_ref ear;
+  gpu_pts_to_ref ar0;
 
-  let ar0 = obtain_shmem ear; rewrite each ear as ar0;
   unfold barrier_tok tile ar0 0 tid;
 
   // Does not work:
@@ -465,8 +463,7 @@ fn kf
       gpu_pts_to_array (AV.core ar) #(1.0R /. tile) x1
     as
       gpu_pts_to_array ar0 #(1.0R /. tile) x1;
-  rewrite each ar0 as ear;
-  fold barrier_tok tile ear (2 * mshared) tid;
+  fold barrier_tok tile ar0 (2 * mshared) tid;
 
   ()
 }
