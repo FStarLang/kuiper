@@ -41,10 +41,11 @@ watch:
 	done
 
 clean:
+	rm -f .plugin.touch
 	rm -rf obj/
-	rm -f .*.touch
 
 clean-full: clean
+	rm -f .*.touch
 	git submodule foreach git clean -dXf
 
 dist: extraction-targets
