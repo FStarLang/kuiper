@@ -38,17 +38,22 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
  * All kernel calls extract to this. The shared memory will just
  * be zero if not used, etc.
  */
-#define KPR_KCALL(foo, nblk, nthr, e_size, cnt, ...)					\
+#define KPR_KCALL(foo, nblk, nthr, e_size, ...)						\
 	do {										\
-		foo<<<nblk, nthr, ((e_size) * (cnt))>>>(__VA_ARGS__);			\
+		foo<<<(nblk), (nthr), (e_size)>>>(__VA_ARGS__);				\
 		__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);	\
 	} while (0)
 
 #define KPR_SHMEM()									\
 	({										\
 		extern __shared__ char a[];						\
-		(void*)a;								\
+		(char*)a;								\
 	})
+
+#define KPR_SHMEM_AT(off)								\
+	(KPR_SHMEM() + (off))
+
+#define FStar_Pervasives_Native_fst(x) x
 
 #define KPR_GUARD(b)								\
 	do {									\

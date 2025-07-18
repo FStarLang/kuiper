@@ -27,6 +27,29 @@ exception Failed of string
 
 module BU = FStarC.Util
 
+let intlit (i : int) : mlexpr =
+  with_ty ml_int_ty <| MLE_Const (MLC_Int (show i, None))
+
+let ml_uint8      = MLTY_Named ([], (["FStar"; "UInt8"], "t"))
+let ml_bytearr    = MLTY_Named ([ml_uint8], (["FStar"; "Buffer"], "t"))
+let ml_sizet      = MLTY_Named ([], (["FStar"; "SizeT"], "t"))
+let ml_fun t1 t2  = MLTY_Fun (t1, E_PURE, t2)
+
+let sizet_add x y =
+  let fv = with_ty ml_unit_ty <| MLE_Name (["FStar"; "SizeT"], "add") in
+  with_ty ml_sizet <| MLE_App (fv, [x; y])
+
+let sizet_mul x y =
+  let fv = with_ty ml_unit_ty <| MLE_Name (["FStar"; "SizeT"], "mul") in
+  with_ty ml_sizet <| MLE_App (fv, [x; y])
+
+let sizet_lit (i : int) : mlexpr =
+  let mk = with_ty ml_int_ty <| MLE_Name (["FStar"; "SizeT"], "uint_to_t") in
+  with_ty ml_sizet <| MLE_App (mk, [intlit i])
+
+let mk_tuple2 x y : mlexpr =
+  with_ty ml_unit_ty <| MLE_Tuple [x; y]
+
 let flatten_app e =
   let rec aux args e =
     match e.expr with
@@ -332,6 +355,171 @@ let rec ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : mlexpr =
     let args' = List.map (fun arg -> ml_subst arg v e') args in
     { e with expr = MLE_CTor (p, args') }
 
+let is_lid (s:string) (e : mlexpr) : bool =
+  match e.expr with
+  | MLE_Name p -> (string_of_mlpath p) = s
+  | MLE_Var v -> v = s
+  | _ -> false
+
+let rec mlexpr_as_list (e : mlexpr) : option (list mlexpr) =
+  let open FStarC.Class.Monad in
+  match e.expr with
+  | MLE_CTor (fv, []) when string_of_mlpath fv = "Prims.Nil" ->
+    return []
+  | MLE_CTor (fv, [hd; tl]) when string_of_mlpath fv = "Prims.Cons" ->
+    let! tl' = mlexpr_as_list tl in
+    return (hd :: tl')
+  | _ ->
+    BU.print1 "Not a list: %s\n" (mlexpr_to_string e);
+    None
+
+(* Returns (possibly) the size of each element and length of array.
+The type of the array has already been erased, we cannot get it here. *)
+let parse_shmem_desc (e : mlexpr) : option (mlexpr & mlexpr) =
+  let open FStarC.Class.Monad in
+  match e.expr with
+  | MLE_CTor (fv, [_ty; sized; len]) when string_of_mlpath fv = "Kuiper.Kernel.Desc.SHArray" ->
+    let sized_a = get_sizet sized in
+    return (sized_a, len)
+  | _ ->
+    BU.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
+    None
+
+let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
+  let open FStarC.Class.Monad in
+  let assoc' k v =
+    match List.assoc k v with
+    | Some r -> r
+    | None -> failwith ("launch_kernel: field not found: " ^ k)
+  in
+  let! nblk, nthr, smem_bytesz, hd, rest_args =
+    match kdesc.expr with
+    | MLE_Record (_, _, fields) ->
+      let nblk = assoc' "nblk" fields in
+      let nthr = assoc' "nthr" fields in
+      let shmems_desc = assoc' "shmems_desc" fields in
+      (* Returns list of shared memory arrays declared.
+          For each one: type, element size in bytes, and number of elements, all
+          as ML terms. *)
+      // BU.print1 "GG mlexpr shmems: %s\n" (show shmems_desc);
+      let! parsed : list mlexpr = mlexpr_as_list shmems_desc in
+      let! parsed : list (mlexpr & mlexpr) = mapM parse_shmem_desc parsed in
+      // BU.print1 "GG mlexpr shmems parsed: %s\n" (show parsed);
+      let ml_shmem : mlexpr =
+        MLE_Name ([], "KPR_SHMEM")
+        |> with_ty (ml_fun ml_unit_ty ml_bytearr)
+        |> (fun x -> MLE_App (x, [ml_unit]))
+        |> with_ty ml_bytearr
+      in
+      let ml_shmem_at (e : mlexpr) : mlexpr =
+        with_ty ml_bytearr <|
+        MLE_App (
+          (MLE_Name ([], "KPR_SHMEM_AT")
+          |> with_ty (ml_fun ml_unit_ty ml_bytearr)),
+          [e])
+        // |> (fun x -> MLE_App (x, [ml_unit]))
+      in
+      (* returns the tuple + total size *)
+      let mk_c_sh (desc : list (mlexpr & mlexpr)) : mlexpr & mlexpr =
+        let rec aux (off : mlexpr) (desc : list (mlexpr & mlexpr)) : mlexpr & mlexpr =
+          match desc with
+          | [] -> ml_unit, off
+          | (e_sz, len) :: desc' ->
+            let off' = sizet_add off (sizet_mul e_sz len) in
+            // let this_one =
+            //   let nm = ["FStar"; "Buffer"], "sub" in
+            //   let args = [ml_shmem; off; ml_unit] in // need the ml unit so krml rule kicks in
+            //   with_ty ml_bytearr <|
+            //   MLE_App (with_ty MLTY_Top (MLE_TApp (with_ty MLTY_Top (MLE_Name nm), [ml_uint8])),
+            //            args)
+            // in
+            let this_one = ml_shmem_at off in
+            let rest, sz = aux off' desc' in
+            mk_tuple2 this_one rest, sz
+        in
+        aux (sizet_lit 0) desc
+      in
+      let c_sh, shmem_bytesz = mk_c_sh parsed in
+      // BU.print1 "GGG computed c_sh = %s\n" (show c_sh);
+      let kf = assoc' "f" fields in
+      // BU.print1 "GGG kf = %s\n" (mlexpr_to_string kf);
+      // let rec drop_n_binders (e:mlexpr) n =
+      //   match e.expr with
+      //   | MLE_Fun (bs, body) when List.length bs = n -> body
+      //   | MLE_Fun (bs, body) when List.length bs > n ->
+      //     let bs = drop n bs in
+      //     { e with expr = MLE_Fun (bs, body) }
+      //   | MLE_Fun (bs, body) when List.length bs < n ->
+      //     drop_n_binders body (n - List.length bs)
+      //   | _ -> failwith ("launch_kernel: not enough binders: " ^ show e)
+      // in
+      let get_one_binder (e:mlexpr) : mlbinder & mlexpr =
+        match e.expr with
+        | MLE_Fun ([b], body) -> b, body
+        | MLE_Fun (b::bs, body) ->
+          b, { e with expr = MLE_Fun (bs, body) } (* type is wrong, but it doesn't matter *)
+        | _ -> failwith ("launch_kernel: no binder for: " ^ show e)
+      in
+      // let rec drop_last_n_args (e:mlexpr) n =
+      //   match e.expr with
+      //   | MLE_App (head, args) when List.length args = n -> head
+      //   | MLE_App (head, args) when List.length args > n ->
+      //     let args = drop n args in
+      //     { e with expr = MLE_App (head, args) }
+      //   | MLE_App (head, args) when List.length args < n ->
+      //     drop_last_n_args head (n - List.length args)
+      //   | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
+      // in
+      let apply_lam (f : mlexpr) (v : mlexpr) : mlexpr =
+        let b, body = get_one_binder f in
+        ml_subst body b.mlbinder_name v
+      in
+      let ml_blockidx : mlexpr =
+        MLE_Name ([], "blockIdx_x")
+        (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
+        (* |> (fun x -> MLE_App (x, [ml_unit])) *)
+        |> with_ty (MLTY_Var "FStar.SizeT.t")
+      in
+      let ml_threadidx : mlexpr =
+        MLE_Name ([], "threadIdx_x")
+        (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
+        (* |> (fun x -> MLE_App (x, [ml_unit])) *)
+        |> with_ty (MLTY_Var "FStar.SizeT.t") // fixme should be MLTY_Named
+      in
+      let remove_stupid_let (e : mlexpr) : mlexpr =
+        match e.expr with
+        | MLE_Let ((NonRec, [lb]), e) ->
+          let { mllb_name = id; mllb_def = e' } = lb in
+          ml_subst e id e'
+        | _ -> failwith ("remove_stupid_let: not there. " ^ show e)
+      in
+      let kf = apply_lam kf c_sh in
+      // let kf = remove_stupid_let kf in // ???
+      // FIXME: concretizing the shmem argument does not work, for some reason
+      // it shows up as erased in the original MLexpr.
+      // let kf = apply_lam kf ml_unit in
+      let kf = apply_lam kf ml_blockidx in
+      let kf = apply_lam kf ml_threadidx in
+      let kf = apply_lam kf ml_unit in
+      let kf = hoist env kf in
+      let hd, rest_args = head_and_args kf in
+      if Nil? rest_args then // is this really a problem?
+        failwith ("launch_kernel: no arguments to kernel: " ^ show kf);
+      // let e_size = get_sizet sized_a in
+      return (nblk, nthr, shmem_bytesz, hd, rest_args)
+
+    | _ ->
+      failwith ("launch_kernel: not a record: " ^ show kdesc)
+  in
+  let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
+  let e' =
+  with_ty ml_unit_ty <|
+    MLE_App (kcall, [ hd; nblk; nthr; smem_bytesz ] @ rest_args)
+  in
+  // BU.print1_warning "New kcall: %s\n" (show e');
+  return e'
+
+
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
@@ -498,100 +686,10 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   (* The single kcall! *)
   | "Kuiper.Kernel.Base.launch_kernel_full", [], [ _full_pre; _full_post; kdesc; _epoch ] ->
-    let assoc' k v =
-      match List.assoc k v with
-      | Some r -> r
-      | None -> failwith ("launch_kernel: field not found: " ^ k)
-    in
-    let nblk, nthr, e_size, smem_sz, hd, rest_args =
-      match kdesc.expr with
-      | MLE_Record (_, _, fields) ->
-        let nblk = assoc' "nblk" fields in
-        let nthr = assoc' "nthr" fields in
-        let sized_a = assoc' "shmem_type_is_sized" fields in
-        let smem_sz = assoc' "shmem_sz" fields in
-        let kf = assoc' "f" fields in
-        // BU.print1 "GGG kf = %s\n" (mlexpr_to_string kf);
-        // let rec drop_n_binders (e:mlexpr) n =
-        //   match e.expr with
-        //   | MLE_Fun (bs, body) when List.length bs = n -> body
-        //   | MLE_Fun (bs, body) when List.length bs > n ->
-        //     let bs = drop n bs in
-        //     { e with expr = MLE_Fun (bs, body) }
-        //   | MLE_Fun (bs, body) when List.length bs < n ->
-        //     drop_n_binders body (n - List.length bs)
-        //   | _ -> failwith ("launch_kernel: not enough binders: " ^ show e)
-        // in
-        let get_one_binder (e:mlexpr) : mlbinder & mlexpr =
-          match e.expr with
-          | MLE_Fun ([b], body) -> b, body
-          | MLE_Fun (b::bs, body) ->
-            b, { e with expr = MLE_Fun (bs, body) } (* type is wrong, but it doesn't matter *)
-          | _ -> failwith ("launch_kernel: no binder for: " ^ show e)
-        in
-        // let rec drop_last_n_args (e:mlexpr) n =
-        //   match e.expr with
-        //   | MLE_App (head, args) when List.length args = n -> head
-        //   | MLE_App (head, args) when List.length args > n ->
-        //     let args = drop n args in
-        //     { e with expr = MLE_App (head, args) }
-        //   | MLE_App (head, args) when List.length args < n ->
-        //     drop_last_n_args head (n - List.length args)
-        //   | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
-        // in
-        let apply_lam (f : mlexpr) (v : mlexpr) : mlexpr =
-          let b, body = get_one_binder f in
-          ml_subst body b.mlbinder_name v
-        in
-        let ml_shmem : mlexpr =
-          MLE_Name ([], "KPR_SHMEM")
-          |> with_ty ml_int_ty (* hack, it doesn't really matter what type this is *)
-          |> (fun x -> MLE_App (x, [ml_unit]))
-          |> with_ty MLTY_Top
-        in
-        let ml_blockidx : mlexpr =
-          MLE_Name ([], "blockIdx_x")
-          (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
-          (* |> (fun x -> MLE_App (x, [ml_unit])) *)
-          |> with_ty (MLTY_Var "FStar.SizeT.t")
-        in
-        let ml_threadidx : mlexpr =
-          MLE_Name ([], "threadIdx_x")
-          (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
-          (* |> (fun x -> MLE_App (x, [ml_unit])) *)
-          |> with_ty (MLTY_Var "FStar.SizeT.t")
-        in
-        let remove_stupid_let (e : mlexpr) : mlexpr =
-          match e.expr with
-          | MLE_Let ((NonRec, [lb]), e) ->
-            let { mllb_name = id; mllb_def = e' } = lb in
-            ml_subst e id e'
-          | _ -> failwith "remove_stupid_let: not there"
-        in
-        let kf = apply_lam kf ml_shmem in
-        let kf = remove_stupid_let kf in // ???
-        // FIXME: concretizing the shmem argument does not work, for some reason
-        // it shows up as erased in the original MLexpr.
-        // let kf = apply_lam kf ml_unit in
-        let kf = apply_lam kf ml_blockidx in
-        let kf = apply_lam kf ml_threadidx in
-        let kf = apply_lam kf ml_unit in
-        let kf = hoist env kf in
-        let hd, rest_args = head_and_args kf in
-        if Nil? rest_args then
-          failwith ("launch_kernel: no arguments to kernel: " ^ show kf);
-        let e_size = get_sizet sized_a in
-        nblk, nthr, e_size, smem_sz, hd, rest_args
-
-      | _ ->
-        failwith ("launch_kernel: not a record: " ^ show kdesc)
-    in
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
-    let e' =
-      with_ty ml_unit_ty <|
-        MLE_App (kcall, [ hd; nblk; nthr; e_size; smem_sz ] @ rest_args)
-    in
-    cb e'
+    begin match extract_kcall env kdesc with
+    | Some e' -> cb e'
+    | None -> failwith "failed to translate kcall"
+    end
 
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
     EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])

@@ -12,19 +12,18 @@ ghost
 fn kmn_as_kfull_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
-  (ar: gpu_array FStar.UInt8.t 0sz)
+  (sh : c_shmems [])
   (bid: natlt k.nblk)
   ()
 requires
-  block_setup_tok k.nthr
-  **
-  (exists* v. gpu_pts_to_array ar #1.0R v) **
+  block_setup_tok k.nthr **
+  live_c_shmems sh **
   k.block_pre bid
 ensures
   block_setup_tok k.nthr **
   (forall+ (i : natlt k.nthr). k.kpre bid i) **
   (k.block_frame bid **
-   (exists* v. gpu_pts_to_array ar #1.0R v))
+    live_c_shmems sh)
 {
   let f = k.block_setup;
   f bid;
@@ -34,14 +33,14 @@ ghost
 fn kmn_as_kfull_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
-  (ar: gpu_array FStar.UInt8.t 0sz)
+  (sh : c_shmems [])
   (bid: natlt k.nblk)
   ()
 requires
   (forall+ (i : natlt k.nthr). k.kpost bid i) **
-  (k.block_frame bid ** (exists* v. gpu_pts_to_array ar #1.0R v))
+  (k.block_frame bid ** live_c_shmems sh)
 ensures
-  (exists* v. gpu_pts_to_array ar #1.0R v) **
+  live_c_shmems sh **
   k.block_post bid
 {
   let f = k.block_teardown;
@@ -59,15 +58,13 @@ let kmn_as_kfull
   nblk=k.nblk;
   nthr=k.nthr;
 
-  shmem_type = FStar.UInt8.t;
-  shmem_type_is_sized = solve;
-  shmem_sz = 0sz;
+  shmems_desc = [];
 
   frame = k.frame;
 
   block_pre   = k.block_pre;
   block_post  = k.block_post;
-  block_frame = (fun ar bid -> k.block_frame bid ** (exists* v. gpu_pts_to_array ar #1.0R v));
+  block_frame = (fun sh bid -> k.block_frame bid ** live_c_shmems sh);
 
   setup = k.setup;
   teardown = k.teardown;

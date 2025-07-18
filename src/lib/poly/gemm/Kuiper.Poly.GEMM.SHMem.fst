@@ -29,6 +29,12 @@ open Kuiper.ArrayView {
 }
 module AV = Kuiper.ArrayView
 
+(* Description of shared memory used in this kernel. *)
+inline_for_extraction noextract
+let shmems_desc (et:Type0) {| sized et |} (tile:valid_tile) : list shmem_desc = [
+  SHArray et (2sz *^ tile *^ tile);
+]
+
 (* The barrier flip-flops between an initial state
 where every threads shares all of the array, and
 a second state where each thread owns two cells
@@ -140,14 +146,16 @@ let kpre
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
-  (ar : gpu_array et (2 * tile * tile))
+  (sh : c_shmems (shmems_desc et tile))
+  // ((ar, ()) : c_shmems (shmems_desc et tile))
+  // ^ will this work nicely?
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_array ar #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile ar 0 tid
+  (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
+  barrier_tok tile (fst sh) 0 tid
 
 
 unfold
@@ -165,14 +173,15 @@ let kpost
   (eA : ematrix4 et mrows mshared tile tile)
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
-  (ar : gpu_array et (2 * tile * tile))
+  (sh : c_shmems (shmems_desc et tile))
+  // (ar : gpu_array et (2 * tile * tile))
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_array ar #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile ar (2 * mshared) tid
+  (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
+  barrier_tok tile (fst sh) (2 * mshared) tid
 
 inline_for_extraction noextract
 fn eqplus
@@ -246,21 +255,24 @@ fn kf
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#fA #fB : perm)
-  (ar0 : gpu_array et (2 * tile * tile))
+  (sh : c_shmems (shmems_desc et tile))
   (bid : szlt (mrows * mcols))
   (tid : szlt (tile  * tile))
   ()
   requires
     gpu **
-    kpre comb tile gA gB gC eA eB fA fB ar0 bid tid **
+    kpre comb tile gA gB gC eA eB fA fB sh bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost comb tile gA gB gC eA eB fA fB ar0 bid tid **
+    kpost comb tile gA gB gC eA eB fA fB sh bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
 {
+  let ar0 : gpu_array et (2 * tile * tile) = fst sh;
+  rewrite each fst sh as ar0;
+
   gpu_pts_to_ref ar0;
 
   unfold barrier_tok tile ar0 0 tid;
@@ -336,6 +348,7 @@ fn kf
     (* Move to next tile *)
     bk := vbk +^ 1sz;
   };
+  admit();
 
   let s = !sum;
   let v0 = M4.gpu_matrix_read_cell gC mrow mcol brow bcol;
@@ -358,6 +371,7 @@ fn kf
       ar0 |-> Frac (1.0R /. (tile * tile)) x1;
   fold barrier_tok tile ar0 (2 * mshared) tid;
 
+  rewrite each ar0 as fst sh;
   ()
 }
 
@@ -411,18 +425,18 @@ fn block_setup
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
-  (ar : gpu_array et (2 * tile * tile))
+  (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
   requires
     block_setup_tok (tile *^ tile) **
-    (exists* v. ar |-> v) **
+    live_c_shmems sh **
     (forall+ (tid : natlt2 tile  tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
     block_setup_tok (tile *^ tile) **
     (forall+ (tid : natlt2 tile  tile).
-      kpre comb tile gA gB gC eA eB fA fB ar bid tid) **
+      kpre comb tile gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
 {
   admit();
@@ -446,15 +460,15 @@ fn block_teardown
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
-  (ar : gpu_array et (2 * tile * tile))
+  (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
   requires
     (forall+ (tid : natlt2 tile  tile).
-      kpost comb tile gA gB gC eA eB fA fB ar bid tid) **
+      kpost comb tile gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
   ensures
-    (exists* v. ar |-> v) **
+    live_c_shmems sh **
     (forall+ (tid : natlt2 tile  tile).
       kpost1 comb tile gA gB gC eA eB fA fB bid tid)
 {
@@ -520,9 +534,9 @@ let mk_kernel
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
 
-  shmem_type = et;
-  shmem_type_is_sized = solve;
-  shmem_sz = (2sz *^ tile *^ tile);
+  shmems_desc = [
+    SHArray et #solve (2sz *^ tile *^ tile);
+  ];
 
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  comb tile gA gB gC eA eB fA fB bid tid);

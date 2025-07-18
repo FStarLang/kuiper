@@ -10,15 +10,44 @@ open Kuiper.Base
 open Kuiper.SizeT
 module SZ = FStar.SizeT
 
+(* Description of one shared memory array "request" *)
+noeq
+inline_for_extraction
+type shmem_desc =
+  | SHArray :
+    (ty : Type0) ->
+    {| sized : Kuiper.Sized.sized ty |} ->
+    len    : SZ.t ->
+    shmem_desc
+
+inline_for_extraction
+type c_shmem (d : shmem_desc) =
+  gpu_array d.ty d.len
+
+inline_for_extraction
+let rec c_shmems (d : list shmem_desc) : Type0 =
+  match d with
+  | [] -> int
+  | d :: ds ->
+    c_shmem d & c_shmems ds
+
+let live_c_shmem #d (c : c_shmem d) : slprop =
+  exists* v. gpu_pts_to_array #d.ty #d.len c #1.0R v
+
+let rec live_c_shmems #ds (c : c_shmems ds) : slprop =
+  match ds with
+  | [] -> emp
+  | d :: ds ->
+    let c : c_shmem d & c_shmems ds = c in (* coerce *)
+    live_c_shmem #d (fst c) ** live_c_shmems #ds (snd c)
+
 noeq
 inline_for_extraction noextract
 type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   nblk : (x : SZ.t { 0 < x /\ x <= max_blocks });
   nthr : (x : SZ.t { 0 < x /\ x <= max_threads });
 
-  shmem_type : Type u#0;
-  shmem_type_is_sized : Kuiper.Sized.sized shmem_type;
-  shmem_sz : sz;
+  shmems_desc : list shmem_desc;
 
   frame : slprop;
 
@@ -43,60 +72,62 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
   );
 
   kpre :
-    gpu_array shmem_type shmem_sz ->
+    c_shmems shmems_desc ->
     natlt nblk ->
     natlt nthr ->
     slprop;
   kpost :
-    gpu_array shmem_type shmem_sz ->
+    c_shmems shmems_desc ->
     natlt nblk ->
     natlt nthr ->
     slprop;
 
-  block_frame : gpu_array shmem_type shmem_sz -> natlt nblk -> slprop;
+  block_frame :
+    c_shmems shmems_desc ->
+    natlt nblk -> slprop;
 
   block_setup : (
-    (ar: gpu_array shmem_type shmem_sz) ->
+    (sh : c_shmems shmems_desc) ->
     (bid: natlt nblk) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
         block_setup_tok nthr **
-        (exists* v. gpu_pts_to_array #shmem_type #shmem_sz ar #1.0R v) **
+        live_c_shmems sh **
         block_pre bid)
       (ensures fun _ ->
         block_setup_tok nthr **
-        (forall+ (i : natlt nthr). kpre ar bid i) **
-        block_frame ar bid)
+        (forall+ (i : natlt nthr). kpre sh bid i) **
+        block_frame sh bid)
   );
 
   block_teardown : (
-    (ar: gpu_array shmem_type shmem_sz) ->
+    (sh : c_shmems shmems_desc) ->
     (bid: natlt nblk) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (i : natlt nthr). kpost ar bid i) **
-        block_frame ar bid)
+        (forall+ (i : natlt nthr). kpost sh bid i) **
+        block_frame sh bid)
       (ensures fun _ ->
-        (exists* v. gpu_pts_to_array #shmem_type #shmem_sz ar #1.0R v) **
+        live_c_shmems sh **
         block_post bid)
   );
 
   f : (
-    ar :  gpu_array shmem_type shmem_sz ->
+    sh : c_shmems shmems_desc ->
     bid : szlt nblk ->
     tid : szlt nthr ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre ar bid tid **
+         kpre sh bid tid **
          thread_id nthr tid **
          block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost ar bid tid **
+         kpost sh bid tid **
          thread_id nthr tid **
          block_id nblk bid)
   );
