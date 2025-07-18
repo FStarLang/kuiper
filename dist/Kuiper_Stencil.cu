@@ -29,7 +29,6 @@ Kuiper_Stencil_stencil3x3_f32_add_rr(size_t rows, size_t cols, float_t *gIn, flo
   KPR_KCALL(__hoisted_0,
     (rows - (size_t)2U) * cols_sub2,
     (size_t)1U,
-    (size_t)1U,
     (size_t)0U,
     gIn,
     gOut,
@@ -67,7 +66,6 @@ Kuiper_Stencil_stencil3x3_i32_add_mul2_rc(
   size_t cols_sub2 = cols - (size_t)2U;
   KPR_KCALL(__hoisted_1,
     (rows - (size_t)2U) * cols_sub2,
-    (size_t)1U,
     (size_t)1U,
     (size_t)0U,
     rows,

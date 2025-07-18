@@ -18,7 +18,7 @@ __hoisted_0(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -75,8 +75,7 @@ float_t
   KPR_KCALL(__hoisted_0,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -113,7 +112,7 @@ __hoisted_1(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -170,8 +169,7 @@ double_t
   KPR_KCALL(__hoisted_1,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -208,7 +206,7 @@ __hoisted_2(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -265,8 +263,7 @@ uint32_t
   KPR_KCALL(__hoisted_2,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -301,7 +298,7 @@ __hoisted_3(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -358,8 +355,7 @@ uint64_t
   KPR_KCALL(__hoisted_3,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -394,7 +390,7 @@ __hoisted_4(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -451,8 +447,7 @@ float_t
   KPR_KCALL(__hoisted_4,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -489,7 +484,7 @@ __hoisted_5(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -546,8 +541,7 @@ double_t
   KPR_KCALL(__hoisted_5,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -584,7 +578,7 @@ __hoisted_6(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -641,8 +635,7 @@ uint32_t
   KPR_KCALL(__hoisted_6,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -677,7 +670,7 @@ __hoisted_7(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -734,8 +727,7 @@ uint64_t
   KPR_KCALL(__hoisted_7,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -769,7 +761,7 @@ __hoisted_8(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -826,8 +818,7 @@ float_t
   KPR_KCALL(__hoisted_8,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -862,7 +853,7 @@ __hoisted_9(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -919,8 +910,7 @@ double_t
   KPR_KCALL(__hoisted_9,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -955,7 +945,7 @@ __hoisted_10(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -1012,8 +1002,7 @@ uint32_t
   KPR_KCALL(__hoisted_10,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -1046,7 +1035,7 @@ __hoisted_11(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -1103,8 +1092,7 @@ uint64_t
   KPR_KCALL(__hoisted_11,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -1137,7 +1125,7 @@ __hoisted_12(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -1194,8 +1182,7 @@ float_t
   KPR_KCALL(__hoisted_12,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -1230,7 +1217,7 @@ __hoisted_13(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -1287,8 +1274,7 @@ double_t
   KPR_KCALL(__hoisted_13,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -1323,7 +1309,7 @@ __hoisted_14(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -1380,8 +1366,7 @@ uint32_t
   KPR_KCALL(__hoisted_14,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -1414,7 +1399,7 @@ __hoisted_15(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -1471,8 +1456,7 @@ uint64_t
   KPR_KCALL(__hoisted_15,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -1505,7 +1489,7 @@ __hoisted_16(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -1562,8 +1546,7 @@ float_t
   KPR_KCALL(__hoisted_16,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -1598,7 +1581,7 @@ __hoisted_17(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -1655,8 +1638,7 @@ double_t
   KPR_KCALL(__hoisted_17,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -1691,7 +1673,7 @@ __hoisted_18(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -1748,8 +1730,7 @@ uint32_t
   KPR_KCALL(__hoisted_18,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -1782,7 +1763,7 @@ __hoisted_19(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -1839,8 +1820,7 @@ uint64_t
   KPR_KCALL(__hoisted_19,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -1873,7 +1853,7 @@ __hoisted_20(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -1930,8 +1910,7 @@ float_t
   KPR_KCALL(__hoisted_20,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -1966,7 +1945,7 @@ __hoisted_21(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -2023,8 +2002,7 @@ double_t
   KPR_KCALL(__hoisted_21,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -2059,7 +2037,7 @@ __hoisted_22(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -2116,8 +2094,7 @@ uint32_t
   KPR_KCALL(__hoisted_22,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -2150,7 +2127,7 @@ __hoisted_23(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -2207,8 +2184,7 @@ uint64_t
   KPR_KCALL(__hoisted_23,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -2242,7 +2218,7 @@ __hoisted_24(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2295,8 +2271,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_rrr(
   KPR_KCALL(__hoisted_24,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -2324,7 +2299,7 @@ __hoisted_25(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2377,8 +2352,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_rrr(
   KPR_KCALL(__hoisted_25,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -2406,7 +2380,7 @@ __hoisted_26(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2459,8 +2433,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_rrr(
   KPR_KCALL(__hoisted_26,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -2488,7 +2461,7 @@ __hoisted_27(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2541,8 +2514,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_rrr(
   KPR_KCALL(__hoisted_27,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     shared,
     cols,
@@ -2570,7 +2542,7 @@ __hoisted_28(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2623,8 +2595,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_ccc(
   KPR_KCALL(__hoisted_28,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -2652,7 +2623,7 @@ __hoisted_29(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2705,8 +2676,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_ccc(
   KPR_KCALL(__hoisted_29,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -2734,7 +2704,7 @@ __hoisted_30(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2787,8 +2757,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_ccc(
   KPR_KCALL(__hoisted_30,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -2816,7 +2785,7 @@ __hoisted_31(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -2869,8 +2838,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_ccc(
   KPR_KCALL(__hoisted_31,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     rows,
     shared,
@@ -2897,7 +2865,7 @@ __hoisted_32(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -2950,8 +2918,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_rrr(
   KPR_KCALL(__hoisted_32,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -2977,7 +2944,7 @@ __hoisted_33(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -3030,8 +2997,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_rrr(
   KPR_KCALL(__hoisted_33,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -3057,7 +3023,7 @@ __hoisted_34(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -3110,8 +3076,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_rrr(
   KPR_KCALL(__hoisted_34,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -3137,7 +3102,7 @@ __hoisted_35(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -3190,8 +3155,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_rrr(
   KPR_KCALL(__hoisted_35,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     shared,
     cols,
     shared / (size_t)32U,
@@ -3217,7 +3181,7 @@ __hoisted_36(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -3270,8 +3234,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_ccc(
   KPR_KCALL(__hoisted_36,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -3297,7 +3260,7 @@ __hoisted_37(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -3350,8 +3313,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_ccc(
   KPR_KCALL(__hoisted_37,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -3377,7 +3339,7 @@ __hoisted_38(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -3430,8 +3392,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_ccc(
   KPR_KCALL(__hoisted_38,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -3457,7 +3418,7 @@ __hoisted_39(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -3510,8 +3471,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_ccc(
   KPR_KCALL(__hoisted_39,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     rows,
     shared,
     shared / (size_t)32U,
@@ -3537,7 +3497,7 @@ __hoisted_40(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -3590,8 +3550,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_rrr(
   KPR_KCALL(__hoisted_40,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -3617,7 +3576,7 @@ __hoisted_41(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -3670,8 +3629,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_rrr(
   KPR_KCALL(__hoisted_41,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -3697,7 +3655,7 @@ __hoisted_42(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -3750,8 +3708,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_rrr(
   KPR_KCALL(__hoisted_42,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -3777,7 +3734,7 @@ __hoisted_43(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -3830,8 +3787,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_rrr(
   KPR_KCALL(__hoisted_43,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     shared,
     cols,
     shared / (size_t)16U,
@@ -3857,7 +3813,7 @@ __hoisted_44(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -3910,8 +3866,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_ccc(
   KPR_KCALL(__hoisted_44,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -3937,7 +3892,7 @@ __hoisted_45(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -3990,8 +3945,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_ccc(
   KPR_KCALL(__hoisted_45,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -4017,7 +3971,7 @@ __hoisted_46(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -4070,8 +4024,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_ccc(
   KPR_KCALL(__hoisted_46,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -4097,7 +4050,7 @@ __hoisted_47(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -4150,8 +4103,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(
   KPR_KCALL(__hoisted_47,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     rows,
     shared,
     shared / (size_t)16U,
@@ -4180,7 +4132,7 @@ __hoisted_48(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4236,8 +4188,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_rrr(
   KPR_KCALL(__hoisted_48,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4269,7 +4220,7 @@ __hoisted_49(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4325,8 +4276,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_rrr(
   KPR_KCALL(__hoisted_49,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4358,7 +4308,7 @@ __hoisted_50(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4414,8 +4364,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_rrr(
   KPR_KCALL(__hoisted_50,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4447,7 +4396,7 @@ __hoisted_51(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4503,8 +4452,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_rrr(
   KPR_KCALL(__hoisted_51,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4536,7 +4484,7 @@ __hoisted_52(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4592,8 +4540,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_ccc(
   KPR_KCALL(__hoisted_52,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4625,7 +4572,7 @@ __hoisted_53(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4681,8 +4628,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_ccc(
   KPR_KCALL(__hoisted_53,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4714,7 +4660,7 @@ __hoisted_54(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4770,8 +4716,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_ccc(
   KPR_KCALL(__hoisted_54,
     mrows * mcols,
     tile * tile,
-    (size_t)4U,
-    (size_t)2U * tile * tile,
+    (size_t)4U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4803,7 +4748,7 @@ __hoisted_55(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   size_t brow = threadIdx.x / tile;
@@ -4859,8 +4804,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_ccc(
   KPR_KCALL(__hoisted_55,
     mrows * mcols,
     tile * tile,
-    (size_t)8U,
-    (size_t)2U * tile * tile,
+    (size_t)8U * ((size_t)2U * tile * tile),
     tile,
     alpha,
     beta,
@@ -4891,7 +4835,7 @@ __hoisted_56(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -4950,8 +4894,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_rrr(
   KPR_KCALL(__hoisted_56,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     alpha,
     beta,
     shared,
@@ -4981,7 +4924,7 @@ __hoisted_57(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -5040,8 +4983,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_rrr(
   KPR_KCALL(__hoisted_57,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     alpha,
     beta,
     shared,
@@ -5071,7 +5013,7 @@ __hoisted_58(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -5130,8 +5072,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_rrr(
   KPR_KCALL(__hoisted_58,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     alpha,
     beta,
     shared,
@@ -5161,7 +5102,7 @@ __hoisted_59(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -5220,8 +5161,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_rrr(
   KPR_KCALL(__hoisted_59,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     alpha,
     beta,
     shared,
@@ -5251,7 +5191,7 @@ __hoisted_60(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -5310,8 +5250,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_ccc(
   KPR_KCALL(__hoisted_60,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     alpha,
     beta,
     rows,
@@ -5341,7 +5280,7 @@ __hoisted_61(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -5400,8 +5339,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_ccc(
   KPR_KCALL(__hoisted_61,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     alpha,
     beta,
     rows,
@@ -5431,7 +5369,7 @@ __hoisted_62(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -5490,8 +5428,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_ccc(
   KPR_KCALL(__hoisted_62,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)4U,
-    (size_t)2048U,
+    (size_t)8192U,
     alpha,
     beta,
     rows,
@@ -5521,7 +5458,7 @@ __hoisted_63(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -5580,8 +5517,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_ccc(
   KPR_KCALL(__hoisted_63,
     rows / (size_t)32U * mcols,
     (size_t)1024U,
-    (size_t)8U,
-    (size_t)2048U,
+    (size_t)16384U,
     alpha,
     beta,
     rows,
@@ -5611,7 +5547,7 @@ __hoisted_64(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -5670,8 +5606,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_rrr(
   KPR_KCALL(__hoisted_64,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     alpha,
     beta,
     shared,
@@ -5701,7 +5636,7 @@ __hoisted_65(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -5760,8 +5695,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_rrr(
   KPR_KCALL(__hoisted_65,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     alpha,
     beta,
     shared,
@@ -5791,7 +5725,7 @@ __hoisted_66(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -5850,8 +5784,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_rrr(
   KPR_KCALL(__hoisted_66,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     alpha,
     beta,
     shared,
@@ -5881,7 +5814,7 @@ __hoisted_67(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -5940,8 +5873,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_rrr(
   KPR_KCALL(__hoisted_67,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     alpha,
     beta,
     shared,
@@ -5971,7 +5903,7 @@ __hoisted_68(
   float_t *gC4
 )
 {
-  float_t *ar = (float_t *)KPR_SHMEM();
+  float_t *ar = (float_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   float_t sum = (float_t)0.0f;
@@ -6030,8 +5962,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_ccc(
   KPR_KCALL(__hoisted_68,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     alpha,
     beta,
     rows,
@@ -6061,7 +5992,7 @@ __hoisted_69(
   double_t *gC4
 )
 {
-  double_t *ar = (double_t *)KPR_SHMEM();
+  double_t *ar = (double_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   double_t sum = (double_t)0.0l;
@@ -6120,8 +6051,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_ccc(
   KPR_KCALL(__hoisted_69,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     alpha,
     beta,
     rows,
@@ -6151,7 +6081,7 @@ __hoisted_70(
   uint32_t *gC4
 )
 {
-  uint32_t *ar = (uint32_t *)KPR_SHMEM();
+  uint32_t *ar = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint32_t sum = 0U;
@@ -6210,8 +6140,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_ccc(
   KPR_KCALL(__hoisted_70,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)4U,
-    (size_t)512U,
+    (size_t)2048U,
     alpha,
     beta,
     rows,
@@ -6241,7 +6170,7 @@ __hoisted_71(
   uint64_t *gC4
 )
 {
-  uint64_t *ar = (uint64_t *)KPR_SHMEM();
+  uint64_t *ar = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
   size_t mrow = blockIdx.x / mcols;
   size_t mcol = blockIdx.x % mcols;
   uint64_t sum = 0ULL;
@@ -6300,8 +6229,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_ccc(
   KPR_KCALL(__hoisted_71,
     rows / (size_t)16U * mcols,
     (size_t)256U,
-    (size_t)8U,
-    (size_t)512U,
+    (size_t)4096U,
     alpha,
     beta,
     rows,
