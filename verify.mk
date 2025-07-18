@@ -124,7 +124,7 @@ KRML := $(KRML_HOME)/krml				\
 	-skip-makefiles					\
 	-faggressive-inlining				\
 	-cuda						\
-	-dbt						\
+	-dbacktrace					\
 	$(if $(V),-verbose,-silent)			\
 	-drop Prims					\
 	-minimal					\
