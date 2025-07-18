@@ -51,7 +51,7 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 	})
 
 #define KPR_SHMEM_AT(off)								\
-	(KPR_SHMEM() + (off))
+	(void*)(KPR_SHMEM() + (off))
 
 #define FStar_Pervasives_Native_fst(x) x
 

@@ -20,9 +20,10 @@ type shmem_desc =
     len    : SZ.t ->
     shmem_desc
 
-inline_for_extraction
-type c_shmem (d : shmem_desc) =
-  gpu_array d.ty d.len
+inline_for_extraction unfold
+let c_shmem (d : shmem_desc) : Type0 =
+  match d with
+  | SHArray ty len -> gpu_array ty len
 
 inline_for_extraction
 let rec c_shmems (d : list shmem_desc) : Type0 =

@@ -1,4 +1,4 @@
-module Kuiper.Poly.GEMM.SHMem
+module Old.Kuiper.Poly.GEMM.BlockTiling1D
 
 #lang-pulse
 
@@ -46,24 +46,31 @@ and receive their cells. (p)
 
 (* To verify functional correctness: the existentials here should be made
 precise, and parametrize this over the starting input matrices. *)
+let own_2_cols
+  (#et : Type0)
+  (tile : valid_tile)
+  (ar : varray (aview_2tile2 et tile))
+  (tid : natlt tile)
+  : slprop =
+  forall+ (ii : natlt tile).
+    (exists* x. varray_pts_to_cell ar (mkAIdx 0 ii tid) x) **
+    (exists* x. varray_pts_to_cell ar (mkAIdx 1 ii tid) x)
+
 let barrier_p
   (#et : Type0)
   (tile : valid_tile)
   (ar : varray (aview_2tile2 et tile))
-  : B.barrier_side (tile *^ tile) =
+  : B.barrier_side tile =
   fun it tid ->
     if even it
-    then (exists* (x : _ & _). ar |-> Frac (1.0R /. (tile * tile)) x)
-    else (
-      (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
-      (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x)
-    )
+    then (exists* x. varray_pts_to ar #(1.0R /. tile) x)
+    else own_2_cols tile ar tid
 
 let barrier_q
   (#et : Type0)
   (tile : valid_tile)
   (ar : varray (aview_2tile2 et tile))
-  : B.barrier_side (tile *^ tile) =
+  : B.barrier_side tile =
   fun it tid -> barrier_p tile ar (it+1) tid (* flip flop *)
 
 (* without shmem ownership *)
@@ -83,15 +90,17 @@ let kpre1
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
-  (tid : natlt (tile * tile))
+  (tid : natlt tile)
   : slprop
   =
+  (* mlayout_size lC: wrong, should be (mrows*mcols)*tile *)
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
-  (exists* v.
-    m4_pts_to_cell gC #1.0R
-      (bid / mcols) (bid % mcols)
-      (tid / tile) (tid % tile) v)
+  (forall+ (ii : natlt tile).
+    (exists* v.
+      m4_pts_to_cell gC #1.0R
+        (bid / mcols) (bid % mcols)
+        ii tid v))
 
 (* NO FUNCTIONAL SPEC RIGHT NOW *)
 unfold
@@ -110,22 +119,23 @@ let kpost1
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
-  (tid : natlt (tile * tile))
+  (tid : natlt tile)
   : slprop
   =
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
-  (exists* v.
-    m4_pts_to_cell gC #1.0R
-      (bid / mcols) (bid % mcols)
-      (tid / tile) (tid % tile) v)
+  (forall+ (ii : natlt tile).
+    (exists* v.
+      m4_pts_to_cell gC #1.0R
+        (bid / mcols) (bid % mcols)
+        ii tid v))
 
 let barrier_tok
   (#et : Type0)
   (tile : valid_tile)
   (ar: gpu_array et (2 * tile * tile))
   (it : nat)
-  (tid : natlt (tile *^ tile))
+  (tid : natlt tile)
   : slprop
   =
   B.barrier_tok (barrier_p tile (AV.from_array (aview_2tile2 et tile) ar))
@@ -147,14 +157,12 @@ let kpre
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
-  // ((ar, ()) : c_shmems (shmems_desc et tile))
-  // ^ will this work nicely?
   (bid : natlt (mrows * mcols))
-  (tid : natlt (tile * tile))
+  (tid : natlt tile)
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
+  (exists* x. gpu_pts_to_slice (fst sh) #(1.0R /. tile) 0 (2 * tile * tile) x) **
   barrier_tok tile (fst sh) 0 tid
 
 
@@ -174,13 +182,12 @@ let kpost
   (eB : ematrix4 et mshared mcols tile tile)
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
-  // (ar : gpu_array et (2 * tile * tile))
   (bid : natlt (mrows * mcols))
-  (tid : natlt (tile * tile))
+  (tid : natlt tile)
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
+  (exists* x. gpu_pts_to_slice (fst sh) #(1.0R /. tile) 0 (2 * tile * tile) x) **
   barrier_tok tile (fst sh) (2 * mshared) tid
 
 inline_for_extraction noextract
@@ -202,72 +209,144 @@ inline_for_extraction noextract
 fn subproduct
   (#et : Type0) {| scalar et |}
   (tile : valid_tile)
-  (acc : ref et)
+  (acc : array et)
   (ar : varray (aview_2tile2 et tile))
-  (i j : szlt tile)
-  (#acc0 : erased et)
+  (j : szlt tile)
+  (#acc0 : erased (seq et))
   (#ar0 : erased _)
   (#f : perm)
   preserves
     gpu **
     (ar |-> Frac f ar0)
   requires
-    acc |-> acc0
+    pure (Seq.length acc0 == tile) **
+    (acc |-> acc0)
   ensures
     exists* acc'.
-      acc |-> acc'
+      pure (Seq.length acc' == tile) **
+      (acc |-> acc')
 {
   let mut sk : sz = 0sz;
-  while (let vsk = !sk; SZ.(vsk <^ tile))
+  while (SZ.(!sk <^ tile))
     invariant b.
-      exists* (vsk : SZ.t{vsk <= tile}) accv.
+      exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
         pure (b == (SZ.v vsk < tile)) **
         (sk |-> vsk) **
         (acc |-> accv) **
         (ar |-> Frac f ar0) **
         gpu
   {
-    let vsk = !sk;
-    let v1 = AV.varray_read ar (mkCIdx #tile 0sz i vsk);
-    let v2 = AV.varray_read ar (mkCIdx #tile 1sz vsk j);
+    let mut i = 0sz;
+    (* We can read v2 out of the inner loop, this is extremely
+       important for performance. NVCC may realize this is invariant
+       across iterations and hoist it out, but don't rely on it. *)
+    let v2 = AV.varray_read ar (mkCIdx #tile 1sz !sk j);
+    while (SZ.(!i <^ tile))
+      invariant b.
+        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile))
+          (vsk : SZ.t{vsk < tile}).
+          pure (b == (SZ.v vi < tile)) **
+          (i |-> vi) **
+          (sk |-> vsk) **
+          (acc |-> accv) **
+          (ar |-> Frac f ar0) **
+          gpu
+    {
+      let v1 = AV.varray_read ar (mkCIdx #tile 0sz !i !sk);
 
-    let v = v1 `mul` v2;
-    eqplus acc v;
-    sk := vsk +^ 1sz;
-  };
+      open Pulse.Lib.Array;
+      let sum0 = acc.(!i);
+      let sum1 = sum0 `add` (v1 `mul` v2);
+      acc.(!i) <- sum1;
+      i := !i +^ 1sz;
+    };
+    sk := !sk +^ 1sz;
+  }
 }
 
-(* TODO: Find out where the time is going when checking this function,
-it feels a lot slower than the others. *)
+inline_for_extraction noextract
+fn bring_2cols
+  (tile : valid_tile)
+  (#et : Type0) {| scalar et |}
+  (#mrows #mshared #mcols : erased nat)
+  (#lA : mlayout4 mrows   mshared tile tile)
+  (#lB : mlayout4 mshared mcols   tile tile)
+  {| clayout4 lA, clayout4 lB |}
+  (gA : gpu_matrix4 et lA)
+  (gB : gpu_matrix4 et lB)
+  (ar : varray (aview_2tile2 et tile))
+  (mrow : szlt mrows)
+  (mk : szlt mshared)
+  (mcol : szlt mcols)
+  (tid : szlt tile)
+  (#fA #fB : perm)
+  (#eA : ematrix4 et mrows   mshared tile tile)
+  (#eB : ematrix4 et mshared mcols   tile tile)
+  preserves
+    gpu
+  requires
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
+    own_2_cols tile ar tid
+  ensures
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB) **
+    own_2_cols tile ar tid
+{
+  let mut i = 0sz;
+  while (let vi = !i; SZ.(vi <^ tile))
+    invariant b.
+      exists* (vi : SZ.t{vi <= tile}).
+        pure (b == (SZ.v vi < tile)) **
+        (i |-> vi) **
+        (gA |-> Frac fA eA) **
+        (gB |-> Frac fB eB) **
+        own_2_cols tile ar tid **
+        gpu
+  {
+    let vi = !i;
+    unfold own_2_cols tile ar tid;
+    forevery_extract #(natlt tile) vi _;
+    let v1 = M4.gpu_matrix_read gA mrow mk vi tid;
+    AV.varray_write_cell' ar (mkCIdx 0sz vi tid) (mkAIdx 0 vi tid) v1;
+    let v2 = M4.gpu_matrix_read gB mk mcol vi tid;
+    AV.varray_write_cell' ar (mkCIdx 1sz vi tid) (mkAIdx 1 vi tid) v2;
+    Pulse.Lib.Trade.elim_trade _ _;
+    fold own_2_cols tile ar tid;
+    i := vi +^ 1sz;
+  }
+}
+
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : SZ.t)
+  (#mrows #mshared #mcols : szp)
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
   {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
+  (#fA : perm)
   (gB : gpu_matrix4 et lB)
+  (#fB : perm)
   (gC : gpu_matrix4 et lC)
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
-  (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   (bid : szlt (mrows * mcols))
-  (tid : szlt (tile  * tile))
+  (tid : szlt tile)
   ()
   requires
     gpu **
     kpre comb tile gA gB gC eA eB fA fB sh bid tid **
-    thread_id (tile * tile) tid **
+    thread_id tile tid **
     block_id (mrows * mcols) bid
   ensures
     gpu **
     kpost comb tile gA gB gC eA eB fA fB sh bid tid **
-    thread_id (tile * tile) tid **
+    thread_id tile tid **
     block_id (mrows * mcols) bid
 {
   let ar0 : gpu_array et (2 * tile * tile) = fst sh;
@@ -278,59 +357,53 @@ fn kf
 
   unfold barrier_tok tile ar0 0 tid;
 
+  // Does not work:
   AV.varray_abs' (aview_2tile2 et tile) ar0;
   let ar = AV.from_array (aview_2tile2 et tile) ar0;
-  rewrite each AV.from_array (aview_2tile2 et tile) ar0 as ar;
+  rewrite each AV.from_array (aview_2tile2 et tile) ar0
+            as ar;
 
   let mrow, mcol = s_divmod mcols bid;
-  let brow, bcol = s_divmod tile  tid;
-  assert (pure (SZ.v brow == tid / tile));
+  let bcol = tid;
   assert (pure (SZ.v bcol == tid % tile));
-  assert (pure (brow < tile));
   assert (pure (bcol < tile));
 
-  with bi0 bj0 i0 j0 v0.
-    rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-         as m4_pts_to_cell gC mrow mcol brow bcol v0;
-
-  let mut sum : et = zero #et #_;
+  (* thread-local result cache *)
+  let mut sums : Pulse.Lib.Array.array et = [| zero #et #_ ; tile |];
   let mut bk  : sz = 0sz;
 
   while (let vbk = !bk; SZ.(vbk <^ mshared))
     invariant b.
-      exists* (vbk : SZ.t{vbk <= mshared}) sumv.
+      exists* (vbk : SZ.t{vbk <= mshared}) (sumv : lseq et tile).
         pure (b == (SZ.v vbk < mshared)) **
         (bk |-> vbk) **
-        (sum |-> sumv) **
+        (sums |-> sumv) **
         (gA |-> Frac (fA /. mlayout_size lC) eA) **
         (gB |-> Frac (fB /. mlayout_size lC) eB) **
-        (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
+        (exists* x. varray_pts_to ar #(1.0R /. tile) x) **
         B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid **
         gpu
   {
     let vbk = !bk;
-    let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
-    let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
 
     (* This assert should not be needed. I don't know what effect it even has. *)
     assert B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk) tid;
     even_2x vbk;
     assert (pure (even (2 * vbk)));
-    rewrite (exists* (x : _ & _). ar |-> Frac (1.0R /. (tile * tile)) x)
+    rewrite (exists* x. AV.varray_pts_to ar #(1.0R /. tile) x)
          as (barrier_p tile ar (2 * vbk) tid);
     B.barrier_wait ();
     rewrite (barrier_q tile ar (2 * vbk) tid)
-         as (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
-            (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x);
+         as own_2_cols tile ar tid;
 
-    AV.varray_write_cell' ar (mkCIdx 0sz brow bcol) (mkAIdx 0 (tid / tile) (tid % tile)) v1;
-    AV.varray_write_cell' ar (mkCIdx 1sz brow bcol) (mkAIdx 1 (tid / tile) (tid % tile)) v2;
+    (* At this point we exclusively own a full column of the SHMEM
+       cache. Populate it. *)
+    bring_2cols tile gA gB ar mrow !bk mcol tid;
 
     assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
     odd_2x1 vbk;
     assert (pure (odd (2 * vbk + 1)));
-    rewrite (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
-            (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x)
+    rewrite own_2_cols tile ar tid
          as (barrier_p tile ar (2 * vbk + 1) tid);
     B.barrier_wait ();
     even_2x (vbk + 1);
@@ -338,42 +411,74 @@ fn kf
     assert (pure (2 * (vbk + 1) == 2 * vbk + 2));
     assert (pure (even (2 * vbk + 2)));
     rewrite (barrier_q tile ar (2 * vbk + 1) tid)
-         as (exists* (x : _ & _). ar |-> Frac (1.0R /. (tile * tile)) x);
+         as (exists* x. AV.varray_pts_to ar #(1.0R /. tile) x);
 
     (* At this point the SHMem cache is filled with the submatrices
        and we have RO permission to it. Compute product for our cell in
        the tile and add to sum. *)
 
-    subproduct tile sum ar brow bcol;
+    subproduct tile sums ar bcol;
 
     (* Move to next tile *)
-    bk := vbk +^ 1sz;
+    bk := !bk +^ 1sz;
   };
 
-  let s = !sum;
-  let v0 = M4.gpu_matrix_read_cell gC mrow mcol brow bcol;
-  let v1 = comb v0 s;
-  M4.gpu_matrix_write_cell gC mrow mcol brow bcol v1;
+  (* Write all the accumulated sums. *)
 
-  with v'.
-    rewrite
-      M4.gpu_matrix_pts_to_cell gC mrow mcol brow bcol v'
-    as
-      M4.gpu_matrix_pts_to_cell gC
-        (bid / mcols) (bid % mcols)
-        (tid / tile) (tid % tile) v';
+  let mut row : sz = 0sz;
+  Pulse.Lib.Array.pts_to_len sums;
+  while (SZ.(!row <^ tile))
+    invariant b.
+      exists* (vrow : SZ.t{vrow <= tile}) (sumv : lseq et tile).
+        pure (b == (SZ.v vrow < tile)) **
+        (row |-> vrow) **
+        (sums |-> sumv) **
+        (forall+ (ii : natlt tile).
+          (exists* v.
+            m4_pts_to_cell gC #1.0R
+              (bid / mcols) (bid % mcols)
+              ii tid v)) **
+        gpu
+  {
+    let vrow = !row;
+    forevery_extract #(natlt tile) (SZ.v vrow) _;
+
+    (* tedious *)
+    with bi0 bj0 i0 j0 v0.
+      rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
+          as m4_pts_to_cell gC mrow mcol vrow bcol v0;
+
+    let v0 = M4.gpu_matrix_read_cell gC mrow mcol !row bcol;
+    open Pulse.Lib.Array;
+    let v1 = sums.(!row);
+    let v' = comb v0 v1;
+    M4.gpu_matrix_write_cell gC mrow mcol !row bcol v';
+
+    with bi0 bj0 i0 j0 v0.
+      rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
+          as m4_pts_to_cell gC (bid / mcols) (bid % mcols) vrow tid v0;
+
+    row := !row +^ 1sz;
+    Pulse.Lib.Trade.elim_trade _
+      (forall+ (ii : natlt tile).
+        (exists* v.
+          m4_pts_to_cell gC #1.0R
+            (bid / mcols) (bid % mcols)
+            ii tid v));
+  };
 
   AV.varray_concr ar;
   with x1.
     rewrite
-      gpu_pts_to_array (AV.core ar) #(1.0R /. (tile * tile)) x1
+      gpu_pts_to_array (AV.core ar) #(1.0R /. tile) x1
     as
-      ar0 |-> Frac (1.0R /. (tile * tile)) x1;
+      gpu_pts_to_array ar0 #(1.0R /. tile) x1;
   fold barrier_tok tile ar0 (2 * mshared) tid;
 
-  rewrite each ar0 as fst sh;
+  rewrite each ar0 as (fst sh);
   ()
 }
+
 
 ghost
 fn setup
@@ -400,7 +505,7 @@ fn setup
     (gC |-> eC)
   ensures
     (forall+ (bid : natlt2 mrows mcols)
-             (tid : natlt2 tile  tile).
+             (tid : natlt tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
 {
@@ -429,13 +534,13 @@ fn block_setup
   (bid : natlt (mrows * mcols))
   ()
   requires
-    block_setup_tok (tile *^ tile) **
+    block_setup_tok tile **
     live_c_shmems sh **
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
-    block_setup_tok (tile *^ tile) **
-    (forall+ (tid : natlt2 tile  tile).
+    block_setup_tok tile **
+    (forall+ (tid : natlt tile).
       kpre comb tile gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
 {
@@ -464,12 +569,12 @@ fn block_teardown
   (bid : natlt (mrows * mcols))
   ()
   requires
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt tile).
       kpost comb tile gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
-    (forall+ (tid : natlt2 tile  tile).
+    (forall+ (tid : natlt tile).
       kpost1 comb tile gA gB gC eA eB fA fB bid tid)
 {
   admit();
@@ -496,7 +601,7 @@ fn teardown
   ()
   requires
     (forall+ (bid : natlt2 mrows mcols)
-             (tid : natlt2 tile  tile).
+             (tid : natlt tile).
       kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
@@ -504,6 +609,13 @@ fn teardown
     (gB |-> Frac fB eB) **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
+  // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
+  //   (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
+  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
+  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
+  // forevery_tostar #(natlt2 mrows mcols & natlt tile) (fun _tid -> m4_pts_to gA #(1.0R /. mlayout_size lC) eA);
+
+    // (fun (bid, tid) -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
   admit();
 }
 
@@ -526,27 +638,25 @@ let mk_kernel
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   (_ : squash (mrows * mcols <= max_blocks
-               /\ tile * tile <= max_threads))
+               /\ tile <= max_threads))
   : kernel_desc
       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
-  nthr = tile *^ tile;
+  nthr = tile;
 
-  shmems_desc = [
-    SHArray et #solve (2sz *^ tile *^ tile);
-  ];
+  shmems_desc = shmems_desc et tile;
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  comb tile gA gB gC eA eB fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 comb tile gA gB gC eA eB fA fB bid tid);
+  block_pre  = (fun bid -> forall+ (tid : natlt tile). kpre1  comb tile gA gB gC eA eB fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt tile). kpost1 comb tile gA gB gC eA eB fA fB bid tid);
   setup      = setup    tile comb gA gB gC #eA #eB #eC;
   teardown   = teardown tile comb gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup    tile comb gA #fA gB #fB gC #eA #eB #eC;
-  block_teardown = block_teardown tile comb gA #fA gB #fB gC #eA #eB #eC;
+  block_setup    = block_setup    tile comb gA gB gC #eA #eB #eC;
+  block_teardown = block_teardown tile comb gA gB gC #eA #eB #eC;
 
   kpre      = kpre  comb tile gA gB gC eA eB fA fB;
   kpost     = kpost comb tile gA gB gC eA eB fA fB;
