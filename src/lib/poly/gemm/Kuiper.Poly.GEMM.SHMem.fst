@@ -348,7 +348,6 @@ fn kf
     (* Move to next tile *)
     bk := vbk +^ 1sz;
   };
-  admit();
 
   let s = !sum;
   let v0 = M4.gpu_matrix_read_cell gC mrow mcol brow bcol;
