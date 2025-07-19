@@ -523,8 +523,6 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       let kf = collapse_tuple_proj kf in
       let kf = hoist env kf in
       let hd, rest_args = head_and_args kf in
-      // if Nil? rest_args then // is this really a problem?
-        // failwith ("launch_kernel: no arguments to kernel: " ^ show kf);
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
 
     | _ ->

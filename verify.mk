@@ -287,6 +287,7 @@ EXTRACT += $(wildcard src/lib/inst/*.fst)
 # And src/lib/inst/gemm...
 EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
+EXTRACT += src/examples/Kuiper.Example2.fst
 
 extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
@@ -294,6 +295,7 @@ BUILD :=
 
 # *Build* every executable in test/, we can do this without a GPU
 BUILD += $(patsubst %,obj/%.exe,$(TESTS))
+BUILD += obj/Kuiper_Example2.o
 
 build-targets: $(BUILD)
 
