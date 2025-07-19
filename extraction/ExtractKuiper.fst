@@ -413,7 +413,7 @@ The type of the array has already been erased, we cannot get it here. *)
 let parse_shmem_desc (e : mlexpr) : option (mlexpr & mlexpr) =
   let open FStarC.Class.Monad in
   match e.expr with
-  | MLE_CTor (fv, [_ty; sized; len]) when string_of_mlpath fv = "Kuiper.Kernel.Desc.SHArray" ->
+  | MLE_CTor (fv, [_ty; sized; len]) when string_of_mlpath fv = "Kuiper.SHMem.SHArray" ->
     let sized_a = get_sizet sized in
     return (sized_a, len)
   | _ ->

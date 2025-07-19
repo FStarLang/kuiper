@@ -7,6 +7,7 @@ open Kuiper.ForEvery
 open Kuiper.Base
 open Kuiper.Kernel.Desc
 open Kuiper.Array
+open Kuiper.SHMem
 
 ghost
 fn kmn_as_kfull_block_setup

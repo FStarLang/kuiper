@@ -21,6 +21,7 @@ include Kuiper.Sized
 include Kuiper.Scalars
 include Kuiper.Array
 include Kuiper.Kernel
+include Kuiper.SHMem
 include Kuiper.SizeT
 include Kuiper.Conditional
 include Kuiper.IntAliases
