@@ -475,9 +475,7 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
         aux (sizet_lit 0) desc
       in
       let c_sh, shmem_bytesz = mk_c_sh parsed in
-      // BU.print1 "GGG computed c_sh = %s\n" (show c_sh);
       let kf = assoc' "f" fields in
-      // BU.print1 "GGG kf = %s\n" (mlexpr_to_string kf);
       // let rec drop_n_binders (e:mlexpr) n =
       //   match e.expr with
       //   | MLE_Fun (bs, body) when List.length bs = n -> body
@@ -511,27 +509,13 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       in
       let ml_blockidx : mlexpr =
         MLE_Name ([], "blockIdx_x")
-        (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
-        (* |> (fun x -> MLE_App (x, [ml_unit])) *)
         |> with_ty (MLTY_Var "FStar.SizeT.t")
       in
       let ml_threadidx : mlexpr =
         MLE_Name ([], "threadIdx_x")
-        (* |> with_ty (MLTY_Fun (ml_unit_ty, E_IMPURE, MLTY_Var "FStar.SizeT.t")) *)
-        (* |> (fun x -> MLE_App (x, [ml_unit])) *)
         |> with_ty (MLTY_Var "FStar.SizeT.t") // fixme should be MLTY_Named
       in
-      let remove_stupid_let (e : mlexpr) : mlexpr =
-        match e.expr with
-        | MLE_Let ((NonRec, [lb]), e) ->
-          let { mllb_name = id; mllb_def = e' } = lb in
-          ml_subst e id e'
-        | _ -> failwith ("remove_stupid_let: not there. " ^ show e)
-      in
       let kf = apply_lam kf c_sh in
-      // let kf = remove_stupid_let kf in // ???
-      // FIXME: concretizing the shmem argument does not work, for some reason
-      // it shows up as erased in the original MLexpr.
       // let kf = apply_lam kf ml_unit in
       let kf = apply_lam kf ml_blockidx in
       let kf = apply_lam kf ml_threadidx in
@@ -539,9 +523,8 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       let kf = collapse_tuple_proj kf in
       let kf = hoist env kf in
       let hd, rest_args = head_and_args kf in
-      if Nil? rest_args then // is this really a problem?
-        failwith ("launch_kernel: no arguments to kernel: " ^ show kf);
-      // let e_size = get_sizet sized_a in
+      // if Nil? rest_args then // is this really a problem?
+        // failwith ("launch_kernel: no arguments to kernel: " ^ show kf);
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
 
     | _ ->
