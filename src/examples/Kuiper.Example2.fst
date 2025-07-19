@@ -4,8 +4,6 @@ module Kuiper.Example2
 
 open Kuiper
 
-module U64 = FStar.UInt64
-
 (* Kernels need not have any arguments. Not that this is
 very useful... *)
 inline_for_extraction noextract
