@@ -430,10 +430,6 @@ fn kf
   {
     let vbk = !bk;
 
-    (* This assert should not be needed. I don't know what effect it even has. *)
-    assert B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid;
-    even_2x vbk;
-    assert (pure (even (2 * vbk)));
     rewrite
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x)
@@ -448,16 +444,9 @@ fn kf
     let vbk = !bk;
     bring_2cols tile gA gB sa1 sa2 mrow vbk mcol tid;
 
-    assert (B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk + 1) tid);
-    odd_2x1 vbk;
-    assert (pure (odd (2 * vbk + 1)));
     rewrite own_1_col sa1 tid ** own_1_col sa2 tid
          as (barrier_p sa1 sa2 (2 * vbk + 1) tid);
     B.barrier_wait ();
-    even_2x (vbk + 1);
-    (* sigh *)
-    assert (pure (2 * (vbk + 1) == 2 * vbk + 2));
-    assert (pure (even (2 * vbk + 2)));
     rewrite (barrier_q sa1 sa2 (2 * vbk + 1) tid)
     as
       (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
@@ -466,7 +455,6 @@ fn kf
     (* At this point the SHMem cache is filled with the submatrices
        and we have RO permission to it. Compute product for our cell in
        the tile and add to sum. *)
-
     subproduct tile sums sa1 sa2 bcol;
 
     (* Move to next tile *)
@@ -519,7 +507,6 @@ fn kf
 
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
-  // M.gpu_matrix_concr sa2;
 
   fold barrier_tok tile slA slB ar1 ar2 (2 * mshared) tid;
 
