@@ -29,7 +29,14 @@ open Kuiper.ArrayView {
 }
 module AV = Kuiper.ArrayView
 
-(* Description of shared memory used in this kernel. *)
+(* Description of shared memory used in this kernel.
+
+Instead of using two arrays of tile*tile, this uses a single array of the combined
+size and "views" it as two separate matrices. This is suboptimal now that we can
+have multiple shmem arrays, but that was not the case when this was written. In any case,
+it's good that this works, and we keep it here for reference and to make sure it
+keeps working. *)
+
 inline_for_extraction noextract
 let shmems_desc (et:Type0) {| sized et |} (tile:valid_tile) : list shmem_desc = [
   SHArray et (2sz *^ tile *^ tile);
