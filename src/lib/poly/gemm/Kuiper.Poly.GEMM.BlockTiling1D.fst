@@ -343,7 +343,7 @@ fn bring_2cols
 
     unfold own_1_col sa2 tid;
     forevery_extract #(natlt tile) vi _;
-    let v2 = M4.gpu_matrix_read gA mrow mk vi tid;
+    let v2 = M4.gpu_matrix_read gB mk mcol vi tid;
     M.gpu_matrix_write_cell sa2 vi tid v2;
     Pulse.Lib.Trade.elim_trade _ _;
     fold own_1_col sa2 tid;
