@@ -23,6 +23,7 @@ __global__ void sgemm1DBlocktiling(int M, int N, int K, float alpha,
   const uint cCol = blockIdx.x;
 
   // each warp will calculate 32*TM elements, with 32 being the columnar dim.
+  //# it is probably good for performance for BN to be dividable by the warp size
   const int threadCol = threadIdx.x % BN;
   const int threadRow = threadIdx.x / BN;
 
@@ -31,12 +32,17 @@ __global__ void sgemm1DBlocktiling(int M, int N, int K, float alpha,
   __shared__ float Bs[BK * BN];
 
   // Move blocktile to beginning of A's row and B's column
+  //# as many y-dim blocks as rows of blocktiles in A
+  //# but runner.cu allows BM and BN to not perfectly divide the dimensions
+  //#  in this case, the last block has more threads than necessary
   A += cRow * BM * K;
+  //# as many x-dim blocks as columns of blocktiles in B
   B += cCol * BN;
   C += cRow * BM * N + cCol * BN;
 
   // todo: adjust this to each thread to load multiple entries and
   // better exploit the cache sizes
+  //# 1d-blockdim matches tile size (so BM == BN)
   assert(BM * BK == blockDim.x);
   assert(BN * BK == blockDim.x);
   const uint innerColA = threadIdx.x % BK; // warp-level GMEM coalescing
@@ -50,7 +56,18 @@ __global__ void sgemm1DBlocktiling(int M, int N, int K, float alpha,
   // outer loop over block tiles
   for (uint bkIdx = 0; bkIdx < K; bkIdx += BK) {
     // populate the SMEM caches
+    //# OUT OF BOUNDS: in case the block size BM does not perfectly divide M
+    //# for BM > M: 
+    //#   threadIdx.x: natlt (BM * BK), so innerRowA = threadIdx.x/BK : natlt BM
+    //#   and therefore at least the last innerRowA is out of bounds
+    //# for BK > K:
+    //#   threadIdx.x natlt(BM * BK),  so innerColA = threadIdx.x%BK : natlt BK
+    //#   and therefore the last innerColA is out of bounds
     As[innerRowA * BK + innerColA] = A[innerRowA * K + innerColA];
+    //# for BN > N:
+    //#   threadIdx.x: natlt (BN * BK), so innerColB = threadIdx.x%BN : natlt BN
+    //#   and therefore at least the last innerColB is out of bounds 
+    //# for BK > K: similar to first case for A
     Bs[innerRowB * BN + innerColB] = B[innerRowB * N + innerColB];
     __syncthreads();
 
@@ -64,6 +81,7 @@ __global__ void sgemm1DBlocktiling(int M, int N, int K, float alpha,
       // reuse of the Bs entry, which we can cache in a tmp var.
       float tmpB = Bs[dotIdx * BN + threadCol];
       for (uint resIdx = 0; resIdx < TM; ++resIdx) {
+        //# in this implementation TM MUST divide BM, else there are out of bounds accesses
         threadResults[resIdx] +=
             As[(threadRow * TM + resIdx) * BK + dotIdx] * tmpB;
       }
