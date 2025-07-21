@@ -31,11 +31,6 @@ module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 
 open Kuiper.EMatrix { ematrix }
-open Kuiper.ArrayView {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract

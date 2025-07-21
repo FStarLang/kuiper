@@ -30,11 +30,6 @@ module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 
 open Kuiper.EMatrix { ematrix }
-open Kuiper.ArrayView {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -243,7 +238,7 @@ fn bring_2cols
     own_1_col sa2 tid
 {
   let mut i = 0sz;
-  while (let vi = !i; SZ.(vi <^ tile))
+  while (SZ.(!i <^ tile))
     invariant b.
       exists* (vi : SZ.t{vi <= tile}).
         pure (b == (SZ.v vi < tile)) **
