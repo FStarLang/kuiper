@@ -153,9 +153,10 @@ let barrier_tok
   (tid : natlt tile)
   : slprop
   =
-  B.barrier_tok (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
-                (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
-                it tid
+  B.barrier_tok
+    (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
+    (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
+    it tid
 
 unfold
 let kpre
@@ -208,21 +209,6 @@ let kpost
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. tile) x) **
   (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. tile) x) **
   barrier_tok tile slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
-
-inline_for_extraction noextract
-fn eqplus
-  (#et : Type0) {| scalar et |}
-  (r : ref et)
-  (v : et)
-  (#v0 : erased et)
-  requires
-    r |-> v0
-  ensures
-    r |-> v0 `add #et` v
-{
-  let v0 = !r;
-  r := v0 `add` v;
-}
 
 inline_for_extraction noextract
 fn bring_2cols
