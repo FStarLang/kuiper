@@ -36,7 +36,6 @@ open Kuiper.ArrayView {
   varray_pts_to,
   varray_pts_to_cell
 }
-module AV = Kuiper.ArrayView
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
