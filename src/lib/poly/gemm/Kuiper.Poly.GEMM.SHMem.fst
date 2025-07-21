@@ -53,15 +53,6 @@ So in even steps, they give their shared ownership,
 and receive their cells. (p)
 *)
 
-let own_1_col
-  (#et : Type0)
-  (#tile : valid_tile)
-  (#l : mlayout tile tile) (m : gpu_matrix et l)
-  (tid : natlt tile)
-  : slprop =
-  forall+ (ii : natlt tile).
-    (exists* x. gpu_matrix_pts_to_cell m ii tid x)
-
 (* To verify functional correctness: the existentials here should be made
 precise, and parametrize this over the starting input matrices. *)
 let barrier_p
