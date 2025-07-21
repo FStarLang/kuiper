@@ -549,17 +549,17 @@ let mk_kernel
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre1  comb tile gA gB gC eA eB fA fB bid tid);
   block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost1 comb tile gA gB gC eA eB fA fB bid tid);
-  setup      = setup    tile comb gA gB gC #eA #eB #eC;
-  teardown   = teardown tile comb gA gB gC #eA #eB #eC;
+  setup      = setup    tile comb gA gB gC;
+  teardown   = teardown tile comb gA gB gC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup    tile slA slB comb gA #fA gB #fB gC #eA #eB #eC;
-  block_teardown = block_teardown tile slA slB comb gA #fA gB #fB gC #eA #eB #eC;
+  block_setup    = block_setup    tile slA slB comb gA gB gC #_ #_ #eC;
+  block_teardown = block_teardown tile slA slB comb gA gB gC #_ #_ #eC;
 
   kpre      = kpre  comb tile slA slB gA gB gC eA eB fA fB;
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
-  f = kf tile slA slB #_ #_ #et #_ comb #mrows #mshared #mcols gA gB gC #eA #eB;
+  f = kf tile slA slB comb gA gB gC;
 }
 
 inline_for_extraction noextract
