@@ -95,3 +95,29 @@ fn matmul_tiled_dotprod
     res : et
   // ensures
   //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
+
+(* Used by SHMEM, Blocktiling1D *)
+inline_for_extraction noextract
+fn subproduct_cols
+  (#et : Type0) {| scalar et |}
+  (tile : sz)
+  (acc : array et)
+  (#l1 : mlayout tile tile) {| clayout l1 |}
+  (#l2 : mlayout tile tile) {| clayout l2 |}
+  (m1 : M.gpu_matrix et l1)
+  (m2 : M.gpu_matrix et l2)
+  (j : szlt tile)
+  (#acc0 : erased (seq et))
+  (#v1 #v2 : ematrix et tile tile)
+  (#f : perm)
+  preserves
+    gpu **
+    (m1 |-> Frac f v1) **
+    (m2 |-> Frac f v2)
+  requires
+    pure (Seq.length acc0 == tile) **
+    (acc |-> acc0)
+  ensures
+    exists* acc'.
+      pure (Seq.length acc' == tile) **
+      (acc |-> acc')

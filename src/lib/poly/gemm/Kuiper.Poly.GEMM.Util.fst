@@ -156,3 +156,68 @@ fn matmul_tiled_dotprod
   };
   !sum
 }
+
+(* Used by SHMEM, Blocktiling1D *)
+inline_for_extraction noextract
+fn subproduct_cols
+  (#et : Type0) {| scalar et |}
+  (tile : sz)
+  (acc : array et)
+  (#l1 : mlayout tile tile) {| clayout l1 |}
+  (#l2 : mlayout tile tile) {| clayout l2 |}
+  (m1 : M.gpu_matrix et l1)
+  (m2 : M.gpu_matrix et l2)
+  (j : szlt tile)
+  (#acc0 : erased (seq et))
+  (#v1 #v2 : ematrix et tile tile)
+  (#f : perm)
+  preserves
+    gpu **
+    (m1 |-> Frac f v1) **
+    (m2 |-> Frac f v2)
+  requires
+    pure (Seq.length acc0 == tile) **
+    (acc |-> acc0)
+  ensures
+    exists* acc'.
+      pure (Seq.length acc' == tile) **
+      (acc |-> acc')
+{
+  let mut sk : sz = 0sz;
+  while (SZ.(!sk <^ tile))
+    invariant b.
+      exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
+        pure (b == (SZ.v vsk < tile)) **
+        (sk |-> vsk) **
+        (acc |-> accv) **
+        (m1 |-> Frac f v1) **
+        (m2 |-> Frac f v2) **
+        gpu
+  {
+    let mut i = 0sz;
+    (* We can read v2 out of the inner loop, this is extremely
+       important for performance. NVCC may realize this is invariant
+       across iterations and hoist it out, but don't rely on it. *)
+    let v2 = M.gpu_matrix_read m2 !sk j;
+    while (SZ.(!i <^ tile))
+      invariant b.
+        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile))
+          (vsk : SZ.t{vsk < tile}).
+          pure (b == (SZ.v vi < tile)) **
+          (i |-> vi) **
+          (sk |-> vsk) **
+          (acc |-> accv) **
+          (m1 |-> Frac f v1) **
+          gpu
+    {
+      let v1 = M.gpu_matrix_read m1 !i !sk;
+
+      open Pulse.Lib.Array;
+      let sum0 = acc.(!i);
+      let sum1 = sum0 `add` (v1 `mul` v2);
+      acc.(!i) <- sum1;
+      i := !i +^ 1sz;
+    };
+    sk := !sk +^ 1sz;
+  }
+}
