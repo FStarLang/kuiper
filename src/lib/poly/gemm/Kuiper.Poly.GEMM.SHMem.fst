@@ -201,8 +201,6 @@ let kpost
   (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
   barrier_tok tile slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
 
-#set-options "--print_implicits"
-
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
 inline_for_extraction noextract
