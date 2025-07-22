@@ -42,8 +42,8 @@ static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
     uint16_t sum = 0U;
     while (k < size)
     {
-      uint16_t __anf24608 = sum;
-      sum = add_(__anf24608, mult(a[trow * size + k], a[k * size + tcol]));
+      uint16_t vsum = sum;
+      sum = add_(vsum, mult(a[trow * size + k], a[k * size + tcol]));
       k += (size_t)1U;
     }
     uint16_t s = sum;
