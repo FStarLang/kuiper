@@ -22,7 +22,7 @@ let lincomb
 // when to=shared, it computes the (row,col) cell of m1*m2
 // the sum  is associated to the left, i.e.
 // ((zero + m1[row][0] * m2[0][col]) + m1[row][1] * m2[1][col]) + ...
-val matmul_single
+val __matmul_single
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
@@ -31,6 +31,16 @@ val matmul_single
   (col : nat{col < columns})
   (to : nat{to <= shared})
   : GTot et
+
+let matmul_single
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  : GTot et
+  = __matmul_single m1 m2 row col shared
 
 let gemm_single
   (#et:Type) {| scalar et |}
@@ -44,7 +54,7 @@ let gemm_single
   : GTot et
   = comb
       (macc m0 row col)
-      (matmul_single m1 m2 row col shared)
+      (matmul_single m1 m2 row col)
 
 val matmul_zero_lemma
   (#et:Type) {| scalar et |}
@@ -54,9 +64,9 @@ val matmul_zero_lemma
   (row col : nat{row < rows /\ col < columns})
 : Lemma
   (ensures (
-    matmul_single m1 m2 row col 0 == zero
+    __matmul_single m1 m2 row col 0 == zero
   ))
-  [SMTPat (matmul_single m1 m2 row col 0)]
+  [SMTPat (__matmul_single m1 m2 row col 0)]
 
 val matmul_single_lemma
   (#et:Type) {| scalar et |}
@@ -69,9 +79,9 @@ val matmul_single_lemma
 : Lemma
   (requires (0 < to /\ to <= shared))
   (ensures (
-    matmul_single m1 m2 row col to ==
+    __matmul_single m1 m2 row col to ==
     add
-      (matmul_single m1 m2 row col (to - 1))
+      (__matmul_single m1 m2 row col (to - 1))
       (mul (macc m1 row (to-1)) (macc m2 (to-1) col))
   ))
   // [SMTPat (matmul_single m1 m2 row col to)]
@@ -90,8 +100,8 @@ val lemma_matmul_index
   (m2 : ematrix et shared columns)
   (i : nat{ i < rows })
   (j : nat{ j < columns })
-: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j shared)
-        [SMTPat (matmul_single m1 m2 i j shared)]
+: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j)
+        [SMTPat (matmul_single m1 m2 i j)]
 
 let mmcomb
   (#et:Type) {| scalar et |}

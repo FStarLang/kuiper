@@ -38,7 +38,7 @@ fn matmul_dotprod
   returns
     res : et
   ensures
-    pure (res == MS.matmul_single #et #_ #rows #shared #cols eA eB i j shared)
+    pure (res == MS.matmul_single eA eB i j)
 
 (* Will only multiply across the minor index. *)
 inline_for_extraction noextract

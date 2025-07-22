@@ -1,6 +1,6 @@
 module Kuiper.Spec.GEMM
 
-let rec matmul_single
+let rec __matmul_single
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
@@ -13,7 +13,7 @@ let rec matmul_single
   if reveal to = 0 then zero
   else (
     add
-      (matmul_single m1 m2 row col (to - 1))
+      (__matmul_single m1 m2 row col (to - 1))
       (mul (macc m1 row (to - 1))
            (macc m2 (to - 1) col))
   )
@@ -26,7 +26,7 @@ let matmul_zero_lemma
   (row col : nat{row < rows /\ col < columns})
 : Lemma
   (ensures (
-    matmul_single m1 m2 row col 0 == zero
+    __matmul_single m1 m2 row col 0 == zero
   ))
   = ()
 
@@ -41,9 +41,9 @@ let matmul_single_lemma
 : Lemma
   (requires (0 < to /\ to <= shared))
   (ensures (
-    matmul_single m1 m2 row col to ==
+    __matmul_single m1 m2 row col to ==
     add
-      (matmul_single m1 m2 row col (to - 1))
+      (__matmul_single m1 m2 row col (to - 1))
       (mul (macc m1 row (to-1)) (macc m2 (to-1) col))
   ))
   = ()
@@ -58,7 +58,7 @@ let matmul_single_at
 =
   let row = idx / columns in
   let col = idx % columns in
-  matmul_single m1 m2 row col shared
+  matmul_single m1 m2 row col
 
 let matmul
   (#et:Type) {| scalar et |}
@@ -66,7 +66,7 @@ let matmul
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
-= mkM <| fun i j -> matmul_single m1 m2 i j shared
+= mkM <| fun i j -> matmul_single m1 m2 i j
 
 let lemma_matmul_index
   (#et:Type) {| scalar et |}
@@ -75,7 +75,7 @@ let lemma_matmul_index
   (m2 : ematrix et shared columns)
   (i : nat{ i < rows })
   (j : nat{ j < columns })
-: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j shared)
+: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j)
 = ()
 
 let matmul_is_gemm
