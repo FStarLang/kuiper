@@ -552,8 +552,6 @@ fn varray_from_array
   ();
 }
 
-#set-options "--print_implicits"
-
 inline_for_extraction noextract
 fn varray_to_array
   (#et:Type0) {| sized et |}
