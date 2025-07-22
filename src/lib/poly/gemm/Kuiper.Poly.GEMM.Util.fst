@@ -136,7 +136,7 @@ fn matmul_tiled_dotprod
   // ensures
   //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
 {
-  let mut sum : et = zero #et #_;
+  let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
   while (let vbk = !bk; SZ.(vbk <^ shared))

@@ -192,7 +192,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   gpu_array_free gr;
 
   i := 0sz;
-  let mut psum = zero #et #_;
+  let mut psum : et = zero;
   while (let v = !i; (v `SZ.op_Less_Hat` m_size))
      invariant b. exists* vi vpsum.
        pts_to i vi **
