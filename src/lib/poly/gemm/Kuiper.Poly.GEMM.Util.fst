@@ -49,7 +49,8 @@ fn matmul_dotprod
     let v1 = M.gpu_matrix_read gA i !k;
     let v2 = M.gpu_matrix_read gB !k j;
 
-    sum := !sum `add` mul v1 v2;
+    let vsum = !sum;
+    sum := vsum `add` mul v1 v2;
     k := SZ.add !k 1sz;
 
     (**)MS.matmul_single_lemma eA eB i j !k;
