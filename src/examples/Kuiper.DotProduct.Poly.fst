@@ -158,7 +158,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   let ar = V.alloc #et zero m_size;
 
   let mut i = 0sz;
-  let mut a = zero #et #_;
+  let mut a : et = zero;
 
   while (let v = !i; (v `SZ.op_Less_Hat` m_size))
      invariant b.

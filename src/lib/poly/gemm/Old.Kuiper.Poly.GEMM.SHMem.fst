@@ -293,7 +293,7 @@ fn kf
     rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
          as m4_pts_to_cell gC mrow mcol brow bcol v0;
 
-  let mut sum : et = zero #et #_;
+  let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
   while (let vbk = !bk; SZ.(vbk <^ mshared))

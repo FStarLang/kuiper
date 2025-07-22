@@ -279,7 +279,7 @@ fn reduce
     (a |-> Frac f v_a) **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
-  let mut r = zero #et #_;
+  let mut r : et = zero;
   let gr = gpu_alloc0 #et ();
   Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
 

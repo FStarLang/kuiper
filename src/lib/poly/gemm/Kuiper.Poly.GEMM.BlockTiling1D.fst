@@ -329,7 +329,7 @@ fn kf
 
 
   (* thread-local result cache *)
-  let mut sums : Pulse.Lib.Array.array et = [| zero #et #_ ; tile |];
+  let mut sums : Pulse.Lib.Array.array et = [| zero ; tile |];
   let mut bk  : sz = 0sz;
 
   while (let vbk = !bk; SZ.(vbk <^ mshared))

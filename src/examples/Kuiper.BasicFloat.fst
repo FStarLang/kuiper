@@ -19,7 +19,7 @@ fn main (_:unit)
   returns  _ : f32
   ensures  cpu
 {
-  let mut r = zero #f32 #_;
+  let mut r : f32 = zero;
   let gr = gpu_alloc0 #f32 ();
 
   Kuiper.Ref.gpu_memcpy_host_to_device gr r;

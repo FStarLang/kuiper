@@ -34,7 +34,7 @@ fn matmul_dotprod
     pure (res == MS.matmul_single eA eB i j)
 {
   let mut k : sz = 0sz;
-  let mut sum : et = zero #et #_;
+  let mut sum : et = zero;
 
   while (SZ.(!k <^ shared))
     invariant b.
@@ -88,7 +88,7 @@ fn matmul_tiled_sub_dotprod
   //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
 {
   let mut sum = v0;
-  let mut k   : sz = 0sz;
+  let mut k : sz = 0sz;
 
   while (let vk = !k; SZ.(vk <^ tile))
     invariant b.
