@@ -239,15 +239,8 @@ fn bring_2cols
 {
   let mut i = 0sz;
   while (SZ.(!i <^ tile))
-    invariant b.
-      exists* (vi : SZ.t{vi <= tile}).
-        pure (b == (SZ.v vi < tile)) **
-        (i |-> vi) **
-        (gA |-> Frac fA eA) **
-        (gB |-> Frac fB eB) **
-        own_1_col sa1 tid **
-        own_1_col sa2 tid **
-        gpu
+    invariant
+      exists* vi. (i |-> vi)
   {
     let vi = !i;
 
@@ -333,17 +326,14 @@ fn kf
   let mut bk  : sz = 0sz;
 
   while (let vbk = !bk; SZ.(vbk <^ mshared))
-    invariant b.
-      exists* (vbk : SZ.t{vbk <= mshared}) (sumv : lseq et tile).
-        pure (b == (SZ.v vbk < mshared)) **
+    invariant
+      exists* (vbk : SZ.t) (sumv : lseq et tile).
         (bk |-> vbk) **
         (sums |-> sumv) **
-        (gA |-> Frac (fA /. mlayout_size lC) eA) **
-        (gB |-> Frac (fB /. mlayout_size lC) eB) **
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x) **
         B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
-        gpu
+        pure (vbk <= mshared)
   {
     let vbk = !bk;
 
@@ -383,17 +373,11 @@ fn kf
   let mut row : sz = 0sz;
   Pulse.Lib.Array.pts_to_len sums;
   while (SZ.(!row <^ tile))
-    invariant b.
-      exists* (vrow : SZ.t{vrow <= tile}) (sumv : lseq et tile).
-        pure (b == (SZ.v vrow < tile)) **
+    invariant
+      exists* (vrow : SZ.t) (sumv : lseq et tile).
         (row |-> vrow) **
         (sums |-> sumv) **
-        (forall+ (ii : natlt tile).
-          (exists* v.
-            m4_pts_to_cell gC #1.0R
-              (bid / mcols) (bid % mcols)
-              ii tid v)) **
-        gpu
+        pure (vrow <= tile)
   {
     let vrow = !row;
     forevery_extract #(natlt tile) (SZ.v vrow) _;

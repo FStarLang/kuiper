@@ -37,14 +37,10 @@ fn matmul_dotprod
   let mut sum : et = zero;
 
   while (SZ.(!k <^ shared))
-    invariant b.
+    invariant
       exists* (vk : SZ.t{vk <= shared}).
-        pure (b == (SZ.v vk < shared)) **
         (k |-> vk) **
-        (sum |-> MS.__matmul_single eA eB i j vk) **
-        (gA |-> Frac fA eA) **
-        (gB |-> Frac fB eB) **
-        gpu
+        (sum |-> MS.__matmul_single eA eB i j vk)
   {
     let v1 = M.gpu_matrix_read gA i !k;
     let v2 = M.gpu_matrix_read gB !k j;
@@ -90,15 +86,12 @@ fn matmul_tiled_sub_dotprod
   let mut sum = v0;
   let mut k : sz = 0sz;
 
-  while (let vk = !k; SZ.(vk <^ tile))
-    invariant b.
-      exists* (vk : SZ.t{vk <= tile}) sumv.
-        pure (0 <= tile /\ b == (SZ.v vk < tile) /\ vk <= tile /\ vk >= 0) **
-        pts_to k vk **
-        pts_to #_ #et sum sumv **
-        (gA |-> Frac fA eA) **
-        (gB |-> Frac fB eB) **
-        gpu
+  while (SZ.(!k <^ tile))
+    invariant
+      exists* (vk : SZ.t) sumv.
+        pure (vk <= tile) **
+        (k |-> vk) **
+        (sum |-> sumv)
   {
     let vk = !k;
     let s = !sum;
@@ -139,15 +132,12 @@ fn matmul_tiled_dotprod
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-  while (let vbk = !bk; SZ.(vbk <^ shared))
-    invariant b.
-      exists* (vbk : SZ.t{vbk <= shared}) sumv.
-        pure (0 <= shared /\ b == (SZ.v vbk < shared) /\ vbk <= shared /\ vbk >= 0) **
-        pts_to bk vbk **
-        pts_to #_ #et sum sumv **
-        (gA |-> Frac fA eA) **
-        (gB |-> Frac fB eB) **
-        gpu
+  while (SZ.(!bk <^ shared))
+    invariant
+      exists* (vbk : SZ.t) sumv.
+        pure (vbk <= shared) **
+        (bk |-> vbk) **
+        (sum |-> sumv)
   {
     let vbk = !bk;
     let s = !sum;
@@ -186,14 +176,11 @@ fn subproduct_cols
 {
   let mut sk : sz = 0sz;
   while (SZ.(!sk <^ tile))
-    invariant b.
-      exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
-        pure (b == (SZ.v vsk < tile)) **
+    invariant
+      exists* (vsk : SZ.t) (accv : erased (lseq et tile)).
+        pure (vsk <= tile) **
         (sk |-> vsk) **
-        (acc |-> accv) **
-        (m1 |-> Frac f v1) **
-        (m2 |-> Frac f v2) **
-        gpu
+        (acc |-> accv)
   {
     let mut i = 0sz;
     (* We can read v2 out of the inner loop, this is extremely
@@ -201,15 +188,10 @@ fn subproduct_cols
        across iterations and hoist it out, but don't rely on it. *)
     let v2 = M.gpu_matrix_read m2 !sk j;
     while (SZ.(!i <^ tile))
-      invariant b.
-        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile))
-          (vsk : SZ.t{vsk < tile}).
-          pure (b == (SZ.v vi < tile)) **
+      invariant
+        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile)).
           (i |-> vi) **
-          (sk |-> vsk) **
-          (acc |-> accv) **
-          (m1 |-> Frac f v1) **
-          gpu
+          (acc |-> accv)
     {
       let v1 = M.gpu_matrix_read m1 !i !sk;
 

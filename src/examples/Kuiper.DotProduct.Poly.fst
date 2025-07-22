@@ -161,11 +161,10 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   let mut a : et = zero;
 
   while (let v = !i; (v `SZ.op_Less_Hat` m_size))
-     invariant b.
+     invariant
        exists* v va. pts_to i v ** pts_to a va **
        (exists* (s:seq et). (a1 |-> s) ** pure (len s == size)) **
-       (exists* (s:seq et). (a2 |-> s) ** pure (len s == size)) **
-       pure (b == (SZ.v v < size))
+       (exists* (s:seq et). (a2 |-> s) ** pure (len s == size))
   {
     let v = !i;
     let va = !a;
@@ -193,12 +192,11 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   i := 0sz;
   let mut psum : et = zero;
-  while (let v = !i; (v `SZ.op_Less_Hat` m_size))
-     invariant b. exists* vi vpsum.
-       pts_to i vi **
-       pts_to psum vpsum  **
-       (exists* (s : seq et). (ar |-> s) ** pure (len s == size)) **
-       pure (b == (SZ.v vi < size))
+  while ((!i `SZ.op_Less_Hat` m_size))
+     invariant
+       exists* vi vpsum.
+        pts_to i vi **
+        pts_to psum vpsum
   {
     let vi = !i;
     let ri = ar.(vi);

@@ -263,18 +263,15 @@ fn kf
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-  while (let vbk = !bk; SZ.(vbk <^ mshared))
-    invariant b.
-      exists* (vbk : SZ.t{vbk <= mshared}) sumv.
-        pure (b == (SZ.v vbk < mshared)) **
+  while (SZ.(!bk <^ mshared))
+    invariant
+      exists* (vbk : SZ.t) sumv.
         (bk |-> vbk) **
         (sum |-> sumv) **
-        (gA |-> Frac (fA /. mlayout_size lC) eA) **
-        (gB |-> Frac (fB /. mlayout_size lC) eB) **
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x) **
         B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
-        gpu
+        pure (vbk <= mshared)
   {
     let vbk = !bk;
     let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
