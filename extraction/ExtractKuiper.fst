@@ -547,16 +547,26 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   match Some?.v x with
   (******** ASSERTIONS ********)
   | "Kuiper.Assert.dassert", [], [ x ] ->
-    if x.expr = MLE_Const (MLC_Bool true)
-    then EUnit
-    else
+    if x.expr = MLE_Const (MLC_Bool true) then
+      EUnit
+    else (
+      if x.expr = MLE_Const (MLC_Bool false) then
+        log_issue0 Warning_DeprecatedGeneric [
+          text "Emitting a 'false' assert in function " ^/^ pp !krml_current_decl;
+        ];
       EApp (EQualified ([], "KPR_ASSERT"), [ cb x ])
+    )
 
   | "Kuiper.Assert.dguard", [], [ x ] ->
-    if x.expr = MLE_Const (MLC_Bool true)
-    then EUnit
-    else
+    if x.expr = MLE_Const (MLC_Bool true) then
+      EUnit
+    else (
+      if x.expr = MLE_Const (MLC_Bool false) then
+        log_issue0 Warning_DeprecatedGeneric [
+          text "Emitting a 'false' guard in function " ^/^ pp !krml_current_decl;
+        ];
       EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
+    )
 
   (******** SIZET, missing from F* ********)
   | "Kuiper.SizeT.sizet_and", [], [ x; y ] ->
