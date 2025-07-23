@@ -160,7 +160,6 @@ fn matmul_transpose_gpu
     cpu **
     (gA |-> eA) ** (gB |-> eB)
   requires
-    pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks) **
     (gC |-> eC)
   ensures
@@ -171,7 +170,6 @@ fn matmul_transpose_gpu
      without this fact. *)
   M.gpu_matrix_pts_to_ref gA;
   M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
   GT.ghost_transpose1 gC;
   mmcomb_gpu MS.comb2 gA gB (GT.row2col gC);
   GT.ghost_transpose1_back gC;
