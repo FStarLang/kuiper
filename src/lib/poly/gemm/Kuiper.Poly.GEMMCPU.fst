@@ -113,22 +113,20 @@ fn mmcomb_gpu_tiled
   let lA4 : mlayout4 mrows   mshared tile tile = lA;
   let lB4 : mlayout4 mshared mcols  tile tile = lB;
   let lC4 : mlayout4 mrows   mcols  tile tile = lC;
-  let gA4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
-  let gB4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
-  let gC4 = MC.m2_to_m4 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
+  let gA4 = MC.m2_to_m4 tile mrows   mshared gA;
+  let gB4 = MC.m2_to_m4 tile mshared mcols   gB;
+  let gC4 = MC.m2_to_m4 tile mrows   mcols   gC;
   tiled_mmcomb_gpu tile
-    #et #_
     comb
-    #mrows #mshared #mcols
     lA4 lB4 lC4
     #(M4.clayout4_from_clayout tile cA)
     #(M4.clayout4_from_clayout tile cB)
     #(M4.clayout4_from_clayout tile cC)
     gA4 gB4 gC4;
 
-  let gA' = MC.m4_to_m2 (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
-  let gB' = MC.m4_to_m2 (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
-  let gC' = MC.m4_to_m2 (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
+  let gA' = MC.m4_to_m2 gA4;
+  let gB' = MC.m4_to_m2 gB4;
+  let gC' = MC.m4_to_m2 gC4;
 
   rewrite each gA' as gA;
   rewrite each gB' as gB;

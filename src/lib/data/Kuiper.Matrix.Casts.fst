@@ -32,8 +32,8 @@ fn m2_to_m4
 
 inline_for_extraction noextract
 fn m4_to_m2
-  (tile : erased nat)
-  (mrows mcols : erased nat)
+  (#tile : erased nat)
+  (#mrows #mcols : erased nat)
   (#et : Type0) {| scalar et |}
   (#lA : M4.mlayout4 mrows mcols tile tile)
   (gA4 : M4.gpu_matrix et lA)
