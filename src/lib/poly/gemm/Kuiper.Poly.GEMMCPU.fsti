@@ -58,6 +58,13 @@ val mmcomb_gpu_tiled
   (tile : valid_tile)
   : matmulcomb_gpu_ty
 
+inline_for_extraction noextract
+val mmcomb_gpu_block_tiled1d
+  (mmcomb_gpu : block_tiled1d_matmulcomb_gpu_ty)
+  (bm bn bk : szp)
+  (tm : szp{tm /? bm /\ (bm/tm * bn < max_threads)})
+  : matmulcomb_gpu_ty
+
 unfold
 inline_for_extraction
 type fixed_repr_matmul_cpu_ty

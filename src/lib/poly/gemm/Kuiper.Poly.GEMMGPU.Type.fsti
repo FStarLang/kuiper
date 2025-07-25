@@ -96,15 +96,15 @@ type tiled_matmulcomb_gpu_ty =
       (gC |-> MS.mmcomb comb eC eA eB))
 
 unfold inline_for_extraction
-type tiled_matmulcomb_gpu_ty' =
+type block_tiled1d_matmulcomb_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
   (comb : binop et) ->
-  (#mrows : szp) ->
-  (#mshared : szp) ->
-  (#mcols : szp) ->
   (#bm : szp) ->
   (#bn : szp) ->
   (#bk : szp) ->
+  (#mrows : szp) ->
+  (#mshared : szp) ->
+  (#mcols : szp) ->
   (tm : szp{tm /? bm}) ->
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk)) ->
   (#lA : M4.mlayout4 mrows   mshared bm bk) ->
