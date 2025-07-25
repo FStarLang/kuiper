@@ -47,6 +47,22 @@ let shmems_desc
   SHArray et (bk *^ bn);
 ]
 
+let constraint_test
+  (#bm #bn #bk : szp)
+  (tm : szp{tm /? bm})
+  // because of how the original populates shmem,
+  //  the following is required
+  (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
+  =
+  assert (bm == bn);
+  assert ((bm/tm * bn) == bm * bk /\ (bm/tm * bm) == bn * bk);
+  assert ((bm/tm * bm) == bm * bk /\ (bm/tm * bm) == bn * bk);
+  assert ((bm/tm * bm) == bm * bk /\ bm * bk == bn * bk);
+  assert ((bm/tm * bm) == bm * bk /\ bm == bn);
+  assert (SZ.v bm == tm * bk /\ bm == bn);
+  // ^ A simpler constraint
+  ()
+
 (* without shmem ownership *)
 unfold
 let kpre1
@@ -67,7 +83,7 @@ let kpre1
   (eA : ematrix4 et mrows mshared bm bk)
   (eB : ematrix4 et mshared mcols bk bn)
   (fA fB : perm)
-  // as many blocks as shmem tiles
+  // as many blocks as output tiles (i.e. tiles in gC)
   (bid : natlt (mrows * mcols))
   //  so elements in a tile divided by tm
   // each thread in a block computes tm many elements in M dimension,
@@ -81,7 +97,7 @@ let kpre1
       m4_pts_to_cell gC #1.0R
         // within each block
         (bid / mcols) (bid % mcols)
-        // each thread computes tm many results in a subcolumn of C
+        // Each thread computes tm many results in a subcolumn of C.
         // bn threads next to each other compute an innertilerow,
         // sharing the row indices
         ((tid / bn * tm) + i)
@@ -257,7 +273,7 @@ fn subproducts1d
   (#et : Type0) {| scalar et |}
   (#bm #bn #bk: szp)
   (tm : szp{tm `divides` bm})
-  (rch1d : array et)
+  (rch1d : array et) (* register cache, 1d *)
   (#resvs : erased (seq et))
   (#l1 : mlayout bm bk) {| clayout l1 |}
   (#l2 : mlayout bk bn) {| clayout l2 |}
