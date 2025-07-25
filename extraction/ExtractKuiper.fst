@@ -244,7 +244,7 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   let g0 = { g with names = []; names_t = [] } in
   let lambda = translate_expr (add_binders g0 bs) e in
   let flags = [
-    Krml.Comment ("  hoisted when extracting " ^ BU.dflt "<unknown>" !krml_current_decl);
+    Krml.Comment ("  hoisted when extracting " ^ Option.dflt "<unknown>" !krml_current_decl);
     Krml.Private;
     Krml.Prologue "__global__";
   ]
