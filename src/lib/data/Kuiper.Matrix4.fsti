@@ -38,16 +38,15 @@ let clayout4_fits
 
 inline_for_extraction noextract
 let clayout4_from_clayout
-  (#rows #cols : szp)
-  (tile : szp)
-  (#l : mlayout (rows * tile) (cols * tile))
+  (brows bcols #rows #cols : szp)
+  (#l : mlayout (rows * brows) (cols * bcols))
   (c : clayout l)
   : clayout4 l = {
     parent = c;
     c_mrows = rows;
     c_mcols = cols;
-    c_brows = tile;
-    c_bcols = tile;
+    c_brows = brows;
+    c_bcols = bcols;
 }
 
 inline_for_extraction noextract

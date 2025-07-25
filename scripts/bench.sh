@@ -5,6 +5,7 @@ set -eux
 LAPS=5
 DIM=4096
 TILE=8
+CHECK=0
 
 # This is just a first stab, the tiled versions will use different
 # tiles internally, so this is not a good test.
@@ -14,10 +15,12 @@ TILE=8
 ./obj/Test_Kuiper_GEMM_Naive2__F32.exe $LAPS $DIM $DIM $DIM 0
 ./obj/Test_Kuiper_GEMM_Tiled__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
 ./obj/Test_Kuiper_GEMM_SHMem__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
-./obj/Test_Kuiper_GEMM_SHMem__F32_GEMM.exe $LAPS $DIM $DIM $DIM
+./obj/Test_Kuiper_GEMM_SHMem__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
 
 ./obj/Test_Kuiper_GEMM_BlockTiling1D__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
-./obj/Test_Kuiper_GEMM_BlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM
+./obj/Test_Kuiper_GEMM_BlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
+
+./obj/Test_Kuiper_GEMM_OrigBlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
 
 make -C bench
 

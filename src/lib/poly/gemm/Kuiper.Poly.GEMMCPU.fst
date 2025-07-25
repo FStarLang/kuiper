@@ -113,15 +113,15 @@ fn mmcomb_gpu_tiled
   let lA4 : mlayout4 mrows   mshared tile tile = lA;
   let lB4 : mlayout4 mshared mcols  tile tile = lB;
   let lC4 : mlayout4 mrows   mcols  tile tile = lC;
-  let gA4 = MC.m2_to_m4 tile mrows   mshared gA;
-  let gB4 = MC.m2_to_m4 tile mshared mcols   gB;
-  let gC4 = MC.m2_to_m4 tile mrows   mcols   gC;
+  let gA4 = MC.m2_to_m4 tile tile mrows   mshared gA;
+  let gB4 = MC.m2_to_m4 tile tile mshared mcols   gB;
+  let gC4 = MC.m2_to_m4 tile tile mrows   mcols   gC;
   tiled_mmcomb_gpu tile
     comb
     lA4 lB4 lC4
-    #(M4.clayout4_from_clayout tile cA)
-    #(M4.clayout4_from_clayout tile cB)
-    #(M4.clayout4_from_clayout tile cC)
+    #(M4.clayout4_from_clayout tile tile cA)
+    #(M4.clayout4_from_clayout tile tile cB)
+    #(M4.clayout4_from_clayout tile tile cC)
     gA4 gB4 gC4;
 
   let gA' = MC.m4_to_m2 gA4;
@@ -134,6 +134,78 @@ fn mmcomb_gpu_tiled
   ()
 }
 
+inline_for_extraction noextract
+fn mmcomb_gpu_block_tiled1d
+  (tiled_mmcomb_gpu : block_tiled1d_matmulcomb_gpu_ty)
+  (bm bn bk : szp)
+  (tm : szp{tm /? bm /\ (bm/tm * bn < max_threads)})
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| cA : clayout lA |}
+  {| cB : clayout lB |}
+  {| cC : clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (#fA : perm)
+  (gB : M.gpu_matrix et lB)
+  (#fB : perm)
+  (gC : M.gpu_matrix et lC)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  preserves
+    cpu **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
+  requires
+    pure (rows * cols <= max_blocks) **
+    (gC |-> eC)
+  ensures
+    gC |-> MS.mmcomb comb eC eA eB
+{
+  dassert (bm `SZ.gt` 0sz);
+  dassert (bn `SZ.gt` 0sz);
+  dassert (bk `SZ.gt` 0sz);
+  dassert (tm `SZ.gt` 0sz);
+  dassert (bm %^ tm = 0sz);
+  dguard (rows   %^ bm = 0sz);
+  dguard (shared %^ bk = 0sz);
+  dguard (cols   %^ bn = 0sz);
+  // a HORRIBLE restriction
+  dguard ((bm /^ tm *^ bn) = bm *^ bk);
+  dguard ((bm /^ tm *^ bn) = bn *^ bk);
+  let mrows   = rows   /^ bm;
+  let mshared = shared /^ bk;
+  let mcols   = cols   /^ bn;
+
+  let lA4 : mlayout4 mrows   mshared bm bk = lA;
+  let lB4 : mlayout4 mshared mcols  bk bn = lB;
+  let lC4 : mlayout4 mrows   mcols  bm bn = lC;
+  let gA4 = MC.m2_to_m4 bm bk mrows mshared gA;
+  //
+  let gB4 = MC.m2_to_m4 bk bn mshared mcols gB;
+  let gC4 = MC.m2_to_m4 bm bn mrows mcols gC;
+  tiled_mmcomb_gpu
+    comb
+    tm
+    lA4 lB4 lC4
+    #(M4.clayout4_from_clayout bm bk cA)
+    #(M4.clayout4_from_clayout bk bn cB)
+    #(M4.clayout4_from_clayout bm bn cC)
+    gA4 gB4 gC4;
+
+  let gA' = MC.m4_to_m2 gA4;
+  let gB' = MC.m4_to_m2 gB4;
+  let gC' = MC.m4_to_m2 gC4;
+
+  rewrite each gA' as gA;
+  rewrite each gB' as gB;
+  rewrite each gC' as gC;
+  ()
+}
 (* An example of computing tr(AB) by just shifting a view.
 Basically:
   - Instantiating rA=rB=row_major, rC=col_major
