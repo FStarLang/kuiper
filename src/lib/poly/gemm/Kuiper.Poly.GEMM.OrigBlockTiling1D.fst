@@ -282,27 +282,20 @@ fn subproducts1d
 {
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ bk))
-    invariant b.
+    invariant
       exists* (vIdx : SZ.t{vIdx <= bk}) (resvs0 : erased (lseq et tm)).
-        pure (b == (SZ.v vIdx < bk)) **
         (dotIdx |-> vIdx) **
-        (rch1d |-> resvs0) **
-        (gA |-> Frac f eA) **
-        (gB |-> Frac f eB) **
-        gpu
+        (rch1d |-> resvs0)
   {
     let tmpB = M.gpu_matrix_read gB !dotIdx bcol;
     let mut resIdx = 0sz;
     while (SZ.(!resIdx <^ tm))
-      invariant b.
+      invariant
         exists* (vi : SZ.t{vi <= tm}) (resvs0 : erased (lseq et tm))
           (vIdx : SZ.t{vIdx < bk}).
-          pure (b == (SZ.v vi < tm)) **
           (resIdx |-> vi) **
           (dotIdx |-> vIdx) **
-          (rch1d |-> resvs0) **
-          (gA |-> Frac f eA) **
-          gpu
+          (rch1d |-> resvs0)
     {
       let va = M.gpu_matrix_read gA (arow *^ tm +^ !resIdx) !dotIdx;
 
@@ -430,17 +423,13 @@ fn kf
 
   let mut bkIdx  : sz = 0sz;
   while (SZ.(!bkIdx <^ mshared))
-    invariant b.
+    invariant
       exists* (vbkIdx : SZ.t{vbkIdx <= mshared}) (cache1dv : lseq et tm).
-        pure (b == (SZ.v vbkIdx < mshared)) **
         (bkIdx |-> vbkIdx) **
         (cache1d |-> cache1dv) **
-        (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * bn))) eA) **
-        (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * bn))) eB) **
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x) **
-        B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * vbkIdx) tid **
-        gpu
+        B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * vbkIdx) tid
   {
     (* This assert should not be needed. I don't know what effect it even has. *)
     let vbkIdx = !bkIdx;
@@ -518,17 +507,10 @@ fn kf
   let mut resIdx : sz = 0sz;
   Pulse.Lib.Array.pts_to_len cache1d;
   while (SZ.(!resIdx <^ tm))
-    invariant b.
+    invariant
       exists* (vresIdx : SZ.t{vresIdx <= tm}) (dotpv : lseq et tm).
-        pure (b == (SZ.v vresIdx < tm)) **
         (resIdx |-> vresIdx) **
-        (cache1d |-> dotpv) **
-        (forall+ (ii : natlt tm).
-          (exists* v.
-            m4_pts_to_cell gC #1.0R
-              mrow mcol
-              (threadRow * tm + ii) threadCol v)) **
-        gpu
+        (cache1d |-> dotpv)
   {
     let vresIdx = !resIdx;
     forevery_extract #(natlt tm) (SZ.v vresIdx) _;
