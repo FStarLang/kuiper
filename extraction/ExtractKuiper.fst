@@ -233,7 +233,7 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
       text "fvs0 =" ^/^ pp fvs0;
       text "fvs =" ^/^ pp fvs;
     ];
-  // BU.print1_warning "fvs = %s\n" (show fvs);
+  // Format.print1_warning "fvs = %s\n" (show fvs);
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
   let arr_t = List.fold_right mkarr (List.map snd fvs) (mkarr ml_unit_ty et) in
@@ -256,9 +256,9 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
   let call = MLE_App (nm, List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs ) in
   let e' = {e with expr = call} in
   if !dbg then (
-    BU.print3_warning
+    Format.print3_warning
       "Hoisted %s into %s, creating the declaration\n%s\n" (mlexpr_to_string e) fresh (show decl);
-    BU.print1_warning "The translated expression is %s\n" (mlexpr_to_string e')
+    Format.print1_warning "The translated expression is %s\n" (mlexpr_to_string e')
   );
   e'
 
@@ -314,7 +314,7 @@ let rec ml_visit (pre post : mlexpr -> mlexpr) (e : mlexpr) : mlexpr =
       let e1' = ml_visit pre post e1 in
       let branches' =
         branches |> List.map (fun (p, e2, e3) ->
-          let e2' = BU.map_opt e2 (fun e2 -> ml_visit pre post e2) in
+          let e2' = Option.map (fun e2 -> ml_visit pre post e2) e2 in
           let e3' = ml_visit pre post e3 in
           (p, e2', e3')
         )
@@ -338,7 +338,7 @@ let rec ml_visit (pre post : mlexpr -> mlexpr) (e : mlexpr) : mlexpr =
     | MLE_If (e1, e2, e3) ->
       let e1' = ml_visit pre post e1 in
       let e2' = ml_visit pre post e2 in
-      let e3' = BU.map_opt e3 (fun e3 -> ml_visit pre post e3) in
+      let e3' = Option.map (fun e3 -> ml_visit pre post e3) e3 in
       { e with expr = MLE_If (e1', e2', e3') }
     | MLE_Raise (p, args) ->
       let args' = List.map (fun arg -> ml_visit pre post arg) args in
@@ -347,7 +347,7 @@ let rec ml_visit (pre post : mlexpr -> mlexpr) (e : mlexpr) : mlexpr =
       let e1' = ml_visit pre post e1 in
       let branches' =
         branches |> List.map (fun (p, e2, e3) ->
-          let e2' = BU.map_opt e2 (fun e2 -> ml_visit pre post e2) in
+          let e2' = Option.map (fun e2 -> ml_visit pre post e2) e2 in
           let e3' = ml_visit pre post e3 in
           (p, e2', e3')
         )
@@ -405,7 +405,7 @@ let rec mlexpr_as_list (e : mlexpr) : option (list mlexpr) =
     let! tl' = mlexpr_as_list tl in
     return (hd :: tl')
   | _ ->
-    BU.print1 "Not a list: %s\n" (mlexpr_to_string e);
+    Format.print1 "Not a list: %s\n" (mlexpr_to_string e);
     None
 
 (* Returns (possibly) the size of each element and length of array.
@@ -417,7 +417,7 @@ let parse_shmem_desc (e : mlexpr) : option (mlexpr & mlexpr) =
     let sized_a = get_sizet sized in
     return (sized_a, len)
   | _ ->
-    BU.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
+    Format.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
     None
 
 let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
@@ -436,10 +436,10 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       (* Returns list of shared memory arrays declared.
           For each one: type, element size in bytes, and number of elements, all
           as ML terms. *)
-      // BU.print1 "GG mlexpr shmems: %s\n" (show shmems_desc);
+      // Format.print1 "GG mlexpr shmems: %s\n" (show shmems_desc);
       let! parsed : list mlexpr = mlexpr_as_list shmems_desc in
       let! parsed : list (mlexpr & mlexpr) = mapM parse_shmem_desc parsed in
-      // BU.print1 "GG mlexpr shmems parsed: %s\n" (show parsed);
+      // Format.print1 "GG mlexpr shmems parsed: %s\n" (show parsed);
       let ml_shmem : mlexpr =
         MLE_Name ([], "KPR_SHMEM")
         |> with_ty (ml_fun ml_unit_ty ml_bytearr)
@@ -533,14 +533,14 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
   with_ty ml_unit_ty <|
     MLE_App (kcall, [ hd; nblk; nthr; smem_bytesz ] @ rest_args)
   in
-  // BU.print1_warning "New kcall: %s\n" (show e');
+  // Format.print1_warning "New kcall: %s\n" (show e');
   return e'
 
 
 let gpu_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
   if !dbg
-  then BU.print1_warning "ExtractKuiper.gpu_translate_expr %s\n" (mlexpr_to_string e);
+  then Format.print1_warning "ExtractKuiper.gpu_translate_expr %s\n" (mlexpr_to_string e);
   let cb = translate_expr env in
   let x = hta e in
   if None? x then raise NotSupportedByKrmlExtension;
