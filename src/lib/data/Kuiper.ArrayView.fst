@@ -461,12 +461,12 @@ fn varray_read_cell'
   preserves
     gpu
   requires
-    varray_pts_to_cell a #f ai v0 **
+    (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == cit_to_it vw i)
   returns
     v : et
   ensures
-    varray_pts_to_cell a #f ai v **
+    (Cell a (reveal ai) |-> Frac f v) **
     pure (v == v0)
 {
   rewrite each ai as cit_to_it vw i;
@@ -486,9 +486,9 @@ fn varray_write_cell
   (#v0 : erased et)
   preserves gpu
   requires
-    varray_pts_to_cell a (cit_to_it vw i) v0
+    Cell a (cit_to_it vw i) |-> v0
   ensures
-    varray_pts_to_cell a (cit_to_it vw i) v1
+    Cell a (cit_to_it vw i) |-> v1
 {
   let ci = cidx cw i;
   unfold varray_pts_to_cell a (cit_to_it vw i) v0;
@@ -514,10 +514,10 @@ fn varray_write_cell'
   preserves
     gpu
   requires
-    varray_pts_to_cell a ai v0 **
+    (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == cit_to_it vw i)
   ensures
-    varray_pts_to_cell a ai v1
+    Cell a (reveal ai) |-> reveal v1
 {
   rewrite each ai as cit_to_it vw i;
   let res = varray_write_cell #et #len #vt a i v1;

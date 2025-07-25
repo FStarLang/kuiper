@@ -58,6 +58,13 @@ val varray_pts_to_cell
   (v : et)
   : slprop
 
+[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+instance cell_pts_to (#et : Type) (#len : nat) (#vt : Type) (#vw : aview et len vt)
+  : has_pts_to (cell (varray vw) vw.it) et
+= {
+  pts_to = (fun (Cell ar i) #f v -> varray_pts_to_cell #et #len #vt #vw ar #f i v);
+}
+
 val varray_pts_to
   (#a:Type) (#len : erased nat) (#vt:_) (#vw : aview a len vt)
   ([@@@mkey] a : varray vw)
@@ -81,7 +88,7 @@ fn varray_pts_to_ref
   (#f : perm)
   (#v : erased vt)
   preserves
-    varray_pts_to a #f v
+    a |-> Frac f v
   ensures
     pure (SZ.fits len)
 
@@ -105,7 +112,7 @@ fn varray_explode
     a |-> Frac f v
   ensures
     forall+ (i : vw.it).
-      varray_pts_to_cell a #f i (vw.igm.acc v i)
+      Cell a i |-> Frac f (vw.igm.acc v i)
 
 ghost
 fn varray_implode
@@ -117,9 +124,9 @@ fn varray_implode
   (#v : vt)
   requires
     forall+ (i : vw.it).
-      varray_pts_to_cell #et #len #vt #vw a #f i (vw.igm.acc v i)
+      Cell a i |-> Frac f (vw.igm.acc v i)
   ensures
-    varray_pts_to a #f v
+    a |-> Frac f v
 
 
 ghost
@@ -197,9 +204,9 @@ fn varray_share_n
   (#f : perm)
   (#v : vt)
   requires
-    varray_pts_to a #f v
+    a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> varray_pts_to a #(f /. k) v)
+    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
 
 ghost
 fn varray_gather_n
@@ -211,9 +218,9 @@ fn varray_gather_n
   (#f : perm)
   (#v : vt)
   requires
-    bigstar #uid 0 k (fun _ -> varray_pts_to a #(f /. k) v)
+    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
   ensures
-    varray_pts_to a #f v
+    a |-> Frac f v
 
 inline_for_extraction noextract
 fn varray_read
@@ -226,7 +233,7 @@ fn varray_read
   (#v : erased vt)
   preserves
     gpu **
-    varray_pts_to a #f v
+    (a |-> Frac f v)
   returns
     e : et
   ensures
@@ -260,11 +267,11 @@ fn varray_read_cell
   preserves
     gpu
   requires
-    varray_pts_to_cell a #f (cit_to_it vw i) v0
+    Cell a (cit_to_it vw i) |-> Frac f v0
   returns
     v : et
   ensures
-    varray_pts_to_cell a #f (cit_to_it vw i) v **
+    (Cell a (cit_to_it vw i) |-> Frac f v) **
     pure (v == v0)
 
 (* This variant helps to avoid having to rewrite the pts_to
@@ -283,12 +290,12 @@ fn varray_read_cell'
   preserves
     gpu
   requires
-    varray_pts_to_cell a #f ai v0 **
+    (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == cit_to_it vw i)
   returns
     v : et
   ensures
-    varray_pts_to_cell a #f ai v **
+    (Cell a (reveal ai) |-> Frac f v) **
     pure (v == v0)
 
 inline_for_extraction noextract
@@ -303,9 +310,9 @@ fn varray_write_cell
   preserves
     gpu
   requires
-    varray_pts_to_cell a (cit_to_it vw i) v0
+    Cell a (cit_to_it vw i) |-> v0
   ensures
-    varray_pts_to_cell a (cit_to_it vw i) v1
+    Cell a (cit_to_it vw i) |-> v1
 
 (* This variant helps to avoid having to rewrite the pts_to
    into the proper shape at then call _write_cell, and then rewrite
@@ -323,10 +330,11 @@ fn varray_write_cell'
   preserves
     gpu
   requires
-    varray_pts_to_cell a ai v0 **
+    // fixme: need reveals
+    (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == cit_to_it vw i)
   ensures
-    varray_pts_to_cell a ai v1
+    Cell a (reveal ai) |-> reveal v1
 
 (* memcpys *)
 
