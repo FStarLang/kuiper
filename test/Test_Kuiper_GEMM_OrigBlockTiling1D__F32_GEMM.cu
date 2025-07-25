@@ -1,6 +1,6 @@
-#include "Kuiper_GEMM_BlockTiling1D.h"
+#include "Kuiper_GEMM_OrigBlockTiling1D.h"
 
-#define stem         Kuiper_GEMM_BlockTiling1D_g_gemm_
+#define stem         Kuiper_GEMM_OrigBlockTiling1D_g_gemm_
 #define et           float
 #define et_lbl       f32
 #define PRIet        "f"
@@ -9,4 +9,4 @@
 #define TOLERANCE    0.001f
 #define NODYNTILE    1
 
-#include "tiled_gemm_driver.c.inc"
+#include "block_tiled1d_gemm_driver.c.inc"

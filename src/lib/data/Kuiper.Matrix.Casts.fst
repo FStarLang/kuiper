@@ -9,10 +9,9 @@ module M4 = Kuiper.Matrix4
 
 inline_for_extraction noextract
 fn m2_to_m4
-  (tile : erased nat)
-  (mrows mcols : erased nat)
+  (trows tcols mrows mcols : erased nat)
   (#et : Type0) {| scalar et |}
-  (#lA : M4.mlayout4 mrows mcols tile tile)
+  (#lA : M4.mlayout4 mrows mcols trows tcols)
   (gA : M.gpu_matrix et lA)
   (#eA : EM.ematrix et _ _)
   (#f : perm)
@@ -32,10 +31,9 @@ fn m2_to_m4
 
 inline_for_extraction noextract
 fn m4_to_m2
-  (#tile : erased nat)
-  (#mrows #mcols : erased nat)
+  (#trows #tcols #mrows #mcols : erased nat)
   (#et : Type0) {| scalar et |}
-  (#lA : M4.mlayout4 mrows mcols tile tile)
+  (#lA : M4.mlayout4 mrows mcols trows tcols)
   (gA4 : M4.gpu_matrix et lA)
   (#eA : EM.ematrix et _ _)
   (#f : perm)

@@ -17,6 +17,20 @@ et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
     return m3;
 }
 
+
+et *cpu_sgemm(
+    size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu, et *m3_cpu,
+    et alpha, et beta)
+{
+    et *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            mm[i * cols + j] = alpha * mm[i * cols + j] + beta * m3_cpu[i * cols + j];
+        }
+    }
+    return mm;
+}
+
 /* m1 is GPU-side result, m2 is CPU-computed result */
 void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 {
@@ -24,7 +38,7 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
     int nerrs = 0;
     int i, j;
     et *m1 = (et *) calloc(sizeof(et), rows * cols);
-    cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(et), cudaMemcpyDeviceToHost);
+    MUST(cudaMemcpy(m1, m1_gpu, rows * cols * sizeof(et), cudaMemcpyDeviceToHost));
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {
             bool ok;

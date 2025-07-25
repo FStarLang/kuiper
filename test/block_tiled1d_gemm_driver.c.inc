@@ -7,7 +7,7 @@
 #include "matmul_common.c.inc"
 
 #define DEFAULT_DIM   1024
-#define DEFAULT_TILE  32
+// #define DEFAULT_TILE  32
 #define DEFAULT_LAPS  2
 
 int main(int argc, char **argv)
@@ -69,13 +69,13 @@ int main(int argc, char **argv)
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
 
-    et *gold = nullptr;
+    et *gold = NULL;
     if (check)
         TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu, GEMM_ALPHA, GEMM_BETA), NULL);
     for (int l = 0; l < laps; l++) {
         float t;
-        fprintf(stderr, "Static tile = 32\n");
-        TIME_void(TOKENPASTE3(stem, et_lbl, _tile32_rrr)
+        // fprintf(stderr, "Static tile = 32\n");
+        TIME_void(TOKENPASTE3(stem, et_lbl, _tiles64x8_8x64_rc8_rrr)
                   (GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &t);
         uint64_t flops = (rows * shared * cols * 2.0);
         // I think the below is more accurate, but I'm reusing the
@@ -87,7 +87,6 @@ int main(int argc, char **argv)
             cmp(rows, cols, m3, gold);
             cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
         }
-
     }
     if (check) free(gold);
 
