@@ -823,9 +823,9 @@ fn mmcomb_gpu
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (#lA : mlayout4 mrows   mshared bm bk)
-  (#lB : mlayout4 mshared mcols   bk bn)
-  (#lC : mlayout4 mrows   mcols   bm bn)
+  (lA : mlayout4 mrows   mshared bm bk)
+  (lB : mlayout4 mshared mcols   bk bn)
+  (lC : mlayout4 mrows   mcols   bm bn)
   {| clayout4 lA, clayout4 lB, clayout4 lC |}
   (gA : gpu_matrix4 et lA)
   (#fA : perm)

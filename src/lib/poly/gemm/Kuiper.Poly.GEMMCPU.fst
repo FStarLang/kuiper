@@ -113,15 +113,9 @@ fn mmcomb_gpu_tiled
   let lA4 : mlayout4 mrows   mshared tile tile = lA;
   let lB4 : mlayout4 mshared mcols  tile tile = lB;
   let lC4 : mlayout4 mrows   mcols  tile tile = lC;
-<<<<<<< HEAD
-  let gA4 = MC.m2_to_m4 tile mrows   mshared gA;
-  let gB4 = MC.m2_to_m4 tile mshared mcols   gB;
-  let gC4 = MC.m2_to_m4 tile mrows   mcols   gC;
-=======
-  let gA4 = MC.m2_to_m4 (SZ.v tile) (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
-  let gB4 = MC.m2_to_m4 (SZ.v tile) (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
-  let gC4 = MC.m2_to_m4 (SZ.v tile) (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
->>>>>>> 01740bf (add test for OrigBlockTiling1D)
+  let gA4 = MC.m2_to_m4 tile tile mrows   mshared gA;
+  let gB4 = MC.m2_to_m4 tile tile mshared mcols   gB;
+  let gC4 = MC.m2_to_m4 tile tile mrows   mcols   gC;
   tiled_mmcomb_gpu tile
     comb
     lA4 lB4 lC4
@@ -130,14 +124,9 @@ fn mmcomb_gpu_tiled
     #(M4.clayout4_from_clayout tile tile cC)
     gA4 gB4 gC4;
 
-<<<<<<< HEAD
   let gA' = MC.m4_to_m2 gA4;
   let gB' = MC.m4_to_m2 gB4;
   let gC' = MC.m4_to_m2 gC4;
-=======
-  let gA' = MC.m4_to_m2 (SZ.v tile) (SZ.v tile) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
-  let gB' = MC.m4_to_m2 (SZ.v tile) (SZ.v tile) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
-  let gC' = MC.m4_to_m2 (SZ.v tile) (SZ.v tile) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
 
   rewrite each gA' as gA;
   rewrite each gB' as gB;
@@ -195,30 +184,28 @@ fn mmcomb_gpu_block_tiled1d
   let lA4 : mlayout4 mrows   mshared bm bk = lA;
   let lB4 : mlayout4 mshared mcols  bk bn = lB;
   let lC4 : mlayout4 mrows   mcols  bm bn = lC;
-  let gA4 = MC.m2_to_m4 (SZ.v bm) (SZ.v bk) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA;
-  let gB4 = MC.m2_to_m4 (SZ.v bk) (SZ.v bn) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB;
-  let gC4 = MC.m2_to_m4 (SZ.v bm) (SZ.v bn) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC;
+  let gA4 = MC.m2_to_m4 bm bk mrows mshared gA;
+  //
+  let gB4 = MC.m2_to_m4 bk bn mshared mcols gB;
+  let gC4 = MC.m2_to_m4 bm bn mrows mcols gC;
   tiled_mmcomb_gpu
     comb
     tm
-    // lA4 lB4 lC4
-    #_ #_ #_ #_
+    lA4 lB4 lC4
     #(M4.clayout4_from_clayout bm bk cA)
     #(M4.clayout4_from_clayout bk bn cB)
     #(M4.clayout4_from_clayout bm bn cC)
     gA4 gB4 gC4;
 
-  let gA' = MC.m4_to_m2 (SZ.v bm) (SZ.v bk) (SZ.v mrows) (SZ.v mshared) #_ #_ #lA4 gA4;
-  let gB' = MC.m4_to_m2 (SZ.v bk) (SZ.v bn) (SZ.v mshared) (SZ.v mcols) #_ #_ #lB4 gB4;
-  let gC' = MC.m4_to_m2 (SZ.v bm) (SZ.v bn) (SZ.v mrows) (SZ.v mcols) #_ #_ #lC4 gC4;
->>>>>>> 01740bf (add test for OrigBlockTiling1D)
+  let gA' = MC.m4_to_m2 gA4;
+  let gB' = MC.m4_to_m2 gB4;
+  let gC' = MC.m4_to_m2 gC4;
 
   rewrite each gA' as gA;
   rewrite each gB' as gB;
   rewrite each gC' as gC;
   ()
 }
-
 (* An example of computing tr(AB) by just shifting a view.
 Basically:
   - Instantiating rA=rB=row_major, rC=col_major
