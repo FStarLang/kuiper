@@ -13,8 +13,6 @@ val forevery
   (f : a -> slprop)
   : slprop
 
-(* We can use this... but eta matters, so for now at least,
-   let's just stick with forevery. *)
 unfold
 let ( forall+ )
   (#a:Type) {| enumerable a |}
@@ -394,3 +392,34 @@ fn forevery_extract_if
     p z **
     (forall+ (x:a).
       if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)
+
+ghost
+fn forevery_intro_if
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    p z
+  ensures
+    (forall+ (x:a).
+      if Enumerable.to_nat x = Enumerable.to_nat z then p x else emp)
+
+ghost
+fn forevery_split_either
+  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (p : either a b -> slprop)
+  requires
+    forall+ (x:either a b). p x
+  ensures
+    (forall+ (x:a). p (Inl x)) **
+    (forall+ (x:b). p (Inr x))
+
+ghost
+fn forevery_join_either
+  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (p : either a b -> slprop)
+  requires
+    (forall+ (x:a). p (Inl x)) **
+    (forall+ (x:b). p (Inr x))
+  ensures
+    forall+ (x:either a b). p x

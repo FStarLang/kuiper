@@ -10,16 +10,20 @@ static void __hoisted_0(float_t *gIn, float_t *gOut, size_t cols_sub2)
 {
   size_t i = blockIdx.x / cols_sub2;
   size_t j = blockIdx.x % cols_sub2;
-  gOut[i * cols_sub2 + j] =
-    gIn[i * (cols_sub2 + (size_t)2U) + j] * (float_t)1.0f +
-      gIn[i * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * (float_t)1.0f
-    + gIn[i * (cols_sub2 + (size_t)2U) + j + (size_t)2U] * (float_t)1.0f
-    + gIn[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j] * (float_t)1.0f
-    + gIn[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * (float_t)1.0f
-    + gIn[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U] * (float_t)1.0f
-    + gIn[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j] * (float_t)1.0f
-    + gIn[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * (float_t)1.0f
-    + gIn[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U] * (float_t)1.0f;
+  ((float_t *)gOut)[i * cols_sub2 + j] =
+    ((float_t *)gIn)[i * (cols_sub2 + (size_t)2U) + j] * (float_t)1.0f +
+      ((float_t *)gIn)[i * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * (float_t)1.0f
+    + ((float_t *)gIn)[i * (cols_sub2 + (size_t)2U) + j + (size_t)2U] * (float_t)1.0f
+    + ((float_t *)gIn)[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j] * (float_t)1.0f
+    +
+      ((float_t *)gIn)[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * (float_t)1.0f
+    +
+      ((float_t *)gIn)[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U] * (float_t)1.0f
+    + ((float_t *)gIn)[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j] * (float_t)1.0f
+    +
+      ((float_t *)gIn)[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * (float_t)1.0f
+    +
+      ((float_t *)gIn)[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U] * (float_t)1.0f;
 }
 
 void
@@ -44,15 +48,16 @@ static void __hoisted_1(size_t rows, uint32_t *gIn, uint32_t *gOut, size_t cols_
 {
   size_t i = blockIdx.x / cols_sub2;
   size_t j = blockIdx.x % cols_sub2;
-  gOut[j * (rows - (size_t)2U) + i] =
-    gIn[i * (cols_sub2 + (size_t)2U) + j] + gIn[i * (cols_sub2 + (size_t)2U) + j + (size_t)1U] +
-      gIn[i * (cols_sub2 + (size_t)2U) + j + (size_t)2U]
-    + gIn[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j]
-    + gIn[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * 8U
-    + gIn[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U]
-    + gIn[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j]
-    + gIn[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U]
-    + gIn[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U];
+  ((uint32_t *)gOut)[j * (rows - (size_t)2U) + i] =
+    ((uint32_t *)gIn)[i * (cols_sub2 + (size_t)2U) + j] +
+      ((uint32_t *)gIn)[i * (cols_sub2 + (size_t)2U) + j + (size_t)1U]
+    + ((uint32_t *)gIn)[i * (cols_sub2 + (size_t)2U) + j + (size_t)2U]
+    + ((uint32_t *)gIn)[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j]
+    + ((uint32_t *)gIn)[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U] * 8U
+    + ((uint32_t *)gIn)[(i + (size_t)1U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U]
+    + ((uint32_t *)gIn)[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j]
+    + ((uint32_t *)gIn)[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)1U]
+    + ((uint32_t *)gIn)[(i + (size_t)2U) * (cols_sub2 + (size_t)2U) + j + (size_t)2U];
 }
 
 void

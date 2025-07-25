@@ -2,6 +2,8 @@ module Kuiper
 
 include FStar.Mul
 
+include FStar.FunctionalExtensionality { (^->>), (^->) }
+
 include FStar.SizeT { div as (/^), rem as (%^), (+^), (-^), ( *^ )  }
 
 include Pulse

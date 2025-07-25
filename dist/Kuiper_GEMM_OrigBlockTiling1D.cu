@@ -28,22 +28,23 @@ __hoisted_0(
   {
     __syncthreads();
     size_t __anf184786 = bkIdx;
-    sA[threadIdx.x / (size_t)8U * (size_t)8U + threadIdx.x % (size_t)8U] =
-      gA4[(mrow * (size_t)64U + threadIdx.x / (size_t)8U) * shared +
+    ((float_t *)sA)[threadIdx.x / (size_t)8U * (size_t)8U + threadIdx.x % (size_t)8U] =
+      ((float_t *)gA4)[(mrow * (size_t)64U + threadIdx.x / (size_t)8U) * shared +
         __anf184786 * (size_t)8U + threadIdx.x % (size_t)8U];
-    sB[threadIdx.x / (size_t)64U * (size_t)64U + threadIdx.x % (size_t)64U] =
-      gB4[(__anf184786 * (size_t)8U + threadIdx.x / (size_t)64U) * cols +
+    ((float_t *)sB)[threadIdx.x / (size_t)64U * (size_t)64U + threadIdx.x % (size_t)64U] =
+      ((float_t *)gB4)[(__anf184786 * (size_t)8U + threadIdx.x / (size_t)64U) * cols +
         mcol * (size_t)64U + threadIdx.x % (size_t)64U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
     {
-      float_t tmpB = sB[dotIdx * (size_t)64U + threadIdx.x % (size_t)64U];
+      float_t tmpB = ((float_t *)sB)[dotIdx * (size_t)64U + threadIdx.x % (size_t)64U];
       size_t resIdx = (size_t)0U;
       while (resIdx < (size_t)8U)
       {
         cache1d[resIdx] +=
-          sA[(threadIdx.x / (size_t)64U * (size_t)8U + resIdx) * (size_t)8U + dotIdx] * tmpB;
+          ((float_t *)sA)[(threadIdx.x / (size_t)64U * (size_t)8U + resIdx) * (size_t)8U + dotIdx] *
+            tmpB;
         resIdx += (size_t)1U;
       }
       dotIdx += (size_t)1U;
@@ -53,8 +54,13 @@ __hoisted_0(
   size_t resIdx = (size_t)0U;
   while (resIdx < (size_t)8U)
   {
-    gC4[(mrow * (size_t)64U + threadIdx.x / (size_t)64U * (size_t)8U + resIdx) * cols +
-      mcol * (size_t)64U + threadIdx.x % (size_t)64U]
+    size_t vresIdx = resIdx;
+    KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * (size_t)64U +
+        threadIdx.x / (size_t)64U * (size_t)8U + vresIdx)
+      * cols
+      + mcol * (size_t)64U + threadIdx.x % (size_t)64U]);
+    ((float_t *)gC4)[(mrow * (size_t)64U + threadIdx.x / (size_t)64U * (size_t)8U + vresIdx) * cols
+    + mcol * (size_t)64U + threadIdx.x % (size_t)64U]
     = cache1d[resIdx];
     resIdx += (size_t)1U;
   }
@@ -129,22 +135,23 @@ __hoisted_1(
   {
     __syncthreads();
     size_t __anf184786 = bkIdx;
-    sA[threadIdx.x / (size_t)8U * (size_t)8U + threadIdx.x % (size_t)8U] =
-      gA4[(mrow * (size_t)64U + threadIdx.x / (size_t)8U) * shared +
+    ((float_t *)sA)[threadIdx.x / (size_t)8U * (size_t)8U + threadIdx.x % (size_t)8U] =
+      ((float_t *)gA4)[(mrow * (size_t)64U + threadIdx.x / (size_t)8U) * shared +
         __anf184786 * (size_t)8U + threadIdx.x % (size_t)8U];
-    sB[threadIdx.x / (size_t)64U * (size_t)64U + threadIdx.x % (size_t)64U] =
-      gB4[(__anf184786 * (size_t)8U + threadIdx.x / (size_t)64U) * cols +
+    ((float_t *)sB)[threadIdx.x / (size_t)64U * (size_t)64U + threadIdx.x % (size_t)64U] =
+      ((float_t *)gB4)[(__anf184786 * (size_t)8U + threadIdx.x / (size_t)64U) * cols +
         mcol * (size_t)64U + threadIdx.x % (size_t)64U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
     {
-      float_t tmpB = sB[dotIdx * (size_t)64U + threadIdx.x % (size_t)64U];
+      float_t tmpB = ((float_t *)sB)[dotIdx * (size_t)64U + threadIdx.x % (size_t)64U];
       size_t resIdx = (size_t)0U;
       while (resIdx < (size_t)8U)
       {
         cache1d[resIdx] +=
-          sA[(threadIdx.x / (size_t)64U * (size_t)8U + resIdx) * (size_t)8U + dotIdx] * tmpB;
+          ((float_t *)sA)[(threadIdx.x / (size_t)64U * (size_t)8U + resIdx) * (size_t)8U + dotIdx] *
+            tmpB;
         resIdx += (size_t)1U;
       }
       dotIdx += (size_t)1U;
@@ -155,12 +162,13 @@ __hoisted_1(
   while (resIdx < (size_t)8U)
   {
     size_t vresIdx = resIdx;
-    gC4[(mrow * (size_t)64U + threadIdx.x / (size_t)64U * (size_t)8U + vresIdx) * cols +
-      mcol * (size_t)64U + threadIdx.x % (size_t)64U]
+    ((float_t *)gC4)[(mrow * (size_t)64U + threadIdx.x / (size_t)64U * (size_t)8U + vresIdx) * cols
+    + mcol * (size_t)64U + threadIdx.x % (size_t)64U]
     =
       beta *
-        gC4[(mrow * (size_t)64U + threadIdx.x / (size_t)64U * (size_t)8U + vresIdx) * cols +
-          mcol * (size_t)64U + threadIdx.x % (size_t)64U]
+        ((float_t *)gC4)[(mrow * (size_t)64U + threadIdx.x / (size_t)64U * (size_t)8U + vresIdx) *
+          cols
+        + mcol * (size_t)64U + threadIdx.x % (size_t)64U]
       + alpha * cache1d[resIdx];
     resIdx += (size_t)1U;
   }

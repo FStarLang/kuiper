@@ -17,10 +17,12 @@ __hoisted_0(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((float_t *)gA)[trow * shared + k] * ((float_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    float_t s = sum;
+    KRML_HOST_IGNORE(((float_t *)gC)[trow * cols + tcol]);
+    ((float_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -75,10 +77,12 @@ __hoisted_1(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((double_t *)gA)[trow * shared + k] * ((double_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    double_t s = sum;
+    KRML_HOST_IGNORE(((double_t *)gC)[trow * cols + tcol]);
+    ((double_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -133,10 +137,12 @@ __hoisted_2(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
     uint32_t sum = 0U;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((uint32_t *)gA)[trow * shared + k] * ((uint32_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    uint32_t s = sum;
+    KRML_HOST_IGNORE(((uint32_t *)gC)[trow * cols + tcol]);
+    ((uint32_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -189,10 +195,12 @@ __hoisted_3(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((uint64_t *)gA)[trow * shared + k] * ((uint64_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    uint64_t s = sum;
+    KRML_HOST_IGNORE(((uint64_t *)gC)[trow * cols + tcol]);
+    ((uint64_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -245,10 +253,12 @@ __hoisted_4(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((float_t *)gA)[k * rows + trow] * ((float_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    float_t s = sum;
+    KRML_HOST_IGNORE(((float_t *)gC)[tcol * rows + trow]);
+    ((float_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -303,10 +313,12 @@ __hoisted_5(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((double_t *)gA)[k * rows + trow] * ((double_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    double_t s = sum;
+    KRML_HOST_IGNORE(((double_t *)gC)[tcol * rows + trow]);
+    ((double_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -361,10 +373,12 @@ __hoisted_6(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
     uint32_t sum = 0U;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((uint32_t *)gA)[k * rows + trow] * ((uint32_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    uint32_t s = sum;
+    KRML_HOST_IGNORE(((uint32_t *)gC)[tcol * rows + trow]);
+    ((uint32_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -417,10 +431,12 @@ __hoisted_7(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((uint64_t *)gA)[k * rows + trow] * ((uint64_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    uint64_t s = sum;
+    KRML_HOST_IGNORE(((uint64_t *)gC)[tcol * rows + trow]);
+    ((uint64_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -473,10 +489,12 @@ __hoisted_8(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((float_t *)gA)[trow * shared + k] * ((float_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    float_t s = sum;
+    KRML_HOST_IGNORE(((float_t *)gC)[trow * cols + tcol]);
+    ((float_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -518,10 +536,12 @@ __hoisted_9(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((double_t *)gA)[trow * shared + k] * ((double_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    double_t s = sum;
+    KRML_HOST_IGNORE(((double_t *)gC)[trow * cols + tcol]);
+    ((double_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -563,10 +583,12 @@ __hoisted_10(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
     uint32_t sum = 0U;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((uint32_t *)gA)[trow * shared + k] * ((uint32_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    uint32_t s = sum;
+    KRML_HOST_IGNORE(((uint32_t *)gC)[trow * cols + tcol]);
+    ((uint32_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -608,10 +630,12 @@ __hoisted_11(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
+      sum += ((uint64_t *)gA)[trow * shared + k] * ((uint64_t *)gB)[k * cols + tcol];
       k += (size_t)1U;
     }
-    gC[trow * cols + tcol] = sum;
+    uint64_t s = sum;
+    KRML_HOST_IGNORE(((uint64_t *)gC)[trow * cols + tcol]);
+    ((uint64_t *)gC)[trow * cols + tcol] = s;
   }
 }
 
@@ -653,10 +677,12 @@ __hoisted_12(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, 
     float_t sum = (float_t)0.0f;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((float_t *)gA)[k * rows + trow] * ((float_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    float_t s = sum;
+    KRML_HOST_IGNORE(((float_t *)gC)[tcol * rows + trow]);
+    ((float_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -698,10 +724,12 @@ __hoisted_13(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB
     double_t sum = (double_t)0.0l;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((double_t *)gA)[k * rows + trow] * ((double_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    double_t s = sum;
+    KRML_HOST_IGNORE(((double_t *)gC)[tcol * rows + trow]);
+    ((double_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -743,10 +771,12 @@ __hoisted_14(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
     uint32_t sum = 0U;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((uint32_t *)gA)[k * rows + trow] * ((uint32_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    uint32_t s = sum;
+    KRML_HOST_IGNORE(((uint32_t *)gC)[tcol * rows + trow]);
+    ((uint32_t *)gC)[tcol * rows + trow] = s;
   }
 }
 
@@ -788,10 +818,12 @@ __hoisted_15(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
     uint64_t sum = 0ULL;
     while (k < shared)
     {
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
+      sum += ((uint64_t *)gA)[k * rows + trow] * ((uint64_t *)gB)[tcol * shared + k];
       k += (size_t)1U;
     }
-    gC[tcol * rows + trow] = sum;
+    uint64_t s = sum;
+    KRML_HOST_IGNORE(((uint64_t *)gC)[tcol * rows + trow]);
+    ((uint64_t *)gC)[tcol * rows + trow] = s;
   }
 }
 

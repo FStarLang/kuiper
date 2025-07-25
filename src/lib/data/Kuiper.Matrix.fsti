@@ -10,8 +10,7 @@ module SZ = FStar.SizeT
 
 (* Move? *)
 inline_for_extraction noextract
-let cview_from_clayout_ff
-  (et : Type)
+let clayout_imap
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (c : clayout l)
@@ -19,35 +18,32 @@ let cview_from_clayout_ff
   = fun (i, j) -> c.c_to i j
 
 inline_for_extraction noextract
-let cview_from_clayout_gg
-  (et : Type)
-  (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (c : clayout l)
-  : szlt (rows * cols) -> szlt rows & szlt cols
-  = fun x -> (c.c_from1 x, c.c_from2 x)
-
-inline_for_extraction noextract
 instance cview_from_clayout
   (et : Type)
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (c : clayout l)
-  : ArrayView.cview (aview_from_mlayout et l) =
+  : IView.cview (aview_from_mlayout et l).iview =
+  // I would like to just say:
+  // : View.cview (aview_from_mlayout et l) =
+  // But F* complains it's not a class.
 {
-  cit = szlt rows & szlt cols;
-  cibij = {
-    ff = cview_from_clayout_ff et c;
-    gg = cview_from_clayout_gg et c;
-    ff_gg = ez;
-    gg_ff = ez;
-  };
-}
+  fits = ();
 
+  cit = szlt rows & szlt cols;
+
+  bij = Bijection.bij_prod (Bijection.fin_size_t_bij _) (Bijection.fin_size_t_bij _);
+
+  imap = {
+    f      = clayout_imap c;
+    is_inj = ez; 
+  };
+
+  compat = ez;
+}
 
 inline_for_extraction noextract
 val gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0
-
 
 inline_for_extraction noextract
 val from_array
@@ -165,7 +161,7 @@ fn gpu_matrix_free
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (#em : _)
+  (#em : ematrix et rows cols)
   preserves
     cpu
   requires
@@ -331,6 +327,8 @@ fn gpu_matrix_implode
   (gm : gpu_matrix et l)
   (#f : perm)
   (#em : ematrix et rows cols)
+  requires
+    pure (SZ.fits (rows * cols))
   requires
     forall+ r c.
       gpu_matrix_pts_to_cell gm #f r c (macc em r c)

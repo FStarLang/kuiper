@@ -2,166 +2,133 @@ module Kuiper.ArrayView.Test1
 #lang-pulse
 
 open Kuiper
-open Kuiper.ArrayView
+open Kuiper.VArray
 open Kuiper.GhostMap
 open Kuiper.Bijection
+open Kuiper.Injection
+open Kuiper.View
 module F = FStar.FunctionalExtensionality
 open FStar.FunctionalExtensionality { (^->>) }
 module SZ = FStar.SizeT
-open FStar.SizeT
+module IView = Kuiper.IView
 
-let lseq_to_ghost_map (#et:Type) (#len:nat) : erased (lseq et len) -> (natlt len ^->> et) =
-  fun v -> F.on_g _ fun (i:natlt len) -> Seq.index (reveal v) i <: et
-
-let lseq_from_ghost_map (#et:Type) (#len:nat) : (natlt len ^->> et) -> erased (lseq et len) =
-  fun f -> hide (Seq.init_ghost len f)
-
-noextract
-let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (erased (lseq et len)) (natlt len ^->> et) = {
-  ff = lseq_to_ghost_map;
-  gg = lseq_from_ghost_map;
-  ff_gg = (fun f ->
-    assert (F.feq_g (lseq_to_ghost_map (lseq_from_ghost_map f)) f);
-    ()
-  );
-  (* We need to state this, otherwise we get a coercion that messes things up. *)
-  gg_ff = (fun (es : erased (lseq et len)) ->
-    (* ARGH! without stating erased above, we seem to implicly get a reveal coercion that messes things up. *)
-    assert (Seq.equal (lseq_from_ghost_map (lseq_to_ghost_map es)) es);
-    ()
-  );
+inline_for_extraction noextract
+let inj_nat_rev (len : nat) : (natlt len @~> natlt len) = {
+  f = (fun (i : natlt len) -> len - 1 - i <: natlt len);
+  is_inj = ez;
 }
 
-noextract
-let lseq_is_ghost_map (et:Type) (len:nat) : is_ghost_map (erased (lseq et len)) (natlt len) et = {
-  bij = bij_lseq_ghost_map et len;
-  acc = (fun v i -> reveal v @! i);
-  upd = (fun v i x -> Seq.upd (reveal v) i x);
-  l1 = ez;
-  l2 = ez;
+inline_for_extraction noextract
+let inj_sz_rev (len : sz) : (szlt len @~> szlt len) = {
+  f = (fun (i : szlt len) -> len -^ 1sz -^ i <: szlt len);
+  is_inj = ez;
 }
 
-let aview_bij (et len vt vt' : _) (vw : aview et len vt) (b : vt =~ vt')
-  : aview et len vt' = {
-  it   = vw.it;
-  it_enum = vw.it_enum;
-  igm  = {
-    bij = bij_sym b `bij_comp` vw.igm.bij;
-    acc = (fun v i   -> vw.igm.acc (b.gg v) i);
-    upd = (fun v i x -> vw.igm.upd (b.gg v) i x |> b.ff);
-    l1  = ez;
-    l2  = ez;
+inline_for_extraction noextract
+let base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
+  iview = {
+    ait      = natlt len;
+    ait_enum = solve;
+    imap     = inj_id;
   };
-  ibij = vw.ibij;
+  igm = solve;
 }
 
 inline_for_extraction noextract
-let bij_nat_rev (len:nat) : (natlt len =~ natlt len) = {
-  ff = (fun (i:natlt len) -> len-1-i <: natlt len);
-  gg = (fun (i:natlt len) -> len-1-i <: natlt len);
-  ff_gg = ez;
-  gg_ff = ez;
-}
-
-inline_for_extraction noextract
-let bij_sz_rev (len:nat{SZ.fits len}) : (szlt len =~ szlt len) = {
-  ff = (fun (i:szlt len) -> SZ.uint_to_t len -^1sz-^i <: szlt len);
-  gg = (fun (i:szlt len) -> SZ.uint_to_t len -^1sz-^i <: szlt len);
-  ff_gg = ez;
-  gg_ff = ez;
-}
-
-let base_view (et len : _) : aview et len (erased (lseq et len)) =
-{
-  it   = natlt len;
-  it_enum = solve;
-  igm  = lseq_is_ghost_map et len;
-  ibij = bij_self _;
-}
-
-let r_base_view (et len : _) : aview et len (erased (lseq et len)) =
-{
-  it   = natlt len;
-  it_enum = solve;
-  igm  = lseq_is_ghost_map et len;
-  ibij = bij_nat_rev _;
+let r_base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
+  iview = {
+    ait      = natlt len;
+    ait_enum = solve;
+    imap     = inj_nat_rev len;
+  };
+  igm = solve;
 }
 
 noeq
 inline_for_extraction noextract
-type _normal et len = | N of erased (lseq et len)
+type _normal et len = | N of lseq et len
 
 inline_for_extraction noextract
-let bij__normal (et len : _) : (erased (lseq et len) =~ _normal et len) = {
-  ff = (fun (v:erased (lseq et len)) -> N v);
-  gg = (fun (N v:_normal et len) -> v);
+let bij__normal (et len : _) : (lseq et len =~ _normal et len) = {
+  ff = N;
+  gg = N?._0;
   ff_gg = ez;
   gg_ff = ez;
 }
 
+inline_for_extraction noextract
 let normal_view (et:Type) (len:nat) : aview et len (_normal et len) =
-  aview_bij et len (erased (lseq et len)) (_normal et len)
-    (base_view et len)
-    (bij__normal et len)
+  review_view (base_view et len) (bij__normal et len)
 
 noeq
 inline_for_extraction noextract
-type _reverse et len = | R : rv:erased (lseq et len) -> _reverse et len
+type _reverse et len = | R : lseq et len -> _reverse et len
 
 inline_for_extraction noextract
-let bij__reverse (et len : _) : (erased (lseq et len) =~ _reverse et len) = {
-  ff = (fun (v:erased (lseq et len)) -> R v);
-  gg = (fun (R v:_reverse et len) -> v);
+let bij__reverse (et len : _) : (lseq et len =~ _reverse et len) = {
+  ff = R;
+  gg = R?._0;
   ff_gg = ez;
   gg_ff = ez;
 }
 
+inline_for_extraction noextract
 let reverse_view (et:Type) (len:nat) : aview et len (_reverse et len) =
-  aview_bij et len (erased (lseq et len)) (_reverse et len)
-    (r_base_view et len)
-    (bij__reverse et len)
+  review_view (r_base_view et len) (bij__reverse et len)
 
 inline_for_extraction noextract
-instance cnormal_view et (len : nat{SZ.fits len}) : cview (normal_view et len) = {
-  cit = szlt len;
-  cibij = bij_self _;
+instance cnormal_view et (len : nat{SZ.fits len}) : IView.cview (normal_view et len).iview = {
+  fits     = ();
+  cit      = szlt len;
+  bij      = fin_size_t_bij len;
+  imap     = inj_id;
+  compat   = ez;
 }
 
 inline_for_extraction noextract
-instance creverse_view et (len : nat{SZ.fits len}) : cview (reverse_view et len) = {
-  cit = szlt len;
-  cibij = bij_sz_rev len;
+instance creverse_view et (len : nat{SZ.fits len}) : IView.cview (reverse_view et len).iview = {
+  fits     = ();
+  cit      = szlt len;
+  bij      = fin_size_t_bij len;
+  imap     = inj_sz_rev (SZ.uint_to_t len); // WEIRD
+  compat   = ez;
 }
 
 fn test (a : varray (normal_view u32 50))
   preserves gpu
   requires a |-> N 's
-  returns u32
-  ensures a |-> N 's
-{ varray_read #_ #_ #_ #_ #(cnormal_view _ _) a 0sz; }
-// ^ FIXME: bad inference? tc resolution gets called to provide
-// a bijection instead of a cview?!
+  returns  u32
+  ensures  a |-> N 's
+{ varray_read a 0sz; }
 
-fn test2 (a : varray (reverse_view u32 50))
+fn test2 (a : varray (reverse_view u32 50sz))
   preserves gpu
   requires a |-> R 's
-  returns u32
-  ensures a |-> R 's
-{ varray_read #_ #_ #_ #_ #(creverse_view _ _) a 0sz; }
-// ^ idem
+  returns  u32
+  ensures  a |-> R 's
+{ varray_read a 0sz; }
 
-fn write1 (a : varray (normal_view u32 50))
+fn write1 (a : varray (normal_view u32 50sz))
   preserves gpu
-  requires a |-> N 's
-  ensures  a |-> N (Seq.upd 's 0 123ul)
-{ varray_write #_ #_ #_ #_ #(cnormal_view _ _) a 0sz 123ul; }
+  requires  a |-> N 's
+  ensures   a |-> N (Seq.upd 's 0 123ul)
+{
+  varray_write a 0sz 123ul;
+}
 
-fn write2 (a : varray (reverse_view u32 50))
+fn write2 (a : varray (reverse_view u32 50sz))
   (#s : erased (lseq u32 50))
   preserves gpu
   requires a |-> R s
   ensures  a |-> R (Seq.upd s 0 123ul)
-{ varray_write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul; }
+{
+  varray_write a 0sz 123ul;
+  // varray_write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul;
+  // assert (pure (Seq.equal
+  //                (R?._0 ((reverse_view u32 50).igm.upd (R s) (ci_to_ai (reverse_view u32 50) #(creverse_view u32 50sz) 0sz) 123ul))
+  //                (Seq.upd s 0 123ul)));
+  ();
+}
 
 let seq_rev (#a:Type) (s:seq a) : seq a =
   Seq.init (Seq.length s) (fun i -> Seq.index s (Seq.length s - 1 - i))
@@ -185,7 +152,7 @@ fn write3
     from_array (reverse_view u32 50) p |-> from_seq (reverse_view u32 50) s
   as
     a' |-> from_seq (reverse_view u32 50) s;
-  assert (pure (Seq.equal (R?.rv (from_seq (reverse_view u32 50) s))
+  assert (pure (Seq.equal (R?._0 (from_seq (reverse_view u32 50) s))
                (seq_rev s)));
   ();
   rewrite

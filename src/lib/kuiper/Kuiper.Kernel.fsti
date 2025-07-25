@@ -1,5 +1,5 @@
 module Kuiper.Kernel
-inline_for_extraction noextract let x = ()
+inline_for_extraction noextract let _ = ()
 #lang-pulse
 
 open Pulse.Lib.Core

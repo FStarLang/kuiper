@@ -5,102 +5,186 @@ module Kuiper.View
 open Kuiper
 open Kuiper.GhostMap { is_ghost_map }
 open Kuiper.Bijection
+open Kuiper.Injection
+open Kuiper.IView
 module F = FStar.FunctionalExtensionality
 module SZ = FStar.SizeT
 
-(* The view type is an array of length len, with elements of type a,
-   and index type it. The view type is a map from index type into element
-   type. *)
-
 [@@erasable]
 noeq
-type aview (a : Type) (len : nat) (vt : Type) = {
-  (* abstract index type *)
-  it : Type0;
-  (* that is enumerable *)
-  // [@@@Tactics.Typeclasses.tcinstance] // make the projector eligible for typeclass resolution
-  it_enum : Enumerable.enumerable it;
-  (* the view is essentially a map ... *)
-  igm : is_ghost_map vt it a;
-  (* ... from an enumerable type *)
-  ibij : it =~ natlt len;
+type aview (et : Type) (len : nat) (st : Type0) = {
+  (* An indexing view. *)
+  iview : aiview len;
+
+  (* The high-level spec type is a container, roughly a ghost function ait -> et *)
+  igm  : is_ghost_map st iview.ait et;
 }
 
 unfold
-instance view_of_aview_index (#a #len #vt : _)
-  (vw : aview a len vt)
-  : Enumerable.enumerable vw.it
-  = vw.it_enum
+instance enumerable_view_ait (#et:Type) (#len: erased nat) (#st:Type0)
+  (vw : aview et len st)
+  : Enumerable.enumerable vw.iview.ait
+= vw.iview.ait_enum
 
-inline_for_extraction noextract
-class cview (#a : Type) (#len : erased nat) (#vt : Type) (avw : aview a len vt) = {
-  (* a concrete index type *)
-  cit : Type0;
-  (* with a concrete translation to/from machine integers *)
-  cibij : cit =~ szlt len;
-  (* this also implies it =~ cit *)
+unfold
+instance is_ghost_map_view_igm (#et:Type) (#len: erased nat) (#st:Type0)
+  (vw : aview et len st)
+  : is_ghost_map st vw.iview.ait et
+  = vw.igm
+
+(* Nothing fancy here. *)
+let raw_view (#et:Type) (#len:nat) : aview et len (lseq et len) = {
+  iview  = IView.raw_view;
+  igm    = solve;
 }
 
-(* hm.... the choice of bijections above makes these a bit awkward *)
+(* Viewing as a (ghost) function from indices to elements. Forget about sequences. *)
+let raw_function_view (#et:Type) (#len:nat) : aview et len (natlt len ^->> et) = {
+  iview  = IView.raw_view;
+  igm    = solve;
+}
 
+(* What it means for a view to be concretizable, i.e. executable.
+Note how we say **nothing** about the high-level spec type. All that
+matters at runtime is the indexing structure.
+
+This is typeclass already, there should be no need to mark it as a class here,
+but alas it does not quite work. *)
+inline_for_extraction noextract
+let cview (#et : Type0) (#len : erased nat) (#st : Type0)
+  (avw : aview et len st) = IView.cview avw.iview
+
+let igm_reindex (#mt #it #et : Type) (igm : is_ghost_map mt it et)
+  (#it': Type) (bij : it =~ it')
+   : is_ghost_map mt it' et =
+{
+  acc = (fun (v : mt) (i' : it') ->
+    igm.acc v (bij.gg i'));
+  upd = (fun (v : mt) (i' : it') (x : et) ->
+    igm.upd v (bij.gg i') x);
+  bij = Mkbijection #(erased mt) #(it' ^->> et)
+    (fun (v : erased mt) -> F.on_g it' <| fun (i' : it') -> igm.bij.ff v (bij.gg i'))
+    (fun (f : (it' ^->> et)) -> igm.bij.gg (F.on_g it <| fun i -> f (bij.ff i)))
+    (fun _ -> admit())
+    (fun _ -> admit());
+  l1 = ez;
+  l2 = ez;
+}
+
+let reindex_view (#et : Type0) (#len : nat) (#st : Type0)
+  (vw : aview et len st)
+  (#ait' : Type)
+  {| Enumerable.enumerable ait' |}
+  (bij : vw.iview.ait =~ ait')
+  : aview et len st = {
+  iview  = IView.reindex_view vw.iview bij;
+  igm    = igm_reindex vw.igm bij;
+}
+
+let igm_review (#mt #it #et : Type) (igm : is_ghost_map mt it et)
+  (#mt': Type) (bij : mt =~ mt')
+   : is_ghost_map mt' it et =
+{
+  acc = (fun (v : mt') (i : it) -> igm.acc (bij.gg v) i);
+  upd = (fun (v : mt') (i : it) (x : et) -> bij.ff (igm.upd (bij.gg v) i x));
+  bij = bij_erase (bij_sym bij) `bij_comp` igm.bij;
+  l1 = ez;
+  l2 = ez;
+}
+
+let review_view (#et : Type0) (#len : nat) (#st : Type0)
+  (vw : aview et len st)
+  (#st' : Type)
+  (bij : st =~ st')
+  : aview et len st' = {
+  iview    = vw.iview;
+  igm      = igm_review vw.igm bij;
+}
+
+let concrete_raw_view (#et:Type) (#len:nat{SZ.fits len}) : cview (raw_view #et #len) =
+  IView.concrete_raw_view #len
+
+let concrete_raw_function_view (#et:Type) (#len:nat{SZ.fits len}) : cview (raw_function_view #et #len) =
+  IView.concrete_raw_view #len
+
+(* Redefining these *)
 let it_to_nat
-  (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  (i : vw.it)
+  (#a:Type) (#len:nat) (#st:Type0)
+  (vw : aview a len st)
+  (i : vw.iview.ait)
   : GTot (natlt len)
-  = i |~> vw.ibij
+  = IView.it_to_nat vw.iview i
 
 let it_of_nat
-  (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  (i: natlt len)
-  : GTot vw.it
-  = i <~| vw.ibij
+  (#a:Type) (#len:nat) (#st:Type0)
+  (vw : aview a len st)
+  (i: natlt len{FStar.Functions.in_image vw.iview.imap.f i})
+  : GTot vw.iview.ait
+  = IView.it_of_nat vw.iview i
 
-let cit_to_it
-  (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt) {| cw : cview vw |}
+let ci_to_ai
+  (#et:Type) (#len:nat) (#st : Type0)
+  (vw : aview et len st)
+  {| cw : IView.cview vw.iview |}
   (i : cw.cit)
-  : GTot vw.it
-  = (SZ.v (i |~> cw.cibij)) <~| vw.ibij
+  : GTot vw.iview.ait
+  = IView.ci_to_ai vw.iview i
 
-let cit_of_it
-  (#a:Type) (#len:nat{SZ.fits len}) (#vt:Type)
-  (vw : aview a len vt) {| cw : cview vw |}
-  (i: vw.it)
+let ai_to_ci
+  (#et:Type) (#len:nat) (#st : Type0)
+  (vw : aview et len st)
+  {| cw : IView.cview vw.iview |}
+  (i : vw.iview.ait)
   : GTot cw.cit
-  = SZ.uint_to_t (i |~> vw.ibij) <~| cw.cibij
+  = IView.ai_to_ci vw.iview i
+
+
+(* Operating over the abstract view. *)
+
+let is_full_view #et #len #st (vw : aview et len st) : prop =
+  IView.is_full_view vw.iview
 
 let to_seq
-  (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  (v : vt)
+  (#a:Type) (#len:nat) (#st : Type0)
+  (vw : aview a len st { is_full_view vw })
+  (v : st)
   : GTot (lseq a len)
-  = Seq.init_ghost len (fun i -> vw.igm.acc v (it_of_nat vw i))
+  = Seq.init_ghost len (fun i -> reveal (vw.igm.acc v (it_of_nat vw i)))
 
 let from_seq
-  (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
+  (#a:Type) (#len:nat) (#st:Type)
+  (vw : aview a len st)
   (s : lseq a len)
-  : GTot vt
-  = vw.igm.bij.gg (F.on_g vw.it <| fun i -> s @! it_to_nat vw i)
+  : GTot st
+  = vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i)
 
-val to_from (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
+val to_from (#a:Type) (#len:nat) (#st:Type)
+  (vw : aview a len st { is_full_view vw })
   (s : lseq a len)
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
 
-val from_to (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  (v : vt)
+val from_to (#a:Type) (#len:nat) (#st:Type)
+  (vw : aview a len st { is_full_view vw })
+  (v : st)
   : Lemma (ensures from_seq vw (to_seq vw v) == v)
           [SMTPat (from_seq vw (to_seq vw v))]
 
-val to_seq_upd (#a:Type) (#len:nat) (#vt:Type)
-  (vw : aview a len vt)
-  (v : vt)
-  (i : vw.it)
+val to_seq_upd (#a:Type) (#len:nat) (#st:Type)
+  (vw : aview a len st { is_full_view vw })
+  (v : st)
+  (i : vw.iview.ait)
   (x : a)
   : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
           [SMTPat (to_seq vw (vw.igm.upd v i x))]
+
+let sum_aview
+  (#et : Type) (#len : nat) (#st1 #st2 : Type)
+  (vw1 : aview et len st1)
+  (vw2 : aview et len st2)
+  (#_ : squash (no_overlap vw1.iview.imap.f vw2.iview.imap.f))
+  : aview et len (st1 & st2) =
+{
+  iview = sum_aiview vw1.iview vw2.iview;
+  igm   = solve;
+  }

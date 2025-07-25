@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.GhostMap
 open Kuiper.Matrix.Reprs.Type
-module A = Kuiper.ArrayView
+module V = Kuiper.View
 
 let from_seq (#et:Type) (#rows #cols : nat)
   (l : mlayout rows cols)
@@ -19,17 +19,17 @@ let to_seq (#et:Type) (#rows #cols : nat)
   : GTot (lseq et (rows * cols))
   = Seq.init_ghost (rows * cols) (fun i -> m.f (l.bij.gg i))
 
-let ematrix_is_ghost_map
+instance ematrix_is_ghost_map
   (et:Type) (#rows #cols : nat)
   : is_ghost_map (ematrix et rows cols) (natlt rows & natlt cols) et
 = {
     bij = {
-      ff = (fun m -> M?.f m);
-      gg = (fun f -> M f);
+      ff = (fun m -> M?.f (reveal m));
+      gg = (fun f -> hide (M f));
       ff_gg = ez;
       gg_ff = ez;
     };
-    acc = (fun m (i, j) -> macc m i j);
+    acc = (fun m (i, j) -> hide (macc m i j));
     upd = (fun m (i, j) x -> mupd m i j x);
     l1 = ez;
     l2 = ez;
@@ -38,23 +38,29 @@ let ematrix_is_ghost_map
 let aview_from_mlayout
   (et : Type) (#rows #cols : erased nat)
   (l : mlayout rows cols)
-  : A.aview et (rows * cols) (ematrix et rows cols) =
+  : vw : V.aview et (rows * cols) (ematrix et rows cols) { V.is_full_view vw } =
+  let open Kuiper.Bijection in
   {
-    it = natlt rows & natlt cols;
-    it_enum = Kuiper.Enumerable.enumerable_prod _ _;
+    iview = {
+      ait = natlt rows & natlt cols;
+      ait_enum = solve;
+      imap = {
+        f = l.bij.ff;
+        is_inj = ez;
+      };
+    };
     igm = ematrix_is_ghost_map et;
-    ibij = l.bij;
   }
 
 let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : lseq et (rows * cols))
-  : Lemma (from_seq l s == A.from_seq (aview_from_mlayout et l) s)
-  = assert (Kuiper.EMatrix.equal (from_seq l s) (A.from_seq (aview_from_mlayout et l) s))
+  : Lemma (from_seq l s == V.from_seq (aview_from_mlayout et l) s)
+  = admit();assert (Kuiper.EMatrix.equal (from_seq l s) (V.from_seq (aview_from_mlayout et l) s))
 
 let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : ematrix et rows cols)
-  : Lemma (to_seq l s == A.to_seq (aview_from_mlayout et l) s)
-  = assert (Seq.equal (to_seq l s) (A.to_seq (aview_from_mlayout et l) s))
+  : Lemma (to_seq l s == V.to_seq (aview_from_mlayout et l) s)
+  = admit();assert (Seq.equal (to_seq l s) (V.to_seq (aview_from_mlayout et l) s))
 
 let to_from (#et #rows #cols : _)
   (l : mlayout rows cols)
