@@ -71,7 +71,9 @@ int main(int argc, char **argv)
 
     et *gold = nullptr;
     if (check)
-        TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu, GEMM_ALPHA, GEMM_BETA), NULL);
+        TIME_void(gold =
+                  cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
+                            GEMM_ALPHA, GEMM_BETA), NULL);
     for (int l = 0; l < laps; l++) {
         float t;
         fprintf(stderr, "Static tile = 32\n");
@@ -85,12 +87,13 @@ int main(int argc, char **argv)
 
         if (check) {
             cmp(rows, cols, m3, gold);
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
+            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
+                       cudaMemcpyHostToDevice);
         }
 
     }
-    if (check) free(gold);
-
+    if (check)
+        free(gold);
 
     cudaFree(m1);
     cudaFree(m2);

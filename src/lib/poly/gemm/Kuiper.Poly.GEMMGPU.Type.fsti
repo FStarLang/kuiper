@@ -127,7 +127,7 @@ type block_tiled1d_matmulcomb_gpu_ty =
       (pure (mrows * mcols <= max_blocks) **
       pure (bm/tm * bn <= max_threads) **
       (gC |-> eC)))
-    (ensures fun _ -> 
+    (ensures fun _ ->
       (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
       (gC |-> MS.mmcomb comb eC eA eB)
     )
