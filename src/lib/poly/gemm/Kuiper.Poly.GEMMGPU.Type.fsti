@@ -131,3 +131,42 @@ type block_tiled1d_matmulcomb_gpu_ty =
       (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
       (gC |-> MS.mmcomb comb eC eA eB)
     )
+
+unfold inline_for_extraction
+type block_tiled2d_matmulcomb_gpu_ty =
+  (#et : Type0) -> {| scalar et |} ->
+  (comb : binop et) ->
+  (#bm : szp) ->
+  (#bn : szp) ->
+  (#bk : szp) ->
+  (#mrows : szp) ->
+  (#mshared : szp) ->
+  (#mcols : szp) ->
+  (tm : szp{tm /? bm}) ->
+  (tn : szp{tn /? bn}) ->
+  (slA : mlayout bm bk) ->
+  (slB : mlayout bk bn) ->
+  (#lA : M4.mlayout4 mrows   mshared bm bk) ->
+  (#lB : M4.mlayout4 mshared mcols   bk bn) ->
+  (#lC : M4.mlayout4 mrows   mcols   bm bn) ->
+  {| M4.clayout4 lA |} ->
+  {| M4.clayout4 lB |} ->
+  {| M4.clayout4 lC |} ->
+  (gA : M4.gpu_matrix et lA) ->
+  (#fA : perm) ->
+  (gB : M4.gpu_matrix et lB) ->
+  (#fB : perm) ->
+  (gC : M4.gpu_matrix et lC) ->
+  (#eA : ematrix4 et mrows mshared bm bk) ->
+  (#eB : ematrix4 et mshared mcols bk bn) ->
+  (#eC : ematrix4 et mrows mcols bm bn) ->
+  stt unit
+    (requires
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (pure (mrows * mcols <= max_blocks) **
+      pure (bm/tm * (bn/tn) <= max_threads) **
+      (gC |-> eC)))
+    (ensures fun _ ->
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (gC |-> MS.mmcomb comb eC eA eB)
+    )
