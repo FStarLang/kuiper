@@ -502,20 +502,16 @@ fn kf
           (SZ.v tid % SZ.v bn) v)
     as
       (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v (bid /^ mcols))
-          (SZ.v (bid %^ mcols)) (SZ.v (tid /^ bn) * SZ.v tm + i)
-          (SZ.v (tid %^ bn)) v);
-    rewrite each SZ.v (bid /^ mcols) as SZ.v mrow,
-                 SZ.v (bid %^ mcols) as SZ.v mcol,
-                 SZ.v (tid /^ bn) as SZ.v threadRow,
-                 SZ.v (tid %^ bn) as SZ.v threadCol;
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i)
+          (SZ.v threadCol) v);
     ()
   };
   forevery_map _ _ aux;
 
   (* Write all the accumulated dotproducts. *)
   let mut resIdx : sz = 0sz;
-  Pulse.Lib.Array.pts_to_len cache1d;
+  // Pulse.Lib.Array.pts_to_len cache1d;
   while (SZ.(!resIdx <^ tm))
     invariant
       exists* (vresIdx : SZ.t{vresIdx <= tm}) (dotpv : lseq et tm).
@@ -525,7 +521,6 @@ fn kf
     let vresIdx = !resIdx;
     forevery_extract #(natlt tm) (SZ.v vresIdx) _;
 
-    let innerTileRow = threadRow *^ tm +^ vresIdx;
     with bi0 bj0 i0 j0 v0.
       rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
           as m4_pts_to_cell gC mrow mcol (threadRow * tm + vresIdx) threadCol v0;
@@ -577,15 +572,11 @@ fn kf
         (SZ.v tid % SZ.v bn) v)
   {
     with v. _;
-    rewrite each SZ.v mrow as SZ.v (bid /^ mcols),
-                 SZ.v mcol as SZ.v (bid %^ mcols),
-                 SZ.v threadRow as SZ.v (tid /^ bn),
-                 SZ.v threadCol as SZ.v (tid %^ bn);
     rewrite
       (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v (bid /^ mcols))
-          (SZ.v (bid %^ mcols)) (SZ.v (tid /^ bn) * SZ.v tm + i)
-          (SZ.v (tid %^ bn)) v)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i)
+          (SZ.v threadCol) v)
     as
       (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
           #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
@@ -756,7 +747,7 @@ inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
+  (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
