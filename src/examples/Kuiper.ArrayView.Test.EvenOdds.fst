@@ -204,6 +204,7 @@ fn test_simpler (a : gpu_array u32 100)
     #_
     #(from_seq vw v0) // ARGH, why do I have to provide this!?!??! terrible error otherwise
     ;
+  // Note: that doesn't happen if we use split2_, the ghost version
 
   let x = foo_even vl;
   let y = foo_odd vr;
