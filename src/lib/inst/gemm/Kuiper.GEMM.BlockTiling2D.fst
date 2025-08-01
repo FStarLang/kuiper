@@ -10,8 +10,8 @@ open Kuiper.Poly.GEMMCPU {
 open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
 module P = Kuiper.Poly.GEMM.BlockTiling2D
 
-let matmul_f32_64x8x64_8x8_rrr = spec_cpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 64sz 64sz 8sz 8sz 8sz) f32 RM RM RM
+let matmul_f32_64x64x8_8x8_rrr = spec_cpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 64sz 64sz 8sz 8sz 8sz) f32 RM RM RM
 let matmul_f32_32x32x32_32x8_rrr = spec_cpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 32sz 32sz 32sz 32sz 8sz) f32 RM RM RM
 
-let g_gemm_f32_64x8x64_8x8_rrr = spec_gemm_gpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 64sz 64sz 8sz 8sz 8sz) f32 RM RM RM
-let g_gemm_f32_128x8x128_8x8_rrr = spec_gemm_gpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 128sz 128sz 8sz 8sz 8sz) f32 RM RM RM
+let g_gemm_f32_64x64x8_8x8_rrr = spec_gemm_gpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 64sz 64sz 8sz 8sz 8sz) f32 RM RM RM
+let g_gemm_f32_128x128x8_8x8_rrr = spec_gemm_gpu (mmcomb_gpu_block_tiled2d P.mmcomb_gpu 128sz 128sz 8sz 8sz 8sz) f32 RM RM RM

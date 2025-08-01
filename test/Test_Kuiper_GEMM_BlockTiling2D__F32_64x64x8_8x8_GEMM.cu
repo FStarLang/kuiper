@@ -3,7 +3,7 @@
 #define stem         Kuiper_GEMM_BlockTiling2D_g_gemm_
 #define et           float
 #define et_lbl       f32
-#define tile_sizes   _64x8x64
+#define tile_sizes   _64x64x8
 #define regch_sizes  _8x8
 #define PRIet        "f"
 #define GEMM_ALPHA   0.7
