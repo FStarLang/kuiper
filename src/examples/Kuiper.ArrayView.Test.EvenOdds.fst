@@ -6,15 +6,11 @@ positions in it. *)
 
 open Kuiper
 open Kuiper.View
-module IView = Kuiper.IView
 open Kuiper.VArray
-open Kuiper.GhostMap
 open Kuiper.Bijection
 open Kuiper.Injection
-module F = FStar.FunctionalExtensionality
-open FStar.FunctionalExtensionality { (^->>) }
-module SZ = FStar.SizeT
-open FStar.SizeT
+module IView = Kuiper.IView
+module SZ    = FStar.SizeT
 
 noextract
 let bij_nat_interleave (#len:nat)
@@ -106,32 +102,24 @@ let odd_view et len : aview et len (lseq et (len / 2)) = {
 inline_for_extraction noextract
 instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.cview (even_view et len).iview = {
   fits = ();
-
   cit  = szlt ((len + 1) / 2);
-
-  bij = fin_size_t_bij _;
-
+  bij  = fin_size_t_bij _;
   imap = {
     f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
     is_inj = ez;
   };
-
   compat = ez;
 }
 
 inline_for_extraction noextract
 instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.cview (odd_view et len).iview = {
   fits = ();
-
   cit  = szlt (len / 2);
-
-  bij = fin_size_t_bij _;
-
+  bij  = fin_size_t_bij _;
   imap = {
     f = (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
     is_inj = ez;
   };
-
   compat = ez;
 }
 
@@ -180,41 +168,6 @@ fn test (a : gpu_array u32 100)
   varray_concr va;
 
   assume (pure (core va == a));
-  rewrite each core va as a;
-
-  res
-}
-
-let vw = sum_aview (even_view u32 100) (odd_view u32 100)
-
-fn test_simpler (a : gpu_array u32 100)
-  (#v0 : erased (lseq u32 100))
-  preserves gpu
-  requires a |-> v0
-  returns u32
-  ensures exists* v1. a |-> v1
-{
-  varray_abs' vw a;
-  let va = from_array vw a;
-
-  let vl, vr = varray_split2
-    (even_view u32 100)
-    (odd_view u32 100)
-    (from_array vw a)
-    #_
-    #(from_seq vw v0) // ARGH, why do I have to provide this!?!??! terrible error otherwise
-    ;
-  // Note: that doesn't happen if we use split2_, the ghost version
-
-  let x = foo_even vl;
-  let y = foo_odd vr;
-
-  let res = x `UInt32.add_mod` y;
-
-  let va = varray_join2 vl vr;
-
-  varray_concr va;
-
   rewrite each core va as a;
 
   res

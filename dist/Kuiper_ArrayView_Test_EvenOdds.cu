@@ -20,10 +20,3 @@ uint32_t Kuiper_ArrayView_Test_EvenOdds_test(uint32_t *a)
   return x + Kuiper_ArrayView_Test_EvenOdds_foo_odd(vr);
 }
 
-uint32_t Kuiper_ArrayView_Test_EvenOdds_test_simpler(uint32_t *a)
-{
-  uint32_t *vr = a;
-  uint32_t x = Kuiper_ArrayView_Test_EvenOdds_foo_even(a);
-  return x + Kuiper_ArrayView_Test_EvenOdds_foo_odd(vr);
-}
-
