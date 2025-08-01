@@ -35,7 +35,7 @@ module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 
 open Kuiper.EMatrix { ematrix }
-open Kuiper.ArrayView {
+open Kuiper.VArray {
   varray,
   varray_pts_to,
   varray_pts_to_cell
