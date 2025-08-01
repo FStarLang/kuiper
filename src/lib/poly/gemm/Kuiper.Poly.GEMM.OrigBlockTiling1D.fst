@@ -797,7 +797,7 @@ inline_for_extraction noextract
 fn mmcomb_gpu
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#bm #bn #bk : szp)
+  (bm bn bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))

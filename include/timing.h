@@ -73,5 +73,6 @@ static int time_par = 0;
 #define __TOKENPASTE(x, y) x ## y
 #define TOKENPASTE(x, y) __TOKENPASTE(x, y)
 #define TOKENPASTE3(x, y,z) TOKENPASTE(TOKENPASTE(x, y), z)
+#define TOKENPASTE5(v, w, x, y, z) TOKENPASTE(TOKENPASTE(TOKENPASTE(TOKENPASTE(v, w), x), y), z)
 
 #endif

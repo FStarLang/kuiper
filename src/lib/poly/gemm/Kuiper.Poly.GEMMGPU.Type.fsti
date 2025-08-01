@@ -99,9 +99,9 @@ unfold inline_for_extraction
 type block_tiled1d_matmulcomb_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
   (comb : binop et) ->
-  (#bm : szp) ->
-  (#bn : szp) ->
-  (#bk : szp) ->
+  (bm : szp) ->
+  (bn : szp) ->
+  (bk : szp) ->
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->
@@ -136,19 +136,19 @@ unfold inline_for_extraction
 type block_tiled2d_matmulcomb_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
   (comb : binop et) ->
-  (#bm : szp) ->
-  (#bn : szp) ->
-  (#bk : szp) ->
+  (bm : szp) ->
+  (bn : szp) ->
+  (bk : szp) ->
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->
   (tm : szp{tm /? bm}) ->
   (tn : szp{tn /? bn}) ->
-  (slA : mlayout bm bk) ->
-  (slB : mlayout bk bn) ->
-  (#lA : M4.mlayout4 mrows   mshared bm bk) ->
-  (#lB : M4.mlayout4 mshared mcols   bk bn) ->
-  (#lC : M4.mlayout4 mrows   mcols   bm bn) ->
+  (#_ : squash (SizeT.fits (bm*bk + bm/tm*(bn/tn)))) ->
+  (#_ : squash (SizeT.fits (bk*bn + bm/tm*(bn/tn)))) ->
+  (lA : M4.mlayout4 mrows   mshared bm bk) ->
+  (lB : M4.mlayout4 mshared mcols   bk bn) ->
+  (lC : M4.mlayout4 mrows   mcols   bm bn) ->
   {| M4.clayout4 lA |} ->
   {| M4.clayout4 lB |} ->
   {| M4.clayout4 lC |} ->
