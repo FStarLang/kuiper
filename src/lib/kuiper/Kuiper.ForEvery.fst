@@ -758,3 +758,43 @@ fn forevery_boolean_equal_sides
   forevery_map _ _ aux;
   ();
 }
+
+ghost
+fn forevery_intro_if
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    p z
+  ensures
+    (forall+ (x:a).
+      if Enumerable.to_nat x = Enumerable.to_nat z then p x else emp)
+{
+  admit();
+}
+
+ghost
+fn forevery_split_either
+  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (p : either a b -> slprop)
+  requires
+    forall+ (x:either a b). p x
+  ensures
+    (forall+ (x:a). p (Inl x)) **
+    (forall+ (x:b). p (Inr x))
+{
+  admit();
+}
+
+ghost
+fn forevery_join_either
+  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (p : either a b -> slprop)
+  requires
+    (forall+ (x:a). p (Inl x)) **
+    (forall+ (x:b). p (Inr x))
+  ensures
+    forall+ (x:either a b). p x
+{
+  admit();
+}

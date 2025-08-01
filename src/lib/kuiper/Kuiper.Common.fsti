@@ -47,3 +47,11 @@ let divmod_inv_1 (j:pos) (i:nat)
 let divmod_inv_2 (j:pos) (xy : nat & natlt j)
   : Lemma (divmod j (undivmod j xy) == xy)
   = ()
+
+(* Function composition. *)
+inline_for_extraction noextract
+let o (f : 'b -> 'c) (g : 'a -> 'b) : 'a -> 'c =
+  fun x -> f (g x)
+
+let oo (f : 'b -> GTot 'c) (g : 'a -> GTot 'b) : 'a -> GTot 'c =
+  fun x -> f (g x)

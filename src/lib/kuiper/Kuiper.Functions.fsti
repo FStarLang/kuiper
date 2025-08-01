@@ -1,5 +1,7 @@
 module Kuiper.Functions
 
+include FStar.Functions
+
 (* Base properties and facts about functions. *)
 
 let is_commutative (#a:Type) (f : a -> a -> a) : prop =
@@ -22,3 +24,14 @@ let is_comm_semigroup (#a:Type) (e:a) (f : a -> a -> a) : prop =
 
 let is_monoid (#a:Type) (e : a) (f : a -> a -> a) : prop =
   is_associative f /\ is_neutral_for e f
+
+let no_overlap (f1 : 'a -> 'c) (f2 : 'b -> 'c) : prop =
+  forall (x1 : 'a) (x2 : 'b). f1 x1 =!= f2 x2
+
+let merge_either (f1 : 'a -> 'c) (f2 : 'b -> 'c) (x : either 'a 'b) : 'c =
+  match x with
+  | Inl x1 -> f1 x1
+  | Inr x2 -> f2 x2
+
+let left  (e : either 'a 'b{Inl? e}) : 'a = let Inl x = e in x
+let right (e : either 'a 'b{Inr? e}) : 'b = let Inr x = e in x

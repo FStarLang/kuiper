@@ -22,12 +22,12 @@ module SZ = FStar.SizeT
 module B = Kuiper.Barrier
 
 open Kuiper.EMatrix { ematrix }
-open Kuiper.ArrayView {
+open Kuiper.VArray {
   varray,
   varray_pts_to,
   varray_pts_to_cell
 }
-module AV = Kuiper.ArrayView
+module AV = Kuiper.VArray
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -323,8 +323,8 @@ fn kf
          as (exists* x. varray_pts_to_cell ar (mkAIdx 0 (tid / tile) (tid % tile)) x) **
             (exists* x. varray_pts_to_cell ar (mkAIdx 1 (tid / tile) (tid % tile)) x);
 
-    AV.varray_write_cell' ar (mkCIdx 0sz brow bcol) (mkAIdx 0 (tid / tile) (tid % tile)) v1;
-    AV.varray_write_cell' ar (mkCIdx 1sz brow bcol) (mkAIdx 1 (tid / tile) (tid % tile)) v2;
+    AV.varray_write_cell' ar (mkAIdx 0 (tid / tile) (tid % tile)) (mkCIdx 0sz brow bcol) v1;
+    AV.varray_write_cell' ar (mkAIdx 1 (tid / tile) (tid % tile)) (mkCIdx 1sz brow bcol) v2;
 
     assert (B.barrier_tok (barrier_p tile ar) (barrier_q tile ar) (2 * vbk + 1) tid);
     odd_2x1 vbk;

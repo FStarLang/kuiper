@@ -22,12 +22,12 @@ module SZ = FStar.SizeT
 module B = Kuiper.Barrier
 
 open Kuiper.EMatrix { ematrix }
-open Kuiper.ArrayView {
+open Kuiper.VArray {
   varray,
   varray_pts_to,
   varray_pts_to_cell
 }
-module AV = Kuiper.ArrayView
+module AV = Kuiper.VArray
 
 (* Description of shared memory used in this kernel.
 
@@ -315,9 +315,9 @@ fn bring_2cols
     unfold own_2_cols tile ar tid;
     forevery_extract #(natlt tile) vi _;
     let v1 = M4.gpu_matrix_read gA mrow mk vi tid;
-    AV.varray_write_cell' ar (mkCIdx 0sz vi tid) (mkAIdx 0 vi tid) v1;
+    AV.varray_write_cell' ar (mkAIdx 0 vi tid) (mkCIdx 0sz vi tid) v1;
     let v2 = M4.gpu_matrix_read gB mk mcol vi tid;
-    AV.varray_write_cell' ar (mkCIdx 1sz vi tid) (mkAIdx 1 vi tid) v2;
+    AV.varray_write_cell' ar (mkAIdx 1 vi tid) (mkCIdx 1sz vi tid) v2;
     Pulse.Lib.Trade.elim_trade _ _;
     fold own_2_cols tile ar tid;
     i := vi +^ 1sz;

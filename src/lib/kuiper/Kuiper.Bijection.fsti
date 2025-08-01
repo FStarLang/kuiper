@@ -3,6 +3,7 @@ module Kuiper.Bijection
 #lang-pulse
 open Kuiper.Common
 open Kuiper.SizeT
+open FStar.Ghost { erased }
 module SZ = FStar.SizeT
 open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
 
@@ -72,10 +73,6 @@ let bij_sym (#a #b : Type) (d : a =~ b) : (b =~ a) =
 }
 
 inline_for_extraction noextract
-let o f g =
-  fun x -> f (g x)
-
-inline_for_extraction noextract
 let bij_comp (#a #b #c : Type) (ab : a =~ b) (bc : b =~ c) : (a =~ c) =
 {
   ff = bc.ff `o` ab.ff;
@@ -137,6 +134,7 @@ val bij_cardinal (n1 n2 : nat)
 the body of ff. It seems to try to try to define a bijection into SZ.t,
 regardless of the annotation on the letbinding and the annotation on the
 binder for m in gg. *)
+inline_for_extraction noextract
 let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
   {
     gg = (fun (m:szlt n) -> SZ.v m);
@@ -221,3 +219,40 @@ let bij_sz_sum (n1 : sz) (n2 : sz{SZ.fits (SZ.v n1 + SZ.v n2)})
   ff_gg = ez;
   gg_ff = ez;
 }
+
+open Kuiper.Injection
+
+let inj_bij (#a #b : Type) (bij : a =~ b) : (a @~> b) =
+  {
+    f = bij.ff;
+    is_inj = ez;
+  }
+
+let inj_bij' (#a #b : Type) (bij : a =~ b) : (b @~> a) =
+  {
+    f = bij.gg;
+    is_inj = ez;
+  }
+
+let bij_erase (#a #b : Type) (bij : a =~ b) : (erased a =~ erased b) =
+{
+  ff = (fun (x : erased a) -> bij.ff x <: erased b);
+  gg = (fun (x : erased b) -> bij.gg x <: erased a);
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
+(* These are useful *)
+let bij_is_surj (#a #b : Type) (bij : a =~ b) :
+  Lemma (Functions.is_surj #a #b bij.ff)
+        [SMTPat (Functions.is_surj #a #b bij.ff)]
+=
+  assert (forall x. bij.ff (bij.gg x) == x);
+   ()
+
+let bij_is_surj' (#a #b : Type) (bij : a =~ b) :
+  Lemma (Functions.is_surj #b #a bij.gg)
+        [SMTPat (Functions.is_surj #b #a bij.gg)]
+=
+  assert (forall x. bij.gg (bij.ff x) == x);
+   ()
