@@ -11,6 +11,7 @@ module Trade = Pulse.Lib.Trade
 module F = FStar.FunctionalExtensionality
 
 noeq
+inline_for_extraction
 type iarray (et : Type0) (#len : erased nat) (vw : aiview len) : Type0 =
   | IA of B.gpu_array et len
 

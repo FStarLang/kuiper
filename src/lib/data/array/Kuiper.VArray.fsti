@@ -1,5 +1,5 @@
 module Kuiper.VArray
-inline_for_extraction let _ = 1
+inline_for_extraction noextract let x = 1
 #lang-pulse
 
 (* Virtual arrays, re-indexable and view-shiftable. *)
@@ -13,8 +13,8 @@ open Kuiper.View
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
-inline_for_extraction noextract
 new
+inline_for_extraction
 val varray (#a : Type0) (#len : erased nat) (#st : Type0) (vw : aview a len st) : Type0
 
 inline_for_extraction noextract

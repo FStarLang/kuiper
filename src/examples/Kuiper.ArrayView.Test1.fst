@@ -1,4 +1,5 @@
 module Kuiper.ArrayView.Test1
+inline_for_extraction noextract let _ = 1
 #lang-pulse
 
 open Kuiper

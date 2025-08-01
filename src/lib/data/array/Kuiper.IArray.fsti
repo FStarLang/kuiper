@@ -1,5 +1,5 @@
 module Kuiper.IArray
-inline_for_extraction let _ = 1
+inline_for_extraction noextract let x = 1
 #lang-pulse
 
 open Kuiper
@@ -14,8 +14,8 @@ let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
     then y
     else f x'
 
-inline_for_extraction noextract
 new
+inline_for_extraction
 val iarray (et : Type0) (#len : erased nat) (vw : aiview len) : Type0
 
 inline_for_extraction noextract

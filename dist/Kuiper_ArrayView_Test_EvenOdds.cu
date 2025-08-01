@@ -4,12 +4,12 @@
 
 uint32_t Kuiper_ArrayView_Test_EvenOdds_foo_even(uint32_t *a)
 {
-  return ((uint32_t *)a)[20U];
+  return a[20U];
 }
 
 uint32_t Kuiper_ArrayView_Test_EvenOdds_foo_odd(uint32_t *a)
 {
-  return ((uint32_t *)a)[21U];
+  return a[21U];
 }
 
 uint32_t Kuiper_ArrayView_Test_EvenOdds_test(uint32_t *a)

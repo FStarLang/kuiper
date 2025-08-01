@@ -33,16 +33,14 @@ __hoisted_0(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((float_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((float_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 float_t
@@ -126,16 +124,14 @@ __hoisted_1(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((double_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((double_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 double_t
@@ -219,16 +215,14 @@ __hoisted_2(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((uint32_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((uint32_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 uint32_t
@@ -310,16 +304,14 @@ __hoisted_3(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((uint64_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((uint64_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 uint64_t
@@ -401,16 +393,14 @@ __hoisted_4(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((float_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((float_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 float_t
@@ -494,16 +484,14 @@ __hoisted_5(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((double_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((double_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 double_t
@@ -587,16 +575,14 @@ __hoisted_6(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((uint32_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((uint32_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 uint32_t
@@ -678,16 +664,14 @@ __hoisted_7(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((uint64_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((uint64_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 uint64_t
@@ -766,22 +750,16 @@ __hoisted_8(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((float_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((float_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 float_t
@@ -853,22 +831,16 @@ __hoisted_9(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((double_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((double_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 double_t
@@ -940,22 +912,16 @@ __hoisted_10(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((uint32_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((uint32_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 uint32_t
@@ -1025,22 +991,16 @@ __hoisted_11(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((uint64_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((uint64_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 uint64_t
@@ -1110,22 +1070,16 @@ __hoisted_12(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((float_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((float_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 float_t
@@ -1197,22 +1151,16 @@ __hoisted_13(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((double_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((double_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 double_t
@@ -1284,22 +1232,16 @@ __hoisted_14(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((uint32_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((uint32_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 uint32_t
@@ -1369,22 +1311,16 @@ __hoisted_15(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((uint64_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((uint64_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 uint64_t
@@ -1454,22 +1390,16 @@ __hoisted_16(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((float_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((float_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 float_t
@@ -1541,22 +1471,16 @@ __hoisted_17(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((double_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((double_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 double_t
@@ -1628,22 +1552,16 @@ __hoisted_18(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((uint32_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((uint32_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 uint32_t
@@ -1713,22 +1631,16 @@ __hoisted_19(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((uint64_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((uint64_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 uint64_t
@@ -1798,22 +1710,16 @@ __hoisted_20(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((float_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((float_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 float_t
@@ -1885,22 +1791,16 @@ __hoisted_21(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((double_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((double_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 double_t
@@ -1972,22 +1872,16 @@ __hoisted_22(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((uint32_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((uint32_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 uint32_t
@@ -2057,22 +1951,16 @@ __hoisted_23(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((uint64_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((uint64_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 uint64_t
@@ -2145,16 +2033,14 @@ __hoisted_24(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((float_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((float_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
@@ -2225,16 +2111,14 @@ __hoisted_25(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((double_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((double_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
@@ -2305,16 +2189,14 @@ __hoisted_26(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((uint32_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((uint32_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
@@ -2385,16 +2267,14 @@ __hoisted_27(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(mrow * tile + brow) * shared + vbk * tile + vk] *
-          ((uint64_t *)gB4)[(vbk * tile + vk) * cols + mcol * tile + bcol];
+        gA4[(mrow * tile + brow) * shared + vbk * tile + vk] *
+          gB4[(vbk * tile + vk) * cols + mcol * tile + bcol];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol]);
-  ((uint64_t *)gC4)[(mrow * tile + brow) * cols + mcol * tile + bcol] = s;
+  gC4[(mrow * tile + brow) * cols + mcol * tile + bcol] = sum;
 }
 
 void
@@ -2465,16 +2345,14 @@ __hoisted_28(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((float_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((float_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
@@ -2545,16 +2423,14 @@ __hoisted_29(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((double_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((double_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
@@ -2625,16 +2501,14 @@ __hoisted_30(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((uint32_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((uint32_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
@@ -2705,16 +2579,14 @@ __hoisted_31(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(vbk * tile + vk) * rows + mrow * tile + brow] *
-          ((uint64_t *)gB4)[(mcol * tile + bcol) * shared + vbk * tile + vk];
+        gA4[(vbk * tile + vk) * rows + mrow * tile + brow] *
+          gB4[(mcol * tile + bcol) * shared + vbk * tile + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow]);
-  ((uint64_t *)gC4)[(mcol * tile + bcol) * rows + mrow * tile + brow] = s;
+  gC4[(mcol * tile + bcol) * rows + mrow * tile + brow] = sum;
 }
 
 void
@@ -2782,22 +2654,16 @@ __hoisted_32(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((float_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((float_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -2856,22 +2722,16 @@ __hoisted_33(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((double_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((double_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -2930,22 +2790,16 @@ __hoisted_34(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((uint32_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((uint32_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -3004,22 +2858,16 @@ __hoisted_35(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared +
-          vbk * (size_t)32U + vk]
-        *
-          ((uint64_t *)gB4)[(vbk * (size_t)32U + vk) * cols +
-            mcol * (size_t)32U + threadIdx.x % (size_t)32U];
+        gA4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + vk] *
+          gB4[(vbk * (size_t)32U + vk) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
-      mcol * (size_t)32U + threadIdx.x % (size_t)32U]);
-  ((uint64_t *)gC4)[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
+  gC4[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
     mcol * (size_t)32U + threadIdx.x % (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -3078,22 +2926,16 @@ __hoisted_36(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((float_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((float_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -3152,22 +2994,16 @@ __hoisted_37(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((double_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((double_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -3226,22 +3062,16 @@ __hoisted_38(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((uint32_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((uint32_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -3300,22 +3130,16 @@ __hoisted_39(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(vbk * (size_t)32U + vk) * rows +
-          mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-        *
-          ((uint64_t *)gB4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
-            vbk * (size_t)32U + vk];
+        gA4[(vbk * (size_t)32U + vk) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
+          gB4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
-      mrow * (size_t)32U + threadIdx.x / (size_t)32U]);
-  ((uint64_t *)gC4)[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
+  gC4[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * rows +
     mrow * (size_t)32U + threadIdx.x / (size_t)32U]
-  = s;
+  = sum;
 }
 
 void
@@ -3374,22 +3198,16 @@ __hoisted_40(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((float_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((float_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3448,22 +3266,16 @@ __hoisted_41(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((double_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((double_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3522,22 +3334,16 @@ __hoisted_42(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((uint32_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((uint32_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3596,22 +3402,16 @@ __hoisted_43(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared +
-          vbk * (size_t)16U + vk]
-        *
-          ((uint64_t *)gB4)[(vbk * (size_t)16U + vk) * cols +
-            mcol * (size_t)16U + threadIdx.x % (size_t)16U];
+        gA4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + vk] *
+          gB4[(vbk * (size_t)16U + vk) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
-      mcol * (size_t)16U + threadIdx.x % (size_t)16U]);
-  ((uint64_t *)gC4)[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
+  gC4[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
     mcol * (size_t)16U + threadIdx.x % (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3670,22 +3470,16 @@ __hoisted_44(
     {
       size_t vk = k;
       sum1 +=
-        ((float_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((float_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  float_t s = sum;
-  KRML_HOST_IGNORE(((float_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((float_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3744,22 +3538,16 @@ __hoisted_45(
     {
       size_t vk = k;
       sum1 +=
-        ((double_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((double_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  double_t s = sum;
-  KRML_HOST_IGNORE(((double_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((double_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3818,22 +3606,16 @@ __hoisted_46(
     {
       size_t vk = k;
       sum1 +=
-        ((uint32_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((uint32_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint32_t s = sum;
-  KRML_HOST_IGNORE(((uint32_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((uint32_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 void
@@ -3892,22 +3674,16 @@ __hoisted_47(
     {
       size_t vk = k;
       sum1 +=
-        ((uint64_t *)gA4)[(vbk * (size_t)16U + vk) * rows +
-          mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-        *
-          ((uint64_t *)gB4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
-            vbk * (size_t)16U + vk];
+        gA4[(vbk * (size_t)16U + vk) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
+          gB4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + vk];
       k = vk + (size_t)1U;
     }
     sum = sum1;
     bk = vbk + (size_t)1U;
   }
-  uint64_t s = sum;
-  KRML_HOST_IGNORE(((uint64_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
-      mrow * (size_t)16U + threadIdx.x / (size_t)16U]);
-  ((uint64_t *)gC4)[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
+  gC4[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * rows +
     mrow * (size_t)16U + threadIdx.x / (size_t)16U]
-  = s;
+  = sum;
 }
 
 void

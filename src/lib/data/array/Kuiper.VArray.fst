@@ -13,6 +13,7 @@ module IView = Kuiper.IView
 module IArray = Kuiper.IArray
 
 noeq
+inline_for_extraction
 type varray
   (#et:Type0) (#len : erased nat) (#st : Type0)
   (vw : aview et len st)
