@@ -45,5 +45,3 @@ instance _cview_strided
   };
   compat = ez;
 }
-
-let x = 1ul
