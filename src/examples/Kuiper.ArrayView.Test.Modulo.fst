@@ -45,3 +45,6 @@ instance _cview_strided
   };
   compat = ez;
 }
+
+(* force extraction *)
+let x = 1ul
