@@ -3,6 +3,7 @@
 #include "Kuiper_BasicFloat.h"
 
 __global__
+
 /**
   hoisted when extracting main
 */

@@ -52,7 +52,25 @@ let shmems_desc
   SHArray et (bk *^ bn);
 ]
 
-#set-options "--z3smtopt '(set-option :smt.arith.solver 6)'"
+let own_thread_tile
+  (#et : Type0) {| scalar et |}
+  (bm bn : szp)
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn})
+  (#mrows #mcols : erased nat)
+  (#lC : mlayout4 mrows mcols bm bn)
+  (gC : gpu_matrix4 et lC)
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (bm/tm * (bn/tn)))
+  : slprop
+  = (forall+ (i : natlt tm) (j : natlt tn).
+      (exists* v.
+        m4_pts_to_cell gC
+          (bid / mcols) (bid % mcols)
+          ((tid / (bn/tn) * tm) + i)
+          ((tid % (bn/tn) * tn) + j)
+          v))
+
 unfold
 let kpre1
   (#et : Type0) {| scalar et |}
@@ -76,13 +94,7 @@ let kpre1
   =
   (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA) **
   (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB) **
-  (forall+ (i : natlt tm) (j : natlt tn).
-    (exists* v.
-      m4_pts_to_cell gC
-        (bid / mcols) (bid % mcols)
-        ((tid / (bn/tn) * tm) + i)
-        ((tid % (bn/tn) * tn) + j)
-        v))
+  own_thread_tile bm bn tm tn gC bid tid
 
 unfold
 let kpost1
@@ -107,15 +119,8 @@ let kpost1
   =
   (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA) **
   (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB) **
-  (forall+ (i : natlt tm) (j : natlt tn).
-    (exists* v.
-      m4_pts_to_cell gC
-        (bid / mcols) (bid % mcols)
-        ((tid / (bn/tn) * tm) + i)
-        ((tid % (bn/tn) * tn) + j)
-        v))
-// #pop-options
-
+  own_thread_tile bm bn tm tn gC bid tid
+  
 let own_cell
   (#et : Type0)
   (#rows #cols : nat)
@@ -319,9 +324,9 @@ let kpost
   : slprop
   =
   kpost1 comb tm tn gA gB gC eA eB fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn/tn)) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn/tn)) x) **
-  barrier_tok slA slB (fst sh) (fst (snd sh)) (2 * mshared) (bm/tm * bn/tn) tid
+  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
+  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
+  barrier_tok slA slB (fst sh) (fst (snd sh)) (2 * mshared) (bm/tm * (bn/tn)) tid
 
 inline_for_extraction noextract
 fn populate_shmem
@@ -471,10 +476,188 @@ fn subproducts2d
   }
 }
 
+#push-options "--retry 4 --query_stats"
+#restart-solver
+let x = 3
+let _dummy = assert (5 * x == 15)
+
+inline_for_extraction noextract
+fn epilogue
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (bm bn bk : szp)
+  (#mrows #mcols : szp)
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn})
+  (rchProd: array et)
+  // (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
+  // (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
+  (#lC : mlayout4 mrows   mcols   bm bn)
+  {| clayout4 lC |}
+  (gC : gpu_matrix4 et lC)
+  (bid : szlt (mrows * mcols))
+  (tid : szlt (bm/tm * (bn/tn)))
+  requires
+    gpu **
+    own_thread_tile bm bn tm tn gC bid tid **
+    // thread_id (bm/tm * (bn/tn)) tid **
+    // block_id (mrows * mcols) bid **
+    (exists* vrchProd.
+      pure (Seq.length vrchProd == tm * tn) **
+      (rchProd |-> vrchProd))
+  ensures
+    gpu **
+    own_thread_tile bm bn tm tn gC bid tid **
+    (exists* vrchProd'.
+      pure (Seq.length vrchProd' == tm * tn) **
+      (rchProd |-> vrchProd'))
+    // thread_id (bm/tm * (bn/tn)) tid **
+    // block_id (mrows * mcols) bid
+  {
+    unfold own_thread_tile bm bn tm tn gC bid tid;
+
+    let mrow = bid /^ mcols;
+    let mcol = bid %^ mcols;
+    let tRowOff = tid /^ (bn /^ tn) *^ tm;
+    let tColOff = tid %^ (bn /^ tn) *^ tn;
+
+    forevery_flatten #(natlt tm) #_ #(natlt tn) _;
+    ghost
+    fn aux (i: (natlt tm & natlt tn))
+    requires
+      (exists* (v: et).
+        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
+          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
+          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
+    ensures
+      (exists* (v: et).
+        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v tRowOff + i._1)
+          (SZ.v tColOff + i._2) v)
+    {
+      with v. _;
+      assert pure(SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm == tRowOff);
+      assert pure(SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn == tColOff);
+      rewrite
+        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
+          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
+          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
+      as
+        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v tRowOff + i._1)
+          (SZ.v tColOff + i._2) v);
+      ()
+    };
+    forevery_map _ _ aux;
+
+    // Pulse.Lib.Array.pts_to_len rchProd;
+    let mut resIdxM = 0sz;
+    while (SZ.(!resIdxM <^ tm))
+      invariant
+        exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)).
+          (resIdxM |-> vresIdxM) **
+          (rchProd |-> vrchProd)
+    {
+      let mut resIdxN = 0sz;
+      while (SZ.(!resIdxN <^ tn))
+        invariant
+          exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)).
+            (resIdxN |-> vresIdxN) **
+            (rchProd |-> vrchProd)
+      {
+        let vresIdxM = !resIdxM;
+        let vresIdxN = !resIdxN;
+
+        (* get separate access to the thread's current cell in gC *)
+        forevery_extract #(natlt tm & natlt tn) (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN)) _;
+
+        (* read the current cell in gC *)
+        with bi0 bj0 i0 j0 v0.
+        rewrite M4.gpu_matrix_pts_to_cell gC bi0  bj0  i0   j0   v0
+            as M4.gpu_matrix_pts_to_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v0;
+        let v0 = M4.gpu_matrix_read_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN);
+
+        (* add the new result in the register cache to the value from gC and overwrite the the cell in gC *)
+        open Pulse.Lib.Array;
+        let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
+        let v' = comb v0 v1;
+        M4.gpu_matrix_write_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v';
+        with bi0 bj0 i0 j0 v0.
+        rewrite M4.gpu_matrix_pts_to_cell gC bi0  bj0  i0   j0   v0
+            as M4.gpu_matrix_pts_to_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v0;
+
+        (* return separate access to the thread's current cellin gC *)
+        // rewrite each (SZ.v mrow) as (SZ.v bid / (SZ.v mcols));
+        // rewrite each (SZ.v mcol) as (SZ.v bid % (SZ.v mcols));
+        Pulse.Lib.Trade.elim_trade
+          (exists* v.
+            m4_pts_to_cell gC #1.0R
+              mrow mcol
+              (tRowOff + vresIdxM) (tColOff + vresIdxN) v)
+          (forall+ (ii : (natlt tm & natlt tn)).
+            (exists* v.
+              m4_pts_to_cell gC #1.0R
+                mrow mcol
+                (tRowOff + ii._1) (tColOff + ii._2) v));
+
+        resIdxN := !resIdxN +^ 1sz;
+      };
+
+      resIdxM := !resIdxM +^ 1sz;
+    };
+
+    ghost
+    fn raux (i: (natlt tm & natlt tn))
+    requires
+      (exists* (v: et).
+        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v tRowOff + i._1)
+          (SZ.v tColOff + i._2) v)
+    ensures
+      (exists* (v: et).
+        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
+          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
+          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
+    {
+      with v. _;
+      rewrite
+        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v tRowOff + i._1)
+          (SZ.v tColOff + i._2) v)
+      as
+        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
+          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
+          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v);
+      ()
+    };
+    forevery_map _ _ raux;
+
+    forevery_unflatten #(natlt tm) #_ #(natlt tn) (fun i -> fun j ->
+            exists* (v: et).
+              M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+                  #(SZ.v bn) #lC gC #1.0R
+                (SZ.v bid / SZ.v mcols) (SZ.v bid % SZ.v mcols)
+                (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i)
+                (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + j)
+                v);
+
+    fold own_thread_tile bm bn tm tn gC bid tid;
+    ()
+  }
+#pop-options
+
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
 // #push-options "--retry 10"
-// #push-options "--split_queries always --debug SMTFail"
+// #push-options "--debug SMTFail --print_implicits"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -514,7 +697,6 @@ fn kf
     thread_id (bm/tm * (bn/tn)) tid **
     block_id (mrows * mcols) bid
 {
-  assume pure False;
   let sarA : gpu_array et (bm * bk) = fst sh;
   let sarB : gpu_array et (bk * bn) = fst (snd sh);
   rewrite each fst sh as sarA;
@@ -532,7 +714,6 @@ fn kf
   M.gpu_matrix_abs' slB sarB;
   let sB = M.from_array slB sarB;
   rewrite each M.from_array slB sarB as sB;
-
 
   let mrow = bid /^ mcols;
   let mcol = bid %^ mcols;
@@ -598,91 +779,7 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
-  forevery_flatten #(natlt tm) #_ #(natlt tn) _;
-  ghost
-  fn aux (i: (natlt tm & natlt tn))
-  requires
-    (exists* (v: et).
-      M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-        (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-        (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
-  ensures
-    (exists* (v: et).
-      M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-        (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i._1)
-        (SZ.v threadCol * SZ.v tn + i._2) v)
-  {
-    with v. _;
-    rewrite
-      (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-        (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-        (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
-    as
-      (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-        (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i._1)
-        (SZ.v threadCol * SZ.v tn + i._2) v);
-    ()
-  };
-  forevery_map _ _ aux;
-
-  (* Write all the accumulated dotproducts. *)
-  // Pulse.Lib.Array.pts_to_len rchProd;
-  let mut resIdxM = 0sz;
-  while (SZ.(!resIdxM <^ tm))
-    invariant
-      exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)).
-        (resIdxM |-> vresIdxM) **
-        (rchProd |-> vrchProd)
-  {
-    let mut resIdxN = 0sz;
-    while (SZ.(!resIdxN <^ tn))
-      invariant
-        exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)).
-          (resIdxN |-> vresIdxN) **
-          (rchProd |-> vrchProd)
-    {
-      let vresIdxM = !resIdxM;
-      let vresIdxN = !resIdxN;
-
-      (* get separate access to the thread's current cell in gC *)
-      forevery_extract #(natlt tm & natlt tn) (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN)) _;
-
-      (* read the current cell in gC *)
-      with bi0 bj0 i0 j0 v0.
-        rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-            as m4_pts_to_cell gC mrow mcol (threadRow * tm + vresIdxM) (threadCol *^ tn +^ vresIdxN) v0;
-      let v0 = M4.gpu_matrix_read_cell gC mrow mcol (threadRow *^ tm +^ vresIdxM) (threadCol *^ tn +^ vresIdxN);
-
-      (* add the new result in the register cache to the value from gC and overwrite the the cell in gC *)
-      open Pulse.Lib.Array;
-      let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
-      let v' = comb v0 v1;
-      M4.gpu_matrix_write_cell gC mrow mcol (threadRow *^ tm +^ vresIdxM) (threadCol *^ tn +^ vresIdxN) v';
-      with bi0 bj0 i0 j0 v0.
-        rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-            as m4_pts_to_cell gC mrow mcol (threadRow * tm + vresIdxM) (threadCol *^ tn +^ vresIdxN) v0;
-
-      (* return separate access to the thread's current cellin gC *)
-      Pulse.Lib.Trade.elim_trade
-        (exists* v.
-          m4_pts_to_cell gC #1.0R
-            mrow mcol
-            (threadRow * tm + vresIdxM) (threadCol * tn + vresIdxN) v)
-        (forall+ (ii : (natlt tm & natlt tn)).
-          (exists* v.
-            m4_pts_to_cell gC #1.0R
-              mrow mcol
-              (threadRow * tm + ii._1) (threadCol * tn + ii._2) v));
-
-      resIdxN := !resIdxN +^ 1sz;
-    };
-
-    resIdxM := !resIdxM +^ 1sz;
-  };
+  epilogue comb bm bn bk tm tn rchProd gC bid tid;
 
   M.gpu_matrix_concr sA; rewrite each M.core sA as sarA;
   M.gpu_matrix_concr sB; rewrite each M.core sB as sarB;
@@ -691,44 +788,6 @@ fn kf
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
-
-  ghost
-  fn raux (i: (natlt tm & natlt tn))
-  requires
-    (exists* (v: et).
-      M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-        (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i._1)
-        (SZ.v threadCol * SZ.v tn + i._2) v)
-  ensures
-    (exists* (v: et).
-      M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-        (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-        (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
-  {
-    with v. _;
-    rewrite
-      (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-        (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i._1)
-        (SZ.v threadCol * SZ.v tn + i._2) v)
-    as
-      (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-        (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-        (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v);
-    ()
-  };
-  forevery_map _ _ raux;
-  forevery_unflatten #(natlt tm) #_ #(natlt tn) (fun i -> fun j ->
-          exists* (v: et).
-            M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-                #(SZ.v bn) #lC gC #1.0R
-              (SZ.v bid / SZ.v mcols) (SZ.v bid % SZ.v mcols)
-              (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i)
-              (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + j)
-              v);
   ()
 }
 // #pop-options
