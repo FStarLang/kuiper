@@ -147,18 +147,6 @@ fn test_simpler (a : gpu_array u32 100)
   res
 }
 
-// TODO: Find a comfortable way of proving this. The definition of from_seq uses
-// it_of_nat, which uses choice as it is reversing the (surjective) injection
-// and is probably bad for SMT.
-let split_lemma #et (#len:nat) (s : lseq et len)
-  : Lemma (
-            from_seq (sum_aview (even_view et len) (odd_view et len)) s
-            ==
-            (seq_evens s, seq_odds s)
-  )
-  [SMTPat (from_seq (sum_aview (even_view et len) (odd_view et len)) s)]
-= admit()
-
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
   : Lemma (
             to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr)
@@ -176,6 +164,20 @@ let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len
   assert (Seq.equal
               (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr))
               (seq_interleave sl sr))
+
+
+let split_lemma #et (#len:nat) (s : lseq et len)
+  : Lemma (
+            from_seq (sum_aview (even_view et len) (odd_view et len)) s
+            ==
+            (seq_evens s, seq_odds s)
+  )
+  [SMTPat (from_seq (sum_aview (even_view et len) (odd_view et len)) s)]
+(* Very easy proof: map each side to a sequence, they are trivially equal by
+   SMT, the bijection then gives us our result. *)
+= assert (Seq.equal
+            (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s))
+            s)
 
 fn test_write (a : gpu_array u32 100)
     (#v0 : erased (lseq u32 100))

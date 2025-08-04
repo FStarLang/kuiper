@@ -272,4 +272,16 @@ instance nb_nat_sz (n:nat{SZ.fits n}) : natural_bijection (natlt n) (szlt n) = {
   bij = fin_size_t_bij _;
 }
 
+instance nb_either (a1 a2 b1 b2 : _) (nb1 : natural_bijection a1 b1)
+  (nb2 : natural_bijection a2 b2)
+  : natural_bijection (either a1 a2) (either b1 b2) = {
+  bij = bij_either nb1.bij nb2.bij;
+}
+
+instance nb_prod (a1 a2 b1 b2 : Type) (nb1 : natural_bijection a1 b1)
+  (nb2 : natural_bijection a2 b2)
+  : natural_bijection (a1 & a2) (b1 & b2) = {
+  bij = bij_prod nb1.bij nb2.bij;
+}
+
 let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d.bij
