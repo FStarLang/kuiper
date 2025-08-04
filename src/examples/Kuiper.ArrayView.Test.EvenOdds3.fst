@@ -11,6 +11,7 @@ open Kuiper.View
 open Kuiper.VArray
 open Kuiper.Bijection
 open Kuiper.Injection
+open Kuiper.EvenOdds
 module IView = Kuiper.IView
 module SZ    = FStar.SizeT
 
@@ -62,13 +63,12 @@ instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.cview (odd_view
 let _wat_even (#len : nat{SZ.fits len}) :
   Lemma (reveal (_cview_even #u32 #len).bij == fin_size_t_bij ((len + 2 - 1 - 0) / 2))
         [SMTPat (_cview_even #u32 #len)]
-= admit()
+= assert_norm (reveal (_cview_even #u32 #len).bij == fin_size_t_bij ((len + 2 - 1 - 0) / 2))
 
 let _wat_odd (#len : nat{SZ.fits len}) :
   Lemma (reveal (_cview_odd #u32 #len).bij == fin_size_t_bij ((len + 2 - 1 - 1) / 2))
         [SMTPat (_cview_odd #u32 #len)]
-= admit()
-
+= assert_norm (reveal (_cview_odd #u32 #len).bij == fin_size_t_bij ((len + 2 - 1 - 1) / 2))
 
 let _sanity1 (#len : nat{SZ.fits len}) (x : szlt ((len + 1) / 2)) : Lemma (ci_to_ai (even_view u32 len) x == SZ.v x)
   = ()
@@ -132,32 +132,6 @@ fn test (a : gpu_array u32 100)
 }
 
 
-noextract
-let seq_evens #a (#n : nat)
-  (s : lseq a n)
-  : Tot (lseq a ((n+1)/2))
-=
-  Seq.init ((n+1)/2) fun i -> Seq.index s (2 * i)
-
-noextract
-let seq_odds #a (#n : nat)
-  (s : lseq a n)
-  : Tot (lseq a (n/2))
-=
-  Seq.init (n/2) fun i -> Seq.index s (2 * i + 1)
-
-noextract
-let seq_interleave #a (#n : nat)
-  (s1 : lseq a ((n + 1) / 2))
-  (s2 : lseq a (n / 2))
-  : Tot (lseq a n)
-=
-  Seq.init n fun i ->
-    if i % 2 = 0 then
-      Seq.index s1 (i / 2)
-    else
-      Seq.index s2 ((i-1) / 2)
-
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
   : Lemma (
             to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr)
@@ -169,7 +143,7 @@ let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len
       : Lemma (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr) @! i
                ==
                seq_interleave sl sr @! i)
-  = admit () // flaky
+  = admit()
   in
   Classical.forall_intro (Classical.move_requires aux);
   assert (Seq.equal
