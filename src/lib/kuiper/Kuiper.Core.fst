@@ -21,7 +21,8 @@ fn get_core
   requires p
   ensures  p ** pure (core_of p)
 {
-  _get_core #p ();
+  let f = d._get_core;
+  f ();
 }
 
 instance has_core_vec_pts_to

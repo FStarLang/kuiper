@@ -39,18 +39,22 @@ let aview_from_mlayout
   (et : Type) (#rows #cols : erased nat)
   (l : mlayout rows cols)
   : vw : V.aview et (rows * cols) (ematrix et rows cols) { V.is_full_view vw } =
-  let open Kuiper.Bijection in
-  {
-    iview = {
+let open Kuiper.Bijection in
+{
+  iview = {
+    sch = {
       ait = natlt rows & natlt cols;
       ait_enum = solve;
+    };
+    step = {
       imap = {
         f = l.bij.ff;
         is_inj = ez;
       };
     };
-    igm = ematrix_is_ghost_map et;
-  }
+  };
+  igm = ematrix_is_ghost_map et;
+}
 
 let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols)
   (s : lseq et (rows * cols))

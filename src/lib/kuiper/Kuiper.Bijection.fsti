@@ -137,8 +137,8 @@ binder for m in gg. *)
 inline_for_extraction noextract
 let fin_size_t_bij (n:nat{SZ.fits n}) : (natlt n =~ szlt n) =
   {
-    gg = (fun (m:szlt n) -> SZ.v m);
-    ff = (fun (i:natlt n) -> SZ.uint_to_t i <: szlt n);
+    ff = (fun (i : natlt n) -> SZ.uint_to_t i <: szlt n);
+    gg = (fun (m : szlt n)  -> SZ.v m <: natlt n);
     ff_gg = ez;
     gg_ff = ez;
   }
@@ -261,27 +261,27 @@ let bij_is_surj' (#a #b : Type) (bij : a =~ b) :
 (* A type of "natural" bijections that we solve via
 typeclass resolution. *)
 class natural_bijection (a b : Type) = {
-  bij : (a =~ b);
+  _bij : (a =~ b);
 }
 
 instance nb_self (a:Type) : natural_bijection a a = {
-  bij = bij_self _;
+  _bij = bij_self _;
 }
 
 instance nb_nat_sz (n:nat{SZ.fits n}) : natural_bijection (natlt n) (szlt n) = {
-  bij = fin_size_t_bij _;
+  _bij = fin_size_t_bij _;
 }
 
 instance nb_either (a1 a2 b1 b2 : _) (nb1 : natural_bijection a1 b1)
   (nb2 : natural_bijection a2 b2)
   : natural_bijection (either a1 a2) (either b1 b2) = {
-  bij = bij_either nb1.bij nb2.bij;
+  _bij = bij_either nb1._bij nb2._bij;
 }
 
 instance nb_prod (a1 a2 b1 b2 : Type) (nb1 : natural_bijection a1 b1)
   (nb2 : natural_bijection a2 b2)
   : natural_bijection (a1 & a2) (b1 & b2) = {
-  bij = bij_prod nb1.bij nb2.bij;
+  _bij = bij_prod nb1._bij nb2._bij;
 }
 
-let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d.bij
+let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d._bij

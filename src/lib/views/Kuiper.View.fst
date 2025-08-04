@@ -11,7 +11,7 @@ let to_from (#a:Type) (#len:nat) (#st:Type)
   (s : lseq a len)
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
-  = let _ = vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i) in
+  = let _ = vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i) in
     (* funny, mentioning the term above (= from_seq vw s) makes the proof work. *)
     let aux (i : natlt len)
       : Lemma (to_seq vw (from_seq vw s) @! i == s @! i) =
@@ -24,14 +24,14 @@ let to_from (#a:Type) (#len:nat) (#st:Type)
         == {} 
         vw.igm.bij.ff (from_seq vw s) (it_of_nat vw i);
         == {}
-        vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i))
+        vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i))
           (it_of_nat vw i);
         == {}
-        (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i)
+        (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i)
           (it_of_nat vw i);
         == {}
         s @! it_to_nat vw (it_of_nat vw i);
-        == {}
+        == { assert_norm (it_to_nat vw (it_of_nat vw i) == i) }
         s @! i;
       }
     in
@@ -48,16 +48,16 @@ let from_to (#a:Type) (#len:nat) (#st:Type)
   let rhs = v in
   let lf = vw.igm.bij.ff lhs in
   let rf = vw.igm.bij.ff rhs in
-  let aux (i : vw.iview.ait)
+  let aux (i : vw.iview.sch.ait)
     : Lemma (lf i == rf i) =
     calc (==) {
       lf i;
       == {}
       vw.igm.bij.ff (from_seq vw (to_seq vw v)) i;
       == {}
-      vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> to_seq vw v @! it_to_nat vw i)) i;
+      vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> to_seq vw v @! it_to_nat vw i)) i;
       == {}
-      (F.on_g vw.iview.ait <| fun i -> to_seq vw v @! it_to_nat vw i) i;
+      (F.on_g vw.iview.sch.ait <| fun i -> to_seq vw v @! it_to_nat vw i) i;
       == {}
       to_seq vw v @! it_to_nat vw i;
       == {}
@@ -79,7 +79,7 @@ let from_to (#a:Type) (#len:nat) (#st:Type)
 let to_seq_upd (#a:Type) (#len:nat) (#st:Type)
   (vw : aview a len st { is_full_view vw })
   (v : st)
-  (i : vw.iview.ait)
+  (i : vw.iview.sch.ait)
   (x : a)
   : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
           [SMTPat (to_seq vw (vw.igm.upd v i x))]

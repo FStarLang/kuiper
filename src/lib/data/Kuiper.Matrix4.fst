@@ -68,17 +68,18 @@ instance cview_from_clayout4
 {
   fits = ();
 
-  cit = cit l;
-
-  (* Fill all this in. *)
-  bij = clayout4_bij l ();
-
-  imap = {
-    f = clayout4_imap c;
-    is_inj = (fun idx1 idx2 -> admit());
+  sch = {
+    cit = cit l;
+    bij = clayout4_bij l ();
   };
 
-  compat = ez;
+  step = {
+    cimap = {
+      f = clayout4_imap c;
+      is_inj = (fun idx1 idx2 -> admit());
+    };
+    compat = ez;
+  };
 }
 
 inline_for_extraction noextract
@@ -374,6 +375,7 @@ let gpu_matrix_pts_to_cell
         undivmod bcols (bj, j)) v
 
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
@@ -407,7 +409,9 @@ fn gpu_matrix_read_cell
     gpu_matrix_pts_to_cell gm #f bi bj i j v0;
   v;
 }
+#pop-options
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
@@ -427,7 +431,6 @@ fn gpu_matrix_write_cell
     gpu **
     gpu_matrix_pts_to_cell gm bi bj i j v1
 {
-  assume pure False; // stopgap, fix
   // let ci : cit l = (bi, bj, i, j);
   // ^ having this here worsens code generation by introducing
   // more intermediate variables. Why? Every Pulse let is supposed
@@ -444,6 +447,7 @@ fn gpu_matrix_write_cell
   rewrite A.varray_pts_to_cell gm i1 lv1 as
     gpu_matrix_pts_to_cell gm bi bj i j v1;
 }
+#pop-options
 
 ghost
 fn gpu_matrix_explode
@@ -463,7 +467,7 @@ fn gpu_matrix_explode
   A.varray_explode gm;
   (* Change the type... convince pulse. *)
   forevery_rw_type
-    (aview_from_mlayout et l).iview.ait
+    (aview_from_mlayout et l).iview.sch.ait
     (natlt (mrows * brows) & natlt (mcols * bcols))
     (fun rc ->
       A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));

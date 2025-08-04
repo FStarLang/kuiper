@@ -54,8 +54,8 @@ type ait (tile : valid_tile) = either (natlt tile & natlt tile) (natlt tile & na
 inline_for_extraction noextract
 type cit (tile : valid_tile) = either (szlt tile & szlt tile) (szlt tile & szlt tile)
 
-let chk1 et (tile : valid_tile) = assert ((aview_2tile2 et tile).iview.ait == ait tile)
-let chk2 et (tile : valid_tile) = assert_norm ((ciview_2tile2 et tile).cit == cit tile)
+let chk1 et (tile : valid_tile) = assert ((aview_2tile2 et tile).iview.sch.ait == ait tile)
+let chk2 et (tile : valid_tile) = assert_norm ((ciview_2tile2 et tile).sch.cit == cit tile)
 
 let mkAIdx (#tile:valid_tile) (i : natlt 2) (j : natlt tile) (k : natlt tile) : ait tile =
   match i with

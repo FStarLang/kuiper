@@ -8,7 +8,7 @@ open FStar.Tactics.Typeclasses
 
 [@@erasable]
 class enumerable (a:Type) = {
-  [@@@no_method]_cardinal : nat;
+  _cardinal : nat;
   bij : a =~ natlt _cardinal;
 }
 

@@ -17,12 +17,16 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
   aview et len (lseq et ((len + stride - 1 - offset) / stride))
 = {
   iview = {
-    ait = natlt ((len + stride - 1 - offset) / stride);
-    ait_enum = solve;
-    imap = {
-      f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);
-      is_inj = ez;
-    }
+    sch = {
+      ait = natlt ((len + stride - 1 - offset) / stride);
+      ait_enum = solve;
+    };
+    step = {
+      imap = {
+        f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);
+        is_inj = ez;
+      };
+    };
   };
   igm = solve;
 }
@@ -37,13 +41,17 @@ instance _cview_strided
 : IView.ciview (strided_view et len stride offset).iview
 = {
   fits = ();
-  cit  = szlt ((len + stride - 1 - offset) / stride);
-  bij  = natural;
-  imap = {
-    f = (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
-    is_inj = ez;
+  sch = {
+    cit  = szlt ((len + stride - 1 - offset) / stride);
+    bij  = natural;
   };
-  compat = ez;
+  step = {
+    cimap = {
+      f = (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
+      is_inj = ez;
+    };
+    compat = ez;
+  };
 }
 
 (* force extraction *)

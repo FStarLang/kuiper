@@ -16,11 +16,15 @@ module SZ    = FStar.SizeT
 noextract
 let even_view et len : aview et len (lseq et ((len + 1) / 2)) = {
   iview = {
-    ait = natlt ((len + 1) / 2);
-    ait_enum = solve;
-    imap = {
-      f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
-      is_inj = ez;
+    sch = {
+      ait = natlt ((len + 1) / 2);
+      ait_enum = solve;
+    };
+    step = {
+      imap = {
+        f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
+        is_inj = ez;
+      };
     }
   };
   igm = solve;
@@ -29,12 +33,16 @@ let even_view et len : aview et len (lseq et ((len + 1) / 2)) = {
 noextract
 let odd_view et len : aview et len (lseq et (len / 2)) = {
   iview = {
-    ait = natlt (len / 2);
-    ait_enum = solve;
-    imap = {
-      f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);
-      is_inj = ez;
-    }
+    sch = {
+      ait = natlt (len / 2);
+      ait_enum = solve;
+    };
+    step = {
+      imap = {
+        f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);
+        is_inj = ez;
+      };
+    };
   };
   igm = solve;
 }
@@ -42,25 +50,33 @@ let odd_view et len : aview et len (lseq et (len / 2)) = {
 inline_for_extraction noextract
 instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview = {
   fits = ();
-  cit  = szlt ((len + 1) / 2);
-  bij  = fin_size_t_bij _;
-  imap = {
-    f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
-    is_inj = ez;
+  sch = {
+    cit  = szlt ((len + 1) / 2);
+    bij  = fin_size_t_bij _;
   };
-  compat = ez;
+  step = {
+    cimap = {
+      f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
+      is_inj = ez;
+    };
+    compat = ez;
+  };
 }
 
 inline_for_extraction noextract
 instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview = {
   fits = ();
-  cit  = szlt (len / 2);
-  bij  = fin_size_t_bij _;
-  imap = {
-    f = (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
-    is_inj = ez;
+  sch = {
+    cit  = szlt (len / 2);
+    bij  = fin_size_t_bij _;
   };
-  compat = ez;
+  step = {
+    cimap = {
+      f = (fun (i : szlt (len / 2)) -> 1sz +^ i `SZ.mul` 2sz <: szlt len);
+      is_inj = ez;
+    };
+    compat = ez;
+  };
 }
 
 fn foo_even (a : varray (even_view u32 100))

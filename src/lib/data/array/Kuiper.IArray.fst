@@ -50,19 +50,19 @@ let iarray_pts_to_cell
   (#len : erased nat) (#vw : aiview len)
   ([@@@mkey] a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.ait)
+  ([@@@mkey]i : vw.sch.ait)
   (v : et)
   : slprop
-  = gpu_pts_to_cell (core a) #f (i |~> vw.imap) seq![v]
+  = gpu_pts_to_cell (core a) #f (i |~> vw.step.imap) seq![v]
 
 let iarray_pts_to
   (#et:Type0) (#len : erased nat) (#vw : aiview len)
   ([@@@mkey] a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
-  (v : (vw.ait -> GTot et))
+  (v : (vw.sch.ait -> GTot et))
   : slprop
   = pure (SZ.fits len) **
-    (forall+ (i : vw.ait).
+    (forall+ (i : vw.sch.ait).
       iarray_pts_to_cell a #f i (v i))
 
 ghost
@@ -72,7 +72,7 @@ fn iarray_pts_to_ref
   (#vw : aiview len )
   (a : iarray et vw)
   (#f : perm)
-  (#v : (vw.ait -> GTot et))
+  (#v : (vw.sch.ait -> GTot et))
   preserves
     a |-> Frac f v
   ensures
@@ -89,7 +89,7 @@ fn iarray_ext
   (#vw : aiview len)
   (a : iarray et vw)
   (#f : perm)
-  (v1 v2 : (vw.ait -> GTot et))
+  (v1 v2 : (vw.sch.ait -> GTot et))
   requires pure (forall x. v1 x == v2 x)
   requires a |-> Frac f v1
   ensures  a |-> Frac f v2
@@ -101,7 +101,7 @@ fn iarray_ext
   fold iarray_pts_to a #f v2;
 }
 
-(* Note: the functions below use the Enumerable instance for vw.ait
+(* Note: the functions below use the Enumerable instance for vw.sch.ait
    that is inside the aview record.
    We do this since it's
    not necessary for that enumeration to match the one in the typeclass system.
@@ -116,11 +116,11 @@ fn iarray_explode
   (#vw : aiview len)
   (a : iarray et vw)
   (#f : perm)
-  (#v : (vw.ait -> GTot et))
+  (#v : (vw.sch.ait -> GTot et))
   requires
     a |-> Frac f v
   ensures
-    forall+ (i : vw.ait).
+    forall+ (i : vw.sch.ait).
       Cell a i |-> Frac f (v i)
 {
   unfold iarray_pts_to a #f v;
@@ -133,10 +133,10 @@ fn iarray_implode
   (#vw : aiview len)
   (a : iarray et vw)
   (#f : perm)
-  (#v : (vw.ait -> GTot et))
+  (#v : (vw.sch.ait -> GTot et))
   requires pure (SZ.fits len)
   requires
-    forall+ (i : vw.ait).
+    forall+ (i : vw.sch.ait).
       Cell a i |-> Frac f (v i)
   ensures
     a |-> Frac f v
@@ -230,11 +230,11 @@ fn iarray_end2_
   (#vw : aiview len { is_full_view vw })
   (a : iarray et vw)
   (#f : perm)
-  (#v : vw.ait -> GTot et)
+  (#v : vw.sch.ait -> GTot et)
   requires
     a |-> Frac f v
   ensures
-    core a |-> Frac f (Seq.init_ghost len (fun i -> v (it_of_nat vw i)))
+    core a |-> Frac f (Seq.init_ghost len (fun (i : natlt len) -> v (it_of_nat vw i)))
 {
   unfold iarray_pts_to a #f v;
   (* prove later... this should be fine. *)
@@ -247,13 +247,13 @@ fn iarray_end2
   (#vw : aiview len { is_full_view vw })
   (a : iarray et vw)
   (#f : perm)
-  (#v : vw.ait -> GTot et)
+  (#v : vw.sch.ait -> GTot et)
   requires
     a |-> Frac f v
   returns
     a' : gpu_array et len
   ensures
-    a' |-> Frac f (Seq.init_ghost len (fun i -> v (it_of_nat vw i)))
+    a' |-> Frac f (Seq.init_ghost len (fun (i : natlt len) -> v (it_of_nat vw i)))
 {
   iarray_end2_ a;
   (core a)
@@ -265,10 +265,10 @@ fn iarray_reindex_
   (#vw : aiview len)
   (#ait' : Type)
   {| Enumerable.enumerable ait' |}
-  (bij : vw.ait =~ ait')
+  (bij : vw.sch.ait =~ ait')
   (a : iarray et vw)
   (#f : perm)
-  (#v : (vw.ait -> GTot et))
+  (#v : (vw.sch.ait -> GTot et))
   requires
     a |-> Frac f v
   ensures
@@ -279,7 +279,7 @@ fn iarray_reindex_
   forevery_ext
     (fun i -> iarray_pts_to_cell a #f (bij.gg i) (v (bij.gg i)))
     (fun i -> iarray_pts_to_cell (from_array (reindex_view vw bij) (core a)) #f i (v (bij.gg i)));
-  forevery_rw_type ait' (reindex_view vw bij).ait _;
+  forevery_rw_type ait' (reindex_view vw bij).sch.ait _;
   fold iarray_pts_to
     (from_array (reindex_view vw bij) (core a)) #f
     (fun i -> v (bij.gg i));
@@ -291,10 +291,10 @@ fn iarray_reindex
   (#vw : aiview len)
   (#ait' : Type)
   {| Enumerable.enumerable ait' |}
-  (bij : vw.ait =~ ait')
+  (bij : vw.sch.ait =~ ait')
   (a : iarray et vw)
   (#f : perm)
-  (#v : (vw.ait -> GTot et))
+  (#v : (vw.sch.ait -> GTot et))
   requires
     a |-> Frac f v
   returns
@@ -310,10 +310,10 @@ ghost
 fn iarray_split2_
   (#et:Type0) (#len : nat)
   (vw1 vw2 : aiview len)
-  (#_ : squash (no_overlap vw1.imap.f vw2.imap.f))
+  (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
-  (#v : either vw1.ait vw2.ait -> GTot et)
+  (#v : either vw1.sch.ait vw2.sch.ait -> GTot et)
   requires
     a |-> Frac f v
   ensures
@@ -321,26 +321,26 @@ fn iarray_split2_
     (from_array vw2 (core a) |-> Frac f (v `oo` Inr))
 {
   unfold iarray_pts_to a #f v;
-  forevery_split_either #vw1.ait #vw2.ait _;
+  forevery_split_either #vw1.sch.ait #vw2.sch.ait _;
 
-  forevery_ext #vw1.ait
+  forevery_ext #vw1.sch.ait
     (fun i -> iarray_pts_to_cell a #f (Inl i) (v (Inl i)))
-    (fun i -> iarray_pts_to_cell (from_array vw1 (core a)) #f i (v (Inl #vw1.ait #vw2.ait i)));
+    (fun i -> iarray_pts_to_cell (from_array vw1 (core a)) #f i (v (Inl #vw1.sch.ait #vw2.sch.ait i)));
   fold iarray_pts_to (from_array vw1 (core a)) #f (fun i -> v (Inl i));
 
-  forevery_ext #vw2.ait
+  forevery_ext #vw2.sch.ait
     (fun i -> iarray_pts_to_cell a #f (Inr i) (v (Inr i)))
-    (fun i -> iarray_pts_to_cell (from_array vw2 (core a)) #f i (v (Inr #vw1.ait #vw2.ait i)));
+    (fun i -> iarray_pts_to_cell (from_array vw2 (core a)) #f i (v (Inr #vw1.sch.ait #vw2.sch.ait i)));
   fold iarray_pts_to (from_array vw2 (core a)) #f (fun i -> v (Inr i));
 }
 
 fn iarray_split2
   (#et:Type0) (#len : nat)
   (vw1 vw2 : aiview len)
-  (#_ : squash (no_overlap vw1.imap.f vw2.imap.f))
+  (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
-  (#v : either vw1.ait vw2.ait -> GTot et)
+  (#v : either vw1.sch.ait vw2.sch.ait -> GTot et)
   requires
     a |-> Frac f v
   returns
@@ -361,7 +361,7 @@ fn iarray_share_n
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
-  (#v : vw.ait -> GTot et)
+  (#v : vw.sch.ait -> GTot et)
   requires
     a |-> Frac f v
   ensures
@@ -380,7 +380,7 @@ fn iarray_gather_n
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
-  (#v : vw.ait -> GTot et)
+  (#v : vw.sch.ait -> GTot et)
   requires
     bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
   ensures
@@ -396,7 +396,7 @@ fn iarray_write_cell
   (#len : erased nat)
   (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
-  (ci : cw.cit)
+  (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
   preserves gpu
@@ -405,19 +405,21 @@ fn iarray_write_cell
   ensures
     Cell a (ci_to_ai vw ci) |-> v1
 {
-  let ai : erased vw.ait = ci |> cw.bij.gg; (* abstract index *)
-  let ni = ci |~> cw.imap;                  (* numerical index *)
+  let ai : erased vw.sch.ait = ci |> cw.sch.bij.gg; (* abstract index *)
+  let ni = ci |~> cw.step.cimap;                    (* numerical index *)
   rewrite each ci_to_ai vw ci as ai;
 
-  cw.compat ai;
-  assert pure (SZ.v (cw.imap.f (cw.bij.ff ai)) == vw.imap.f ai);
+  cw.step.compat ai;
+  assume pure ((cw.step.cimap.f (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
+  (* ^ FIXME: this should be exactly what we get from the line above? *)
+  assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a ai v0;
-  rewrite each (reveal ai |~> vw.imap) as ni;
+  rewrite each (reveal ai |~> vw.step.imap) as ni;
   B.gpu_array_write #_ #_ #ni #(ni+1) (core a) ni v1;
   with s'. assert (B.gpu_pts_to_slice (core a) ni (ni+1) s');
   Kuiper.Seq.Common.lem_one_elem s' v1;
-  rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.imap);
+  rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.step.imap);
   fold iarray_pts_to_cell a (ci_to_ai vw ci) v1;
   ();
 }
@@ -428,8 +430,8 @@ fn iarray_write_cell'
   (#len : erased nat)
   (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
-  (ai : erased vw.ait)
-  (ci : cw.cit)
+  (ai : erased vw.sch.ait)
+  (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
   preserves
@@ -452,7 +454,7 @@ fn iarray_read_cell
   (#len : erased nat)
   (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
-  (ci : cw.cit)
+  (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
   preserves
@@ -465,19 +467,20 @@ fn iarray_read_cell
     iarray_pts_to_cell a #f (ci_to_ai vw ci) v **
     pure (v == v0)
 {
-  let ai : erased vw.ait = ci |> cw.bij.gg;    (* abstract index *)
-  let ni = ci |~> cw.imap;                     (* numerical index *)
+  let ai : erased vw.sch.ait = ci |> cw.sch.bij.gg; (* abstract index *)
+  let ni = ci |~> cw.step.cimap;                    (* numerical index *)
   rewrite each ci_to_ai vw ci as ai;
 
-  cw.compat ai;
-  (* ^ this should be exactly what we get from the line above? *)
-  assert pure (SZ.v (cw.imap.f (cw.bij.ff ai)) == vw.imap.f ai);
+  cw.step.compat ai;
+  assume pure ((cw.step.cimap.f (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
+  (* ^ FIXME: this should be exactly what we get from the line above? *)
+  assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a #f ai v0;
-  rewrite each (reveal ai |~> vw.imap) as ni;
+  rewrite each (reveal ai |~> vw.step.imap) as ni;
   let res = B.gpu_array_read #_ #_ #ni #(ni+1) (core a) ni;
   with s'. assert (B.gpu_pts_to_slice (core a) #f ni (ni+1) s');
-  rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.imap);
+  rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.step.imap);
   fold iarray_pts_to_cell a #f (ci_to_ai vw ci) v0;
   res;
 }
@@ -488,8 +491,8 @@ fn iarray_read_cell'
   (#len : erased nat)
   (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
-  (i : cw.cit)
-  (ai : erased vw.ait)
+  (i : cw.sch.cit)
+  (ai : erased vw.sch.ait)
   (#f : perm)
   (#v0 : erased et)
   preserves
@@ -515,9 +518,9 @@ fn iarray_read
   (#len : erased nat)
   (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
-  (ci : cw.cit)
+  (ci : cw.sch.cit)
   (#f : perm)
-  (#v : (vw.ait -> GTot et))
+  (#v : (vw.sch.ait -> GTot et))
   preserves
     gpu **
     (a |-> Frac f v)
@@ -540,9 +543,9 @@ fn iarray_write
   (#len : erased nat)
   (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
-  (ci : cw.cit)
+  (ci : cw.sch.cit)
   (e : et)
-  (#v0 : (vw.ait -> GTot et))
+  (#v0 : (vw.sch.ait -> GTot et))
   preserves
     gpu
   requires
@@ -554,17 +557,17 @@ fn iarray_write
   forevery_extract_if (ci_to_ai vw ci) _;
   iarray_write_cell a ci e;
 
-  forevery_intro_if (ci_to_ai vw ci) (fun i -> iarray_pts_to_cell a (ci_to_ai vw ci) e);
-  forevery_zip #vw.ait
+  forevery_intro_if (ci_to_ai vw ci) (fun i -> iarray_pts_to_cell a i e);
+  forevery_zip #vw.sch.ait
     (fun i -> if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
-              then iarray_pts_to_cell a (ci_to_ai vw ci) e
+              then iarray_pts_to_cell a i e
               else emp)
     _;
   ghost
-  fn aux (i : vw.ait)
+  fn aux (i : vw.sch.ait)
     requires 
       (if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
-       then iarray_pts_to_cell a (ci_to_ai vw ci) e
+       then iarray_pts_to_cell a i e
        else emp)
     ** 
       (if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)

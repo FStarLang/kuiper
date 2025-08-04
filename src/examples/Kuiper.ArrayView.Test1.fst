@@ -28,9 +28,13 @@ let inj_sz_rev (len : sz) : (szlt len @~> szlt len) = {
 inline_for_extraction noextract
 let base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
   iview = {
-    ait      = natlt len;
-    ait_enum = solve;
-    imap     = inj_id;
+    sch = {
+      ait      = natlt len;
+      ait_enum = solve;
+    };
+    step = {
+      imap     = inj_id;
+    };
   };
   igm = solve;
 }
@@ -38,9 +42,13 @@ let base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
 inline_for_extraction noextract
 let r_base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
   iview = {
-    ait      = natlt len;
-    ait_enum = solve;
-    imap     = inj_nat_rev len;
+    sch = {
+      ait      = natlt len;
+      ait_enum = solve;
+    };
+    step = {
+      imap     = inj_nat_rev len;
+    };
   };
   igm = solve;
 }
@@ -80,19 +88,32 @@ let reverse_view (et:Type) (len:nat) : aview et len (_reverse et len) =
 inline_for_extraction noextract
 instance cnormal_view et (len : nat{SZ.fits len}) : IView.ciview (normal_view et len).iview = {
   fits     = ();
-  cit      = szlt len;
-  bij      = natural;
-  imap     = inj_id;
-  compat   = ez;
+  sch = {
+    cit      = szlt len;
+    bij      = natural;
+  };
+  step = {
+    cimap    = inj_id;
+    compat   = ez;
+  };
 }
 
 inline_for_extraction noextract
 instance creverse_view et (len : nat{SZ.fits len}) : IView.ciview (reverse_view et len).iview = {
   fits     = ();
-  cit      = szlt len;
-  bij      = natural;
-  imap     = inj_sz_rev (SZ.uint_to_t len); // WEIRD
-  compat   = ez;
+  sch = {
+    cit      = szlt len;
+    bij      = natural;
+  };
+  step = {
+    cimap    = {
+      // Can't use imap = inj_sz_rev (SZ.uint_to_t len) for stupid reasons,
+      // a type inside a refinement does not match exactly.
+      f = (fun (i : szlt len) -> SZ.uint_to_t len -^ 1sz -^ i <: szlt len);
+      is_inj = ez;
+    };
+    compat   = ez;
+  };
 }
 
 fn test (a : varray (normal_view u32 50))

@@ -21,9 +21,13 @@ let aview_concat
   : aview a (len1 + len2) (st1 & st2) =
 {
   iview = {
-    ait      = either vw1.iview.ait vw2.iview.ait;
-    ait_enum = solve;
-    imap     = inj_either vw1.iview.imap vw2.iview.imap `inj_comp` inj_nat_sum _ _;
+    sch = {
+      ait      = either vw1.iview.sch.ait vw2.iview.sch.ait;
+      ait_enum = solve;
+    };
+    step = {
+      imap     = inj_either vw1.iview.step.imap vw2.iview.step.imap `inj_comp` inj_nat_sum _ _;
+    };
   };
   igm = solve;
 }
@@ -45,16 +49,19 @@ instance cview_concat
 {
   fits = ();
 
-  cit  = either cw1.cit cw2.cit;
+  sch = {
+    cit  = either cw1.sch.cit cw2.sch.cit;
+    bij  = bij_either cw1.sch.bij cw2.sch.bij;
+  };
 
-  bij  = bij_either cw1.bij cw2.bij;
+  step = {
+    cimap = inj_either cw1.step.cimap cw2.step.cimap `inj_comp` inj_sz_sum len1 len2;
 
-  imap = inj_either cw1.imap cw2.imap `inj_comp` inj_sz_sum len1 len2;
-
-  // Why is the cast needed?
-  compat = (fun i ->
-    let i : either vw1.iview.ait vw2.iview.ait = i in
-    match i with
-    | Inl x -> cw1.compat x
-    | Inr y -> cw2.compat y);
+    // Why is the cast needed?
+    compat = (fun i ->
+      let i : either vw1.iview.sch.ait vw2.iview.sch.ait = i in
+      match i with
+      | Inl x -> cw1.step.compat x
+      | Inr y -> cw2.step.compat y);
+  };
 }

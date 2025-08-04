@@ -12,79 +12,139 @@ module SZ = FStar.SizeT
 
 [@@erasable]
 noeq
-type aiview (len : nat) = {
+inline_for_extraction noextract
+type aiview_schema = {
   (* abstract index type *)
   ait       : Type0;
 
   (* The index type must be enumerable. This is mostly so we can
      use forall+, the bijection inside here is not used much elsewhere. *)
   ait_enum  : Enumerable.enumerable ait;
-  // Note: we have an instance for this field below, instead
-  // of using @@@tcinstance here. This is so we can mark it
-  // `unfold`.
+}
 
+[@@erasable]
+noeq
+inline_for_extraction noextract
+type aiview_step (from to : aiview_schema) = {
   (* Index translation *)
-  imap : ait @~> natlt len;
+  imap : from.ait @~> to.ait;
+}
+
+let raw_aiview_schema (len : nat) : aiview_schema = {
+  ait      = natlt len;
+  ait_enum = solve;
+}
+
+[@@erasable]
+noeq
+inline_for_extraction noextract
+type aiview (len : erased nat) = {
+  sch  : aiview_schema;
+  step : aiview_step sch (raw_aiview_schema len)
 }
 
 unfold
 instance enumerable_aiview_ait (#len:nat) (vw : aiview len)
-  : Enumerable.enumerable vw.ait
-= vw.ait_enum
+  : Enumerable.enumerable vw.sch.ait
+= vw.sch.ait_enum
 
 let is_full_view (#len : nat) (avw : aiview len) : prop =
-  is_surj avw.imap.f
+  is_surj avw.step.imap.f
+
+let is_full_view_lempat (#len : nat) (avw : aiview len { is_full_view avw })
+     (i : natlt len)
+  : Lemma (in_image avw.step.imap.f i)
+          [SMTPat (in_image avw.step.imap.f i)]
+  = ()
 
 (* Will this be useful? *)
 val full_iff_cardinal
   (#len : nat)
   (vw : aiview len)
-  : Lemma (is_full_view vw <==> vw.ait_enum._cardinal == len)
+  : Lemma (is_full_view vw <==> vw.sch.ait_enum._cardinal == len)
           [SMTPat (is_full_view vw)]
 
 (* Nothing fancy here. *)
-let raw_view (#len:nat) : aiview len = {
-  ait      = natlt len;
-
-  ait_enum = solve;
-
-  imap     = inj_id;
+inline_for_extraction noextract
+let raw_view (#len : erased nat) : aiview len = {
+  sch  = raw_aiview_schema len;
+  step = { imap = inj_id; };
 }
 
-(* What it means for an indexing view to be concretizable, i.e. executable. *)
+[@@erasable]
+noeq
 inline_for_extraction noextract
-class ciview (#len : erased nat) (avw : aiview len) =
-{
-  [@@@no_method]
-  fits  : squash (SZ.fits len);
-
+type ciview_schema (asch : aiview_schema) = {
   (* The concrete index type *)
   [@@@no_method]
   cit   : Type0;
 
   (* A bijection from the abstract indices to the concrete indices 
-     Need not be executable. *)
+     Need not be executable. NOTE: Do not mark this erased, this
+     worsens SMT performance significantly. This is already an erasable type. *)
   [@@@no_method]
-  bij   : erased (avw.ait =~ cit);
+  bij   : asch.ait =~ cit;
+}
 
-  (* Concrete mapping. *)
+inline_for_extraction noextract
+let raw_ciview_schema (len : erased nat{SZ.fits len}) : ciview_schema (raw_aiview_schema len) = {
+  cit = szlt len;
+  bij = natural;
+}
+
+(* A step in a concrete indexing view. *)
+
+inline_for_extraction noextract
+class ciview_step
+  (#asch1 #asch2 : aiview_schema)
+  (csch1 : ciview_schema asch1)
+  (csch2 : ciview_schema asch2)
+  (step  : aiview_step asch1 asch2)
+=
+{
+  (* Concrete index translation *)
   [@@@no_method]
-  imap  : cit @~> szlt len;
+  cimap : csch1.cit @~> csch2.cit;
 
   (* The mappings are compatible. I.e. the following diagram commutes:
 
-     avw.it  --avw.imap-> natlt len
-       |                     |
-       |                     |
-    cvw.bij              uint_to_t
-       |                     |
-       v                     v
-      cit    --cvw.imap-> szlt len
+     ait1    --  imap -->   ait2
+       |                      |
+       |                      |
+   csch1.bij              csch2.bij
+       |                      |
+       v                      v
+     cit1    --  cimap -->  cit2
    *)
   [@@@no_method]
   compat : 
-    ai : avw.ait ->
-      squash (imap.f (bij.ff ai) == SZ.uint_to_t (avw.imap.f ai));
+    ai : asch1.ait ->
+      squash (cimap.f (csch1.bij.ff ai) == csch2.bij.ff (step.imap.f ai));
+}
+
+(* What it means for an indexing view to be concretizable, i.e. executable. *)
+// noeq
+inline_for_extraction noextract
+class ciview (#len : erased nat) (avw : aiview len) =
+{
+  [@@@no_method]
+  fits : squash (SZ.fits len); // Hmm.. feels a bit out of place?
+
+  [@@@no_method]
+  sch  : ciview_schema avw.sch;
+
+  [@@@no_method]
+  step : ciview_step sch (raw_ciview_schema len) avw.step;
+}
+
+inline_for_extraction noextract
+let concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = {
+  fits = ();
+  sch  = raw_ciview_schema len;
+  step = {
+    cimap  = inj_id;
+    compat = ez;
+  };
 }
 
 let inj_bij (#a #b : Type) (bij : a =~ b) : (a @~> b) =
@@ -103,113 +163,60 @@ let reindex_view (#len : nat)
   (vw : aiview len)
   (#ait' : Type)
   {| Enumerable.enumerable ait' |}
-  (bij : vw.ait =~ ait')
+  (bij : vw.sch.ait =~ ait')
   : aiview len = {
-  ait      = ait';
-  ait_enum = solve;
+  sch = {
+    ait      = ait';
+    ait_enum = solve;
+  };
 
-  imap     = inj_bij' bij `inj_comp` vw.imap;
-}
-
-let concrete_raw_view (#len:nat{SZ.fits len}) : ciview (raw_view #len) = {
-  fits  = ();
-  cit   = szlt len;
-  bij   = natural;
-  imap  = inj_id;
-  compat = ez;
+  step = {
+    imap = inj_bij' bij `inj_comp` vw.step.imap;
+  }
 }
 
 let it_to_nat
   (#len:nat)
   (vw : aiview len)
-  (i : vw.ait)
+  (i : vw.sch.ait)
   : GTot (natlt len)
-  = i |~> vw.imap
+  = i |~> vw.step.imap
 
 let it_of_nat
   (#len:nat)
   (vw : aiview len)
-  (i: natlt len{FStar.Functions.in_image vw.imap.f i})
-  : GTot vw.ait
-  = i <~| vw.imap
+  (i: natlt len{FStar.Functions.in_image vw.step.imap.f i})
+  : GTot vw.sch.ait
+  = i <~| vw.step.imap
 
 let ci_to_ai
   (#len:nat)
   (vw : aiview len) {| cw : ciview vw |}
-  (i : cw.cit)
-  : GTot vw.ait
+  (i : cw.sch.cit)
+  : GTot vw.sch.ait
   = let open Kuiper.Bijection in
-    i <~| cw.bij
+    i <~| cw.sch.bij
 
 let ai_to_ci
   (#len:nat)
   (vw : aiview len) {| cw : ciview vw |}
-  (i : vw.ait)
-  : GTot cw.cit
+  (i : vw.sch.ait)
+  : GTot cw.sch.cit
   = let open Kuiper.Bijection in
-    i |~> cw.bij
+    i |~> cw.sch.bij
 
 let sum_aiview (#len : nat) 
   (vw1 vw2 : aiview len)
-  (#_ : squash (no_overlap vw1.imap.f vw2.imap.f))
+  (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   : aiview len = {
-  ait      = either vw1.ait vw2.ait;
-  ait_enum = solve;
-  imap     = {
-    f      = merge_either vw1.imap.f vw2.imap.f;
-    is_inj = ez;
+  sch = {
+    ait      = either vw1.sch.ait vw2.sch.ait;
+    ait_enum = solve;
   };
-}
-
-[@@erasable]
-noeq
-type iview_transform (#len : erased nat) (vw : aiview len) = {
-  ait : Type0;
-  ait_enum : Enumerable.enumerable ait;
-
-  imap : ait =~ vw.ait;
-}
-
-class ciview_transform (#len : erased nat) (#vw : aiview len) (cw : ciview vw) (t : iview_transform vw) = {
-  [@@@no_method]
-  cit : Type0;
-
-  [@@@no_method]
-  bij : erased (t.ait =~ cit);
-
-  [@@@no_method]
-  cimap : cit @~> cw.cit;
-  (* ^ This will in fact be a bijection. *)
-
-  [@@@no_method]
-  compat :
-    ai : t.ait ->
-      squash (cimap.f (bij.ff ai) == cw.bij.ff (t.imap.ff ai));
-}
-
-let apply_itransform (#len : erased nat) (vw : aiview len) (t : iview_transform vw)
-  : aiview len =
-{
-  ait      = t.ait;
-  ait_enum = t.ait_enum;
-
-  imap     = inj_bij t.imap `inj_comp` vw.imap;
-}
-
-let apply_ctransform
-  (#len : erased nat)
-  (#vw : aiview len)
-  (#cw : ciview vw)
-  (#at : iview_transform vw)
-  (ct : ciview_transform cw at)
-  : ciview (apply_itransform vw at) =
-{
-  fits = ();
-  cit  = ct.cit;
-  bij  = ct.bij;
-  imap = ct.cimap `inj_comp` cw.imap;
-  compat = (fun ait ->
-    ct.compat ait;
-    cw.compat (at.imap.ff ait)
-  );
+  step = {
+    imap     = {
+      f      = merge_either vw1.step.imap.f vw2.step.imap.f;
+      is_inj = ez;
+    };
+  };
 }

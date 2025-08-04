@@ -17,12 +17,16 @@ module SZ    = FStar.SizeT
 noextract
 let even_view et len : aview et len (lseq et ((len + 1) / 2)) = {
   iview = {
-    ait = natlt ((len + 1) / 2);
-    ait_enum = solve;
-    imap = {
-      f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
-      is_inj = ez;
-    }
+    sch = {
+      ait = natlt ((len + 1) / 2);
+      ait_enum = solve;
+    };
+    step = {
+      imap = {
+        f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
+        is_inj = ez;
+      };
+    };
   };
   igm = solve;
 }
@@ -30,12 +34,16 @@ let even_view et len : aview et len (lseq et ((len + 1) / 2)) = {
 noextract
 let odd_view et len : aview et len (lseq et (len / 2)) = {
   iview = {
-    ait = natlt (len / 2);
-    ait_enum = solve;
-    imap = {
-      f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);
-      is_inj = ez;
-    }
+    sch = {
+      ait = natlt (len / 2);
+      ait_enum = solve;
+    };
+    step = {
+      imap = {
+        f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);
+        is_inj = ez;
+      };
+    };
   };
   igm = solve;
 }
@@ -43,39 +51,34 @@ let odd_view et len : aview et len (lseq et (len / 2)) = {
 inline_for_extraction noextract
 instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview = {
   fits   = ();
-  cit    = szlt ((len + 1) / 2);
-  bij    = natural;
-  imap   = {
-    f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
-    is_inj = ez;
+  sch = {
+    cit    = szlt ((len + 1) / 2);
+    bij    = natural;
   };
-  compat = ez;
+  step = {
+    cimap = {
+      f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
+      is_inj = ez;
+    };
+    compat = ez;
+  };
 }
 
 inline_for_extraction noextract
 instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview = {
   fits = ();
-  cit  = szlt (len / 2);
-  bij  = natural;
-  imap = {
-    f = (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
-    is_inj = ez;
+  sch = {
+    cit  = szlt (len / 2);
+    bij  = natural;
   };
-  compat = ez;
+  step = {
+    cimap = {
+      f = (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
+      is_inj = ez;
+    };
+    compat = ez;
+  };
 }
-
-(* What is happening?!?! Why isn't this obvious? *)
-
-let _wat_even (#len : nat{SZ.fits len}) :
-  Lemma (reveal (_cview_even #u32 #len).bij == fin_size_t_bij ((len + 1) / 2))
-        [SMTPat (_cview_even #u32 #len)]
-= assert_norm (reveal (_cview_even #u32 #len).bij == fin_size_t_bij ((len + 1) / 2))
-
-let _wat_odd (#len : nat{SZ.fits len}) :
-  Lemma (reveal (_cview_odd #u32 #len).bij == fin_size_t_bij (len / 2))
-        [SMTPat (_cview_odd #u32 #len)]
-= assert_norm (reveal (_cview_odd #u32 #len).bij == fin_size_t_bij (len / 2))
-
 
 let _sanity1 (#len : nat{SZ.fits len}) (x : szlt ((len + 1) / 2)) : Lemma (ci_to_ai (even_view u32 len) x == SZ.v x)
   = ()
@@ -179,36 +182,38 @@ let split_lemma #et (#len:nat) (s : lseq et len)
             (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s))
             s)
 
+#push-options "--z3rlimit 20"
 fn test_write (a : gpu_array u32 100)
     (#v0 : erased (lseq u32 100))
     preserves gpu
     requires a |-> v0
     ensures  a |-> Seq.upd (Seq.upd v0 20 42ul) 41 43ul
-  {
-    varray_abs' vw a;
-    let va = from_array vw a;
+{
+  varray_abs' vw a;
+  let va = from_array vw a;
 
-    let vl, vr = varray_split2
-      (even_view u32 100)
-      (odd_view u32 100)
-      (from_array vw a)
-      #_
-      #(from_seq vw v0) // ARGH, why do I have to provide this!?!??! terrible error otherwise
-      ;
-    // Note: that doesn't happen if we use split2_, the ghost version
+  let vl, vr = varray_split2
+    (even_view u32 100)
+    (odd_view u32 100)
+    (from_array vw a)
+    #_
+    #(from_seq vw v0) // ARGH, why do I have to provide this!?!??! terrible error otherwise
+    ;
+  // Note: that doesn't happen if we use split2_, the ghost version
 
-    varray_write vl 10sz 42ul;
-    varray_write vr 20sz 43ul;
+  varray_write vl 10sz 42ul;
+  varray_write vr 20sz 43ul;
 
-    let va = varray_join2 vl vr;
+  let va = varray_join2 vl vr;
 
-    varray_concr va;
+  varray_concr va;
 
-    rewrite each core va as a;
+  rewrite each core va as a;
 
-    with v1.
-      assert (a |-> v1);
-      assert (pure (Seq.equal v1 (Seq.upd (Seq.upd v0 20 42ul) 41 43ul))); // use extensionality
+  with v1.
+    assert (a |-> v1);
+    assert (pure (Seq.equal v1 (Seq.upd (Seq.upd v0 20 42ul) 41 43ul))); // use extensionality
 
-    ()
-  }
+  ()
+}
+#pop-options

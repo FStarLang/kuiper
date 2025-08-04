@@ -30,16 +30,18 @@ instance cview_from_clayout
 {
   fits = ();
 
-  cit = szlt rows & szlt cols;
-
-  bij = Bijection.bij_prod (Bijection.fin_size_t_bij _) (Bijection.fin_size_t_bij _);
-
-  imap = {
-    f      = clayout_imap c;
-    is_inj = ez; 
+  sch = {
+    cit = szlt rows & szlt cols;
+    bij = Bijection.bij_prod (Bijection.fin_size_t_bij _) (Bijection.fin_size_t_bij _);
   };
 
-  compat = ez;
+  step = {
+    cimap = {
+      f      = clayout_imap c;
+      is_inj = ez; 
+    };
+    compat = ez;
+  };
 }
 
 inline_for_extraction noextract

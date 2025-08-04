@@ -17,19 +17,19 @@ type aview (et : Type) (len : nat) (st : Type0) = {
   iview : aiview len;
 
   (* The high-level spec type is a container, roughly a ghost function ait -> et *)
-  igm  : is_ghost_map st iview.ait et;
+  igm  : is_ghost_map st iview.sch.ait et;
 }
 
 unfold
 instance enumerable_view_ait (#et:Type) (#len: erased nat) (#st:Type0)
   (vw : aview et len st)
-  : Enumerable.enumerable vw.iview.ait
-= vw.iview.ait_enum
+  : Enumerable.enumerable vw.iview.sch.ait
+= vw.iview.sch.ait_enum
 
 unfold
 instance is_ghost_map_view_igm (#et:Type) (#len: erased nat) (#st:Type0)
   (vw : aview et len st)
-  : is_ghost_map st vw.iview.ait et
+  : is_ghost_map st vw.iview.sch.ait et
   = vw.igm
 
 (* Nothing fancy here. *)
@@ -75,7 +75,7 @@ let reindex_view (#et : Type0) (#len : nat) (#st : Type0)
   (vw : aview et len st)
   (#ait' : Type)
   {| Enumerable.enumerable ait' |}
-  (bij : vw.iview.ait =~ ait')
+  (bij : vw.iview.sch.ait =~ ait')
   : aview et len st = {
   iview  = IView.reindex_view vw.iview bij;
   igm    = igm_reindex vw.igm bij;
@@ -111,31 +111,31 @@ let concrete_raw_function_view (#et:Type) (#len:nat{SZ.fits len}) : cview (raw_f
 let it_to_nat
   (#a:Type) (#len:nat) (#st:Type0)
   (vw : aview a len st)
-  (i : vw.iview.ait)
+  (i : vw.iview.sch.ait)
   : GTot (natlt len)
   = IView.it_to_nat vw.iview i
 
 let it_of_nat
   (#a:Type) (#len:nat) (#st:Type0)
   (vw : aview a len st)
-  (i: natlt len{FStar.Functions.in_image vw.iview.imap.f i})
-  : GTot vw.iview.ait
+  (i: natlt len{FStar.Functions.in_image vw.iview.step.imap.f i})
+  : GTot vw.iview.sch.ait
   = IView.it_of_nat vw.iview i
 
 let ci_to_ai
   (#et:Type) (#len:nat) (#st : Type0)
   (vw : aview et len st)
   {| cw : IView.ciview vw.iview |}
-  (i : cw.cit)
-  : GTot vw.iview.ait
+  (i : cw.sch.cit)
+  : GTot vw.iview.sch.ait
   = IView.ci_to_ai vw.iview i
 
 let ai_to_ci
   (#et:Type) (#len:nat) (#st : Type0)
   (vw : aview et len st)
   {| cw : IView.ciview vw.iview |}
-  (i : vw.iview.ait)
-  : GTot cw.cit
+  (i : vw.iview.sch.ait)
+  : GTot cw.sch.cit
   = IView.ai_to_ci vw.iview i
 
 
@@ -156,7 +156,7 @@ let from_seq
   (vw : aview a len st)
   (s : lseq a len)
   : GTot st
-  = vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i)
+  = vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i)
 
 val to_from (#a:Type) (#len:nat) (#st:Type)
   (vw : aview a len st { is_full_view vw })
@@ -173,7 +173,7 @@ val from_to (#a:Type) (#len:nat) (#st:Type)
 val to_seq_upd (#a:Type) (#len:nat) (#st:Type)
   (vw : aview a len st { is_full_view vw })
   (v : st)
-  (i : vw.iview.ait)
+  (i : vw.iview.sch.ait)
   (x : a)
   : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
           [SMTPat (to_seq vw (vw.igm.upd v i x))]
@@ -182,26 +182,9 @@ let sum_aview
   (#et : Type) (#len : nat) (#st1 #st2 : Type)
   (vw1 : aview et len st1)
   (vw2 : aview et len st2)
-  (#_ : squash (no_overlap vw1.iview.imap.f vw2.iview.imap.f))
+  (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
   : aview et len (st1 & st2) =
 {
   iview = sum_aiview vw1.iview vw2.iview;
   igm   = solve;
-  }
-
-let apply_itransform (#et:_) (#len : erased nat) (#st:_)
-  (vw : aview et len st)
-  (t : iview_transform vw.iview)
-  : aview et len st =
-{
-  iview = IView.apply_itransform vw.iview t;
-  igm   = igm_reindex vw.igm (bij_sym t.imap);
 }
-
-let apply_ctransform
-  (#et:_) (#len : erased nat) (#st:_)
-  (#vw : aview et len st) (#cw : cview vw)
-  (#at : iview_transform vw.iview)
-  (ct  : ciview_transform cw at)
-  : cview (apply_itransform vw at) =
-  IView.apply_ctransform ct

@@ -85,6 +85,7 @@ let inj_comp (i1 : 'a @~> 'b) (i2 : 'b @~> 'c) : ('a @~> 'c) =
   is_inj = ez;
 }
 
+unfold
 let inj_nat_sum_f (n1 n2 : nat) : either (natlt n1) (natlt n2) -> natlt (n1 + n2) =
   function
     | Inl i -> i
@@ -96,6 +97,7 @@ let inj_nat_sum (n1 n2 : nat) : (either (natlt n1) (natlt n2) @~> natlt (n1 + n2
   is_inj = ez; (* does not work if inj_nat_sum_f is inlined. *)
 }
 
+unfold
 let inj_sz_sum_f (n1 n2 : sz{SZ.fits (n1 + n2)}) : either (szlt n1) (szlt n2) -> szlt (n1 + n2) =
   function
     | Inl i -> i

@@ -377,7 +377,7 @@ fn gpu_matrix_explode
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_explode gm;
-  forevery_rw_type (aview_from_mlayout et l).iview.ait (natlt rows & natlt cols) _;
+  forevery_rw_type (aview_from_mlayout et l).iview.sch.ait (natlt rows & natlt cols) _;
   ghost
   fn aux (rc : natlt rows & natlt cols)
     requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc)
