@@ -44,9 +44,11 @@ clean:
 	rm -f .plugin.touch
 	rm -rf obj/
 
-clean-full: clean
-	rm -f .*.touch
+clean-modules:
 	git submodule foreach git clean -dXf
+
+clean-full: clean clean-modules
+	rm -f .*.touch
 
 dist: extraction-targets
 	rm -f dist/*
