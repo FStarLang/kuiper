@@ -64,7 +64,7 @@ instance cview_from_clayout4
   (#brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (c : clayout4 l)
-  : IView.cview (aview_from_mlayout et l).iview =
+  : IView.ciview (aview_from_mlayout et l).iview =
 {
   fits = ();
 

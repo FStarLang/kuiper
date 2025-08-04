@@ -5,7 +5,7 @@ module Kuiper.View.TwoTiles
 open Kuiper
 open Kuiper.EMatrix { ematrix }
 open Kuiper.View { aview }
-open Kuiper.IView { cview }
+open Kuiper.IView { ciview }
 
 // "Definition Kuiper.View.fits cannot be found." ????
 // open Kuiper.View { cview }
@@ -36,10 +36,10 @@ let aview_2tile2
     (MC.aview_from_mlayout et (R.row_major tile tile))
 
 inline_for_extraction noextract
-instance cview_2tile2
+instance ciview_2tile2
   (et : Type0)
   (tile : valid_tile)
-  : cview (aview_2tile2 et tile).iview
+  : ciview (aview_2tile2 et tile).iview
   = Kuiper.View.Concat.cview_concat
       #_
       #(tile *^ tile) #_ #(tile *^ tile) #_
@@ -55,7 +55,7 @@ inline_for_extraction noextract
 type cit (tile : valid_tile) = either (szlt tile & szlt tile) (szlt tile & szlt tile)
 
 let chk1 et (tile : valid_tile) = assert ((aview_2tile2 et tile).iview.ait == ait tile)
-let chk2 et (tile : valid_tile) = assert_norm ((cview_2tile2 et tile).cit == cit tile)
+let chk2 et (tile : valid_tile) = assert_norm ((ciview_2tile2 et tile).cit == cit tile)
 
 let mkAIdx (#tile:valid_tile) (i : natlt 2) (j : natlt tile) (k : natlt tile) : ait tile =
   match i with

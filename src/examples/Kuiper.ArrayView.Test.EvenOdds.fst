@@ -40,7 +40,7 @@ let odd_view et len : aview et len (lseq et (len / 2)) = {
 }
 
 inline_for_extraction noextract
-instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.cview (even_view et len).iview = {
+instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview = {
   fits = ();
   cit  = szlt ((len + 1) / 2);
   bij  = fin_size_t_bij _;
@@ -52,7 +52,7 @@ instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.cview (even_vi
 }
 
 inline_for_extraction noextract
-instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.cview (odd_view et len).iview = {
+instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview = {
   fits = ();
   cit  = szlt (len / 2);
   bij  = fin_size_t_bij _;

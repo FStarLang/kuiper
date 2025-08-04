@@ -78,7 +78,7 @@ let reverse_view (et:Type) (len:nat) : aview et len (_reverse et len) =
   review_view (r_base_view et len) (bij__reverse et len)
 
 inline_for_extraction noextract
-instance cnormal_view et (len : nat{SZ.fits len}) : IView.cview (normal_view et len).iview = {
+instance cnormal_view et (len : nat{SZ.fits len}) : IView.ciview (normal_view et len).iview = {
   fits     = ();
   cit      = szlt len;
   bij      = natural;
@@ -87,7 +87,7 @@ instance cnormal_view et (len : nat{SZ.fits len}) : IView.cview (normal_view et 
 }
 
 inline_for_extraction noextract
-instance creverse_view et (len : nat{SZ.fits len}) : IView.cview (reverse_view et len).iview = {
+instance creverse_view et (len : nat{SZ.fits len}) : IView.ciview (reverse_view et len).iview = {
   fits     = ();
   cit      = szlt len;
   bij      = natural;

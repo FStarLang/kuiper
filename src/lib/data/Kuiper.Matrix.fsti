@@ -23,7 +23,7 @@ instance cview_from_clayout
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (c : clayout l)
-  : IView.cview (aview_from_mlayout et l).iview =
+  : IView.ciview (aview_from_mlayout et l).iview =
   // I would like to just say:
   // : View.cview (aview_from_mlayout et l) =
   // But F* complains it's not a class.

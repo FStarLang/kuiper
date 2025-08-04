@@ -7,6 +7,7 @@ module Kuiper.IView
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.Injection
+open FStar.Tactics.Typeclasses { no_method }
 module SZ = FStar.SizeT
 
 [@@erasable]
@@ -52,18 +53,22 @@ let raw_view (#len:nat) : aiview len = {
 
 (* What it means for an indexing view to be concretizable, i.e. executable. *)
 inline_for_extraction noextract
-class cview (#len : erased nat) (avw : aiview len) =
+class ciview (#len : erased nat) (avw : aiview len) =
 {
+  [@@@no_method]
   fits  : squash (SZ.fits len);
 
   (* The concrete index type *)
+  [@@@no_method]
   cit   : Type0;
 
   (* A bijection from the abstract indices to the concrete indices 
      Need not be executable. *)
+  [@@@no_method]
   bij   : erased (avw.ait =~ cit);
 
   (* Concrete mapping. *)
+  [@@@no_method]
   imap  : cit @~> szlt len;
 
   (* The mappings are compatible. I.e. the following diagram commutes:
@@ -76,6 +81,7 @@ class cview (#len : erased nat) (avw : aiview len) =
        v                     v
       cit    --cvw.imap-> szlt len
    *)
+  [@@@no_method]
   compat : 
     ai : avw.ait ->
       squash (imap.f (bij.ff ai) == SZ.uint_to_t (avw.imap.f ai));
@@ -105,7 +111,7 @@ let reindex_view (#len : nat)
   imap     = inj_bij' bij `inj_comp` vw.imap;
 }
 
-let concrete_raw_view (#len:nat{SZ.fits len}) : cview (raw_view #len) = {
+let concrete_raw_view (#len:nat{SZ.fits len}) : ciview (raw_view #len) = {
   fits  = ();
   cit   = szlt len;
   bij   = natural;
@@ -129,7 +135,7 @@ let it_of_nat
 
 let ci_to_ai
   (#len:nat)
-  (vw : aiview len) {| cw : cview vw |}
+  (vw : aiview len) {| cw : ciview vw |}
   (i : cw.cit)
   : GTot vw.ait
   = let open Kuiper.Bijection in
@@ -137,7 +143,7 @@ let ci_to_ai
 
 let ai_to_ci
   (#len:nat)
-  (vw : aiview len) {| cw : cview vw |}
+  (vw : aiview len) {| cw : ciview vw |}
   (i : vw.ait)
   : GTot cw.cit
   = let open Kuiper.Bijection in

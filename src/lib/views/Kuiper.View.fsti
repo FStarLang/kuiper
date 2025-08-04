@@ -52,7 +52,7 @@ This is typeclass already, there should be no need to mark it as a class here,
 but alas it does not quite work. *)
 inline_for_extraction noextract
 let cview (#et : Type0) (#len : erased nat) (#st : Type0)
-  (avw : aview et len st) = IView.cview avw.iview
+  (avw : aview et len st) = IView.ciview avw.iview
 
 let igm_reindex (#mt #it #et : Type) (igm : is_ghost_map mt it et)
   (#it': Type) (bij : it =~ it')
@@ -125,7 +125,7 @@ let it_of_nat
 let ci_to_ai
   (#et:Type) (#len:nat) (#st : Type0)
   (vw : aview et len st)
-  {| cw : IView.cview vw.iview |}
+  {| cw : IView.ciview vw.iview |}
   (i : cw.cit)
   : GTot vw.iview.ait
   = IView.ci_to_ai vw.iview i
@@ -133,7 +133,7 @@ let ci_to_ai
 let ai_to_ci
   (#et:Type) (#len:nat) (#st : Type0)
   (vw : aview et len st)
-  {| cw : IView.cview vw.iview |}
+  {| cw : IView.ciview vw.iview |}
   (i : vw.iview.ait)
   : GTot cw.cit
   = IView.ai_to_ci vw.iview i

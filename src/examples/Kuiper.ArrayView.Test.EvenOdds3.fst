@@ -38,7 +38,7 @@ inline_for_extraction noextract
 instance _cview_strided
    (#et : Type) (#len : erased nat{SZ.fits len})
    (stride : sz) (offset : szlt stride)
-: IView.cview (strided_view et len stride offset).iview
+: IView.ciview (strided_view et len stride offset).iview
 = {
   fits = ez;
   cit  = szlt ((len + stride - 1 - offset) / stride);
@@ -51,11 +51,11 @@ instance _cview_strided
 }
 
 inline_for_extraction noextract
-instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.cview (even_view et len).iview =
+instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview =
   _cview_strided #et #len 2sz 0sz
 
 inline_for_extraction noextract
-instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.cview (odd_view et len).iview =
+instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview =
   _cview_strided #et #len 2sz 1sz
 
 (* What is happening?!?! Why isn't this obvious? *)

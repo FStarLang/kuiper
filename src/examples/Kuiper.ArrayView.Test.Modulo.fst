@@ -34,7 +34,7 @@ inline_for_extraction noextract
 instance _cview_strided
    (#et : Type) (#len : erased nat{SZ.fits len})
    (stride : sz) (offset : szlt stride)
-: IView.cview (strided_view et len stride offset).iview
+: IView.ciview (strided_view et len stride offset).iview
 = {
   fits = ();
   cit  = szlt ((len + stride - 1 - offset) / stride);

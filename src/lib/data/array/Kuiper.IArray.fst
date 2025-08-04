@@ -394,7 +394,7 @@ inline_for_extraction noextract
 fn iarray_write_cell
   (#et:Type0)
   (#len : erased nat)
-  (#vw : aiview len) {| cw : cview vw |}
+  (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.cit)
   (v1 : et)
@@ -426,7 +426,7 @@ inline_for_extraction noextract
 fn iarray_write_cell'
   (#et:Type0)
   (#len : erased nat)
-  (#vw : aiview len) {| cw : cview vw |}
+  (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
   (ai : erased vw.ait)
   (ci : cw.cit)
@@ -450,7 +450,7 @@ inline_for_extraction noextract
 fn iarray_read_cell
   (#et:Type0)
   (#len : erased nat)
-  (#vw : aiview len) {| cw : cview vw |}
+  (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.cit)
   (#f : perm)
@@ -486,7 +486,7 @@ inline_for_extraction noextract
 fn iarray_read_cell'
   (#et:Type0)
   (#len : erased nat)
-  (#vw : aiview len) {| cw : cview vw |}
+  (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
   (i : cw.cit)
   (ai : erased vw.ait)
@@ -513,7 +513,7 @@ inline_for_extraction noextract
 fn iarray_read
   (#et:Type0)
   (#len : erased nat)
-  (#vw : aiview len) {| cw : cview vw |}
+  (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.cit)
   (#f : perm)
@@ -538,7 +538,7 @@ inline_for_extraction noextract
 fn iarray_write
   (#et:Type0)
   (#len : erased nat)
-  (#vw : aiview len) {| cw : cview vw |}
+  (#vw : aiview len) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.cit)
   (e : et)

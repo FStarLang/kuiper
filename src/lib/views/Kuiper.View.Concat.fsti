@@ -41,7 +41,7 @@ instance cview_concat
   (vw2 : aview a len2 st2)
   (cw2 : cview vw2)
   (_ : squash (SZ.fits (len1 + len2)))
-  : IView.cview (aview_concat vw1 vw2).iview =
+  : IView.ciview (aview_concat vw1 vw2).iview =
 {
   fits = ();
 
