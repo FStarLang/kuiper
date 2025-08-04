@@ -186,7 +186,17 @@ let split_lemma #et (#len:nat) (s : lseq et len)
             (seq_evens s, seq_odds s)
   )
   [SMTPat (from_seq (sum_aview (even_view et len) (odd_view et len)) s)]
-= admit()
+= let aux (i : natlt ((len+1)/2)) : Lemma (it_of_nat (even_view et len) (2*i) == i) =
+    ()
+  in
+  let aux2 (i : natlt (len/2)) : Lemma (it_of_nat (odd_view et len) (2*i+1) == i) =
+    ()
+  in
+  assume (Seq.equal (fst (from_seq (sum_aview (even_view et len) (odd_view et len)) s))
+                    (seq_evens s));
+  assume (Seq.equal (snd (from_seq (sum_aview (even_view et len) (odd_view et len)) s))
+                    (seq_odds  s));
+  ()
 
 fn test_write (a : gpu_array u32 100)
     (#v0 : erased (lseq u32 100))

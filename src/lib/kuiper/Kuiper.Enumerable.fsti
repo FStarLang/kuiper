@@ -3,6 +3,7 @@ module Kuiper.Enumerable
 #lang-pulse
 open Kuiper.Common
 open Kuiper.Bijection
+open Kuiper.Injection
 open FStar.Tactics.Typeclasses
 
 [@@erasable]
@@ -52,6 +53,11 @@ val bijection_implies_equal_cardinal
   (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}
   (bij : bijection a b)
   : Lemma (cardinal a #_ == cardinal b #_)
+
+val injection_implies_lte_cardinal
+  (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}
+  (inj : injection a b)
+  : Lemma (cardinal a #_ <= cardinal b #_)
 
 instance enumerable_unit : enumerable unit = {
   _cardinal = 1;

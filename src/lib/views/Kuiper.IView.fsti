@@ -12,8 +12,6 @@ module SZ = FStar.SizeT
 [@@erasable]
 noeq
 type aiview (len : nat) = {
-  // (* Indexing schema *)
-  // isch : indexing_schema;
   (* abstract index type *)
   ait       : Type0;
 
@@ -29,20 +27,19 @@ type aiview (len : nat) = {
 }
 
 unfold
-  instance enumerable_aiview_ait (#len:nat) (vw : aiview len)
+instance enumerable_aiview_ait (#len:nat) (vw : aiview len)
   : Enumerable.enumerable vw.ait
 = vw.ait_enum
 
-let is_full_view (#len : nat) (avw : aiview len) =
+let is_full_view (#len : nat) (avw : aiview len) : prop =
   is_surj avw.imap.f
 
 (* Will this be useful? *)
-let full_iff_cardinal
+val full_iff_cardinal
   (#len : nat)
   (vw : aiview len)
   : Lemma (is_full_view vw <==> vw.ait_enum._cardinal == len)
           [SMTPat (is_full_view vw)]
-  = admit ()
 
 (* Nothing fancy here. *)
 let raw_view (#len:nat) : aiview len = {

@@ -26,3 +26,14 @@ let bijection_implies_equal_cardinal
       bij_sym d1.bij `bij_comp` bij `bij_comp` d2.bij
     in
     __bij_cardinal (cardinal a #_) (cardinal b #_) bij'
+
+let injection_implies_lte_cardinal
+  (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}
+  (inj : injection a b)
+  : Lemma (cardinal a #_ <= cardinal b #_)
+  = let aux () : Lemma (requires cardinal a #_ > cardinal b #_)
+                       (ensures False)
+      = admit()
+    in
+    Classical.move_requires aux ();
+    ()
