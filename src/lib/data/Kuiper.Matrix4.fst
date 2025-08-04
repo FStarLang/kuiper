@@ -373,7 +373,7 @@ let gpu_matrix_pts_to_cell
        (undivmod brows (bi, i),
         undivmod bcols (bj, j)) v
 
-#push-options "--z3rlimit 40" // flaky
+
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
@@ -398,21 +398,15 @@ fn gpu_matrix_read_cell
   unfold gpu_matrix_pts_to_cell gm #f bi bj i j v0;
   (* very awkward *)
   with i_low v_low. assert (A.varray_pts_to_cell gm #f i_low v_low);
-  rewrite each i_low as
-       A.ci_to_ai #_ #_ #_
-        (aview_from_mlayout et l)
-        #(cview_from_clayout4 et cl )
-        (bi, bj, i, j);
   assert (pure (brows > 0));
   assert (pure (bcols > 0));
-  let v = A.varray_read_cell gm (bi, bj, i, j);
+  let v = A.varray_read_cell' gm (bi, bj, i, j) i_low;
   with i1 v1.
     assert (A.varray_pts_to_cell gm #f i1 v1);
   rewrite A.varray_pts_to_cell gm #f i1 v1 as
     gpu_matrix_pts_to_cell gm #f bi bj i j v0;
   v;
 }
-#pop-options
 
 inline_for_extraction noextract
 fn gpu_matrix_write_cell
