@@ -108,7 +108,7 @@ let reindex_view (#len : nat)
 let concrete_raw_view (#len:nat{SZ.fits len}) : cview (raw_view #len) = {
   fits  = ();
   cit   = szlt len;
-  bij   = fin_size_t_bij len;
+  bij   = natural;
   imap  = inj_id;
   compat = ez;
 }

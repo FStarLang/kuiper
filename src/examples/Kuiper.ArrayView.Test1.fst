@@ -81,7 +81,7 @@ inline_for_extraction noextract
 instance cnormal_view et (len : nat{SZ.fits len}) : IView.cview (normal_view et len).iview = {
   fits     = ();
   cit      = szlt len;
-  bij      = fin_size_t_bij len;
+  bij      = natural;
   imap     = inj_id;
   compat   = ez;
 }
@@ -90,7 +90,7 @@ inline_for_extraction noextract
 instance creverse_view et (len : nat{SZ.fits len}) : IView.cview (reverse_view et len).iview = {
   fits     = ();
   cit      = szlt len;
-  bij      = fin_size_t_bij len;
+  bij      = natural;
   imap     = inj_sz_rev (SZ.uint_to_t len); // WEIRD
   compat   = ez;
 }

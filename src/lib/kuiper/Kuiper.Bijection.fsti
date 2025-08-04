@@ -256,3 +256,20 @@ let bij_is_surj' (#a #b : Type) (bij : a =~ b) :
 =
   assert (forall x. bij.gg (bij.ff x) == x);
    ()
+
+
+(* A type of "natural" bijections that we solve via
+typeclass resolution. *)
+class natural_bijection (a b : Type) = {
+  bij : (a =~ b);
+}
+
+instance nb_self (a:Type) : natural_bijection a a = {
+  bij = bij_self _;
+}
+
+instance nb_nat_sz (n:nat{SZ.fits n}) : natural_bijection (natlt n) (szlt n) = {
+  bij = fin_size_t_bij _;
+}
+
+let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d.bij

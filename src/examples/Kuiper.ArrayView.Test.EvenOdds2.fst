@@ -43,7 +43,7 @@ inline_for_extraction noextract
 instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.cview (even_view et len).iview = {
   fits   = ();
   cit    = szlt ((len + 1) / 2);
-  bij    = fin_size_t_bij ((len + 1) / 2);
+  bij    = natural;
   imap   = {
     f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
     is_inj = ez;
@@ -55,7 +55,7 @@ inline_for_extraction noextract
 instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.cview (odd_view et len).iview = {
   fits = ();
   cit  = szlt (len / 2);
-  bij  = fin_size_t_bij _;
+  bij  = natural;
   imap = {
     f = (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
     is_inj = ez;

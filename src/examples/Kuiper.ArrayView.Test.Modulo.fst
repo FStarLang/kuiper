@@ -38,7 +38,7 @@ instance _cview_strided
 = {
   fits = ();
   cit  = szlt ((len + stride - 1 - offset) / stride);
-  bij  = fin_size_t_bij _;
+  bij  = natural;
   imap = {
     f = (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
     is_inj = ez;
