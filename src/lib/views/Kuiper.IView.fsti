@@ -160,3 +160,56 @@ let sum_aiview (#len : nat)
     is_inj = ez;
   };
 }
+
+[@@erasable]
+noeq
+type iview_transform (#len : erased nat) (vw : aiview len) = {
+  ait : Type0;
+  ait_enum : Enumerable.enumerable ait;
+
+  imap : ait =~ vw.ait;
+}
+
+class ciview_transform (#len : erased nat) (#vw : aiview len) (cw : ciview vw) (t : iview_transform vw) = {
+  [@@@no_method]
+  cit : Type0;
+
+  [@@@no_method]
+  bij : erased (t.ait =~ cit);
+
+  [@@@no_method]
+  cimap : cit @~> cw.cit;
+  (* ^ This will in fact be a bijection. *)
+
+  [@@@no_method]
+  compat :
+    ai : t.ait ->
+      squash (cimap.f (bij.ff ai) == cw.bij.ff (t.imap.ff ai));
+}
+
+let apply_itransform (#len : erased nat) (vw : aiview len) (t : iview_transform vw)
+  : aiview len =
+{
+  ait      = t.ait;
+  ait_enum = t.ait_enum;
+
+  imap     = inj_bij t.imap `inj_comp` vw.imap;
+}
+
+let apply_ctransform
+  (#len : erased nat)
+  (#vw : aiview len)
+  (#cw : ciview vw)
+  (#at : iview_transform vw)
+  (ct : ciview_transform cw at)
+  : ciview (apply_itransform vw at) =
+{
+  fits = ();
+  cit  = ct.cit;
+  bij  = ct.bij;
+  imap = ct.cimap `inj_comp` cw.imap;
+  compat = (fun ait ->
+    ct.compat ait;
+    cw.compat (at.imap.ff ait)
+  );
+}

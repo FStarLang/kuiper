@@ -188,3 +188,20 @@ let sum_aview
   iview = sum_aiview vw1.iview vw2.iview;
   igm   = solve;
   }
+
+let apply_itransform (#et:_) (#len : erased nat) (#st:_)
+  (vw : aview et len st)
+  (t : iview_transform vw.iview)
+  : aview et len st =
+{
+  iview = IView.apply_itransform vw.iview t;
+  igm   = igm_reindex vw.igm (bij_sym t.imap);
+}
+
+let apply_ctransform
+  (#et:_) (#len : erased nat) (#st:_)
+  (#vw : aview et len st) (#cw : cview vw)
+  (#at : iview_transform vw.iview)
+  (ct  : ciview_transform cw at)
+  : cview (apply_itransform vw at) =
+  IView.apply_ctransform ct
