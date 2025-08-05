@@ -375,7 +375,7 @@ let gpu_matrix_pts_to_cell
         undivmod bcols (bj, j)) v
 
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
@@ -411,7 +411,7 @@ fn gpu_matrix_read_cell
 }
 #pop-options
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
