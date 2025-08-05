@@ -188,7 +188,7 @@ let split_lemma #et (#len:nat) (s : lseq et len)
             (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s))
             s)
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 30"
 fn test_write (a : gpu_array u32 100)
     (#v0 : erased (lseq u32 100))
     preserves gpu
