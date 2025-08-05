@@ -2,8 +2,6 @@ module Kuiper.Poly.GEMM.BlockTiling2D
 
 #lang-pulse
 
-// #set-options "--z3smtopt '(set-option :smt.arith.solver 2)'"
-
 open Kuiper
 
 module EM = Kuiper.EMatrix
@@ -52,6 +50,16 @@ let shmems_desc
   SHArray et (bk *^ bn);
 ]
 
+let thread_row_offset
+  (bm bn : szp)
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn})
+  (tid : natlt (bm/tm * (bn/tn)))
+  (i : natlt tm)
+  : GTot (natlt bm)
+  =
+  tid / (bn/tn) * tm + i
+
 let own_thread_tile
   (#et : Type0) {| scalar et |}
   (bm bn : szp)
@@ -67,7 +75,7 @@ let own_thread_tile
       (exists* v.
         m4_pts_to_cell gC
           (bid / mcols) (bid % mcols)
-          ((tid / (bn/tn) * tm) + i)
+          (thread_row_offset bm bn tm tn tid i) //(tid / (bn/tn) * tm) + i)
           ((tid % (bn/tn) * tn) + j)
           v))
 
@@ -476,11 +484,6 @@ fn subproducts2d
   }
 }
 
-#push-options "--retry 4 --query_stats"
-#restart-solver
-let x = 3
-let _dummy = assert (5 * x == 15)
-
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -490,8 +493,6 @@ fn epilogue
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (rchProd: array et)
-  // (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
-  // (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#lC : mlayout4 mrows   mcols   bm bn)
   {| clayout4 lC |}
   (gC : gpu_matrix4 et lC)
@@ -500,8 +501,6 @@ fn epilogue
   requires
     gpu **
     own_thread_tile bm bn tm tn gC bid tid **
-    // thread_id (bm/tm * (bn/tn)) tid **
-    // block_id (mrows * mcols) bid **
     (exists* vrchProd.
       pure (Seq.length vrchProd == tm * tn) **
       (rchProd |-> vrchProd))
@@ -511,153 +510,96 @@ fn epilogue
     (exists* vrchProd'.
       pure (Seq.length vrchProd' == tm * tn) **
       (rchProd |-> vrchProd'))
-    // thread_id (bm/tm * (bn/tn)) tid **
-    // block_id (mrows * mcols) bid
+{
+  unfold own_thread_tile bm bn tm tn gC bid tid;
+
+  let mrow = bid /^ mcols;
+  let mcol = bid %^ mcols;
+  let tRowOff = tid /^ (bn /^ tn) *^ tm;
+  let tColOff = tid %^ (bn /^ tn) *^ tn;
+
+  forevery_flatten #(natlt tm) #_ #(natlt tn) _;
+  // Pulse.Lib.Array.pts_to_len rchProd;
+  let mut resIdxM = 0sz;
+  while (SZ.(!resIdxM <^ tm))
+    invariant
+      exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)).
+        (resIdxM |-> vresIdxM) **
+        (rchProd |-> vrchProd)
   {
-    unfold own_thread_tile bm bn tm tn gC bid tid;
-
-    let mrow = bid /^ mcols;
-    let mcol = bid %^ mcols;
-    let tRowOff = tid /^ (bn /^ tn) *^ tm;
-    let tColOff = tid %^ (bn /^ tn) *^ tn;
-
-    forevery_flatten #(natlt tm) #_ #(natlt tn) _;
-    ghost
-    fn aux (i: (natlt tm & natlt tn))
-    requires
-      (exists* (v: et).
-        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
-    ensures
-      (exists* (v: et).
-        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-          (SZ.v mcol) (SZ.v tRowOff + i._1)
-          (SZ.v tColOff + i._2) v)
-    {
-      with v. _;
-      assert pure(SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm == tRowOff);
-      assert pure(SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn == tColOff);
-      rewrite
-        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
-      as
-        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-          (SZ.v mcol) (SZ.v tRowOff + i._1)
-          (SZ.v tColOff + i._2) v);
-      ()
-    };
-    forevery_map _ _ aux;
-
-    // Pulse.Lib.Array.pts_to_len rchProd;
-    let mut resIdxM = 0sz;
-    while (SZ.(!resIdxM <^ tm))
+    let mut resIdxN = 0sz;
+    while (SZ.(!resIdxN <^ tn))
       invariant
-        exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)).
-          (resIdxM |-> vresIdxM) **
+        exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)).
+          (resIdxN |-> vresIdxN) **
           (rchProd |-> vrchProd)
     {
-      let mut resIdxN = 0sz;
-      while (SZ.(!resIdxN <^ tn))
-        invariant
-          exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)).
-            (resIdxN |-> vresIdxN) **
-            (rchProd |-> vrchProd)
-      {
-        let vresIdxM = !resIdxM;
-        let vresIdxN = !resIdxN;
+      let vresIdxM = !resIdxM;
+      let vresIdxN = !resIdxN;
 
-        (* get separate access to the thread's current cell in gC *)
-        forevery_extract #(natlt tm & natlt tn) (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN)) _;
+      (* get separate access to the thread's current cell in gC *)
+      forevery_extract #(natlt tm & natlt tn) (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN)) _;
 
-        (* read the current cell in gC *)
-        with bi0 bj0 i0 j0 v0.
-        rewrite M4.gpu_matrix_pts_to_cell gC bi0  bj0  i0   j0   v0
-            as M4.gpu_matrix_pts_to_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v0;
-        let v0 = M4.gpu_matrix_read_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN);
+      (* tame the SMT solver *)
+      assert pure(SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm == tRowOff);
+      assert pure(SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn == tColOff);
+      (* these might help against flakyness *)
+      assert pure (tid/(bn/tn)*tm + vresIdxM < bm);
+      assert pure (tid%(bn/tn)*tn + vresIdxN < bn);
+      (* read the current cell in gC *)
+      with bi0 bj0 i0 j0 v0.
+      rewrite M4.gpu_matrix_pts_to_cell gC bi0  bj0  i0   j0   v0
+          as M4.gpu_matrix_pts_to_cell gC mrow mcol (tRowOff + vresIdxM) (tColOff + vresIdxN) v0;
+      let v0 = M4.gpu_matrix_read_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN);
 
-        (* add the new result in the register cache to the value from gC and overwrite the the cell in gC *)
-        open Pulse.Lib.Array;
-        let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
-        let v' = comb v0 v1;
-        M4.gpu_matrix_write_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v';
-        with bi0 bj0 i0 j0 v0.
-        rewrite M4.gpu_matrix_pts_to_cell gC bi0  bj0  i0   j0   v0
-            as M4.gpu_matrix_pts_to_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v0;
+      (* add the new result in the register cache to the value from gC and overwrite the the cell in gC *)
+      open Pulse.Lib.Array;
+      let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
+      let v' = comb v0 v1;
+      M4.gpu_matrix_write_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v';
 
-        (* return separate access to the thread's current cellin gC *)
-        // rewrite each (SZ.v mrow) as (SZ.v bid / (SZ.v mcols));
-        // rewrite each (SZ.v mcol) as (SZ.v bid % (SZ.v mcols));
-        Pulse.Lib.Trade.elim_trade
+      rewrite each (SZ.v mrow) as (bid/mcols);
+      rewrite each (SZ.v mcol) as (bid%mcols);
+      rewrite each (SZ.v tRowOff) as (tid/(bn/tn) * tm);
+      rewrite each (tid/(bn/tn) * tm + (SZ.v vresIdxM)) as thread_row_offset bm bn tm tn tid (SZ.v vresIdxM);
+      rewrite each (SZ.v tColOff) as (tid%(bn/tn) * tn);
+      (* return separate access to the thread's current cell in gC *)
+      Pulse.Lib.Trade.elim_trade
+        (exists* v.
+          m4_pts_to_cell gC #1.0R
+            (bid/mcols) (bid%mcols)
+            (thread_row_offset bm
+                bn
+                tm
+                tn
+                (SZ.v tid)
+                (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN))._1)
+                (tid%(bn/tn) * tn + (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN))._2) v)
+        (forall+ (ii : (natlt tm & natlt tn)).
           (exists* v.
             m4_pts_to_cell gC #1.0R
-              mrow mcol
-              (tRowOff + vresIdxM) (tColOff + vresIdxN) v)
-          (forall+ (ii : (natlt tm & natlt tn)).
-            (exists* v.
-              m4_pts_to_cell gC #1.0R
-                mrow mcol
-                (tRowOff + ii._1) (tColOff + ii._2) v));
+              (bid/mcols) (bid%mcols)
+              (thread_row_offset bm bn tm tn tid ii._1) (tid%(bn/tn) * tn + ii._2) v));
 
-        resIdxN := !resIdxN +^ 1sz;
-      };
-
-      resIdxM := !resIdxM +^ 1sz;
+      resIdxN := !resIdxN +^ 1sz;
     };
 
-    ghost
-    fn raux (i: (natlt tm & natlt tn))
-    requires
-      (exists* (v: et).
-        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-          (SZ.v mcol) (SZ.v tRowOff + i._1)
-          (SZ.v tColOff + i._2) v)
-    ensures
-      (exists* (v: et).
-        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v)
-    {
-      with v. _;
-      rewrite
-        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
-          (SZ.v mcol) (SZ.v tRowOff + i._1)
-          (SZ.v tColOff + i._2) v)
-      as
-        (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-          (SZ.v bid % SZ.v mcols) (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i._1)
-          (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + i._2) v);
-      ()
-    };
-    forevery_map _ _ raux;
+    resIdxM := !resIdxM +^ 1sz;
+  };
 
-    forevery_unflatten #(natlt tm) #_ #(natlt tn) (fun i -> fun j ->
-            exists* (v: et).
-              M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-                  #(SZ.v bn) #lC gC #1.0R
-                (SZ.v bid / SZ.v mcols) (SZ.v bid % SZ.v mcols)
-                (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i)
-                (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + j)
-                v);
+  forevery_unflatten #(natlt tm) #_ #(natlt tn) (fun i -> fun j ->
+          exists* (v: et).
+            M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+                #(SZ.v bn) #lC gC #1.0R
+              (SZ.v bid / SZ.v mcols) (SZ.v bid % SZ.v mcols)
+              (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i)
+              (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + j)
+              v);
 
-    fold own_thread_tile bm bn tm tn gC bid tid;
-    ()
-  }
-#pop-options
+  fold own_thread_tile bm bn tm tn gC bid tid;
+  ()
+}
 
-// even 20 isn't evenough for the checking from the terminal
-//  (but enough for the vs code extension)
-// #push-options "--retry 10"
-// #push-options "--debug SMTFail --print_implicits"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -790,7 +732,6 @@ fn kf
   rewrite each sarB as fst (snd sh);
   ()
 }
-// #pop-options
 
 
 ghost
