@@ -88,7 +88,7 @@ val gpu_matrix_pts_to
 
 (* erased is important for the lens! *)
 unfold
-instance has_pts_to (a:Type) (rows cols : erased nat) (l : _)
+instance has_pts_to_matrix (a:Type) (rows cols : erased nat) (l : _)
   : has_pts_to (gpu_matrix a l) (ematrix a rows cols) = {
   pts_to = gpu_matrix_pts_to;
 }
