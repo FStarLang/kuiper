@@ -93,6 +93,12 @@ val matmul
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
 
+val matplus
+  (#et:Type) {| scalar et |}
+  (#rows #columns : nat)
+  (m1 m2 : ematrix et rows columns)
+: ematrix et rows columns
+
 val lemma_matmul_index
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)

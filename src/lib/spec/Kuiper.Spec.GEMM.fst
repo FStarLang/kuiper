@@ -68,6 +68,13 @@ let matmul
 : ematrix et rows columns
 = mkM <| fun i j -> matmul_single m1 m2 i j
 
+let matplus
+  (#et:Type) {| scalar et |}
+  (#rows #columns : nat)
+  (m1 m2 : ematrix et rows columns)
+: ematrix et rows columns
+= mkM <| fun i j -> add (macc m1 i j) (macc m2 i j)
+
 let lemma_matmul_index
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
