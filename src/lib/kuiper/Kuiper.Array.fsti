@@ -14,6 +14,7 @@ open Kuiper.Seq.Common
 
 module SZ = FStar.SizeT
 
+new
 val gpu_array (a : Type u#0) (sz : nat) : Type u#0
 
 (* FIXME: I think having nat here, which forces to use erased nat
