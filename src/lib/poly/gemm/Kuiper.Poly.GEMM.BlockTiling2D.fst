@@ -518,8 +518,6 @@ fn epilogue
   let tRowOff = tid /^ (bn /^ tn) *^ tm;
   let tColOff = tid %^ (bn /^ tn) *^ tn;
 
-  forevery_flatten #(natlt tm) #_ #(natlt tn) _;
-  // Pulse.Lib.Array.pts_to_len rchProd;
   let mut resIdxM = 0sz;
   while (SZ.(!resIdxM <^ tm))
     invariant
@@ -538,7 +536,7 @@ fn epilogue
       let vresIdxN = !resIdxN;
 
       (* get separate access to the thread's current cell in gC *)
-      forevery_extract #(natlt tm & natlt tn) (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN)) _;
+      forevery_extract_2 #(natlt tm) #_ #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN) _;
 
       (* tame the SMT solver *)
       assert pure(SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm == tRowOff);
@@ -558,43 +556,19 @@ fn epilogue
       let v' = comb v0 v1;
       M4.gpu_matrix_write_cell gC mrow mcol (tRowOff +^ vresIdxM) (tColOff +^ vresIdxN) v';
 
+      (* return separate access to the thread's current cell in gC *)
       rewrite each (SZ.v mrow) as (bid/mcols);
       rewrite each (SZ.v mcol) as (bid%mcols);
       rewrite each (SZ.v tRowOff) as (tid/(bn/tn) * tm);
       rewrite each (tid/(bn/tn) * tm + (SZ.v vresIdxM)) as thread_row_offset bm bn tm tn tid (SZ.v vresIdxM);
       rewrite each (SZ.v tColOff) as (tid%(bn/tn) * tn);
-      (* return separate access to the thread's current cell in gC *)
-      Pulse.Lib.Trade.elim_trade
-        (exists* v.
-          m4_pts_to_cell gC #1.0R
-            (bid/mcols) (bid%mcols)
-            (thread_row_offset bm
-                bn
-                tm
-                tn
-                (SZ.v tid)
-                (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN))._1)
-                (tid%(bn/tn) * tn + (Mktuple2 #(natlt tm) #(natlt tn) (SZ.v vresIdxM) (SZ.v vresIdxN))._2) v)
-        (forall+ (ii : (natlt tm & natlt tn)).
-          (exists* v.
-            m4_pts_to_cell gC #1.0R
-              (bid/mcols) (bid%mcols)
-              (thread_row_offset bm bn tm tn tid ii._1) (tid%(bn/tn) * tn + ii._2) v));
+      Pulse.Lib.Trade.elim_trade _ _;
 
       resIdxN := !resIdxN +^ 1sz;
     };
 
     resIdxM := !resIdxM +^ 1sz;
   };
-
-  forevery_unflatten #(natlt tm) #_ #(natlt tn) (fun i -> fun j ->
-          exists* (v: et).
-            M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-                #(SZ.v bn) #lC gC #1.0R
-              (SZ.v bid / SZ.v mcols) (SZ.v bid % SZ.v mcols)
-              (SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm + i)
-              (SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn + j)
-              v);
 
   fold own_thread_tile bm bn tm tn gC bid tid;
   ()
