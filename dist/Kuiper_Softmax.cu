@@ -3,17 +3,15 @@
 #include "Kuiper_Softmax.h"
 
 __global__
-
 /**
   hoisted when extracting softmax_f32
 */
 static void __hoisted_0(float_t *ga)
 {
-  ga[blockIdx_x] = exp(ga[blockIdx_x]);
+  ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
 
 __global__
-
 /**
   hoisted when extracting softmax_f32
 */
@@ -24,26 +22,25 @@ static void __hoisted_1(size_t lena, float_t *a_)
   {
     size_t __anf14641 = n;
     __syncthreads();
-    size_t nextid = threadIdx_x + (size_t)(1U << (uint32_t)__anf14641);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf14641);
     if (nextid < lena)
       if
       (
-        (threadIdx_x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
+        (threadIdx.x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
           (size_t)0U
       )
-        a_[threadIdx_x] += a_[nextid];
+        a_[threadIdx.x] += a_[nextid];
     n += (size_t)1U;
   }
 }
 
 __global__
-
 /**
   hoisted when extracting softmax_f32
 */
 static void __hoisted_2(float_t *ga, float_t avg)
 {
-  ga[blockIdx_x] /= avg;
+  ga[blockIdx.x] /= avg;
 }
 
 void Kuiper_Softmax_softmax_f32(size_t lena, float_t *a)
@@ -71,17 +68,15 @@ void Kuiper_Softmax_softmax_f32(size_t lena, float_t *a)
 }
 
 __global__
-
 /**
   hoisted when extracting softmax_f64
 */
 static void __hoisted_3(double_t *ga)
 {
-  ga[blockIdx_x] = exp(ga[blockIdx_x]);
+  ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
 
 __global__
-
 /**
   hoisted when extracting softmax_f64
 */
@@ -92,26 +87,25 @@ static void __hoisted_4(size_t lena, double_t *a_)
   {
     size_t __anf14641 = n;
     __syncthreads();
-    size_t nextid = threadIdx_x + (size_t)(1U << (uint32_t)__anf14641);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf14641);
     if (nextid < lena)
       if
       (
-        (threadIdx_x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
+        (threadIdx.x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
           (size_t)0U
       )
-        a_[threadIdx_x] += a_[nextid];
+        a_[threadIdx.x] += a_[nextid];
     n += (size_t)1U;
   }
 }
 
 __global__
-
 /**
   hoisted when extracting softmax_f64
 */
 static void __hoisted_5(double_t *ga, double_t avg)
 {
-  ga[blockIdx_x] /= avg;
+  ga[blockIdx.x] /= avg;
 }
 
 void Kuiper_Softmax_softmax_f64(size_t lena, double_t *a)
