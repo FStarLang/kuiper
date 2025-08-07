@@ -13,8 +13,7 @@ open Pulse.Lib.Pledge
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync
-  (#full_pre : slprop)
-  (#full_post : slprop)
+  (#full_pre #full_post : slprop)
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
@@ -28,7 +27,9 @@ inline_for_extraction noextract
 fn launch_kernel_1
   (#pre : slprop)
   (#post : slprop)
-  (k : unit -> stt unit (gpu ** pre) (fun _ -> gpu ** post))
+  (k : unit ->
+         stt unit (requires gpu ** pre)
+                  (ensures fun _ -> gpu ** post))
   requires
     cpu **
     pre

@@ -87,8 +87,8 @@ fn kf
     kpost comb gA gB gC eA eB eC fA fB bid **
     block_id (rows *^ cols) bid
 {
-  let trow = SZ.div bid cols; assert (rewrites_to trow (SZ.div bid cols));
-  let tcol = SZ.rem bid cols; assert (rewrites_to tcol (SZ.rem bid cols));
+  let trow = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
+  let tcol = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
 
   let s = MU.matmul_dotprod gA gB trow tcol;
   let v0 = M.gpu_matrix_read_cell gC trow tcol;
@@ -262,13 +262,13 @@ let kdesc
 
   frame = emp;
 
-  setup    = setup    comb gA #fA gB #fB gC #eA #eB #eC;
-  teardown = teardown comb gA #fA gB #fB gC #eA #eB;
+  setup    = setup    comb gA gB gC;
+  teardown = teardown comb gA gB gC;
 
   kpre  = kpre  comb gA gB gC eA eB eC fA fB;
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
-  f = kf comb gA gB gC #eA #eB #eC #fA #fB;
+  f = kf comb gA gB gC;
 }
 
 inline_for_extraction noextract

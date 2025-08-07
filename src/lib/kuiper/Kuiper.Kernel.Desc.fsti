@@ -13,11 +13,40 @@ module SZ = FStar.SizeT
 
 noeq
 inline_for_extraction noextract
-type kernel_desc (full_pre : slprop) (full_post : slprop) = {
+type kernel_desc (full_pre full_post : slprop) = {
   nblk : (x : SZ.t { 0 < x /\ x <= max_blocks });
   nthr : (x : SZ.t { 0 < x /\ x <= max_threads });
 
   shmems_desc : list shmem_desc;
+
+  kpre :
+    c_shmems shmems_desc ->
+    natlt nblk ->
+    natlt nthr ->
+    slprop;
+  kpost :
+    c_shmems shmems_desc ->
+    natlt nblk ->
+    natlt nthr ->
+    slprop;
+
+  f : (
+    sh : c_shmems shmems_desc ->
+    bid : szlt nblk ->
+    tid : szlt nthr ->
+    unit ->
+    stt unit
+      (requires
+         gpu **
+         kpre sh bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
+      (ensures fun _ ->
+         gpu **
+         kpost sh bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
+  );
 
   frame : slprop;
 
@@ -40,18 +69,6 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
         frame)
       (ensures  fun _ -> full_post)
   );
-
-  kpre :
-    c_shmems shmems_desc ->
-    natlt nblk ->
-    natlt nthr ->
-    slprop;
-  kpost :
-    c_shmems shmems_desc ->
-    natlt nblk ->
-    natlt nthr ->
-    slprop;
-
   block_frame :
     c_shmems shmems_desc ->
     natlt nblk -> slprop;
@@ -82,23 +99,5 @@ type kernel_desc (full_pre : slprop) (full_post : slprop) = {
       (ensures fun _ ->
         live_c_shmems sh **
         block_post bid)
-  );
-
-  f : (
-    sh : c_shmems shmems_desc ->
-    bid : szlt nblk ->
-    tid : szlt nthr ->
-    unit ->
-    stt unit
-      (requires
-         gpu **
-         kpre sh bid tid **
-         thread_id nthr tid **
-         block_id nblk bid)
-      (ensures fun _ ->
-         gpu **
-         kpost sh bid tid **
-         thread_id nthr tid **
-         block_id nblk bid)
   );
 }
