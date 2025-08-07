@@ -146,6 +146,10 @@ type block_tiled2d_matmulcomb_gpu_ty =
   (tn : szp{tn /? bn}) ->
   (#_ : squash (SizeT.fits (bm*bk + bm/tm*(bn/tn)))) ->
   (#_ : squash (SizeT.fits (bk*bn + bm/tm*(bn/tn)))) ->
+  (slA : mlayout bm bk) ->
+  (slB : mlayout bk bn) ->
+  {| clayout slA |} ->
+  {| clayout slB |} ->
   (lA : M4.mlayout4 mrows   mshared bm bk) ->
   (lB : M4.mlayout4 mshared mcols   bk bn) ->
   (lC : M4.mlayout4 mrows   mcols   bm bn) ->

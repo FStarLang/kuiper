@@ -208,9 +208,13 @@ fn mmcomb_gpu_block_tiled1d
 }
 
 inline_for_extraction noextract
-fn mmcomb_gpu_block_tiled2d
+fn mmcomb_gpu_shmem_block_tiled2d
   (tiled_mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty)
   (bm bn bk : szp)
+  (slA : mlayout bm bk)
+  (slB : mlayout bk bn)
+  {| csA : clayout slA |}
+  {| csB : clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn < max_threads)})
   (#et : Type0) {| scalar et |}
@@ -268,6 +272,7 @@ fn mmcomb_gpu_block_tiled2d
     comb
     bm bn bk
     tm tn
+    slA slB
     lA4 lB4 lC4
     #(M4.clayout4_from_clayout bm bk cA)
     #(M4.clayout4_from_clayout bk bn cB)

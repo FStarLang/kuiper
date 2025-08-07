@@ -541,9 +541,8 @@ fn epilogue
       (* tame the SMT solver *)
       assert pure(SZ.v tid / (SZ.v bn / SZ.v tn) * SZ.v tm == tRowOff);
       assert pure(SZ.v tid % (SZ.v bn / SZ.v tn) * SZ.v tn == tColOff);
-      (* these might help against flakyness *)
-      assert pure (tid/(bn/tn)*tm + vresIdxM < bm);
-      assert pure (tid%(bn/tn)*tn + vresIdxN < bn);
+
+      assert pure (thread_row_offset bm bn tm tn tid vresIdxM == tid/(bn/tn)*tm + vresIdxM ==> tid/(bn/tn)*tm + vresIdxM < bm);
       (* read the current cell in gC *)
       with bi0 bj0 i0 j0 v0.
       rewrite M4.gpu_matrix_pts_to_cell gC bi0  bj0  i0   j0   v0
@@ -921,6 +920,9 @@ fn mmcomb_gpu
   (tn : szp{tn /? bn})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
+  (slA : mlayout bm bk)
+  (slB : mlayout bk bn)
+  {| clayout slA, clayout slB |}
   (lA : mlayout4 mrows   mshared bm bk)
   (lB : mlayout4 mshared mcols   bk bn)
   (lC : mlayout4 mrows   mcols   bm bn)
@@ -945,5 +947,5 @@ fn mmcomb_gpu
     gC |-> MS.mmcomb comb eC eA eB
 {
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel comb bm bn bk tm tn (R.row_major _ _) (R.row_major _ _) gA gB gC ());
+  launch_sync (mk_kernel comb bm bn bk tm tn slA slB gA gB gC ());
 }
