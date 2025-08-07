@@ -653,7 +653,7 @@ fn forevery_extract
 }
 
 ghost
-fn forevery_extract2
+fn forevery_extract_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
   (z : a) (w : b)

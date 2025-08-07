@@ -185,11 +185,11 @@ fn mmcomb_gpu_block_tiled1d
   let lB4 : mlayout4 mshared mcols  bk bn = lB;
   let lC4 : mlayout4 mrows   mcols  bm bn = lC;
   let gA4 = MC.m2_to_m4 bm bk mrows mshared gA;
-  //
   let gB4 = MC.m2_to_m4 bk bn mshared mcols gB;
   let gC4 = MC.m2_to_m4 bm bn mrows mcols gC;
   tiled_mmcomb_gpu
     comb
+    bm bn bk
     tm
     lA4 lB4 lC4
     #(M4.clayout4_from_clayout bm bk cA)
@@ -206,6 +206,89 @@ fn mmcomb_gpu_block_tiled1d
   rewrite each gC' as gC;
   ()
 }
+
+inline_for_extraction noextract
+fn mmcomb_gpu_shmem_block_tiled2d
+  (tiled_mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty)
+  (bm bn bk : szp)
+  (slA : mlayout bm bk)
+  (slB : mlayout bk bn)
+  {| csA : clayout slA |}
+  {| csB : clayout slB |}
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn /\ (bm/tm * bn/tn < max_threads)})
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| cA : clayout lA |}
+  {| cB : clayout lB |}
+  {| cC : clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (#fA : perm)
+  (gB : M.gpu_matrix et lB)
+  (#fB : perm)
+  (gC : M.gpu_matrix et lC)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  preserves
+    cpu **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
+  requires
+    pure (rows * cols <= max_blocks) **
+    (gC |-> eC)
+  ensures
+    gC |-> MS.mmcomb comb eC eA eB
+{
+  dassert (bm `SZ.gt` 0sz);
+  dassert (bn `SZ.gt` 0sz);
+  dassert (bk `SZ.gt` 0sz);
+  dassert (tm `SZ.gt` 0sz);
+  dassert (bm %^ tm = 0sz);
+  dassert (bn %^ tn = 0sz);
+  dguard (rows   %^ bm = 0sz);
+  dguard (shared %^ bk = 0sz);
+  dguard (cols   %^ bn = 0sz);
+  let mrows   = rows   /^ bm;
+  let mshared = shared /^ bk;
+  let mcols   = cols   /^ bn;
+
+  let lA4 : mlayout4 mrows   mshared bm bk = lA;
+  let lB4 : mlayout4 mshared mcols  bk bn = lB;
+  let lC4 : mlayout4 mrows   mcols  bm bn = lC;
+  let gA4 = MC.m2_to_m4 bm bk mrows mshared gA;
+  let gB4 = MC.m2_to_m4 bk bn mshared mcols gB;
+  let gC4 = MC.m2_to_m4 bm bn mrows mcols gC;
+
+  // There is no way to prove this.
+  assume (pure (SZ.fits (bm*bk + (bm/tm * (bn/tn)))));
+  assume (pure (SZ.fits (bk*bn + (bm/tm * (bn/tn)))));
+
+  tiled_mmcomb_gpu
+    comb
+    bm bn bk
+    tm tn
+    slA slB
+    lA4 lB4 lC4
+    #(M4.clayout4_from_clayout bm bk cA)
+    #(M4.clayout4_from_clayout bk bn cB)
+    #(M4.clayout4_from_clayout bm bn cC)
+    gA4 gB4 gC4;
+
+  let gA' = MC.m4_to_m2 gA4;
+  let gB' = MC.m4_to_m2 gB4;
+  let gC' = MC.m4_to_m2 gC4;
+
+  rewrite each gA' as gA;
+  rewrite each gB' as gB;
+  rewrite each gC' as gC;
+  ()
+}
+
 (* An example of computing tr(AB) by just shifting a view.
 Basically:
   - Instantiating rA=rB=row_major, rC=col_major

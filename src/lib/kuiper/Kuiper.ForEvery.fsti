@@ -382,7 +382,7 @@ fn forevery_extract
     p z ** (p z @==> forall+ (x:a). p x)
 
 ghost
-fn forevery_extract2
+fn forevery_extract_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
   (z : a) (w : b)
