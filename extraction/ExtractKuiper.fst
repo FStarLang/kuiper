@@ -82,7 +82,7 @@ let gpu_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float16.t") -> TInt Half
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float32.t") -> TInt Float
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float64.t") -> TInt Double
-
+  | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Vectorized.float4") -> TQualified ([], "float4")
   | _ -> raise NotSupportedByKrmlExtension
 
 let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
