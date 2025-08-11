@@ -2,15 +2,15 @@ module Kuiper.Vectorized
 
 #lang-pulse
 
-open Pulse.Lib.Vec
-open Pulse
-open Pulse.Lib.BigStar
-open FStar.Tactics.V2
+// open Pulse.Lib.Vec
+// open Pulse
+// open Pulse.Lib.BigStar
+module T = FStar.Tactics.V2
 open FStar.Seq
 
 open Kuiper
 open Kuiper.IView
-open Kuiper.IArray { iarray }
+open Kuiper.IArray
 // open Kuiper.Array
 // open Kuiper.Base
 // open Kuiper.Sized
@@ -110,7 +110,6 @@ fn gpu_array_read_vec4
 let upd_seq_vec4 (s : seq float) (idx : nat{idx+3 < Seq.length s}) (v : float4) : seq float //s':seq float{length s' == lenght s}
   = Seq.upd (Seq.upd (Seq.upd (Seq.upd s idx (getx v)) (idx + 1) (gety v)) (idx + 2) (getz v)) (idx + 3) (getw v)
 
-// #push-options "--debug SMTFail --split_queries always"
 [@@noextract_to "krml"]
 atomic
 fn gpu_array_write_vec4
@@ -134,29 +133,53 @@ fn gpu_array_write_vec4
                 i <= SZ.v idx /\ SZ.v idx + 3 < j /\
                 s' == upd_seq_vec4 s (idx - i) v))
 
-// #push-options "--debug SMTFail --split_queries always"
-// fn iarray_read_vec4
-//   // (#et:Type0)
-//   (#len : erased nat)
-//   (#vw : aiview len) {| cw : ciview vw |}
-//   // (a : iarray et vw)
-//   (a : iarray float vw)
-//   // (ci : cw.sch.cit)
-//   (ci : SZ.t)
-//   (#f : perm)
-//   // (#v : (vw.sch.ait -> GTot et))
-//   (#v : (vw.sch.ait -> GTot float))
-//   preserves
-//     gpu **
-//     (a |-> Frac f v)
-//   returns
-//     e : float4
-//   ensures
-//     pure (e == make_float4
-//                  (v (ci_to_ai vw ci))
-//                  (v (ci_to_ai vw (ci +^ 1sz)))
-//                  (v (ci_to_ai vw (ci +^ 2sz)))
-//                  (v (ci_to_ai vw (ci +^ 3sz))))
-// {
-//   admit();
-// }
+let ai_add
+  (#len : nat)
+  (vw : aiview len)
+  (i : vw.sch.ait)
+  (x : nat{vw.sch.ait_enum.bij.ff i + x < vw.sch.ait_enum._cardinal})
+  : GTot vw.sch.ait
+  = (vw.sch.ait_enum.bij.gg ((vw.sch.ait_enum.bij.ff i) + x))
+
+let iarray_pts_to_4cells
+  (#et:Type0)
+  (#len : erased nat) (#vw : aiview len)
+  ([@@@mkey] a : iarray et vw)
+  (#[T.exact (`1.0R)] f : perm)
+  ([@@@mkey] i : vw.sch.ait{vw.sch.ait_enum.bij.ff i + 3 < vw.sch.ait_enum._cardinal})
+  // Should probably be restricted to only the elements that are accessed?
+  //  this: (#v : (ai: vw.sch.ait{0 <= vw.sch.bij.ff ai /\ vw.sch.bij.ff ai < 4} -> GTot float))
+  (v : (vw.sch.ait -> GTot et))
+  : slprop
+  =
+  // pure (SZ.fits len) **
+    iarray_pts_to_cell a #f i (v i) ** 
+    iarray_pts_to_cell a #f (ai_add vw i 1) (v i) ** 
+    iarray_pts_to_cell a #f (ai_add vw i 2) (v i) ** 
+    iarray_pts_to_cell a #f (ai_add vw i 3) (v i)
+
+#push-options "--debug SMTFail --split_queries always"
+fn iarray_vec4_read_cells
+  // (#et:Type0)
+  (#len : erased nat)
+  (#vw : aiview len) {| cw : ciview vw |}
+  // (a : iarray et vw)
+  (a : iarray float vw)
+  (ci : cw.sch.cit{vw.sch.ait_enum.bij.ff (cw.sch.bij.gg ci) + 3 < vw.sch.ait_enum._cardinal})
+  (#f : perm)
+  // Should probably be restricted to only the elements that are accessed?
+  //  this: (#v : (ai: vw.sch.ait{0 <= vw.sch.bij.ff ai /\ vw.sch.bij.ff ai < 4} -> GTot float))
+  (#v : (vw.sch.ait -> GTot float))
+  preserves gpu
+  preserves iarray_pts_to_4cells #float a #f (ci_to_ai vw ci) v
+  returns
+    e : float4
+  ensures
+    pure (e == make_float4
+                 (v (ci_to_ai vw ci))
+                 (v (ai_add vw (ci_to_ai vw ci)  1))
+                 (v (ai_add vw (ci_to_ai vw ci)  2))
+                 (v (ai_add vw (ci_to_ai vw ci)  3)))
+{
+  admit();
+}
