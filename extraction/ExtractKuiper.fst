@@ -700,6 +700,13 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
+ 
+  (******** VECTORIZED ARRAY ********)
+
+  | "Kuiper.Vectorized.gpu_array_read_vec4", [], [ _sz; _i; _j; a; _f; idx; _s ] ->
+    EApp (EQualified ([], "KPR_VECTZD_READ"), [ cb a; cb idx ])
+  | "Kuiper.Vectorized.gpu_array_write_vec4", [], [ _sz; _i; _j; a; idx; v; _s ] ->
+    EApp (EQualified ([], "KPR_VECTZD_WRITE"), [ cb a; cb idx; cb v ])
 
   (******** ATOMIC OPS ********)
 
@@ -707,6 +714,14 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.AtomicOps.gpu_faa_u64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_u64"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
+
+  (******** VECTOR OPS ********)
+  | "Kuiper.Vectorized.make_float4", [], [ x; y; z; w; ] ->
+    EApp (EQualified ([], "make_float4"), [cb x; cb y; cb z; cb w])
+  | "Kuiper.Vectorized.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
+  | "Kuiper.Vectorized.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
+  | "Kuiper.Vectorized.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
+  | "Kuiper.Vectorized.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
 
   (******** KERNEL CALL ********)
 
