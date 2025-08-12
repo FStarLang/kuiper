@@ -9,8 +9,6 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 
-(**** TILING ****)
-
 val ematrix_subtile
   (#et : _)
   (#rows #cols : _)
@@ -29,6 +27,15 @@ val subtile_layout
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   : mlayout trows tcols
+
+instance val c_subtile_layout
+  (#rows #cols : _)
+  (l : mlayout rows cols) {| clayout l |}
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : clayout (subtile_layout l trows tcols tr tc)
 
 val gpu_matrix_subtile
   (#et : _)
