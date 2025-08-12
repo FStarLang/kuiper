@@ -133,30 +133,32 @@ fn gpu_array_write_vec4
                 i <= SZ.v idx /\ SZ.v idx + 3 < j /\
                 s' == upd_seq_vec4 s (idx - i) v))
 
+open Kuiper.Injection
+
 let ai_add
   (#len : nat)
   (vw : aiview len)
-  (i : vw.sch.ait)
-  (x : nat{vw.sch.ait_enum.bij.ff i + x < vw.sch.ait_enum._cardinal})
-  : GTot vw.sch.ait
-  = (vw.sch.ait_enum.bij.gg ((vw.sch.ait_enum.bij.ff i) + x))
+  (ai : vw.sch.ait)
+  (x : nat{in_image vw.step.imap.f ((it_to_nat vw ai) + x)})
+  : GTot vw.sch.ait  = ((it_to_nat vw ai) + x) <~| vw.step.imap
 
 let iarray_pts_to_4cells
   (#et:Type0)
   (#len : erased nat) (#vw : aiview len)
   ([@@@mkey] a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey] i : vw.sch.ait{vw.sch.ait_enum.bij.ff i + 3 < vw.sch.ait_enum._cardinal})
+  ([@@@mkey] ai : vw.sch.ait)
   // Should probably be restricted to only the elements that are accessed?
   //  this: (#v : (ai: vw.sch.ait{0 <= vw.sch.bij.ff ai /\ vw.sch.bij.ff ai < 4} -> GTot float))
   (v : (vw.sch.ait -> GTot et))
+  (_ : squash (forall (x : natlt 4). in_image vw.step.imap.f ((it_to_nat vw ai) + x)))
   : slprop
   =
   // pure (SZ.fits len) **
-    iarray_pts_to_cell a #f i (v i) ** 
-    iarray_pts_to_cell a #f (ai_add vw i 1) (v i) ** 
-    iarray_pts_to_cell a #f (ai_add vw i 2) (v i) ** 
-    iarray_pts_to_cell a #f (ai_add vw i 3) (v i)
+    iarray_pts_to_cell a #f ai (v ai) ** 
+    iarray_pts_to_cell a #f (ai_add vw ai 1) (v ai) ** 
+    iarray_pts_to_cell a #f (ai_add vw ai 2) (v ai) ** 
+    iarray_pts_to_cell a #f (ai_add vw ai 3) (v ai)
 
 #push-options "--debug SMTFail --split_queries always"
 fn iarray_vec4_read_cells
@@ -170,6 +172,7 @@ fn iarray_vec4_read_cells
   // Should probably be restricted to only the elements that are accessed?
   //  this: (#v : (ai: vw.sch.ait{0 <= vw.sch.bij.ff ai /\ vw.sch.bij.ff ai < 4} -> GTot float))
   (#v : (vw.sch.ait -> GTot float))
+  (_ : squash (forall (x : natlt 4). in_image vw.step.imap.f (it_to_nat vw (ci_to_ai vw ci) + x)))
   preserves gpu
   preserves iarray_pts_to_4cells #float a #f (ci_to_ai vw ci) v
   returns
