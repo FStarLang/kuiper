@@ -25,10 +25,11 @@ let valid_frag_dimensions et (m n k : nat) : prop =
   (et == half /\ m == 16 /\ n == 16 /\ k == 16) \/
   False
 
+(* TODO must be restricted to valid types only, probably during fragment fill *)
 new
 val fragment
   (et : Type0)
-  (k : fragment_kind)
+  (knd : fragment_kind)
   (m n k : nat)
   (layout : fragment_layout)
   : Type0
@@ -124,24 +125,32 @@ let fill_value
   (#et : Type)
   (#knd : fragment_kind)
   (#m #n #k : nat)
-  (i : et)
+  (v : et)
   : value_for et knd m n k
 =
   match knd with
-  | FragA     -> EMatrix.const_matrix #_ #m #k i
-  | FragB     -> EMatrix.const_matrix #_ #k #n i
-  | FragAccum -> EMatrix.const_matrix #_ #m #n i
+  | FragA     -> EMatrix.mkM #_ #m #k (fun _ _ -> v)
+  | FragB     -> EMatrix.mkM #_ #k #n (fun _ _ -> v)
+  | FragAccum -> EMatrix.mkM #_ #m #n (fun _ _ -> v)
 
-fn mma_fill
+let fill_value_zero
+  (#et : Type) {| scalar et |}
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  : value_for et knd m n k
+=
+  fill_value zero
+
+fn fill_fragment
   (#et : Type)
   (#knd : fragment_kind)
-  (#m #n #k : erased nat)
+  (#m #n #k : nat)
   (#ly : fragment_layout)
   (fr : fragment et knd m n k ly)
-  (i : et)
-  (#v0 : erased (value_for et knd m n k))
+  (v : et)
+  (#v0 : value_for et knd m n k)
   requires fr |-> v0
-  ensures  fr |-> fill_value i
+  ensures  fr |-> fill_value v
 
 fn mma_store
   (#et : Type)
@@ -157,6 +166,29 @@ fn mma_store
     gm |-> m0
   ensures
     gm |-> f0
+
+fn use_wmma_ker
+  (m1 : gpu_matrix half (row_major 16 16))
+  (m2 : gpu_matrix half (row_major 16 16))
+  (m3 : gpu_matrix half (row_major 16 16))
+  (fa : fragment   half FragA     16 16 16 FragLRM)
+  (fb : fragment   half FragB     16 16 16 FragLRM)
+  (fc : fragment   half FragAccum 16 16 16 FragLAccum)
+  preserves
+    (exists* v. m1 |-> v) **
+    (exists* v. m2 |-> v) **
+    (exists* v. m3 |-> v) **
+    (exists* v. fa |-> v) **
+    (exists* v. fb |-> v) **
+    (exists* v. fc |-> v)
+{
+  mma_loadA fa m1;
+  mma_loadB fb m2;
+  fill_fragment fc zero;
+  mma_sync' fa fb fc;
+  mma_store fc m3;
+  ()
+}
 
 (* We should add checker support for this. *)
 fn with_fragment u#r
