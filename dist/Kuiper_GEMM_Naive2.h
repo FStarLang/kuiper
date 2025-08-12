@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_GEMM_Naive2_H
-#define __Kuiper_GEMM_Naive2_H
+#ifndef Kuiper_GEMM_Naive2_H
+#define Kuiper_GEMM_Naive2_H
 
 #include <kuiper.h>
 
@@ -158,5 +158,5 @@ Kuiper_GEMM_Naive2_g_matmul_u64_ccc(
 );
 
 
-#define __Kuiper_GEMM_Naive2_H_DEFINED
-#endif
+#define Kuiper_GEMM_Naive2_H_DEFINED
+#endif /* Kuiper_GEMM_Naive2_H */

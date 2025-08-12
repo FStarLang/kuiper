@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_Stencil_H
-#define __Kuiper_Stencil_H
+#ifndef Kuiper_Stencil_H
+#define Kuiper_Stencil_H
 
 #include <kuiper.h>
 
@@ -17,5 +17,5 @@ Kuiper_Stencil_stencil3x3_i32_add_mul2_rc(
 );
 
 
-#define __Kuiper_Stencil_H_DEFINED
-#endif
+#define Kuiper_Stencil_H_DEFINED
+#endif /* Kuiper_Stencil_H */

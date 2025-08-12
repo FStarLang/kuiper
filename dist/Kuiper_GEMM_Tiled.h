@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_GEMM_Tiled_H
-#define __Kuiper_GEMM_Tiled_H
+#ifndef Kuiper_GEMM_Tiled_H
+#define Kuiper_GEMM_Tiled_H
 
 #include <kuiper.h>
 
@@ -478,5 +478,5 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile16_ccc(
 );
 
 
-#define __Kuiper_GEMM_Tiled_H_DEFINED
-#endif
+#define Kuiper_GEMM_Tiled_H_DEFINED
+#endif /* Kuiper_GEMM_Tiled_H */

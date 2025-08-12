@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_GEMM_OrigBlockTiling1D_H
-#define __Kuiper_GEMM_OrigBlockTiling1D_H
+#ifndef Kuiper_GEMM_OrigBlockTiling1D_H
+#define Kuiper_GEMM_OrigBlockTiling1D_H
 
 #include <kuiper.h>
 
@@ -27,5 +27,5 @@ Kuiper_GEMM_OrigBlockTiling1D_g_gemm_f32_tiles64x8_8x64_rc8_rrr(
 );
 
 
-#define __Kuiper_GEMM_OrigBlockTiling1D_H_DEFINED
-#endif
+#define Kuiper_GEMM_OrigBlockTiling1D_H_DEFINED
+#endif /* Kuiper_GEMM_OrigBlockTiling1D_H */

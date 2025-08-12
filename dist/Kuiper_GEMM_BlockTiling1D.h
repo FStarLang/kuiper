@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_GEMM_BlockTiling1D_H
-#define __Kuiper_GEMM_BlockTiling1D_H
+#ifndef Kuiper_GEMM_BlockTiling1D_H
+#define Kuiper_GEMM_BlockTiling1D_H
 
 #include <kuiper.h>
 
@@ -502,5 +502,5 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile16_ccc(
 );
 
 
-#define __Kuiper_GEMM_BlockTiling1D_H_DEFINED
-#endif
+#define Kuiper_GEMM_BlockTiling1D_H_DEFINED
+#endif /* Kuiper_GEMM_BlockTiling1D_H */

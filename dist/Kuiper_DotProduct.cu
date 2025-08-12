@@ -12,15 +12,12 @@ static void __hoisted_0(size_t lena, float_t *ga1, float_t *ga2)
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
-    size_t __anf14641 = n;
+    size_t __anf0 = n;
     __syncthreads();
-    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf14641);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf0);
     if (nextid < lena)
       if
-      (
-        (threadIdx.x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
-          (size_t)0U
-      )
+      ((threadIdx.x & (size_t)(1U << (uint32_t)(__anf0 + (size_t)1U)) - (size_t)1U) == (size_t)0U)
         ga1[threadIdx.x] += ga1[nextid];
     n += (size_t)1U;
   }
@@ -55,15 +52,12 @@ static void __hoisted_1(size_t lena, double_t *ga1, double_t *ga2)
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
-    size_t __anf14641 = n;
+    size_t __anf0 = n;
     __syncthreads();
-    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf14641);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf0);
     if (nextid < lena)
       if
-      (
-        (threadIdx.x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
-          (size_t)0U
-      )
+      ((threadIdx.x & (size_t)(1U << (uint32_t)(__anf0 + (size_t)1U)) - (size_t)1U) == (size_t)0U)
         ga1[threadIdx.x] += ga1[nextid];
     n += (size_t)1U;
   }
@@ -98,15 +92,12 @@ static void __hoisted_2(size_t lena, uint32_t *ga1, uint32_t *ga2)
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
-    size_t __anf14641 = n;
+    size_t __anf0 = n;
     __syncthreads();
-    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf14641);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf0);
     if (nextid < lena)
       if
-      (
-        (threadIdx.x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
-          (size_t)0U
-      )
+      ((threadIdx.x & (size_t)(1U << (uint32_t)(__anf0 + (size_t)1U)) - (size_t)1U) == (size_t)0U)
         ga1[threadIdx.x] += ga1[nextid];
     n += (size_t)1U;
   }
@@ -139,15 +130,12 @@ static void __hoisted_3(size_t lena, uint64_t *ga1, uint64_t *ga2)
   size_t n = (size_t)0U;
   while ((size_t)(1U << (uint32_t)n) < lena)
   {
-    size_t __anf14641 = n;
+    size_t __anf0 = n;
     __syncthreads();
-    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf14641);
+    size_t nextid = threadIdx.x + (size_t)(1U << (uint32_t)__anf0);
     if (nextid < lena)
       if
-      (
-        (threadIdx.x & (size_t)(1U << (uint32_t)(__anf14641 + (size_t)1U)) - (size_t)1U) ==
-          (size_t)0U
-      )
+      ((threadIdx.x & (size_t)(1U << (uint32_t)(__anf0 + (size_t)1U)) - (size_t)1U) == (size_t)0U)
         ga1[threadIdx.x] += ga1[nextid];
     n += (size_t)1U;
   }

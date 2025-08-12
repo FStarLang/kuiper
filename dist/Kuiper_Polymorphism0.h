@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_Polymorphism0_H
-#define __Kuiper_Polymorphism0_H
+#ifndef Kuiper_Polymorphism0_H
+#define Kuiper_Polymorphism0_H
 
 #include <kuiper.h>
 
@@ -14,5 +14,5 @@ __device__
 void Kuiper_Polymorphism0_kswap_F32(float_t *r1, float_t *r2);
 
 
-#define __Kuiper_Polymorphism0_H_DEFINED
-#endif
+#define Kuiper_Polymorphism0_H_DEFINED
+#endif /* Kuiper_Polymorphism0_H */

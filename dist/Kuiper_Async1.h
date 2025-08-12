@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_Async1_H
-#define __Kuiper_Async1_H
+#ifndef Kuiper_Async1_H
+#define Kuiper_Async1_H
 
 #include <kuiper.h>
 
@@ -12,5 +12,5 @@ uint64_t Kuiper_Async1_gread(uint64_t *gr);
 uint64_t Kuiper_Async1_main(void);
 
 
-#define __Kuiper_Async1_H_DEFINED
-#endif
+#define Kuiper_Async1_H_DEFINED
+#endif /* Kuiper_Async1_H */

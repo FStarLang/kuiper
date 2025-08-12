@@ -1,12 +1,12 @@
 
 
-#ifndef __Kuiper_BasicFloat_H
-#define __Kuiper_BasicFloat_H
+#ifndef Kuiper_BasicFloat_H
+#define Kuiper_BasicFloat_H
 
 #include <kuiper.h>
 
 float_t Kuiper_BasicFloat_main(void);
 
 
-#define __Kuiper_BasicFloat_H_DEFINED
-#endif
+#define Kuiper_BasicFloat_H_DEFINED
+#endif /* Kuiper_BasicFloat_H */

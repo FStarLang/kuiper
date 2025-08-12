@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_ArrayView_Test1_H
-#define __Kuiper_ArrayView_Test1_H
+#ifndef Kuiper_ArrayView_Test1_H
+#define Kuiper_ArrayView_Test1_H
 
 #include <kuiper.h>
 
@@ -16,5 +16,5 @@ void Kuiper_ArrayView_Test1_write2(uint32_t *a);
 void Kuiper_ArrayView_Test1_write3(uint32_t *p);
 
 
-#define __Kuiper_ArrayView_Test1_H_DEFINED
-#endif
+#define Kuiper_ArrayView_Test1_H_DEFINED
+#endif /* Kuiper_ArrayView_Test1_H */

@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_Add_H
-#define __Kuiper_Add_H
+#ifndef Kuiper_Add_H
+#define Kuiper_Add_H
 
 #include <kuiper.h>
 
@@ -18,5 +18,5 @@ uint64_t Kuiper_Add_incr_u64(uint64_t x);
 uint64_t Kuiper_Add_incr_u64_(uint64_t x);
 
 
-#define __Kuiper_Add_H_DEFINED
-#endif
+#define Kuiper_Add_H_DEFINED
+#endif /* Kuiper_Add_H */

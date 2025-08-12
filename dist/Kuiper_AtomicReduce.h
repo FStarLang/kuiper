@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_AtomicReduce_H
-#define __Kuiper_AtomicReduce_H
+#ifndef Kuiper_AtomicReduce_H
+#define Kuiper_AtomicReduce_H
 
 #include <kuiper.h>
 
@@ -14,5 +14,5 @@ float_t Kuiper_AtomicReduce_reduce_f32(size_t n, float_t *a);
 double_t Kuiper_AtomicReduce_reduce_f64(size_t n, double_t *a);
 
 
-#define __Kuiper_AtomicReduce_H_DEFINED
-#endif
+#define Kuiper_AtomicReduce_H_DEFINED
+#endif /* Kuiper_AtomicReduce_H */

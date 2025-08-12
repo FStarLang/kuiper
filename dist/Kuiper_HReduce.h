@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_HReduce_H
-#define __Kuiper_HReduce_H
+#ifndef Kuiper_HReduce_H
+#define Kuiper_HReduce_H
 
 #include <kuiper.h>
 
@@ -16,5 +16,5 @@ void Kuiper_HReduce_reduce_u32_plus(size_t lena, uint32_t *a);
 void Kuiper_HReduce_reduce_u64_plus(size_t lena, uint64_t *a);
 
 
-#define __Kuiper_HReduce_H_DEFINED
-#endif
+#define Kuiper_HReduce_H_DEFINED
+#endif /* Kuiper_HReduce_H */

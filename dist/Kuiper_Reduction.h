@@ -1,12 +1,12 @@
 
 
-#ifndef __Kuiper_Reduction_H
-#define __Kuiper_Reduction_H
+#ifndef Kuiper_Reduction_H
+#define Kuiper_Reduction_H
 
 #include <kuiper.h>
 
 extern size_t Kuiper_Reduction_size;
 
 
-#define __Kuiper_Reduction_H_DEFINED
-#endif
+#define Kuiper_Reduction_H_DEFINED
+#endif /* Kuiper_Reduction_H */

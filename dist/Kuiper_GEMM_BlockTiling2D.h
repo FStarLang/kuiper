@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_GEMM_BlockTiling2D_H
-#define __Kuiper_GEMM_BlockTiling2D_H
+#ifndef Kuiper_GEMM_BlockTiling2D_H
+#define Kuiper_GEMM_BlockTiling2D_H
 
 #include <kuiper.h>
 
@@ -60,5 +60,5 @@ Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x8_8x8_rrr_cr(
 );
 
 
-#define __Kuiper_GEMM_BlockTiling2D_H_DEFINED
-#endif
+#define Kuiper_GEMM_BlockTiling2D_H_DEFINED
+#endif /* Kuiper_GEMM_BlockTiling2D_H */

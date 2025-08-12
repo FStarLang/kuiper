@@ -1,7 +1,7 @@
 
 
-#ifndef __Kuiper_DotProduct_H
-#define __Kuiper_DotProduct_H
+#ifndef Kuiper_DotProduct_H
+#define Kuiper_DotProduct_H
 
 #include <kuiper.h>
 
@@ -14,5 +14,5 @@ uint32_t Kuiper_DotProduct_dotprod_u32(size_t lena, uint32_t *a1, uint32_t *a2);
 uint64_t Kuiper_DotProduct_dotprod_u64(size_t lena, uint64_t *a1, uint64_t *a2);
 
 
-#define __Kuiper_DotProduct_H_DEFINED
-#endif
+#define Kuiper_DotProduct_H_DEFINED
+#endif /* Kuiper_DotProduct_H */
