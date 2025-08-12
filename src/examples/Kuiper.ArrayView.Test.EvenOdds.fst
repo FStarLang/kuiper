@@ -52,7 +52,7 @@ instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_v
   fits = ();
   sch = {
     cit  = szlt ((len + 1) / 2);
-    bij  = fin_size_t_bij _;
+    bij  = natural;
   };
   step = {
     cimap = {
@@ -68,7 +68,7 @@ instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_vie
   fits = ();
   sch = {
     cit  = szlt (len / 2);
-    bij  = fin_size_t_bij _;
+    bij  = natural;
   };
   step = {
     cimap = {
