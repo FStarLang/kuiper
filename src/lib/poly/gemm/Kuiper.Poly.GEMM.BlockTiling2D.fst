@@ -4,7 +4,6 @@ module Kuiper.Poly.GEMM.BlockTiling2D
 
 open Kuiper
 
-module EM = Kuiper.EMatrix
 
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
@@ -30,7 +29,6 @@ module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
 module B = Kuiper.Barrier
 
-module R = Kuiper.Matrix.Reprs
 
 open Kuiper.EMatrix { ematrix }
 open Kuiper.VArray {
@@ -128,7 +126,7 @@ let kpost1
   (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA) **
   (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB) **
   own_thread_tile bm bn tm tn gC bid tid
-  
+
 let own_cell
   (#et : Type0)
   (#rows #cols : nat)

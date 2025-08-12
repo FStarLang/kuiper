@@ -108,7 +108,7 @@ instance lseq_is_ghost_map (et:Type) (len:nat) : is_ghost_map (lseq et len) (nat
 
 instance ghost_map_is_ghost_map #a #b : is_ghost_map (a ^->> b) a b =
   {
-    bij = 
+    bij =
       (Mkbijection #(erased (a ^->> b)) #(a ^->> b)
         reveal
         hide

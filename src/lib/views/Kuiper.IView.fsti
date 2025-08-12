@@ -15,19 +15,19 @@ noeq
 inline_for_extraction noextract
 type aiview_schema = {
   (* abstract index type *)
-  ait       : Type0;
+  ait      : Type0;
 
   (* The index type must be enumerable. This is mostly so we can
      use forall+, the bijection inside here is not used much elsewhere. *)
-  ait_enum  : Enumerable.enumerable ait;
+  ait_enum : Enumerable.enumerable ait;
 }
 
 [@@erasable]
 noeq
 inline_for_extraction noextract
-type aiview_step (from to : aiview_schema) = {
+type aiview_step (from_ait to_ait : Type0) = {
   (* Index translation *)
-  imap : from.ait @~> to.ait;
+  imap : from_ait @~> to_ait;
 }
 
 let raw_aiview_schema (len : nat) : aiview_schema = {
@@ -40,7 +40,7 @@ noeq
 inline_for_extraction noextract
 type aiview (len : erased nat) = {
   sch  : aiview_schema;
-  step : aiview_step sch (raw_aiview_schema len)
+  step : aiview_step sch.ait (natlt len);
 }
 
 unfold
@@ -79,7 +79,7 @@ type ciview_schema (asch : aiview_schema) = {
   [@@@no_method]
   cit   : Type0;
 
-  (* A bijection from the abstract indices to the concrete indices 
+  (* A bijection from the abstract indices to the concrete indices
      Need not be executable. NOTE: Do not mark this erased, this
      worsens SMT performance significantly. This is already an erasable type. *)
   [@@@no_method]
@@ -99,7 +99,7 @@ class ciview_step
   (#asch1 #asch2 : aiview_schema)
   (csch1 : ciview_schema asch1)
   (csch2 : ciview_schema asch2)
-  (step  : aiview_step asch1 asch2)
+  (step  : aiview_step asch1.ait asch2.ait)
 =
 {
   (* Concrete index translation *)
@@ -117,13 +117,12 @@ class ciview_step
      cit1    --  cimap -->  cit2
    *)
   [@@@no_method]
-  compat : 
+  compat :
     ai : asch1.ait ->
       squash (cimap.f (csch1.bij.ff ai) == csch2.bij.ff (step.imap.f ai));
 }
 
 (* What it means for an indexing view to be concretizable, i.e. executable. *)
-// noeq
 inline_for_extraction noextract
 class ciview (#len : erased nat) (avw : aiview len) =
 {
@@ -138,7 +137,7 @@ class ciview (#len : erased nat) (avw : aiview len) =
 }
 
 inline_for_extraction noextract
-let concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = {
+instance concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = {
   fits = ();
   sch  = raw_ciview_schema len;
   step = {
@@ -148,16 +147,16 @@ let concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = {
 }
 
 let inj_bij (#a #b : Type) (bij : a =~ b) : (a @~> b) =
-  {
-    f = bij.ff;
-    is_inj = ez;
-  }
+{
+  f = bij.ff;
+  is_inj = ez;
+}
 
 let inj_bij' (#a #b : Type) (bij : a =~ b) : (b @~> a) =
-  {
-    f = bij.gg;
-    is_inj = ez;
-  }
+{
+  f = bij.gg;
+  is_inj = ez;
+}
 
 let reindex_view (#len : nat)
   (vw : aiview len)
@@ -205,7 +204,7 @@ let ai_to_ci
   = let open Kuiper.Bijection in
     i |~> cw.sch.bij
 
-let sum_aiview (#len : nat) 
+let sum_aiview (#len : nat)
   (vw1 vw2 : aiview len)
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   : aiview len = {
@@ -219,4 +218,31 @@ let sum_aiview (#len : nat)
       is_inj = ez;
     };
   };
+}
+
+let compose_astep (#sch1 #sch2 #sch3 : Type0)
+  (step12 : aiview_step sch1 sch2)
+  (step23 : aiview_step sch2 sch3)
+  : aiview_step sch1 sch3 = {
+  imap = step12.imap `inj_comp` step23.imap;
+}
+
+inline_for_extraction noextract
+let compose_cstep
+  (#asch1 #asch2 #asch3 : aiview_schema)
+  (#csch1 : ciview_schema asch1)
+  (#csch2 : ciview_schema asch2)
+  (#csch3 : ciview_schema asch3)
+  (#step12 : aiview_step asch1.ait asch2.ait)
+  (#step23 : aiview_step asch2.ait asch3.ait)
+  (c1 : ciview_step csch1 csch2 step12)
+  (c2 : ciview_step csch2 csch3 step23)
+  : ciview_step csch1 csch3 (compose_astep step12 step23) =
+{
+  cimap = c1.cimap `inj_comp` c2.cimap;
+
+  compat = (fun ai ->
+    c1.compat ai;
+    c2.compat (step12.imap.f ai)
+  );
 }

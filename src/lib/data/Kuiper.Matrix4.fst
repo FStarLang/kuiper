@@ -38,7 +38,7 @@ let clayout4_bij
   (_ : squash (SZ.fits ((mrows * brows) * (mcols * bcols))))
   : erased (natlt (mrows * brows) & natlt (mcols * bcols) =~ cit l)
 = {
-    ff = (fun (i, j) -> 
+    ff = (fun (i, j) ->
              let i : natlt (mrows * brows) = i in
              let j : natlt (mcols * bcols) = j in
              (SZ.uint_to_t <| i / brows,

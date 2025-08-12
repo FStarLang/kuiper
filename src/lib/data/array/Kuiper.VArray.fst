@@ -4,11 +4,9 @@ module Kuiper.VArray
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.Injection
-module Enum = Kuiper.Enumerable
 module B = Kuiper.Array (* base *)
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
-module Trade = Pulse.Lib.Trade
 module IView = Kuiper.IView
 module IArray = Kuiper.IArray
 

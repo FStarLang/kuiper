@@ -211,12 +211,12 @@ fn __alloc_fragment u#r
 //     #_
 //     #(fun _ -> (exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v))
 //     half FragA 16sz 16sz 16sz FragLRM (fun fa ->
-//       with_fragment 
+//       with_fragment
 //         #((exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v))
 //         #_
 //         #(fun _ -> (exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v))
 //         half FragB 16sz 16sz 16sz FragLRM (fun fb ->
-//           with_fragment 
+//           with_fragment
 //             #((exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v) ** (exists* v. fragment_pts_to fb v))
 //             #_
 //             #(fun _ -> (exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v) ** (exists* v. fragment_pts_to fb v))

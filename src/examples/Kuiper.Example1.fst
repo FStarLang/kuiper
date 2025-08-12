@@ -24,7 +24,7 @@ fn main (_:unit)
 {
   let mut r = 1uL;
   let gr = gpu_alloc0 #u64 ();
-  
+
   Kuiper.Ref.gpu_memcpy_host_to_device gr r;
 
   launch_kernel_1 (fun () -> kf gr);

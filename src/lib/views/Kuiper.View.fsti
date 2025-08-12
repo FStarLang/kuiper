@@ -51,6 +51,7 @@ matters at runtime is the indexing structure.
 This is typeclass already, there should be no need to mark it as a class here,
 but alas it does not quite work. *)
 inline_for_extraction noextract
+unfold
 let cview (#et : Type0) (#len : erased nat) (#st : Type0)
   (avw : aview et len st) = IView.ciview avw.iview
 
@@ -101,9 +102,13 @@ let review_view (#et : Type0) (#len : nat) (#st : Type0)
   igm      = igm_review vw.igm bij;
 }
 
+unfold
+inline_for_extraction noextract
 let concrete_raw_view (#et:Type) (#len:nat{SZ.fits len}) : cview (raw_view #et #len) =
   IView.concrete_raw_view #len
 
+unfold
+inline_for_extraction noextract
 let concrete_raw_function_view (#et:Type) (#len:nat{SZ.fits len}) : cview (raw_function_view #et #len) =
   IView.concrete_raw_view #len
 

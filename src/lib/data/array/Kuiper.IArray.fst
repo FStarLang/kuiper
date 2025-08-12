@@ -8,7 +8,6 @@ module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
-module F = FStar.FunctionalExtensionality
 
 noeq
 inline_for_extraction
@@ -97,7 +96,7 @@ fn iarray_ext
   unfold iarray_pts_to a #f v1;
   forevery_ext
     (fun i -> iarray_pts_to_cell a #f i (v1 i))
-    (fun i -> iarray_pts_to_cell a #f i (v2 i)); 
+    (fun i -> iarray_pts_to_cell a #f i (v2 i));
   fold iarray_pts_to a #f v2;
 }
 
@@ -472,7 +471,7 @@ fn iarray_read_cell
   rewrite each ci_to_ai vw ci as ai;
 
   cw.step.compat ai;
-  assume pure ((cw.step.cimap.f (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
+  assert pure ((cw.step.cimap.f (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
   (* ^ FIXME: this should be exactly what we get from the line above? *)
   assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
@@ -565,11 +564,11 @@ fn iarray_write
     _;
   ghost
   fn aux (i : vw.sch.ait)
-    requires 
+    requires
       (if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
        then iarray_pts_to_cell a i e
        else emp)
-    ** 
+    **
       (if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
        then emp
        else iarray_pts_to_cell a i (v0 i))

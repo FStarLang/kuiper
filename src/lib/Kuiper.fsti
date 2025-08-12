@@ -33,6 +33,7 @@ include Kuiper.Seq.Common { op_At_Bang }
 include Kuiper.Len { len }
 include Kuiper.Divides
 include Kuiper.PtsTo
+include Kuiper.Enumerable { enumerable }
 
 [@@coercion; pulse_unfold]
 unfold let kpr_box_to_ref  (#a:Type0) (b:Pulse.Lib.Box.box a) : Pulse.Lib.Reference.ref a = Pulse.Lib.Box.box_to_ref b

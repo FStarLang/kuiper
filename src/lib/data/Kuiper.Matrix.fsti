@@ -38,7 +38,7 @@ instance cview_from_clayout
   step = {
     cimap = {
       f      = clayout_imap c;
-      is_inj = ez; 
+      is_inj = ez;
     };
     compat = ez;
   };

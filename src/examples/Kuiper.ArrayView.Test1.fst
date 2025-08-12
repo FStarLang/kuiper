@@ -8,7 +8,6 @@ open Kuiper.GhostMap
 open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.View
-module F = FStar.FunctionalExtensionality
 open FStar.FunctionalExtensionality { (^->>) }
 module SZ = FStar.SizeT
 module IView = Kuiper.IView

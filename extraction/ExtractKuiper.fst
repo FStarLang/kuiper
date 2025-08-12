@@ -25,7 +25,6 @@ let rec drop n (lst : list 'a) : list 'a =
 
 exception Failed of string
 
-module BU = FStarC.Util
 
 let intlit (i : int) : mlexpr =
   with_ty ml_int_ty <| MLE_Const (MLC_Int (show i, None))

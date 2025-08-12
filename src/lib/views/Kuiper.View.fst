@@ -19,9 +19,9 @@ let to_from (#a:Type) (#len:nat) (#st:Type)
         to_seq vw (from_seq vw s) @! i;
         == {}
         Seq.init_ghost len (fun j -> reveal (vw.igm.acc (from_seq vw s) (it_of_nat vw j))) @! i;
-        == {} 
+        == {}
         reveal (vw.igm.acc (from_seq vw s) (it_of_nat vw i));
-        == {} 
+        == {}
         vw.igm.bij.ff (from_seq vw s) (it_of_nat vw i);
         == {}
         vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i))
@@ -83,7 +83,7 @@ let to_seq_upd (#a:Type) (#len:nat) (#st:Type)
   (x : a)
   : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
           [SMTPat (to_seq vw (vw.igm.upd v i x))]
-= 
+=
   let aux (idx : natlt len)
     : Lemma (to_seq vw (vw.igm.upd v i x) @! idx == Seq.upd (to_seq vw v) (it_to_nat vw i) x @! idx) =
     vw.igm.l2 (it_of_nat vw idx) v x;

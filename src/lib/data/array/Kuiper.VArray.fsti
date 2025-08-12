@@ -333,7 +333,7 @@ fn varray_view_equiv
   requires
     a |-> Frac f v
   returns
-    va : varray vw' 
+    va : varray vw'
   ensures
     (va |-> Frac f v) **
     pure (core va == core a)

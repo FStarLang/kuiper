@@ -8,7 +8,7 @@ module SZ = FStar.SizeT
 This module should have no Kuiper dependencies. *)
 
 include FStar.Mul
-include FStar.Tactics.Typeclasses { solve }
+include FStar.Tactics.Typeclasses { solve, solve_debug }
 
 type natlt (b:int) = n:nat{n <  b}
 type natle (b:int) = n:nat{n <= b}
