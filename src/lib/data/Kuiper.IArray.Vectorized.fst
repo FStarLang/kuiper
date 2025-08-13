@@ -1,4 +1,4 @@
-module Kuiper.Vectorized.IArray
+module Kuiper.IArray.Vectorized
 
 #lang-pulse
 
