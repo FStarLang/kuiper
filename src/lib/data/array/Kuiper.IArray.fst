@@ -49,7 +49,7 @@ let iarray_pts_to_cell
   ([@@@mkey]i : vw.sch.ait)
   (v : et)
   : slprop
-  = gpu_pts_to_cell (core a) #f (i |~> vw.step.imap) seq![v]
+  = gpu_pts_to_cell (core a) #f (it_to_nat vw i) seq![v]
 
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
@@ -410,7 +410,7 @@ fn iarray_write_cell
   assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a ai v0;
-  rewrite each (reveal ai |~> vw.step.imap) as ni;
+  rewrite each it_to_nat vw (reveal ai) as ni;
   B.gpu_array_write #_ #_ #ni #(ni+1) (core a) ni v1;
   with s'. assert (B.gpu_pts_to_slice (core a) ni (ni+1) s');
   Kuiper.Seq.Common.lem_one_elem s' v1;
@@ -470,7 +470,7 @@ fn iarray_read_cell
   assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a #f ai v0;
-  rewrite each (reveal ai |~> vw.step.imap) as ni;
+  rewrite each it_to_nat vw (reveal ai) as ni;
   let res = B.gpu_array_read #_ #_ #ni #(ni+1) (core a) ni;
   with s'. assert (B.gpu_pts_to_slice (core a) #f ni (ni+1) s');
   rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.step.imap);
