@@ -120,7 +120,7 @@ class ciview_step
        |                      |
    csch1.bij              csch2.bij
        |                      |
-       v                      v
+       |                      |
      cit1    --  cimap -->  cit2
    *)
   [@@@no_method]

@@ -7,7 +7,7 @@ open FStar.Seq
 
 open Kuiper
 open Kuiper.IView
-open Kuiper.Vectorized
+open Kuiper.Array.Vectorized
 
 friend Kuiper.IArray
 open Kuiper.IArray
@@ -29,15 +29,12 @@ let iarray_pts_to_4cells
   (a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
   (ai : vw.sch.ait)
-  // Should probably be restricted to only the elements that are accessed?
-  //  this: (#v : (ai: vw.sch.ait{0 <= vw.sch.bij.ff ai /\ vw.sch.bij.ff ai < 4} -> GTot float))
   (v : et & et & et & et)
   : slprop
   =
     Pulse.Lib.WithPure.with_pure
       (forall (x : natlt 4). in_image vw.step.imap.f ((it_to_nat vw ai) + x))
       (fun _ ->
-        // pure (SZ.fits len) **
           iarray_pts_to_cell a #f ai               v._1 ** 
           iarray_pts_to_cell a #f (ai_add vw ai 1) v._2 ** 
           iarray_pts_to_cell a #f (ai_add vw ai 2) v._3 ** 
@@ -130,6 +127,7 @@ fn gpu_array_slice_pts_to_iarray_4cells
 }
 
 // #push-options "--debug SMTFail --split_queries always"
+inline_for_extraction noextract
 fn iarray_vec4_read_cells
   // (#et:Type0)
   (#len : erased nat)
@@ -137,7 +135,7 @@ fn iarray_vec4_read_cells
   (a : iarray float vw)
   (ci : cw.sch.cit)
   (#f : perm)
-  (v : erased (float & float & float & float))
+  (#v : erased (float & float & float & float))
   preserves gpu
   preserves iarray_pts_to_4cells #float a #f (ci_to_ai vw ci) v
   returns
@@ -179,7 +177,7 @@ fn iarray_vec4_read_cells
   // assert pure (it_to_nat vw (ci_to_ai vw ci) + 3 < len);
   // This assertion isn't proven without the above :(
   // assert pure (it_to_nat vw (ci_to_ai vw ci) + 4 <= len);
-  let v' = gpu_array_read_vec4 (core a) flat_idx;
+  let v' = gpu_array_vec4_read (core a) flat_idx;
 
   (* split full slice back into multiple *)
   gpu_slice_split (core a) #f
@@ -213,6 +211,7 @@ fn iarray_vec4_read_cells
 
 // #push-options "--debug SMTFail --split_queries always"
 // #push-options "--print-implicits"
+inline_for_extraction noextract
 fn iarray_vec4_write_cells
   // (#et:Type0)
   (#len : erased nat)
@@ -220,7 +219,6 @@ fn iarray_vec4_write_cells
   // (a : iarray et vw)
   (a : iarray float vw)
   (ci : cw.sch.cit)
-  // Should probably be restricted to only the elements that are accessed?
   (v : float4)
   (#v0 : (float & float & float & float))
   preserves gpu
@@ -242,7 +240,6 @@ fn iarray_vec4_write_cells
   unfold iarray_pts_to_cell a (ai_add vw (ci_to_ai vw ci) 3) v0._4;
 
   (* concatenate into a single slice *)
-  (* concatenate into a single slice *)
   gpu_slice_concat (core a)
     (it_to_nat vw (ai_add vw (ci_to_ai vw ci) 0))
     (it_to_nat vw (ai_add vw (ci_to_ai vw ci) 1))
@@ -259,7 +256,7 @@ fn iarray_vec4_write_cells
   (* vectorized write to array *)
   cw.step.compat (ci |> cw.sch.bij.gg);
   let flat_idx = ci |~> cw.step.cimap;
-  gpu_array_write_vec4 (core a) flat_idx v;
+  gpu_array_vec4_write (core a) flat_idx v;
 
   with s'.
   rewrite gpu_pts_to_slice (core a)

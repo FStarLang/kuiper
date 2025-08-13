@@ -1,4 +1,4 @@
-module Kuiper.Vectorized
+module Kuiper.Array.Vectorized
 
 #lang-pulse
 
@@ -53,7 +53,7 @@ val lemma_make_float4_from_float4 (v : float4)
 
 [@@noextract_to "krml"]
 atomic
-fn gpu_array_read_vec4
+fn gpu_array_vec4_read
   // (#et : Type u#0)
   (#sz : erased nat)
   (#i  : erased nat)
@@ -84,7 +84,7 @@ let upd_seq_vec4 (s : seq float) (idx : nat{idx+3 < Seq.length s}) (v : float4) 
 
 [@@noextract_to "krml"]
 atomic
-fn gpu_array_write_vec4
+fn gpu_array_vec4_write
   // (#et : Type u#0)
   (#sz : erased nat)
   (#i  : erased nat)

@@ -12,7 +12,7 @@ open FStar.Seq.Base
 // module Set = FStar.FiniteSet.Base
 module SZ = FStar.SizeT
 
-open Kuiper.Vectorized
+open Kuiper.Array.Vectorized
 
 // let lt_vectorized_block_elems (tid size block_elems: nat) : prop
 //   = 4 /? block_elems /\ tid < block_elems / 4 
@@ -50,10 +50,15 @@ let kpost
   (bid : natlt nblk)
   (tid : natlt nthr)
   : slprop =
+  let s_slice = slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4) in
   gpu_pts_to_slice a (global_id bid tid * 4) (global_id bid tid * 4 + 4)
-    (upd_seq_vec4 (slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4))
+    (upd_seq_vec4 s_slice
       0
-      (make_float4 ((Seq.index s 0) `mul` v) ((Seq.index s 1) `mul` v) ((Seq.index s 2) `mul` v) ((Seq.index s 3) `mul` v)))
+      (make_float4
+        ((Seq.index s_slice 0) `mul` v)
+        ((Seq.index s_slice 1) `mul` v)
+        ((Seq.index s_slice 2) `mul` v)
+        ((Seq.index s_slice 3) `mul` v)))
 
 // #push-options "--debug SMTFail --split_queries always"
 // inline_for_extraction noextract
@@ -80,20 +85,16 @@ ensures
   thread_id nthr tid
 {
   let global_idx = ((bid *^ nthr +^ tid) *^ 4sz); rewrite each ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4) as SZ.v global_idx;
-  let fv = gpu_array_read_vec4 a global_idx;
+  let fv = gpu_array_vec4_read a global_idx;
   let x = getx fv `mul` v;
   let y = gety fv `mul` v;
   let z = getz fv `mul` v;
   let w = getw fv `mul` v;
 
   let fv' = make_float4 x y z w;
-  gpu_array_write_vec4 a global_idx fv';
+  gpu_array_vec4_write a global_idx fv';
 
   rewrite each SZ.v global_idx as ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4);
-  admit();
-  // rewrite each (gpu_pts_to_slice a ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4) ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4 + 4) _)
-  //   as (gpu_pts_to_slice a ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4) ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4 + 4)
-  //     upd_seq_vec4 (slice s (SZ.v global_idx) (SZ.v global_idx + 4)) (SZ.v global_idx - SZ.v global_idx) _);
   ()
 }
 
