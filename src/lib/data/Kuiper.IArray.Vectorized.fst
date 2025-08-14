@@ -2,19 +2,13 @@ module Kuiper.IArray.Vectorized
 
 #lang-pulse
 
-module T = FStar.Tactics.V2
-open FStar.Seq
-
-open Kuiper
-open Kuiper.IView
-open Kuiper.Array.Vectorized
-
 friend Kuiper.IArray
+
+open FStar.Seq
 open Kuiper.IArray
+open Kuiper.Injection
 
 module SZ = FStar.SizeT
-
-open Kuiper.Injection
 
 let ai_add
   (#len : nat)
