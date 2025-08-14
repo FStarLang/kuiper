@@ -1,15 +1,12 @@
 module Kuiper.Matrix.Tiling
 #lang-pulse
 
-(* An assumed API for tiling matrices. This will be implemented
-   with array views, eventually. *)
-
 open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 
-val ematrix_subtile
+let ematrix_subtile
   (#et : _)
   (#rows #cols : _)
   (em : ematrix et rows cols)
@@ -18,19 +15,41 @@ val ematrix_subtile
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   : ematrix et trows tcols
+=
+  mkM fun i j ->
+    macc em (tr * trows + i) (tc * tcols + j)
 
-val subtile_layout
+let ij_map
   (#rows #cols : _)
   (l : mlayout rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  : mlayout trows tcols
+  : GTot (natlt trows & natlt tcols -> natlt l.len)
+= let subf = l.map.f in
+  fun (i, j) -> subf (tr * trows + i, tc * tcols + j)
 
-instance val c_subtile_layout
+let subtile_layout
   (#rows #cols : _)
-  (l : mlayout rows cols) {| clayout l |}
+  (l : mlayout rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : mlayout trows tcols =
+  let f = l.map.f in
+  {
+    len = l.len;
+    map = {
+      f = ij_map l trows tcols tr tc;
+      is_inj = ez;
+    }
+  }
+
+instance c_subtile_layout
+  (#rows #cols : _)
+  (l : mlayout rows cols) {| c : clayout l |}
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
@@ -40,9 +59,20 @@ instance val c_subtile_layout
      c_tr    : concrete_sz tr,
      c_tc    : concrete_sz tc,
   |}
-  : clayout (subtile_layout l trows tcols tr tc)
+  : clayout (subtile_layout l trows tcols tr tc) =
+  {
+    m_len = c.m_len;
 
-val gpu_matrix_subtile
+    c_to = (fun i j -> c.c_to (c_tr.x *^ c_trows.x +^ i) (c_tc.x *^ c_tcols.x +^ j));
+
+    // Do we actually use these? Try replacing them by magics and
+    // see if anything breaks.
+    m_rows = c_trows.x;
+    m_cols = c_tcols.x;
+  }
+
+(* Just a cast *)
+let gpu_matrix_subtile
   (#et : _)
   (#rows #cols : _)
   (#l : mlayout rows cols)
@@ -52,6 +82,8 @@ val gpu_matrix_subtile
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   : Tot (gpu_matrix et (subtile_layout l trows tcols tr tc))
+  = from_array (subtile_layout l trows tcols tr tc)
+               (core gm)
 
 ghost
 fn gpu_matrix_tile
@@ -69,6 +101,9 @@ fn gpu_matrix_tile
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
         gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+{
+  admit();
+}
 
 ghost
 fn gpu_matrix_untile
@@ -86,6 +121,10 @@ fn gpu_matrix_untile
         gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
   ensures
     gm |-> em
+{
+  admit();
+}
+
 
 ghost
 fn gpu_matrix_untile0
@@ -103,3 +142,6 @@ fn gpu_matrix_untile0
         gpu_matrix_subtile gm trows tcols tr tc |-> em)
   ensures
     exists* em. gm |-> em
+{
+  admit();
+}
