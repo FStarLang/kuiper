@@ -11,7 +11,7 @@ open Kuiper.Matrix
 
 val ematrix_subtile
   (#et : _)
-  (#rows #cols : _)
+  (#rows #cols : erased nat)
   (em : ematrix et rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
@@ -20,7 +20,7 @@ val ematrix_subtile
   : ematrix et trows tcols
 
 val subtile_layout
-  (#rows #cols : _)
+  (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
@@ -29,28 +29,28 @@ val subtile_layout
   : mlayout trows tcols
 
 instance val c_subtile_layout
-  (#rows #cols : _)
+  (#rows #cols : erased nat)
   (l : mlayout rows cols) {| clayout l |}
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  {| c_trows : concrete_sz trows,
-     c_tcols : concrete_sz tcols,
-     c_tr    : concrete_sz tr,
-     c_tc    : concrete_sz tc,
+  (trows : erased pos {trows /? rows})
+  (tcols : erased pos {tcols /? cols})
+  (tr    : erased (natlt (rows / trows)))
+  (tc    : erased (natlt (cols / tcols)))
+  {| c_trows : concrete_sz (hide (reveal trows)),
+     c_tcols : concrete_sz (hide (reveal tcols)),
+     c_tr    : concrete_sz (hide (reveal tr)),
+     c_tc    : concrete_sz (hide (reveal tc)),
   |}
   : clayout (subtile_layout l trows tcols tr tc)
 
 val gpu_matrix_subtile
   (#et : _)
-  (#rows #cols : _)
+  (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr : erased (natlt (rows / trows)))
+  (tc : erased (natlt (cols / tcols)))
   : Tot (gpu_matrix et (subtile_layout l trows tcols tr tc))
 
 ghost
