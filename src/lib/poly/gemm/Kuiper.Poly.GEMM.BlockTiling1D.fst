@@ -142,7 +142,7 @@ let barrier_tok
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
   a matrix. *)
-  (l1 l2 : mlayout tile tile)
+  (l1 l2 : full_mlayout tile tile)
   (ar1 ar2 : gpu_array et (tile * tile))
   (it : nat)
   (tid : natlt tile)
@@ -159,7 +159,7 @@ let kpre
   (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
@@ -185,7 +185,7 @@ let kpost
   (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
@@ -265,7 +265,7 @@ fn bring_2cols
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   {| clayout slA, clayout slB |}
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -452,7 +452,7 @@ fn setup
 ghost
 fn block_setup
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
@@ -488,7 +488,7 @@ fn block_setup
 ghost
 fn block_teardown
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
@@ -561,7 +561,7 @@ fn teardown
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   {| clayout slA, clayout slB |}
   (#et : Type0) {| scalar et |}
   (comb : binop et)

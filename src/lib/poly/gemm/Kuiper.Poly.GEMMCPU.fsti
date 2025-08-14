@@ -23,9 +23,9 @@ type matmul_cpu_ty
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
   (#cols : szp) ->
-  (#lA : mlayout rows shared) ->
-  (#lB : mlayout shared cols) ->
-  (#lC : mlayout rows cols) ->
+  (#lA : full_mlayout rows shared) ->
+  (#lB : full_mlayout shared cols) ->
+  (#lC : full_mlayout rows cols) ->
   {| cA : clayout lA |} ->
   {| cB : clayout lB |} ->
   {| cC : clayout lC |} ->
@@ -69,8 +69,8 @@ inline_for_extraction noextract
 val mmcomb_gpu_shmem_block_tiled2d
   (mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty)
   (bm bn bk : szp)
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| csA : clayout slA |}
   {| csB : clayout slB |}
   (tm : szp{tm /? bm})

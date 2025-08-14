@@ -22,9 +22,9 @@ type matmulcomb_gpu_fixed_ty
   (#rows : szp)
   (#shared : szp)
   (#cols : szp)
-  (lA : mlayout rows shared)
-  (lB : mlayout shared cols)
-  (lC : mlayout rows cols)
+  (lA : full_mlayout rows shared)
+  (lB : full_mlayout shared cols)
+  (lC : full_mlayout rows cols)
 =
   {| clayout lA |} ->
   {| clayout lB |} ->
@@ -55,9 +55,9 @@ type matmulcomb_gpu_ty =
   (#rows : szp) ->
   (#shared : szp) ->
   (#cols : szp) ->
-  (#lA : mlayout rows shared) ->
-  (#lB : mlayout shared cols) ->
-  (#lC : mlayout rows cols) ->
+  (#lA : full_mlayout rows shared) ->
+  (#lB : full_mlayout shared cols) ->
+  (#lC : full_mlayout rows cols) ->
   matmulcomb_gpu_fixed_ty comb lA lB lC
 
 (* The type of GPU-side matmuls that only work over already
@@ -146,8 +146,8 @@ type block_tiled2d_matmulcomb_gpu_ty =
   (tn : szp{tn /? bn}) ->
   (#_ : squash (SizeT.fits (bm*bk + bm/tm*(bn/tn)))) ->
   (#_ : squash (SizeT.fits (bk*bn + bm/tm*(bn/tn)))) ->
-  (slA : mlayout bm bk) ->
-  (slB : mlayout bk bn) ->
+  (slA : full_mlayout bm bk) ->
+  (slB : full_mlayout bk bn) ->
   {| clayout slA |} ->
   {| clayout slB |} ->
   (lA : M4.mlayout4 mrows   mshared bm bk) ->

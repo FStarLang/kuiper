@@ -159,8 +159,8 @@ let barrier_p
   (#bm #bn #bk : szp)
   (tm : szp{tm `divides` bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (#l1 : mlayout bm bk)
-  (#l2 : mlayout bk bn)
+  (#l1 : full_mlayout bm bk)
+  (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   : B.barrier_side (bm/tm * bn) =
@@ -176,8 +176,8 @@ let barrier_q
   (#bm #bn #bk : szp)
   (tm : szp{tm `divides` bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (#l1 : mlayout bm bk)
-  (#l2 : mlayout bk bn)
+  (#l1 : full_mlayout bm bk)
+  (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   : B.barrier_side (bm/tm * bn) =
@@ -192,8 +192,8 @@ let barrier_tok
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
   a matrix. *)
-  (l1 : mlayout bm bk)
-  (l2 : mlayout bk bn)
+  (l1 : full_mlayout bm bk)
+  (l2 : full_mlayout bk bn)
   (sar1 : gpu_array et (bm * bk))
   (sar2 : gpu_array et (bk * bn))
   (it : nat)
@@ -214,8 +214,8 @@ let kpre
   // because of how the original code loads into shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn) // shmem layouts
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn) // shmem layouts
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -245,8 +245,8 @@ let kpost
   // because of how the original code loads into shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn) // shmem layouts
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn) // shmem layouts
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -274,8 +274,8 @@ fn populate_shmem
   (tm : szp{tm /? bm})
   // every thread loads a single element for either matrix,
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (#slA : mlayout bm bk) {| clayout slA |}
-  (#slB : mlayout bk bn) {| clayout slB |}
+  (#slA : full_mlayout bm bk) {| clayout slA |}
+  (#slB : full_mlayout bk bn) {| clayout slB |}
   (sA : gpu_matrix et slA)
   (sB : gpu_matrix et slB)
   (#lA : mlayout4 mrows   mshared bm bk)
@@ -315,8 +315,8 @@ fn subproducts1d
   (tm : szp{tm /? bm})
   (rch1d : array et) (* register cache, 1d *)
   (#resvs : erased (seq et))
-  (#l1 : mlayout bm bk) {| clayout l1 |}
-  (#l2 : mlayout bk bn) {| clayout l2 |}
+  (#l1 : full_mlayout bm bk) {| clayout l1 |}
+  (#l2 : full_mlayout bk bn) {| clayout l2 |}
   (gA : gpu_matrix et l1)
   (gB : gpu_matrix et l2)
   (#eA : ematrix et bm bk)
@@ -375,8 +375,8 @@ fn kf
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| clayout slA, clayout slB |}
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
@@ -634,8 +634,8 @@ fn block_setup
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -673,8 +673,8 @@ fn block_teardown
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -751,8 +751,8 @@ let mk_kernel
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| clayout slA, clayout slB |}
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)

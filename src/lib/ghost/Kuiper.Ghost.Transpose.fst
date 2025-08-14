@@ -7,7 +7,7 @@ module Repr = Kuiper.Matrix.Reprs
 open Kuiper.EMatrix
 open Kuiper.Matrix.Common
 
-#set-options "--print_implicits"
+open Kuiper.Injection
 
 ghost
 fn ghost_transpose1
@@ -21,6 +21,7 @@ fn ghost_transpose1
     row2col gA |-> mtranspose m
 {
   gpu_matrix_concr gA;
+  // fixme, why did this break?
   assert (pure (Seq.equal
                   (to_seq (Repr.row_major rows cols) m)
                   (to_seq (Repr.col_major cols rows) (mtranspose m))));

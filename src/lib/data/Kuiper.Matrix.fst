@@ -65,7 +65,7 @@ ghost
 fn gpu_matrix_concr
   (#et:Type)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
+  (#l : mlayout rows cols { is_full_layout l })
   (g : gpu_matrix et l)
   (#em : ematrix et rows cols)
   (#f : perm)
@@ -86,7 +86,8 @@ fn gpu_matrix_concr
 ghost
 fn gpu_matrix_abs
   (#et:Type)
-  (#rows #cols : erased nat) (l : mlayout rows cols)
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols { is_full_layout l })
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
   (#em : ematrix et rows cols)
@@ -105,7 +106,8 @@ fn gpu_matrix_abs
 ghost
 fn gpu_matrix_abs'
   (#et:Type)
-  (#rows #cols : erased nat) (l : mlayout rows cols)
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols { is_full_layout l })
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
   (#s : lseq et (mlayout_size l))
@@ -122,7 +124,7 @@ inline_for_extraction noextract
 fn gpu_matrix_alloc0
   (#et:Type) {| sized et |}
   (rows cols : szp)
-  (l : mlayout rows cols)
+  (l : mlayout rows cols { is_full_layout l })
   preserves
     cpu
   requires
@@ -143,7 +145,7 @@ inline_for_extraction noextract
 fn gpu_matrix_free
   (#et:Type)
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
+  (#l : mlayout rows cols { is_full_layout l })
   (gm : gpu_matrix et l)
   (#em : _)
   preserves
@@ -404,7 +406,7 @@ fn gpu_matrix_implode
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    pure (SZ.fits (rows * cols))
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+ r c.
       gpu_matrix_pts_to_cell gm #f r c (macc em r c)
@@ -424,7 +426,7 @@ inline_for_extraction noextract
 fn gpu_matrix_from_array
   (#et:Type0) {| sized et |}
   (#rows #cols : SZ.t)
-  (#l : mlayout rows cols)
+  (#l : mlayout rows cols { is_full_layout l })
   (gm : gpu_matrix et l)
   (a : vec et)
   (#s : erased (seq et){Seq.length s == rows * cols})
@@ -449,7 +451,7 @@ inline_for_extraction noextract
 fn gpu_matrix_to_array
   (#et:Type0) {| sized et |}
   (#rows #cols : SZ.t)
-  (#l : mlayout rows cols)
+  (#l : mlayout rows cols { is_full_layout l })
   (a : vec et)
   (gm : gpu_matrix et l)
   (#s : erased (seq et){Seq.length s == rows * cols})

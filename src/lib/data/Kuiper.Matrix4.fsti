@@ -9,10 +9,13 @@ open Kuiper.Matrix.Reprs.Type
 module T  = FStar.Tactics.V2
 module SZ = FStar.SizeT
 
+(* Matrix4 is deprecated at the moment. We restrict these layouts to be
+   full only, to not have to update this module to the new possibly-strided
+   layout stuff. *)
 unfold
 inline_for_extraction noextract
 type mlayout4 (mrows mcols brows bcols : erased nat) =
-  mlayout (mrows * brows) (mcols * bcols)
+  l : mlayout (mrows * brows) (mcols * bcols) { is_full_layout l }
 
 inline_for_extraction noextract
 class clayout4
@@ -39,7 +42,7 @@ let clayout4_fits
 inline_for_extraction noextract
 let clayout4_from_clayout
   (brows bcols #rows #cols : szp)
-  (#l : mlayout (rows * brows) (cols * bcols))
+  (#l : mlayout (rows * brows) (cols * bcols) { is_full_layout l })
   (c : clayout l)
   : clayout4 l = {
     parent = c;

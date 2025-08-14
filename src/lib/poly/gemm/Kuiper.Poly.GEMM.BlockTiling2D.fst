@@ -4,6 +4,7 @@ module Kuiper.Poly.GEMM.BlockTiling2D
 
 open Kuiper
 
+#set-options "--z3rlimit 20"
 
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
@@ -232,8 +233,8 @@ fn cp_tile
 let barrier_p
   (#et : Type0)
   (#bm #bn #bk : szp)
-  (#l1 : mlayout bm bk)
-  (#l2 : mlayout bk bn)
+  (#l1 : full_mlayout bm bk)
+  (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   (nthr : pos)
@@ -249,8 +250,8 @@ let barrier_p
 let barrier_q
   (#et : Type0)
   (#bm #bn #bk : szp)
-  (#l1 : mlayout bm bk)
-  (#l2 : mlayout bk bn)
+  (#l1 : full_mlayout bm bk)
+  (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   (nthr : pos)
@@ -263,8 +264,8 @@ let barrier_tok
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
   a matrix. *)
-  (l1 : mlayout bm bk)
-  (l2 : mlayout bk bn)
+  (l1 : full_mlayout bm bk)
+  (l2 : full_mlayout bk bn)
   (sar1 : gpu_array et (bm * bk))
   (sar2 : gpu_array et (bk * bn))
   (it : nat)
@@ -284,8 +285,8 @@ let kpre
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -313,8 +314,8 @@ let kpost
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -341,8 +342,8 @@ fn populate_shmem
   (#mrows #mshared #mcols : erased nat)
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
-  (#slA : mlayout bm bk) {| clayout slA |}
-  (#slB : mlayout bk bn) {| clayout slB |}
+  (#slA : full_mlayout bm bk) {| clayout slA |}
+  (#slB : full_mlayout bk bn) {| clayout slB |}
   (sA : gpu_matrix et slA)
   (sB : gpu_matrix et slB)
   (#lA : mlayout4 mrows   mshared bm bk)
@@ -381,8 +382,8 @@ fn subproducts2d
   (tn : szp{tn /? bn})
   (rAcol rBrow rchProd: array et)
   (#vrAcol #vrBrow #vrchProd : erased (seq et))
-  (#l1 : mlayout bm bk) {| clayout l1 |}
-  (#l2 : mlayout bk bn) {| clayout l2 |}
+  (#l1 : full_mlayout bm bk) {| clayout l1 |}
+  (#l2 : full_mlayout bk bn) {| clayout l2 |}
   (gA : gpu_matrix et l1)
   (gB : gpu_matrix et l2)
   (#eA : ematrix et bm bk)
@@ -581,8 +582,8 @@ fn kf
   (tn : szp{tn /? bn})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| clayout slA, clayout slB |}
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
@@ -747,8 +748,8 @@ fn block_setup
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -786,8 +787,8 @@ fn block_teardown
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -866,8 +867,8 @@ let mk_kernel
   (tn : szp{tn /? bn})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| clayout slA, clayout slB |}
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
@@ -918,8 +919,8 @@ fn mmcomb_gpu
   (tn : szp{tn /? bn})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| clayout slA, clayout slB |}
   (lA : mlayout4 mrows   mshared bm bk)
   (lB : mlayout4 mshared mcols   bk bn)

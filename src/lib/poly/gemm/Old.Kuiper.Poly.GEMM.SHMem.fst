@@ -2,6 +2,8 @@ module Old.Kuiper.Poly.GEMM.SHMem
 
 #lang-pulse
 
+#set-options "--z3rlimit 20"
+
 open Kuiper
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type

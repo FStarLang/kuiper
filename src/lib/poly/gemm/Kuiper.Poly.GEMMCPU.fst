@@ -22,9 +22,9 @@ fn matmul_cpu
   (#et : Type0) {| scalar et |}
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  (#lC : full_mlayout rows cols)
   {| cA : clayout lA |}
   {| cB : clayout lB |}
   {| cC : clayout lC |}
@@ -78,9 +78,9 @@ fn mmcomb_gpu_tiled
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  (#lC : full_mlayout rows cols)
   {| cA : clayout lA |}
   {| cB : clayout lB |}
   {| cC : clayout lC |}
@@ -142,9 +142,9 @@ fn mmcomb_gpu_block_tiled1d
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  (#lC : full_mlayout rows cols)
   {| cA : clayout lA |}
   {| cB : clayout lB |}
   {| cC : clayout lC |}
@@ -211,8 +211,8 @@ inline_for_extraction noextract
 fn mmcomb_gpu_shmem_block_tiled2d
   (tiled_mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty)
   (bm bn bk : szp)
-  (slA : mlayout bm bk)
-  (slB : mlayout bk bn)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
   {| csA : clayout slA |}
   {| csB : clayout slB |}
   (tm : szp{tm /? bm})
@@ -220,9 +220,9 @@ fn mmcomb_gpu_shmem_block_tiled2d
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  (#lC : full_mlayout rows cols)
   {| cA : clayout lA |}
   {| cB : clayout lB |}
   {| cC : clayout lC |}

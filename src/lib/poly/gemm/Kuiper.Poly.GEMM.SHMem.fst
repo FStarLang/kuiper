@@ -53,8 +53,8 @@ precise, and parametrize this over the starting input matrices. *)
 let barrier_p
   (#et : Type0)
   (#tile : valid_tile)
-  (#l1 : mlayout tile tile) (m1 : gpu_matrix et l1)
-  (#l2 : mlayout tile tile) (m2 : gpu_matrix et l2)
+  (#l1 : full_mlayout tile tile) (m1 : gpu_matrix et l1)
+  (#l2 : full_mlayout tile tile) (m2 : gpu_matrix et l2)
   : B.barrier_side (tile *^ tile) =
   fun it tid ->
     if even it then
@@ -67,8 +67,8 @@ let barrier_p
 let barrier_q
   (#et : Type0)
   (#tile : valid_tile)
-  (#l1 : mlayout tile tile) (m1 : gpu_matrix et l1)
-  (#l2 : mlayout tile tile) (m2 : gpu_matrix et l2)
+  (#l1 : full_mlayout tile tile) (m1 : gpu_matrix et l1)
+  (#l2 : full_mlayout tile tile) (m2 : gpu_matrix et l2)
   : B.barrier_side (tile *^ tile) =
   fun it tid -> barrier_p m1 m2 (it+1) tid (* flip flop *)
 
@@ -129,7 +129,7 @@ let kpost1
 let barrier_tok
   (#et : Type0)
   (tile : valid_tile)
-  (l1 l2 : mlayout tile tile)
+  (l1 l2 : full_mlayout tile tile)
   (ar1 ar2 : gpu_array et (tile * tile))
   (it : nat)
   (tid : natlt (tile *^ tile))
@@ -146,7 +146,7 @@ let kpre
   (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
@@ -175,7 +175,7 @@ let kpost
   (comb : binop et)
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#lA : mlayout4 mrows   mshared tile tile)
   (#lB : mlayout4 mshared mcols   tile tile)
   (#lC : mlayout4 mrows   mcols   tile tile)
@@ -201,7 +201,7 @@ it feels a lot slower than the others. *)
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   {| clayout slA, clayout slB |}
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -406,7 +406,7 @@ fn setup
 ghost
 fn block_setup
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
@@ -442,7 +442,7 @@ fn block_setup
 ghost
 fn block_teardown
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
@@ -508,7 +508,7 @@ fn teardown
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
-  (slA slB : mlayout tile tile) // shmem layouts
+  (slA slB : full_mlayout tile tile) // shmem layouts
   {| clayout slA, clayout slB |}
   (#et : Type0) {| scalar et |}
   (comb : binop et)
