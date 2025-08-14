@@ -69,7 +69,7 @@ instance cview_from_clayout4
   (c : clayout4 l)
   : IView.ciview (aview_from_mlayout et l).iview =
 {
-  fits = ();
+  clen = c.parent.m_rows *^ c.parent.m_cols;
 
   sch = {
     cit = cit l;
@@ -532,7 +532,7 @@ fn gpu_matrix_from_array
   assert (pure (SZ.fits (mlayout_size l)));
   unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
-  A.varray_from_array #_ #_ #sz gm a;
+  A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
   fold gpu_matrix_pts_to gm #1.0R (from_seq l s);
 }
@@ -561,7 +561,7 @@ fn gpu_matrix_to_array
   open FStar.SizeT;
   unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
-  A.varray_to_array #_ #_ #sz a gm;
+  A.varray_to_array #_ #_ sz a gm;
   to_seq_rel l em;
   fold gpu_matrix_pts_to gm #1.0R em;
 }

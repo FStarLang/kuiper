@@ -14,13 +14,14 @@ module IView = Kuiper.IView
 
 let aview_concat
   (#a : Type)
-  (#len1 : nat) (#st1 : Type)
-  (#len2 : nat) (#st2 : Type)
-  (vw1 : aview a len1 st1)
-  (vw2 : aview a len2 st2)
-  : aview a (len1 + len2) (st1 & st2) =
+  (#st1 : Type)
+  (#st2 : Type)
+  (vw1 : aview a st1)
+  (vw2 : aview a st2)
+  : aview a (st1 & st2) =
 {
   iview = {
+    len = vw1.iview.len + vw2.iview.len;
     sch = {
       ait      = either vw1.iview.sch.ait vw2.iview.sch.ait;
       ait_enum = solve;
@@ -38,16 +39,16 @@ let aview_concat
 inline_for_extraction noextract
 instance cview_concat
   (#a:Type)
-  (#len1 : sz) (#st1 : Type)
-  (#len2 : sz) (#st2 : Type)
-  (vw1 : aview a len1 st1)
+  (#st1 : Type)
+  (#st2 : Type)
+  (vw1 : aview a st1)
   (cw1 : cview vw1)
-  (vw2 : aview a len2 st2)
+  (vw2 : aview a st2)
   (cw2 : cview vw2)
-  (_ : squash (SZ.fits (len1 + len2)))
+  (_ : squash (SZ.fits (len vw1 + len vw2)))
   : IView.ciview (aview_concat vw1 vw2).iview =
 {
-  fits = ();
+  clen = cw1.clen +^ cw2.clen;
 
   sch = {
     cit  = either cw1.sch.cit cw2.sch.cit;
@@ -55,7 +56,13 @@ instance cview_concat
   };
 
   step = {
-    cimap = inj_either cw1.step.cimap cw2.step.cimap `inj_comp` inj_sz_sum len1 len2;
+    cimap = (
+      assert (SZ.v cw1.clen == vw1.iview.len);
+      assert (SZ.v cw2.clen == vw2.iview.len);
+      inj_either cw1.step.cimap cw2.step.cimap
+              `inj_comp` inj_sz_sum (len vw1) (len vw2) cw1.clen
+    );
+
 
     // Why is the cast needed?
     compat = (fun i ->

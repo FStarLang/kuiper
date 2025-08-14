@@ -14,9 +14,10 @@ module SZ    = FStar.SizeT
 // Can we use divup here? It seems much harder on Z3.
 noextract
 let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
-  aview et len (lseq et ((len + stride - 1 - offset) / stride))
+  aview et (lseq et ((len + stride - 1 - offset) / stride))
 = {
   iview = {
+    len = len;
     sch = {
       ait = natlt ((len + stride - 1 - offset) / stride);
       ait_enum = solve;
@@ -31,16 +32,17 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
   igm = solve;
 }
 
-let even_view et len : aview et len _ = strided_view et len 2 0
-let odd_view  et len : aview et len _ = strided_view et len 2 1
+let even_view et len : aview et _ = strided_view et len 2 0
+let odd_view  et len : aview et _ = strided_view et len 2 1
 
 inline_for_extraction noextract
 instance _cview_strided
    (#et : Type) (#len : erased nat{SZ.fits len})
+   (sz_len : concrete_sz len)
    (stride : sz) (offset : szlt stride)
 : IView.ciview (strided_view et len stride offset).iview
 = {
-  fits = ();
+  clen = sz_len.x;
   sch = {
     cit  = szlt ((len + stride - 1 - offset) / stride);
     bij  = natural;

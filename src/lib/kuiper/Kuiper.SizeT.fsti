@@ -97,3 +97,9 @@ let lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
   : Lemma (SZ.v (sdivup x y) == divup (SZ.v x) (SZ.v y))
           [SMTPat (sdivup x y)]
   = ()
+
+(* Can this be a reasonable general solution? *)
+inline_for_extraction noextract
+class concrete_sz (n : erased nat) = {
+  x : (x : SZ.t {SZ.v x == reveal n});
+}

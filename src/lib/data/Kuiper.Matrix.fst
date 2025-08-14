@@ -440,7 +440,7 @@ fn gpu_matrix_from_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   unfold gpu_matrix_pts_to gm #1.0R em;
-  A.varray_from_array #_ #_ #(rows *^ cols) gm a;
+  A.varray_from_array (rows *^ cols) gm a;
   from_seq_rel l s;
   fold gpu_matrix_pts_to gm #1.0R (from_seq l s);
 }
@@ -465,7 +465,7 @@ fn gpu_matrix_to_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   unfold gpu_matrix_pts_to gm #1.0R em;
-  A.varray_to_array #_ #_ #(rows *^ cols) a gm;
+  A.varray_to_array (rows *^ cols) a gm;
   to_seq_rel l em;
   fold gpu_matrix_pts_to gm #1.0R em;
 }

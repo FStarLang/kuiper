@@ -39,25 +39,26 @@ let strided_step (len : nat) (stride : nat) (offset : natlt stride) :
 
 let strided_view #et (#len : nat) (stride : nat) (offset : natlt stride)
   (* Any base view with abstract indices being natlt can be strided. *)
-  (base : aview et len (lseq et len) { base.iview.sch.ait == (raw_aiview_schema len).ait })
- : aview et len (lseq et ((len + stride - 1 - offset) / stride))
+  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.sch.ait == (raw_aiview_schema len).ait })
+ : aview et (lseq et ((base.iview.len + stride - 1 - offset) / stride))
 = {
     iview = {
-      sch = strided_schema len stride offset;
+      len  = base.iview.len;
+      sch  = strided_schema base.iview.len stride offset;
       step = IView.compose_astep (strided_step len stride offset) base.iview.step;
     };
     igm = solve;
 }
 
 let even_view #et #len
-  (vw : aview et len (lseq et len) { vw.iview.sch.ait == (raw_aiview_schema len).ait })
-  : aview et len (lseq et ((len + 1) / 2))
-  = strided_view 2 0 vw
+  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.sch.ait == (raw_aiview_schema len).ait })
+  : aview et (lseq et ((len + 1) / 2))
+  = strided_view 2 0 base
 
 let odd_view #et #len
-  (vw : aview et len (lseq et len) { vw.iview.sch.ait == (raw_aiview_schema len).ait })
-  : aview et len (lseq et (len / 2))
-  = strided_view 2 1 vw
+  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.sch.ait == (raw_aiview_schema len).ait })
+  : aview et (lseq et (len / 2))
+  = strided_view 2 1 base
 
 let strided_cischema (len : nat{SZ.fits len}) (stride : sz) (offset : szlt stride)
   : ciview_schema (strided_schema len stride offset) =
@@ -80,17 +81,20 @@ let strided_cistep (len : erased nat{SZ.fits len}) (stride : sz) (offset : szlt 
   compat = ez;
 }
 
+// FIXME! I broke this somehow.
+
+(*
 inline_for_extraction noextract
 instance _cview_strided
   (#et : Type) (#len : erased nat{SZ.fits len})
   (stride : sz) (offset : szlt stride)
-  (#base : aview et len (lseq et len) { base.iview.sch == raw_aiview_schema len })
+  (#base : aview et (lseq et len) { base.iview.len == reveal len /\ base.iview.sch == raw_aiview_schema len })
   (c : IView.ciview base.iview)
   (#_ : squash (c.sch == (raw_ciview_schema len)))
 : IView.ciview (strided_view stride offset base).iview
 = {
-  fits = ez;
-  sch  = strided_cischema len stride offset;
+  clen = c.clen;
+  sch  = strided_cischema base.iview.len stride offset;
   step = IView.compose_cstep (strided_cistep len stride offset) c.step;
 }
 

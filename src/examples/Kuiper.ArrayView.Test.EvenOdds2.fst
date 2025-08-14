@@ -15,8 +15,9 @@ module IView = Kuiper.IView
 module SZ    = FStar.SizeT
 
 noextract
-let even_view et len : aview et len (lseq et ((len + 1) / 2)) = {
+let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
   iview = {
+    len;
     sch = {
       ait = natlt ((len + 1) / 2);
       ait_enum = solve;
@@ -32,8 +33,9 @@ let even_view et len : aview et len (lseq et ((len + 1) / 2)) = {
 }
 
 noextract
-let odd_view et len : aview et len (lseq et (len / 2)) = {
+let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
   iview = {
+    len;
     sch = {
       ait = natlt (len / 2);
       ait_enum = solve;
@@ -49,8 +51,11 @@ let odd_view et len : aview et len (lseq et (len / 2)) = {
 }
 
 inline_for_extraction noextract
-instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview = {
-  fits   = ();
+instance _cview_even #et
+  (#len : erased nat{SZ.fits len})
+  (sz_len : concrete_sz len)
+: IView.ciview (even_view et len).iview = {
+  clen = sz_len.x;
   sch = {
     cit    = szlt ((len + 1) / 2);
     bij    = natural;
@@ -65,8 +70,11 @@ instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_v
 }
 
 inline_for_extraction noextract
-instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview = {
-  fits = ();
+instance _cview_odd #et
+  (#len : erased nat{SZ.fits len})
+  (sz_len : concrete_sz len)
+: IView.ciview (odd_view et len).iview = {
+  clen = sz_len.x;
   sch = {
     cit  = szlt (len / 2);
     bij  = natural;
@@ -80,11 +88,14 @@ instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_vie
   };
 }
 
-let _sanity1 (#len : nat{SZ.fits len}) (x : szlt ((len + 1) / 2)) : Lemma (ci_to_ai (even_view u32 len) x == SZ.v x)
+let _sanity1 (#len : nat{SZ.fits len}) (_ : concrete_sz len) (x : szlt ((len + 1) / 2)) : Lemma (ci_to_ai (even_view u32 len) x == SZ.v x)
   = ()
 
-let _sanity2 (#len : nat{SZ.fits len}) (x : szlt (len / 2)) : Lemma (ci_to_ai (odd_view u32 len) x == SZ.v x)
+let _sanity2 (#len : nat{SZ.fits len}) (_ : concrete_sz len)(x : szlt (len / 2)) : Lemma (ci_to_ai (odd_view u32 len) x == SZ.v x)
   = ()
+
+inline_for_extraction noextract
+instance _ : concrete_sz 100 = { x = 100sz; }
 
 fn foo_even (a : varray (even_view u32 100))
   (#v0 : erased (lseq u32 50))
@@ -93,7 +104,7 @@ fn foo_even (a : varray (even_view u32 100))
   returns u32
   ensures  a |-> v0
 {
-  varray_read a 10sz;
+  varray_read #_ #_ #_ #(_cview_even solve) a 10sz;
 }
 
 fn foo_odd (a : varray (odd_view u32 100))
@@ -103,7 +114,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   returns u32
   ensures  a |-> v0
 {
-  varray_read a 10sz;
+  varray_read #_ #_ #_ #(_cview_odd solve) a 10sz;
 }
 
 fn write_even (a : varray (even_view u32 100))
@@ -112,7 +123,7 @@ fn write_even (a : varray (even_view u32 100))
   requires a |-> v0
   ensures  a |-> (Seq.upd v0 10 42ul <: lseq u32 50)
 {
-  varray_write a 10sz 42ul;
+  varray_write #_ #_ #_ #(_cview_even solve) a 10sz 42ul;
 }
 
 let vw = sum_aview (even_view u32 100) (odd_view u32 100)
@@ -201,8 +212,8 @@ fn test_write (a : gpu_array u32 100)
     ;
   // Note: that doesn't happen if we use split2_, the ghost version
 
-  varray_write vl 10sz 42ul;
-  varray_write vr 20sz 43ul;
+  varray_write #_ #_ #_ #(_cview_even solve) vl 10sz 42ul;
+  varray_write #_ #_ #_ #(_cview_odd  solve) vr 20sz 43ul;
 
   let va = varray_join2 vl vr;
 

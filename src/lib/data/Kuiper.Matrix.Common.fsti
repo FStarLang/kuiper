@@ -38,10 +38,11 @@ instance ematrix_is_ghost_map
 let aview_from_mlayout
   (et : Type) (#rows #cols : erased nat)
   (l : mlayout rows cols)
-  : vw : V.aview et (rows * cols) (ematrix et rows cols) { V.is_full_view vw } =
+  : vw : V.aview et (ematrix et rows cols) { V.is_full_view vw } =
 let open Kuiper.Bijection in
 {
   iview = {
+    len = rows * cols;
     sch = {
       ait = natlt rows & natlt cols;
       ait_enum = solve;

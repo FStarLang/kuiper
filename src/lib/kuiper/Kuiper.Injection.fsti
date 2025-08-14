@@ -100,14 +100,23 @@ let inj_nat_sum (n1 n2 : nat) : (either (natlt n1) (natlt n2) @~> natlt (n1 + n2
   is_inj = ez; (* does not work if inj_nat_sum_f is inlined. *)
 }
 
-unfold
-let inj_sz_sum_f (n1 n2 : sz{SZ.fits (n1 + n2)}) : either (szlt n1) (szlt n2) -> szlt (n1 + n2) =
+inline_for_extraction noextract
+let inj_sz_sum_f
+  (n1 n2 : Ghost.erased nat{SZ.fits (n1+n2)})
+  (s1 : SZ.t{SZ.v s1 == Ghost.reveal n1})
+: either (szlt n1) (szlt n2) -> szlt (n1 + n2)
+=
   function
     | Inl i -> i
-    | Inr j -> n1 +^ j
+    | Inr j -> s1 +^ j
 
-let inj_sz_sum (n1 n2 : sz{SZ.fits (n1 + n2)}) : (either (szlt n1) (szlt n2) @~> szlt (n1 + n2)) =
+// n2 is not really needed
+inline_for_extraction noextract
+let inj_sz_sum
+  (n1 n2 : Ghost.erased nat{SZ.fits (n1+n2)})
+  (s1 : SZ.t{SZ.v s1 == Ghost.reveal n1})
+: (either (szlt n1) (szlt n2) @~> szlt (n1 + n2)) =
 {
-  f = inj_sz_sum_f n1 n2;
+  f = inj_sz_sum_f n1 n2 s1;
   is_inj = ez; (* does not work if inj_sz_sum_f is inlined. *)
 }

@@ -6,6 +6,7 @@ open Kuiper
 open Kuiper.EMatrix { ematrix }
 open Kuiper.View { aview }
 open Kuiper.IView { ciview }
+open Kuiper.Matrix {} // instances
 
 // "Definition Kuiper.View.fits cannot be found." ????
 // open Kuiper.View { cview }
@@ -30,7 +31,7 @@ types, and use them in the code below.
 let aview_2tile2
   (et : Type0)
   (tile : valid_tile)
-  : aview et (2 * tile * tile) (ematrix et tile tile & ematrix et tile tile)
+  : aview et (ematrix et tile tile & ematrix et tile tile)
 = Kuiper.View.Concat.aview_concat
     (MC.aview_from_mlayout et (R.row_major tile tile))
     (MC.aview_from_mlayout et (R.row_major tile tile))
@@ -39,13 +40,12 @@ inline_for_extraction noextract
 instance ciview_2tile2
   (et : Type0)
   (tile : valid_tile)
-  : ciview (aview_2tile2 et tile).iview
-  = Kuiper.View.Concat.cview_concat
-      #_
-      #(tile *^ tile) #_ #(tile *^ tile) #_
-      _ (Kuiper.Matrix.cview_from_clayout et (R.row_major tile tile) solve) (* FIXME: just 'solve' should work? *)
-      _ (Kuiper.Matrix.cview_from_clayout et (R.row_major tile tile) solve)
-      ()
+  : ciview (aview_2tile2 et tile).iview =
+  (*neat *)
+  Kuiper.View.Concat.cview_concat
+    _ solve
+    _ solve
+    ()
 
 (**************)
 

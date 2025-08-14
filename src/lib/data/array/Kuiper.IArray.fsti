@@ -16,44 +16,40 @@ let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
 
 new
 inline_for_extraction
-val iarray (et : Type0) (#len : erased nat) (vw : aiview len) : Type0
+val iarray (et : Type0) (vw : aiview) : Type0
 
 inline_for_extraction noextract
 val from_array
   (#et : Type0)
-  (#len : erased nat)
-  (vw : aiview len)
-  (arr : gpu_array et len)
+  (vw : aiview)
+  (arr : gpu_array et (len vw))
   : iarray et vw
 
 inline_for_extraction noextract
 val core
   (#et : Type0)
-  (#len : erased nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (g : iarray et vw)
-  : arr : Kuiper.Array.gpu_array et len { from_array vw arr == g }
+  : arr : Kuiper.Array.gpu_array et (len vw) { from_array vw arr == g }
 
 val lem_from_array_core
   (#et : Type0)
-  (#len : erased nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (arr : iarray et vw)
   : Lemma (ensures from_array vw (core arr) == arr)
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#et : Type0)
-  (#len : erased nat)
-  (vw : aiview len)
-  (p : gpu_array et len)
+  (vw : aiview)
+  (p : gpu_array et (len vw))
   : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
 val iarray_pts_to_cell
   (#et:Type)
-  (#len : erased nat) (#vw : aiview len)
+  (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
   ([@@@mkey]i : vw.sch.ait)
@@ -61,21 +57,21 @@ val iarray_pts_to_cell
   : slprop
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
-instance cell_pts_to (#et : Type) (#len : nat) (#vw : aiview len)
+instance cell_pts_to (#et : Type) (#vw : aiview)
   : has_pts_to (cell (iarray et vw) vw.sch.ait) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> iarray_pts_to_cell #et #len #vw ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> iarray_pts_to_cell #et #vw ar #f i v);
 }
 
 val iarray_pts_to
-  (#et:Type0) (#len : erased nat) (#vw : aiview len)
+  (#et:Type0) (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
   (v : (vw.sch.ait -> GTot et))
   : slprop
 
 unfold
-instance has_pts_to (#et:Type0) (#len : nat) (#vw : aiview len)
+instance has_pts_to (#et:Type0) (#vw : aiview)
   : has_pts_to (iarray et vw) (vw.sch.ait -> GTot et) = {
   pts_to = iarray_pts_to;
 }
@@ -83,23 +79,20 @@ instance has_pts_to (#et:Type0) (#len : nat) (#vw : aiview len)
 ghost
 fn iarray_pts_to_ref
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (#v : (vw.sch.ait -> GTot et))
   preserves
     a |-> Frac f v
   ensures
-    pure (SZ.fits len)
-
+    pure (SZ.fits (len vw))
 
 (* The function on the RHS is extensional. *)
 ghost
 fn iarray_ext
   (#et:Type)
-  (#len : erased nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (v1 v2 : (vw.sch.ait -> GTot et))
@@ -118,8 +111,7 @@ fn iarray_ext
 ghost
 fn iarray_explode
   (#et:Type)
-  (#len : erased nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (#v : (vw.sch.ait -> GTot et))
@@ -132,12 +124,11 @@ fn iarray_explode
 ghost
 fn iarray_implode
   (#et:Type)
-  (#len : erased nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (#v : (vw.sch.ait -> GTot et))
-  requires pure (SZ.fits len)
+  requires pure (SZ.fits (len vw))
   requires
     forall+ (i : vw.sch.ait).
       Cell a i |-> Frac f (v i)
@@ -152,7 +143,7 @@ let g_seq_acc (#a:Type) (#len:nat)
 (* Begin viewing something abstractly, with the trivial view. *)
 ghost
 fn iarray_begin_
-  (#et:Type0)
+  (#et : Type0)
   (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
@@ -164,7 +155,7 @@ fn iarray_begin_
 
 inline_for_extraction noextract
 fn iarray_begin
-  (#et:Type0)
+  (#et : Type0)
   (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
@@ -204,23 +195,22 @@ fn iarray_end
 
 inline_for_extraction noextract
 fn iarray_end2
-  (#et : Type0) (#len : erased nat)
-  (#vw : aiview len { is_full_view vw })
+  (#et : Type0)
+  (#vw : aiview { is_full_view vw })
   (a : iarray et vw)
   (#f : perm)
   (#v : vw.sch.ait -> GTot et)
   requires
     a |-> Frac f v
   returns
-    a' : gpu_array et len
+    a' : gpu_array et (len vw)
   ensures
-    (* The natlt len annotation is needed for this to typecheck. *)
-    a' |-> Frac f (Seq.init_ghost len (fun (i : natlt len) -> v (it_of_nat vw i)))
+    a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 
 ghost
 fn iarray_reindex_
-  (#et : Type0) (#len : nat)
-  (#vw : aiview len)
+  (#et : Type0)
+  (#vw : aiview)
   (#ait' : Type)
   {| Enumerable.enumerable ait' |}
   (bij : vw.sch.ait =~ ait')
@@ -234,8 +224,8 @@ fn iarray_reindex_
 
 inline_for_extraction noextract
 fn iarray_reindex
-  (#et : Type0) (#len : nat)
-  (#vw : aiview len)
+  (#et : Type0)
+  (#vw : aiview)
   (#ait' : Type)
   {| Enumerable.enumerable ait' |}
   (bij : vw.sch.ait =~ ait')
@@ -251,8 +241,8 @@ fn iarray_reindex
 
 ghost
 fn iarray_split2_
-  (#et:Type0) (#len : nat)
-  (vw1 vw2 : aiview len)
+  (#et:Type0)
+  (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
@@ -265,8 +255,8 @@ fn iarray_split2_
 
 inline_for_extraction noextract
 fn iarray_split2
-  (#et:Type0) (#len : nat)
-  (vw1 vw2 : aiview len)
+  (#et:Type0)
+  (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
@@ -282,7 +272,7 @@ fn iarray_split2
 ghost
 fn iarray_share_n
   (#et:Type0)
-  (#len : erased nat) (#vw : aiview len)
+  (#vw : aiview)
   (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
@@ -296,7 +286,7 @@ fn iarray_share_n
 ghost
 fn iarray_gather_n
   (#et:Type0)
-  (#len : erased nat) (#vw : aiview len)
+  (#vw : aiview)
   (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
@@ -310,8 +300,7 @@ fn iarray_gather_n
 inline_for_extraction noextract
 fn iarray_write_cell
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.sch.cit)
   (v1 : et)
@@ -325,8 +314,7 @@ fn iarray_write_cell
 inline_for_extraction noextract
 fn iarray_write_cell'
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
   (ai : erased vw.sch.ait)
   (ci : cw.sch.cit)
@@ -343,8 +331,7 @@ fn iarray_write_cell'
 inline_for_extraction noextract
 fn iarray_read_cell
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -362,8 +349,7 @@ fn iarray_read_cell
 inline_for_extraction noextract
 fn iarray_read_cell'
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
   (i : cw.sch.cit)
   (ai : erased vw.sch.ait)
@@ -383,8 +369,7 @@ fn iarray_read_cell'
 inline_for_extraction noextract
 fn iarray_read
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -400,8 +385,7 @@ fn iarray_read
 inline_for_extraction noextract
 fn iarray_write
   (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
   (ci : cw.sch.cit)
   (e : et)

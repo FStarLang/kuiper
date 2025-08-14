@@ -1,5 +1,7 @@
 module Kuiper.Len
 
+open Pulse.Lib.Core
+
 (* This is just for specs, so we use GTot. *)
 class has_len (a:Type) = {
   len : a -> GTot nat;

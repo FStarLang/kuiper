@@ -25,8 +25,9 @@ let inj_sz_rev (len : sz) : (szlt len @~> szlt len) = {
 }
 
 inline_for_extraction noextract
-let base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
+let base_view (et : Type) (len : nat) : aview et (lseq et len) = {
   iview = {
+    len;
     sch = {
       ait      = natlt len;
       ait_enum = solve;
@@ -39,8 +40,9 @@ let base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
 }
 
 inline_for_extraction noextract
-let r_base_view (et : Type) (len : nat) : aview et len (lseq et len) = {
+let r_base_view (et : Type) (len : nat) : aview et (lseq et len) = {
   iview = {
+    len;
     sch = {
       ait      = natlt len;
       ait_enum = solve;
@@ -65,7 +67,7 @@ let bij__normal (et len : _) : (lseq et len =~ _normal et len) = {
 }
 
 inline_for_extraction noextract
-let normal_view (et:Type) (len:nat) : aview et len (_normal et len) =
+let normal_view (et:Type) (len:nat) : aview et (_normal et len) =
   review_view (base_view et len) (bij__normal et len)
 
 noeq
@@ -81,12 +83,12 @@ let bij__reverse (et len : _) : (lseq et len =~ _reverse et len) = {
 }
 
 inline_for_extraction noextract
-let reverse_view (et:Type) (len:nat) : aview et len (_reverse et len) =
+let reverse_view (et:Type) (len:nat) : aview et (_reverse et len) =
   review_view (r_base_view et len) (bij__reverse et len)
 
 inline_for_extraction noextract
-instance cnormal_view et (len : nat{SZ.fits len}) : IView.ciview (normal_view et len).iview = {
-  fits     = ();
+instance cnormal_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_sz len |} : IView.ciview (normal_view et len).iview = {
+  clen = sz_len.x;
   sch = {
     cit      = szlt len;
     bij      = natural;
@@ -98,8 +100,8 @@ instance cnormal_view et (len : nat{SZ.fits len}) : IView.ciview (normal_view et
 }
 
 inline_for_extraction noextract
-instance creverse_view et (len : nat{SZ.fits len}) : IView.ciview (reverse_view et len).iview = {
-  fits     = ();
+instance creverse_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_sz len |} : IView.ciview (reverse_view et len).iview = {
+  clen = sz_len.x;
   sch = {
     cit      = szlt len;
     bij      = natural;
@@ -108,26 +110,30 @@ instance creverse_view et (len : nat{SZ.fits len}) : IView.ciview (reverse_view 
     cimap    = {
       // Can't use imap = inj_sz_rev (SZ.uint_to_t len) for stupid reasons,
       // a type inside a refinement does not match exactly.
-      f = (fun (i : szlt len) -> SZ.uint_to_t len -^ 1sz -^ i <: szlt len);
+      f = (fun (i : szlt len) -> sz_len.x -^ 1sz -^ i <: szlt len);
       is_inj = ez;
     };
     compat   = ez;
   };
 }
 
+(* Why does this work without the instance below? *)
 fn test (a : varray (normal_view u32 50))
   preserves gpu
   requires a |-> N 's
   returns  u32
   ensures  a |-> N 's
-{ varray_read a 0sz; }
+{ varray_read #_ #_ #_ #solve_debug a 0sz; }
+
+inline_for_extraction noextract
+instance _ : concrete_sz 50 = { x = 50sz; }
 
 fn test2 (a : varray (reverse_view u32 50sz))
   preserves gpu
   requires a |-> R 's
   returns  u32
   ensures  a |-> R 's
-{ varray_read a 0sz; }
+{ varray_read #_ #_ #_ #(creverse_view _ _ #_) a 0sz; }
 
 fn write1 (a : varray (normal_view u32 50sz))
   preserves gpu

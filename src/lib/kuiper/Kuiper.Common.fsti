@@ -55,3 +55,6 @@ let o (f : 'b -> 'c) (g : 'a -> 'b) : 'a -> 'c =
 
 let oo (f : 'b -> GTot 'c) (g : 'a -> GTot 'b) : 'a -> GTot 'c =
   fun x -> f (g x)
+
+let max x y = if x > y then x else y
+let min x y = if x < y then x else y

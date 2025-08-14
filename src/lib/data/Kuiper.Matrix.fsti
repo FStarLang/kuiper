@@ -28,7 +28,7 @@ instance cview_from_clayout
   // : View.cview (aview_from_mlayout et l) =
   // But F* complains it's not a class.
 {
-  fits = ();
+  clen = c.m_rows *^ c.m_cols;
 
   sch = {
     cit = szlt rows & szlt cols;
