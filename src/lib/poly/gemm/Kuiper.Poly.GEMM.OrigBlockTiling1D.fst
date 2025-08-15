@@ -2,6 +2,8 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D
 
 #lang-pulse
 
+#set-options "--z3rlimit 30"
+
 open Kuiper
 open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
