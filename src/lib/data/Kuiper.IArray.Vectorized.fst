@@ -11,15 +11,14 @@ open Kuiper.Injection
 module SZ = FStar.SizeT
 
 let ai_add
-  (#len : nat)
-  (vw : aiview len)
+  (vw : aiview)
   (ai : vw.sch.ait)
   (x : nat{in_image vw.step.imap.f ((it_to_nat vw ai) + x)})
   : GTot vw.sch.ait  = it_of_nat vw ((it_to_nat vw ai) + x)
 
 let iarray_pts_to_4cells
   (#et:Type0)
-  (#len : erased nat) (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#[T.exact (`1.0R)] f : perm)
   (ai : vw.sch.ait)
@@ -36,8 +35,7 @@ let iarray_pts_to_4cells
 
 let gpu_pts_to_4slice
   (#et:Type0)
-  (#len : nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (ai : vw.sch.ait)
@@ -51,8 +49,7 @@ let gpu_pts_to_4slice
 ghost
 fn iarray_4cells_pts_to_gpu_4slice
   (#et:Type0)
-  (#len : nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (ai : vw.sch.ait)
@@ -107,8 +104,7 @@ fn iarray_4cells_pts_to_gpu_4slice
 ghost
 fn gpu_array_slice_pts_to_iarray_4cells
   (#et:Type0)
-  (#len : nat)
-  (#vw : aiview len)
+  (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (ai : vw.sch.ait)
@@ -124,8 +120,7 @@ fn gpu_array_slice_pts_to_iarray_4cells
 inline_for_extraction noextract
 fn iarray_vec4_read_cells
   // (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   (a : iarray float vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -208,8 +203,7 @@ fn iarray_vec4_read_cells
 inline_for_extraction noextract
 fn iarray_vec4_write_cells
   // (#et:Type0)
-  (#len : erased nat)
-  (#vw : aiview len) {| cw : ciview vw |}
+  (#vw : aiview) {| cw : ciview vw |}
   // (a : iarray et vw)
   (a : iarray float vw)
   (ci : cw.sch.cit)

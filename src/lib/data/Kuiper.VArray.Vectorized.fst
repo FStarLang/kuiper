@@ -8,8 +8,8 @@ module IVec = Kuiper.IArray.Vectorized
 
 
 let varray_pts_to_4cells
-  (#et:Type0) (#len : erased nat) (#st : Type)
-  (#vw : aview et len st)
+  (#et:Type0) (#st : Type)
+  (#vw : aview et st)
   (a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
   (ai : vw.iview.sch.ait)
@@ -21,8 +21,8 @@ let varray_pts_to_4cells
 inline_for_extraction noextract
 fn varray_vec4_read_cells
   // (#et : Type) 
-  (#len : erased nat) (#st : Type)
-  (#vw : aview float len st)
+  (#st : Type)
+  (#vw : aview float st)
   {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
@@ -44,8 +44,8 @@ fn varray_vec4_read_cells
 inline_for_extraction noextract
 fn varray_vec4_write_cells
   // (#et : Type)
-  (#len : erased nat) (#st : Type)
-  (#vw : aview float len st)
+  (#st : Type)
+  (#vw : aview float st)
   {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
