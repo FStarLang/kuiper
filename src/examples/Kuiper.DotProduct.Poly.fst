@@ -8,21 +8,19 @@ module SZ = FStar.SizeT
 
 inline_for_extraction
 let m_size : sz = 1024sz
-let size = m_size
+unfold let size = m_size
 
-[@@coercion]
-inline_for_extraction
-let uint32_to_sizet x = FStar.SizeT.uint32_to_sizet x
-
+unfold
 let kpre #et (size:nat) (ga1 ga2 r : gpu_array et size) (tid:nat) : slprop =
   gpu_pts_to_array1 ga1 tid **
   gpu_pts_to_array1 ga2 tid **
-  gpu_pts_to_array1 r tid
+  gpu_pts_to_array1 r   tid
 
+unfold
 let kpost #et (size:nat) (ga1 ga2 r : gpu_array et size) (tid:nat) : slprop =
   gpu_pts_to_array1 ga1 tid **
   gpu_pts_to_array1 ga2 tid **
-  gpu_pts_to_array1 r tid
+  gpu_pts_to_array1 r   tid
 
 fn kf
   (#et:Type0) {| scalar et |}
@@ -41,23 +39,15 @@ fn kf
 {
   (* r[id] = ga1[id] * ga2[id] *)
 
-  (**)unfold (kpre size ga1 ga2 r tid);
+  (**)unfold gpu_pts_to_array1 ga1 tid;
+  (**)unfold gpu_pts_to_array1 ga2 tid;
+  (**)unfold gpu_pts_to_array1 r   tid;
 
-  (**)unfold (gpu_pts_to_array1 ga1 tid);
-  let v1 = gpu_array_read #_ #(reveal size) #tid #(tid+1) ga1 tid;
+  gpu_array_write r tid (gpu_array_read ga1 tid `mul` gpu_array_read ga2 tid);
 
-  (**)unfold (gpu_pts_to_array1 ga2 tid);
-  let v2 = gpu_array_read #_ #(reveal size) #tid #(tid+1) ga2 tid;
-
-  let v = v1 `mul` v2;
-
-  (**)unfold (gpu_pts_to_array1 r tid);
-  gpu_array_write #_ #(reveal size) #tid #(tid+1) r tid v;
-
-  (**)fold (gpu_pts_to_array1 r tid);
-  (**)fold (gpu_pts_to_array1 ga1 tid);
-  (**)fold (gpu_pts_to_array1 ga2 tid);
-  (**)fold (kpost size ga1 ga2 r tid);
+  (**)fold gpu_pts_to_array1 r   tid;
+  (**)fold gpu_pts_to_array1 ga1 tid;
+  (**)fold gpu_pts_to_array1 ga2 tid;
   ()
 }
 
@@ -82,15 +72,11 @@ fn block_setup
   (**)gpu_array_slice_1_underspec #3 gr;
 
   // Boring combination of resources
-  (**)bigstar_zip #1 #2 #1 0 size _ _;
-  (**)bigstar_zip #1 #3 #0 0 size _ _;
-
-  (**)bigstar_uneta ();
+  (**)bigstar_zip #1  #2 #42 0 size _ _;
+  (**)bigstar_zip #42 #3 #0  0 size _ _;
 
   forevery_fromnat size
     (fun i -> kpre m_size ga1 ga2 gr i);
-
-  forevery_rw_size size (SZ.v m_size);
 }
 
 ghost
@@ -106,14 +92,11 @@ fn block_teardown
         (ga2 |-> s2) **
         (gr |-> sr))
 {
-  forevery_rw_size (SZ.v m_size) size;
   forevery_tonat size
     (fun i -> kpost m_size ga1 ga2 gr i);
 
   (**)bigstar_unzip #1 #2 #0 0 size _ _;
   (**)bigstar_unzip #3 #4 #1 0 size _ _;
-
-  rewrite each SZ.v m_size as size;
 
   (* Why is this needed? *)
   bigstar_uneta () #3 #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
