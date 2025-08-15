@@ -39,10 +39,10 @@ let gpu_pts_to_cell
   ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey] i : nat)
-  (v : seq a)
+  (v : a)
 : slprop
 =
-  gpu_pts_to_slice x #f i (i + 1) v
+  gpu_pts_to_slice x #f i (i + 1) seq![v]
 
 unfold
 let gpu_pts_to_array

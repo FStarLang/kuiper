@@ -49,7 +49,7 @@ let iarray_pts_to_cell
   ([@@@mkey]i : vw.sch.ait)
   (v : et)
   : slprop
-  = gpu_pts_to_cell (core a) #f (i |~> vw.step.imap) seq![v]
+  = gpu_pts_to_cell (core a) #f (i |~> vw.step.imap) v
 
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
