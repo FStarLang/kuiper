@@ -87,28 +87,31 @@ ensures
   ()
 }
 
-fn hf ()
+fn hf (v : V.vec float)
+  preserves
+    exists* s. (v |-> s) ** pure (Seq.length s == 4)
   preserves cpu
 {
   open Pulse.Lib.Vec;
+  let a = gpu_array_alloc #float 4sz;
 
-  let v = alloc #float one 4sz;
-  // let a = gpu_array_alloc #float 4sz;
+  gpu_memcpy_host_to_device a v 4sz;
 
+  with s. assert v |-> s;
+  assert (pure (Seq.equal s (slice s 0 4)));
+  assert a |-> slice s 0 4;
 
-  // gpu_memcpy_host_to_device a v 4sz;
+  let two = Float32.one `add` one;
+  launch_kernel_1 (fun () ->
+    kf 4sz #(slice s 0 4) 1 a two 1sz 0sz 0sz ());
 
-  // let two = Float32.one `add` one;
-  // launch_kernel_1 (kf 4sz #(create 4 Float32.one) 1 a two 1sz 0sz 0sz);
-
-  // gpu_memcpy_device_to_host v a 4sz;
+  gpu_memcpy_device_to_host v a 4sz;
 
   // dguard (v.(0sz) = two);
   // dguard (v.(1sz) = two);
   // dguard (v.(2sz) = two);
   // dguard (v.(3sz) = two);
 
-  // gpu_array_free a;
-  free v;
+  gpu_array_free a;
   ()
 }
