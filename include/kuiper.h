@@ -109,6 +109,14 @@ void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char * func, const char *str
 #define KPR_GPU_ALLOC(sz, len)						\
 	__KPR_GPU_ALLOC(sz, len, "KPR_GPU_ALLOC(" #sz ", " #len ")", __func__, __FILE__, __LINE__)
 
+#define KPR_PROJ_X(vec) vec.x
+#define KPR_PROJ_Y(vec) vec.y
+#define KPR_PROJ_Z(vec) vec.z
+#define KPR_PROJ_W(vec) vec.w
+
+#define KPR_VECTZD_READ(a, idx) reinterpret_cast<float4 *>(&a[idx])[0]
+#define KPR_VECTZD_WRITE(a, idx, v) reinterpret_cast<float4 *>(&a[idx])[0] = v
+
 static inline
 void INFO ()
 {

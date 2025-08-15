@@ -316,6 +316,17 @@ fn gpu_slice_concat
   ensures  gpu_pts_to_slice arr #f i m (Seq.append s1 s2)
 
 ghost
+fn gpu_slice_split
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#[exact (`1.0R)] f : perm)
+  (#s1 #s2: erased (seq a))
+  (i n m:nat)
+  requires gpu_pts_to_slice arr #f i m (Seq.append s1 s2)
+  ensures  gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
+
+ghost
 fn gpu_slice_empty_elim
   (#a:Type u#0) (#sz:nat)
   (arr : gpu_array a sz)
