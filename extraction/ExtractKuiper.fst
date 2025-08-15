@@ -82,7 +82,7 @@ let gpu_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float16.t") -> TInt Half
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float32.t") -> TInt Float
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float64.t") -> TInt Double
-  | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Vectorized.float4") -> TQualified ([], "float4")
+  | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Array.Vectorized.float4") -> TQualified ([], "float4")
   | _ -> raise NotSupportedByKrmlExtension
 
 let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
@@ -703,9 +703,9 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
  
   (******** VECTORIZED ARRAY ********)
 
-  | "Kuiper.Vectorized.gpu_array_read_vec4", [], [ _sz; _i; _j; a; _f; idx; _s ] ->
+  | "Kuiper.Array.Vectorized.gpu_array_vec4_read", [], [ _sz; _i; _j; a; _f; idx; _s ] ->
     EApp (EQualified ([], "KPR_VECTZD_READ"), [ cb a; cb idx ])
-  | "Kuiper.Vectorized.gpu_array_write_vec4", [], [ _sz; _i; _j; a; idx; v; _s ] ->
+  | "Kuiper.Array.Vectorized.gpu_array_vec4_write", [], [ _sz; _i; _j; a; idx; v; _s ] ->
     EApp (EQualified ([], "KPR_VECTZD_WRITE"), [ cb a; cb idx; cb v ])
 
   (******** ATOMIC OPS ********)
@@ -716,12 +716,12 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
   (******** VECTOR OPS ********)
-  | "Kuiper.Vectorized.make_float4", [], [ x; y; z; w; ] ->
+  | "Kuiper.Array.Vectorized.make_float4", [], [ x; y; z; w; ] ->
     EApp (EQualified ([], "make_float4"), [cb x; cb y; cb z; cb w])
-  | "Kuiper.Vectorized.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
-  | "Kuiper.Vectorized.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
-  | "Kuiper.Vectorized.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
-  | "Kuiper.Vectorized.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
+  | "Kuiper.Array.Vectorized.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
+  | "Kuiper.Array.Vectorized.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
+  | "Kuiper.Array.Vectorized.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
+  | "Kuiper.Array.Vectorized.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
 
   (******** KERNEL CALL ********)
 
