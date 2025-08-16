@@ -4,7 +4,7 @@ include FStar.Mul
 
 include FStar.FunctionalExtensionality { (^->>), (^->) }
 
-include FStar.SizeT { div as (/^), rem as (%^), (+^), (-^), ( *^ )  }
+include FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 
 include Pulse
 include Pulse.Lib.BigStar

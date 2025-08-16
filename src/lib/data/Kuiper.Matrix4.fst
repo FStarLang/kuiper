@@ -7,7 +7,7 @@ open Kuiper.GhostMap
 open Kuiper.EMatrix4
 module A = Kuiper.VArray
 module T = FStar.Tactics.V2
-open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
+open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 
 inline_for_extraction noextract
 type cit

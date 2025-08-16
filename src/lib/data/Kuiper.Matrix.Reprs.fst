@@ -3,7 +3,7 @@ module Kuiper.Matrix.Reprs
 
 open Kuiper
 open Kuiper.Bijection
-open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
+open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 
 inline_for_extraction noextract
 instance crepr_row_major : crepr row_major = {

@@ -5,7 +5,7 @@ open Kuiper.Common
 open Kuiper.SizeT
 open FStar.Functions
 module SZ = FStar.SizeT
-open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
+open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 
 (* A theory of injections. *)
 

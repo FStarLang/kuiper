@@ -5,7 +5,7 @@ open Kuiper.Common
 open Kuiper.SizeT
 open FStar.Ghost { erased }
 module SZ = FStar.SizeT
-open FStar.SizeT { div as (/^), (%^), (+^), (-^), ( *^ )  }
+open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 
 (* A theory of bijections, used to shift views
 over ownership and data layouts. There is some delicate
