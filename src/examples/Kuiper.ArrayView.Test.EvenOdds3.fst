@@ -46,7 +46,7 @@ instance _cview_strided
    (stride : sz) (offset : szlt stride)
 : IView.ciview (strided_view et len stride offset).iview
 = {
-  clen = sz_len.x;
+  clen = concr' sz_len;
   sch = {
     cit  = szlt ((len + stride - 1 - offset) / stride);
     bij  = natural;

@@ -3,10 +3,12 @@ module Kuiper.Poly.GEMM.Util
 #lang-pulse
 
 open Kuiper
+open Pulse.Lib.Trade
 module M  = Kuiper.Matrix
 module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
+module Tiling = Kuiper.Matrix.Tiling
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
@@ -55,66 +57,29 @@ fn matmul_dotprod
   !sum
 }
 
-(* Will only multiply across the minor index. *)
-inline_for_extraction noextract
-fn matmul_tiled_sub_dotprod
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols #tile : SZ.t)
-  (#lA : mlayout4 rows shared tile tile)
-  (#lB : mlayout4 shared cols tile tile)
-  {| clayout4 lA, clayout4 lB |}
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (#eA : ematrix4 et rows shared tile tile)
-  (#eB : ematrix4 et shared cols tile tile)
-  (bi : szlt rows)
-  (bk : szlt shared)
-  (bj : szlt cols)
-  (i : szlt tile)
-  (j : szlt tile)
-  (#fA #fB : perm)
-  (v0 : et)
-  preserves
-    gpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
-  returns
-    res : et
-  // ensures
-  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
+[@@allow_ambiguous]
+ghost
+fn ambig_trade_elim
+  (#p #q : slprop)
+  ()
+  requires
+    p ** (p @==> q)
+  ensures q
 {
-  let mut sum = v0;
-  let mut k : sz = 0sz;
-
-  while (SZ.(!k <^ tile))
-    invariant
-      exists* (vk : SZ.t) sumv.
-        pure (vk <= tile) **
-        (k |-> vk) **
-        (sum |-> sumv)
-  {
-    let vk = !k;
-    let s = !sum;
-    let v1 = M4.gpu_matrix_read gA bi bk i vk;
-    let v2 = M4.gpu_matrix_read gB bk bj vk j;
-
-    sum := s `add` mul v1 v2;
-    k := vk +^ 1sz;
-  };
-  !sum
+  elim_trade _ _;
 }
 
 inline_for_extraction noextract
 fn matmul_tiled_dotprod
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols #tile : SZ.t)
-  (#lA : mlayout4 rows shared tile tile)
-  (#lB : mlayout4 shared cols tile tile)
-  {| clayout4 lA, clayout4 lB |}
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (#eA : ematrix4 et rows shared tile tile)
-  (#eB : ematrix4 et shared cols tile tile)
+  (#rows #shared #cols : sz)
+  (#tile : szp)
+  (#lA : mlayout (rows   * tile) (shared * tile))
+  (#lB : mlayout (shared * tile) (cols   * tile))
+  {| clayout lA, clayout lB |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (#eA #eB : ematrix _ _ _)
   (bi : szlt rows)
   (bj : szlt cols)
   (i : szlt tile)
@@ -132,6 +97,7 @@ fn matmul_tiled_dotprod
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
+
   while (SZ.(!bk <^ shared))
     invariant
       exists* (vbk : SZ.t) sumv.
@@ -141,10 +107,33 @@ fn matmul_tiled_dotprod
   {
     let vbk = !bk;
     let s = !sum;
-    let s' = matmul_tiled_sub_dotprod gA gB bi vbk bj i j s;
-    sum := s';
+    assert (pure (bi  < (rows   * tile) / tile));
+    assert (pure (vbk < (shared * tile) / tile));
+    // Sigh.... need to reveal and hide. Terrible UX.
+    let tA = Tiling.gpu_matrix_subtile gA tile tile (hide (reveal bi)) (hide (reveal vbk));
+    let tB = Tiling.gpu_matrix_subtile gB tile tile (hide (reveal vbk)) (hide (reveal bj));
+    assert (rewrites_to tA (Tiling.gpu_matrix_subtile gA tile tile (hide (reveal bi)) (hide (reveal vbk))));
+    assert (rewrites_to tB (Tiling.gpu_matrix_subtile gB tile tile (hide (reveal vbk)) (hide (reveal bj))));
+
+    Tiling.gpu_matrix_extract_tile gA tile tile bi vbk;
+    Tiling.gpu_matrix_extract_tile gB tile tile vbk bj;
+
+    let s' = matmul_dotprod
+      #_ #_
+      #tile #tile #tile
+      // #(Tiling.subtile_layout lA tile tile bi vbk)
+      // #(Tiling.subtile_layout lB tile tile vbk bj)
+      // #(Tiling.c_subtile_layout #_ #_ _ #_ _ _ _ _ #_ #_ #_ #_)
+      // #(Tiling.c_subtile_layout #_ #_ _ #_ _ _ _ _ #_ #_ #_ #_)
+      tA tB i j;
+    sum := !sum `add` s';
+
+    ambig_trade_elim ();
+    ambig_trade_elim ();
+
     bk := vbk +^ 1sz;
   };
+
   !sum
 }
 

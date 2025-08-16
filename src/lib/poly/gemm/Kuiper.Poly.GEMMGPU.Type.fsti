@@ -71,6 +71,40 @@ type tiled_matmulcomb_gpu_ty =
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->
+  (lA : mlayout (mrows   * tile) (mshared * tile)) ->
+  (lB : mlayout (mshared * tile) (mcols   * tile)) ->
+  (lC : mlayout (mrows   * tile) (mcols   * tile)) ->
+  {| clayout lA |} ->
+  {| clayout lB |} ->
+  {| clayout lC |} ->
+  (gA : M.gpu_matrix et lA) ->
+  (#fA : perm) ->
+  (gB : M.gpu_matrix et lB) ->
+  (#fB : perm) ->
+  (gC : M.gpu_matrix et lC) ->
+  (#eA : ematrix _ _ _) ->
+  (#eB : ematrix _ _ _) ->
+  (#eC : ematrix _ _ _) ->
+  stt unit
+    (requires
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (pure (mrows * mcols <= max_blocks) **
+       pure (tile * tile <= max_threads) **
+       (gC |-> eC)))
+    (ensures fun _ ->
+      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (gC |-> MS.mmcomb comb eC eA eB))
+
+(* The OLD type for a tiled matmul, using the deprecated Matrix4. *)
+unfold
+inline_for_extraction
+type _OLD_tiled_matmulcomb_gpu_ty =
+  (tile : valid_tile) ->
+  (#et : Type0) -> {| scalar et |} ->
+  (comb : binop et) ->
+  (#mrows : szp) ->
+  (#mshared : szp) ->
+  (#mcols : szp) ->
   (lA : M4.mlayout4 mrows   mshared tile tile) ->
   (lB : M4.mlayout4 mshared mcols   tile tile) ->
   (lC : M4.mlayout4 mrows   mcols   tile tile) ->
@@ -82,9 +116,9 @@ type tiled_matmulcomb_gpu_ty =
   (gB : M4.gpu_matrix et lB) ->
   (#fB : perm) ->
   (gC : M4.gpu_matrix et lC) ->
-  (#eA : ematrix4 et mrows   mshared tile tile) ->
-  (#eB : ematrix4 et mshared mcols   tile tile) ->
-  (#eC : ematrix4 et mrows   mcols   tile tile) ->
+  (#eA : ematrix4 _ _ _ _ _) ->
+  (#eB : ematrix4 _ _ _ _ _) ->
+  (#eC : ematrix4 _ _ _ _ _) ->
   stt unit
     (requires
       (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **

@@ -59,6 +59,12 @@ val mmcomb_gpu_tiled
   : matmulcomb_gpu_ty
 
 inline_for_extraction noextract
+val _OLD_mmcomb_gpu_tiled
+  (mmcomb_gpu : _OLD_tiled_matmulcomb_gpu_ty)
+  (tile : valid_tile)
+  : matmulcomb_gpu_ty
+
+inline_for_extraction noextract
 val mmcomb_gpu_block_tiled1d
   (mmcomb_gpu : block_tiled1d_matmulcomb_gpu_ty)
   (bm bn bk : szp)

@@ -8,6 +8,10 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
+open Pulse.Lib.Trade
+
+unfold
+let factored (p q : slprop) : slprop = p ** (p @==> q)
 
 val ematrix_subtile
   (#et : _)
@@ -28,9 +32,11 @@ val subtile_layout
   (tc : natlt (cols / tcols))
   : mlayout trows tcols
 
+inline_for_extraction noextract
 instance val c_subtile_layout
   (#rows #cols : erased nat)
-  (l : mlayout rows cols) {| clayout l |}
+  (l : mlayout rows cols)
+  {| clayout l |}
   (trows : erased pos {trows /? rows})
   (tcols : erased pos {tcols /? cols})
   (tr    : erased (natlt (rows / trows)))
@@ -42,6 +48,7 @@ instance val c_subtile_layout
   |}
   : clayout (subtile_layout l trows tcols tr tc)
 
+inline_for_extraction noextract
 val gpu_matrix_subtile
   (#et : _)
   (#rows #cols : erased nat)
@@ -62,13 +69,14 @@ fn gpu_matrix_tile
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#em : ematrix et rows cols)
+  (#f : perm)
   requires
-    gm |-> em
+    gm |-> Frac f em
   ensures
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
-        gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 
 ghost
 fn gpu_matrix_untile
@@ -79,13 +87,14 @@ fn gpu_matrix_untile
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#em : ematrix et rows cols)
+  (#f : perm)
   requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
-        gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
   ensures
-    gm |-> em
+    gm |-> Frac f em
 
 ghost
 fn gpu_matrix_untile0
@@ -103,3 +112,25 @@ fn gpu_matrix_untile0
         gpu_matrix_subtile gm trows tcols tr tc |-> em)
   ensures
     exists* em. gm |-> em
+
+(* FIXME: This should allow the user to modify the tile and put it back later.
+In the post we should get something like
+  forall* e'. subtile |-> e' @==> gm |-> update em e' *)
+ghost
+fn gpu_matrix_extract_tile
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    gm |-> Frac f em
+  ensures
+    factored
+      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
+      (gm |-> Frac f em)

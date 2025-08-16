@@ -55,7 +55,7 @@ instance _cview_even #et
   (#len : erased nat{SZ.fits len})
   (sz_len : concrete_sz len)
 : IView.ciview (even_view et len).iview = {
-  clen = sz_len.x;
+  clen = concr' sz_len;
   sch = {
     cit    = szlt ((len + 1) / 2);
     bij    = natural;
@@ -74,7 +74,7 @@ instance _cview_odd #et
   (#len : erased nat{SZ.fits len})
   (sz_len : concrete_sz len)
 : IView.ciview (odd_view et len).iview = {
-  clen = sz_len.x;
+  clen = concr' sz_len;
   sch = {
     cit  = szlt (len / 2);
     bij  = natural;

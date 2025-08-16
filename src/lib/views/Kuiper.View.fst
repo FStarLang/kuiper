@@ -76,7 +76,7 @@ let from_to (#a:Type) (#st:Type)
     rhs;
   }
 
-#push-options "--retry 5" // flaky, but fast when it works
+#push-options "--retry 10" // flaky, but fast when it works
 let to_seq_upd (#a:Type) (#st:Type)
   (vw : aview a st { is_full_view vw })
   (v : st)

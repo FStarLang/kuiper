@@ -110,6 +110,58 @@ fn mmcomb_gpu_tiled
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
 
+  tiled_mmcomb_gpu
+    tile
+    comb
+    #mrows #mshared #mcols // should not be needed
+    lA lB lC
+    #cA #cB #cC            // should not be needed
+    gA gB gC;
+
+  ()
+}
+
+(* This will dinamically abort if the dimensions (rows/shared/cols) are not
+   multiples of tile. *)
+inline_for_extraction noextract
+fn _OLD_mmcomb_gpu_tiled
+  (tiled_mmcomb_gpu : _OLD_tiled_matmulcomb_gpu_ty)
+  (tile : valid_tile)
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#rows #shared #cols : szp)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  (#lC : full_mlayout rows cols)
+  {| cA : clayout lA |}
+  {| cB : clayout lB |}
+  {| cC : clayout lC |}
+  (gA : M.gpu_matrix et lA)
+  (#fA : perm)
+  (gB : M.gpu_matrix et lB)
+  (#fB : perm)
+  (gC : M.gpu_matrix et lC)
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  preserves
+    cpu **
+    (gA |-> Frac fA eA) **
+    (gB |-> Frac fB eB)
+  requires
+    pure (rows * cols <= max_blocks) **
+    (gC |-> eC)
+  ensures
+    gC |-> MS.mmcomb comb eC eA eB
+{
+  dassert (tile `SZ.gt` 0sz);
+  dguard (rows   %^ tile = 0sz);
+  dguard (shared %^ tile = 0sz);
+  dguard (cols   %^ tile = 0sz);
+  let mrows   = rows   /^ tile;
+  let mshared = shared /^ tile;
+  let mcols   = cols   /^ tile;
+
   let lA4 : mlayout4 mrows   mshared tile tile = lA;
   let lB4 : mlayout4 mshared mcols  tile tile = lB;
   let lC4 : mlayout4 mrows   mcols  tile tile = lC;
@@ -131,6 +183,7 @@ fn mmcomb_gpu_tiled
   rewrite each gA' as gA;
   rewrite each gB' as gB;
   rewrite each gC' as gC;
+
   ()
 }
 

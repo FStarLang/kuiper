@@ -47,6 +47,7 @@ let subtile_layout
     }
   }
 
+inline_for_extraction noextract
 instance c_subtile_layout
   (#rows #cols : erased nat)
   (l : mlayout rows cols) {| c : clayout l |}
@@ -63,15 +64,16 @@ instance c_subtile_layout
   {
     m_len = c.m_len;
 
-    c_to = (fun i j -> c.c_to (c_tr.x *^ c_trows.x +^ i) (c_tc.x *^ c_tcols.x +^ j));
+    c_to = (fun i j -> c.c_to (concr' c_tr *^ concr' c_trows +^ i) (concr' c_tc *^ concr' c_tcols +^ j));
 
     // Do we actually use these? Try replacing them by magics and
     // see if anything breaks.
-    m_rows = c_trows.x;
-    m_cols = c_tcols.x;
+    m_rows = concr' c_trows;
+    m_cols = concr' c_tcols;
   }
 
 (* Just a cast *)
+inline_for_extraction noextract
 let gpu_matrix_subtile
   (#et : _)
   (#rows #cols : erased nat)
@@ -94,15 +96,16 @@ fn gpu_matrix_tile
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#em : ematrix et rows cols)
+  (#f : perm)
   requires
-    gm |-> em
+    gm |-> Frac f em
   ensures
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
-        gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 {
-  admit();
+  admit ();
 }
 
 ghost
@@ -114,17 +117,17 @@ fn gpu_matrix_untile
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#em : ematrix et rows cols)
+  (#f : perm)
   requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
-        gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
   ensures
-    gm |-> em
+    gm |-> Frac f em
 {
-  admit();
+  admit ();
 }
-
 
 ghost
 fn gpu_matrix_untile0
@@ -143,5 +146,29 @@ fn gpu_matrix_untile0
   ensures
     exists* em. gm |-> em
 {
-  admit();
+  admit ();
+}
+
+ghost
+fn gpu_matrix_extract_tile
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    gm |-> Frac f em
+  ensures
+    factored
+      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
+      (gm |-> Frac f em)
+{
+  gpu_matrix_tile gm trows tcols;
+  forevery_extract_2 tr tc _;
+  trade_map _ _ _ (fun () -> gpu_matrix_untile gm trows tcols);
 }

@@ -9,6 +9,7 @@ open Kuiper.Sized
 
 val gpu_ref (a:Type u#0) : Type u#0
 
+// x |-> v
 val gpu_pts_to
   (#a:Type u#0)
   ([@@@mkey]x:gpu_ref a)
@@ -59,8 +60,9 @@ fn gpu_write
   (#a:Type u#0)
   (r : gpu_ref a)
   (v : a)
-  requires gpu ** (r |-> 'v0)
-  ensures  gpu ** (r |-> v)
+  preserves gpu
+  requires  r |-> 'v0
+  ensures   r |-> v
 
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
@@ -77,7 +79,8 @@ fn gpu_memcpy_device_to_host
   {| sized a |}
   (dst_r  : ref a)
   (src_gr : gpu_ref a)
-  preserves cpu ** (pts_to src_gr #'f 'gv)
+  preserves cpu
+  preserves src_gr |-> Frac 'f 'gv
   requires dst_r |-> 'v
   ensures  dst_r |-> 'gv
 
@@ -86,6 +89,7 @@ fn gpu_memcpy_device_to_device
   {| sized a |}
   (dst_r  : gpu_ref a)
   (src_gr : gpu_ref a)
-  preserves cpu ** (pts_to src_gr #'f 'gv)
+  preserves cpu
+  preserves src_gr |-> Frac 'f 'gv
   requires dst_r |-> 'v
   ensures  dst_r |-> 'gv
