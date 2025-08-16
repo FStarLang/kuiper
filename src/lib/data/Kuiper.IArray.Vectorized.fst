@@ -8,7 +8,6 @@ open FStar.Seq
 open Kuiper.IArray
 open Kuiper.Injection
 
-module SZ = FStar.SizeT
 
 let ai_add
   (vw : aiview)
@@ -28,9 +27,9 @@ let iarray_pts_to_4cells
     Pulse.Lib.WithPure.with_pure
       (forall (x : natlt 4). in_image vw.step.imap.f ((it_to_nat vw ai) + x))
       (fun _ ->
-          iarray_pts_to_cell a #f ai               v._1 ** 
-          iarray_pts_to_cell a #f (ai_add vw ai 1) v._2 ** 
-          iarray_pts_to_cell a #f (ai_add vw ai 2) v._3 ** 
+          iarray_pts_to_cell a #f ai               v._1 **
+          iarray_pts_to_cell a #f (ai_add vw ai 1) v._2 **
+          iarray_pts_to_cell a #f (ai_add vw ai 2) v._3 **
           iarray_pts_to_cell a #f (ai_add vw ai 3) v._4)
 
 let gpu_pts_to_4slice
@@ -60,7 +59,7 @@ fn iarray_4cells_pts_to_gpu_4slice
       pure (forall (x : natlt 4). in_image #_ #nat vw.step.imap.f ((it_to_nat vw ai) + x)) **
       gpu_pts_to_slice (core a) #f
         (it_to_nat vw ai) (it_to_nat vw ai + 4) seq![v._1; v._2; v._3; v._4]
-    // gpu_pts_to_4slice a #f ai v 
+    // gpu_pts_to_4slice a #f ai v
 {
   unfold iarray_pts_to_4cells a #f ai v;
 
@@ -135,7 +134,7 @@ fn iarray_vec4_read_cells
   let v' = gpu_array_vec4_read (core a) flat_idx;
 
   gpu_array_slice_pts_to_iarray_4cells a #f (ci_to_ai vw ci) _;
-  
+
   (* return float4 *)
   v'
 }

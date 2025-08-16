@@ -700,7 +700,7 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
- 
+
   (******** VECTORIZED ARRAY ********)
 
   | "Kuiper.Array.Vectorized.gpu_array_vec4_read", [], [ _sz; _i; _j; a; _f; idx; _s ] ->

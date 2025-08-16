@@ -56,7 +56,7 @@ fn gpu_array_vec4_read
   preserves gpu
   preserves gpu_pts_to_slice #float #sz a #f i j s
   requires pure (i <= SZ.v idx /\ SZ.v idx + 3 < j)
-  // requires pure (contains hvt.vec_lens (reveal vec_sz)) 
+  // requires pure (contains hvt.vec_lens (reveal vec_sz))
   returns  x: float4
   ensures  pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
                  i <= SZ.v idx /\ SZ.v idx + 3 < j /\

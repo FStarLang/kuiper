@@ -30,7 +30,8 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check flag>]\n",
+        fprintf(stderr,
+                "Usage: %s [<laps> <rows> <shared> <columns> <check flag>]\n",
                 argv[0]);
         return 1;
     }

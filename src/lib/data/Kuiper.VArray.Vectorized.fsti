@@ -1,5 +1,5 @@
 module Kuiper.VArray.Vectorized
-#lang-pulse 
+#lang-pulse
 
 module T = FStar.Tactics.V2
 
@@ -19,7 +19,7 @@ val varray_pts_to_4cells
 
 inline_for_extraction noextract
 fn varray_vec4_read_cells
-  // (#et : Type) 
+  // (#et : Type)
   (#st : Type)
   (#vw : aview float st)
   {| cw : cview vw |}
