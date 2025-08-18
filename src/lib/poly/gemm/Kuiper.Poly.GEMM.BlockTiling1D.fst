@@ -366,6 +366,9 @@ fn kf
        the tile and add to sum. *)
     Kuiper.Poly.GEMM.Util.subproduct_cols tile sums sa1 sa2 bcol;
 
+    // What the hell.
+    assert (pure (2 * (vbk + 1) == 2 * vbk + 1 + 1));
+
     (* Move to next tile *)
     bk := !bk +^ 1sz;
   };
