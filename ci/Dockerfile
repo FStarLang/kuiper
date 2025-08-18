@@ -47,6 +47,7 @@ ENV HOME /home/$USER
 
 RUN echo 'PATH="/usr/local/cuda/bin:$PATH"' >> /home/vscode/.profile
 RUN echo 'PATH="/usr/local/cuda/bin:$PATH"' >> /home/vscode/.bashrc
+RUN echo 'PATH="/usr/local/cuda/bin:$PATH"' >> /home/vscode/.bash_profile
 
 # Install OCaml
 ARG OCAML_VERSION=5.3.0
