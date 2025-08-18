@@ -8,8 +8,10 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs { row_major, col_major }
 open Kuiper.Spec.GEMM { matmul, matplus }
 
+// inline_for_extraction noextract
 type fragment_kind = | FragA | FragB | FragAccum
 
+// inline_for_extraction noextract
 type fragment_layout =
   | FragLRM
   | FragLCM

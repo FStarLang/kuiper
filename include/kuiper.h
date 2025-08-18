@@ -131,4 +131,12 @@ void INFO ()
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
 
+#include <mma.h>
+using namespace nvcuda;
+#define kpr_fragment wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
+
+// Huge hack: krml generates an assignment that we don't really want,
+// so set it to 0.
+#define KPR_FRAGMENT(kind, m, n, k, layout) {0}
+
 #endif

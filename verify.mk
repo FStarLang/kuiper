@@ -123,6 +123,7 @@ KRML := $(KRML_HOME)/krml				\
 	-skip-compilation				\
 	-skip-makefiles					\
 	-faggressive-inlining				\
+	-fnoshort-enums					\
 	-cuda						\
 	-dbacktrace					\
 	$(if $(V),-verbose,-silent)			\
@@ -234,6 +235,7 @@ $(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
+NVCC_FLAGS += -arch=sm_70 # for tensor cores
 
 %.o: %.cu include/*.h
 	$(call msg,"NVCC")

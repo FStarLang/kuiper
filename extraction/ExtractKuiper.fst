@@ -64,20 +64,36 @@ let flatten_app e =
 let dbg = Debug.get_toggle "extraction.gpu"
 
 let gpu_translate_type_without_decay : translate_type_without_decay_t = fun env t ->
+  let cb = translate_type_without_decay env in
   match t with
   | MLTY_Named ([arg1; arg2], p) when
     (let p = Syntax.string_of_mlpath p in
      p = "Kuiper.Array.gpu_array"
-    )
-    ->
-      TBuf (translate_type_without_decay env arg1)
+    ) ->
+      TBuf (cb arg1)
 
   | MLTY_Named ([arg], p) when
     (let p = Syntax.string_of_mlpath p in
      p = "Kuiper.Ref.gpu_ref"
+    ) ->
+      TBuf (cb arg)
+
+  | MLTY_Named ([et; knd; m; n; k; layout], p) when
+    (let p = Syntax.string_of_mlpath p in
+     p = "Kuiper.TensorCore.fragment"
     )
     ->
-      TBuf (translate_type_without_decay env arg)
+      TBuf (
+       TQualified (([], "kpr_fragment"))
+      )
+      // let fake = Format.fmt "kpr_fragment(%s,%s,%s,%s,%s,%s)"
+      //                 [show (cb et);
+      //                  "";
+      //                  "";
+      //                  "";
+      //                  "";
+      //                  ""; ] in
+      // TQualified ([], fake)
 
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float16.t") -> TInt Half
   | MLTY_Named ([], p) when (let p = Syntax.string_of_mlpath p in p = "Kuiper.Float32.t") -> TInt Float
@@ -586,6 +602,13 @@ let gpu_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _p; _q; _it; _tid ] ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
+
+  (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
+
+  | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
+    EBufCreate (Stack,
+      EApp (EQualified ([], "KPR_FRAGMENT"), [ cb knd; cb m; cb n; cb k; cb layout ]),
+      EConstant (SizeT, "1"))
 
   (******** FLOAT ARITHMETIC *******)
 
