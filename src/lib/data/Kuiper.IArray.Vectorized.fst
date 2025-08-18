@@ -55,11 +55,9 @@ fn iarray_4cells_pts_to_gpu_4slice
   (v : (et & et & et & et))
   requires iarray_pts_to_4cells a #f ai v
   ensures
-    (* WHY DOES THIS NOT WORK? WHAT AM I MISSING? pulling it out into its own definition works no problem *)
       pure (forall (x : natlt 4). in_image #_ #nat vw.step.imap.f ((it_to_nat vw ai) + x)) **
       gpu_pts_to_slice (core a) #f
         (it_to_nat vw ai) (it_to_nat vw ai + 4) seq![v._1; v._2; v._3; v._4]
-    // gpu_pts_to_4slice a #f ai v
 {
   unfold iarray_pts_to_4cells a #f ai v;
 
@@ -96,12 +94,58 @@ fn gpu_array_slice_pts_to_iarray_4cells
   (a : iarray et vw)
   (#f : perm)
   (ai : vw.sch.ait)
-  (v : seq et{Seq.length v >= 4})
-  requires gpu_pts_to_slice (core a) #f
-            (it_to_nat vw ai) (it_to_nat vw ai + 4) v
+  (v : seq et{Seq.length v == 4})
+  requires pure (forall (x : natlt 4). in_image #_ #nat vw.step.imap.f ((it_to_nat vw ai) + x)) **
+    gpu_pts_to_slice (core a) #f (it_to_nat vw ai) (it_to_nat vw ai + 4) v
   ensures  iarray_pts_to_4cells a #f ai (v @! 0, v@! 1, v @! 2, v @! 3)
 {
-  admit();
+  // -- inference seems to fail for split'?
+  // gpu_slice_split' (core a) #f
+  //   #v
+  //   (it_to_nat vw ai)
+  //   (it_to_nat vw ai + 3)
+  //   (it_to_nat vw ai + 4);
+  // gpu_slice_split' (core a) #f
+  //   #(Kuiper.Seq.Common.seq_take (it_to_nat vw ai + 3 - it_to_nat vw ai) v)
+  //   (it_to_nat vw ai)
+  //   (it_to_nat vw ai + 2)
+  //   (it_to_nat vw ai + 3);
+  // gpu_slice_split' (core a) #f
+  //   #(Kuiper.Seq.Common.seq_take (it_to_nat vw ai + 2 - it_to_nat vw ai)
+  //     (Kuiper.Seq.Common.seq_take (it_to_nat vw ai + 3 - it_to_nat vw ai) v))
+  //   (it_to_nat vw ai)
+  //   (it_to_nat vw ai + 1)
+  //   (it_to_nat vw ai + 2);
+
+  (* bring sequence into a shape that can be used by split *)
+  assert pure (Seq.equal v
+   (Seq.append (Seq.append (Seq.append
+     seq![index v 0] seq![index v 1]) seq![index v 2]) seq![index v 3]));
+  rewrite each v
+  as (Seq.append (Seq.append (Seq.append
+       seq![index v 0] seq![index v 1]) seq![index v 2]) seq![index v 3]);
+
+  (* split full slice back into multiple *)
+  gpu_slice_split (core a) #f (it_to_nat vw ai) (it_to_nat vw ai + 3) (it_to_nat vw ai + 4);
+  gpu_slice_split (core a) #f (it_to_nat vw ai) (it_to_nat vw ai + 2) (it_to_nat vw ai + 3);
+  gpu_slice_split (core a) #f (it_to_nat vw ai) (it_to_nat vw ai + 1) (it_to_nat vw ai + 2);
+
+  (* fold back *)
+  // suddenly requires rewrites?
+  rewrite each (it_to_nat vw ai + 3) as (it_to_nat vw (ai_add vw ai 3));
+  fold iarray_pts_to_cell a #f (ai_add vw ai 3) (index v 3);
+  rewrite each (it_to_nat vw ai + 2) as (it_to_nat vw (ai_add vw ai 2));
+  fold iarray_pts_to_cell a #f (ai_add vw ai 2) (index v 2);
+  rewrite each (it_to_nat vw ai + 1) as (it_to_nat vw (ai_add vw ai 1));
+  fold iarray_pts_to_cell a #f (ai_add vw ai 1) (index v 1);
+  rewrite each (it_to_nat vw ai) as (it_to_nat vw (ai_add vw ai 0));
+  fold iarray_pts_to_cell a #f (ai_add vw ai 0) (index v 0);
+
+  (* reverse how index looks *)
+  rewrite each iarray_pts_to_cell a #f (ai_add vw ai 0) (index v 0)
+  as iarray_pts_to_cell a #f (ai) (index v 0);
+
+  fold iarray_pts_to_4cells a #f (ai) (index v 0, index v 1, index v 2, index v 3);
 }
 
 // #push-options "--debug SMTFail --split_queries always"
@@ -149,7 +193,7 @@ fn iarray_vec4_write_cells
   (a : iarray float vw)
   (ci : cw.sch.cit)
   (v : float4)
-  (#v0 : (float & float & float & float))
+  (#v0 : erased (float & float & float & float))
   preserves gpu
   requires  iarray_pts_to_4cells #float a (ci_to_ai vw ci) v0
   ensures   (exists* v1. iarray_pts_to_4cells #float a (ci_to_ai vw ci) v1 **

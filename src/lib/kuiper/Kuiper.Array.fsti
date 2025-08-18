@@ -328,6 +328,19 @@ fn gpu_slice_split
   ensures  gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
 
 ghost
+fn gpu_slice_split'
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#[exact (`1.0R)] f : perm)
+  (#s : erased (seq a))
+  (i n : nat)
+  (#_ : squash (0 <= n-i /\ n-i < length s))
+  (m:nat)
+  requires gpu_pts_to_slice arr #f i m s
+  ensures  gpu_pts_to_slice arr #f i n (seq_take (n-i) s) ** gpu_pts_to_slice arr #f n m (seq_drop (n-i) s)
+
+ghost
 fn gpu_slice_empty_elim
   (#a:Type u#0) (#sz:nat)
   (arr : gpu_array a sz)
