@@ -240,7 +240,7 @@ NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
 NVCC_FLAGS += -arch=sm_70 # for tensor cores
 
-%.o: %.cu include/*.h
+%.o: %.cu %.h include/*.h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
