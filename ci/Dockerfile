@@ -25,7 +25,7 @@ RUN apt-get update \
 
 RUN wget https://developer.download.nvidia.com/compute/cuda/13.0.0/local_installers/cuda_13.0.0_580.65.06_linux.run
 RUN sudo apt-get -y install libxml2 && apt-get clean -y # apparently needed to run the runfile
-RUN sudo bash ./cuda_13.0.0_580.65.06_linux.run --silent --toolkit # No driver, this is just a container
+RUN sudo bash ./cuda_13.0.0_580.65.06_linux.run --silent --toolkit --installpath=/usr/local # No driver, this is just a container
 
 # Get compiled Z3
 RUN wget -nv https://github.com/Z3Prover/z3/releases/download/Z3-4.8.5/z3-4.8.5-x64-ubuntu-16.04.zip \
