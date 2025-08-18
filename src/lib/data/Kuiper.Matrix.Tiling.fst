@@ -53,8 +53,8 @@ instance c_subtile_layout
   (l : mlayout rows cols) {| c : clayout l |}
   (trows : erased pos {trows /? rows})
   (tcols : erased pos {tcols /? cols})
-  (tr    : erased (natlt (rows / trows)))
-  (tc    : erased (natlt (cols / tcols)))
+  (tr    : (enatlt (rows / trows)))
+  (tc    : (enatlt (cols / tcols)))
   {| c_trows : concrete_sz (hide (reveal trows)),
      c_tcols : concrete_sz (hide (reveal tcols)),
      c_tr    : concrete_sz (hide (reveal tr)),
@@ -81,11 +81,84 @@ let gpu_matrix_subtile
   (gm : gpu_matrix et l)
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr : erased (natlt (rows / trows)))
-  (tc : erased (natlt (cols / tcols)))
+  (tr : (enatlt (rows / trows)))
+  (tc : (enatlt (cols / tcols)))
   : Tot (gpu_matrix et (subtile_layout l trows tcols tr tc))
   = from_array (subtile_layout l trows tcols tr tc)
                (core gm)
+
+let cell_convert_eq 
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr : (enatlt (rows / trows)))
+  (tc : (enatlt (cols / tcols)))
+  (i : natlt trows)
+  (j : natlt tcols)
+  (f : perm)
+  (v : et)
+: Lemma (
+  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+  ==
+  gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+)
+=
+  admit() // I think this should be provable once we expose enough
+
+ghost
+fn subcell_to_cell
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr : (enatlt (rows / trows)))
+  (tc : (enatlt (cols / tcols)))
+  (i : natlt trows)
+  (j : natlt tcols)
+  (#f : perm)
+  (#v : et)
+  requires
+    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+  ensures
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+{
+  cell_convert_eq gm trows tcols tr tc i j f v;
+  rewrite
+    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+       as
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v;
+}
+
+ghost
+fn cell_to_subcell
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr : (enatlt (rows / trows)))
+  (tc : (enatlt (cols / tcols)))
+  (i : natlt trows)
+  (j : natlt tcols)
+  (#f : perm)
+  (#v : et)
+  requires
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+  ensures
+    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+{
+  cell_convert_eq gm trows tcols tr tc i j f v;
+  rewrite
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+       as
+    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v;
+}
 
 ghost
 fn gpu_matrix_tile

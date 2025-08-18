@@ -56,18 +56,6 @@ fn matmul_dotprod
   !sum
 }
 
-[@@allow_ambiguous]
-ghost
-fn ambig_trade_elim
-  (#p #q : slprop)
-  ()
-  requires
-    p ** (p @==> q)
-  ensures q
-{
-  elim_trade _ _;
-}
-
 inline_for_extraction noextract
 fn matmul_tiled_dotprod
   (#et : Type0) {| scalar et |}

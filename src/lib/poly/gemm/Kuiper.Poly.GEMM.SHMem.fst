@@ -3,18 +3,10 @@ module Kuiper.Poly.GEMM.SHMem
 #lang-pulse
 
 open Kuiper
-open Kuiper.EMatrix4
 open Kuiper.Matrix.Reprs.Type
+open Kuiper.Matrix.Tiling
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.View.TwoTiles { aview_2tile2, mkAIdx, mkCIdx }
-
-open Kuiper.Matrix4 {
-  gpu_matrix as gpu_matrix4,
-  gpu_matrix_pts_to as m4_pts_to,
-  gpu_matrix_pts_to_cell as m4_pts_to_cell,
-  mlayout4,
-  clayout4
-}
 
 module M = Kuiper.Matrix
 open Kuiper.Matrix {
@@ -23,7 +15,6 @@ open Kuiper.Matrix {
   gpu_matrix_pts_to_cell,
 }
 
-module M4 = Kuiper.Matrix4
 module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
 module B = Kuiper.Barrier
@@ -77,16 +68,15 @@ unfold
 let kpre1
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : szp)
+  (#mrows #mshared #mcols : sz)
   (tile : valid_tile)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (gC : gpu_matrix4 et lC)
-  (eA : ematrix4 et mrows mshared tile tile)
-  (eB : ematrix4 et mshared mcols tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (eA eB : ematrix _ _ _)
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
@@ -95,8 +85,9 @@ let kpre1
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
-    m4_pts_to_cell gC #1.0R
-      (bid / mcols) (bid % mcols)
+    gpu_matrix_pts_to_cell 
+      (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+      #1.0R
       (tid / tile) (tid % tile) v)
 
 (* NO FUNCTIONAL SPEC RIGHT NOW *)
@@ -104,16 +95,15 @@ unfold
 let kpost1
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : szp)
+  (#mrows #mshared #mcols : sz)
   (tile : valid_tile)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (gC : gpu_matrix4 et lC)
-  (eA : ematrix4 et mrows mshared tile tile)
-  (eB : ematrix4 et mshared mcols tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (eA eB : ematrix _ _ _)
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
@@ -122,8 +112,9 @@ let kpost1
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
-    m4_pts_to_cell gC #1.0R
-      (bid / mcols) (bid % mcols)
+    gpu_matrix_pts_to_cell 
+      (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+      #1.0R
       (tid / tile) (tid % tile) v)
 
 let barrier_tok
@@ -144,17 +135,16 @@ unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : szp)
+  (#mrows #mshared #mcols : sz)
   (tile : valid_tile)
   (slA slB : full_mlayout tile tile) // shmem layouts
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (gC : gpu_matrix4 et lC)
-  (eA : ematrix4 et mrows mshared tile tile)
-  (eB : ematrix4 et mshared mcols tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (eA eB : ematrix _ _ _)
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   // ((ar, ()) : c_shmems (shmems_desc et tile))
@@ -173,17 +163,16 @@ unfold
 let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : szp)
+  (#mrows #mshared #mcols : sz)
   (tile : valid_tile)
   (slA slB : full_mlayout tile tile) // shmem layouts
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (gC : gpu_matrix4 et lC)
-  (eA : ematrix4 et mrows mshared tile tile)
-  (eB : ematrix4 et mshared mcols tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (eA eB : ematrix _ _ _)
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   // (ar : gpu_array et (2 * tile * tile))
@@ -206,15 +195,14 @@ fn kf
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
-  (gB : gpu_matrix4 et lB)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (#eA #eB : ematrix _ _ _)
   (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et tile))
   (bid : szlt (mrows * mcols))
@@ -249,6 +237,9 @@ fn kf
   let sa2 = M.from_array slB ar2;
   rewrite each M.from_array slB ar2 as sa2;
 
+  let gTile = gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols);
+  assert (rewrites_to gTile (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols)));
+
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
   assert (pure (SZ.v brow == tid / tile));
@@ -256,9 +247,9 @@ fn kf
   assert (pure (brow < tile));
   assert (pure (bcol < tile));
 
-  with bi0 bj0 i0 j0 v0.
-    rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-         as m4_pts_to_cell gC mrow mcol brow bcol v0;
+  with i0 j0 v0.
+    rewrite gpu_matrix_pts_to_cell gTile i0   j0   v0
+         as gpu_matrix_pts_to_cell gTile brow bcol v0;
 
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
@@ -274,8 +265,19 @@ fn kf
         pure (vbk <= mshared)
   {
     let vbk = !bk;
-    let v1 = M4.gpu_matrix_read gA mrow vbk brow bcol;
-    let v2 = M4.gpu_matrix_read gB vbk mcol brow bcol;
+
+    gpu_matrix_extract_tile gA tile tile mrow vbk;
+    let aTile = gpu_matrix_subtile gA tile tile mrow vbk;
+    assert (rewrites_to aTile (gpu_matrix_subtile gA tile tile mrow vbk));
+    gpu_matrix_extract_tile gB tile tile vbk mcol;
+    let bTile = gpu_matrix_subtile gB tile tile vbk mcol;
+    assert (rewrites_to bTile (gpu_matrix_subtile gB tile tile vbk mcol));
+
+    let v1 = M.gpu_matrix_read aTile brow bcol;
+    let v2 = M.gpu_matrix_read bTile brow bcol;
+
+    ambig_trade_elim ();
+    ambig_trade_elim ();
 
     rewrite
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
@@ -349,16 +351,15 @@ fn kf
   };
 
   let s = !sum;
-  let v0 = M4.gpu_matrix_read_cell gC mrow mcol brow bcol;
+  let v0 = M.gpu_matrix_read_cell gTile brow bcol;
   let v1 = comb v0 s;
-  M4.gpu_matrix_write_cell gC mrow mcol brow bcol v1;
+  M.gpu_matrix_write_cell gTile brow bcol v1;
 
   with v'.
     rewrite
-      M4.gpu_matrix_pts_to_cell gC mrow mcol brow bcol v'
+      M.gpu_matrix_pts_to_cell gTile brow bcol v'
     as
-      M4.gpu_matrix_pts_to_cell gC
-        (bid / mcols) (bid % mcols)
+      M.gpu_matrix_pts_to_cell gTile
         (tid / tile) (tid % tile) v';
 
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
@@ -377,18 +378,15 @@ fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
-  (#fA : perm)
-  (gB : gpu_matrix4 et lB)
-  (#fB : perm)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
-  (#eC : ematrix4 et mrows   mcols   tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (#fA #fB : perm)
+  (#eA #eB #eC : ematrix _ _ _)
   ()
   requires
     (gA |-> Frac fA eA) **
@@ -410,18 +408,17 @@ fn block_setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
-  (#fA : perm)
-  (gB : gpu_matrix4 et lB)
-  (#fB : perm)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
-  (#eC : ematrix4 et mrows   mcols   tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (#fA #fB : perm)
+  (#eA : ematrix et (mrows * tile) (mshared * tile))
+  (#eB : ematrix et (mshared * tile) (mcols * tile))
+  (#eC : ematrix et (mrows * tile) (mcols * tile))
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
@@ -446,18 +443,17 @@ fn block_teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
-  (#fA : perm)
-  (gB : gpu_matrix4 et lB)
-  (#fB : perm)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
-  (#eC : ematrix4 et mrows   mcols   tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (#fA #fB : perm)
+  (#eA : ematrix et (mrows * tile) (mshared * tile))
+  (#eB : ematrix et (mshared * tile) (mcols * tile))
+  (#eC : ematrix et (mrows * tile) (mcols * tile))
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
@@ -479,18 +475,17 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : SZ.t)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
-  (#fA : perm)
-  (gB : gpu_matrix4 et lB)
-  (#fB : perm)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
-  (#eC : ematrix4 et mrows   mcols   tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (#fA #fB : perm)
+  (#eA : ematrix et (mrows * tile) (mshared * tile))
+  (#eB : ematrix et (mshared * tile) (mcols * tile))
+  (#eC : ematrix et (mrows * tile) (mcols * tile))
   ()
   requires
     (forall+ (bid : natlt2 mrows mcols)
@@ -512,19 +507,18 @@ let mk_kernel
   {| clayout slA, clayout slB |}
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : SZ.t)
-  (#lA : mlayout4 mrows   mshared tile tile)
-  (#lB : mlayout4 mshared mcols   tile tile)
-  (#lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
-  (#fA : perm)
-  (gB : gpu_matrix4 et lB)
-  (#fB : perm)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
-  (#eC : ematrix4 et mrows   mcols   tile tile)
+  (#mrows #mshared #mcols : szp)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
+  (gB : gpu_matrix et lB)
+  (gC : gpu_matrix et lC)
+  (#fA #fB : perm)
+  (#eA : ematrix et (mrows * tile) (mshared * tile))
+  (#eB : ematrix et (mshared * tile) (mcols * tile))
+  (#eC : ematrix et (mrows * tile) (mcols * tile))
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc
@@ -543,8 +537,8 @@ let mk_kernel
   teardown   = teardown tile comb gA gB gC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup    tile slA slB comb gA gB gC #_ #_ #eC;
-  block_teardown = block_teardown tile slA slB comb gA gB gC #_ #_ #eC;
+  block_setup    = block_setup    tile slA slB comb gA gB gC #_ #_ #_ #_ #eC;
+  block_teardown = block_teardown tile slA slB comb gA gB gC #_ #_ #_ #_ #eC;
 
   kpre      = kpre  comb tile slA slB gA gB gC eA eB fA fB;
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
@@ -558,18 +552,18 @@ fn mmcomb_gpu
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#mrows #mshared #mcols : szp)
-  (lA : mlayout4 mrows   mshared tile tile)
-  (lB : mlayout4 mshared mcols   tile tile)
-  (lC : mlayout4 mrows   mcols   tile tile)
-  {| clayout4 lA, clayout4 lB, clayout4 lC |}
-  (gA : gpu_matrix4 et lA)
+  (lA : mlayout (mrows   * tile) (mshared * tile))
+  (lB : mlayout (mshared * tile) (mcols   * tile))
+  (lC : mlayout (mrows   * tile) (mcols   * tile))
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : gpu_matrix et lA)
   (#fA : perm)
-  (gB : gpu_matrix4 et lB)
+  (gB : gpu_matrix et lB)
   (#fB : perm)
-  (gC : gpu_matrix4 et lC)
-  (#eA : ematrix4 et mrows   mshared tile tile)
-  (#eB : ematrix4 et mshared mcols   tile tile)
-  (#eC : ematrix4 et mrows   mcols   tile tile)
+  (gC : gpu_matrix et lC)
+  (#eA : ematrix et (mrows * tile) (mshared * tile))
+  (#eB : ematrix et (mshared * tile) (mcols * tile))
+  (#eC : ematrix et (mrows * tile) (mcols * tile))
   preserves
     cpu **
     (gA |-> Frac fA eA) **

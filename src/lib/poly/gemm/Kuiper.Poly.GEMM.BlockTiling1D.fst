@@ -2,7 +2,7 @@ module Kuiper.Poly.GEMM.BlockTiling1D
 
 #lang-pulse
 
-#set-options "--z3rlimit 20"
+#set-options "--z3rlimit 30"
 
 open Kuiper
 open Kuiper.EMatrix4
