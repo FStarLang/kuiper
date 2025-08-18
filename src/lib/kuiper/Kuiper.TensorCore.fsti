@@ -190,7 +190,7 @@ fn with_fragment u#r
   ensures  post r
 
 (* Unsound, clearly *)
-fn __alloc_fragment u#r
+fn __alloc_fragment
   (et : Type0) (knd : fragment_kind)
   (m n k : sz)
   (fl : fragment_layout)
