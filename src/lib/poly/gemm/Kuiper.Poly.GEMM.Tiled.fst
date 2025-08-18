@@ -127,8 +127,6 @@ fn kf
   ()
 }
 
-#set-options "--debug SMTFail"
-
 ghost
 fn setup
   (tile : valid_tile)

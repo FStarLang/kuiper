@@ -32,11 +32,11 @@ fn frame_right4 (fr1 fr2 fr3 fr4 : slprop) (#p #q :slprop)
   ensures  q ** fr1 ** fr2 ** fr3 ** fr4
   { f (); }
 
-ghost fn emp_elim  (#f:slprop) ()
+ghost fn emp_elim_l  (#f:slprop) ()
   requires emp ** f
   ensures  f
   { () }
-ghost fn emp_intro (#f:slprop) ()
+ghost fn emp_intro_l (#f:slprop) ()
   requires f
   ensures  emp ** f
   { () }
