@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.Tiled
 #lang-pulse
 
 open Kuiper
-module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Poly.GEMM.Util
 module SZ = FStar.SizeT

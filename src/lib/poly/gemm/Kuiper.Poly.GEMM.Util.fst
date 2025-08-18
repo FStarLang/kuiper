@@ -5,7 +5,6 @@ module Kuiper.Poly.GEMM.Util
 open Kuiper
 open Pulse.Lib.Trade
 module M  = Kuiper.Matrix
-module M4  = Kuiper.Matrix4
 module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
 module Tiling = Kuiper.Matrix.Tiling
