@@ -2,7 +2,7 @@
 set -eux
 
 DOCKERFILE=Dockerfile
-REPO=mtzguido/pulse-cuda-devcontainer2
+REPO=mtzguido/pulse-cuda-devcontainer
 
 docker build --no-cache -f "${DOCKERFILE}" -t "${REPO}" .
 
