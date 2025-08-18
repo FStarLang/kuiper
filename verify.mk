@@ -219,18 +219,21 @@ $(OUTDIR)/%.krml: | .fstar.touch
 		$<
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
-$(OUTDIR)/%.cu $(OUTDIR)/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
-$(OUTDIR)/%.cu $(OUTDIR)/%.h: $(OUTDIR)/%.krml .krml.touch
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
+	# Output into pre/
 	$(KRML) -bundle "$(MOD)=*" \
-		-tmpdir $(OUTDIR) $<
-	sed -i 's/threadIdx_x/threadIdx.x/g' $@
-	sed -i 's/blockDim_x/blockDix.x/g' $@
-	sed -i 's/blockIdx_x/blockIdx.x/g' $@
-	sed -i 's/gridDim_x/gridDim.x/g' $@
-	sed -i '/__global__/{n;/^$$/d}' $@
-	# make sure to cast the damn KPR_SHMEM
-	sed -i 's/\([a-zA-Z_0-9]*\) \*\([a-zA-Z_0-9]*\) = \(.*\)KPR_SHMEM_AT(/\1 *\2 = (\1 *)\3KPR_SHMEM_AT(/' $@
+		-tmpdir $(OUTDIR)/pre/ $<
+
+$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu .fixup.sed
+	# Postprocess via sed and generate the actual target
+	sed -f .fixup.sed $< > $@
+
+$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h
+	# Copy header directly
+	$(Q)cp $< $@
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
