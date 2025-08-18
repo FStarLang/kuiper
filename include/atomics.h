@@ -39,7 +39,7 @@ double atomic_add_f64(double* address, double val)
 	// FIXME: We're lucky here that there is an implementation for arch<600,
 	// but we should probably model GPU compute capabilities in the Pulse code.
 #if __CUDA_ARCH__ >= 600
-	return atomicAdd(p, v);
+	return atomicAdd(address, val);
 #else
     unsigned long long int* address_as_ull =
                               (unsigned long long int*)address;
