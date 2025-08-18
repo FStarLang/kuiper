@@ -21,7 +21,7 @@ jobs:
     # NB: we need the runner to have a working CUDA setup (toolkit + driver)
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer2
+      image: mtzguido/pulse-cuda-devcontainer
       options: --gpus all
     defaults:
       run:
@@ -173,7 +173,7 @@ jobs:
     needs: build
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer2
+      image: mtzguido/pulse-cuda-devcontainer
       options: --gpus all
     defaults:
       run:
