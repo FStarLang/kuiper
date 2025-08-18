@@ -238,7 +238,7 @@ $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
-NVCC_FLAGS += -arch=sm_80 # for tensor cores
+# NVCC_FLAGS += -arch=sm_80 # for tensor cores
 
 %.o: %.cu %.h include/*.h
 	$(call msg,"NVCC")

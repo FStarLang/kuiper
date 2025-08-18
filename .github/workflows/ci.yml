@@ -59,7 +59,7 @@ jobs:
       - name: Startup check
         run: |
           mkdir -p obj
-          nvcc -I include/ -arch=sm_80 -o obj/startup.exe ci/startup.cu
+          nvcc -I include/ -o obj/startup.exe ci/startup.cu
           ./obj/startup.exe
 
       - name: Set debug mode
