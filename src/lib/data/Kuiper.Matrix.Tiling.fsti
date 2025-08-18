@@ -60,7 +60,7 @@ val gpu_matrix_subtile
   (tc : enatlt (cols / tcols))
   : Tot (gpu_matrix et (subtile_layout l trows tcols tr tc))
 
-val cell_convert_eq 
+val cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)

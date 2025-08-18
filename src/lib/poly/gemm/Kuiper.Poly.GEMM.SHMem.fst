@@ -85,7 +85,7 @@ let kpre1
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
-    gpu_matrix_pts_to_cell 
+    gpu_matrix_pts_to_cell
       (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
       #1.0R
       (tid / tile) (tid % tile) v)
@@ -112,7 +112,7 @@ let kpost1
   (gA |-> Frac (fA /. mlayout_size lC) eA) **
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
-    gpu_matrix_pts_to_cell 
+    gpu_matrix_pts_to_cell
       (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
       #1.0R
       (tid / tile) (tid % tile) v)

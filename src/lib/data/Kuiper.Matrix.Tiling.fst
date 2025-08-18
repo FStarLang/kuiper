@@ -87,7 +87,7 @@ let gpu_matrix_subtile
   = from_array (subtile_layout l trows tcols tr tc)
                (core gm)
 
-let cell_convert_eq 
+let cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
