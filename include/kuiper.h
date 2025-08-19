@@ -13,6 +13,7 @@ typedef half half_t; /* crutch */
 #define __hexp(f) (__float2half(exp(__half2float(f))))
 
 #include "atomics.h"
+#include "tensorcores.h"
 
 #define gridDim_x   gridDim.x
 #define blockIdx_x  blockIdx.x
@@ -131,14 +132,4 @@ void INFO ()
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
 
-#ifdef KPR_TENSORCORES
-#include <mma.h>
-using namespace nvcuda;
-#define kpr_fragment wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major>
-
-// Huge hack: krml generates an assignment that we don't really want,
-// so set it to 0.
-#define KPR_FRAGMENT(kind, m, n, k, layout) {0}
-#endif /* KPR_TENSORCORES */
-
-#endif
+#endif /* __KUIPER_H */

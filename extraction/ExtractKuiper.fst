@@ -15,6 +15,32 @@ open FStarC.Errors
 open FStarC.Pprint
 open FStarC.Class.Show
 open FStarC.Class.PP
+open FStarC.Class.Tagged
+
+instance _ : tagged mlexpr' = {
+  tag_of = (function
+    | MLE_Const  .. -> "MLE_Const"
+    | MLE_Var    .. -> "MLE_Var"
+    | MLE_Name   .. -> "MLE_Name"
+    | MLE_Let    .. -> "MLE_Let"
+    | MLE_App    .. -> "MLE_App"
+    | MLE_TApp   .. -> "MLE_TApp"
+    | MLE_Fun    .. -> "MLE_Fun"
+    | MLE_Match  .. -> "MLE_Match"
+    | MLE_Coerce .. -> "MLE_Coerce"
+    | MLE_CTor   .. -> "MLE_CTor"
+    | MLE_Seq    .. -> "MLE_Seq"
+    | MLE_Tuple  .. -> "MLE_Tuple"
+    | MLE_Record .. -> "MLE_Record"
+    | MLE_Proj   .. -> "MLE_Proj"
+    | MLE_If     .. -> "MLE_If"
+    | MLE_Raise  .. -> "MLE_Raise"
+    | MLE_Try    .. -> "MLE_Try"
+  );
+}
+instance _ : tagged mlexpr = {
+  tag_of = (fun t -> tag_of t.expr);
+}
 
 open ExtractionUtils
 
@@ -41,15 +67,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.fragment", [et; knd; m; n; k; layout] ->
-    TBuf (TQualified (([], "kpr_fragment")))
-      // let fake = Format.fmt "kpr_fragment(%s,%s,%s,%s,%s,%s)"
-      //                 [show (cb et);
-      //                  "";
-      //                  "";
-      //                  "";
-      //                  "";
-      //                  ""; ] in
-      // TQualified ([], fake)
+    TBuf (TQualified (([], "auto"))) // :-)
 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
@@ -325,13 +343,34 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
   | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
+    let macro_suff, knd =
+      match cta knd with
+      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
+      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
+      | Some ("Kuiper.TensorCore.FragAccum", [], []) -> "_C", EQualified ([], "wmma::accumulator")
+      | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
+    in
+    let layout : option expr =
+      match cta layout with
+      | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
+      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
+      | Some ("Kuiper.TensorCore.FragLAccum", [], []) -> None
+      | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
+    in
+    let faketype =
+      EQualified ([], "half")
+    in
+    let args =
+      [ faketype; knd; cb m; cb n; cb k ]
+      @ (match layout with | Some l -> [l] | None -> [])
+    in
     EBufCreate (Stack,
-      EApp (EQualified ([], "KPR_FRAGMENT"), [ cb knd; cb m; cb n; cb k; cb layout ]),
+      EApp (EQualified ([], "KPR_FRAGMENT_INIT" ^ macro_suff), args),
       EConstant (SizeT, "1"))
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; gm; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; gm; m0; f0 ] ->
     let fr = deref <| cb fr in
-    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb (sizet_lit 0)])
+    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb (sizet_lit 16)])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
     let fr = deref <| cb fr in
@@ -342,6 +381,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let fb = deref <| cb fb in
     let fc = deref <| cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
+
+  | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; gm; f0; m0 ] ->
+    let fr = deref <| cb fr in
+    let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
+    EApp (EQualified ([], "wmma::store_matrix_sync"), [ cb gm; fr; cb (sizet_lit 16); layout])
 
   (******** FLOAT ARITHMETIC *******)
 

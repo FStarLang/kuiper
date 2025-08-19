@@ -24,9 +24,9 @@ fn use_wmma_ker
 {
   mma_loadA fa m1;
   mma_loadB fb m2;
-  // mma_fill fc zero;
-  // mma_sync' fa fb fc;
-  // mma_store fc m3;
+  mma_fill fc zero;
+  mma_sync' fa fb fc;
+  mma_store fc m3;
   ()
 }
 

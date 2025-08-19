@@ -21,8 +21,8 @@ let rec unmagic (e : mlexpr) : mlexpr =
   | MLE_Coerce (e, _, _) -> unmagic e
   | _ -> e
 
-(* head fv, type args, and args *)
-let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
+(* head term, type args, and args *)
+let xta (e : mlexpr) : mlexpr & list mlty & list mlexpr =
   (* there is probably no need for these two to recurse. *)
   let rec get_args (e : mlexpr) : mlexpr & list mlexpr =
     match e.expr with
@@ -40,8 +40,23 @@ let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
   in
   let e, args = get_args e in
   let e, tyargs = get_tyargs e in
-  match e.expr with
+  (e, tyargs, args)
+
+(* head fv , type args, and args *)
+let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
+  let h, tyargs, args = xta e in
+  match h.expr with
   | MLE_Name p -> Some (string_of_mlpath p, tyargs, args)
+  | _ -> None
+
+(* similar, but for a constructor at the head *)
+let cta (e : mlexpr) : option (string & list mlty & list mlexpr) =
+  let h, tyargs, args = xta e in
+  match h.expr with
+  | MLE_CTor (p, args') ->
+    if Cons? args then
+      failwith "I don't think this happens.";
+    Some (string_of_mlpath p, tyargs, args' @ args)
   | _ -> None
 
 let type_hta (e : mlty) : option (string & list mlty) =
