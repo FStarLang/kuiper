@@ -39,9 +39,8 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.fragment", [et; knd; m; n; k; layout] ->
-      TBuf (
-       TQualified (([], "kpr_fragment"))
-      )
+    Format.print1 "fragment = %s\n" (show x);
+    TBuf (TQualified (([], "kpr_fragment")))
       // let fake = Format.fmt "kpr_fragment(%s,%s,%s,%s,%s,%s)"
       //                 [show (cb et);
       //                  "";
@@ -309,10 +308,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       EApp (EQualified ([], "KPR_GUARD"), [ cb x ])
     )
 
-  (******** SIZET, missing from F* ********)
-  | "Kuiper.SizeT.sizet_and", [], [ x; y ] ->
-    EApp (EOp (BAnd, SizeT), [ cb x; cb y ])
-
   (******** PREDEFINED VARS ********)
 
   | "Kuiper.Base.get_gdim", [], [ _unit; _erasednblk; _erasednbid ] ->
@@ -320,9 +315,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
     EApp (EQualified ([], "blockDim_x"), [ EUnit ])
-
-  | "Kuiper.SizeT.sizet_to_u32", [], [ sz ] ->
-    ECast (cb sz, TInt UInt32)
 
   (******** BARRIERS ********)
 
@@ -335,6 +327,25 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EBufCreate (Stack,
       EApp (EQualified ([], "KPR_FRAGMENT"), [ cb knd; cb m; cb n; cb k; cb layout ]),
       EConstant (SizeT, "1"))
+  | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; gm; m0; f0 ]
+  | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; gm; m0; f0 ] ->
+    let fr = cb fr in
+    let fr = EBufRead (fr, zero_for_deref) in // dereference
+    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb (sizet_lit 0)])
+
+  | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
+    let fr = cb fr in
+    let fr = EBufRead (fr, zero_for_deref) in // dereference
+    EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
+
+  | "Kuiper.TensorCore.mma_sync'", [et], [ scal; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
+    let fa = cb fa in
+    let fb = cb fb in
+    let fc = cb fc in
+    let fa = EBufRead (fa, zero_for_deref) in // dereference
+    let fb = EBufRead (fb, zero_for_deref) in // dereference
+    let fc = EBufRead (fc, zero_for_deref) in // dereference
+    EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
 
   (******** FLOAT ARITHMETIC *******)
 
@@ -501,6 +512,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "FStar.Int16.one"   , [], [] -> EConstant (Krml.Int16, "1")
   | "FStar.Int8.zero"   , [], [] -> EConstant (Krml.Int8, "0")
   | "FStar.Int8.one"    , [], [] -> EConstant (Krml.Int8, "1")
+
+  | "Kuiper.SizeT.sizet_and",    [], [ x; y ] -> EApp (EOp (BAnd, SizeT), [ cb x; cb y ])
+  | "Kuiper.SizeT.sizet_to_u32", [], [ sz ]   -> ECast (cb sz, TInt UInt32)
+
 
   | _ -> raise NotSupportedByKrmlExtension
 

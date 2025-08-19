@@ -9,7 +9,10 @@ open Kuiper.Matrix.Reprs { row_major, col_major }
 open Kuiper.Spec.GEMM { matmul, matplus }
 
 // inline_for_extraction noextract
-type fragment_kind = | FragA | FragB | FragAccum
+type fragment_kind =
+  | FragA
+  | FragB
+  | FragAccum
 
 // inline_for_extraction noextract
 type fragment_layout =
@@ -86,6 +89,9 @@ fn mma_sync'
   ensures
     fc |-> matplus ec (matmul ea eb)
 
+// NOTE: This requires a *full* matrix, since the layout
+// is row_major m k instead of a sublayout of it. We should
+// extend this.
 fn mma_loadA
   (#et : Type)
   (#m #n #k : nat)
@@ -101,7 +107,7 @@ fn mma_loadA
     fr |-> m0
 
 fn mma_loadB
-  (#et : Type) {| scalar et |}
+  (#et : Type)
   (#m #n #k : nat)
   (fr : fragment et FragB m n k FragLRM)
   (gm : gpu_matrix et (row_major k n))
@@ -151,29 +157,6 @@ fn mma_store
   ensures
     gm |-> f0
 
-fn use_wmma_ker
-  (m1 : gpu_matrix half (row_major 16 16))
-  (m2 : gpu_matrix half (row_major 16 16))
-  (m3 : gpu_matrix half (row_major 16 16))
-  (fa : fragment   half FragA     16 16 16 FragLRM)
-  (fb : fragment   half FragB     16 16 16 FragLRM)
-  (fc : fragment   half FragAccum 16 16 16 FragLAccum)
-  preserves
-    (exists* v. m1 |-> v) **
-    (exists* v. m2 |-> v) **
-    (exists* v. m3 |-> v) **
-    (exists* v. fa |-> v) **
-    (exists* v. fb |-> v) **
-    (exists* v. fc |-> v)
-{
-  mma_loadA fa m1;
-  mma_loadB fb m2;
-  mma_fill fc zero;
-  mma_sync' fa fb fc;
-  mma_store fc m3;
-  ()
-}
-
 (* We should add checker support for this. *)
 fn with_fragment u#r
   (#pre   : slprop)
@@ -198,30 +181,3 @@ fn __alloc_fragment
   (fl : fragment_layout)
   returns  fr : fragment et knd m n k fl
   ensures  exists* v. fr |-> v
-
-
-// fn wmma_ker
-//   (m1 : gpu_matrix half (row_major 16 16))
-//   (m2 : gpu_matrix half (row_major 16 16))
-//   (m3 : gpu_matrix half (row_major 16 16))
-//   preserves exists* v. m1 |-> v
-//   preserves exists* v. m2 |-> v
-//   preserves exists* v. m3 |-> v
-// {
-//   with_fragment
-//     #((exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v))
-//     #_
-//     #(fun _ -> (exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v))
-//     half FragA 16sz 16sz 16sz FragLRM (fun fa ->
-//       with_fragment
-//         #((exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v))
-//         #_
-//         #(fun _ -> (exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v))
-//         half FragB 16sz 16sz 16sz FragLRM (fun fb ->
-//           with_fragment
-//             #((exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v) ** (exists* v. fragment_pts_to fb v))
-//             #_
-//             #(fun _ -> (exists* v. gpu_matrix_pts_to m1 #1.0R v) ** (exists* v. gpu_matrix_pts_to m2 #1.0R v) ** (exists* v. gpu_matrix_pts_to m3 #1.0R v) ** (exists* v. fragment_pts_to fa v) ** (exists* v. fragment_pts_to fb v))
-//             half FragAccum 16sz 16sz 16sz FragLAccum (fun fc ->
-//             use_wmma_ker m1 m2 m3 fa fb fc)))
-// }
