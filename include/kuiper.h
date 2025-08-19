@@ -6,21 +6,22 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include "atomics.h"
+#if !defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES
+#include "tensorcores.h"
+#endif
+
 typedef half half_t; /* crutch */
 /* NOTE: making this a macro means it works in host/device, but we
  * need a more scalable solution. */
 #define __hexp(f) (__float2half(exp(__half2float(f))))
 
-#include "atomics.h"
-#include "tensorcores.h"
-
 #define gridDim_x   gridDim.x
 #define blockIdx_x  blockIdx.x
 #define blockDim_x  blockDim.x
 #define threadIdx_x threadIdx.x
-
-#include <cuda_runtime.h>
 
 static inline
 void __MUST(cudaError_t rc, const char * str, const char * func, const char *fname, int line)

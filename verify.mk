@@ -8,6 +8,11 @@ all: build-targets
 .PHONY: .force
 .force:
 
+.configure.output: ./configure
+	./configure >$@
+
+include .configure.output
+
 # I HATE MAKE!
 .SUFFIXES:
 # .SECONDARY:
@@ -238,7 +243,7 @@ $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h .fixup.sed
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
-# NVCC_FLAGS += -arch=sm_80 # for tensor cores
+NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 
 %.o: %.cu %.h include/*.h
 	$(call msg,"NVCC")

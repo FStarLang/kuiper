@@ -59,7 +59,11 @@ jobs:
       - name: Startup check
         run: |
           mkdir -p obj
-          nvcc -I include/ -o obj/startup.exe ci/startup.cu
+          eval $(./configure)
+          if [ ${KUIPER_CFG_TENSORES} -eq 0 ]; then
+            extra="-DKUIPER_NO_TENSORCORES"
+          fi
+          nvcc $extra -I include/ -o obj/startup.exe ci/startup.cu
           ./obj/startup.exe
 
       - name: Set debug mode

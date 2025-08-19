@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# A really basic configure script.
+
+check_tensor_cores () {
+  # Do we have tensor cores?
+  f=$(mktemp --suffix .cu)
+  cat >$f <<EOF
+  #include <mma.h>
+  using namespace nvcuda;
+  void f() {
+    wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major> f;
+  }
+EOF
+
+  #177: variable "f" was declared but never referenced
+  echo "# Checking for tensor cores in nvcc..."
+  if ! nvcc -diag-suppress 177 -c $f -o /dev/null ; then
+    echo "# Tensor core test file failed to build, assuming no tensor cores."
+    KUIPER_CFG_TENSORCORES=0
+  else
+    echo "# The test built, assuming we have tensor cores."
+    KUIPER_CFG_TENSORCORES=1
+  fi
+  rm -f "$f"
+}
+
+check_tensor_cores
+
+# Export whatever variables are needed.
+vv () {
+  if [ -v "$1" ]; then
+    echo "export ${1}=${!1}"
+  fi
+}
+
+vv KUIPER_CFG_TENSORCORES
