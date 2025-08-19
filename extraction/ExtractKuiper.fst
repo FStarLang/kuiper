@@ -20,6 +20,8 @@ open ExtractionUtils
 
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 
+let deref e = EBufRead (e, zero_for_deref)
+
 let dbg = Debug.get_toggle "kuiper"
 
 let rec drop n (lst : list 'a) : list 'a =
@@ -39,7 +41,6 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.fragment", [et; knd; m; n; k; layout] ->
-    Format.print1 "fragment = %s\n" (show x);
     TBuf (TQualified (([], "kpr_fragment")))
       // let fake = Format.fmt "kpr_fragment(%s,%s,%s,%s,%s,%s)"
       //                 [show (cb et);
@@ -329,22 +330,18 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       EConstant (SizeT, "1"))
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; gm; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; gm; m0; f0 ] ->
-    let fr = cb fr in
-    let fr = EBufRead (fr, zero_for_deref) in // dereference
+    let fr = deref <| cb fr in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb (sizet_lit 0)])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
-    let fr = cb fr in
+    let fr = deref <| cb fr in
     let fr = EBufRead (fr, zero_for_deref) in // dereference
     EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
 
   | "Kuiper.TensorCore.mma_sync'", [et], [ scal; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
-    let fa = cb fa in
-    let fb = cb fb in
-    let fc = cb fc in
-    let fa = EBufRead (fa, zero_for_deref) in // dereference
-    let fb = EBufRead (fb, zero_for_deref) in // dereference
-    let fc = EBufRead (fc, zero_for_deref) in // dereference
+    let fa = deref <| cb fa in
+    let fb = deref <| cb fb in
+    let fc = deref <| cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
 
   (******** FLOAT ARITHMETIC *******)
@@ -386,7 +383,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb r])
 
   | "Kuiper.Ref.gpu_read", [ty], [ e; _perm; _v ] ->
-    EBufRead (cb e, zero_for_deref)
+    deref (cb e)
 
   | "Kuiper.Ref.gpu_write", [ty], [ e1; e2; _v0 ] ->
     EBufWrite (cb e1, zero_for_deref, cb e2)
