@@ -30,7 +30,8 @@ fn use_wmma_ker
   ()
 }
 
-[@@CPrologue "__device__"]
+[@@CPrologue "__device__";
+ CPrologue "inline"]
 fn test
   (m1 : gpu_matrix half (row_major 16 16))
   (m2 : gpu_matrix half (row_major 16 16))
