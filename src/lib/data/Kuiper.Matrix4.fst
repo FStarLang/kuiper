@@ -60,6 +60,7 @@ let clayout4_bij
 // FIXME: The VC for this definition is huge. It's incredible
 // we can actually print it out and solve it. Try to make
 // sense of it and report bug in F*.
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 instance cview_from_clayout4
   (et : Type)
@@ -84,6 +85,7 @@ instance cview_from_clayout4
     compat = ez;
   };
 }
+#pop-options
 
 inline_for_extraction noextract
 let gpu_matrix

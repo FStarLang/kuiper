@@ -75,6 +75,16 @@ let matplus
 : ematrix et rows columns
 = mkM <| fun i j -> add (macc m1 i j) (macc m2 i j)
 
+let lemma_matplus_index
+  (#et:Type) {| scalar et |}
+  (#rows #columns : nat)
+  (m1 m2 : ematrix et rows columns)
+  (i : nat{ i < rows })
+  (j : nat{ j < columns })
+: Lemma (macc (matplus m1 m2) i j == macc m1 i j `add` macc m2 i j)
+        [SMTPat (macc (matplus m1 m2) i j)]
+= ()
+
 let lemma_matmul_index
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)
