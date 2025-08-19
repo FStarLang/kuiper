@@ -9,7 +9,7 @@ all: build-targets
 .force:
 
 .configure.output: ./configure
-	./configure | tee $@
+	./configure $@
 
 include .configure.output
 

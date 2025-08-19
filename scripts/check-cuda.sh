@@ -46,7 +46,9 @@ int main()
 }
 EOF
 
-eval $(./configure)
+./configure _env
+source _env
+rm -f _env
 nvcc -DKUIPER_CFG_TENSORCORES=${KUIPER_CFG_TENSORCORES} -I include/ tmp.cu -o check.exe
 
 ./check.exe

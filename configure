@@ -1,5 +1,23 @@
 #!/bin/bash
 
+usage () {
+	echo "usage: $0 [<file>]" >&2
+	echo "This script will output source-able commands into the file that you" >&2
+	echo "should use to set up your environment. You still have to pass the" >&2
+	echo "relevant -D flags to nvcc. If no <file> is passed, stdout is used." >&2
+	exit 1
+}
+
+if [ $# -eq 0 ]; then
+  out=/dev/stdout
+  repeat=false
+elif [ $# -eq 1 ]; then
+  out=$1
+  repeat=true
+else
+  usage
+fi
+
 # A really basic configure script.
 
 check_tensor_cores () {
@@ -30,7 +48,10 @@ check_tensor_cores
 # Export whatever variables are needed.
 vv () {
   if [ -v "$1" ]; then
-    echo "export ${1}=${!1}"
+    echo "${1}=${!1}; export ${1}; " >$out
+    if $repeat; then
+      echo "${1}=${!1}; export ${1}; "
+    fi
   fi
 }
 
