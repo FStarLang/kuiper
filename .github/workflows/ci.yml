@@ -60,9 +60,7 @@ jobs:
         run: |
           mkdir -p obj
           eval $(./configure)
-          if [ ${KUIPER_CFG_TENSORES} -eq 0 ]; then
-            extra="-DKUIPER_NO_TENSORCORES"
-          fi
+          extra="-DKUIPER_CFG_TENSORCORES=${KUIPER_CFG_TENSORCORES}"
           nvcc $extra -I include/ -o obj/startup.exe ci/startup.cu
           ./obj/startup.exe
 
