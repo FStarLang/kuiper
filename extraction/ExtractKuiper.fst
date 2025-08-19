@@ -17,6 +17,10 @@ open FStarC.Class.Show
 open FStarC.Class.PP
 open FStarC.Class.Tagged
 
+(* Really pushing it *)
+let int_lit (i : int) : expr =
+  EQualified ([], show i)
+
 instance _ : tagged mlexpr' = {
   tag_of = (function
     | MLE_Const  .. -> "MLE_Const"
@@ -360,8 +364,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let faketype =
       EQualified ([], "half")
     in
+    (* Tries to remove the size_t cast in literals, just to make the code
+       more readable. *)
+    let ss x =
+      match x with
+      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
+      | _ -> x
+    in
     let args =
-      [ faketype; knd; cb m; cb n; cb k ]
+      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
       @ (match layout with | Some l -> [l] | None -> [])
     in
     EBufCreate (Stack,
@@ -370,7 +381,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; gm; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; gm; m0; f0 ] ->
     let fr = deref <| cb fr in
-    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb (sizet_lit 16)])
+    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; int_lit 16])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
     let fr = deref <| cb fr in
@@ -385,7 +396,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; gm; f0; m0 ] ->
     let fr = deref <| cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
-    EApp (EQualified ([], "wmma::store_matrix_sync"), [ cb gm; fr; cb (sizet_lit 16); layout])
+    EApp (EQualified ([], "wmma::store_matrix_sync"), [ cb gm; fr; int_lit 16; layout])
 
   (******** FLOAT ARITHMETIC *******)
 
