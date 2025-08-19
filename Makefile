@@ -56,6 +56,7 @@ wc:
 ci:
 	+$(MAKE) -f verify.mk all test
 
+.PHONY: .force
 # Everything else goes to verify.mk
-%:
+%: .force
 	+$(MAKE) -f verify.mk $@
