@@ -690,6 +690,9 @@ fn kf
 
     subproducts2d bm bn bk tm tn rAcol rBrow rchProd sA sB threadRow threadCol;
 
+    // What the hell.
+    assert (pure (2 * (vbkIdx + 1) == 2 * vbkIdx + 1 + 1));
+
     bkIdx := !bkIdx +^ 1sz;
   };
 
