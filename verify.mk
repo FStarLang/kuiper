@@ -280,6 +280,9 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
 
 NOTEST += Test_Kuiper_Softmax__F16
+ifeq ($(KUIPER_CFG_TENSORCORES),0)
+NOTEST += Test_Kuiper_Example_TensorCore
+endif
 # Disable softmax 16. It works fine locally (outside of docker)
 # but fails within in with undefined __hdiv. The nvcc there is slightly
 # older. Suprisignly using / just works, but that fails for other
