@@ -295,6 +295,7 @@ EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
 EXTRACT += src/examples/Kuiper.Example2.fst
 
 extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
+extraction-targets: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
 BUILD :=
 
