@@ -22,6 +22,8 @@ CHECK=0
 
 ./obj/Test_Kuiper_GEMM_OrigBlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
 
+./obj/Test_Kuiper_GEMM_BlockTiling2D__F32_128x128x8_8x8_GEMM.exe $LAPS $DIM $DIM $DIM 0
+
 make -C bench
 
 echo "CUBLAS:"
