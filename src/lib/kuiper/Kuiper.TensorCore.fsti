@@ -74,7 +74,7 @@ fn fragment_pts_to_ref
 
 fn mma_sync'
   (#et : Type) {| scalar et |}
-  (#m #n #k : nat)
+  (#m #n #k : erased nat)
   (#la #lb : fragment_layout)
   (fa : fragment et FragA     m n k la)
   (fb : fragment et FragB     m n k lb)
@@ -94,11 +94,11 @@ fn mma_sync'
 // extend this.
 fn mma_loadA
   (#et : Type)
-  (#m #n #k : nat)
+  (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLRM)
   (gm : gpu_matrix et (row_major m k))
   (#m0 : ematrix et m k)
-  (#f0 : value_for et FragA m n k)
+  (#f0 : erased (value_for et FragA m n k))
   preserves
     gm |-> m0
   requires
@@ -108,11 +108,11 @@ fn mma_loadA
 
 fn mma_loadB
   (#et : Type)
-  (#m #n #k : nat)
+  (#m #n #k : erased nat)
   (fr : fragment et FragB m n k FragLRM)
   (gm : gpu_matrix et (row_major k n))
   (#m0 : ematrix et k n)
-  (#f0 : value_for et FragB m n k)
+  (#f0 : erased (value_for et FragB m n k))
   preserves
     gm |-> m0
   requires
@@ -128,27 +128,27 @@ let fill_value
   : value_for et knd m n k
 =
   match knd with
-  | FragA     -> EMatrix.mkM #_ #m #k (fun _ _ -> i)
-  | FragB     -> EMatrix.mkM #_ #k #n (fun _ _ -> i)
-  | FragAccum -> EMatrix.mkM #_ #m #n (fun _ _ -> i)
+  | FragA     -> EMatrix.const_matrix #_ #m #k i
+  | FragB     -> EMatrix.const_matrix #_ #k #n i
+  | FragAccum -> EMatrix.const_matrix #_ #m #n i
 
 fn mma_fill
   (#et : Type)
   (#knd : fragment_kind)
-  (#m #n #k : nat)
+  (#m #n #k : erased nat)
   (#ly : fragment_layout)
   (fr : fragment et knd m n k ly)
   (i : et)
-  (#v0 : value_for et knd m n k)
+  (#v0 : erased (value_for et knd m n k))
   requires fr |-> v0
   ensures  fr |-> fill_value i
 
 fn mma_store
   (#et : Type)
-  (#m #n #k : nat)
+  (#m #n #k : erased nat)
   (fr : fragment et FragAccum m n k FragLAccum)
   (gm : gpu_matrix et (row_major m n))
-  (#f0 : value_for et FragAccum m n k)
+  (#f0 : erased (value_for et FragAccum m n k))
   (#m0 : ematrix et m n)
   preserves
     fr |-> f0

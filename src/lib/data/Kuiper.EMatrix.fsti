@@ -18,6 +18,11 @@ let mkM (#et:Type) (#rows #cols : nat)
   : ematrix et rows cols
   = M <| F.on_g _ <| fun (i, j) -> f i j
 
+let const_matrix (#et:Type) (#rows #cols : nat)
+  (v:et)
+  : ematrix et rows cols
+  = mkM fun _ _ -> v
+
 let macc (#et:Type) (#rows #cols : nat)
   (m : ematrix et rows cols)
   (i : natlt rows)
