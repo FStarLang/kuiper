@@ -94,6 +94,7 @@ let get_record_field fname (e:mlexpr) : mlexpr =
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
 let get_sizet (e : mlexpr) : mlexpr = get_record_field "size" e
+let get_strided_row_major_offset (e : mlexpr) : mlexpr = get_record_field "offset" e
 let get_strided_row_major_stride (e : mlexpr) : mlexpr = get_record_field "stride" e
 
 let _MUST (e : expr) : expr =
@@ -389,8 +390,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; m0; f0 ] ->
     let fr = deref <| cb fr in
-    let ldm = get_strided_row_major_stride strided_l in
-    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb ldm ])
+    let ldm = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    let gm = cb gm in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
+    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
     let fr = deref <| cb fr in
@@ -405,8 +410,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
     let fr = deref <| cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
-    let ldm = get_strided_row_major_stride strided_l in
-    EApp (EQualified ([], "wmma::store_matrix_sync"), [ cb gm; fr; cb ldm; layout])
+    let ldm = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    let gm = cb gm in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
+    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
 
   (******** FLOAT ARITHMETIC *******)
 

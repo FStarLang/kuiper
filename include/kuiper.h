@@ -133,4 +133,6 @@ void INFO ()
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
 
+#define kpr_offset(p,n) ((p)+(n))
+
 #endif /* __KUIPER_H */
