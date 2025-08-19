@@ -3,7 +3,6 @@
 #include "Kuiper_Polymorphism1.h"
 
 __device__
-
 static void kswap__uint64_t(uint64_t *r1, uint64_t *r2)
 {
   uint64_t v11 = *r1;
@@ -35,7 +34,6 @@ void Kuiper_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
 }
 
 __device__
-
 static void kswap__float_t(float_t *r1, float_t *r2)
 {
   float_t v11 = *r1;
