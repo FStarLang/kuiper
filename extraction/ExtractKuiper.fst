@@ -335,7 +335,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
     let fr = deref <| cb fr in
-    let fr = EBufRead (fr, zero_for_deref) in // dereference
     EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
 
   | "Kuiper.TensorCore.mma_sync'", [et], [ scal; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
