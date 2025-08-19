@@ -2,11 +2,15 @@
 
 set -uex
 
+# Is nvcc installed?
+nvcc --version
+
 cleanup () {
-    rm -f tmp.cu check_cuda.exe
+    rm -f tmp.cu check.exe
 }
 trap cleanup EXIT
 
+# Basic test
 cat >tmp.cu <<EOF
 #include <stdio.h>
 #include <assert.h>
@@ -28,6 +32,21 @@ int main()
 }
 EOF
 
-nvcc tmp.cu -o check_cuda.exe
+nvcc tmp.cu -o check.exe
+./check.exe
 
-./check_cuda.exe
+# Now try with kuiper.h
+cat >tmp.cu <<EOF
+#include "kuiper.h"
+
+int main()
+{
+	INFO();
+	return 0;
+}
+EOF
+
+eval $(./configure)
+nvcc -DKUIPER_CFG_TENSORCORES=${KUIPER_CFG_TENSORCORES} -I include/ tmp.cu -o check.exe
+
+./check.exe

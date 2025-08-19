@@ -56,14 +56,6 @@ jobs:
       - name: Check CUDA
         run: ./scripts/check-cuda.sh
 
-      - name: Startup check
-        run: |
-          mkdir -p obj
-          eval $(./configure)
-          extra="-DKUIPER_CFG_TENSORCORES=${KUIPER_CFG_TENSORCORES}"
-          nvcc $extra -I include/ -o obj/startup.exe ci/startup.cu
-          ./obj/startup.exe
-
       - name: Set debug mode
         if: ${{ inputs.debug }}
         run: |
