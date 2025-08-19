@@ -232,13 +232,13 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR)/pre/ $<
 
-$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu .fixup.sed
+$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
 	# Postprocess via sed and generate the actual target
-	sed -f .fixup.sed $< > $@
+	sed -f scripts/fixup.sed $< > $@
 
-$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h .fixup.sed
+$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
 	# Same. Though no code in here there are still empty lines and whatnot
-	sed -f .fixup.sed $< > $@
+	sed -f scripts/fixup.sed $< > $@
 
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
