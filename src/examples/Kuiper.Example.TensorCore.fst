@@ -9,6 +9,11 @@ open Kuiper.Spec.GEMM
 open Kuiper.EMatrix
 
 inline_for_extraction noextract
+instance c16 : concrete_sz 16 = {
+  x = 16sz;
+}
+
+inline_for_extraction noextract
 fn use_wmma_ker
   (m1 : gpu_matrix half (row_major 16 16))
   (m2 : gpu_matrix half (row_major 16 16))
@@ -24,7 +29,7 @@ fn use_wmma_ker
     (exists* v. fb |-> v) **
     (exists* v. fc |-> v)
 {
-  mma_loadA fa m1;
+  mma_loadA #_ #_ #_ #_ fa #_ #_ m1;
   mma_loadB fb m2;
   mma_fill fc zero;
   mma_sync' fa fb fc;

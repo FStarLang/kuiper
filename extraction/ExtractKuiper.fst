@@ -83,10 +83,18 @@ let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
 let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
 let cudaMemcpyDeviceToDevice = EQualified ([], "cudaMemcpyDeviceToDevice")
 
-let get_sizet (e : mlexpr) : mlexpr =
+let get_record_field fname (e:mlexpr) : mlexpr =
+  let assoc' k v =
+    match List.assoc k v with
+    | Some r -> r
+    | None -> failwith ("get_record_field: field not found: " ^ k ^ "  ---  " ^ show v)
+  in
   match (unmagic e).expr with
-  | MLE_Record (_, _, [(_, sz)]) -> sz
+  | MLE_Record (_, _, flds) -> assoc' fname flds
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
+
+let get_sizet (e : mlexpr) : mlexpr = get_record_field "size" e
+let get_strided_row_major_stride (e : mlexpr) : mlexpr = get_record_field "stride" e
 
 let _MUST (e : expr) : expr =
     EApp (EQualified ([], "MUST"), [e])
@@ -378,10 +386,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EBufCreate (Stack,
       EApp (EQualified ([], "KPR_FRAGMENT_INIT" ^ macro_suff), args),
       EConstant (SizeT, "1"))
-  | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; gm; m0; f0 ]
-  | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; gm; m0; f0 ] ->
+  | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; m0; f0 ]
+  | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; m0; f0 ] ->
     let fr = deref <| cb fr in
-    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; int_lit 16])
+    let ldm = get_strided_row_major_stride strided_l in
+    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; cb gm; cb ldm ])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
     let fr = deref <| cb fr in
@@ -393,10 +402,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let fc = deref <| cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
 
-  | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; gm; f0; m0 ] ->
+  | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
     let fr = deref <| cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
-    EApp (EQualified ([], "wmma::store_matrix_sync"), [ cb gm; fr; int_lit 16; layout])
+    let ldm = get_strided_row_major_stride strided_l in
+    EApp (EQualified ([], "wmma::store_matrix_sync"), [ cb gm; fr; cb ldm; layout])
 
   (******** FLOAT ARITHMETIC *******)
 

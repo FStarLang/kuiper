@@ -4,6 +4,7 @@ module Kuiper.TensorCore
 
 open Kuiper
 open Kuiper.Matrix
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs { row_major, col_major }
 open Kuiper.Spec.GEMM { matmul, matplus }
@@ -89,14 +90,12 @@ fn mma_sync'
   ensures
     fc |-> matplus ec (matmul ea eb)
 
-// NOTE: This requires a *full* matrix, since the layout
-// is row_major m k instead of a sublayout of it. We should
-// extend this.
 fn mma_loadA
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLRM)
-  (gm : gpu_matrix et (row_major m k))
+  (#l : mlayout m k) {| strided_row_major l |}
+  (gm : gpu_matrix et l)
   (#m0 : ematrix et m k)
   (#f0 : erased (value_for et FragA m n k))
   preserves
@@ -110,7 +109,8 @@ fn mma_loadB
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragB m n k FragLRM)
-  (gm : gpu_matrix et (row_major k n))
+  (#l : mlayout k n) {| strided_row_major l |}
+  (gm : gpu_matrix et l)
   (#m0 : ematrix et k n)
   (#f0 : erased (value_for et FragB m n k))
   preserves
@@ -147,7 +147,8 @@ fn mma_store
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragAccum m n k FragLAccum)
-  (gm : gpu_matrix et (row_major m n))
+  (#l : mlayout m n) {| strided_row_major l |}
+  (gm : gpu_matrix et l)
   (#f0 : erased (value_for et FragAccum m n k))
   (#m0 : ematrix et m n)
   preserves

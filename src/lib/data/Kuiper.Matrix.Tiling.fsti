@@ -32,6 +32,7 @@ val subtile_layout
   (tc : natlt (cols / tcols))
   : mlayout trows tcols
 
+inline_for_extraction noextract
 instance strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_row_major l |}

@@ -76,6 +76,7 @@ instance clayout_from_crepr
 
 
 (* Is a layout basically a strided row major? *)
+inline_for_extraction noextract
 class strided_row_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
   offset : sz;
   stride : sz;
