@@ -39,3 +39,12 @@ let row_major_mirror : mrepr =
 
 inline_for_extraction noextract
 instance val crepr_row_major_mirror : crepr row_major_mirror
+
+instance strided_row_major_base (#rows #cols : nat)
+  {| d : concrete_sz cols |}
+  : strided_row_major (row_major rows cols) =
+{
+  offset = 0sz;
+  stride = concr' d;
+  pf = ez;
+}

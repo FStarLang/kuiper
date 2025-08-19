@@ -73,3 +73,12 @@ instance clayout_from_crepr
   (m : mrepr) (d : crepr m)
   : clayout (m rows cols)
   = d.map rows cols
+
+
+(* Is a layout basically a strided row major? *)
+class strided_row_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
+  offset : sz;
+  stride : sz;
+  pf : i:natlt rows -> j:natlt cols ->
+         squash (l.map.f (i,j) == offset + stride * i + j);
+}

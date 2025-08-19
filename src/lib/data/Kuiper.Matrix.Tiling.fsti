@@ -32,6 +32,29 @@ val subtile_layout
   (tc : natlt (cols / tcols))
   : mlayout trows tcols
 
+instance strided_row_major_subtile (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_row_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz (hide (reveal trows)),
+     c_tcols : concrete_sz (hide (reveal tcols)),
+     c_tr    : concrete_sz (hide (reveal tr)),
+     c_tc    : concrete_sz (hide (reveal tc)),
+  |}
+  : strided_row_major (subtile_layout l trows tcols tr tc) =
+assume (forall x. FStar.SizeT.fits x);
+{
+  offset =
+    sub.offset
+    +^ sub.stride *^ (concr' c_trows *^ concr' c_tr)
+    +^ concr' c_tcols *^ concr' c_tc;
+  stride = sub.stride;
+  pf = (fun _ _ -> admit());
+}
+
 inline_for_extraction noextract
 instance val c_subtile_layout
   (#rows #cols : erased nat)
