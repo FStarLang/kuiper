@@ -111,11 +111,11 @@ ensures
 
 inline_for_extraction noextract
 fn frame_2
-  (p0 p1 q r0 r1 : slprop)
-  (f : unit -> stt unit (requires p0 ** r0) (fun _ -> p1 ** r1))
+  (e #p0 #p1 #q0 #q1 #r0 #r1 : slprop)
+  (f : unit -> stt unit (requires p0 ** q0 ** r0) (fun _ -> p1 ** q1 ** r1))
   ()
-requires p0 ** q ** r0
-ensures  p1 ** q ** r1
+requires p0 ** q0 ** e ** r0
+ensures  p1 ** q1 ** e ** r1
 {
   f ()
 }
@@ -144,7 +144,7 @@ let km1_as_kmn (#full_pre #full_post : slprop)
   block_setup = km1_as_kmn_block_setup k;
   block_teardown = km1_as_kmn_block_teardown k;
 
-  f = (fun bid _tid -> frame_2 _ _ _ _ _ (k.f bid));
+  f = (fun bid _tid -> frame_2 (thread_id 1sz _tid) (k.f bid));
 }
 
 ghost
@@ -200,7 +200,7 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
   block_setup = (fun _ -> k.block_setup ());
   block_teardown = (fun _ -> k.block_teardown ());
 
-  f = (fun _bid tid () -> Kuiper.Frame.frame_right1 _ (f tid));
+  f = (fun _bid tid () -> Kuiper.Frame.frame_3left _ (f tid));
 }
 
 ghost
@@ -249,7 +249,7 @@ let k11_as_k1n (#full_pre #full_post : slprop)
   kpre  = (fun _tid -> full_pre);
   kpost = (fun _tid -> full_post);
 
-  f = (fun _tid () -> Kuiper.Frame.frame_right1 _ f);
+  f = (fun _tid () -> Kuiper.Frame.frame_2left _ f);
 }
 
 [@@coercion]

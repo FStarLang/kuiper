@@ -72,12 +72,14 @@ fn block_setup
   (**)gpu_array_slice_1_underspec #3 gr;
 
   // Boring combination of resources
-  (**)bigstar_zip #1  #2 #42 0 size _ _;
-  (**)bigstar_zip #42 #3 #0  0 size _ _;
+  (**)bigstar_zip #2  #3 #42 0 size _ _;
+  (**)bigstar_zip #1 #42 #0  0 size _ _;
 
   forevery_fromnat size
     (fun i -> kpre m_size ga1 ga2 gr i);
 }
+
+#set-options "--print_implicits"
 
 ghost
 fn block_teardown
@@ -95,18 +97,18 @@ fn block_teardown
   forevery_tonat size
     (fun i -> kpost m_size ga1 ga2 gr i);
 
-  (**)bigstar_unzip #1 #2 #0 0 size _ _;
-  (**)bigstar_unzip #3 #4 #1 0 size _ _;
+  (**)bigstar_unzip #1 #42 #0 0 size _ _;
+  (**)bigstar_unzip #2 #3 #42 0 size _ _;
 
   (* Why is this needed? *)
-  bigstar_uneta () #3 #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
-  bigstar_uneta () #4 #0 #size #(gpu_pts_to_array1 ga2 #1.0R);
-  bigstar_uneta () #_ #0 #size #(gpu_pts_to_array1 gr  #1.0R);
+  bigstar_uneta () #1 #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
+  bigstar_uneta () #2 #0 #size #(gpu_pts_to_array1 ga2 #1.0R);
+  bigstar_uneta () #3 #0 #size #(gpu_pts_to_array1 gr  #1.0R);
 
   // Unslicing
-  (**)gpu_array_unslice_1_underspec #3 ga1;
-  (**)gpu_array_unslice_1_underspec ga2;
-  (**)gpu_array_unslice_1_underspec gr;
+  (**)gpu_array_unslice_1_underspec #1 ga1;
+  (**)gpu_array_unslice_1_underspec #2 ga2;
+  (**)gpu_array_unslice_1_underspec #3 gr;
 }
 
 

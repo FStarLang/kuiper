@@ -139,11 +139,11 @@ fn setup
 
   // Join resources into a single bigstar
   forevery_zip #(natlt2 rows cols)
-    (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
-    (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB);
-  forevery_zip #(natlt2 rows cols)
-    _
+    (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB)
     (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
+  forevery_zip #(natlt2 rows cols)
+    (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
+    _;
 
   (* We're done actually, but the encoding will not match the lambdas. *)
   forevery_ext #(natlt2 rows cols)
@@ -255,8 +255,8 @@ let kdesc
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
-    ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-    ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 = {
   nblk = rows *^ cols;
 

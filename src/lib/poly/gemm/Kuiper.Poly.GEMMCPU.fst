@@ -44,7 +44,7 @@ fn matmul_cpu
   returns
     c : vec et
   ensures
-    (c |-> to_seq lC <|
+    c |-> (to_seq lC <|
              MS.matmul (from_seq lA sa)
                        (from_seq lB sb))
 {
@@ -94,11 +94,11 @@ fn mmcomb_gpu_tiled
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
@@ -146,11 +146,11 @@ fn _OLD_mmcomb_gpu_tiled
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
@@ -211,11 +211,11 @@ fn mmcomb_gpu_block_tiled1d
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
@@ -289,11 +289,11 @@ fn mmcomb_gpu_shmem_block_tiled2d
   (#eC : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
@@ -366,10 +366,11 @@ fn matmul_transpose_gpu
   (#eC : ematrix et cols rows)
   preserves
     cpu **
-    (gA |-> eA) ** (gB |-> eB)
+    gA |-> eA **
+    gB |-> eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> mtranspose (MS.matmul eA eB)
 {
@@ -400,14 +401,14 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   (#mc0 : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> ma) **
-    (gB |-> mb)
+    gA |-> ma **
+    gB |-> mb
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
     pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks) **
-    (gC |-> mc0)
+    gC |-> mc0
   ensures
     gC |-> MS.gemm alpha beta mc0 ma mb
 {
@@ -433,14 +434,14 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   (#mc0 : ematrix et rows cols)
   preserves
     cpu **
-    (gA |-> ma) **
-    (gB |-> mb)
+    gA |-> ma **
+    gB |-> mb
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
     pure (SZ.fits (rows * cols)) **
     pure (rows * cols <= max_blocks) **
-    (gC |-> mc0)
+    gC |-> mc0
   ensures
     gC |-> MS.matmul ma mb
 {
@@ -468,8 +469,8 @@ fn cpu_wrap_matmul
   (#sb : erased (seq et){ len sb == shared * cols })
   preserves
     cpu **
-    (a |-> sa) **
-    (b |-> sb)
+    a |-> sa **
+    b |-> sb
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
@@ -478,7 +479,7 @@ fn cpu_wrap_matmul
   returns
     c : vec et
   ensures
-    (c |-> to_seq (rC rows cols) <|
+    c |-> (to_seq (rC rows cols) <|
              MS.matmul (from_seq (rA rows shared) sa)
                        (from_seq (rB shared cols) sb))
 {

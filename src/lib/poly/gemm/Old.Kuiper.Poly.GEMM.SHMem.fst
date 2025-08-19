@@ -194,7 +194,7 @@ fn eqplus
   requires
     r |-> v0
   ensures
-    r |-> v0 `add #et` v
+    r |-> (v0 `add #et` v)
 {
   let v0 = !r;
   r := v0 `add` v;

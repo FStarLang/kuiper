@@ -182,9 +182,9 @@ fn setup
   (_ : squash (rows * cols <= max_blocks))
   ()
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt (sdivup (rows *^ cols) blocksz))
             (tid : natlt blocksz).
@@ -244,9 +244,9 @@ fn teardown
       kpost comb gA gB gC eA eB eC fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> MS.mmcomb comb eC eA eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> MS.mmcomb comb eC eA eB
 {
   (* Idem. *)
   forevery_ext_2 #(natlt (sdivup (rows *^ cols) blocksz)) #_ #(natlt blocksz)
@@ -317,10 +317,8 @@ let kdesc
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_n
-    (((gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
-     ((gC |-> eC)))
-    (((gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
-      (gC |-> MS.mmcomb comb eC eA eB))
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+    (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 =
 {
   nblk = sdivup (rows *^ cols) blocksz;
@@ -333,7 +331,7 @@ let kdesc
   setup    = setup    comb gA #fA gB #fB gC #eA #eB #eC ();
   teardown = teardown comb gA #fA gB #fB gC #eA #eB ();
 
-  block_setup = (fun bid -> Kuiper.Frame.emp_intro_r ());
+  block_setup = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
   block_frame = (fun _bid -> emp);
 

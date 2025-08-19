@@ -219,7 +219,7 @@ let mk_kernel
   teardown  = teardown tile comb gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _bid -> emp);
-  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r ());
+  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   kpre      = kpre  comb tile gA gB gC eA eB eC fA fB;

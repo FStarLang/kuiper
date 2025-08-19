@@ -42,9 +42,9 @@ type matmul_cpu_ty
       pure (rows * cols <= max_blocks)))
     (ensures fun c ->
       (cpu ** (a |-> sa) ** (b |-> sb)) **
-      (c |-> to_seq lC <|
+      (c |-> (to_seq lC <|
                 MS.matmul (from_seq lA sa)
-                          (from_seq lB sb)))
+                          (from_seq lB sb))))
 
 inline_for_extraction noextract
 val matmul_cpu
@@ -106,9 +106,9 @@ type fixed_repr_matmul_cpu_ty
       pure (rows * cols <= max_blocks)))
     (ensures fun c ->
       (cpu ** (a |-> sa) ** (b |-> sb)) **
-      (c |-> to_seq (rC rows cols) <|
+      (c |-> (to_seq (rC rows cols) <|
                 MS.matmul (from_seq (rA rows shared) sa)
-                          (from_seq (rB shared cols) sb)))
+                          (from_seq (rB shared cols) sb))))
 
 unfold
 inline_for_extraction
