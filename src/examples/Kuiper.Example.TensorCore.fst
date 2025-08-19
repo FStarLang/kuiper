@@ -40,8 +40,8 @@ let matplus_zero_lem (#et:Type) {| scalar et |}
   = assert (equal (matplus (const_matrix zero) mm) mm);
     ()
 
-[@@CPrologue "__device__";
- CPrologue "inline"]
+[@@CPrologue "inline";
+ CPrologue "__device__"]
 fn test
   (m1 : gpu_matrix half (row_major 16 16))
   (m2 : gpu_matrix half (row_major 16 16))

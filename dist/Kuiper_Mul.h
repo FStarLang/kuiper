@@ -6,7 +6,6 @@
 #include <kuiper.h>
 
 __device__
-
 void Kuiper_Mul_kf(uint64_t *a1, uint64_t *a2, uint64_t *ar, size_t bid);
 
 
