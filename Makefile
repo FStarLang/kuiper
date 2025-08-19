@@ -1,8 +1,41 @@
 include .common.mk
 
-.SUFFIXES:
+.PHONY: all
+all:
+	+$(MAKE) -f verify.mk all
 
-default: all
+.PHONY: prepare
+prepare:
+	+$(MAKE) -f verify.mk prepare
+
+.PHONY: test
+test:
+	+$(MAKE) -f verify.mk test
+
+.PHONY: accept
+accept:
+	+$(MAKE) -f verify.mk accept
+
+.PHONY: extraction-targets
+extraction-targets:
+	+$(MAKE) -f verify.mk extraction-targets
+
+.PHONY: echo-fstar
+echo-fstar:
+	+$(MAKE) -f verify.mk $@
+.PHONY: echo-krml
+echo-krml:
+	+$(MAKE) -f verify.mk $@
+
+.PHONY: ci
+ci:
+	+$(MAKE) -f verify.mk all test
+
+.PHONY: depgraph
+depgraph:
+	+$(MAKE) -f verify.mk depgraph
+
+.SUFFIXES:
 
 .PHONY: watch
 watch:
@@ -51,12 +84,3 @@ wc:
 	find src/ \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 	echo CUDA:
 	find dist/ -name '*.cu' -exec cat {} \+ | grep '[^ ]' | wc -l
-
-.PHONY: ci
-ci:
-	+$(MAKE) -f verify.mk all test
-
-.PHONY: .force
-# Everything else goes to verify.mk
-%: .force
-	+$(MAKE) -f verify.mk $@
