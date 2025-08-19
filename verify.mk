@@ -307,6 +307,9 @@ BUILD :=
 # *Build* every executable in test/, we can do this without a GPU
 BUILD += $(patsubst %,obj/%.exe,$(TESTS))
 BUILD += obj/Kuiper_Example2.o
+ifeq ($(KUIPER_CFG_TENSORCORES),0)
+BUILD := $(filter-out obj/Test_Kuiper_Example_TensorCore.exe,$(BUILD))
+endif
 
 build-targets: $(BUILD)
 
