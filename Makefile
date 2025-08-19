@@ -12,6 +12,10 @@ prepare:
 test:
 	+$(MAKE) -f verify.mk test
 
+.PHONY: accept
+accept:
+	+$(MAKE) -f verify.mk accept
+
 .PHONY: extraction-targets
 extraction-targets:
 	+$(MAKE) -f verify.mk extraction-targets
