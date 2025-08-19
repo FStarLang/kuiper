@@ -7,6 +7,8 @@
 
 __device__
 
+inline
+
 void Kuiper_Example_TensorCore_test(half_t *m1, half_t *m2, half_t *m3);
 
 
