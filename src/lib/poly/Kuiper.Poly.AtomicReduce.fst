@@ -140,7 +140,7 @@ fn kf
     {
       later_elim _;
       unfold (inv_p (SZ.v nn) a v_a r done);
-      let rr = gpu_array_read #et #(SZ.v nn) #0 #(SZ.v nn) a bid;
+      let rr = gpu_array_read a bid;
       fold (inv_p (SZ.v nn) a v_a r done);
       later_intro (inv_p (SZ.v nn) a v_a r done);
       rr

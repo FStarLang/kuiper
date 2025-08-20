@@ -37,8 +37,7 @@ fn k_reduce
         (r |-> vr)
   {
     let vi = !i;
-    // FIXME: using #t instead of #tt (t = SizeT.t) gives a terrible error
-    let v = gpu_array_read #tt #(SZ.v size) #0 #(SZ.v size) a #1.0R vi;
+    let v = gpu_array_read a vi;
     let vr = !r;
     let vr' = add vr v;
     r := vr';
@@ -61,7 +60,7 @@ fn k_reduce_and_set
   ensures  (exists* v'. (a |-> v') ** pure (Seq.length v' == size))
 {
   let r = k_reduce size a;
-  gpu_array_write #tt #(SZ.v size) #0 #(SZ.v size) a 0sz r;
+  gpu_array_write a 0sz r;
   with v'. assert (gpu_pts_to_slice a 0 (SZ.v size) v');
 }
 

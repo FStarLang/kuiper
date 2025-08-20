@@ -245,9 +245,8 @@ ensures
   gpu_pts_to_cell a #p (SZ.v i) u **
   pure (u == v)
 {
-  unfold gpu_pts_to_cell; //a (SZ.v i) u);
-  //Why do I have to instantiate the implicits?
-  let v = gpu_array_read #_ #_ #(SZ.v i) #(SZ.v i + 1) a i;
+  unfold gpu_pts_to_cell;
+  let v = gpu_array_read a i;
   fold (gpu_pts_to_cell a #p (SZ.v i) u);
   v
 }
@@ -268,8 +267,7 @@ ensures
   gpu_pts_to_cell a #1.0R (SZ.v i) v
 {
   unfold gpu_pts_to_cell;
-  //Why do I have to instantiate the implicits?
-  gpu_array_write #_ #_ #(SZ.v i) #(SZ.v i + 1) a i v;
+  gpu_array_write a i v;
   fold (gpu_pts_to_cell a #1.0R (SZ.v i) v);
 }
 

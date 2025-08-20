@@ -28,10 +28,10 @@ fn kf (#size : erased nat{size > 0}) (* do NOT use erased pos, inference suffers
 {
   assert (pure (bid >= 0));
   assert (pure (bid < size));
-  let v1 = gpu_array_read #_ #_ #0 #size a1 bid;
-  let v2 = gpu_array_read #_ #_ #0 #size a2 bid;
+  let v1 = gpu_array_read a1 bid;
+  let v2 = gpu_array_read a2 bid;
   let v = FStar.UInt64.(v1 *%^ v2);
-  gpu_array_write #_ #_ #(hide #nat bid) #(bid + 1) ar bid v;
+  gpu_array_write ar bid v;
   (**)with sr. assert gpu_pts_to_slice ar bid (bid + 1) sr;
   (**)Seq.lemma_eq_intro sr seq![(smul s1 s2).[bid]];
   ()
