@@ -110,7 +110,7 @@ fn kf
   (a : gpu_array et (SZ.v nn))
   (#v_a : erased (seq et))
   (r : gpu_ref et)
-  (done : erased (seq (gref bool)){len done == reveal nn})
+  (done : erased (seq (gref bool)){len done == SZ.v nn})
   (i : iname)
   (bid : szlt (SZ.v nn))
   ()
@@ -123,7 +123,7 @@ fn kf
     kpost (SZ.v nn) a v_a r done i bid **
     block_id (SZ.v nn) bid
 {
-  assume (pure (len v_a == reveal nn));
+  assume (pure (len v_a == SZ.v nn));
   later_credit_buy 1;
   later_credit_buy 1;
   (* Read array at idx *)

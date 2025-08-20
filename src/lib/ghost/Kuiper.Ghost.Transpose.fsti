@@ -26,7 +26,7 @@ let col2row
 ghost
 fn ghost_transpose1
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (gA : gpu_matrix et (Repr.row_major rows cols))
   (#m : ematrix et rows cols)
   requires
@@ -37,7 +37,7 @@ fn ghost_transpose1
 ghost
 fn ghost_transpose2
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (gA : gpu_matrix et (Repr.col_major rows cols))
   (#m : ematrix et rows cols)
   requires
@@ -48,7 +48,7 @@ fn ghost_transpose2
 ghost
 fn ghost_transpose1_back
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (gA : gpu_matrix et (Repr.row_major rows cols))
   (#m : ematrix et cols rows)
   requires
@@ -59,7 +59,7 @@ fn ghost_transpose1_back
 ghost
 fn ghost_transpose2_back
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (gA : gpu_matrix et (Repr.col_major rows cols))
   (#m : ematrix et cols rows)
   requires

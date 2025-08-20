@@ -49,9 +49,9 @@ fn kf_exp
   assert (pure (i < lena));
   assert (pure (SZ.v i == bid));
   unfold gpu_pts_to_array1 a i;
-  let x = gpu_array_read #_ #_ #i #(i+1) a i;
+  let x = gpu_array_read a i;
   let x = exp x;
-  gpu_array_write #_ #_ #i #(i+1) a i x;
+  gpu_array_write a i x;
   fold gpu_pts_to_array1 a i;
   rewrite each i as bid;
   ()
@@ -97,9 +97,9 @@ fn kf_div
   assert (pure (i < lena));
   assert (pure (SZ.v i == bid));
   unfold gpu_pts_to_array1 a i;
-  let x = gpu_array_read #_ #_ #i #(i+1) a i;
+  let x = gpu_array_read a i;
   let x = x `div` d;
-  gpu_array_write #_ #_ #i #(i+1) a i x;
+  gpu_array_write a i x;
   fold gpu_pts_to_array1 a i;
   rewrite each i as bid;
   ()

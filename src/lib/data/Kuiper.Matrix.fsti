@@ -96,7 +96,7 @@ instance has_pts_to_matrix (a:Type) (rows cols : erased nat) (l : _)
 ghost
 fn gpu_matrix_pts_to_ref
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (#l : mlayout rows cols)
   (g : gpu_matrix et l)
   (#f : perm)
@@ -109,7 +109,7 @@ fn gpu_matrix_pts_to_ref
 ghost
 fn gpu_matrix_concr
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (#l : mlayout rows cols { is_full_layout l })
   (g : gpu_matrix et l)
   (#em : ematrix et rows cols)
@@ -122,7 +122,7 @@ fn gpu_matrix_concr
 ghost
 fn gpu_matrix_abs
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (l : mlayout rows cols { is_full_layout l })
   (p : gpu_array et (mlayout_size l))
   (#f : perm)
@@ -135,7 +135,7 @@ fn gpu_matrix_abs
 ghost
 fn gpu_matrix_abs'
   (#et:Type)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (l : mlayout rows cols { is_full_layout l })
   (p : gpu_array et (mlayout_size l))
   (#f : perm)

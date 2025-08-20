@@ -84,7 +84,6 @@ fn matmul_tiled_dotprod
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-
   while (SZ.(!bk <^ shared))
     invariant
       exists* (vbk : SZ.t) sumv.
@@ -97,22 +96,15 @@ fn matmul_tiled_dotprod
     assert (pure (bi  < (rows   * tile) / tile));
     assert (pure (vbk < (shared * tile) / tile));
     // Sigh.... need to reveal and hide. Terrible UX.
-    let tA = Tiling.gpu_matrix_subtile gA tile tile (hide (reveal bi)) (hide (reveal vbk));
-    let tB = Tiling.gpu_matrix_subtile gB tile tile (hide (reveal vbk)) (hide (reveal bj));
-    assert (rewrites_to tA (Tiling.gpu_matrix_subtile gA tile tile (hide (reveal bi)) (hide (reveal vbk))));
-    assert (rewrites_to tB (Tiling.gpu_matrix_subtile gB tile tile (hide (reveal vbk)) (hide (reveal bj))));
+    let tA = Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk);
+    let tB = Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj);
+    assert (rewrites_to tA (Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk)));
+    assert (rewrites_to tB (Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj)));
 
     Tiling.gpu_matrix_extract_tile gA tile tile bi vbk;
     Tiling.gpu_matrix_extract_tile gB tile tile vbk bj;
 
-    let s' = matmul_dotprod
-      #_ #_
-      #tile #tile #tile
-      // #(Tiling.subtile_layout lA tile tile bi vbk)
-      // #(Tiling.subtile_layout lB tile tile vbk bj)
-      // #(Tiling.c_subtile_layout #_ #_ _ #_ _ _ _ _ #_ #_ #_ #_)
-      // #(Tiling.c_subtile_layout #_ #_ _ #_ _ _ _ _ #_ #_ #_ #_)
-      tA tB i j;
+    let s' = matmul_dotprod tA tB i j;
     sum := !sum `add` s';
 
     ambig_trade_elim ();

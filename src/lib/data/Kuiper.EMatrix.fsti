@@ -9,7 +9,7 @@ module F = FStar.FunctionalExtensionality
 
 [@@erasable]
 noeq
-type ematrix (et:Type) (rows cols : erased nat) =
+type ematrix (et:Type) (rows cols : nat) =
   | M : f:(natlt rows & natlt cols ^->> et)
      -> ematrix et rows cols
 

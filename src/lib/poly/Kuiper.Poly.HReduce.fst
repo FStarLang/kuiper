@@ -171,20 +171,21 @@ fn iteration
       if_elim_true _;
 
       (**)unfold (gpu_pts_to_slice_sum #et r tid nextid vv);
-      let s1 = gpu_array_read #et #_ #tid #nextid r tid;
+      (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
+      (**)gpu_slice_concat #et #(SZ.v nth) r tid nextid end_;
+
+      let s1 = gpu_array_read r tid;
       (**)assert (pure (squash (is_reduction zero add (Seq.slice vv tid nextid) s1)));
 
-      (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv);
-      let s2 = gpu_array_read #_ #_ #nextid #end_ r nextid;
+      let s2 = gpu_array_read r nextid;
       (**)assert (pure (squash (is_reduction zero add (Seq.slice vv nextid end_) s2)));
 
       let s = add s1 s2;
       (**)lem_append_slice vv tid nextid end_;
       (**)assert (pure (squash (is_reduction zero add (Seq.slice vv tid end_) s)));
 
-      gpu_array_write #et #(SZ.v nth) #(SZ.v tid) #(SZ.v nextid) r tid s;
+      gpu_array_write r tid s;
 
-      (**)gpu_slice_concat #et #(SZ.v nth) r tid nextid end_;
       (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
       (**)fold (gpu_pts_to_slice_sum r tid end_ vv);
       (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv);

@@ -36,7 +36,7 @@ instance ematrix_is_ghost_map
   }
 
 let aview_from_mlayout
-  (et : Type) (#rows #cols : erased nat)
+  (et : Type) (#rows #cols : nat)
   (l : mlayout rows cols)
   : V.aview et (ematrix et rows cols) =
 let open Kuiper.Bijection in
