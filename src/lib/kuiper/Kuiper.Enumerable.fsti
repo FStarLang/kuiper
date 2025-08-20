@@ -2,9 +2,11 @@ module Kuiper.Enumerable
 
 #lang-pulse
 open Kuiper.Common
+open Kuiper.SizeT
 open Kuiper.Bijection
 open Kuiper.Injection
 open FStar.Tactics.Typeclasses
+module SZ = FStar.SizeT
 
 [@@erasable]
 class enumerable (a:Type) = {
@@ -62,4 +64,10 @@ val injection_implies_lte_cardinal
 instance enumerable_unit : enumerable unit = {
   _cardinal = 1;
   bij = bij_unit_natlt1;
+}
+
+
+instance e (x:nat{SZ.fits x}) : enumerable (szlt x) = {
+  _cardinal = x;
+  bij = Kuiper.Bijection.bij_sym (Kuiper.Bijection.fin_size_t_bij x);
 }

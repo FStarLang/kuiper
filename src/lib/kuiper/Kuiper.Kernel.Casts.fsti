@@ -23,49 +23,49 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
 
   frame : slprop;
 
-  block_pre  : (bid : natlt nblk) -> slprop;
-  block_post : (bid : natlt nblk) -> slprop;
+  block_pre  : (bid : szlt nblk) -> slprop;
+  block_post : (bid : szlt nblk) -> slprop;
 
-  block_frame : (bid : natlt nblk) -> slprop;
+  block_frame : (bid : szlt nblk) -> slprop;
 
   setup : (
     unit ->
     stt_ghost unit emp_inames
       (requires full_pre)
       (ensures fun _ ->
-        (forall+ (bid : natlt nblk). block_pre bid) **
+        (forall+ (bid : szlt nblk). block_pre bid) **
         frame)
   );
   teardown : (
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (bid : natlt nblk). block_post bid) **
+        (forall+ (bid : szlt nblk). block_post bid) **
         frame)
       (ensures fun _ ->
         full_post)
   );
 
-  kpre  : (bid : natlt nblk) -> (tid : natlt nthr) -> slprop;
-  kpost : (bid : natlt nblk) -> (tid : natlt nthr) -> slprop;
+  kpre  : (bid : szlt nblk) -> (tid : szlt nthr) -> slprop;
+  kpost : (bid : szlt nblk) -> (tid : szlt nthr) -> slprop;
 
   block_setup : (
-    (bid: natlt nblk) ->
+    (bid: szlt nblk) ->
     stt_ghost unit emp_inames
       (requires
         block_setup_tok nthr **
         block_pre bid)
       (ensures fun _ ->
         block_setup_tok nthr **
-        (forall+ (i : natlt nthr). kpre bid i) **
+        (forall+ (i : szlt nthr). kpre bid i) **
         block_frame bid)
   );
 
   block_teardown : (
-    (bid: natlt nblk) ->
+    (bid: szlt nblk) ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (i : natlt nthr). kpost bid i) **
+        (forall+ (i : szlt nthr). kpost bid i) **
         block_frame bid)
       (ensures fun _ ->
         block_post bid)
@@ -97,8 +97,8 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
 
   frame : slprop;
 
-  kpre  : (tid : natlt nthr) -> slprop;
-  kpost : (tid : natlt nthr) -> slprop;
+  kpre  : (tid : szlt nthr) -> slprop;
+  kpost : (tid : szlt nthr) -> slprop;
 
   block_setup : (
     unit ->
@@ -108,7 +108,7 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
         full_pre)
       (ensures fun _ ->
         block_setup_tok nthr **
-        (forall+ (tid : natlt nthr). kpre tid) **
+        (forall+ (tid : szlt nthr). kpre tid) **
         frame)
   );
 
@@ -116,7 +116,7 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (tid : natlt nthr). kpost tid) **
+        (forall+ (tid : szlt nthr). kpost tid) **
         frame)
       (ensures fun _ ->
         full_post)
@@ -145,8 +145,8 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
 
   frame : slprop;
 
-  kpre  : (bid : natlt nblk) -> slprop;
-  kpost : (bid : natlt nblk) -> slprop;
+  kpre  : (bid : szlt nblk) -> slprop;
+  kpost : (bid : szlt nblk) -> slprop;
 
   setup : (
     unit ->
@@ -154,7 +154,7 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
       (requires
         full_pre)
       (ensures fun _ ->
-        (forall+ (bid : natlt nblk). kpre bid) **
+        (forall+ (bid : szlt nblk). kpre bid) **
         frame)
   );
 
@@ -162,7 +162,7 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (bid : natlt nblk). kpost bid) **
+        (forall+ (bid : szlt nblk). kpost bid) **
         frame)
       (ensures fun _ ->
         full_post)

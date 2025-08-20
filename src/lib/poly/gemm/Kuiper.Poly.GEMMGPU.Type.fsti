@@ -60,6 +60,8 @@ type matmulcomb_gpu_ty =
   (#lC : full_mlayout rows cols) ->
   matmulcomb_gpu_fixed_ty comb lA lB lC
 
+module SZ = FStar.SizeT
+
 (* The type of GPU-side matmuls that only work over already
 tiled matrices. *)
 unfold
@@ -71,9 +73,14 @@ type tiled_matmulcomb_gpu_ty =
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->
-  (lA : mlayout (mrows   * tile) (mshared * tile)) ->
-  (lB : mlayout (mshared * tile) (mcols   * tile)) ->
-  (lC : mlayout (mrows   * tile) (mcols   * tile)) ->
+  (#_ : squash (SZ.fits (SZ.v mrows   * SZ.v tile))) ->
+  (#_ : squash (SZ.fits (SZ.v mshared * SZ.v tile))) ->
+  (#_ : squash (SZ.fits (SZ.v mcols   * SZ.v tile))) ->
+  (#_ : squash (SZ.fits (SZ.v mrows   * SZ.v mcols))) ->
+  (#_ : squash (SZ.fits (2 * SZ.v mshared))) ->
+  (lA : mlayout (mrows   *^ tile) (mshared *^ tile)) ->
+  (lB : mlayout (mshared *^ tile) (mcols   *^ tile)) ->
+  (lC : mlayout (mrows   *^ tile) (mcols   *^ tile)) ->
   {| clayout lA |} ->
   {| clayout lB |} ->
   {| clayout lC |} ->

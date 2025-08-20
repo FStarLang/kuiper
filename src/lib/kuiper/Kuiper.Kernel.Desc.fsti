@@ -21,13 +21,13 @@ type kernel_desc (full_pre full_post : slprop) = {
 
   kpre :
     c_shmems shmems_desc ->
-    natlt nblk ->
-    natlt nthr ->
+    szlt nblk ->
+    szlt nthr ->
     slprop;
   kpost :
     c_shmems shmems_desc ->
-    natlt nblk ->
-    natlt nthr ->
+    szlt nblk ->
+    szlt nthr ->
     slprop;
 
   f : (
@@ -50,32 +50,32 @@ type kernel_desc (full_pre full_post : slprop) = {
 
   frame : slprop;
 
-  block_pre  : natlt nblk -> slprop;
-  block_post : natlt nblk -> slprop;
+  block_pre  : szlt nblk -> slprop;
+  block_post : szlt nblk -> slprop;
 
   setup : (
     unit ->
     stt_ghost unit emp_inames
       (requires full_pre)
       (ensures fun _ ->
-        (forall+ (bid : natlt nblk). block_pre bid) **
+        (forall+ (bid : szlt nblk). block_pre bid) **
         frame)
   );
   teardown : (
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (bid : natlt nblk). block_post bid) **
+        (forall+ (bid : szlt nblk). block_post bid) **
         frame)
       (ensures  fun _ -> full_post)
   );
   block_frame :
     c_shmems shmems_desc ->
-    natlt nblk -> slprop;
+    szlt nblk -> slprop;
 
   block_setup : (
     (sh : c_shmems shmems_desc) ->
-    (bid: natlt nblk) ->
+    (bid: szlt nblk) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
@@ -84,17 +84,17 @@ type kernel_desc (full_pre full_post : slprop) = {
         block_pre bid)
       (ensures fun _ ->
         block_setup_tok nthr **
-        (forall+ (i : natlt nthr). kpre sh bid i) **
+        (forall+ (i : szlt nthr). kpre sh bid i) **
         block_frame sh bid)
   );
 
   block_teardown : (
     (sh : c_shmems shmems_desc) ->
-    (bid: natlt nblk) ->
+    (bid: szlt nblk) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (i : natlt nthr). kpost sh bid i) **
+        (forall+ (i : szlt nthr). kpost sh bid i) **
         block_frame sh bid)
       (ensures fun _ ->
         live_c_shmems sh **

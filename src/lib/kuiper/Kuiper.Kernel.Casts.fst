@@ -14,7 +14,7 @@ fn kmn_as_kfull_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
   (sh : c_shmems [])
-  (bid: natlt k.nblk)
+  (bid: szlt k.nblk)
   ()
 requires
   block_setup_tok k.nthr **
@@ -22,7 +22,7 @@ requires
   k.block_pre bid
 ensures
   block_setup_tok k.nthr **
-  (forall+ (i : natlt k.nthr). k.kpre bid i) **
+  (forall+ (i : szlt k.nthr). k.kpre bid i) **
   (k.block_frame bid **
     live_c_shmems sh)
 {
@@ -35,10 +35,10 @@ fn kmn_as_kfull_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
   (sh : c_shmems [])
-  (bid: natlt k.nblk)
+  (bid: szlt k.nblk)
   ()
 requires
-  (forall+ (i : natlt k.nthr). k.kpost bid i) **
+  (forall+ (i : szlt k.nthr). k.kpost bid i) **
   (k.block_frame bid ** live_c_shmems sh)
 ensures
   live_c_shmems sh **
@@ -83,30 +83,30 @@ ghost
 fn km1_as_kmn_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_1 full_pre full_post)
-  (bid: natlt k.nblk)
+  (bid: szlt k.nblk)
 requires
   block_setup_tok 1sz **
   k.kpre bid
 ensures
   block_setup_tok 1sz **
-  (forall+ (i : natlt 1sz). k.kpre bid) **
+  (forall+ (i : szlt 1sz). k.kpre bid) **
   emp
 {
-  forevery_singleton_intro #(natlt 1sz) (fun _ -> k.kpre bid);
+  forevery_singleton_intro #(szlt 1sz) (fun _ -> k.kpre bid);
 }
 
 ghost
 fn km1_as_kmn_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_1 full_pre full_post)
-  (bid: natlt k.nblk)
+  (bid: szlt k.nblk)
 requires
-  (forall+ (i : natlt 1sz). k.kpost bid) **
+  (forall+ (i : szlt 1sz). k.kpost bid) **
   emp
 ensures
   k.kpost bid
 {
-  forevery_singleton_elim #(natlt 1sz) _;
+  forevery_singleton_elim #(szlt 1sz) _;
 }
 
 inline_for_extraction noextract
@@ -155,10 +155,10 @@ fn k1n_as_kmn_setup
 requires
   full_pre
 ensures
-  (forall+ (bid: natlt 1sz). full_pre) **
+  (forall+ (bid: szlt 1sz). full_pre) **
   emp
 {
-  forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
+  forevery_singleton_intro #(szlt 1sz) (fun _ -> full_pre);
 }
 
 
@@ -168,12 +168,12 @@ fn k1n_as_kmn_teardown
   (k : kernel_desc_1_n full_pre full_post)
   ()
 requires
-  (forall+ (bid: natlt 1sz). full_post) **
+  (forall+ (bid: szlt 1sz). full_post) **
   emp
 ensures
   full_post
 {
-  forevery_singleton_elim #(natlt 1sz) (fun _ -> full_post);
+  forevery_singleton_elim #(szlt 1sz) (fun _ -> full_post);
 }
 
 inline_for_extraction noextract
@@ -213,10 +213,10 @@ requires
   full_pre
 ensures
   block_setup_tok 1sz **
-  (forall+ (bid: natlt 1sz). full_pre) **
+  (forall+ (bid: szlt 1sz). full_pre) **
   emp
 {
-  forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
+  forevery_singleton_intro #(szlt 1sz) (fun _ -> full_pre);
 }
 
 ghost
@@ -225,12 +225,12 @@ fn k11_as_k1n_block_teardown
   (k : kernel_desc_1_1 full_pre full_post)
   ()
 requires
-  (forall+ (bid: natlt 1sz). full_post) **
+  (forall+ (bid: szlt 1sz). full_post) **
   emp
 ensures
   full_post
 {
-  forevery_singleton_elim #(natlt 1sz) (fun _ -> full_post);
+  forevery_singleton_elim #(szlt 1sz) (fun _ -> full_post);
 }
 
 inline_for_extraction noextract

@@ -110,6 +110,8 @@ fn mmcomb_gpu_tiled
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
 
+  assume pure (SZ.fits (2 * SZ.v mshared));
+
   tiled_mmcomb_gpu
     tile
     comb
