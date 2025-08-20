@@ -12,13 +12,13 @@ module Trade = Pulse.Lib.Trade
 noeq
 inline_for_extraction
 type iarray (et : Type0) (vw : aiview) : Type0 =
-  | IA of B.gpu_array et (len vw)
+  | IA of B.gpu_array et vw.len
 
 inline_for_extraction noextract
 let from_array
   (#et : Type0)
   (vw : aiview)
-  (arr : gpu_array et (len vw))
+  (arr : gpu_array et (vw.len))
   : iarray et vw
   = IA arr
 
@@ -35,7 +35,7 @@ let lem_from_array_core
 let lem_core_from_array
   (#et : Type0)
   (vw : aiview)
-  (p : gpu_array et (len vw))
+  (p : gpu_array et (vw.len))
   : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
   = ()
@@ -49,7 +49,7 @@ let iarray_pts_to_cell
   ([@@@mkey]i : vw.sch.ait)
   (v : et)
   : slprop
-  = gpu_pts_to_cell (core a) #f (it_to_nat vw i) v
+  = gpu_pts_to_cell (core a) #f (SZ.uint_to_t (it_to_nat vw i)) v
 
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
@@ -57,7 +57,7 @@ let iarray_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (v : (vw.sch.ait -> GTot et))
   : slprop
-  = pure (SZ.fits (len vw)) **
+  = pure (SZ.fits (vw.len)) **
     (forall+ (i : vw.sch.ait).
       iarray_pts_to_cell a #f i (v i))
 
@@ -71,7 +71,7 @@ fn iarray_pts_to_ref
   preserves
     a |-> Frac f v
   ensures
-    pure (SZ.fits (len vw))
+    pure (SZ.fits (vw.len))
 {
   unfold iarray_pts_to a #f v;
   fold iarray_pts_to a #f v;
@@ -126,7 +126,7 @@ fn iarray_implode
   (a : iarray et vw)
   (#f : perm)
   (#v : (vw.sch.ait -> GTot et))
-  requires pure (SZ.fits (len vw))
+  requires pure (SZ.fits (vw.len))
   requires
     forall+ (i : vw.sch.ait).
       Cell a i |-> Frac f (v i)
@@ -136,24 +136,26 @@ fn iarray_implode
   fold iarray_pts_to a #f v;
 }
 
+#set-options "--print_bound_var_types --print_implicits"
+
 (* Begin viewing something abstractly, with the trivial view. *)
 ghost
 fn iarray_begin_
   (#et:Type0)
-  (#len : erased nat)
+  (#len : erased sz)
   (a : gpu_array et len)
   (#f : perm)
-  (#v : lseq et len)
+  (#v : lseq et (SZ.v len))
   requires
     a |-> Frac f v
   ensures
     from_array (raw_view #len) a |-> Frac f (g_seq_acc v)
 {
-  B.gpu_pts_to_slice_ref a 0 len;
+  B.gpu_pts_to_slice_ref a 0sz len;
   B.gpu_array_slice_1 a;
   (* WOW! *)
-  forevery_fromstar
-    (fun (i : natlt len) ->
+  forevery_fromstar #_ #(raw_view #len).sch.ait_enum
+    (fun (i : natlt (SZ.v len)) ->
       iarray_pts_to_cell (from_array (raw_view #len) a) #f i (v @! i));
   fold (iarray_pts_to (from_array (raw_view #len) a) #f (fun i -> v @! i));
   ();
@@ -161,10 +163,10 @@ fn iarray_begin_
 
 fn iarray_begin
   (#et:Type0)
-  (#len : erased nat)
+  (#len : erased sz)
   (a : gpu_array et len)
   (#f : perm)
-  (#v : erased (lseq et len))
+  (#v : erased (lseq et (SZ.v len)))
   requires
     a |-> Frac f v
   returns
@@ -179,43 +181,42 @@ fn iarray_begin
 ghost
 fn iarray_end_
   (#et:Type0)
-  (#len : erased nat)
+  (#len : erased sz)
   (a : iarray et (raw_view #len))
   (#f : perm)
-  (#v : natlt len -> GTot et)
+  (#v : natlt (SZ.v len) -> GTot et)
   requires
     a |-> Frac f v
   ensures
-    core a |-> Frac f (Seq.init_ghost len v)
+    core a |-> Frac f (Seq.init_ghost (SZ.v len) v)
 {
   unfold iarray_pts_to a #f v;
-  let ggg = len;
   (* WOW AGAIN!!!! *)
   forevery_ext
-    (fun (i : natlt len) ->
+    (fun (i : natlt (SZ.v len)) ->
       iarray_pts_to_cell a #f i (v i))
-    (fun (i : natlt len) ->
-      iarray_pts_to_cell a #f i (Seq.init_ghost len v @! i));
-  forevery_tostar #(natlt len) _;
+    (fun (i : natlt (SZ.v len)) ->
+      iarray_pts_to_cell a #f i (Seq.init_ghost (SZ.v len) v @! i));
+  forevery_tostar #(natlt (SZ.v len)) _;
   with sz p.
     rewrite bigstar 0 sz  p
-         as bigstar 0 len p;
+         as bigstar 0 (SZ.v len) p;
   B.gpu_array_unslice_1 (core a);
   ()
 }
 
 fn iarray_end
   (#et:Type0)
-  (#len : erased nat)
+  (#len : erased sz)
   (a : iarray et (raw_view #len))
   (#f : perm)
-  (#v : natlt len -> GTot et)
+  (#v : natlt (SZ.v len) -> GTot et)
   requires
     a |-> Frac f v
   returns
     a' : gpu_array et len
   ensures
-    a' |-> Frac f (Seq.init_ghost len v)
+    a' |-> Frac f (Seq.init_ghost (SZ.v len) v)
 {
   iarray_end_ a;
   (core a);
@@ -231,7 +232,7 @@ fn iarray_end2_
   requires
     a |-> Frac f v
   ensures
-    core a |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
+    core a |-> Frac f (Seq.init_ghost (vw.len) (fun (i : natlt (vw.len)) -> v (it_of_nat vw i)))
 {
   unfold iarray_pts_to a #f v;
   (* prove later... this should be fine. *)
@@ -248,9 +249,9 @@ fn iarray_end2
   requires
     a |-> Frac f v
   returns
-    a' : gpu_array et (len vw)
+    a' : gpu_array et (vw.len)
   ensures
-    a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
+    a' |-> Frac f (Seq.init_ghost (vw.len) (fun (i : natlt (vw.len)) -> v (it_of_nat vw i)))
 {
   iarray_end2_ a;
   (core a)
@@ -306,7 +307,7 @@ fn iarray_reindex
 ghost
 fn iarray_split2_
   (#et:Type0)
-  (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
+  (vw1 vw2 : aiview { vw1.len == vw2.len }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
@@ -333,7 +334,7 @@ fn iarray_split2_
 
 fn iarray_split2
   (#et:Type0)
-  (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
+  (vw1 vw2 : aiview { vw1.len == vw2.len }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
@@ -411,7 +412,7 @@ fn iarray_write_cell
 
   unfold iarray_pts_to_cell a ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;
-  B.gpu_array_write #_ #_ #ni #(ni+1) (core a) ni v1;
+  B.gpu_array_write #_ #_ #ni #(ni+^1sz) (core a) ni v1;
   with s'. assert (B.gpu_pts_to_slice (core a) ni (ni+1) s');
   Kuiper.Seq.Common.lem_one_elem s' v1;
   rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.step.imap);
