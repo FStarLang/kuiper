@@ -1,8 +1,10 @@
 #!/bin/bash
 
+D=$(dirname "$0")
+
 if [ $# -ne 1 ]; then
   echo "usage: git sed <sed script>"
   exit 1
 fi
 
-git ls-files -z ':(attr:filetype=regular)' | xargs -0 -P$(nproc) -- sed "$@" -i
+git ls-files -z ':(attr:filetype=regular)' | xargs -0 -P$(nproc) -- $D/sed-in-place "$@"
