@@ -22,7 +22,7 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0)
   (vw : aiview)
-  (arr : gpu_array et (vw.len))
+  (arr : gpu_array et (len vw))
   : iarray et vw
 
 inline_for_extraction noextract
@@ -30,7 +30,7 @@ val core
   (#et : Type0)
   (#vw : aiview)
   (g : iarray et vw)
-  : arr : Kuiper.Array.gpu_array et (vw.len) { from_array vw arr == g }
+  : arr : Kuiper.Array.gpu_array et (len vw) { from_array vw arr == g }
 
 val lem_from_array_core
   (#et : Type0)
@@ -42,7 +42,7 @@ val lem_from_array_core
 val lem_core_from_array
   (#et : Type0)
   (vw : aiview)
-  (p : gpu_array et (vw.len))
+  (p : gpu_array et (len vw))
   : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
 
@@ -86,7 +86,7 @@ fn iarray_pts_to_ref
   preserves
     a |-> Frac f v
   ensures
-    pure (SZ.fits (vw.len))
+    pure (SZ.fits (len vw))
 
 (* The function on the RHS is extensional. *)
 ghost
@@ -128,7 +128,7 @@ fn iarray_implode
   (a : iarray et vw)
   (#f : perm)
   (#v : (vw.sch.ait -> GTot et))
-  requires pure (SZ.fits (vw.len))
+  requires pure (SZ.fits (len vw))
   requires
     forall+ (i : vw.sch.ait).
       Cell a i |-> Frac f (v i)
@@ -144,10 +144,10 @@ let g_seq_acc (#a:Type) (#len:nat)
 ghost
 fn iarray_begin_
   (#et : Type0)
-  (#len : erased sz)
+  (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
-  (#v : lseq et (SZ.v len))
+  (#v : lseq et len)
   requires
     a |-> Frac f v
   ensures
@@ -156,10 +156,10 @@ fn iarray_begin_
 inline_for_extraction noextract
 fn iarray_begin
   (#et : Type0)
-  (#len : erased SZ.t)
+  (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
-  (#v : erased (lseq et (SZ.v len)))
+  (#v : erased (lseq et len))
   requires
     a |-> Frac f v
   returns
@@ -170,28 +170,28 @@ fn iarray_begin
 ghost
 fn iarray_end_
   (#et:Type0)
-  (#len : erased sz)
+  (#len : erased nat)
   (a : iarray et (raw_view #len))
   (#f : perm)
-  (#v : natlt (SZ.v len) -> GTot et)
+  (#v : natlt len -> GTot et)
   requires
     a |-> Frac f v
   ensures
-    core a |-> Frac f (Seq.init_ghost (SZ.v len) v)
+    core a |-> Frac f (Seq.init_ghost len v)
 
 inline_for_extraction noextract
 fn iarray_end
   (#et:Type0)
-  (#len : erased sz)
+  (#len : erased nat)
   (a : iarray et (raw_view #len))
   (#f : perm)
-  (#v : natlt (SZ.v len) -> GTot et)
+  (#v : natlt len -> GTot et)
   requires
     a |-> Frac f v
   returns
     a' : gpu_array et len
   ensures
-    a' |-> Frac f (Seq.init_ghost (SZ.v len) v)
+    a' |-> Frac f (Seq.init_ghost len v)
 
 inline_for_extraction noextract
 fn iarray_end2
@@ -203,9 +203,9 @@ fn iarray_end2
   requires
     a |-> Frac f v
   returns
-    a' : gpu_array et (vw.len)
+    a' : gpu_array et (len vw)
   ensures
-    a' |-> Frac f (Seq.init_ghost (vw.len) (fun (i : natlt (vw.len)) -> v (it_of_nat vw i)))
+    a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 
 ghost
 fn iarray_reindex_
@@ -242,7 +242,7 @@ fn iarray_reindex
 ghost
 fn iarray_split2_
   (#et:Type0)
-  (vw1 vw2 : aiview { vw1.len == vw2.len }) // needed?
+  (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
@@ -256,7 +256,7 @@ fn iarray_split2_
 inline_for_extraction noextract
 fn iarray_split2
   (#et:Type0)
-  (vw1 vw2 : aiview { vw1.len == vw2.len }) // needed?
+  (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)

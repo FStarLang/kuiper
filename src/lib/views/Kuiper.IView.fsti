@@ -31,8 +31,8 @@ type aiview_step (from_ait to_ait : Type0) = {
   imap : from_ait @~> to_ait;
 }
 
-let raw_aiview_schema (len : SZ.t) : aiview_schema = {
-  ait      = natlt (SZ.v len);
+let raw_aiview_schema (len : nat) : aiview_schema = {
+  ait      = natlt len;
   ait_enum = solve;
 }
 
@@ -40,7 +40,7 @@ let raw_aiview_schema (len : SZ.t) : aiview_schema = {
 noeq
 inline_for_extraction noextract
 type aiview = {
-  len  : SZ.t;
+  len  : nat;
   sch  : aiview_schema;
   step : aiview_step sch.ait (natlt len);
 }
@@ -67,12 +67,12 @@ let is_full_view_lempat (avw : aiview { is_full_view avw })
 (* Will this be useful? *)
 val full_iff_cardinal
   (vw : aiview)
-  : Lemma (is_full_view vw <==> vw.sch.ait_enum._cardinal == SZ.v vw.len)
+  : Lemma (is_full_view vw <==> vw.sch.ait_enum._cardinal == vw.len)
           [SMTPat (is_full_view vw)]
 
 (* Nothing fancy here. *)
 inline_for_extraction noextract
-let raw_view (#len : SZ.t) : aiview = {
+let raw_view (#len : erased nat) : aiview = {
   len  = len;
   sch  = raw_aiview_schema len;
   step = { imap = inj_id; };
@@ -94,8 +94,8 @@ type ciview_schema (asch : aiview_schema) = {
 }
 
 inline_for_extraction noextract
-let raw_ciview_schema (len : erased sz) : ciview_schema (raw_aiview_schema len) = {
-  cit = szlt (SZ.v len);
+let raw_ciview_schema (len : erased nat{SZ.fits len}) : ciview_schema (raw_aiview_schema len) = {
+  cit = szlt len;
   bij = natural;
 }
 
@@ -134,7 +134,7 @@ inline_for_extraction noextract
 class ciview (avw : aiview) =
 {
   [@@@no_method]
-  clen : (clen : SZ.t {SZ.v clen == SZ.v avw.len});
+  clen : (clen : SZ.t {SZ.v clen == avw.len});
 
   [@@@no_method]
   sch  : ciview_schema avw.sch;
@@ -144,8 +144,8 @@ class ciview (avw : aiview) =
 }
 
 inline_for_extraction noextract
-instance concrete_raw_view (#len : sz) : ciview (raw_view #(hide len)) = {
-  clen = len;
+instance concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = {
+  clen = SZ.uint_to_t len; // weird
   sch  = raw_ciview_schema len;
   step = {
     cimap  = inj_id;
@@ -207,9 +207,6 @@ let ai_to_ci
   : GTot cw.sch.cit
   = let open Kuiper.Bijection in
     i |~> cw.sch.bij
-
-let max (x y : SZ.t) : SZ.t =
-  if SZ.gt x y then x else y
 
 let sum_aiview
   (vw1 vw2 : aiview) // { vw1.len == vw2.len })
