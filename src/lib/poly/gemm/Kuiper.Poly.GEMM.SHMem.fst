@@ -86,7 +86,7 @@ let kpre1
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
     gpu_matrix_pts_to_cell
-      (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+      (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       #1.0R
       (tid / tile) (tid % tile) v)
 
@@ -113,7 +113,7 @@ let kpost1
   (gB |-> Frac (fB /. mlayout_size lC) eB) **
   (exists* v.
     gpu_matrix_pts_to_cell
-      (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+      (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       #1.0R
       (tid / tile) (tid % tile) v)
 
@@ -237,8 +237,8 @@ fn kf
   let sa2 = M.from_array slB ar2;
   rewrite each M.from_array slB ar2 as sa2;
 
-  let gTile = gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols);
-  assert (rewrites_to gTile (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols)));
+  let gTile = gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
+  assert (rewrites_to gTile (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)));
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
@@ -267,11 +267,11 @@ fn kf
     let vbk = !bk;
 
     gpu_matrix_extract_tile gA tile tile mrow vbk;
-    let aTile = gpu_matrix_subtile gA tile tile mrow vbk;
-    assert (rewrites_to aTile (gpu_matrix_subtile gA tile tile mrow vbk));
+    let aTile = gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk);
+    assert (rewrites_to aTile (gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk)));
     gpu_matrix_extract_tile gB tile tile vbk mcol;
-    let bTile = gpu_matrix_subtile gB tile tile vbk mcol;
-    assert (rewrites_to bTile (gpu_matrix_subtile gB tile tile vbk mcol));
+    let bTile = gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v mcol);
+    assert (rewrites_to bTile (gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v mcol)));
 
     let v1 = M.gpu_matrix_read aTile brow bcol;
     let v2 = M.gpu_matrix_read bTile brow bcol;

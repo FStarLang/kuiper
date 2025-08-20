@@ -35,7 +35,7 @@ let kpre
   (gB |-> Frac fB eB) **
   (exists* v.
     gpu_matrix_pts_to_cell
-      (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+      (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       (tid / tile)
       (tid % tile)
       v)
@@ -99,9 +99,9 @@ fn kf
 
   with i0 j0 v0.
     rewrite
-      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols)) #1.0R i0 j0 v0
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) #1.0R i0 j0 v0
     as
-      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols)) #1.0R brow bcol v0
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) #1.0R brow bcol v0
     ;
 
   assert (pure (mrow < mrows));
@@ -109,8 +109,8 @@ fn kf
   assert (pure (brow < tile));
   assert (pure (bcol < tile));
 
-  let gTile = gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols);
-  assert (rewrites_to gTile (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols)));
+  let gTile = gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
+  assert (rewrites_to gTile (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)));
 
   let s = MU.matmul_tiled_dotprod gA gB mrow mcol brow bcol;
   let v0 = gpu_matrix_read_cell gTile brow bcol;
@@ -118,10 +118,10 @@ fn kf
   gpu_matrix_write_cell gTile brow bcol v1;
 
   rewrite
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       brow bcol v1
   as
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gC tile tile (bid / mcols) (bid % mcols))
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       (tid / tile) (tid % tile) v1;
 
   ()

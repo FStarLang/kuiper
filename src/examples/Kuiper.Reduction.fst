@@ -72,7 +72,7 @@ fn copy_to_gpu
   {| d : sized t |}
   (sz : sz)
   (a : vec t)
-  (#v : erased (seq t){len v == reveal sz})
+  (#v : erased (seq t){len v == SZ.v sz})
   preserves cpu ** (a |-> v)
   requires emp
   returns  ga : GA.gpu_array t sz

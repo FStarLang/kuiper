@@ -35,9 +35,9 @@ let fits_sizet (x:nat)
 [@@coercion; pulse_unfold] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
 [@@coercion; pulse_unfold] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x
 [@@coercion; pulse_unfold] unfold let u64_to_nat    (x: U64.t) : GTot nat = U64.v x
-[@@coercion; pulse_unfold] unfold let sizet_to_enat (x: SZ.t)  : erased nat = SZ.v x
-[@@coercion; pulse_unfold] unfold let u32_to_enat   (x: U32.t) : erased nat = U32.v x
-[@@coercion; pulse_unfold] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
+// [@@coercion; pulse_unfold] unfold let sizet_to_enat (x: SZ.t)  : erased nat = SZ.v x
+// [@@coercion; pulse_unfold] unfold let u32_to_enat   (x: U32.t) : erased nat = U32.v x
+// [@@coercion; pulse_unfold] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
 
 (* assumption, add to F*? *)
 val sizet_to_u32 (x: SZ.t)

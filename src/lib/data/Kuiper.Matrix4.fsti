@@ -14,7 +14,7 @@ module SZ = FStar.SizeT
    layout stuff. *)
 unfold
 inline_for_extraction noextract
-type mlayout4 (mrows mcols brows bcols : erased nat) =
+type mlayout4 (mrows mcols brows bcols : nat) =
   l : mlayout (mrows * brows) (mcols * bcols) { is_full_layout l }
 
 inline_for_extraction noextract

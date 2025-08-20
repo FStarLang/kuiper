@@ -79,12 +79,12 @@ fn kf
 {
   (**)unfold (kpre lena ga1 ga2 s1 s2 tid);
 
-  let v1 = gpu_array_read #_ #_ #tid #(tid + 1) ga1 tid;
-  let v2 = gpu_array_read #_ #_ #tid #(tid + 1) ga2 tid;
+  let v1 = gpu_array_read ga1 tid;
+  let v2 = gpu_array_read ga2 tid;
 
   let vm = mul v1 v2;
 
-  gpu_array_write #_ #_ #tid #(tid + 1) ga1 tid vm;
+  gpu_array_write ga1 tid vm;
 
   (* Convince the SMT solver that these sequences are equal *)
   with s'.

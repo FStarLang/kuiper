@@ -9,7 +9,7 @@ module SZ = FStar.SizeT
 
 [@@erasable]
 noeq
-type mlayout (rows cols : erased nat) = {
+type mlayout (rows cols : nat) = {
   len : nat;
   map : natlt rows & natlt cols @~> natlt len;
 }
@@ -17,7 +17,7 @@ type mlayout (rows cols : erased nat) = {
 let is_full_layout (l : mlayout 'rows 'cols) : prop =
   is_surj l.map.f
 
-let full_mlayout (rows cols : erased nat) =
+let full_mlayout (rows cols : nat) =
   l : mlayout rows cols { is_full_layout l }
 
 #push-options "--warn_error -288"
@@ -33,8 +33,7 @@ let full_layout_size #rows #cols (l : mlayout rows cols)
           [SMTPat (is_full_layout l)]
   = admit()
 
-(* erased helps *)
-let mlayout_size (#rows #cols : erased nat) (l : mlayout rows cols) : GTot nat =
+let mlayout_size (#rows #cols : nat) (l : mlayout rows cols) : GTot nat =
   l.len
 
 inline_for_extraction
