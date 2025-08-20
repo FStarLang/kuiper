@@ -149,7 +149,7 @@ int test2()
     return 0;
 }
 
-int main ()
+int main()
 {
     test1();
     test2();
