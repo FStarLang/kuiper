@@ -4,6 +4,17 @@ module Kuiper.EMatrix4
 open Kuiper
 module M = Kuiper.EMatrix
 
+let mupd_lem_pat (#et:Type) (#mrows #mcols #brows #bcols : nat)
+  (m : ematrix4 et mrows mcols brows bcols)
+  (bi : natlt mrows)
+  (bj : natlt mcols)
+  (i  : natlt brows)
+  (j  : natlt bcols)
+  (v : et)
+  : Lemma (mupd m bi bj i j v == M.mupd m (bi * brows + i) (bj * bcols + j) v)
+          [SMTPat (mupd m bi bj i j v)]
+  = ()
+
 let macc_pat (#et:Type) (#mrows #mcols #brows #bcols : nat)
   (m : ematrix4 et mrows mcols brows bcols)
   (bi : natlt mrows)

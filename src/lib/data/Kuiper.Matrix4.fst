@@ -80,7 +80,7 @@ instance cview_from_clayout4
   step = {
     cimap = {
       f = clayout4_imap c;
-      is_inj = (fun idx1 idx2 -> admit());
+      is_inj = (fun idx1 idx2 -> ());
     };
     compat = ez;
   };
@@ -114,7 +114,7 @@ let lem_from_array_core
   (p : gpu_array et (mlayout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
-  = admit()
+  = ()
 
 let gpu_matrix_pts_to
   (#et:Type) (#mrows #mcols #brows #bcols : nat)
@@ -158,8 +158,7 @@ fn gpu_matrix_concr
 {
   unfold gpu_matrix_pts_to g #f em;
   let a' = A.varray_concr g;
-  // fixme
-  assume (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
+  assert pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em));
   a'
 }
 
@@ -176,10 +175,9 @@ fn gpu_matrix_abs
   ensures
     from_array l p |-> Frac f em
 {
-  // fixme
-  assume (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  (* FIXME: need to provide implicits very precisely. *)
-  rewrite each to_seq #et #(mrows `op_Multiply` brows) #(mcols `op_Multiply` bcols) l em as A.to_seq (aview_from_mlayout et l) em;
+  assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
+  rewrite each to_seq l em
+            as A.to_seq (aview_from_mlayout et l) em;
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
@@ -344,22 +342,6 @@ fn gpu_matrix_write
   let cit = (bi, bj, i, j);
   A.varray_write gm cit v;
   let m' = mupd em bi bj i j v;
-  assert (pure (
-    m'
-    `Kuiper.EMatrix4.equal`
-    mupd em bi bj i j v));
-  assert (pure (A.ci_to_ai (aview_from_mlayout et l) #(cview_from_clayout4 et cl) (bi, bj, i, j) ==
-    Mktuple2 #(natlt (mrows * brows)) #(natlt (mcols * bcols))
-      (SZ.v bi * brows + SZ.v i)
-      (SZ.v bj * bcols + SZ.v j))
-  );
-  assume (pure (
-    mupd em bi bj i j v
-    `Kuiper.EMatrix4.equal`
-    (aview_from_mlayout et l).igm.upd
-      em (Mktuple2 #(natlt (mrows * brows)) #(natlt (mcols * bcols))
-      (SZ.v bi * brows + SZ.v i)
-      (SZ.v bj * bcols + SZ.v j)) v));
   fold gpu_matrix_pts_to gm (mupd em bi bj i j v);
 }
 
