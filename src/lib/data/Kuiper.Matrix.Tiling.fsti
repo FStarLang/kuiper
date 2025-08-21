@@ -6,6 +6,7 @@ module Kuiper.Matrix.Tiling
 
 open Kuiper
 open Kuiper.EMatrix
+open Kuiper.Injection
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Pulse.Lib.Trade
@@ -13,24 +14,108 @@ open Pulse.Lib.Trade
 unfold
 let factored (p q : slprop) : slprop = p ** (p @==> q)
 
-val ematrix_subtile
+let ematrix_subtile
   (#et : _)
-  (#rows #cols : erased nat)
+  (#rows #cols : _)
   (em : ematrix et rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   : ematrix et trows tcols
+=
+  mkM fun i j ->
+    macc em (tr * trows + i) (tc * tcols + j)
 
-val subtile_layout
-  (#rows #cols : erased nat)
+let ematrix_from_tiles
+  (#et : _)
+  (#rows #cols : nat)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  : ematrix et rows cols
+=
+  mkM fun i j ->
+    macc (f (i / trows) (j / tcols)) (i % trows) (j % tcols)
+
+let update_tile
+  (#et : _)
+  (#rows #cols : nat)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (tm : ematrix et trows tcols)
+  : ematrix et rows cols
+=
+  mkM fun i j ->
+    if i / trows = tr && j / tcols = tc then
+      macc tm (i % trows) (j % tcols)
+    else
+      macc em i j
+
+val from_subtiles_id
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  : Lemma (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
+           ==
+           em)
+          [SMTPat (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols))]
+
+val tiles_from_subtiles_id
+  (#et : _)
+  (#rows #cols : _)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc
+           ==
+           f tr tc)
+           [SMTPat (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc)]
+
+
+let tile_inj_f
+  (#rows #cols : _)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : (natlt trows & natlt tcols
+    -> natlt rows & natlt cols)
+=
+   (fun (i, j) -> (tr * trows + i, tc * tcols + j))
+
+let tile_inj
+  (#rows #cols : _)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : (natlt trows & natlt tcols
+    @~> natlt rows & natlt cols)
+= {
+   f = tile_inj_f trows tcols tr tc;
+   is_inj = ez;
+}
+
+let subtile_layout
+  (#rows #cols : _)
   (l : mlayout rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  : mlayout trows tcols
+  : mlayout trows tcols =
+  {
+    len = l.len;
+    map = inj_comp (tile_inj trows tcols tr tc) l.map;
+  }
 
 inline_for_extraction noextract
 instance val strided_row_major_subtile (#rows #cols : erased nat)
