@@ -273,7 +273,7 @@ fn gpu_array_slice_1
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
   requires pts_to arr #f v
-  ensures  bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) seq![v @! i])
+  ensures  bigstar #uid 0 sz (fun i -> gpu_pts_to_cell arr #f i (v @! i))
 
 ghost
 fn gpu_array_unslice_1
@@ -282,7 +282,7 @@ fn gpu_array_unslice_1
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
-  requires bigstar #uid 0 sz (fun i -> gpu_pts_to_slice arr #f i (i+1) seq![v @! i])
+  requires bigstar #uid 0 sz (fun i -> gpu_pts_to_cell arr #f i (v @! i))
   ensures  pts_to arr #f v
 
 ghost
