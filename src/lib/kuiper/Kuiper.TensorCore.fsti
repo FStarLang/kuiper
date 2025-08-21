@@ -167,29 +167,6 @@ fn mma_store
   ensures
     gm |-> f0
 
-fn use_wmma_ker
-  (m1 : gpu_matrix half (row_major 16 16))
-  (m2 : gpu_matrix half (row_major 16 16))
-  (m3 : gpu_matrix half (row_major 16 16))
-  (fa : fragment   half FragA     16 16 16 FragLRM)
-  (fb : fragment   half FragB     16 16 16 FragLRM)
-  (fc : fragment   half FragAccum 16 16 16 FragLAccum)
-  preserves
-    (exists* v. m1 |-> v) **
-    (exists* v. m2 |-> v) **
-    (exists* v. m3 |-> v) **
-    (exists* v. fa |-> v) **
-    (exists* v. fb |-> v) **
-    (exists* v. fc |-> v)
-{
-  mma_loadA fa m1;
-  mma_loadB fb m2;
-  fill_fragment fc zero;
-  mma_sync' fa fb fc;
-  mma_store fc m3;
-  ()
-}
-
 (* We should add checker support for this. *)
 fn with_fragment u#r
   (#pre   : slprop)
