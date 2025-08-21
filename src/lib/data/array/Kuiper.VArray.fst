@@ -9,7 +9,6 @@ module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 module IView = Kuiper.IView
 module IArray = Kuiper.IArray
-module F = FStar.FunctionalExtensionality
 
 noeq
 inline_for_extraction

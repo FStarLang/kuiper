@@ -266,10 +266,10 @@ fn kf
   {
     let vbk = !bk;
 
-    gpu_matrix_extract_tile gA tile tile mrow vbk;
+    gpu_matrix_extract_tile_ro gA tile tile mrow vbk;
     let aTile = gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk);
     assert (rewrites_to aTile (gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk)));
-    gpu_matrix_extract_tile gB tile tile vbk mcol;
+    gpu_matrix_extract_tile_ro gB tile tile vbk mcol;
     let bTile = gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v mcol);
     assert (rewrites_to bTile (gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v mcol)));
 
@@ -345,6 +345,9 @@ fn kf
     *)
     let t = Kuiper.Poly.GEMM.Util.matmul_dotprod sa1 sa2 brow bcol;
     sum := !sum `add` t;
+
+    // What the hell.
+    assert (pure (2 * (vbk + 1) == 2 * vbk + 1 + 1));
 
     (* Move to next tile *)
     bk := vbk +^ 1sz;

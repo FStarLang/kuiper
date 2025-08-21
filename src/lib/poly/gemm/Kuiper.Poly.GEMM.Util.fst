@@ -101,8 +101,8 @@ fn matmul_tiled_dotprod
     assert (rewrites_to tA (Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk)));
     assert (rewrites_to tB (Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj)));
 
-    Tiling.gpu_matrix_extract_tile gA tile tile bi vbk;
-    Tiling.gpu_matrix_extract_tile gB tile tile vbk bj;
+    Tiling.gpu_matrix_extract_tile_ro gA tile tile bi vbk;
+    Tiling.gpu_matrix_extract_tile_ro gB tile tile vbk bj;
 
     let s' = matmul_dotprod tA tB i j;
     sum := !sum `add` s';

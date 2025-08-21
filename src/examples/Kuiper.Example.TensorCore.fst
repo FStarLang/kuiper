@@ -86,23 +86,29 @@ fn test2
   (m1 : gpu_matrix half (row_major 48 48))
   (m2 : gpu_matrix half (row_major 48 48))
   (m3 : gpu_matrix half (row_major 48 48))
+  (#v1 #v2 #v3 : ematrix half 48 48)
   preserves
-    m1 |-> 'v1 **
-    m2 |-> 'v2
+    m1 |-> v1 **
+    m2 |-> v2
   requires
-    m3 |-> 'v3
+    m3 |-> v3
   ensures
-    exists* x. m3 |-> x
+    m3 |->
+      update_tile #half v3 16 16 1 1
+        (matplus (const_matrix #half #16 #16 zero)
+          (matmul #half
+            (ematrix_subtile v1 16 16 1 1)
+            (ematrix_subtile v2 16 16 1 1)))
 {
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
   let fc = __alloc_fragment half FragAccum 16sz 16sz 16sz FragLAccum;
 
-  gpu_matrix_extract_tile m1 16 16 1 1;
+  gpu_matrix_extract_tile_ro m1 16 16 1 1;
   let t1 = gpu_matrix_subtile m1 16 16 1 1;
   assert (rewrites_to t1 (gpu_matrix_subtile m1 16 16 1 1));
 
-  gpu_matrix_extract_tile m2 16 16 1 1;
+  gpu_matrix_extract_tile_ro m2 16 16 1 1;
   let t2 = gpu_matrix_subtile m2 16 16 1 1;
   assert (rewrites_to t2 (gpu_matrix_subtile m2 16 16 1 1));
 
@@ -118,14 +124,14 @@ fn test2
 
   with x1.
     assert (t1 |-> x1);
-    Pulse.Lib.Trade.elim_trade (t1 |-> x1) (m1 |-> 'v1);
+    Pulse.Lib.Trade.elim_trade (t1 |-> x1) (m1 |-> v1);
   with x2.
     assert (t2 |-> x2);
-    Pulse.Lib.Trade.elim_trade (t2 |-> x2) (m2 |-> 'v2);
-  assume (pure False); // FIXME, we cannot modify submatrices at the moment.
+    Pulse.Lib.Trade.elim_trade (t2 |-> x2) (m2 |-> v2);
   with x3.
     assert (t3 |-> x3);
-    Pulse.Lib.Trade.elim_trade (t3 |-> x3) (m3 |-> 'v3);
+    Pulse.Lib.Forall.elim_forall x3;
+    Pulse.Lib.Trade.elim_trade (t3 |-> x3) _;
 
   with x. assert (fa |-> x); drop_ (fa |-> x);
   with x. assert (fb |-> x); drop_ (fb |-> x);

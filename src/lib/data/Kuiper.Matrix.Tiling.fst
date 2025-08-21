@@ -5,9 +5,38 @@ open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
+open Kuiper.Injection
 module SZ = FStar.SizeT
 
-let ematrix_subtile
+let from_subtiles_id
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  : Lemma (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
+           ==
+           em)
+= assert (equal (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)) em);
+  ()
+
+#push-options "--z3rlimit 20"
+let tiles_from_subtiles_id
+  (#et : _)
+  (#rows #cols : _)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc
+           ==
+           f tr tc)
+= assert (equal (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc) (f tr tc));
+  ()
+#pop-options
+
+let update_tile_self
   (#et : _)
   (#rows #cols : _)
   (em : ematrix et rows cols)
@@ -15,38 +44,11 @@ let ematrix_subtile
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
-  : ematrix et trows tcols
-=
-  mkM fun i j ->
-    macc em (tr * trows + i) (tc * tcols + j)
-
-let ij_map
-  (#rows #cols : _)
-  (l : mlayout rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : GTot (natlt trows & natlt tcols -> natlt l.len)
-= let subf = l.map.f in
-  fun (i, j) -> subf (tr * trows + i, tc * tcols + j)
-
-let subtile_layout
-  (#rows #cols : _)
-  (l : mlayout rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : mlayout trows tcols =
-  let f = l.map.f in
-  {
-    len = l.len;
-    map = {
-      f = ij_map l trows tcols tr tc;
-      is_inj = ez;
-    }
-  }
+  : Lemma (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)
+           ==
+           em)
+          [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
+= assert (equal (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)) em)
 
 inline_for_extraction noextract
 let strided_row_major_subtile_offset
@@ -250,6 +252,27 @@ fn gpu_matrix_tile
 }
 
 ghost
+fn gpu_matrix_untile'
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  (#f : perm)
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (tf tr tc))
+  ensures
+    gm |-> Frac f (ematrix_from_tiles trows tcols tf)
+{
+  admit ();
+}
+
+ghost
 fn gpu_matrix_untile
   (#et:Type0)
   (#rows #cols : nat)
@@ -267,27 +290,11 @@ fn gpu_matrix_untile
   ensures
     gm |-> Frac f em
 {
-  admit ();
-}
-
-ghost
-fn gpu_matrix_untile0
-  (#et:Type0)
-  (#rows #cols : nat)
-  (#l : mlayout rows cols)
-  (gm : gpu_matrix et l)
-  (trows : pos { trows /? rows })
-  (tcols : pos { tcols /? cols })
-  requires
-    forall+
-      (tr : natlt (rows / trows))
-      (tc : natlt (cols / tcols)).
-      (exists* em.
-        gpu_matrix_subtile gm trows tcols tr tc |-> em)
-  ensures
-    exists* em. gm |-> em
-{
-  admit ();
+  gpu_matrix_untile' gm trows tcols _;
+  from_subtiles_id em trows tcols;
+  rewrite each ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
+            as em;
+  ();
 }
 
 ghost
@@ -305,11 +312,38 @@ fn gpu_matrix_extract_tile
   requires
     gm |-> Frac f em
   ensures
-    factored
-      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
-      (gm |-> Frac f em)
+    gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc) **
+    (forall* (tm' : ematrix et trows tcols).
+      gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
+      gm |-> Frac f (update_tile em trows tcols tr tc tm'))
+
 {
   gpu_matrix_tile gm trows tcols;
   forevery_extract_2 tr tc _;
   trade_map _ _ _ (fun () -> gpu_matrix_untile gm trows tcols);
+  admit();
+}
+
+ghost
+fn gpu_matrix_extract_tile_ro
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    gm |-> Frac f em
+  ensures
+    factored
+      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
+      (gm |-> Frac f em)
+{
+  gpu_matrix_extract_tile gm trows tcols tr tc;
+  Pulse.Lib.Forall.elim_forall (ematrix_subtile em trows tcols tr tc);
+  ()
 }

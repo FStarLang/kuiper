@@ -79,9 +79,21 @@ val tiles_from_subtiles_id
            f tr tc)
            [SMTPat (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc)]
 
+val update_tile_self
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  : Lemma (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)
+           ==
+           em)
+          [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
 
 let tile_inj_f
-  (#rows #cols : _)
+  (#rows #cols : nat)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
@@ -92,7 +104,7 @@ let tile_inj_f
    (fun (i, j) -> (tr * trows + i, tc * tcols + j))
 
 let tile_inj
-  (#rows #cols : _)
+  (#rows #cols : nat)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
   (tr : natlt (rows / trows))
@@ -105,7 +117,7 @@ let tile_inj
 }
 
 let subtile_layout
-  (#rows #cols : _)
+  (#rows #cols : nat)
   (l : mlayout rows cols)
   (trows : pos {trows /? rows})
   (tcols : pos {tcols /? cols})
@@ -236,6 +248,24 @@ fn gpu_matrix_tile
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 
 ghost
+fn gpu_matrix_untile'
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
+  (#f : perm)
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (tf tr tc))
+  ensures
+    gm |-> Frac f (ematrix_from_tiles trows tcols tf)
+
+ghost
 fn gpu_matrix_untile
   (#et:Type0)
   (#rows #cols : nat)
@@ -254,27 +284,27 @@ fn gpu_matrix_untile
     gm |-> Frac f em
 
 ghost
-fn gpu_matrix_untile0
+fn gpu_matrix_extract_tile
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
   requires
-    forall+
-      (tr : natlt (rows / trows))
-      (tc : natlt (cols / tcols)).
-      (exists* em.
-        gpu_matrix_subtile gm trows tcols tr tc |-> em)
+    gm |-> Frac f em
   ensures
-    exists* em. gm |-> em
+    gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc) **
+    (forall* (tm' : ematrix et trows tcols).
+      gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
+      gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 
-(* FIXME: This should allow the user to modify the tile and put it back later.
-In the post we should get something like
-  forall* e'. subtile |-> e' @==> gm |-> update em e' *)
 ghost
-fn gpu_matrix_extract_tile
+fn gpu_matrix_extract_tile_ro
   (#et:Type0)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
