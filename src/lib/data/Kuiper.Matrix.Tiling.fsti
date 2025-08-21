@@ -328,8 +328,6 @@ fn gpu_matrix_extract_tile'
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
   (trows : erased nat {trows > 0 /\ trows /? rows })
-  // using pos here fails, because gpu_matrix_subtile is not declared using pos
-  // (tcols : erased pos { tcols /? cols })
   (tcols : erased nat {tcols > 0 /\ tcols /? cols })
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
