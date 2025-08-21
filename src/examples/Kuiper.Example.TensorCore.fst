@@ -29,7 +29,7 @@ fn use_wmma_ker
     (exists* v. fb |-> v) **
     (exists* v. fc |-> v)
 {
-  mma_loadA #_ #_ #_ #_ fa #_ #_ m1;
+  mma_loadA fa m1;
   mma_loadB fb m2;
   mma_fill fc zero;
   mma_sync' fa fb fc;
