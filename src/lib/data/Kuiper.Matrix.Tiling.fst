@@ -7,6 +7,7 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.Injection
 module SZ = FStar.SizeT
+module Enumerable = Kuiper.Enumerable
 
 let from_subtiles_id
   (#et : _)
@@ -316,12 +317,46 @@ fn gpu_matrix_extract_tile
     (forall* (tm' : ematrix et trows tcols).
       gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
-
 {
   gpu_matrix_tile gm trows tcols;
-  forevery_extract_2 tr tc _;
-  trade_map _ _ _ (fun () -> gpu_matrix_untile gm trows tcols);
-  admit();
+  forevery_extract_if_2 tr tc _;
+  ghost
+  fn aux (tm' : ematrix et trows tcols)
+    requires
+      forall+
+        (tr' : natlt (rows / trows))
+        (tc' : natlt (cols / tcols)).
+          (if (Enumerable.to_nat tr', Enumerable.to_nat tc') = (Enumerable.to_nat tr, Enumerable.to_nat tc)
+           then emp
+           else
+             // Using |-> below fails
+             gpu_matrix_pts_to (gpu_matrix_subtile gm trows tcols tr' tc') #f (ematrix_subtile em trows tcols tr' tc'))
+    ensures
+      gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
+      gm |-> Frac f (update_tile em trows tcols tr tc tm')
+  {
+    ghost
+    fn aux ()
+      requires
+        forall+
+          (tr' : natlt (rows / trows))
+          (tc' : natlt (cols / tcols)).
+            (if (Enumerable.to_nat tr', Enumerable.to_nat tc') = (Enumerable.to_nat tr, Enumerable.to_nat tc)
+            then emp
+            else
+              // Using |-> below fails
+              gpu_matrix_pts_to (gpu_matrix_subtile gm trows tcols tr' tc') #f (ematrix_subtile em trows tcols tr' tc'))
+      requires
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm'
+      ensures
+        gm |-> Frac f (update_tile em trows tcols tr tc tm')
+    {
+      (* This bit is really boring. *)
+      admit();
+    };
+    Pulse.Lib.Trade.intro_trade _ _ _ aux;
+  };
+  Pulse.Lib.Forall.intro_forall _ aux;
 }
 
 ghost

@@ -682,8 +682,26 @@ fn forevery_extract_if
   admit ();
 }
 
-// let test (x : slprop) =
-//   assert (x == x ** emp)
+ghost
+fn forevery_extract_if_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (z : a) (w : b)
+  (p : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p x y
+  ensures
+    p z w **
+    (forall+ (x:a) (y:b).
+      if (Enumerable.to_nat x, Enumerable.to_nat y) = (Enumerable.to_nat z, Enumerable.to_nat w) then emp else p x y)
+{
+  forevery_flatten #a #_ #b _;
+  forevery_extract_if (z, w) _;
+  forevery_unflatten' #a #_ #b _;
+  rewrite p (z,w)._1 (z,w)._2 as p z w;
+}
+
+
 
 ghost
 fn forevery_boolean_split

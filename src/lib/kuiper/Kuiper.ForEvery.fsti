@@ -405,6 +405,20 @@ fn forevery_extract_if
       if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)
 
 ghost
+fn forevery_extract_if_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (z : a) (w : b)
+  (p : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p x y
+  ensures
+    p z w **
+    (forall+ (x:a) (y:b).
+      if (Enumerable.to_nat x, Enumerable.to_nat y) = (Enumerable.to_nat z, Enumerable.to_nat w) then emp else p x y)
+
+
+ghost
 fn forevery_intro_if
   (#a:Type0) {| enumerable a |}
   (z : a)
