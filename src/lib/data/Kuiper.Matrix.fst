@@ -76,8 +76,7 @@ fn gpu_matrix_concr
 {
   unfold gpu_matrix_pts_to g #f em;
   A.varray_concr g;
-  // fixme
-  assume (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et #rows #cols l) em)));
+  assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et #rows #cols l) em)));
   rewrite A.core g |-> Frac f (A.to_seq (aview_from_mlayout et l) em)
        as core g |-> Frac f (to_seq l em);
   ()
@@ -96,8 +95,7 @@ fn gpu_matrix_abs
   ensures
     from_array l p |-> Frac f em
 {
-  // fixme
-  assume (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
+  assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
   rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;

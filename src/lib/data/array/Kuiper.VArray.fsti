@@ -12,6 +12,16 @@ open Kuiper.GhostMap { is_ghost_map }
 open Kuiper.View
 module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
+module F = FStar.FunctionalExtensionality
+
+let view_equiv (#et #st : Type)
+  (vw1 vw2 : aview et st)
+  : prop
+= vw1.iview.len == vw2.iview.len /\
+  vw1.iview.sch.ait == vw2.iview.sch.ait /\
+  F.feq vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  (* probably need more about the mappings in igm *)
+  True
 
 new
 inline_for_extraction
@@ -126,6 +136,72 @@ fn varray_implode
   ensures
     a |-> Frac f v
 
+(* Note how the spec type does not change at all. The mapping
+is hidden in the view. *)
+ghost
+fn varray_reindex_
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (#ait' : Type)
+  {| Enumerable.enumerable ait' |}
+  (bij : vw.iview.sch.ait =~ ait')
+  (a : varray vw)
+  (#f : perm)
+  (#v : st)
+  requires
+    a |-> Frac f v
+  ensures
+    from_array (reindex_view vw bij) (core a) |-> Frac f v
+
+inline_for_extraction noextract
+fn varray_reindex
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (#ait' : Type)
+  {| Enumerable.enumerable ait' |}
+  (bij : vw.iview.sch.ait =~ ait')
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  returns
+    va : varray (reindex_view vw bij)
+  ensures
+    (va |-> Frac f v) **
+    pure (core va == core a)
+
+ghost
+fn varray_review_
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (#st' : Type)
+  (bij : st =~ st')
+  (a : varray vw)
+  (#f : perm)
+  (#v : st)
+  requires
+    a |-> Frac f v
+  ensures
+    from_array (review_view vw bij) (core a) |-> Frac f (bij.ff v)
+
+inline_for_extraction noextract
+fn varray_review
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (#st' : Type)
+  (bij : st =~ st')
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  returns
+    va : varray (review_view vw bij)
+  ensures
+    (va |-> Frac f (bij.ff v)) **
+    pure (core va == core a)
+
 (* Begin viewing something abstractly, with the trivial view. The spec
 type are sequences. *)
 ghost
@@ -238,78 +314,12 @@ fn varray_free
     a |-> v
   ensures emp
 
-(* Note how the spec type does not change at all. The mapping
-is hidden in the view. *)
-ghost
-fn varray_reindex_
-  (#et : Type) (#st : Type)
-  (#vw : aview et st)
-  (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
-  (bij : vw.iview.sch.ait =~ ait')
-  (a : varray vw)
-  (#f : perm)
-  (#v : st)
-  requires
-    a |-> Frac f v
-  ensures
-    from_array (reindex_view vw bij) (core a) |-> Frac f v
-
-inline_for_extraction noextract
-fn varray_reindex
-  (#et : Type) (#st : Type)
-  (#vw : aview et st)
-  (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
-  (bij : vw.iview.sch.ait =~ ait')
-  (a : varray vw)
-  (#f : perm)
-  (#v : erased st)
-  requires
-    a |-> Frac f v
-  returns
-    va : varray (reindex_view vw bij)
-  ensures
-    (va |-> Frac f v) **
-    pure (core va == core a)
-
-ghost
-fn varray_review_
-  (#et : Type) (#st : Type)
-  (#vw : aview et st)
-  (#st' : Type)
-  (bij : st =~ st')
-  (a : varray vw)
-  (#f : perm)
-  (#v : st)
-  requires
-    a |-> Frac f v
-  ensures
-    from_array (review_view vw bij) (core a) |-> Frac f (bij.ff v)
-
-inline_for_extraction noextract
-fn varray_review
-  (#et : Type) (#st : Type)
-  (#vw : aview et st)
-  (#st' : Type)
-  (bij : st =~ st')
-  (a : varray vw)
-  (#f : perm)
-  (#v : erased st)
-  requires
-    a |-> Frac f v
-  returns
-    va : varray (review_view vw bij)
-  ensures
-    (va |-> Frac f (bij.ff v)) **
-    pure (core va == core a)
-
 ghost
 fn varray_view_equiv_
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (a : varray vw)
-  (vw' : aview et st { len vw' = len vw })
+  (vw' : aview et st { view_equiv vw vw' })
   (#f : perm)
   (#v : erased st)
   requires
@@ -322,7 +332,7 @@ fn varray_view_equiv
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (a : varray vw)
-  (vw' : aview et st { len vw' = len vw })
+  (vw' : aview et st { view_equiv vw vw' })
   (#f : perm)
   (#v : erased st)
   requires

@@ -66,6 +66,18 @@ unfold
 let cview (#et : Type0) (#st : Type0)
   (avw : aview et st) = IView.ciview avw.iview
 
+noextract
+let bij_reindex_ghost_efun (it it' et : Type)
+  (bij : it =~ it')
+  : ((it ^->> et) =~ (it' ^->> et))
+= Mkbijection #(it ^->> et) #(it' ^->> et)
+  (fun f -> F.on_g _ <| fun it' -> f (bij.gg it'))
+  (fun g -> F.on_g _ <| fun it  -> g (bij.ff it))
+  (fun f -> assert (F.feq_g (F.on_g _ <| fun it' -> f (bij.ff (bij.gg it')))
+                            f))
+  (fun f -> assert (F.feq_g (F.on_g _ <| fun it  -> f (bij.gg (bij.ff it)))
+                            f))
+
 let igm_reindex (#mt #it #et : Type) (igm : is_ghost_map mt it et)
   (#it': Type) (bij : it =~ it')
    : is_ghost_map mt it' et =
@@ -74,11 +86,7 @@ let igm_reindex (#mt #it #et : Type) (igm : is_ghost_map mt it et)
     igm.acc v (bij.gg i'));
   upd = (fun (v : mt) (i' : it') (x : et) ->
     igm.upd v (bij.gg i') x);
-  bij = Mkbijection #(erased mt) #(it' ^->> et)
-    (fun (v : erased mt) -> F.on_g it' <| fun (i' : it') -> igm.bij.ff v (bij.gg i'))
-    (fun (f : (it' ^->> et)) -> igm.bij.gg (F.on_g it <| fun i -> f (bij.ff i)))
-    (fun _ -> admit())
-    (fun _ -> admit());
+  bij = igm.bij `bij_comp` bij_reindex_ghost_efun _ _ _ bij;
   l1 = ez;
   l2 = ez;
 }

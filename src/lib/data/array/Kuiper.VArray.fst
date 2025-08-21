@@ -9,6 +9,7 @@ module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 module IView = Kuiper.IView
 module IArray = Kuiper.IArray
+module F = FStar.FunctionalExtensionality
 
 noeq
 inline_for_extraction
@@ -138,165 +139,6 @@ fn varray_implode
   fold varray_pts_to a #f v;
 }
 
-(* Begin viewing something abstractly, with the trivial view. The spec
-type are sequences. *)
-ghost
-fn varray_begin_
-  (#et : Type) (#len : erased nat)
-  (a : gpu_array et len)
-  (#f : perm)
-  (#v : lseq et len)
-  requires
-    a |-> Frac f v
-  ensures
-    from_array (raw_view #et #len) a |-> Frac f v
-{
-  IArray.iarray_begin_ a;
-  rewrite each IArray.from_array (IView.raw_view #len) a as
-    (from_array (raw_view #et #len) a)._0;
-  IArray.iarray_ext _
-    (IArray.g_seq_acc v)
-    (fun i -> (raw_view #et #len).igm.acc v i);
-  fold varray_pts_to (from_array (raw_view #et #len) a) #f v;
-  ()
-}
-
-inline_for_extraction noextract
-fn varray_begin
-  (#et : Type) (#len : erased nat)
-  (a : gpu_array et len)
-  (#f : perm)
-  (#v : erased (lseq et len))
-  requires
-    a |-> Frac f v
-  returns
-    va : varray (raw_view #et #len)
-  ensures
-    (va |-> Frac f v) **
-    pure (core va == a)
-{
-  varray_begin_ a;
-  from_array (raw_view #et #len) a
-}
-
-ghost
-fn varray_end_
-  (#et : Type) (#len : erased nat)
-  (a : varray (raw_view #et #len))
-  (#f : perm)
-  (#v : lseq et len)
-  requires
-    a |-> Frac f v
-  ensures
-    core a |-> Frac f v
-{
-  unfold varray_pts_to a #f v;
-  IArray.iarray_end_ (VA?._0 a);
-  rewrite each IArray.core #et #(IView.raw_view #len) a._0 as core a;
-  with vv.
-    assert B.gpu_pts_to_slice (core a) #f 0 len vv;
-    assert (pure (Seq.equal vv v));
-  ()
-}
-
-inline_for_extraction noextract
-fn varray_end
-  (#et : Type0) (#len : erased nat)
-  (a : varray (raw_view #et #len))
-  (#f : perm)
-  (#v : erased (lseq et len))
-  requires
-    a |-> Frac f v
-  returns
-    a' : gpu_array et len
-  ensures
-    a' |-> Frac f v
-{
-  varray_end_ a;
-  (core a);
-}
-
-ghost
-fn varray_abs
-  (#et : Type0) (#st : Type0)
-  (vw : aview et st { is_full_view vw })
-  (a : gpu_array et (len vw))
-  (#f : perm)
-  (#v : st)
-  requires
-    a |-> Frac f (to_seq vw v)
-  ensures
-    from_array vw a |-> Frac f v
-{
-  admit();
-}
-
-ghost
-fn varray_abs'
-  (#et : Type0) (#st : Type0)
-  (vw : aview et st { is_full_view vw })
-  (a : gpu_array et (len vw))
-  (#f : perm)
-  (#v : lseq et (len vw))
-  requires
-    a |-> Frac f v
-  ensures
-    from_array vw a |-> Frac f (from_seq vw v)
-{
-  admit();
-}
-
-ghost
-fn varray_concr
-  (#et : Type0) (#st : Type0)
-  (#vw : aview et st { is_full_view vw })
-  (a : varray vw)
-  (#f : perm)
-  (#v : erased st)
-  requires
-    a |-> Frac f v
-  ensures
-    core a |-> Frac f (to_seq vw v)
-{
-  admit();
-}
-
-
-inline_for_extraction noextract
-fn varray_alloc0
-  (#et : Type0) {| sized et |} (len : sz) (#st : Type0)
-  (vw : aview et st { is_full_view vw /\ Len.len vw == len})
-  preserves
-    cpu
-  requires
-    pure (SZ.fits len)
-  returns
-    a : varray vw
-  ensures
-    exists* v. a |-> v
-{
-  let a = B.gpu_array_alloc #et len;
-  varray_abs' vw a;
-  (from_array vw a)
-}
-
-inline_for_extraction noextract
-fn varray_free
-  (#et : Type0) (#st : Type0)
-  (#vw : aview et st { is_full_view vw })
-  (a : varray vw)
-  (#v : erased st)
-  preserves
-    cpu
-  requires
-    a |-> v
-  ensures emp
-{
-  varray_concr a;
-  B.gpu_array_free (core a);
-}
-
-
 (* Note how the spec type does not change at all. The mapping
 is hidden in the view. *)
 ghost
@@ -408,12 +250,175 @@ fn varray_review
   from_array (review_view vw bij) (core a)
 }
 
+
+(* Begin viewing something abstractly, with the trivial view. The spec
+type are sequences. *)
+ghost
+fn varray_begin_
+  (#et : Type) (#len : erased nat)
+  (a : gpu_array et len)
+  (#f : perm)
+  (#v : lseq et len)
+  requires
+    a |-> Frac f v
+  ensures
+    from_array (raw_view #et #len) a |-> Frac f v
+{
+  IArray.iarray_begin_ a;
+  rewrite each IArray.from_array (IView.raw_view #len) a as
+    (from_array (raw_view #et #len) a)._0;
+  IArray.iarray_ext _
+    (IArray.g_seq_acc v)
+    (fun i -> (raw_view #et #len).igm.acc v i);
+  fold varray_pts_to (from_array (raw_view #et #len) a) #f v;
+  ()
+}
+
+inline_for_extraction noextract
+fn varray_begin
+  (#et : Type) (#len : erased nat)
+  (a : gpu_array et len)
+  (#f : perm)
+  (#v : erased (lseq et len))
+  requires
+    a |-> Frac f v
+  returns
+    va : varray (raw_view #et #len)
+  ensures
+    (va |-> Frac f v) **
+    pure (core va == a)
+{
+  varray_begin_ a;
+  from_array (raw_view #et #len) a
+}
+
+ghost
+fn varray_end_
+  (#et : Type) (#len : erased nat)
+  (a : varray (raw_view #et #len))
+  (#f : perm)
+  (#v : lseq et len)
+  requires
+    a |-> Frac f v
+  ensures
+    core a |-> Frac f v
+{
+  unfold varray_pts_to a #f v;
+  IArray.iarray_end_ (VA?._0 a);
+  rewrite each IArray.core #et #(IView.raw_view #len) a._0 as core a;
+  with vv.
+    assert B.gpu_pts_to_slice (core a) #f 0 len vv;
+    assert (pure (Seq.equal vv v));
+  ()
+}
+
+inline_for_extraction noextract
+fn varray_end
+  (#et : Type0) (#len : erased nat)
+  (a : varray (raw_view #et #len))
+  (#f : perm)
+  (#v : erased (lseq et len))
+  requires
+    a |-> Frac f v
+  returns
+    a' : gpu_array et len
+  ensures
+    a' |-> Frac f v
+{
+  varray_end_ a;
+  (core a);
+}
+
+ghost
+fn varray_abs
+  (#et : Type0) (#st : Type0)
+  (vw : aview et st { is_full_view vw })
+  (a : gpu_array et (len vw))
+  (#f : perm)
+  (#v : st)
+  requires
+    a |-> Frac f (to_seq vw v)
+  ensures
+    from_array vw a |-> Frac f v
+{
+  varray_begin_ a;
+  assert varray_pts_to (from_array raw_view a) #f (to_seq vw v);
+  (* awkward, would be nice to reorganize this module *)
+  admit();
+}
+
+ghost
+fn varray_abs'
+  (#et : Type0) (#st : Type0)
+  (vw : aview et st { is_full_view vw })
+  (a : gpu_array et (len vw))
+  (#f : perm)
+  (#v : lseq et (len vw))
+  requires
+    a |-> Frac f v
+  ensures
+    from_array vw a |-> Frac f (from_seq vw v)
+{
+  rewrite each v as to_seq vw (from_seq vw v);
+  varray_abs vw a;
+}
+
+ghost
+fn varray_concr
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st { is_full_view vw })
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  ensures
+    core a |-> Frac f (to_seq vw v)
+{
+  admit();
+}
+
+
+inline_for_extraction noextract
+fn varray_alloc0
+  (#et : Type0) {| sized et |} (len : sz) (#st : Type0)
+  (vw : aview et st { is_full_view vw /\ Len.len vw == len})
+  preserves
+    cpu
+  requires
+    pure (SZ.fits len)
+  returns
+    a : varray vw
+  ensures
+    exists* v. a |-> v
+{
+  let a = B.gpu_array_alloc #et len;
+  varray_abs' vw a;
+  (from_array vw a)
+}
+
+inline_for_extraction noextract
+fn varray_free
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st { is_full_view vw })
+  (a : varray vw)
+  (#v : erased st)
+  preserves
+    cpu
+  requires
+    a |-> v
+  ensures emp
+{
+  varray_concr a;
+  B.gpu_array_free (core a);
+}
+
 ghost
 fn varray_view_equiv_
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (a : varray vw)
-  (vw' : aview et st { len vw' = len vw })
+  (vw' : aview et st { view_equiv vw vw' })
   (#f : perm)
   (#v : erased st)
   requires
@@ -421,7 +426,6 @@ fn varray_view_equiv_
   ensures
     from_array vw' (core a) |-> Frac f v
 {
-  // need more requirements of course!!!
   admit();
 }
 
@@ -430,7 +434,7 @@ fn varray_view_equiv
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (a : varray vw)
-  (vw' : aview et st { len vw' = len vw })
+  (vw' : aview et st { view_equiv vw vw' })
   (#f : perm)
   (#v : erased st)
   requires
