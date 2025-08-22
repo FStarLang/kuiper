@@ -128,6 +128,7 @@ KRML := $(KRML_HOME)/krml				\
 	-skip-compilation				\
 	-skip-makefiles					\
 	-faggressive-inlining				\
+	-fauto-for-loops				\
 	-fnoshort-enums					\
 	-cuda						\
 	-dbacktrace					\
