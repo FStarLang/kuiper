@@ -33,44 +33,29 @@ __hoisted_0(
     __syncthreads();
     size_t __anf0 = bkIdx;
     size_t i = threadIdx.x;
-    while (i < (size_t)512U)
-    {
+    for (; i < (size_t)512U; i += (size_t)64U)
       sA[i / (size_t)8U * (size_t)8U + i % (size_t)8U] =
         gA4[(mrow * (size_t)64U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
-      i += (size_t)64U;
-    }
     size_t i1 = threadIdx.x;
-    while (i1 < (size_t)512U)
-    {
+    for (; i1 < (size_t)512U; i1 += (size_t)64U)
       sB[i1 / (size_t)64U * (size_t)64U + i1 % (size_t)64U] =
         gB4[(__anf0 * (size_t)8U + i1 / (size_t)64U) * cols + mcol * (size_t)64U + i1 % (size_t)64U];
-      i1 += (size_t)64U;
-    }
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
     {
       size_t i0 = (size_t)0U;
-      while (i0 < (size_t)8U)
-      {
+      for (; i0 < (size_t)8U; i0 += (size_t)1U)
         rAcol[i0] = sA[(threadIdx.x / (size_t)8U * (size_t)8U + i0) * (size_t)8U + dotIdx];
-        i0 += (size_t)1U;
-      }
       size_t i1 = (size_t)0U;
-      while (i1 < (size_t)8U)
-      {
+      for (; i1 < (size_t)8U; i1 += (size_t)1U)
         rBrow[i1] = sB[dotIdx * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + i1];
-        i1 += (size_t)1U;
-      }
       size_t resIdxM = (size_t)0U;
       while (resIdxM < (size_t)8U)
       {
         size_t resIdxN = (size_t)0U;
-        while (resIdxN < (size_t)8U)
-        {
+        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
           rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-          resIdxN += (size_t)1U;
-        }
         resIdxM += (size_t)1U;
       }
       dotIdx += (size_t)1U;
@@ -83,13 +68,10 @@ __hoisted_0(
   while (resIdxM < (size_t)8U)
   {
     size_t resIdxN = (size_t)0U;
-    while (resIdxN < (size_t)8U)
-    {
+    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
       gC4[(mrow1 * (size_t)64U + threadIdx.x / (size_t)8U * (size_t)8U + resIdxM) * cols +
         mcol1 * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
       = rchProd[resIdxM * (size_t)8U + resIdxN];
-      resIdxN += (size_t)1U;
-    }
     resIdxM += (size_t)1U;
   }
 }
@@ -166,44 +148,29 @@ __hoisted_1(
     __syncthreads();
     size_t __anf0 = bkIdx;
     size_t i = threadIdx.x;
-    while (i < (size_t)1024U)
-    {
+    for (; i < (size_t)1024U; i += (size_t)4U)
       sA[i / (size_t)32U * (size_t)32U + i % (size_t)32U] =
         gA4[(mrow * (size_t)32U + i / (size_t)32U) * shared + __anf0 * (size_t)32U + i % (size_t)32U];
-      i += (size_t)4U;
-    }
     size_t i1 = threadIdx.x;
-    while (i1 < (size_t)1024U)
-    {
+    for (; i1 < (size_t)1024U; i1 += (size_t)4U)
       sB[i1 / (size_t)32U * (size_t)32U + i1 % (size_t)32U] =
         gB4[(__anf0 * (size_t)32U + i1 / (size_t)32U) * cols + mcol * (size_t)32U + i1 % (size_t)32U];
-      i1 += (size_t)4U;
-    }
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)32U)
     {
       size_t i0 = (size_t)0U;
-      while (i0 < (size_t)32U)
-      {
+      for (; i0 < (size_t)32U; i0 += (size_t)1U)
         rAcol[i0] = sA[(threadIdx.x / (size_t)4U * (size_t)32U + i0) * (size_t)32U + dotIdx];
-        i0 += (size_t)1U;
-      }
       size_t i1 = (size_t)0U;
-      while (i1 < (size_t)8U)
-      {
+      for (; i1 < (size_t)8U; i1 += (size_t)1U)
         rBrow[i1] = sB[dotIdx * (size_t)32U + threadIdx.x % (size_t)4U * (size_t)8U + i1];
-        i1 += (size_t)1U;
-      }
       size_t resIdxM = (size_t)0U;
       while (resIdxM < (size_t)32U)
       {
         size_t resIdxN = (size_t)0U;
-        while (resIdxN < (size_t)8U)
-        {
+        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
           rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-          resIdxN += (size_t)1U;
-        }
         resIdxM += (size_t)1U;
       }
       dotIdx += (size_t)1U;
@@ -216,13 +183,10 @@ __hoisted_1(
   while (resIdxM < (size_t)32U)
   {
     size_t resIdxN = (size_t)0U;
-    while (resIdxN < (size_t)8U)
-    {
+    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
       gC4[(mrow1 * (size_t)32U + threadIdx.x / (size_t)4U * (size_t)32U + resIdxM) * cols +
         mcol1 * (size_t)32U + threadIdx.x % (size_t)4U * (size_t)8U + resIdxN]
       = rchProd[resIdxM * (size_t)8U + resIdxN];
-      resIdxN += (size_t)1U;
-    }
     resIdxM += (size_t)1U;
   }
 }
@@ -301,44 +265,29 @@ __hoisted_2(
     __syncthreads();
     size_t __anf0 = bkIdx;
     size_t i = threadIdx.x;
-    while (i < (size_t)512U)
-    {
+    for (; i < (size_t)512U; i += (size_t)64U)
       sA[i / (size_t)8U * (size_t)8U + i % (size_t)8U] =
         gA4[(mrow * (size_t)64U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
-      i += (size_t)64U;
-    }
     size_t i1 = threadIdx.x;
-    while (i1 < (size_t)512U)
-    {
+    for (; i1 < (size_t)512U; i1 += (size_t)64U)
       sB[i1 / (size_t)64U * (size_t)64U + i1 % (size_t)64U] =
         gB4[(__anf0 * (size_t)8U + i1 / (size_t)64U) * cols + mcol * (size_t)64U + i1 % (size_t)64U];
-      i1 += (size_t)64U;
-    }
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
     {
       size_t i0 = (size_t)0U;
-      while (i0 < (size_t)8U)
-      {
+      for (; i0 < (size_t)8U; i0 += (size_t)1U)
         rAcol[i0] = sA[(threadIdx.x / (size_t)8U * (size_t)8U + i0) * (size_t)8U + dotIdx];
-        i0 += (size_t)1U;
-      }
       size_t i1 = (size_t)0U;
-      while (i1 < (size_t)8U)
-      {
+      for (; i1 < (size_t)8U; i1 += (size_t)1U)
         rBrow[i1] = sB[dotIdx * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + i1];
-        i1 += (size_t)1U;
-      }
       size_t resIdxM = (size_t)0U;
       while (resIdxM < (size_t)8U)
       {
         size_t resIdxN = (size_t)0U;
-        while (resIdxN < (size_t)8U)
-        {
+        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
           rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-          resIdxN += (size_t)1U;
-        }
         resIdxM += (size_t)1U;
       }
       dotIdx += (size_t)1U;
@@ -433,45 +382,30 @@ __hoisted_3(
     __syncthreads();
     size_t __anf0 = bkIdx;
     size_t i = threadIdx.x;
-    while (i < (size_t)1024U)
-    {
+    for (; i < (size_t)1024U; i += (size_t)256U)
       sA[i / (size_t)8U * (size_t)8U + i % (size_t)8U] =
         gA4[(mrow * (size_t)128U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
-      i += (size_t)256U;
-    }
     size_t i1 = threadIdx.x;
-    while (i1 < (size_t)1024U)
-    {
+    for (; i1 < (size_t)1024U; i1 += (size_t)256U)
       sB[i1 / (size_t)128U * (size_t)128U + i1 % (size_t)128U] =
         gB4[(__anf0 * (size_t)8U + i1 / (size_t)128U) * cols +
           mcol * (size_t)128U + i1 % (size_t)128U];
-      i1 += (size_t)256U;
-    }
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
     {
       size_t i0 = (size_t)0U;
-      while (i0 < (size_t)8U)
-      {
+      for (; i0 < (size_t)8U; i0 += (size_t)1U)
         rAcol[i0] = sA[(threadIdx.x / (size_t)16U * (size_t)8U + i0) * (size_t)8U + dotIdx];
-        i0 += (size_t)1U;
-      }
       size_t i1 = (size_t)0U;
-      while (i1 < (size_t)8U)
-      {
+      for (; i1 < (size_t)8U; i1 += (size_t)1U)
         rBrow[i1] = sB[dotIdx * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + i1];
-        i1 += (size_t)1U;
-      }
       size_t resIdxM = (size_t)0U;
       while (resIdxM < (size_t)8U)
       {
         size_t resIdxN = (size_t)0U;
-        while (resIdxN < (size_t)8U)
-        {
+        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
           rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-          resIdxN += (size_t)1U;
-        }
         resIdxM += (size_t)1U;
       }
       dotIdx += (size_t)1U;
@@ -566,45 +500,30 @@ __hoisted_4(
     __syncthreads();
     size_t __anf0 = bkIdx;
     size_t i = threadIdx.x;
-    while (i < (size_t)1024U)
-    {
+    for (; i < (size_t)1024U; i += (size_t)256U)
       sA[i % (size_t)8U * (size_t)128U + i / (size_t)8U] =
         gA4[(mrow * (size_t)128U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
-      i += (size_t)256U;
-    }
     size_t i1 = threadIdx.x;
-    while (i1 < (size_t)1024U)
-    {
+    for (; i1 < (size_t)1024U; i1 += (size_t)256U)
       sB[i1 / (size_t)128U * (size_t)128U + i1 % (size_t)128U] =
         gB4[(__anf0 * (size_t)8U + i1 / (size_t)128U) * cols +
           mcol * (size_t)128U + i1 % (size_t)128U];
-      i1 += (size_t)256U;
-    }
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
     {
       size_t i0 = (size_t)0U;
-      while (i0 < (size_t)8U)
-      {
+      for (; i0 < (size_t)8U; i0 += (size_t)1U)
         rAcol[i0] = sA[dotIdx * (size_t)128U + threadIdx.x / (size_t)16U * (size_t)8U + i0];
-        i0 += (size_t)1U;
-      }
       size_t i1 = (size_t)0U;
-      while (i1 < (size_t)8U)
-      {
+      for (; i1 < (size_t)8U; i1 += (size_t)1U)
         rBrow[i1] = sB[dotIdx * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + i1];
-        i1 += (size_t)1U;
-      }
       size_t resIdxM = (size_t)0U;
       while (resIdxM < (size_t)8U)
       {
         size_t resIdxN = (size_t)0U;
-        while (resIdxN < (size_t)8U)
-        {
+        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
           rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-          resIdxN += (size_t)1U;
-        }
         resIdxM += (size_t)1U;
       }
       dotIdx += (size_t)1U;

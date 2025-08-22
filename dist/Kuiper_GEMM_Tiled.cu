@@ -32,13 +32,10 @@ __hoisted_0(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -123,13 +120,10 @@ __hoisted_1(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -214,13 +208,10 @@ __hoisted_2(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -303,13 +294,10 @@ __hoisted_3(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -392,13 +380,10 @@ __hoisted_4(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -483,13 +468,10 @@ __hoisted_5(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -574,13 +556,10 @@ __hoisted_6(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -663,13 +642,10 @@ __hoisted_7(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -749,13 +725,10 @@ __hoisted_8(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -833,13 +806,10 @@ __hoisted_9(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -917,13 +887,10 @@ __hoisted_10(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -999,13 +966,10 @@ __hoisted_11(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1081,13 +1045,10 @@ __hoisted_12(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1165,13 +1126,10 @@ __hoisted_13(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1249,13 +1207,10 @@ __hoisted_14(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1331,13 +1286,10 @@ __hoisted_15(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1413,13 +1365,10 @@ __hoisted_16(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1497,13 +1446,10 @@ __hoisted_17(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1581,13 +1527,10 @@ __hoisted_18(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1663,13 +1606,10 @@ __hoisted_19(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1745,13 +1685,10 @@ __hoisted_20(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1829,13 +1766,10 @@ __hoisted_21(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1913,13 +1847,10 @@ __hoisted_22(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -1995,13 +1926,10 @@ __hoisted_23(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2080,13 +2008,10 @@ __hoisted_24(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2158,13 +2083,10 @@ __hoisted_25(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2236,13 +2158,10 @@ __hoisted_26(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2314,13 +2233,10 @@ __hoisted_27(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(mrow * tile + brow) * shared + vbk * tile + k] *
           tB[(vbk * tile + k) * cols + mcol * tile + bcol];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2392,13 +2308,10 @@ __hoisted_28(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2470,13 +2383,10 @@ __hoisted_29(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2548,13 +2458,10 @@ __hoisted_30(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2626,13 +2533,10 @@ __hoisted_31(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < tile)
-    {
+    for (; k < tile; k += (size_t)1U)
       sum1 +=
         tA[(vbk * tile + k) * rows + mrow * tile + brow] *
           tB[(mcol * tile + bcol) * shared + vbk * tile + k];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2701,13 +2605,10 @@ __hoisted_32(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2772,13 +2673,10 @@ __hoisted_33(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2843,13 +2741,10 @@ __hoisted_34(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2914,13 +2809,10 @@ __hoisted_35(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)32U + threadIdx.x / (size_t)32U) * shared + vbk * (size_t)32U + k] *
           tB[(vbk * (size_t)32U + k) * cols + mcol * (size_t)32U + threadIdx.x % (size_t)32U];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -2985,13 +2877,10 @@ __hoisted_36(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3056,13 +2945,10 @@ __hoisted_37(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3127,13 +3013,10 @@ __hoisted_38(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3198,13 +3081,10 @@ __hoisted_39(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)32U)
-    {
+    for (; k < (size_t)32U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)32U + k) * rows + mrow * (size_t)32U + threadIdx.x / (size_t)32U] *
           tB[(mcol * (size_t)32U + threadIdx.x % (size_t)32U) * shared + vbk * (size_t)32U + k];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3269,13 +3149,10 @@ __hoisted_40(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3340,13 +3217,10 @@ __hoisted_41(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3411,13 +3285,10 @@ __hoisted_42(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3482,13 +3353,10 @@ __hoisted_43(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(mrow * (size_t)16U + threadIdx.x / (size_t)16U) * shared + vbk * (size_t)16U + k] *
           tB[(vbk * (size_t)16U + k) * cols + mcol * (size_t)16U + threadIdx.x % (size_t)16U];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3553,13 +3421,10 @@ __hoisted_44(
     float_t *tB = gB;
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     float_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3624,13 +3489,10 @@ __hoisted_45(
     double_t *tB = gB;
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     double_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3695,13 +3557,10 @@ __hoisted_46(
     uint32_t *tB = gB;
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     uint32_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;
@@ -3766,13 +3625,10 @@ __hoisted_47(
     uint64_t *tB = gB;
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
-    while (k < (size_t)16U)
-    {
+    for (; k < (size_t)16U; k += (size_t)1U)
       sum1 +=
         tA[(vbk * (size_t)16U + k) * rows + mrow * (size_t)16U + threadIdx.x / (size_t)16U] *
           tB[(mcol * (size_t)16U + threadIdx.x % (size_t)16U) * shared + vbk * (size_t)16U + k];
-      k += (size_t)1U;
-    }
     uint64_t s_ = sum1;
     sum += s_;
     bk = vbk + (size_t)1U;

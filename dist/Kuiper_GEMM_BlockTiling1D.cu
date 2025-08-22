@@ -44,21 +44,15 @@ __hoisted_0(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 float_t
@@ -144,21 +138,15 @@ __hoisted_1(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 double_t
@@ -244,21 +232,15 @@ __hoisted_2(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint32_t
@@ -342,21 +324,15 @@ __hoisted_3(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint64_t
@@ -440,21 +416,15 @@ __hoisted_4(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 float_t
@@ -540,21 +510,15 @@ __hoisted_5(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 double_t
@@ -640,21 +604,15 @@ __hoisted_6(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint32_t
@@ -738,21 +696,15 @@ __hoisted_7(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint64_t
@@ -836,21 +788,15 @@ __hoisted_8(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 float_t
@@ -936,21 +882,15 @@ __hoisted_9(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 double_t
@@ -1036,21 +976,15 @@ __hoisted_10(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint32_t
@@ -1134,21 +1068,15 @@ __hoisted_11(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint64_t
@@ -1232,21 +1160,15 @@ __hoisted_12(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 float_t
@@ -1332,21 +1254,15 @@ __hoisted_13(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 double_t
@@ -1432,21 +1348,15 @@ __hoisted_14(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint32_t
@@ -1530,21 +1440,15 @@ __hoisted_15(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 uint64_t
@@ -1628,21 +1532,15 @@ __hoisted_16(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -1715,21 +1613,15 @@ __hoisted_17(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -1802,21 +1694,15 @@ __hoisted_18(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -1889,21 +1775,15 @@ __hoisted_19(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -1976,21 +1856,15 @@ __hoisted_20(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2063,21 +1937,15 @@ __hoisted_21(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2150,21 +2018,15 @@ __hoisted_22(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2237,21 +2099,15 @@ __hoisted_23(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2324,21 +2180,15 @@ __hoisted_24(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2411,21 +2261,15 @@ __hoisted_25(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2498,21 +2342,15 @@ __hoisted_26(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2585,21 +2423,15 @@ __hoisted_27(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2672,21 +2504,15 @@ __hoisted_28(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2759,21 +2585,15 @@ __hoisted_29(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2846,21 +2666,15 @@ __hoisted_30(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -2933,21 +2747,15 @@ __hoisted_31(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3022,23 +2830,17 @@ __hoisted_32(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3117,23 +2919,17 @@ __hoisted_33(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3212,23 +3008,17 @@ __hoisted_34(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3307,23 +3097,17 @@ __hoisted_35(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3402,23 +3186,17 @@ __hoisted_36(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
       beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3497,23 +3275,17 @@ __hoisted_37(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
       beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3592,23 +3364,17 @@ __hoisted_38(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
       beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3687,23 +3453,17 @@ __hoisted_39(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)32U + threadIdx.x];
-      while (i < (size_t)32U)
-      {
+      for (; i < (size_t)32U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)32U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)32U)
-  {
+  for (; row < (size_t)32U; row += (size_t)1U)
     gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
       beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3782,23 +3542,17 @@ __hoisted_40(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3877,23 +3631,17 @@ __hoisted_41(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -3972,23 +3720,17 @@ __hoisted_42(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -4067,23 +3809,17 @@ __hoisted_43(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
       beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -4162,23 +3898,17 @@ __hoisted_44(
     {
       size_t i = (size_t)0U;
       float_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
       beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -4257,23 +3987,17 @@ __hoisted_45(
     {
       size_t i = (size_t)0U;
       double_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
       beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -4352,23 +4076,17 @@ __hoisted_46(
     {
       size_t i = (size_t)0U;
       uint32_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
       beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
@@ -4447,23 +4165,17 @@ __hoisted_47(
     {
       size_t i = (size_t)0U;
       uint64_t v2 = sa2[sk * (size_t)16U + threadIdx.x];
-      while (i < (size_t)16U)
-      {
+      for (; i < (size_t)16U; i += (size_t)1U)
         sums[i] += sa1[i * (size_t)16U + sk] * v2;
-        i += (size_t)1U;
-      }
       sk += (size_t)1U;
     }
     bk += (size_t)1U;
   }
   size_t row = (size_t)0U;
-  while (row < (size_t)16U)
-  {
+  for (; row < (size_t)16U; row += (size_t)1U)
     gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
       beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
         alpha * sums[row];
-    row += (size_t)1U;
-  }
 }
 
 void
