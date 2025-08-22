@@ -7,7 +7,7 @@ open Kuiper.Enumerable
 open Pulse.Lib.BigStar
 open Pulse.Lib.Trade
 
-let forevery a p =
+let ( forall+ ) #a #d p =
   bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
 
 let forevery_ext_lem
@@ -57,17 +57,17 @@ fn forevery_flatten
   ensures
     forevery (a & b) (fun (x, y) -> f x y)
 {
-  unfold forevery a (fun x -> forevery b (fun y -> f x y));
+  unfold op_forall_Plus #a (fun x -> forevery b (fun y -> f x y));
   ghost
   fn aux1 (i:natlt (cardinal a #_))
     requires forevery b (fun y -> f (of_nat i) y)
     ensures  bigstar 0 (cardinal b #_) (fun j -> f (of_nat i) (of_nat j))
   {
-    unfold forevery b (fun y -> f (of_nat i) y);
+    unfold op_forall_Plus #b (fun y -> f (of_nat i) y);
   };
   bigstar_map #_ #_ #0 #(cardinal a #_) aux1; // optional :-)
   bigstar_flatten #_ #_ #(cardinal a #_) #(cardinal b #_);
-  fold forevery (a & b) (fun (x, y) -> f x y);
+  fold op_forall_Plus #(a & b) (fun (x, y) -> f x y);
 }
 
 ghost
@@ -94,14 +94,14 @@ fn forevery_unflatten
     forevery a (fun x ->
       forevery b (fun y -> f x y))
 {
-  unfold forevery (a & b) (fun (x, y) -> f x y);
+  unfold op_forall_Plus #(a & b) (fun (x, y) -> f x y);
   assert bigstar 0 (cardinal (a & b) #_) (fun i -> let x, y = of_nat i in f x y);
   rewrite
     bigstar 0 (cardinal (a & b) #_) (fun i -> let x, y = of_nat i in f x y)
   as
     bigstar 0 (cardinal a #_ * cardinal b #_) (fun i -> f (of_nat (i / cardinal b #_)) (of_nat (i % cardinal b #_)));
   bigstar_unflatten #0 #0 #(cardinal a #_) #(cardinal b #_) #(fun x y -> f (of_nat x) (of_nat y));
-  fold forevery a (fun x ->
+  fold op_forall_Plus #a (fun x ->
     forevery b (fun y -> f x y));
 }
 
@@ -164,7 +164,7 @@ fn forevery_iso
   bijection_implies_equal_cardinal a b bij;
   assert (pure (cardinal a #_ == cardinal b #_));
 
-  unfold forevery a (fun x -> p x);
+  unfold op_forall_Plus #a (fun x -> p x);
   assert bigstar 0 (cardinal a #_) (fun i -> p (of_nat i));
 
   let bij_n : (natlt (cardinal a #_) =~ natlt (cardinal a #_)) =
@@ -181,7 +181,7 @@ fn forevery_iso
     bigstar 0 (cardinal b #_) (fun i -> p (bij.gg (eb.bij.gg i)));
 
   assert bigstar 0 (cardinal b #_) (fun i -> p (bij.gg (eb.bij.gg i)));
-  fold forevery b (fun y -> p (bij.gg y));
+  fold op_forall_Plus #b (fun y -> p (bij.gg y));
 }
 
 ghost
@@ -208,11 +208,11 @@ fn forevery_permute
   ensures
     forall+ (x:a). p (bij.ff x)
 {
-  unfold forevery a (fun x -> p x);
+  unfold op_forall_Plus #a (fun x -> p x);
   bigstar_permute'
     (fun i -> p (of_nat i))
     (bij_sym ea.bij `bij_comp` bij `bij_comp` ea.bij);
-  fold forevery a (fun x -> p (of_nat (to_nat (bij.ff x))));
+  fold op_forall_Plus #a (fun x -> p (of_nat (to_nat (bij.ff x))));
 }
 ghost
 fn forevery_permute_back
@@ -236,7 +236,7 @@ fn forevery_tostar
   ensures
     bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
 {
-  unfold forevery a (fun x -> p x);
+  unfold op_forall_Plus #a (fun x -> p x);
 }
 
 ghost
@@ -248,7 +248,7 @@ fn forevery_fromstar
   ensures
     forall+ (x:a). p x
 {
-  fold forevery a (fun x -> p x);
+  fold op_forall_Plus #a (fun x -> p x);
 }
 
 ghost
@@ -286,7 +286,7 @@ fn forevery_emp_intro
     forall+ (_ : a). emp
 {
   bigstar_emp_intro 0 (cardinal a #_);
-  fold forevery a (fun _ -> emp);
+  fold op_forall_Plus #a (fun _ -> emp);
 }
 
 ghost
@@ -297,7 +297,7 @@ fn forevery_emp_elim
   ensures
     emp
 {
-  unfold forevery a (fun _ -> emp);
+  unfold op_forall_Plus #a (fun _ -> emp);
   bigstar_emp_elim #_ #0 #(cardinal a #_);
 }
 
@@ -315,7 +315,7 @@ fn forevery_singleton_intro
     bigstar 0 1 (fun x -> p (of_nat x))
   as
     bigstar 0 (cardinal a #_) (fun x -> p (of_nat x));
-  fold forevery a (fun x -> p x);
+  fold op_forall_Plus #a (fun x -> p x);
 }
 
 ghost
@@ -327,7 +327,7 @@ fn forevery_singleton_elim
   ensures
     p (of_nat 0)
 {
-  unfold forevery a (fun x -> p x);
+  unfold op_forall_Plus #a (fun x -> p x);
   rewrite each cardinal a #_ as (0 + 1);
   bigstar_single_elim #0 #0 #(fun x -> p (of_nat #a x));
 }
@@ -363,9 +363,9 @@ fn forevery_eta
   ensures
     forevery a (fun x -> p x)
 {
-  unfold forevery a p;
+  unfold op_forall_Plus #a p;
   bigstar_eta ();
-  fold forevery a (fun x -> p x);
+  fold op_forall_Plus #a (fun x -> p x);
   ();
 }
 
@@ -378,9 +378,9 @@ fn forevery_uneta
   ensures
     forevery a p
 {
-  unfold forevery a (fun x -> p x);
+  unfold op_forall_Plus #a (fun x -> p x);
   bigstar_uneta ();
-  fold forevery a p;
+  fold op_forall_Plus #a p;
   ();
 }
 
@@ -485,9 +485,9 @@ fn forevery_zip
 {
   rewrite forevery a (fun x -> p1 x)
        as bigstar #1 0 (cardinal a #_) (fun i -> p1 (of_nat i));
-  unfold forevery a (fun x -> p2 x);
+  unfold op_forall_Plus #a (fun x -> p2 x);
   bigstar_zip #1 0 (cardinal a #_) _ _;
-  fold forevery a (fun x -> p1 x ** p2 x);
+  fold op_forall_Plus #a (fun x -> p1 x ** p2 x);
 }
 
 ghost
@@ -500,10 +500,10 @@ fn forevery_unzip
     (forall+ (x:a). p1 x) **
     (forall+ (x:a). p2 x)
 {
-  unfold forevery a (fun x -> p1 x ** p2 x);
+  unfold op_forall_Plus #a (fun x -> p1 x ** p2 x);
   bigstar_unzip 0 (cardinal a #_) _ _;
-  fold forevery a (fun x -> p1 x);
-  fold forevery a (fun x -> p2 x);
+  fold op_forall_Plus #a (fun x -> p1 x);
+  fold op_forall_Plus #a (fun x -> p2 x);
 }
 
 ghost
@@ -516,9 +516,9 @@ fn forevery_map
   ensures
     forall+ (x:a). p2 x
 {
-  unfold forevery a (fun x -> p1 x);
+  unfold op_forall_Plus #a (fun x -> p1 x);
   bigstar_map #_ #_ #0 #(cardinal a #_) (fun x -> f (of_nat x));
-  fold forevery a (fun x -> p2 x);
+  fold op_forall_Plus #a (fun x -> p2 x);
 }
 
 ghost
