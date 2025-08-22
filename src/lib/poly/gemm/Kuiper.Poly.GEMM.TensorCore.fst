@@ -41,41 +41,41 @@ let shmems_desc
 
 unfold
 let bid_y
-  (rows cols : erased nat)
-  (bm : erased nat {bm > 0 /\ bm /? rows})
-  (bn : erased nat {bn > 0 /\ bn /? cols})
-  (bid : enatlt (rows/bm * (cols/bn)))
-  : enatlt (rows/bm)
+  (rows cols : nat)
+  (bm : nat {bm > 0 /\ bm /? rows})
+  (bn : nat {bn > 0 /\ bn /? cols})
+  (bid : natlt (rows/bm * (cols/bn)))
+  : natlt (rows/bm)
   =
     bid / (cols/bn)
 
 unfold
 let bid_x
-  (rows cols : erased nat)
-  (bm : erased nat {bm > 0 /\ bm /? rows})
-  (bn : erased nat {bn > 0 /\ bn /? cols})
-  (bid : enatlt (rows/bm * (cols/bn)))
-  : enatlt (cols/bn)
+  (rows cols : nat)
+  (bm : nat {bm > 0 /\ bm /? rows})
+  (bn : nat {bn > 0 /\ bn /? cols})
+  (bid : natlt (rows/bm * (cols/bn)))
+  : natlt (cols/bn)
   =
   bid % (cols/bn)
 
 unfold
 let tid_y
-  (bm bn : erased nat)
-  (tm : erased nat {tm > 0 /\ tm /? bm})
-  (tn : erased nat {tn > 0 /\ tn /? bn})
-  (tid : enatlt (bm/tm * (bn/tn)))
-  : enatlt (bm/tm)
+  (bm bn : nat)
+  (tm : nat {tm > 0 /\ tm /? bm})
+  (tn : nat {tn > 0 /\ tn /? bn})
+  (tid : natlt (bm/tm * (bn/tn)))
+  : natlt (bm/tm)
   =
     tid / (bn/tn)
 
 unfold
 let tid_x
-  (bm bn : erased nat)
-  (tm : erased nat {tm > 0 /\ tm /? bm})
-  (tn : erased nat {tn > 0 /\ tn /? bn})
-  (tid : enatlt (bm/tm * (bn/tn)))
-  : enatlt (bn/tn)
+  (bm bn : nat)
+  (tm : nat {tm > 0 /\ tm /? bm})
+  (tn : nat {tn > 0 /\ tn /? bn})
+  (tid : natlt (bm/tm * (bn/tn)))
+  : natlt (bn/tn)
   =
     tid % (bn/tn)
 
@@ -92,9 +92,11 @@ let block_tile
   (bid : enatlt (rows/bm * (cols/bn)))
   : gpu_matrix et
       (subtile_layout lC bm bn
-        (bid_y rows cols bm bn bid) (bid_x rows cols bm bn bid))
+        (bid_y rows cols (hide (SZ.v bm)) (hide (SZ.v bn)) bid)
+        (bid_x rows cols (hide (SZ.v bm)) (hide (SZ.v bn)) bid))
   =
-    gpu_matrix_subtile gC bm bn (bid_y rows cols bm bn bid) (bid_x rows cols bm bn bid)
+    gpu_matrix_subtile gC (hide (SZ.v bm)) (hide (SZ.v bn))
+      (bid_y rows cols bm bn bid) (bid_x rows cols bm bn bid)
 
 let thread_tile
   (#et : Type0) {| scalar et |}
@@ -108,7 +110,8 @@ let thread_tile
       (subtile_layout lC_bt tm tn
         (tid_y bm bn tm tn tid) (tid_x bm bn tm tn tid))
   =
-   gpu_matrix_subtile gC_bt tm tn (tid_y bm bn tm tn tid) (tid_x bm bn tm tn tid)
+   gpu_matrix_subtile gC_bt (hide (SZ.v tm)) (hide (SZ.v tn))
+    (tid_y bm bn tm tn tid) (tid_x bm bn tm tn tid)
 
 let own_thread_tile
   (#et : Type0) {| scalar et |}
@@ -123,9 +126,9 @@ let own_thread_tile
   (tid : enatlt (bm/tm * (bn/tn)))
   : slprop
   = 
-    (exists* em.
+    exists* em.
       gpu_matrix_pts_to
-        (thread_tile (block_tile gC bm bn bid) tm tn tid) em)
+        (thread_tile (block_tile gC bm bn bid) tm tn tid) em
 
 unfold
 let kpre1
@@ -150,8 +153,8 @@ let kpre1
   (tid : enatlt (bm/tm * (bn/tn)))
   : slprop
   =
-  (gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA) **
-  (gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB) **
+  gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA **
+  gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
   own_thread_tile gC bm bn tm tn bid tid
 
 unfold
@@ -177,8 +180,8 @@ let kpost1
   (tid : enatlt (bm/tm * (bn/tn)))
   : slprop
   =
-  (gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA) **
-  (gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB) **
+  gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA **
+  gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
   own_thread_tile gC bm bn tm tn bid tid
   
 let own_shmem_cell
@@ -191,15 +194,15 @@ let own_shmem_cell
   : slprop
   = exists* v. gpu_matrix_pts_to_cell sm i j v
 
-let div_ceil (a : erased nat) (b : pos) = (a + (b-1))/b
+let div_ceil (a : nat) (b : pos) = (a + (b-1))/b
 let own_tile_stride_cells
   (#et : Type0)
-  (#rows #cols : erased nat)
+  (#rows #cols : nat)
   (#lm : mlayout rows cols)
   ([@@@mkey] m : gpu_matrix et lm)
   // (em : ematrix et rows cols)
-  (nthr : erased nat)
-  (tid : enatlt nthr)
+  (nthr : nat)
+  (tid : natlt nthr)
   : slprop
   =
   (* using enatlt here would require enumerable enatlt which is not entirely straightforward *)
@@ -226,7 +229,7 @@ fn cp_matrix
   preserves
     gpu **
     pure (SZ.fits (rows * cols + nthr)) **
-    (src |-> Frac fM esrc) **
+    src |-> Frac fM esrc **
     own_tile_stride_cells dst nthr tid
 {
   let mlen = rows *^ cols;
@@ -283,8 +286,8 @@ let barrier_p
   : B.barrier_side nthr =
   fun it tid ->
     if even it then
-      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
-      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
+      exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x **
+      exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x
     else
       own_tile_stride_cells m1 nthr tid **
       own_tile_stride_cells m2 nthr tid
@@ -310,7 +313,7 @@ let barrier_tok
   (l2 : full_mlayout bk bn)
   (sar1 : gpu_array et (bm * bk))
   (sar2 : gpu_array et (bk * bn))
-  (it : erased nat)
+  (it : nat)
   (nthr : pos)
   (tid : natlt nthr)
   : slprop
@@ -347,8 +350,8 @@ let kpre
   : slprop
   =
   kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
+  exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x **
+  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x **
   barrier_tok slA slB (fst sh) (fst (snd sh)) 0 (bm/tm * (bn/tn)) tid
 
 unfold
@@ -379,8 +382,8 @@ let kpost
   : slprop
   =
   kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
+  exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x **
+  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x **
   barrier_tok slA slB (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm * (bn/tn)) tid
 
 inline_for_extraction noextract
@@ -411,16 +414,18 @@ fn populate_shmem
   (tid : szlt (bm/^tm *^ (bn/^tn)))
   preserves
     gpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     thread_id (bm/^tm *^ (bn/^tn)) tid **
     own_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
     own_tile_stride_cells sB (bm/tm * (bn/tn)) tid
 {
-  let tileA = gpu_matrix_extract_tile' gA bm bk tile_row tile_shared;
-  cp_matrix bm bk tileA sA (get_bdim()) tid;
+  let tileA = gpu_matrix_extract_tile_ro' gA
+    (hide (SZ.v bm)) (hide (SZ.v bk)) (hide (SZ.v tile_row)) (hide (SZ.v tile_shared));
+  cp_matrix bm bk #_ #_ tileA sA (get_bdim()) tid;
 
-  let tileB = gpu_matrix_extract_tile' gB bk bn tile_shared tile_col;
+  let tileB = gpu_matrix_extract_tile_ro' gB
+    (hide (SZ.v bk)) (hide (SZ.v bn)) (hide (SZ.v tile_shared)) (hide (SZ.v tile_col));
   cp_matrix bk bn tileB sB (get_bdim()) tid;
 
   ambig_trade_elim ();
@@ -428,177 +433,80 @@ fn populate_shmem
   ();
 }
 
-// #push-options "--debug SMTFail --split_queries always --print_implicits"
-inline_for_extraction noextract
-fn subproducts2d
-  (#et : Type0) {| scalar et |}
-  (bm bn bk: szp)
-  (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn})
-  (rAcol rBrow rchProd: array et)
-  (#vrAcol #vrBrow #vrchProd : erased (seq et))
-  (#l1 : mlayout bm bk) {| clayout l1 |}
-  (#l2 : mlayout bk bn) {| clayout l2 |}
-  (gA : gpu_matrix et l1)
-  (gB : gpu_matrix et l2)
-  (#eA : ematrix et bm bk)
-  (#eB : ematrix et bk bn)
-  (#f : perm)
-  (arow: szlt (bm/tm))
-  (bcol : szlt (bn/tn))
-  preserves
-    gpu **
-    (gA |-> Frac f eA) **
-    (gB |-> Frac f eB)
-  requires
-    pure (Seq.length vrAcol == tm /\
-          Seq.length vrBrow == tn /\
-          Seq.length vrchProd == tm * tn /\
-          SZ.fits (tm * tn)) **
-    (rAcol |-> vrAcol) **
-    (rBrow |-> vrBrow) **
-    (rchProd |-> vrchProd)
-  ensures
-    exists* vrAcol' vrBrow' vrchProd'.
-      pure (Seq.length vrAcol' == tm /\
-            Seq.length vrBrow' == tn /\
-            Seq.length vrchProd' == tm * tn) **
-      (rAcol |-> vrAcol') **
-      (rBrow |-> vrBrow') **
-      (rchProd |-> vrchProd')
-{
-  let mut dotIdx : sz = 0sz;
-  while (SZ.(!dotIdx <^ bk))
-    invariant
-      exists* (vdotIdx : sz{vdotIdx <= bk}) (vrAcol : erased (lseq et tm))
-        (vrBrow : erased (lseq et tn)) (vrchProd : erased (lseq et (tm*tn))).
-        (dotIdx |-> vdotIdx) **
-        (rAcol |-> vrAcol) **
-        (rBrow |-> vrBrow) **
-        (rchProd |-> vrchProd)
-  {
-    open Pulse.Lib.Array;
-
-    let mut i0 = 0sz;
-    while (SZ.(!i0 <^ tm))
-      invariant
-        exists* (vi : sz{vi <= tm}) (vrAcol : erased (lseq et tm)).
-          (i0 |-> vi) **
-          (rAcol |-> vrAcol)
-    {
-      (* get rid of a few non-linear arithmetic expressions *)
-      let a_tile = gpu_matrix_extract_tile' gA tm 1 arow !dotIdx;
-      let va = gpu_matrix_read a_tile !i0 0sz;
-      ambig_trade_elim ();
-      rAcol.(!i0) <- va;
-
-      i0 := !i0 +^ 1sz;
-    };
-
-    let mut i1 = 0sz;
-    while (SZ.(!i1 <^ tn))
-      invariant
-        exists* (vi : sz{vi <= tn}) (vrBrow : erased (lseq et tn)).
-          (i1 |-> vi) **
-          (rBrow |-> vrBrow)
-    {
-      let b_tile = gpu_matrix_extract_tile' gB 1 tn !dotIdx bcol;
-      let vb = gpu_matrix_read b_tile 0sz !i1;
-      ambig_trade_elim ();
-      rBrow.(!i1) <- vb;
-
-      i1 := !i1 +^ 1sz;
-    };
-
-    let mut resIdxM = 0sz;
-    while (SZ.(!resIdxM <^ tm))
-      invariant
-        exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : erased (lseq et (tm*tn))).
-          (resIdxM |-> vresIdxM) **
-          (rchProd |-> vrchProd)
-    {
-      let mut resIdxN = 0sz;
-      while (SZ.(!resIdxN <^ tn))
-        invariant
-          exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : erased (lseq et (tm*tn))).
-            (resIdxN |-> vresIdxN) **
-            (rchProd |-> vrchProd)
-      {
-        (* works on arrays and therefore does not have the nice matrix abstraction *)
-        let ra = rAcol.(!resIdxM);
-        let rb = rBrow.(!resIdxN);
-        let iM = !resIdxM;
-        let iN = !resIdxN;
-        assert(pure(SZ.fits(iM *^ tn +^ iN)));
-        let old = rchProd.(!resIdxM *^ tn +^ !resIdxN);
-        let mad = old `add` (ra `mul` rb);
-        rchProd.(!resIdxM *^ tn +^ !resIdxN) <- mad;
-
-        resIdxN := !resIdxN +^ 1sz;
-      };
-
-      resIdxM := !resIdxM +^ 1sz;
-    };
-
-    dotIdx := !dotIdx +^ 1sz;
-  }
-}
-
-#push-options "--debug SMTFail --split_queries always"
+// // #push-options "--debug SMTFail --split_queries always"
+// #push-options "--print_implicits"
 inline_for_extraction noextract
 fn subproducts_tc
   (* TODO restrict et to valid types only *)
-  (#et : Type0) {| scalar et |}
+  // (#et : Type0) {| scalar et |}
   (bm bn bk: szp)
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
   (* is FragLCM layout for aFrag relevant here? *)
-  (aFrag : fragment et FragA tm tn tk FragLRM)
-  (#vaFrag : ematrix et tm tk)
-  (bFrag : fragment et FragB tm tn tk FragLRM)
-  (#vbFrag : ematrix et tk tn)
-  (accumFrag : fragment et FragAccum tm tn tk FragLAccum)
-  (#vaccumFrag : ematrix et tm tn)
-  (gA : gpu_matrix et (R.row_major bm bk))
-  (gB : gpu_matrix et (R.row_major bk bn))
-  (#eA : ematrix et bm bk)
-  (#eB : ematrix et bk bn)
+  (aFrag : fragment half FragA tm tn tk FragLRM)
+  (#vaFrag : ematrix half tm tk)
+  (bFrag : fragment half FragB tm tn tk FragLRM)
+  (#vbFrag : ematrix half tk tn)
+  (accumFrag : fragment half FragAccum tm tn tk FragLAccum)
+  (#vaccumFrag : ematrix half tm tn)
+  (gA : gpu_matrix half (R.row_major bm bk))
+  (gB : gpu_matrix half (R.row_major bk bn))
+  (#eA : ematrix half bm bk)
+  (#eB : ematrix half bk bn)
   (#f : perm)
   (arow: szlt (bm/tm))
   (bcol : szlt (bn/tn))
   preserves
     gpu **
-    (gpu_matrix_pts_to gA #f eA) **
-    (gpu_matrix_pts_to gB #f eB)
+    gA |-> Frac f eA **
+    gB |-> Frac f eB
   requires
-    (aFrag |-> vaFrag) **
-    (bFrag |-> vbFrag) **
-    (accumFrag |-> vaccumFrag)
+    aFrag |-> vaFrag **
+    bFrag |-> vbFrag **
+    accumFrag |-> vaccumFrag
   ensures
     exists* vaFrag' vbFrag' vaccumFrag'.
-      (aFrag |-> vaFrag') **
-      (bFrag |-> vbFrag') **
-      (accumFrag |-> vaccumFrag')
+      aFrag |-> vaFrag' **
+      bFrag |-> vbFrag' **
+      accumFrag |-> vaccumFrag'
 {
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant
-      exists* (vdotIdx : sz{vdotIdx <= (bk/^tk)}) (vaFrag : ematrix et tm tk)
-        (vbFrag : ematrix et tk tn) (vaccumFrag : ematrix et tm tn).
-        (dotIdx |-> vdotIdx) **
-        (aFrag |-> vaFrag) **
-        (bFrag |-> vbFrag) **
-        (accumFrag |-> vaccumFrag)
+      exists* (vdotIdx : sz{vdotIdx <= (bk/^tk)}) (vaFrag : ematrix half tm tk)
+        (vbFrag : ematrix half tk tn) (vaccumFrag : ematrix half tm tn).
+        dotIdx |-> vdotIdx **
+        aFrag |-> vaFrag **
+        bFrag |-> vbFrag **
+        accumFrag |-> vaccumFrag
   {
-    let a_tile = gpu_matrix_extract_tile' gA tm tk arow !dotIdx;
+    (* only required because of rewrites_to *)
+    let didx = !dotIdx;
+
+    gpu_matrix_extract_tile_ro gA tm tk arow !dotIdx;
+    let a_tile = gpu_matrix_subtile gA (hide (SZ.v tm)) (hide (SZ.v tk)) (hide (SZ.v arow)) (hide (SZ.v didx));
+    assert (rewrites_to a_tile (gpu_matrix_subtile gA (hide (SZ.v tm)) (hide (SZ.v tk)) (hide (SZ.v arow)) (hide (SZ.v didx))));
+
+    gpu_matrix_extract_tile_ro gB tk tn !dotIdx bcol;
+    let b_tile = gpu_matrix_subtile gB (hide (SZ.v tk)) (hide (SZ.v tn)) (hide (SZ.v !dotIdx)) (hide (SZ.v bcol));
+    assert (rewrites_to b_tile (gpu_matrix_subtile gB (hide (SZ.v tk)) (hide (SZ.v tn)) (hide (SZ.v didx)) (hide (SZ.v bcol))));
+
     mma_loadA aFrag a_tile;
-    let b_tile = gpu_matrix_extract_tile' gB tk tn !dotIdx bcol;
     mma_loadB bFrag b_tile;
     mma_sync' aFrag bFrag accumFrag;
 
+    with etA.
+      assert (gpu_matrix_pts_to a_tile #f etA);
+      Pulse.Lib.Trade.elim_trade (a_tile |-> Frac f etA) (gA |-> Frac f eA);
+    with etB.
+      assert (gpu_matrix_pts_to b_tile #f etB);
+      Pulse.Lib.Trade.elim_trade (b_tile |-> Frac f etB) (gB |-> Frac f eB);
+
     dotIdx := !dotIdx +^ 1sz;
-  }
+  };
+
+  ()
 }
 
 inline_for_extraction noextract
@@ -619,36 +527,35 @@ fn epilogue
   (tid : szlt (bm/tm * (bn/tn)))
   requires
     gpu **
-    own_thread_tile gC bm bn tm tn bid tid **
+    own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
     (exists* vrchProd.
       pure (Seq.length vrchProd == tm * tn) **
-      (rchProd |-> vrchProd))
+      rchProd |-> vrchProd)
   ensures
     gpu **
-    own_thread_tile gC bm bn tm tn bid tid **
+    own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
     (exists* vrchProd'.
       pure (Seq.length vrchProd' == tm * tn) **
-      (rchProd |-> vrchProd'))
+      rchProd |-> vrchProd')
 {
-  unfold own_thread_tile gC bm bn tm tn bid tid;
-  let t_tile = thread_tile (block_tile gC bm bn bid) tm tn tid;
-  rewrite each thread_tile (block_tile gC bm bn bid) tm tn tid as t_tile;
-  // assert (rewrites_to t_tile (thread_tile (block_tile gC bm bn bid) tm tn tid));
+  unfold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
+  let t_tile = thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid));
+  assert (rewrites_to t_tile (thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid))));
 
   let mut resIdxM = 0sz;
   while (SZ.(!resIdxM <^ tm))
     invariant
       exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)) (v : ematrix et tm tn).
-        (resIdxM |-> vresIdxM) **
-        (rchProd |-> vrchProd) **
+        resIdxM |-> vresIdxM **
+        rchProd |-> vrchProd **
         gpu_matrix_pts_to t_tile v
   {
     let mut resIdxN = 0sz;
     while (SZ.(!resIdxN <^ tn))
       invariant
         exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)) (v : ematrix et tm tn).
-          (resIdxN |-> vresIdxN) **
-          (rchProd |-> vrchProd) **
+          resIdxN |-> vresIdxN **
+          rchProd |-> vrchProd **
           gpu_matrix_pts_to t_tile v
 
     {
@@ -672,8 +579,8 @@ fn epilogue
     resIdxM := !resIdxM +^ 1sz;
   };
 
-  rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
-  fold own_thread_tile gC bm bn tm tn bid tid;
+  // rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
+  fold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
   ()
 }
 
@@ -745,23 +652,20 @@ fn kf
   let threadCol = tid %^ (bn/^tn);
 
   // (* tensor core fragments *)
-  // let aFrag = __alloc_fragment et FragA tm tn tk FragLCM;
-  // let bFrag = __alloc_fragment et FragB tm tn tk FragLRM;
-  // let accumFrag = __alloc_fragment et FragAccum tm tn tk FragAccum;
-  // fill_fragment accumFrag fill_value_zero;
-  (* register caches *)
-  let mut rAcol : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
-  let mut rBrow : Pulse.Lib.Array.array et = [| zero #et #_ ; tn |];
-  let mut rchProd : Pulse.Lib.Array.array et = [| zero #et #_ ; tm*^tn |];
+  let aFrag = __alloc_fragment et FragA tm tn tk FragLCM;
+  let bFrag = __alloc_fragment et FragB tm tn tk FragLRM;
+  let accumFrag = __alloc_fragment et FragAccum tm tn tk FragAccum;
+  mma_fill accumFrag fill_value_zero;
 
   let mut bkIdx  : sz = 0sz;
   while (SZ.(!bkIdx <^ num_k_tiles))
     invariant
-      exists* (vbkIdx : SZ.t{vbkIdx <= num_k_tiles}) (vrAcol : lseq et tm) (vrBrow : lseq et tn) (vrchProd : lseq et (tm*tn)).
-        (bkIdx |-> vbkIdx) **
-        (rAcol |-> vrAcol) **
-        (rBrow |-> vrBrow) **
-        (rchProd |-> vrchProd) **
+      exists* (vbkIdx : SZ.t{vbkIdx <= num_k_tiles})
+        (vaFrag : ematrix half tm tk) (vbFrag : ematrix half tk tn) (vaccumFrag : ematrix half tm tn).
+        bkIdx |-> vbkIdx **
+        aFrag |-> vaFrag **
+        bFrag |-> vbFrag **
+        accumFrag |-> vaccumFrag
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. ((bm/tm*(bn/tn)))) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. ((bm/tm*(bn/tn)))) x) **
         B.barrier_tok (barrier_p sA sB ((bm/tm*(bn/tn)))) (barrier_q sA sB ((bm/tm*(bn/tn)))) (2 * vbkIdx) tid **
@@ -817,7 +721,6 @@ fn kf
   ()
 }
 
-#push-options "--z3rlimit 20"
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
@@ -841,6 +744,8 @@ fn setup
   (#_: squash (SZ.fits (rows * cols)))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
+  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
   (fA fB : perm)
   ()
   requires
@@ -848,8 +753,8 @@ fn setup
     (gB |-> Frac fB eB) **
     (gC |-> eC)
   ensures
-    (forall+ (bid : natlt (rows/^bm *^ (cols/^bn)))
-             (tid : natlt (bm/^tm *^ (bn/^tn))).
+    (forall+ (bid : natlt nblk)
+             (tid : natlt nthr).
       kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
 {
@@ -881,18 +786,20 @@ fn block_setup
   {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
+  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et bm bn bk))
-  (bid : natlt (rows/^bm *^ (cols/^bn)))
+  (bid : natlt nblk)
   ()
   requires
-    block_setup_tok (bm/^tm *^ (bn/^tn)) **
+    block_setup_tok nthr **
     live_c_shmems sh **
-    (forall+ (tid : natlt (bm/^tm *^ (bn/^tn))).
+    (forall+ (tid : natlt nthr).
       kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid)
   ensures
-    block_setup_tok (bm/^tm *^ (bn/^tn)) **
-    (forall+ (tid : natlt (bm/^tm *^ (bn/^tn))).
+    block_setup_tok nthr **
+    (forall+ (tid : natlt nthr).
       kpre comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB sh bid tid) **
     emp (* frame *)
 {
@@ -924,17 +831,19 @@ fn block_teardown
   {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
+  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
   (fA fB : perm)
   (sh : c_shmems (shmems_desc et bm bn bk))
-  (bid : natlt (rows/^bm *^ (cols/^bn)))
+  (bid : natlt nblk)
   ()
   requires
-    (forall+ (tid : natlt (bm/^tm *^ (bn/^tn))).
+    (forall+ (tid : natlt nthr).
       kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
-    (forall+ (tid : natlt (bm/^tm *^ (bn/^tn))).
+    (forall+ (tid : natlt nthr).
       kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid)
 {
   admit();
@@ -961,11 +870,13 @@ fn teardown
   (#_: squash (SZ.fits (bm * bn)))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
+  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
   (fA fB : perm)
   ()
   requires
-    (forall+ (bid : natlt (rows/^bm *^ (cols/^bn)))
-             (tid : natlt (bm/^tm *^ (bn/^tn))).
+    (forall+ (bid : natlt nblk)
+             (tid : natlt nthr).
       kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
   ensures
@@ -982,7 +893,6 @@ fn teardown
     // (fun (bid, tid) -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
   admit();
 }
-#pop-options
 
 inline_for_extraction noextract
 let mk_kernel
@@ -1009,6 +919,8 @@ let mk_kernel
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (#fA #fB : perm)
+  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
+  (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#_ : squash (rows/bm * (cols/bn) <= max_blocks
@@ -1018,20 +930,21 @@ let mk_kernel
       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
-  nblk = rows/^bm *^ (cols/^bn);
-  nthr = (bm /^ tm *^ (bn /^ tn));
+  nblk;// = rows/^bm *^ (cols/^bn);
+  nthr;// = (bm /^ tm *^ (bn /^ tn));
 
   shmems_desc = shmems_desc et bm bn bk;
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt (bm/^tm *^ (bn/^tn))). kpre1  comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt (bm/^tm *^ (bn/^tn))). kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
-  setup      = setup    comb gA eA gB eB gC eC bm bn bk tm tn fA fB;
-  teardown   = teardown comb gA eA gB eB gC eC bm bn bk tm tn fA fB;
+  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
+
+  setup      = setup    comb gA eA gB eB gC eC bm bn bk tm tn nblk nthr fA fB;
+  teardown   = teardown comb gA eA gB eB gC eC bm bn bk tm tn nblk nthr fA fB;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB;
-  block_teardown = block_teardown comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB ;
+  block_setup    = block_setup comb gA eA gB eB gC eC bm bn bk slA slB tm tn nblk nthr fA fB;
+  block_teardown = block_teardown comb gA eA gB eB gC eC bm bn bk slA slB tm tn nblk nthr fA fB ;
 
   kpre      = kpre  comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB;
   kpost     = kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB;
@@ -1039,7 +952,8 @@ let mk_kernel
   f = kf comb gA #eA gB #eB gC bm bn bk slA slB tm tn #() #() #fA #fB;
 }
 
-#push-options "--debug SMTFail --split_queries always"
+
+
 inline_for_extraction noextract
 fn mmcomb_gpu
   (#et : Type0) {| scalar et |}
@@ -1050,11 +964,11 @@ fn mmcomb_gpu
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
   (gA : gpu_matrix et lA)
-  (eA : ematrix et rows shared)
+  (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
-  (eB : ematrix et shared cols)
+  (#eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
-  (eC : ematrix et rows cols)
+  (#eC : ematrix et rows cols)
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
   (bk : szp{bk /? shared})
@@ -1066,18 +980,20 @@ fn mmcomb_gpu
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
   {| clayout slA, clayout slB |}
-  (fA fB : perm)
+  (#fA #fB : perm)
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel comb gA gB gC bm bn bk slA slB tm tn ());
+  // launch_sync (mk_kernel comb gA gB gC bm bn bk slA slB tm tn (rows/^bm *^ (cols/^bn)) (bm/^tm *^ (bn/^tn)) ());
+  admit();
 }
+

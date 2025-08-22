@@ -178,11 +178,11 @@ type block_tiled2d_matmulcomb_gpu_ty =
   (#lC : mlayout rows cols) ->
   {| clayout lA |} -> {| clayout lB |} -> {| clayout lC |} ->
   (gA : M.gpu_matrix et lA) ->
-  (eA : ematrix et rows shared) ->
+  (#eA : ematrix et rows shared) ->
   (gB : M.gpu_matrix et lB) ->
-  (eB : ematrix et shared cols) ->
+  (#eB : ematrix et shared cols) ->
   (gC : M.gpu_matrix et lC) ->
-  (eC : ematrix et rows cols) ->
+  (#eC : ematrix et rows cols) ->
   (bm : szp{bm /? rows}) ->
   (bn : szp{bn /? cols}) ->
   (bk : szp{bk /? shared}) ->
@@ -194,8 +194,8 @@ type block_tiled2d_matmulcomb_gpu_ty =
   (slA : full_mlayout bm bk) ->
   (slB : full_mlayout bk bn) ->
   {| clayout slA |} -> {| clayout slB |} ->
-  (fA : perm) ->
-  (fB : perm) ->
+  (#fA : perm) ->
+  (#fB : perm) ->
   stt unit
     (requires
       (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **

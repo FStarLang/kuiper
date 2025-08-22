@@ -310,35 +310,18 @@ fn mmcomb_gpu_shmem_block_tiled2d
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
 
-  let lA4 : mlayout4 mrows   mshared bm bk = lA;
-  let lB4 : mlayout4 mshared mcols  bk bn = lB;
-  let lC4 : mlayout4 mrows   mcols  bm bn = lC;
-  let gA4 = MC.m2_to_m4 (SZ.v bm) (SZ.v bk) (SZ.v mrows) (SZ.v mshared) gA;
-  let gB4 = MC.m2_to_m4 (SZ.v bk) (SZ.v bn) (SZ.v mshared) (SZ.v mcols) gB;
-  let gC4 = MC.m2_to_m4 (SZ.v bm) (SZ.v bn) (SZ.v mrows) (SZ.v mcols) gC;
-
   // There is no way to prove this.
   assume (pure (SZ.fits (bm*bk + (bm/tm * (bn/tn)))));
   assume (pure (SZ.fits (bk*bn + (bm/tm * (bn/tn)))));
 
   tiled_mmcomb_gpu
     comb
+    gA #eA gB #eB gC #eC
     bm bn bk
     tm tn
     slA slB
-    lA4 lB4 lC4
-    #(M4.clayout4_from_clayout bm bk cA)
-    #(M4.clayout4_from_clayout bk bn cB)
-    #(M4.clayout4_from_clayout bm bn cC)
-    gA4 gB4 gC4;
+    #csA #csB;
 
-  let gA' = MC.m4_to_m2 gA4;
-  let gB' = MC.m4_to_m2 gB4;
-  let gC' = MC.m4_to_m2 gC4;
-
-  rewrite each gA' as gA;
-  rewrite each gB' as gB;
-  rewrite each gC' as gC;
   ()
 }
 
