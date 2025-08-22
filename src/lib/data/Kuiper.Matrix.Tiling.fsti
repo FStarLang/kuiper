@@ -322,7 +322,7 @@ fn gpu_matrix_extract_tile_ro
       (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)
 
-fn gpu_matrix_extract_tile'
+fn gpu_matrix_extract_tile_ro'
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)

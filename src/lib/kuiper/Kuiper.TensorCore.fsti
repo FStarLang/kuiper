@@ -45,7 +45,7 @@ val fragment_pts_to
   (#knd : fragment_kind)
   (#m #n #k : nat)
   (#fl : fragment_layout)
-  (f   : fragment et knd m n k fl)
+  ([@@@mkey] f   : fragment et knd m n k fl)
   (em  : value_for et knd m n k)
   : slprop
 
@@ -97,10 +97,11 @@ fn mma_loadA
   (fr : fragment et FragA m n k FragLRM)
   (#l : mlayout m k) {| strided_row_major l |}
   (gm : gpu_matrix et l)
+  (#f : perm)
   (#m0 : ematrix et m k)
   (#f0 : erased (value_for et FragA m n k))
   preserves
-    gm |-> m0
+    gm |-> Frac f m0
   requires
     fr |-> f0
   ensures
@@ -112,10 +113,11 @@ fn mma_loadB
   (fr : fragment et FragB m n k FragLRM)
   (#l : mlayout k n) {| strided_row_major l |}
   (gm : gpu_matrix et l)
+  (#f : perm)
   (#m0 : ematrix et k n)
   (#f0 : erased (value_for et FragB m n k))
   preserves
-    gm |-> m0
+    gm |-> Frac f m0
   requires
     fr |-> f0
   ensures
@@ -141,16 +143,16 @@ let fill_value_zero
 =
   fill_value zero
 
-fn fill_fragment
+fn mma_fill
   (#et : Type)
   (#knd : fragment_kind)
-  (#m #n #k : nat)
+  (#m #n #k : erased nat)
   (#ly : fragment_layout)
   (fr : fragment et knd m n k ly)
-  (v : et)
-  (#v0 : value_for et knd m n k)
+  (i : et)
+  (#v0 : erased (value_for et knd m n k))
   requires fr |-> v0
-  ensures  fr |-> fill_value v
+  ensures  fr |-> fill_value i
 
 fn mma_store
   (#et : Type)

@@ -383,7 +383,7 @@ fn gpu_matrix_extract_tile_ro
   ()
 }
 
-fn gpu_matrix_extract_tile'
+fn gpu_matrix_extract_tile_ro'
   (#et:Type0)
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
@@ -405,6 +405,6 @@ fn gpu_matrix_extract_tile'
 {
   // reveal was only required because of pos in
   //   declaration of gpu_matrix_extract_tile
-  gpu_matrix_extract_tile gm trows tcols tr tc;
+  gpu_matrix_extract_tile_ro gm trows tcols tr tc;
   gpu_matrix_subtile gm trows tcols tr tc;
 }
