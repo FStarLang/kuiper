@@ -85,11 +85,17 @@ fn add1
       (exists* v. i |-> v) **
       sarray_live a
   {
-    unfold sarray_pts_to;
+    with s.
+      // assert sarray_pts_to a s;
+      unfold sarray_pts_to a s;
     let v = gpu_array_read a.elems !i; // v = elems[i]
     let v' = v `add` one;            // v' = v + 1
     gpu_array_write a.elems !i v';
     i := !i `SZ.add` 1sz;
+    // with s'.
+    let x : int = s;
+      fold sarray_pts_to a s;
+    ()
   };
   ();
 }
