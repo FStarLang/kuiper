@@ -255,14 +255,15 @@ fn kf
   let mut bk  : sz = 0sz;
 
   while (SZ.(!bk <^ mshared))
+    invariant live sum
     invariant
-      exists* (vbk : SZ.t) sumv.
+      exists* (vbk : SZ.t).
         (bk |-> vbk) **
-        (sum |-> sumv) **
-        (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-        (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x) **
         B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
         pure (vbk <= mshared)
+    invariant
+      (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+      (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
   {
     let vbk = !bk;
 

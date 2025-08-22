@@ -30,11 +30,8 @@ fn k_reduce
   let mut i = 0sz;
   let mut r : tt = zero #tt #d;
 
-  while ((FStar.SizeT.op_Less_Hat !i size))
-    invariant
-      exists* vi vr.
-        (i |-> vi) **
-        (r |-> vr)
+  while (SZ.(!i <^ size))
+    invariant live i ** live r
   {
     let vi = !i;
     let v = gpu_array_read a vi;

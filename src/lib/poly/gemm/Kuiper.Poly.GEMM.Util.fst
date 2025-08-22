@@ -40,8 +40,8 @@ fn matmul_dotprod
   while (SZ.(!k <^ shared))
     invariant
       exists* (vk : SZ.t{vk <= shared}).
-        (k |-> vk) **
-        (sum |-> MS.__matmul_single eA eB i j vk)
+        k |-> vk **
+        sum |-> MS.__matmul_single eA eB i j vk
   {
     let v1 = M.gpu_matrix_read gA i !k;
     let v2 = M.gpu_matrix_read gB !k j;
@@ -88,8 +88,8 @@ fn matmul_tiled_dotprod
     invariant
       exists* (vbk : SZ.t) sumv.
         pure (vbk <= shared) **
-        (bk |-> vbk) **
-        (sum |-> sumv)
+        bk |-> vbk **
+        sum |-> sumv
   {
     let vbk = !bk;
     let s = !sum;
@@ -142,33 +142,31 @@ fn subproduct_cols
       pure (Seq.length acc' == tile) **
       (acc |-> acc')
 {
+  pts_to_len acc;
   let mut sk : sz = 0sz;
   while (SZ.(!sk <^ tile))
-    invariant
-      exists* (vsk : SZ.t) (accv : erased (lseq et tile)).
-        pure (vsk <= tile) **
-        (sk |-> vsk) **
-        (acc |-> accv)
+    invariant live sk ** live acc
   {
+    pts_to_len acc;
     let mut i = 0sz;
     (* We can read v2 out of the inner loop, this is extremely
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
     let v2 = M.gpu_matrix_read m2 !sk j;
     while (SZ.(!i <^ tile))
-      invariant
-        exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile)).
-          (i |-> vi) **
-          (acc |-> accv)
+      invariant live i ** live acc
     {
       let v1 = M.gpu_matrix_read m1 !i !sk;
 
       open Pulse.Lib.Array;
+      pts_to_len acc;
       let sum0 = acc.(!i);
       let sum1 = sum0 `add` (v1 `mul` v2);
       acc.(!i) <- sum1;
       i := !i +^ 1sz;
     };
+    pts_to_len acc;
     sk := !sk +^ 1sz;
-  }
+  };
+  pts_to_len acc;
 }

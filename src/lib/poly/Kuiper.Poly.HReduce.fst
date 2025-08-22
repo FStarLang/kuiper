@@ -231,7 +231,7 @@ fn kf
     thread_id nth tid
 {
   (* Reduction *)
-  let mut n = 0sz;
+  let mut n : szlt 32 = 0sz;
 
   (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
   assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
@@ -241,13 +241,11 @@ fn kf
 
   open FStar.SizeT;
   while ((spow2 !n <^ nth))
-    invariant c.
-      exists* (it:sz).
-        gpu **
-        (n |-> it) **
+    invariant
+      exists* (it : szlt 32).
+        n |-> it **
         mbarrier_tok nth (barrier_matrix nth a s) it tid **
-        if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s) **
-        pure (c == (pow2 it < nth) /\ it < 32)
+        if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s)
   {
     iteration nth a s tid !n;
     n := !n +^ 1sz;
