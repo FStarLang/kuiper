@@ -24,6 +24,9 @@ let view_seq (s : seq 'a) : v:(seq_view 'a){pack_seq v == s} =
 unfold
 let ( @! ) (#a:Type) (s : seq a) (i : nat { i < Seq.length s }) : a = Seq.index #a s i
 
+unfold
+let ( @+ ) (#a:Type) (s1 s2 : seq a) : seq a = Seq.append s1 s2
+
 let rec seq_fold_left (#a #b : Type) (f: b -> a -> b) (acc: b) (v: seq a)
   : GTot b (decreases length v)
   = match view_seq v with

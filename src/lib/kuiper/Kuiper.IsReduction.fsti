@@ -21,6 +21,7 @@ type is_reduction (#a:Type0) (z:a) (f : a -> a -> a) : (s : seq a) -> (r : a) ->
     s1 `is_reduction z f` r1 ->
     s2 `is_reduction z f` r2 ->
     (s1 `Seq.append` s2) `is_reduction z f` (r1 `f` r2)
+    (* ^ FIXME: cannot use `@+` above, bad inference. *)
 
 (*
   [1;2] `is_reduction` 1 + 2
@@ -56,8 +57,8 @@ val op_is_reduction
   (s1 : seq a) (r1 : a)
   (s2 : seq a) (r2 : a)
 : Lemma (requires is_reduction z f s1 r1 /\ is_reduction z f s2 r2)
-        (ensures is_reduction z f (s1 `Seq.append` s2) (f r1 r2))
-        [SMTPat (is_reduction z f (s1 `Seq.append` s2) (f r1 r2))]
+        (ensures is_reduction z f (s1 @+ s2) (f r1 r2))
+        [SMTPat (is_reduction z f (s1 @+ s2) (f r1 r2))]
 
 
 (* Ownership of array r between i and j. The first value of that slice

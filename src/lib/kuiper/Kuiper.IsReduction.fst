@@ -46,9 +46,9 @@ let op_is_reduction
   (s1 : seq a) (r1 : a)
   (s2 : seq a) (r2 : a)
 : Lemma (requires is_reduction z f s1 r1 /\ is_reduction z f s2 r2)
-        (ensures is_reduction z f (s1 `Seq.append` s2) (f r1 r2))
+        (ensures is_reduction z f (Seq.append s1 s2) (f r1 r2))
 = Squash.bind_squash () (fun pf1 ->
   Squash.bind_squash () (fun pf2 ->
   let pf = Split s1 s2 r1 r2 pf1 pf2 in
   Squash.return_squash pf))
-    <: squash (is_reduction z f (s1 `Seq.append` s2) (f r1 r2))
+    <: squash (is_reduction z f (Seq.append s1 s2) (f r1 r2))
