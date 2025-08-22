@@ -8,16 +8,17 @@ open Kuiper.Enumerable
 open Pulse.Lib.BigStar
 open Pulse.Lib.Trade
 
-val forevery
-  (a:Type) {| enumerable a |}
+val ( forall+ )
+  (#a:Type) {| enumerable a |}
   (f : a -> slprop)
   : slprop
 
 unfold
-let ( forall+ )
-  (#a:Type) {| enumerable a |}
+let forevery
+  (a:Type) {| enumerable a |}
   (f : a -> slprop)
-  : slprop = forevery a f
+  : slprop
+  = op_forall_Plus #a f
 
 val forevery_ext_lem
   (#a:Type0) {| enumerable a |}
