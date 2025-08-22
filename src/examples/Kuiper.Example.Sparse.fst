@@ -16,14 +16,15 @@ type sarray (et : Type0)
   pos   : gpu_array sz nnz; // posición de cada elemento
 }
 
-let unsparse
+assume
+val unsparse
   (#et:Type0) {| scalar et |}
   (nnz len : nat)
   // (elems : seq et { Seq.length elems == nnz})
   (elems : lseq et nnz)
   (pos   : lseq sz nnz)
   : seq et
-  = magic()
+  // = magic()
 
 let sarray_pts_to
   (#et:Type0) {| d : scalar et |} #len
@@ -36,6 +37,11 @@ let sarray_pts_to
     a.elems |-> v_elems **
     a.pos   |-> v_pos **
     pure (s == unsparse a.nnz len v_elems v_pos)
+
+instance has_pts_to_sarray (#et #len : _) {| scalar et |} : has_pts_to (sarray et len) (seq et) =
+{
+  pts_to = sarray_pts_to;
+}
 
 unfold
 let sarray_live #et {| scalar et |} #len (s : sarray et len) : slprop =
@@ -86,15 +92,14 @@ fn add1
       sarray_live a
   {
     with s.
-      // assert sarray_pts_to a s;
-      unfold sarray_pts_to a s;
+      assert sarray_pts_to a s;
+    unfold sarray_pts_to a s;
     let v = gpu_array_read a.elems !i; // v = elems[i]
     let v' = v `add` one;            // v' = v + 1
     gpu_array_write a.elems !i v';
     i := !i `SZ.add` 1sz;
-    // with s'.
-    let x : int = s;
-      fold sarray_pts_to a s;
+    with s'.
+      fold sarray_pts_to a s';
     ()
   };
   ();
