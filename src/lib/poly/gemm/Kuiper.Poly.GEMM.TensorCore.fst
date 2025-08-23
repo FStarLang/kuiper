@@ -433,8 +433,6 @@ fn populate_shmem
   ();
 }
 
-// // #push-options "--debug SMTFail --split_queries always"
-// #push-options "--print_implicits"
 inline_for_extraction noextract
 fn subproducts_tc
   (* TODO restrict et to valid types only *)
@@ -443,7 +441,6 @@ fn subproducts_tc
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
-  (* is FragLCM layout for aFrag relevant here? *)
   (aFrag : fragment half FragA tm tn tk FragLRM)
   (#vaFrag : ematrix half tm tk)
   (bFrag : fragment half FragB tm tn tk FragLRM)
@@ -509,79 +506,45 @@ fn subproducts_tc
   ()
 }
 
-// inline_for_extraction noextract
-// fn epilogue
-//   (#et : Type0) {| scalar et |}
-//   (comb : binop et)
-//   (#rows #cols : sz)
-//   (bm : szp{bm /? rows})
-//   (bn : szp{bn /? cols})
-//   (tm : szp{tm /? bm})
-//   (tn : szp{tn /? bn})
-//   (#tk : nat)
-//   (accumFrag : fragment half FragAccum tm tn tk FragLAccum)
-//   (#lC : mlayout rows cols)
-//   {| clayout lC |}
-//   (gC : gpu_matrix et lC)
-//   // (#_ : squash (SZ.fits (bm/tm * (bn/tn))))
-//   (bid : szlt (rows/bm * (cols/bn)))
-//   (tid : szlt (bm/tm * (bn/tn)))
-//   requires
-//     gpu **
-//     own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
-//     (exists* vaccumFrag.
-//       accumFrag |-> vaccumFrag)
-//   ensures
-//     gpu **
-//     own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
-//     (exists* vaccumFrag.
-//       vaccumFrag |-> vaccumFrag)
-// {
-//   unfold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
-//   let t_tile = thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid));
-//   assert (rewrites_to t_tile (thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid))));
+inline_for_extraction noextract
+fn epilogue
+  // (#et : Type0) {| scalar et |}
+  // (comb : binop et)
+  (#rows #cols : nat)
+  (bm : szp{bm /? rows})
+  (bn : szp{bn /? cols})
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn})
+  (#tk : nat)
+  (accumFrag : fragment half FragAccum tm tn tk FragLAccum)
+  (gC : gpu_matrix half (R.row_major rows cols))
+  // (#_ : squash (SZ.fits (bm/tm * (bn/tn))))
+  (bid : szlt (rows/bm * (cols/bn)))
+  (tid : szlt (bm/tm * (bn/tn)))
+  requires
+    gpu **
+    own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
+    (exists* vaccumFrag.
+      accumFrag |-> vaccumFrag)
+  ensures
+    gpu **
+    own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
+    (exists* vaccumFrag.
+      accumFrag |-> vaccumFrag)
+{
+  unfold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
 
-//   let mut resIdxM = 0sz;
-//   while (SZ.(!resIdxM <^ tm))
-//     invariant
-//       exists* (vresIdxM : sz{vresIdxM <= tm}) vaccumFrag (v : ematrix et tm tn).
-//         resIdxM |-> vresIdxM **
-//         accumFrag |-> vaccumFrag **
-//         gpu_matrix_pts_to t_tile v
-//   {
-//     let mut resIdxN = 0sz;
-//     while (SZ.(!resIdxN <^ tn))
-//       invariant
-//         exists* (vresIdxN : sz{vresIdxN <= tn}) vaccumFrag (v : ematrix et tm tn).
-//           resIdxN |-> vresIdxN **
-//           accumFrag |-> vaccumFrag **
-//           gpu_matrix_pts_to t_tile v
+  (* Only create a tile in gC and write the accumulator values. In this version the input from the gC
+     was added by loading the tile into the accumulator before any other computations *)
+  let t_tile = thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid));
+  assert (rewrites_to t_tile (thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid))));
 
-//     {
-//       let v0 = gpu_matrix_read t_tile !resIdxM !resIdxN;
+  // mma_store accumFrag gC;
 
-//       (* add the new result in the register cache to the value from gC and overwrite the the cell in gC *)
-//       open Pulse.Lib.Array;
-//       // all obvious but without the asserts the next line fails
-//       assert pure (SZ.fits (tm * tn));
-//       assert pure (SZ.fits ((tm-1) * tn + tn));
-//       with vrchProd. assert Pulse.Lib.Array.Core.pts_to rchProd vrchProd;
-//       assert pure (Seq.length vrchProd == tm * tn);
-//       let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
-//       let v' = comb v0 v1;
-
-//       gpu_matrix_write t_tile !resIdxM !resIdxN v';
-
-//       resIdxN := !resIdxN +^ 1sz;
-//     };
-
-//     resIdxM := !resIdxM +^ 1sz;
-//   };
-
-//   // rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
-//   fold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
-//   ()
-// }
+  // rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
+  fold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
+  ()
+}
 
 // inline_for_extraction noextract
 // fn kf

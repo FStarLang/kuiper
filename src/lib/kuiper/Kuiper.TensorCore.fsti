@@ -25,7 +25,6 @@ let valid_frag_dimensions et (m n k : nat) : prop =
   (et == half /\ m == 16 /\ n == 16 /\ k == 16) \/
   False
 
-(* TODO must be restricted to valid types only, probably during fragment fill *)
 new
 val fragment
   (et : Type0)
@@ -45,7 +44,7 @@ val fragment_pts_to
   (#knd : fragment_kind)
   (#m #n #k : nat)
   (#fl : fragment_layout)
-  ([@@@mkey] f   : fragment et knd m n k fl)
+  ([@@@mkey] f : fragment et knd m n k fl)
   (em  : value_for et knd m n k)
   : slprop
 
@@ -127,21 +126,13 @@ let fill_value
   (#et : Type)
   (#knd : fragment_kind)
   (#m #n #k : nat)
-  (v : et)
+  (i : et)
   : value_for et knd m n k
 =
   match knd with
-  | FragA     -> EMatrix.mkM #_ #m #k (fun _ _ -> v)
-  | FragB     -> EMatrix.mkM #_ #k #n (fun _ _ -> v)
-  | FragAccum -> EMatrix.mkM #_ #m #n (fun _ _ -> v)
-
-let fill_value_zero
-  (#et : Type) {| scalar et |}
-  (#knd : fragment_kind)
-  (#m #n #k : nat)
-  : value_for et knd m n k
-=
-  fill_value zero
+  | FragA     -> EMatrix.const_matrix #_ #m #k i
+  | FragB     -> EMatrix.const_matrix #_ #k #n i
+  | FragAccum -> EMatrix.const_matrix #_ #m #n i
 
 fn mma_fill
   (#et : Type)
