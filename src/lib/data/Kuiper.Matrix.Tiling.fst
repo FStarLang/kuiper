@@ -383,6 +383,7 @@ fn gpu_matrix_extract_tile_ro
   ()
 }
 
+inline_for_extraction noextract
 fn gpu_matrix_extract_tile_ro'
   (#et:Type0)
   (#rows #cols : erased nat)

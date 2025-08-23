@@ -98,6 +98,7 @@ let block_tile
     gpu_matrix_subtile gC (hide (SZ.v bm)) (hide (SZ.v bn))
       (bid_y rows cols bm bn bid) (bid_x rows cols bm bn bid)
 
+inline_for_extraction noextract
 let thread_tile
   (#et : Type0) {| scalar et |}
   (#bm #bn : sz)
