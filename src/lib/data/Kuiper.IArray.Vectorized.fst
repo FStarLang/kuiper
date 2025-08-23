@@ -99,24 +99,6 @@ fn gpu_array_slice_pts_to_iarray_4cells
     gpu_pts_to_slice (core a) #f (it_to_nat vw ai) (it_to_nat vw ai + 4) v
   ensures  iarray_pts_to_4cells a #f ai (v @! 0, v@! 1, v @! 2, v @! 3)
 {
-  // -- inference seems to fail for split'?
-  // gpu_slice_split' (core a) #f
-  //   #v
-  //   (it_to_nat vw ai)
-  //   (it_to_nat vw ai + 3)
-  //   (it_to_nat vw ai + 4);
-  // gpu_slice_split' (core a) #f
-  //   #(Kuiper.Seq.Common.seq_take (it_to_nat vw ai + 3 - it_to_nat vw ai) v)
-  //   (it_to_nat vw ai)
-  //   (it_to_nat vw ai + 2)
-  //   (it_to_nat vw ai + 3);
-  // gpu_slice_split' (core a) #f
-  //   #(Kuiper.Seq.Common.seq_take (it_to_nat vw ai + 2 - it_to_nat vw ai)
-  //     (Kuiper.Seq.Common.seq_take (it_to_nat vw ai + 3 - it_to_nat vw ai) v))
-  //   (it_to_nat vw ai)
-  //   (it_to_nat vw ai + 1)
-  //   (it_to_nat vw ai + 2);
-
   (* bring sequence into a shape that can be used by split *)
   assert pure (Seq.equal v
    (Seq.append (Seq.append (Seq.append
@@ -148,7 +130,6 @@ fn gpu_array_slice_pts_to_iarray_4cells
   fold iarray_pts_to_4cells a #f (ai) (index v 0, index v 1, index v 2, index v 3);
 }
 
-// #push-options "--debug SMTFail --split_queries always"
 inline_for_extraction noextract
 fn iarray_vec4_read_cells
   // (#et:Type0)
@@ -169,10 +150,6 @@ fn iarray_vec4_read_cells
   (* vectorized read from array *)
   cw.step.compat (ci |> cw.sch.bij.gg);
   let flat_idx = ci |~> cw.step.cimap;
-  // assert pure (it_to_nat vw (ci_to_ai vw ci) + 3 < len);
-  // This assertion isn't proven without the above :(
-  // assert pure (it_to_nat vw (ci_to_ai vw ci) + 4 <= len);
-  // gpu_pts_to_slice_ref (core a) (it_to_nat vw (ci_to_ai vw ci)) (it_to_nat vw (ci_to_ai vw ci) + 4);
 
   (* read from array *)
   let v' = gpu_array_vec4_read (core a) flat_idx;
@@ -183,8 +160,6 @@ fn iarray_vec4_read_cells
   v'
 }
 
-// #push-options "--debug SMTFail --split_queries always"
-// #push-options "--print-implicits"
 inline_for_extraction noextract
 fn iarray_vec4_write_cells
   // (#et:Type0)
