@@ -102,7 +102,7 @@ fn hf (v : V.vec float)
   assert (pure (Seq.equal s (slice s 0 4)));
   assert a |-> slice s 0 4;
 
-  let two = Float32.one `add` one;
+  let two = add #float one one;
   launch_kernel_1 (kf 4sz #(slice s 0 4) 1 a two 1sz 0sz 0sz);
 
   gpu_memcpy_device_to_host v a 4sz;
