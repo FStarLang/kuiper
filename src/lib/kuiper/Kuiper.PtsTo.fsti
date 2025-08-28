@@ -12,7 +12,3 @@ type cell a i =
 // instance cell_pts_to (p a : Type) (d : has_pts_to p a) : has_pts_to p (frac a) = {
 //   pts_to = (fun p #f' (Frac f v) -> d.pts_to p #(f' *. f) v);
 // }
-
-unfold
-let live #p #r {| has_pts_to p r |} (x: p) (#[full_default()] f: perm) =
-  exists* y. pts_to x #f y
