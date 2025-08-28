@@ -14,8 +14,8 @@ module SZ = FStar.SizeT
 noeq
 inline_for_extraction noextract
 type kernel_desc (full_pre full_post : slprop) = {
-  nblk : (x : SZ.t { 0 < x /\ x <= max_blocks });
-  nthr : (x : SZ.t { 0 < x /\ x <= max_threads });
+  nblk : (x : SZ.t { x <= max_blocks });
+  nthr : (x : SZ.t { x <= max_threads });
 
   shmems_desc : list shmem_desc;
 

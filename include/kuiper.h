@@ -42,8 +42,12 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
  */
 #define KPR_KCALL(foo, nblk, nthr, e_size, ...)						\
 	do {										\
-		foo<<<(nblk), (nthr), (e_size)>>>(__VA_ARGS__);				\
-		__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);	\
+		auto _nblk = (nblk);							\
+		auto _nthr = (nthr);							\
+		if (_nblk > 0 && _nthr > 0) {						\
+			foo<<<_nblk, _nthr, (e_size)>>>(__VA_ARGS__);			\
+			__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);\
+		}									\
 	} while (0)
 
 #define KPR_SHMEM()									\
