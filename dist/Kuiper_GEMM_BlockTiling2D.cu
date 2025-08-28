@@ -6,21 +6,13 @@ __global__
 /**
   hoisted when extracting matmul_f32_64x64x8_8x8_rrr_rr
 */
-static void
-__hoisted_0(
-  size_t shared,
-  size_t cols,
-  size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
-)
+static void __hoisted_0(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
   float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)2048U);
-  size_t mrow = blockIdx.x / mcols;
-  size_t mcol = blockIdx.x % mcols;
+  size_t num_n_tiles = cols / (size_t)64U;
+  size_t mrow = blockIdx.x / num_n_tiles;
+  size_t mcol = blockIdx.x % num_n_tiles;
   float_t rAcol[8U];
   memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
   float_t rBrow[8U];
@@ -28,18 +20,21 @@ __hoisted_0(
   float_t rchProd[64U];
   memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
   size_t bkIdx = (size_t)0U;
-  while (bkIdx < mshared)
+  while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
     size_t __anf0 = bkIdx;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)512U; i += (size_t)64U)
-      sA[i / (size_t)8U * (size_t)8U + i % (size_t)8U] =
-        gA4[(mrow * (size_t)64U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
+    float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)512U; i1 += (size_t)64U)
-      sB[i1 / (size_t)64U * (size_t)64U + i1 % (size_t)64U] =
-        gB4[(__anf0 * (size_t)8U + i1 / (size_t)64U) * cols + mcol * (size_t)64U + i1 % (size_t)64U];
+    for (; i1 < (size_t)512U; i1 += blockDim.x)
+      sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
+        tileA[(mrow * (size_t)64U + i1 / (size_t)8U) * shared +
+          __anf0 * (size_t)8U + i1 % (size_t)8U];
+    float_t *tileB = gB;
+    size_t i = threadIdx.x;
+    for (; i < (size_t)512U; i += blockDim.x)
+      sB[i / (size_t)64U * (size_t)64U + i % (size_t)64U] =
+        tileB[(__anf0 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
@@ -62,15 +57,18 @@ __hoisted_0(
     }
     bkIdx += (size_t)1U;
   }
-  size_t mrow1 = blockIdx.x / mcols;
-  size_t mcol1 = blockIdx.x % mcols;
+  float_t *t_tile = gC;
   size_t resIdxM = (size_t)0U;
   while (resIdxM < (size_t)8U)
   {
     size_t resIdxN = (size_t)0U;
     for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      gC4[(mrow1 * (size_t)64U + threadIdx.x / (size_t)8U * (size_t)8U + resIdxM) * cols +
-        mcol1 * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
+      t_tile[(blockIdx.x / (cols / (size_t)64U) * (size_t)64U +
+        threadIdx.x / (size_t)8U * (size_t)8U + resIdxM)
+      * cols
+      +
+        blockIdx.x % (cols / (size_t)64U) * (size_t)64U +
+          threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
       = rchProd[resIdxM * (size_t)8U + resIdxN];
     resIdxM += (size_t)1U;
   }
@@ -93,15 +91,12 @@ float_t
   KPR_GUARD(rows % (size_t)64U == (size_t)0U);
   KPR_GUARD(shared % (size_t)8U == (size_t)0U);
   KPR_GUARD(cols % (size_t)64U == (size_t)0U);
-  size_t mcols = cols / (size_t)64U;
   KPR_KCALL(__hoisted_0,
-    rows / (size_t)64U * mcols,
+    rows / (size_t)64U * (cols / (size_t)64U),
     (size_t)64U,
     (size_t)4096U,
     shared,
     cols,
-    shared / (size_t)8U,
-    mcols,
     gA,
     gB,
     gC);
@@ -121,21 +116,13 @@ __global__
 /**
   hoisted when extracting matmul_f32_32x32x32_32x8_rrr_rr
 */
-static void
-__hoisted_1(
-  size_t shared,
-  size_t cols,
-  size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
-)
+static void __hoisted_1(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
   float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
   float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)4096U);
-  size_t mrow = blockIdx.x / mcols;
-  size_t mcol = blockIdx.x % mcols;
+  size_t num_n_tiles = cols / (size_t)32U;
+  size_t mrow = blockIdx.x / num_n_tiles;
+  size_t mcol = blockIdx.x % num_n_tiles;
   float_t rAcol[32U];
   memset(rAcol, 0U, (size_t)32U * sizeof (float_t));
   float_t rBrow[8U];
@@ -143,18 +130,21 @@ __hoisted_1(
   float_t rchProd[256U];
   memset(rchProd, 0U, (size_t)256U * sizeof (float_t));
   size_t bkIdx = (size_t)0U;
-  while (bkIdx < mshared)
+  while (bkIdx < shared / (size_t)32U)
   {
     __syncthreads();
     size_t __anf0 = bkIdx;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += (size_t)4U)
-      sA[i / (size_t)32U * (size_t)32U + i % (size_t)32U] =
-        gA4[(mrow * (size_t)32U + i / (size_t)32U) * shared + __anf0 * (size_t)32U + i % (size_t)32U];
+    float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += (size_t)4U)
-      sB[i1 / (size_t)32U * (size_t)32U + i1 % (size_t)32U] =
-        gB4[(__anf0 * (size_t)32U + i1 / (size_t)32U) * cols + mcol * (size_t)32U + i1 % (size_t)32U];
+    for (; i1 < (size_t)1024U; i1 += blockDim.x)
+      sA[i1 / (size_t)32U * (size_t)32U + i1 % (size_t)32U] =
+        tileA[(mrow * (size_t)32U + i1 / (size_t)32U) * shared +
+          __anf0 * (size_t)32U + i1 % (size_t)32U];
+    float_t *tileB = gB;
+    size_t i = threadIdx.x;
+    for (; i < (size_t)1024U; i += blockDim.x)
+      sB[i / (size_t)32U * (size_t)32U + i % (size_t)32U] =
+        tileB[(__anf0 * (size_t)32U + i / (size_t)32U) * cols + mcol * (size_t)32U + i % (size_t)32U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)32U)
@@ -177,15 +167,18 @@ __hoisted_1(
     }
     bkIdx += (size_t)1U;
   }
-  size_t mrow1 = blockIdx.x / mcols;
-  size_t mcol1 = blockIdx.x % mcols;
+  float_t *t_tile = gC;
   size_t resIdxM = (size_t)0U;
   while (resIdxM < (size_t)32U)
   {
     size_t resIdxN = (size_t)0U;
     for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      gC4[(mrow1 * (size_t)32U + threadIdx.x / (size_t)4U * (size_t)32U + resIdxM) * cols +
-        mcol1 * (size_t)32U + threadIdx.x % (size_t)4U * (size_t)8U + resIdxN]
+      t_tile[(blockIdx.x / (cols / (size_t)32U) * (size_t)32U +
+        threadIdx.x / (size_t)4U * (size_t)32U + resIdxM)
+      * cols
+      +
+        blockIdx.x % (cols / (size_t)32U) * (size_t)32U +
+          threadIdx.x % (size_t)4U * (size_t)8U + resIdxN]
       = rchProd[resIdxM * (size_t)8U + resIdxN];
     resIdxM += (size_t)1U;
   }
@@ -208,15 +201,12 @@ float_t
   KPR_GUARD(rows % (size_t)32U == (size_t)0U);
   KPR_GUARD(shared % (size_t)32U == (size_t)0U);
   KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  size_t mcols = cols / (size_t)32U;
   KPR_KCALL(__hoisted_1,
-    rows / (size_t)32U * mcols,
+    rows / (size_t)32U * (cols / (size_t)32U),
     (size_t)4U,
     (size_t)8192U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
     gC);
@@ -242,17 +232,16 @@ __hoisted_2(
   float_t beta,
   size_t shared,
   size_t cols,
-  size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
 )
 {
   float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
   float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)2048U);
-  size_t mrow = blockIdx.x / mcols;
-  size_t mcol = blockIdx.x % mcols;
+  size_t num_n_tiles = cols / (size_t)64U;
+  size_t mrow = blockIdx.x / num_n_tiles;
+  size_t mcol = blockIdx.x % num_n_tiles;
   float_t rAcol[8U];
   memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
   float_t rBrow[8U];
@@ -260,18 +249,21 @@ __hoisted_2(
   float_t rchProd[64U];
   memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
   size_t bkIdx = (size_t)0U;
-  while (bkIdx < mshared)
+  while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
     size_t __anf0 = bkIdx;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)512U; i += (size_t)64U)
-      sA[i / (size_t)8U * (size_t)8U + i % (size_t)8U] =
-        gA4[(mrow * (size_t)64U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
+    float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)512U; i1 += (size_t)64U)
-      sB[i1 / (size_t)64U * (size_t)64U + i1 % (size_t)64U] =
-        gB4[(__anf0 * (size_t)8U + i1 / (size_t)64U) * cols + mcol * (size_t)64U + i1 % (size_t)64U];
+    for (; i1 < (size_t)512U; i1 += blockDim.x)
+      sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
+        tileA[(mrow * (size_t)64U + i1 / (size_t)8U) * shared +
+          __anf0 * (size_t)8U + i1 % (size_t)8U];
+    float_t *tileB = gB;
+    size_t i = threadIdx.x;
+    for (; i < (size_t)512U; i += blockDim.x)
+      sB[i / (size_t)64U * (size_t)64U + i % (size_t)64U] =
+        tileB[(__anf0 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
@@ -294,25 +286,27 @@ __hoisted_2(
     }
     bkIdx += (size_t)1U;
   }
-  size_t mrow1 = blockIdx.x / mcols;
-  size_t mcol1 = blockIdx.x % mcols;
+  float_t *t_tile = gC;
   size_t resIdxM = (size_t)0U;
   while (resIdxM < (size_t)8U)
   {
     size_t resIdxN = (size_t)0U;
-    while (resIdxN < (size_t)8U)
-    {
-      size_t vresIdxM = resIdxM;
-      size_t vresIdxN = resIdxN;
-      gC4[(mrow1 * (size_t)64U + threadIdx.x / (size_t)8U * (size_t)8U + vresIdxM) * cols +
-        mcol1 * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + vresIdxN]
+    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
+      t_tile[(blockIdx.x / (cols / (size_t)64U) * (size_t)64U +
+        threadIdx.x / (size_t)8U * (size_t)8U + resIdxM)
+      * cols
+      +
+        blockIdx.x % (cols / (size_t)64U) * (size_t)64U +
+          threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
       =
         beta *
-          gC4[(mrow1 * (size_t)64U + threadIdx.x / (size_t)8U * (size_t)8U + vresIdxM) * cols +
-            mcol1 * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + vresIdxN]
+          t_tile[(blockIdx.x / (cols / (size_t)64U) * (size_t)64U +
+            threadIdx.x / (size_t)8U * (size_t)8U + resIdxM)
+          * cols
+          +
+            blockIdx.x % (cols / (size_t)64U) * (size_t)64U +
+              threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
         + alpha * rchProd[resIdxM * (size_t)8U + resIdxN];
-      resIdxN += (size_t)1U;
-    }
     resIdxM += (size_t)1U;
   }
 }
@@ -332,17 +326,14 @@ Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x8_8x8_rrr_rr(
   KPR_GUARD(rows % (size_t)64U == (size_t)0U);
   KPR_GUARD(shared % (size_t)8U == (size_t)0U);
   KPR_GUARD(cols % (size_t)64U == (size_t)0U);
-  size_t mcols = cols / (size_t)64U;
   KPR_KCALL(__hoisted_2,
-    rows / (size_t)64U * mcols,
+    rows / (size_t)64U * (cols / (size_t)64U),
     (size_t)64U,
     (size_t)4096U,
     alpha,
     beta,
     shared,
     cols,
-    shared / (size_t)8U,
-    mcols,
     gA,
     gB,
     gC);
@@ -359,17 +350,16 @@ __hoisted_3(
   float_t beta,
   size_t shared,
   size_t cols,
-  size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
 )
 {
   float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
   float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)4096U);
-  size_t mrow = blockIdx.x / mcols;
-  size_t mcol = blockIdx.x % mcols;
+  size_t num_n_tiles = cols / (size_t)128U;
+  size_t mrow = blockIdx.x / num_n_tiles;
+  size_t mcol = blockIdx.x % num_n_tiles;
   float_t rAcol[8U];
   memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
   float_t rBrow[8U];
@@ -377,19 +367,22 @@ __hoisted_3(
   float_t rchProd[64U];
   memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
   size_t bkIdx = (size_t)0U;
-  while (bkIdx < mshared)
+  while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
     size_t __anf0 = bkIdx;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += (size_t)256U)
-      sA[i / (size_t)8U * (size_t)8U + i % (size_t)8U] =
-        gA4[(mrow * (size_t)128U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
+    float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += (size_t)256U)
-      sB[i1 / (size_t)128U * (size_t)128U + i1 % (size_t)128U] =
-        gB4[(__anf0 * (size_t)8U + i1 / (size_t)128U) * cols +
-          mcol * (size_t)128U + i1 % (size_t)128U];
+    for (; i1 < (size_t)1024U; i1 += blockDim.x)
+      sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
+        tileA[(mrow * (size_t)128U + i1 / (size_t)8U) * shared +
+          __anf0 * (size_t)8U + i1 % (size_t)8U];
+    float_t *tileB = gB;
+    size_t i = threadIdx.x;
+    for (; i < (size_t)1024U; i += blockDim.x)
+      sB[i / (size_t)128U * (size_t)128U + i % (size_t)128U] =
+        tileB[(__anf0 * (size_t)8U + i / (size_t)128U) * cols +
+          mcol * (size_t)128U + i % (size_t)128U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
@@ -412,25 +405,27 @@ __hoisted_3(
     }
     bkIdx += (size_t)1U;
   }
-  size_t mrow1 = blockIdx.x / mcols;
-  size_t mcol1 = blockIdx.x % mcols;
+  float_t *t_tile = gC;
   size_t resIdxM = (size_t)0U;
   while (resIdxM < (size_t)8U)
   {
     size_t resIdxN = (size_t)0U;
-    while (resIdxN < (size_t)8U)
-    {
-      size_t vresIdxM = resIdxM;
-      size_t vresIdxN = resIdxN;
-      gC4[(mrow1 * (size_t)128U + threadIdx.x / (size_t)16U * (size_t)8U + vresIdxM) * cols +
-        mcol1 * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + vresIdxN]
+    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
+      t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
+        threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
+      * cols
+      +
+        blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
+          threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
       =
         beta *
-          gC4[(mrow1 * (size_t)128U + threadIdx.x / (size_t)16U * (size_t)8U + vresIdxM) * cols +
-            mcol1 * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + vresIdxN]
+          t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
+            threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
+          * cols
+          +
+            blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
+              threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
         + alpha * rchProd[resIdxM * (size_t)8U + resIdxN];
-      resIdxN += (size_t)1U;
-    }
     resIdxM += (size_t)1U;
   }
 }
@@ -450,17 +445,14 @@ Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x8_8x8_rrr_rr(
   KPR_GUARD(rows % (size_t)128U == (size_t)0U);
   KPR_GUARD(shared % (size_t)8U == (size_t)0U);
   KPR_GUARD(cols % (size_t)128U == (size_t)0U);
-  size_t mcols = cols / (size_t)128U;
   KPR_KCALL(__hoisted_3,
-    rows / (size_t)128U * mcols,
+    rows / (size_t)128U * (cols / (size_t)128U),
     (size_t)256U,
     (size_t)8192U,
     alpha,
     beta,
     shared,
     cols,
-    shared / (size_t)8U,
-    mcols,
     gA,
     gB,
     gC);
@@ -477,17 +469,16 @@ __hoisted_4(
   float_t beta,
   size_t shared,
   size_t cols,
-  size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  float_t *gA,
+  float_t *gB,
+  float_t *gC
 )
 {
   float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
   float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)4096U);
-  size_t mrow = blockIdx.x / mcols;
-  size_t mcol = blockIdx.x % mcols;
+  size_t num_n_tiles = cols / (size_t)128U;
+  size_t mrow = blockIdx.x / num_n_tiles;
+  size_t mcol = blockIdx.x % num_n_tiles;
   float_t rAcol[8U];
   memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
   float_t rBrow[8U];
@@ -495,19 +486,22 @@ __hoisted_4(
   float_t rchProd[64U];
   memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
   size_t bkIdx = (size_t)0U;
-  while (bkIdx < mshared)
+  while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
     size_t __anf0 = bkIdx;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += (size_t)256U)
-      sA[i % (size_t)8U * (size_t)128U + i / (size_t)8U] =
-        gA4[(mrow * (size_t)128U + i / (size_t)8U) * shared + __anf0 * (size_t)8U + i % (size_t)8U];
+    float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += (size_t)256U)
-      sB[i1 / (size_t)128U * (size_t)128U + i1 % (size_t)128U] =
-        gB4[(__anf0 * (size_t)8U + i1 / (size_t)128U) * cols +
-          mcol * (size_t)128U + i1 % (size_t)128U];
+    for (; i1 < (size_t)1024U; i1 += blockDim.x)
+      sA[i1 % (size_t)8U * (size_t)128U + i1 / (size_t)8U] =
+        tileA[(mrow * (size_t)128U + i1 / (size_t)8U) * shared +
+          __anf0 * (size_t)8U + i1 % (size_t)8U];
+    float_t *tileB = gB;
+    size_t i = threadIdx.x;
+    for (; i < (size_t)1024U; i += blockDim.x)
+      sB[i / (size_t)128U * (size_t)128U + i % (size_t)128U] =
+        tileB[(__anf0 * (size_t)8U + i / (size_t)128U) * cols +
+          mcol * (size_t)128U + i % (size_t)128U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
@@ -530,25 +524,27 @@ __hoisted_4(
     }
     bkIdx += (size_t)1U;
   }
-  size_t mrow1 = blockIdx.x / mcols;
-  size_t mcol1 = blockIdx.x % mcols;
+  float_t *t_tile = gC;
   size_t resIdxM = (size_t)0U;
   while (resIdxM < (size_t)8U)
   {
     size_t resIdxN = (size_t)0U;
-    while (resIdxN < (size_t)8U)
-    {
-      size_t vresIdxM = resIdxM;
-      size_t vresIdxN = resIdxN;
-      gC4[(mrow1 * (size_t)128U + threadIdx.x / (size_t)16U * (size_t)8U + vresIdxM) * cols +
-        mcol1 * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + vresIdxN]
+    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
+      t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
+        threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
+      * cols
+      +
+        blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
+          threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
       =
         beta *
-          gC4[(mrow1 * (size_t)128U + threadIdx.x / (size_t)16U * (size_t)8U + vresIdxM) * cols +
-            mcol1 * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + vresIdxN]
+          t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
+            threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
+          * cols
+          +
+            blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
+              threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
         + alpha * rchProd[resIdxM * (size_t)8U + resIdxN];
-      resIdxN += (size_t)1U;
-    }
     resIdxM += (size_t)1U;
   }
 }
@@ -568,17 +564,14 @@ Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x8_8x8_rrr_cr(
   KPR_GUARD(rows % (size_t)128U == (size_t)0U);
   KPR_GUARD(shared % (size_t)8U == (size_t)0U);
   KPR_GUARD(cols % (size_t)128U == (size_t)0U);
-  size_t mcols = cols / (size_t)128U;
   KPR_KCALL(__hoisted_4,
-    rows / (size_t)128U * mcols,
+    rows / (size_t)128U * (cols / (size_t)128U),
     (size_t)256U,
     (size_t)8192U,
     alpha,
     beta,
     shared,
     cols,
-    shared / (size_t)8U,
-    mcols,
     gA,
     gB,
     gC);
