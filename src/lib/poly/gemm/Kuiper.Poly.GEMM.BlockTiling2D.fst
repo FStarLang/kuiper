@@ -6,7 +6,6 @@ open Kuiper
 
 #set-options "--z3rlimit 20"
 
-module EM = Kuiper.EMatrix
 
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
@@ -17,7 +16,6 @@ module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
 module B = Kuiper.Barrier
 
-module R = Kuiper.Matrix.Reprs
 
 open Kuiper.EMatrix { ematrix }
 open Kuiper.VArray {
@@ -126,7 +124,7 @@ let own_thread_tile
   (bid : enatlt ((rows/bm) * (cols/bn)))
   (tid : enatlt (bm/tm * (bn/tn)))
   : slprop
-  = 
+  =
     (exists* em.
       gpu_matrix_pts_to
         (thread_tile (block_tile gC bm bn bid) tm tn tid) em)
@@ -184,7 +182,7 @@ let kpost1
   gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA **
   gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
   own_thread_tile gC bm bn tm tn bid tid
-  
+
 let own_shmem_cell
   (#et : Type0)
   (#rows #cols : erased nat)

@@ -169,7 +169,7 @@ type block_tiled1d_matmulcomb_gpu_ty =
 unfold inline_for_extraction
 type block_tiled2d_matmulcomb_gpu_ty =
   (#et : Type0) -> {| scalar et |} ->
-  (comb : binop et) -> 
+  (comb : binop et) ->
   (#rows : szp) ->
   (#shared : szp) ->
   (#cols : szp) ->
