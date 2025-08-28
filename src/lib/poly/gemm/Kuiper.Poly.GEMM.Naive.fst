@@ -78,6 +78,7 @@ fn kf
   (#fA #fB : perm)
   (bid : szlt (rows * cols))
   ()
+  norewrite
   requires
     gpu **
     kpre comb gA gB gC eA eB eC fA fB bid **
@@ -116,6 +117,7 @@ fn setup
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   ()
+  norewrite
   requires
     (gA |-> Frac fA eA) **
     (gB |-> Frac fB eB) **
@@ -173,6 +175,7 @@ fn teardown
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   ()
+  norewrite
   requires
     (forall+ (rc : natlt (rows *^ cols)).
       kpost comb gA gB gC eA eB eC fA fB rc) **
@@ -288,6 +291,7 @@ fn mmcomb_gpu
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     (gA |-> Frac fA eA) **

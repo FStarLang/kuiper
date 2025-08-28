@@ -106,6 +106,7 @@ fn setup
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : erased (seq et))
   (_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
+  norewrite
   requires
     block_setup_tok lena **
     ((ga2 |-> s2) ** (ga1 |-> s1))
@@ -160,10 +161,11 @@ fn dotprod
   (a1 a2: vec et)
   (v1 v2: erased (seq et))
   (#_: squash (len v1 == lena /\ len v2 == lena))
+  norewrite
   preserves
     cpu **
-    (a1 |-> v1) **
-    (a2 |-> v2)
+    a1 |-> v1 **
+    a2 |-> v2
   requires
     pure (is_comm_semigroup #et zero add)
   returns

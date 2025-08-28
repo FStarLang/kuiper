@@ -35,13 +35,13 @@ type matmul_cpu_ty
   (#sb : erased (seq et){ len sb == shared * cols }) ->
   stt (vec et)
     (requires
-      (cpu ** (a |-> sa) ** (b |-> sb)) **
+      (cpu ** a |-> sa ** b |-> sb) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
       (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks)))
     (ensures fun c ->
-      (cpu ** (a |-> sa) ** (b |-> sb)) **
+      (cpu ** a |-> sa ** b |-> sb) **
       (c |-> (to_seq lC <|
                 MS.matmul (from_seq lA sa)
                           (from_seq lB sb))))

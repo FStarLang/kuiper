@@ -301,14 +301,15 @@ fn kf
   (#s:erased (Seq.seq ty) { len s == SZ.v size })
   (bid : szlt (SZ.v (size `div` 2sz))) (* pretty awful.. *)
   ()
-requires
-  gpu **
-  kpre size a s bid **
-  block_id (size /^ 2sz) bid
-ensures
-  gpu **
-  kpost size a s bid **
-  block_id (size /^ 2sz) bid
+  norewrite
+  requires
+    gpu **
+    kpre size a s bid **
+    block_id (size /^ 2sz) bid
+  ensures
+    gpu **
+    kpost size a s bid **
+    block_id (size /^ 2sz) bid
 {
   let idx = bid; rewrite each bid as idx;
   let idx' = (size - idx - 1sz);
@@ -329,6 +330,7 @@ fn setup
   (a:gpu_array ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
+  norewrite
   requires
     a |-> s
   ensures
@@ -351,6 +353,7 @@ fn teardown
   (a:gpu_array ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
+  norewrite
   requires
     (forall+ (bid : natlt (size /^ 2sz)). kpost size a s bid) **
     emp (* frame *)
@@ -379,8 +382,8 @@ let kdesc
   = {
       nblk     = size /^ 2sz;
       f        = kf size a #s;
-      setup    = (setup size a);
-      teardown = (teardown size a);
+      setup    = setup size a;
+      teardown = teardown size a;
       kpre     = kpre size a s;
       kpost    = kpost size a s;
       frame    = emp;

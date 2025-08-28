@@ -286,6 +286,7 @@ fn kf
   (bid : szlt (mrows * mcols))
   (tid : szlt tile)
   ()
+  norewrite
   requires
     gpu **
     kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid **
@@ -439,6 +440,7 @@ fn setup
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
+  norewrite
   requires
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
@@ -474,6 +476,7 @@ fn block_setup
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
+  norewrite
   requires
     block_setup_tok tile **
     live_c_shmems sh **
@@ -510,6 +513,7 @@ fn block_teardown
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
+  norewrite
   requires
     (forall+ (tid : natlt tile).
       kpost comb tile slA slB gA gB gC eA eB fA fB sh bid tid) **
@@ -541,6 +545,7 @@ fn teardown
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
+  norewrite
   requires
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt tile).
@@ -626,6 +631,7 @@ fn mmcomb_gpu
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
+  norewrite
   preserves
     cpu **
     gA |-> Frac fA eA **

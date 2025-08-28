@@ -395,6 +395,7 @@ fn kf
   (bid : szlt (mrows * mcols))
   (tid : szlt (bm/tm * bn))
   ()
+  norewrite
   requires
     gpu **
     kpre comb tm slA slB gA gB gC eA eB fA fB sh bid tid **
@@ -483,6 +484,7 @@ fn kf
 
   ghost
   fn aux (i: natlt tm)
+  norewrite
   requires
     (exists* (v: et).
       M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
@@ -496,7 +498,12 @@ fn kf
         (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i)
         (SZ.v threadCol) v)
   {
-    with v. _;
+    with v. assert
+      M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+        #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
+        (SZ.v bid % SZ.v mcols) (SZ.v tid / SZ.v bn * SZ.v tm + i)
+        (SZ.v tid % SZ.v bn) v;
+
     rewrite
       (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
           #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
@@ -560,20 +567,25 @@ fn kf
 
   ghost
   fn raux (i: natlt tm)
-  requires
-    (exists* (v: et).
+    norewrite
+    requires
+      (exists* (v: et).
+        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
+          (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i)
+          (SZ.v threadCol) v)
+    ensures
+      (exists* (v: et).
+        M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
+          #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
+          (SZ.v bid % SZ.v mcols) (SZ.v tid / SZ.v bn * SZ.v tm + i)
+          (SZ.v tid % SZ.v bn) v)
+  {
+    with v. assert
       M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
         #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
         (SZ.v mcol) (SZ.v threadRow * SZ.v tm + i)
-        (SZ.v threadCol) v)
-  ensures
-    (exists* (v: et).
-      M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
-        #(SZ.v bn) #lC gC #1.0R (SZ.v bid / SZ.v mcols)
-        (SZ.v bid % SZ.v mcols) (SZ.v tid / SZ.v bn * SZ.v tm + i)
-        (SZ.v tid % SZ.v bn) v)
-  {
-    with v. _;
+        (SZ.v threadCol) v;
     rewrite
       (M4.gpu_matrix_pts_to_cell #et #(SZ.v mrows) #(SZ.v mcols) #(SZ.v bm)
           #(SZ.v bn) #lC gC #1.0R (SZ.v mrow)
@@ -615,10 +627,11 @@ fn setup
   (#eB : ematrix4 et mshared mcols bk bn)
   (#eC : ematrix4 et mrows mcols bm bn)
   ()
+  norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt (mrows *^ mcols))
              (tid : natlt (bm /^ tm *^ bn)).
@@ -653,6 +666,7 @@ fn block_setup
   (sh : c_shmems (shmems_desc et bm bn bk))
   (bid : natlt (mrows *^ mcols))
   ()
+  norewrite
   requires
     block_setup_tok (bm /^ tm *^ bn) **
     live_c_shmems sh **
@@ -692,6 +706,7 @@ fn block_teardown
   (sh : c_shmems (shmems_desc et bm bn bk))
   (bid : natlt (mrows *^ mcols))
   ()
+  norewrite
   requires
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpost comb tm slA slB gA gB gC eA eB fA fB sh bid tid) **
@@ -725,15 +740,16 @@ fn teardown
   (#eB : ematrix4 et mshared mcols bk bn)
   (#eC : ematrix4 et mrows mcols bm bn)
   ()
+  norewrite
   requires
     (forall+ (bid : natlt (mrows *^ mcols))
              (tid : natlt (bm /^ tm *^ bn)).
       kpost1 comb tm gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> MS.mmcomb comb eC eA eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> MS.mmcomb comb eC eA eB
 {
   // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
   //   (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
@@ -771,8 +787,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ (bm/tm * bn) <= max_threads))
   : kernel_desc
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 = {
   nblk = mrows *^ mcols; //SZ.uint_to_t (SZ.v mrows * SZ.v mcols);
   nthr = (bm /^ tm *^ bn);
@@ -815,14 +831,15 @@ fn mmcomb_gpu
   (#eA : ematrix4 et mrows mshared bm bk)
   (#eB : ematrix4 et mshared mcols bk bn)
   (#eC : ematrix4 et mrows mcols bm bn)
+  norewrite
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (bm/tm * bn <= max_threads) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

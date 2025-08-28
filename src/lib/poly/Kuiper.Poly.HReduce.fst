@@ -300,13 +300,14 @@ fn block_setup
   (a : gpu_array et lena)
   (#va : erased (seq et) { Seq.length va == SZ.v lena })
   ()
-requires
-  block_setup_tok lena **
-  (a |-> va)
-ensures
-  block_setup_tok lena **
-  (forall+ (i : natlt lena). kpre lena a va i) **
-  emp
+  norewrite
+  requires
+    block_setup_tok lena **
+    (a |-> va)
+  ensures
+    block_setup_tok lena **
+    (forall+ (i : natlt lena). kpre lena a va i) **
+    emp
 {
   open Kuiper.Enumerable;
   gpu_array_slice_1 a;
@@ -326,11 +327,12 @@ fn block_teardown
   (a : gpu_array et lena)
   (#va : erased (seq et) { Seq.length va == SZ.v lena })
   ()
-requires
-  (forall+ (i : natlt lena). kpost lena a va i) **
-  emp
-ensures
-  gpu_pts_to_slice_sum a 0 lena va
+  norewrite
+  requires
+    (forall+ (i : natlt lena). kpost lena a va i) **
+    emp
+  ensures
+    gpu_pts_to_slice_sum a 0 lena va
 {
   open Kuiper.Enumerable;
   forevery_tostar #(natlt lena) _;
@@ -340,7 +342,8 @@ ensures
     as lena;
   ghost
   fn mapper (j: nat{b2t (0 <= j) /\ b2t (j < SZ.v lena)})
-  requires
+    norewrite
+    requires
       if_ (op_Equality #int (Kuiper.Enumerable.of_nat #(natlt lena) j) 0)
         (gpu_pts_to_slice_sum
             a
@@ -352,7 +355,7 @@ ensures
             (barrier_matrix (SZ.v lena) a (reveal #(seq et) va))
             it
             (Kuiper.Enumerable.of_nat #(natlt lena) j))
-  ensures
+    ensures
       if_ (op_Equality #int j 0)
         (gpu_pts_to_slice_sum
             a

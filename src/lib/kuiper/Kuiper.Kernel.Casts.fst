@@ -16,15 +16,16 @@ fn kmn_as_kfull_block_setup
   (sh : c_shmems [])
   (bid: natlt k.nblk)
   ()
-requires
-  block_setup_tok k.nthr **
-  live_c_shmems sh **
-  k.block_pre bid
-ensures
-  block_setup_tok k.nthr **
-  (forall+ (i : natlt k.nthr). k.kpre bid i) **
-  (k.block_frame bid **
-    live_c_shmems sh)
+  norewrite
+  requires
+    block_setup_tok k.nthr **
+    live_c_shmems sh **
+    k.block_pre bid
+  ensures
+    block_setup_tok k.nthr **
+    (forall+ (i : natlt k.nthr). k.kpre bid i) **
+    (k.block_frame bid **
+      live_c_shmems sh)
 {
   let f = k.block_setup;
   f bid;
@@ -37,12 +38,13 @@ fn kmn_as_kfull_block_teardown
   (sh : c_shmems [])
   (bid: natlt k.nblk)
   ()
-requires
-  (forall+ (i : natlt k.nthr). k.kpost bid i) **
-  (k.block_frame bid ** live_c_shmems sh)
-ensures
-  live_c_shmems sh **
-  k.block_post bid
+  norewrite
+  requires
+    (forall+ (i : natlt k.nthr). k.kpost bid i) **
+    (k.block_frame bid ** live_c_shmems sh)
+  ensures
+    live_c_shmems sh **
+    k.block_post bid
 {
   let f = k.block_teardown;
   f bid;
@@ -84,13 +86,14 @@ fn km1_as_kmn_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_1 full_pre full_post)
   (bid: natlt k.nblk)
-requires
-  block_setup_tok 1sz **
-  k.kpre bid
-ensures
-  block_setup_tok 1sz **
-  (forall+ (i : natlt 1sz). k.kpre bid) **
-  emp
+  norewrite
+  requires
+    block_setup_tok 1sz **
+    k.kpre bid
+  ensures
+    block_setup_tok 1sz **
+    (forall+ (i : natlt 1sz). k.kpre bid) **
+    emp
 {
   forevery_singleton_intro #(natlt 1sz) (fun _ -> k.kpre bid);
 }
@@ -100,11 +103,12 @@ fn km1_as_kmn_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_1 full_pre full_post)
   (bid: natlt k.nblk)
-requires
-  (forall+ (i : natlt 1sz). k.kpost bid) **
-  emp
-ensures
-  k.kpost bid
+  norewrite
+  requires
+    (forall+ (i : natlt 1sz). k.kpost bid) **
+    emp
+  ensures
+    k.kpost bid
 {
   forevery_singleton_elim #(natlt 1sz) _;
 }
@@ -114,8 +118,9 @@ fn frame_2
   (e #p0 #p1 #q0 #q1 #r0 #r1 : slprop)
   (f : unit -> stt unit (requires p0 ** q0 ** r0) (fun _ -> p1 ** q1 ** r1))
   ()
-requires p0 ** q0 ** e ** r0
-ensures  p1 ** q1 ** e ** r1
+  norewrite
+  requires p0 ** q0 ** e ** r0
+  ensures  p1 ** q1 ** e ** r1
 {
   f ()
 }
@@ -152,11 +157,12 @@ fn k1n_as_kmn_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_1_n full_pre full_post)
   ()
-requires
-  full_pre
-ensures
-  (forall+ (bid: natlt 1sz). full_pre) **
-  emp
+  norewrite
+  requires
+    full_pre
+  ensures
+    (forall+ (bid: natlt 1sz). full_pre) **
+    emp
 {
   forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
 }
@@ -167,11 +173,12 @@ fn k1n_as_kmn_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_1_n full_pre full_post)
   ()
-requires
-  (forall+ (bid: natlt 1sz). full_post) **
-  emp
-ensures
-  full_post
+  norewrite
+  requires
+    (forall+ (bid: natlt 1sz). full_post) **
+    emp
+  ensures
+    full_post
 {
   forevery_singleton_elim #(natlt 1sz) (fun _ -> full_post);
 }
@@ -208,13 +215,14 @@ fn k11_as_k1n_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_1_1 full_pre full_post)
   ()
-requires
-  block_setup_tok 1sz **
-  full_pre
-ensures
-  block_setup_tok 1sz **
-  (forall+ (bid: natlt 1sz). full_pre) **
-  emp
+  norewrite
+  requires
+    block_setup_tok 1sz **
+    full_pre
+  ensures
+    block_setup_tok 1sz **
+    (forall+ (bid: natlt 1sz). full_pre) **
+    emp
 {
   forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
 }
@@ -224,11 +232,12 @@ fn k11_as_k1n_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_1_1 full_pre full_post)
   ()
-requires
-  (forall+ (bid: natlt 1sz). full_post) **
-  emp
-ensures
-  full_post
+  norewrite
+  requires
+    (forall+ (bid: natlt 1sz). full_post) **
+    emp
+  ensures
+    full_post
 {
   forevery_singleton_elim #(natlt 1sz) (fun _ -> full_post);
 }

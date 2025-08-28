@@ -32,10 +32,11 @@ fn matmul_cpu
   (b : vec et)
   (#sa : erased (seq et){ len sa == rows * shared })
   (#sb : erased (seq et){ len sb == shared * cols })
+  norewrite
   preserves
     cpu **
-    (a |-> sa) **
-    (b |-> sb)
+    a |-> sa **
+    b |-> sb
   requires
     (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
        is not needed for all kernels. *)
@@ -92,6 +93,7 @@ fn mmcomb_gpu_tiled
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     gA |-> Frac fA eA **
@@ -144,6 +146,7 @@ fn _OLD_mmcomb_gpu_tiled
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     gA |-> Frac fA eA **
@@ -209,6 +212,7 @@ fn mmcomb_gpu_block_tiled1d
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     gA |-> Frac fA eA **
@@ -287,6 +291,7 @@ fn mmcomb_gpu_shmem_block_tiled2d
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     gA |-> Frac fA eA **
@@ -399,6 +404,7 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   (#ma : ematrix et rows shared)
   (#mb : ematrix et shared cols)
   (#mc0 : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     gA |-> ma **
@@ -432,6 +438,7 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   (#ma : ematrix et rows shared)
   (#mb : ematrix et shared cols)
   (#mc0 : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
     gA |-> ma **
@@ -467,6 +474,7 @@ fn cpu_wrap_matmul
   (b : vec et)
   (#sa : erased (seq et){ len sa == rows * shared })
   (#sb : erased (seq et){ len sb == shared * cols })
+  norewrite
   preserves
     cpu **
     a |-> sa **

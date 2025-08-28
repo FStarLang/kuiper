@@ -31,8 +31,8 @@ let kpre
   (tid : natlt (tile * tile))
   : slprop
   =
-  (gA |-> Frac fA eA) **
-  (gB |-> Frac fB eB) **
+  gA |-> Frac fA eA **
+  gB |-> Frac fB eB **
   (exists* v.
     gpu_matrix_pts_to_cell
       (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
@@ -83,6 +83,7 @@ fn kf
   (bid : szlt (mrows * mcols))
   (tid : szlt (tile * tile))
   ()
+  norewrite
   requires
     gpu **
     kpre comb tile gA gB gC eA eB eC fA fB bid tid **
@@ -144,10 +145,11 @@ fn setup
   (gC : gpu_matrix et lC)
   (#eA #eB #eC : ematrix _ _ _)
   ()
+  norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt2 mrows mcols)
             (tid : natlt2 tile  tile).
@@ -174,15 +176,16 @@ fn teardown
   (gC : gpu_matrix et lC)
   (#eA #eB #eC : ematrix _ _ _)
   ()
+  norewrite
   requires
     (forall+ (bid : natlt2 mrows mcols)
             (tid : natlt2 tile  tile).
       kpost comb tile gA gB gC eA eB eC fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> MS.mmcomb comb eC eA eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> MS.mmcomb comb eC eA eB
 {
   admit();
 }
@@ -206,8 +209,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc_m_n
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
@@ -244,14 +247,15 @@ fn mmcomb_gpu
   (#fB : perm)
   (gC : gpu_matrix et lC)
   (#eA #eB #eC : ematrix _ _ _)
+  norewrite
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

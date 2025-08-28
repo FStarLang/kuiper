@@ -89,6 +89,7 @@ fn kf
   (bid : szlt (divup (rows *^ cols) blocksz))
   (tid : szlt blocksz)
   ()
+  norewrite
   requires
     gpu **
     kpre comb gA gB gC eA eB eC fA fB bid tid **
@@ -181,6 +182,7 @@ fn setup
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   ()
+  norewrite
   requires
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
@@ -238,6 +240,7 @@ fn teardown
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   ()
+  norewrite
   requires
     (forall+ (bid : natlt (sdivup (rows *^ cols) blocksz))
             (tid : natlt blocksz).
@@ -358,13 +361,14 @@ fn mmcomb_gpu
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  norewrite
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

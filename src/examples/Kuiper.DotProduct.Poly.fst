@@ -28,6 +28,7 @@ fn kf
   (ga1 ga2 r : gpu_array et size)
   (tid : szlt size)
   ()
+  norewrite
   requires
     gpu **
     kpre size ga1 ga2 r tid **
@@ -53,18 +54,19 @@ fn kf
 
 ghost
 fn block_setup
-    (#et:Type) (ga1 ga2 gr : gpu_array et size)
-    ()
-    requires
-      block_setup_tok m_size **
-      (exists* s1 s2 sr.
-        (ga1 |-> s1) **
-        (ga2 |-> s2) **
-        (gr |-> sr))
-    ensures
-      block_setup_tok m_size **
-      (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
-      emp (* frame *)
+  (#et:Type) (ga1 ga2 gr : gpu_array et size)
+  ()
+  norewrite
+  requires
+    block_setup_tok m_size **
+    (exists* s1 s2 sr.
+      ga1 |-> s1 **
+      ga2 |-> s2 **
+      gr |-> sr)
+  ensures
+    block_setup_tok m_size **
+    (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
+    emp (* frame *)
 {
   // Slicing the arrays
   (**)gpu_array_slice_1_underspec #1 ga1;
@@ -79,20 +81,19 @@ fn block_setup
     (fun i -> kpre m_size ga1 ga2 gr i);
 }
 
-#set-options "--print_implicits"
-
 ghost
 fn block_teardown
-    (#et:Type) (ga1 ga2 gr : gpu_array et size)
-    ()
-    requires
-      (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
-      emp (* frame *)
-    ensures
-      (exists* s1 s2 sr.
-        (ga1 |-> s1) **
-        (ga2 |-> s2) **
-        (gr |-> sr))
+  (#et:Type) (ga1 ga2 gr : gpu_array et size)
+  ()
+  norewrite
+  requires
+    (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
+    emp (* frame *)
+  ensures
+    (exists* s1 s2 sr.
+      ga1 |-> s1 **
+      ga2 |-> s2 **
+      gr |-> sr)
 {
   forevery_tonat size
     (fun i -> kpost m_size ga1 ga2 gr i);
@@ -115,14 +116,14 @@ fn block_teardown
 inline_for_extraction noextract
 let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   : kernel_desc
-      (exists* s1 s2 sr.
-        (ga1 |-> s1) **
-        (ga2 |-> s2) **
-        (r |-> sr))
-      (exists* s1 s2 sr.
-        (ga1 |-> s1) **
-        (ga2 |-> s2) **
-        (r |-> sr))
+    (exists* s1 s2 sr.
+      ga1 |-> s1 **
+      ga2 |-> s2 **
+      r |-> sr)
+    (exists* s1 s2 sr.
+      ga1 |-> s1 **
+      ga2 |-> s2 **
+      r |-> sr)
 = {
   f = kf #et ga1 ga2 r;
   nthr = m_size;

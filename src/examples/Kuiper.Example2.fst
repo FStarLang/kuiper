@@ -8,6 +8,7 @@ open Kuiper
 very useful... *)
 inline_for_extraction noextract
 fn kf ()
+  norewrite
   preserves gpu
   requires emp
   ensures emp

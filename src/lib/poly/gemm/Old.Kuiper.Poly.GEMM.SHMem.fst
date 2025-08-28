@@ -261,6 +261,7 @@ fn kf
   (bid : szlt (mrows * mcols))
   (tid : szlt (tile  * tile))
   ()
+  norewrite
   requires
     gpu **
     kpre comb tile gA gB gC eA eB fA fB sh bid tid **
@@ -396,10 +397,11 @@ fn setup
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
+  norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
@@ -430,6 +432,7 @@ fn block_setup
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
+  norewrite
   requires
     block_setup_tok (tile *^ tile) **
     live_c_shmems sh **
@@ -465,6 +468,7 @@ fn block_teardown
   (sh : c_shmems (shmems_desc et tile))
   (bid : natlt (mrows * mcols))
   ()
+  norewrite
   requires
     (forall+ (tid : natlt2 tile  tile).
       kpost comb tile gA gB gC eA eB fA fB sh bid tid) **
@@ -496,15 +500,16 @@ fn teardown
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
   ()
+  norewrite
   requires
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
       kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> MS.mmcomb comb eC eA eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> MS.mmcomb comb eC eA eB
 {
   admit();
 }
@@ -574,14 +579,15 @@ fn mmcomb_gpu
   (#eA : ematrix4 et mrows   mshared tile tile)
   (#eB : ematrix4 et mshared mcols   tile tile)
   (#eC : ematrix4 et mrows   mcols   tile tile)
+  norewrite
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

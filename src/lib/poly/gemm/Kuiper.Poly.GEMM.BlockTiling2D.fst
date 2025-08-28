@@ -99,8 +99,8 @@ let kpre1
   (tid : natlt (bm/tm * (bn/tn)))
   : slprop
   =
-  (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA) **
-  (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB) **
+  gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA **
+  gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB **
   own_thread_tile bm bn tm tn gC bid tid
 
 unfold
@@ -124,8 +124,8 @@ let kpost1
   (tid : natlt (bm/tm * (bn/tn)))
   : slprop
   =
-  (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA) **
-  (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB) **
+  gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA **
+  gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB **
   own_thread_tile bm bn tm tn gC bid tid
 
 let own_cell
@@ -600,6 +600,7 @@ fn kf
   (bid : szlt (mrows * mcols))
   (tid : szlt (bm/tm * (bn/tn)))
   ()
+  norewrite
   requires
     gpu **
     kpre comb tm tn slA slB gA gB gC eA eB fA fB sh bid tid **
@@ -730,10 +731,11 @@ fn setup
   (#eB : ematrix4 et mshared mcols bk bn)
   (#eC : ematrix4 et mrows mcols bm bn)
   ()
+  norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt (mrows *^ mcols))
              (tid : natlt (bm /^ tm *^ (bn /^ tn))).
@@ -768,6 +770,7 @@ fn block_setup
   (sh : c_shmems (shmems_desc et bm bn bk))
   (bid : natlt (mrows *^ mcols))
   ()
+  norewrite
   requires
     block_setup_tok (bm /^ tm *^ (bn /^ tn)) **
     live_c_shmems sh **
@@ -807,6 +810,7 @@ fn block_teardown
   (sh : c_shmems (shmems_desc et bm bn bk))
   (bid : natlt (mrows *^ mcols))
   ()
+  norewrite
   requires
     (forall+ (tid : natlt (bm/^tm *^ (bn /^ tn))).
       kpost comb tm tn slA slB gA gB gC eA eB fA fB sh bid tid) **
@@ -840,15 +844,16 @@ fn teardown
   (#eB : ematrix4 et mshared mcols bk bn)
   (#eC : ematrix4 et mrows mcols bm bn)
   ()
+  norewrite
   requires
     (forall+ (bid : natlt (mrows *^ mcols))
              (tid : natlt (bm /^ tm *^ (bn /^ tn))).
       kpost1 comb tm tn gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> MS.mmcomb comb eC eA eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> MS.mmcomb comb eC eA eB
 {
   // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
   //   (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
@@ -937,14 +942,15 @@ fn mmcomb_gpu
   (#eA : ematrix4 et mrows mshared bm bk)
   (#eB : ematrix4 et mshared mcols bk bn)
   (#eC : ematrix4 et mrows mcols bm bn)
+  norewrite
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

@@ -68,6 +68,7 @@ fn kf
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   (bid : szlt (rows *^ cols))
   ()
+  norewrite
   requires
     gpu **
     kpre stencil gIn fIn gOut eIn bid **
@@ -110,6 +111,7 @@ fn setup
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   (#eOut : ematrix et rows cols)
   ()
+  norewrite
   requires
     (gIn |-> Frac fIn eIn) **
     (gOut |-> eOut)
@@ -184,6 +186,7 @@ fn teardown
   (gOut : M.gpu_matrix et lOut)
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   ()
+  norewrite
   requires
     (forall+ (tid : natlt (rows *^ cols)).
       kpost stencil gIn fIn gOut eIn tid) **
@@ -246,8 +249,8 @@ let kdesc
   (#eOut : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
-    ((gIn |-> Frac fIn eIn) ** (gOut |-> eOut))
-    ((gIn |-> Frac fIn eIn) ** (gOut |-> STS.stencil_result stencil eIn))
+    (gIn |-> Frac fIn eIn ** gOut |-> eOut)
+    (gIn |-> Frac fIn eIn ** gOut |-> STS.stencil_result stencil eIn)
 = {
   nblk = rows *^ cols;
 
