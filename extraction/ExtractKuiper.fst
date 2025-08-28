@@ -343,10 +343,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** PREDEFINED VARS ********)
 
   | "Kuiper.Base.get_gdim", [], [ _unit; _erasednblk; _erasednbid ] ->
-    EApp (EQualified ([], "gridDim_x"), [ EUnit ])
+    EQualified ([], "gridDim_x")
 
   | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
-    EApp (EQualified ([], "blockDim_x"), [ EUnit ])
+    EQualified ([], "blockDim_x")
 
   (******** BARRIERS ********)
 
@@ -387,8 +387,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EBufCreate (Stack,
       EApp (EQualified ([], "KPR_FRAGMENT_INIT" ^ macro_suff), args),
       EConstant (SizeT, "1"))
-  | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; m0; f0 ]
-  | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; m0; f0 ] ->
+  | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
+  | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     let fr = deref <| cb fr in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in

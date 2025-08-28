@@ -304,8 +304,8 @@ fn gpu_matrix_extract_tile
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : pos { trows /? rows })
-  (tcols : pos { tcols /? cols })
+  (trows : nat { trows > 0 /\ trows /? rows })
+  (tcols : nat { tcols > 0 /\ tcols /? cols })
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   (#em : ematrix et rows cols)
@@ -381,4 +381,31 @@ fn gpu_matrix_extract_tile_ro
   gpu_matrix_extract_tile gm trows tcols tr tc;
   Pulse.Lib.Forall.elim_forall (ematrix_subtile em trows tcols tr tc);
   ()
+}
+
+inline_for_extraction noextract
+fn gpu_matrix_extract_tile_ro'
+  (#et:Type0)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat { trows > 0 /\ trows /? rows })
+  (tcols : erased nat { tcols > 0 /\ tcols /? cols })
+  (tr : enatlt (rows / trows))
+  (tc : enatlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    gm |-> Frac f em
+  returns gm' : gpu_matrix et (subtile_layout l trows tcols tr tc)
+  ensures
+    pure (gm' == gpu_matrix_subtile gm trows tcols tr tc) **
+    factored
+      (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
+      (gm |-> Frac f em)
+{
+  // reveal was only required because of pos in
+  //   declaration of gpu_matrix_extract_tile
+  gpu_matrix_extract_tile_ro gm trows tcols tr tc;
+  gpu_matrix_subtile gm trows tcols tr tc;
 }

@@ -28,7 +28,7 @@ let valid_frag_dimensions et (m n k : nat) : prop =
 new
 val fragment
   (et : Type0)
-  (k : fragment_kind)
+  (knd : fragment_kind)
   (m n k : nat)
   (layout : fragment_layout)
   : Type0
@@ -44,7 +44,7 @@ val fragment_pts_to
   (#knd : fragment_kind)
   (#m #n #k : nat)
   (#fl : fragment_layout)
-  (f   : fragment et knd m n k fl)
+  ([@@@mkey] f : fragment et knd m n k fl)
   (em  : value_for et knd m n k)
   : slprop
 
@@ -96,10 +96,11 @@ fn mma_loadA
   (fr : fragment et FragA m n k FragLRM)
   (#l : mlayout m k) {| strided_row_major l |}
   (gm : gpu_matrix et l)
+  (#f : perm)
   (#m0 : ematrix et m k)
   (#f0 : erased (value_for et FragA m n k))
   preserves
-    gm |-> m0
+    gm |-> Frac f m0
   requires
     fr |-> f0
   ensures
@@ -111,10 +112,11 @@ fn mma_loadB
   (fr : fragment et FragB m n k FragLRM)
   (#l : mlayout k n) {| strided_row_major l |}
   (gm : gpu_matrix et l)
+  (#f : perm)
   (#m0 : ematrix et k n)
   (#f0 : erased (value_for et FragB m n k))
   preserves
-    gm |-> m0
+    gm |-> Frac f m0
   requires
     fr |-> f0
   ensures
