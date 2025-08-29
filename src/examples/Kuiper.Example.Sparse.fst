@@ -20,7 +20,7 @@ let in_bounds (#nnz len : nat) (s : lseq sz nnz) : prop =
 
 let no_repeats (#nnz : nat) (s : lseq sz nnz) : prop =
   // Seq.index s es una inyección
-  forall (i j : natlt nnz). i <> j ==> Seq.index s i <> Seq.index s j
+  forall (i j : natlt nnz). i > j ==> Seq.index s i > Seq.index s j
 
 let valid_pos (#nnz len : nat) (s : lseq sz nnz) : prop =
   in_bounds len s /\ no_repeats s
@@ -30,7 +30,7 @@ let unsparse
   (nnz len : nat)
   (elems : lseq et nnz)
   (pos   : lseq sz nnz{valid_pos len pos}) 
-  : lseq et len
+  : GTot (lseq et len)
 =
   let open FStar.Seq in
 
@@ -44,50 +44,42 @@ let unsparse
 let sarray_pts_to
   (#et:Type0) {| d : scalar et |} #len
   (a : sarray et len)
-  (#[Tactics.exact (`1.0R)] _f : perm) // TODO: no ignorar, y usarlo
+  (#[Tactics.exact (`1.0R)] f : perm)
   (s : seq et)
   : slprop
 =
-  exists* v_elems v_pos.
-    a.elems |-> v_elems **
-    a.pos   |-> v_pos **
+  exists* v_elems (v_pos : lseq sz a.nnz).
+    a.elems |-> Frac f v_elems **
+    a.pos   |-> Frac f v_pos **
     pure (
       valid_pos len v_pos /\
       //a.nnz <= a.len ????
       s == unsparse a.nnz len v_elems v_pos
     )
 
+inline_for_extraction noextract
+unfold
 instance has_pts_to_sarray
-  (#et: eqtype) (#len : nat) {| scalar et |}
+  (#et: Type0) (#len : nat) {| scalar et |}
   : has_pts_to (sarray et len) (seq et) =
 {
   pts_to = sarray_pts_to;
 }
-
-unfold
-let sarray_live #et {| scalar et |} #len (s : sarray et len) : slprop =
-  exists* v. sarray_pts_to s v
-  // (exists* v. s.elems |-> v) **
-  // (exists* v. s.pos |-> v)
-
 
 inline_for_extraction noextract
 fn sarray_id
   (#et : Type0) {| scalar et |}
   (len : erased nat)
   (a : sarray et len)
+  (#s0 : erased (lseq et len))
   preserves gpu
-  preserves (exists* s. sarray_pts_to a s)
+  preserves sarray_pts_to a s0
 {
-  with s.
-    assert(sarray_pts_to a s);
   let mut i = 0sz;
-  while(FStar.SizeT.(!i <^ a.nnz))
-    invariant
-      (sarray_pts_to a s) **
-      (exists* i_v. i |-> i_v)
+  while (FStar.SizeT.(!i <^ a.nnz))
+    invariant a |-> s0 ** live i
   {
-    unfold (sarray_pts_to a s);
+    unfold sarray_pts_to a s0;
     with v_elems. assert a.elems |-> v_elems;
 
     let v = gpu_array_read a.elems !i;
@@ -99,36 +91,50 @@ fn sarray_id
 
     i := !i `SZ.add` 1sz;
     
-    fold(sarray_pts_to a s);
+    fold sarray_pts_to a s0;
   }
 }
 
 let _id_u32 = sarray_id #u32 #_
 
 assume
-val zero_is_id
-  (#et:_) {| d : scalar et |}
+val zero_is_absorbing_l
+  (#et:_) {| scalar et |}
   (k : et)
   : Lemma
     (requires true)
-    (ensures k `d.mul` zero == zero /\ zero `d.mul` k == zero)
+    (ensures k `mul` zero == zero)
+    [SMTPat (k `mul` zero)]
+    // FIXME: ^ this pattern does not kick in
+    // if we use `d.mul` instead of `mul`. Why?
+
+assume
+val zero_is_absorbing_r
+  (#et:_) {| scalar et |}
+  (k : et)
+  : Lemma
+    (requires true)
+    (ensures zero `mul` k == zero)
+    [SMTPat (zero `mul` k )]
+
+let map_seq_len (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a)
+  : Lemma (ensures Seq.length (Seq.map_seq f s) == Seq.length s)
+          [SMTPat (Seq.map_seq f s)]
+  = Seq.map_seq_len f s
+
+let my_map_seq_index (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a) (i:nat{i < Seq.length s})
+  : Lemma (ensures (Seq.map_seq_len f s; Seq.index (Seq.map_seq f s) i == f (Seq.index s i)))
+          [SMTPat (Seq.index (Seq.map_seq f s) i)]
+  = Seq.map_seq_index f s i
 
 let scale_seq
   (#et:_) {| d : scalar et |}
   (k : et)
   (#len : nat)
   (s : lseq et len)
-  : Pure (lseq et len)
-    (requires true)
-    (ensures fun s' -> forall i. Seq.index s' i == k `d.mul` Seq.index s i)
+  : seq et
 =
-  let open FStar.Seq in
-
-  map_seq_len (mul k) s;
-  let s' = map_seq (mul k) s in
-  introduce forall i. index s' i == k `mul` index s i
-  with map_seq_index (mul k) s i;
-  s'
+  Seq.map_seq (mul k) s
 
 let scale_unsparse
   (#et:_) {| scalar et |}
@@ -141,19 +147,8 @@ let scale_unsparse
     (ensures scale_seq k (unsparse nnz len elems pos) == unsparse nnz len (scale_seq k elems) pos)
 =
   let open FStar.Seq in
-
-  let (nat_pos : seq nat) = map_seq SZ.v pos in
-  map_seq_len SZ.v pos;
-
   let s = scale_seq k (unsparse nnz len elems pos) in
   let s' = unsparse nnz len (scale_seq k elems) pos in
-  
-  introduce forall (i : nat{i < len}). Seq.index s i == Seq.index s' i
-  with
-    if Seq.mem i nat_pos
-      then ()
-      else zero_is_id k;
-
   assert (s `equal` s')
 
 inline_for_extraction noextract
@@ -162,10 +157,10 @@ fn sarray_scale
   (k : et)
   (len : erased nat)
   (a : sarray et len)
-  (s : erased (lseq et len))
+  (#s : erased (lseq et len))
   preserves gpu
-  requires sarray_pts_to a s
-  ensures sarray_pts_to a (scale_seq k s)
+  requires a |-> s
+  ensures  a |-> scale_seq k s
 {
   unfold sarray_pts_to a s;
 
@@ -174,17 +169,17 @@ fn sarray_scale
   with v_elems. assert a.elems |-> v_elems;
   with v_pos. assert a.pos |-> v_pos;
   
-  while(FStar.SizeT.(!i <^ a.nnz))
+  while (FStar.SizeT.(!i <^ a.nnz))
     invariant
       (exists* i_v v_elems'. 
         i |-> i_v **
         a.elems |-> v_elems' **
         pure FStar.Seq.(
-          FStar.SizeT.(i_v <=^ a.nnz) /\ 
+          // FStar.SizeT.(i_v <=^ a.nnz) /\ 
           length v_elems' == a.nnz /\
-          forall (i : nat{i < a.nnz}).
-            (i < (SZ.v i_v) ==> index v_elems' i == k `mul` index v_elems i) /\
-            (i >= (SZ.v i_v) ==> index v_elems' i == index v_elems i)))
+          forall (j : nat{j < a.nnz}).
+            (j <  i_v ==> index v_elems' j == k `mul` index v_elems j) /\
+            (j >= i_v ==> index v_elems' j == index v_elems j)))
   {
     let v = gpu_array_read a.elems !i;
     gpu_array_write a.elems !i (k `mul` v);
@@ -235,13 +230,13 @@ fn add1
   (#len : erased nat)
   (a : sarray et len)
   preserves gpu
-  preserves sarray_live a
+  preserves live a
 {
   let mut i = 0sz;
   while (FStar.SizeT.(!i <^ a.nnz))
     invariant
       (exists* v. i |-> v) **
-      sarray_live a
+      live a
   {
     with s.
       assert sarray_pts_to a s;
