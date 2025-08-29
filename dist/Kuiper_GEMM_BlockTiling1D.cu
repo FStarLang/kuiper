@@ -10,11 +10,11 @@ static void
 __hoisted_0(
   size_t shared,
   size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -33,9 +33,9 @@ __hoisted_0(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -50,9 +50,12 @@ __hoisted_0(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 float_t
@@ -79,11 +82,11 @@ float_t
     (size_t)8192U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
@@ -104,11 +107,11 @@ static void
 __hoisted_1(
   size_t shared,
   size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -127,9 +130,9 @@ __hoisted_1(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -144,9 +147,12 @@ __hoisted_1(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 double_t
@@ -173,11 +179,11 @@ double_t
     (size_t)16384U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
@@ -198,11 +204,11 @@ static void
 __hoisted_2(
   size_t shared,
   size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -221,9 +227,9 @@ __hoisted_2(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -238,9 +244,12 @@ __hoisted_2(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 uint32_t
@@ -267,11 +276,11 @@ uint32_t
     (size_t)8192U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -290,11 +299,11 @@ static void
 __hoisted_3(
   size_t shared,
   size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -313,9 +322,9 @@ __hoisted_3(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -330,9 +339,12 @@ __hoisted_3(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 uint64_t
@@ -359,11 +371,11 @@ uint64_t
     (size_t)16384U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -382,11 +394,11 @@ static void
 __hoisted_4(
   size_t rows,
   size_t shared,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -405,9 +417,9 @@ __hoisted_4(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -422,9 +434,12 @@ __hoisted_4(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 float_t
@@ -451,11 +466,11 @@ float_t
     (size_t)8192U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
@@ -476,11 +491,11 @@ static void
 __hoisted_5(
   size_t rows,
   size_t shared,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -499,9 +514,9 @@ __hoisted_5(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -516,9 +531,12 @@ __hoisted_5(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 double_t
@@ -545,11 +563,11 @@ double_t
     (size_t)16384U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
@@ -570,11 +588,11 @@ static void
 __hoisted_6(
   size_t rows,
   size_t shared,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -593,9 +611,9 @@ __hoisted_6(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -610,9 +628,12 @@ __hoisted_6(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 uint32_t
@@ -639,11 +660,11 @@ uint32_t
     (size_t)8192U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -662,11 +683,11 @@ static void
 __hoisted_7(
   size_t rows,
   size_t shared,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -685,9 +706,9 @@ __hoisted_7(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -702,9 +723,12 @@ __hoisted_7(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 uint64_t
@@ -731,11 +755,11 @@ uint64_t
     (size_t)16384U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -754,11 +778,11 @@ static void
 __hoisted_8(
   size_t shared,
   size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -777,9 +801,9 @@ __hoisted_8(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -794,9 +818,12 @@ __hoisted_8(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 float_t
@@ -823,11 +850,11 @@ float_t
     (size_t)2048U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
@@ -848,11 +875,11 @@ static void
 __hoisted_9(
   size_t shared,
   size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -871,9 +898,9 @@ __hoisted_9(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -888,9 +915,12 @@ __hoisted_9(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 double_t
@@ -917,11 +947,11 @@ double_t
     (size_t)4096U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
@@ -942,11 +972,11 @@ static void
 __hoisted_10(
   size_t shared,
   size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -965,9 +995,9 @@ __hoisted_10(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -982,9 +1012,12 @@ __hoisted_10(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 uint32_t
@@ -1011,11 +1044,11 @@ uint32_t
     (size_t)2048U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -1034,11 +1067,11 @@ static void
 __hoisted_11(
   size_t shared,
   size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1057,9 +1090,9 @@ __hoisted_11(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1074,9 +1107,12 @@ __hoisted_11(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 uint64_t
@@ -1103,11 +1139,11 @@ uint64_t
     (size_t)4096U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -1126,11 +1162,11 @@ static void
 __hoisted_12(
   size_t rows,
   size_t shared,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1149,9 +1185,9 @@ __hoisted_12(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1166,9 +1202,12 @@ __hoisted_12(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 float_t
@@ -1195,11 +1234,11 @@ float_t
     (size_t)2048U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
   float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
@@ -1220,11 +1259,11 @@ static void
 __hoisted_13(
   size_t rows,
   size_t shared,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1243,9 +1282,9 @@ __hoisted_13(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1260,9 +1299,12 @@ __hoisted_13(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 double_t
@@ -1289,11 +1331,11 @@ double_t
     (size_t)4096U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (double_t), rows * cols);
   double_t *c = (double_t *)KRML_HOST_MALLOC(sizeof (double_t) * (rows * cols));
@@ -1314,11 +1356,11 @@ static void
 __hoisted_14(
   size_t rows,
   size_t shared,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1337,9 +1379,9 @@ __hoisted_14(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1354,9 +1396,12 @@ __hoisted_14(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 uint32_t
@@ -1383,11 +1428,11 @@ uint32_t
     (size_t)2048U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint32_t), rows * cols);
   uint32_t *c = (uint32_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint32_t));
@@ -1406,11 +1451,11 @@ static void
 __hoisted_15(
   size_t rows,
   size_t shared,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1429,9 +1474,9 @@ __hoisted_15(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1446,9 +1491,12 @@ __hoisted_15(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 uint64_t
@@ -1475,11 +1523,11 @@ uint64_t
     (size_t)4096U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
   KRML_CHECK_SIZE(sizeof (uint64_t), rows * cols);
   uint64_t *c = (uint64_t *)KRML_HOST_CALLOC(rows * cols, sizeof (uint64_t));
@@ -1498,11 +1546,11 @@ static void
 __hoisted_16(
   size_t shared,
   size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1521,9 +1569,9 @@ __hoisted_16(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1538,9 +1586,12 @@ __hoisted_16(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -1563,11 +1614,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(
     (size_t)8192U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -1579,11 +1630,11 @@ static void
 __hoisted_17(
   size_t shared,
   size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1602,9 +1653,9 @@ __hoisted_17(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1619,9 +1670,12 @@ __hoisted_17(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -1644,11 +1698,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(
     (size_t)16384U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -1660,11 +1714,11 @@ static void
 __hoisted_18(
   size_t shared,
   size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1683,9 +1737,9 @@ __hoisted_18(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1700,9 +1754,12 @@ __hoisted_18(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -1725,11 +1782,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile32_rrr(
     (size_t)8192U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -1741,11 +1798,11 @@ static void
 __hoisted_19(
   size_t shared,
   size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1764,9 +1821,9 @@ __hoisted_19(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1781,9 +1838,12 @@ __hoisted_19(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -1806,11 +1866,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile32_rrr(
     (size_t)16384U,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -1822,11 +1882,11 @@ static void
 __hoisted_20(
   size_t rows,
   size_t shared,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1845,9 +1905,9 @@ __hoisted_20(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1862,9 +1922,12 @@ __hoisted_20(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 void
@@ -1887,11 +1950,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_ccc(
     (size_t)8192U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -1903,11 +1966,11 @@ static void
 __hoisted_21(
   size_t rows,
   size_t shared,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -1926,9 +1989,9 @@ __hoisted_21(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -1943,9 +2006,12 @@ __hoisted_21(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 void
@@ -1968,11 +2034,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_ccc(
     (size_t)16384U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -1984,11 +2050,11 @@ static void
 __hoisted_22(
   size_t rows,
   size_t shared,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2007,9 +2073,9 @@ __hoisted_22(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2024,9 +2090,12 @@ __hoisted_22(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 void
@@ -2049,11 +2118,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile32_ccc(
     (size_t)8192U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2065,11 +2134,11 @@ static void
 __hoisted_23(
   size_t rows,
   size_t shared,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2088,9 +2157,9 @@ __hoisted_23(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2105,9 +2174,12 @@ __hoisted_23(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    = sums[row];
 }
 
 void
@@ -2130,11 +2202,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile32_ccc(
     (size_t)16384U,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2146,11 +2218,11 @@ static void
 __hoisted_24(
   size_t shared,
   size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2169,9 +2241,9 @@ __hoisted_24(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2186,9 +2258,12 @@ __hoisted_24(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -2211,11 +2286,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(
     (size_t)2048U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2227,11 +2302,11 @@ static void
 __hoisted_25(
   size_t shared,
   size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2250,9 +2325,9 @@ __hoisted_25(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2267,9 +2342,12 @@ __hoisted_25(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -2292,11 +2370,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(
     (size_t)4096U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2308,11 +2386,11 @@ static void
 __hoisted_26(
   size_t shared,
   size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2331,9 +2409,9 @@ __hoisted_26(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2348,9 +2426,12 @@ __hoisted_26(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -2373,11 +2454,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile16_rrr(
     (size_t)2048U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2389,11 +2470,11 @@ static void
 __hoisted_27(
   size_t shared,
   size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2412,9 +2493,9 @@ __hoisted_27(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2429,9 +2510,12 @@ __hoisted_27(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] = sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    = sums[row];
 }
 
 void
@@ -2454,11 +2538,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile16_rrr(
     (size_t)4096U,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2470,11 +2554,11 @@ static void
 __hoisted_28(
   size_t rows,
   size_t shared,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2493,9 +2577,9 @@ __hoisted_28(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2510,9 +2594,12 @@ __hoisted_28(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 void
@@ -2535,11 +2622,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_ccc(
     (size_t)2048U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2551,11 +2638,11 @@ static void
 __hoisted_29(
   size_t rows,
   size_t shared,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2574,9 +2661,9 @@ __hoisted_29(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2591,9 +2678,12 @@ __hoisted_29(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 void
@@ -2616,11 +2706,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_ccc(
     (size_t)4096U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2632,11 +2722,11 @@ static void
 __hoisted_30(
   size_t rows,
   size_t shared,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2655,9 +2745,9 @@ __hoisted_30(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2672,9 +2762,12 @@ __hoisted_30(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 void
@@ -2697,11 +2790,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile16_ccc(
     (size_t)2048U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2713,11 +2806,11 @@ static void
 __hoisted_31(
   size_t rows,
   size_t shared,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2736,9 +2829,9 @@ __hoisted_31(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2753,9 +2846,12 @@ __hoisted_31(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] = sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    = sums[row];
 }
 
 void
@@ -2778,11 +2874,11 @@ Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile16_ccc(
     (size_t)4096U,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2796,11 +2892,11 @@ __hoisted_32(
   float_t beta,
   size_t shared,
   size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2819,9 +2915,9 @@ __hoisted_32(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2836,11 +2932,16 @@ __hoisted_32(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+          blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -2867,11 +2968,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2885,11 +2986,11 @@ __hoisted_33(
   double_t beta,
   size_t shared,
   size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2908,9 +3009,9 @@ __hoisted_33(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -2925,11 +3026,16 @@ __hoisted_33(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+          blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -2956,11 +3062,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -2974,11 +3080,11 @@ __hoisted_34(
   uint32_t beta,
   size_t shared,
   size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -2997,9 +3103,9 @@ __hoisted_34(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3014,11 +3120,16 @@ __hoisted_34(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+          blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -3045,11 +3156,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile32_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3063,11 +3174,11 @@ __hoisted_35(
   uint64_t beta,
   size_t shared,
   size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3086,9 +3197,9 @@ __hoisted_35(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
+        gA[(mrow * (size_t)32U + vi) * shared + vbk1 * (size_t)32U + threadIdx.x];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
+        gB[(vbk1 * (size_t)32U + vi) * cols + mcol * (size_t)32U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3103,11 +3214,16 @@ __hoisted_35(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)32U + row) * cols + mcol * (size_t)32U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+      blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)32U + row) * cols +
+          blockIdx.x % mcols * (size_t)32U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -3134,11 +3250,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile32_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3152,11 +3268,11 @@ __hoisted_36(
   float_t beta,
   size_t rows,
   size_t shared,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3175,9 +3291,9 @@ __hoisted_36(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3192,11 +3308,16 @@ __hoisted_36(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
-      beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)32U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -3223,11 +3344,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3241,11 +3362,11 @@ __hoisted_37(
   double_t beta,
   size_t rows,
   size_t shared,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3264,9 +3385,9 @@ __hoisted_37(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3281,11 +3402,16 @@ __hoisted_37(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
-      beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)32U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -3312,11 +3438,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3330,11 +3456,11 @@ __hoisted_38(
   uint32_t beta,
   size_t rows,
   size_t shared,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3353,9 +3479,9 @@ __hoisted_38(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3370,11 +3496,16 @@ __hoisted_38(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
-      beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)32U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -3401,11 +3532,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile32_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3419,11 +3550,11 @@ __hoisted_39(
   uint64_t beta,
   size_t rows,
   size_t shared,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3442,9 +3573,9 @@ __hoisted_39(
     {
       size_t vi = i0;
       sa1[vi * (size_t)32U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
+        gA[(vbk1 * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + vi];
       sa2[vi * (size_t)32U + threadIdx.x] =
-        gB4[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
+        gB[(mcol * (size_t)32U + threadIdx.x) * shared + vbk1 * (size_t)32U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3459,11 +3590,16 @@ __hoisted_39(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)32U; row += (size_t)1U)
-    gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] =
-      beta * gC4[(mcol * (size_t)32U + threadIdx.x) * rows + mrow * (size_t)32U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)32U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)32U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)32U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -3490,11 +3626,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile32_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)32U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)32U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3508,11 +3644,11 @@ __hoisted_40(
   float_t beta,
   size_t shared,
   size_t cols,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3531,9 +3667,9 @@ __hoisted_40(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3548,11 +3684,16 @@ __hoisted_40(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+          blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -3579,11 +3720,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3597,11 +3738,11 @@ __hoisted_41(
   double_t beta,
   size_t shared,
   size_t cols,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3620,9 +3761,9 @@ __hoisted_41(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3637,11 +3778,16 @@ __hoisted_41(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+          blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -3668,11 +3814,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3686,11 +3832,11 @@ __hoisted_42(
   uint32_t beta,
   size_t shared,
   size_t cols,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3709,9 +3855,9 @@ __hoisted_42(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3726,11 +3872,16 @@ __hoisted_42(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+          blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -3757,11 +3908,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile16_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3775,11 +3926,11 @@ __hoisted_43(
   uint64_t beta,
   size_t shared,
   size_t cols,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3798,9 +3949,9 @@ __hoisted_43(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
+        gA[(mrow * (size_t)16U + vi) * shared + vbk1 * (size_t)16U + threadIdx.x];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
+        gB[(vbk1 * (size_t)16U + vi) * cols + mcol * (size_t)16U + threadIdx.x];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3815,11 +3966,16 @@ __hoisted_43(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] =
-      beta * gC4[(mrow * (size_t)16U + row) * cols + mcol * (size_t)16U + threadIdx.x] +
-        alpha * sums[row];
+    tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+      blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+    =
+      beta *
+        tileC[(blockIdx.x / mcols * (size_t)16U + row) * cols +
+          blockIdx.x % mcols * (size_t)16U + threadIdx.x]
+      + alpha * sums[row];
 }
 
 void
@@ -3846,11 +4002,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile16_rrr(
     beta,
     shared,
     cols,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3864,11 +4020,11 @@ __hoisted_44(
   float_t beta,
   size_t rows,
   size_t shared,
+  float_t *gA,
+  float_t *gB,
+  float_t *gC,
   size_t mshared,
-  size_t mcols,
-  float_t *gA4,
-  float_t *gB4,
-  float_t *gC4
+  size_t mcols
 )
 {
   float_t *sa1 = (float_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3887,9 +4043,9 @@ __hoisted_44(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3904,11 +4060,16 @@ __hoisted_44(
     }
     bk += (size_t)1U;
   }
+  float_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
-      beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)16U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -3935,11 +4096,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -3953,11 +4114,11 @@ __hoisted_45(
   double_t beta,
   size_t rows,
   size_t shared,
+  double_t *gA,
+  double_t *gB,
+  double_t *gC,
   size_t mshared,
-  size_t mcols,
-  double_t *gA4,
-  double_t *gB4,
-  double_t *gC4
+  size_t mcols
 )
 {
   double_t *sa1 = (double_t *)KPR_SHMEM_AT((size_t)0U);
@@ -3976,9 +4137,9 @@ __hoisted_45(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -3993,11 +4154,16 @@ __hoisted_45(
     }
     bk += (size_t)1U;
   }
+  double_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
-      beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)16U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -4024,11 +4190,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -4042,11 +4208,11 @@ __hoisted_46(
   uint32_t beta,
   size_t rows,
   size_t shared,
+  uint32_t *gA,
+  uint32_t *gB,
+  uint32_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint32_t *gA4,
-  uint32_t *gB4,
-  uint32_t *gC4
+  size_t mcols
 )
 {
   uint32_t *sa1 = (uint32_t *)KPR_SHMEM_AT((size_t)0U);
@@ -4065,9 +4231,9 @@ __hoisted_46(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -4082,11 +4248,16 @@ __hoisted_46(
     }
     bk += (size_t)1U;
   }
+  uint32_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
-      beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)16U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -4113,11 +4284,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile16_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
@@ -4131,11 +4302,11 @@ __hoisted_47(
   uint64_t beta,
   size_t rows,
   size_t shared,
+  uint64_t *gA,
+  uint64_t *gB,
+  uint64_t *gC,
   size_t mshared,
-  size_t mcols,
-  uint64_t *gA4,
-  uint64_t *gB4,
-  uint64_t *gC4
+  size_t mcols
 )
 {
   uint64_t *sa1 = (uint64_t *)KPR_SHMEM_AT((size_t)0U);
@@ -4154,9 +4325,9 @@ __hoisted_47(
     {
       size_t vi = i0;
       sa1[vi * (size_t)16U + threadIdx.x] =
-        gA4[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
+        gA[(vbk1 * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + vi];
       sa2[vi * (size_t)16U + threadIdx.x] =
-        gB4[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
+        gB[(mcol * (size_t)16U + threadIdx.x) * shared + vbk1 * (size_t)16U + vi];
       i0 += (size_t)1U;
     }
     __syncthreads();
@@ -4171,11 +4342,16 @@ __hoisted_47(
     }
     bk += (size_t)1U;
   }
+  uint64_t *tileC = gC;
   size_t row = (size_t)0U;
   for (; row < (size_t)16U; row += (size_t)1U)
-    gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] =
-      beta * gC4[(mcol * (size_t)16U + threadIdx.x) * rows + mrow * (size_t)16U + row] +
-        alpha * sums[row];
+    tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+      blockIdx.x / mcols * (size_t)16U + row]
+    =
+      beta *
+        tileC[(blockIdx.x % mcols * (size_t)16U + threadIdx.x) * rows +
+          blockIdx.x / mcols * (size_t)16U + row]
+      + alpha * sums[row];
 }
 
 void
@@ -4202,11 +4378,11 @@ Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile16_ccc(
     beta,
     rows,
     shared,
-    shared / (size_t)16U,
-    mcols,
     gA,
     gB,
-    gC);
+    gC,
+    shared / (size_t)16U,
+    mcols);
   cudaDeviceSynchronize();
 }
 
