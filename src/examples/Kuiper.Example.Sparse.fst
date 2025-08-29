@@ -4,7 +4,6 @@ module Kuiper.Example.Sparse
 open Kuiper
 module SZ = FStar.SizeT
 
-let x = 1ul
 
 noeq
 type sarray (et : Type0)
@@ -16,15 +15,31 @@ type sarray (et : Type0)
   pos   : gpu_array sz nnz; // posición de cada elemento
 }
 
-assume
-val unsparse
+let in_bounds (#nnz len : nat) (s : lseq sz nnz) : prop =
+  forall i. i < nnz ==> Seq.index s i < len 
+
+let no_repeats (#nnz : nat) (s : lseq sz nnz) : prop =
+  // Seq.index s es una inyección
+  forall (i j : natlt nnz). i <> j ==> Seq.index s i <> Seq.index s j
+
+let valid_pos (#nnz len : nat) (s : lseq sz nnz) : prop =
+  in_bounds len s /\ no_repeats s
+
+let unsparse
   (#et:Type0) {| scalar et |}
   (nnz len : nat)
-  // (elems : seq et { Seq.length elems == nnz})
   (elems : lseq et nnz)
-  (pos   : lseq sz nnz)
-  : seq et
-  // = magic()
+  (pos   : lseq sz nnz{valid_pos len pos}) 
+  : lseq et len
+=
+  let open FStar.Seq in
+
+  init len fun i ->
+    let nat_pos = map_seq SZ.v pos in
+    map_seq_len SZ.v pos;
+    if mem i nat_pos
+      then index elems (index_mem i nat_pos)
+      else zero
 
 let sarray_pts_to
   (#et:Type0) {| d : scalar et |} #len
@@ -36,9 +51,15 @@ let sarray_pts_to
   exists* v_elems v_pos.
     a.elems |-> v_elems **
     a.pos   |-> v_pos **
-    pure (s == unsparse a.nnz len v_elems v_pos)
+    pure (
+      valid_pos len v_pos /\
+      //a.nnz <= a.len ????
+      s == unsparse a.nnz len v_elems v_pos
+    )
 
-instance has_pts_to_sarray (#et #len : _) {| scalar et |} : has_pts_to (sarray et len) (seq et) =
+instance has_pts_to_sarray
+  (#et: eqtype) (#len : nat) {| scalar et |}
+  : has_pts_to (sarray et len) (seq et) =
 {
   pts_to = sarray_pts_to;
 }
@@ -72,7 +93,6 @@ fn _add1
     gpu_array_write elems !i v';
     i := !i `SZ.add` 1sz;
   };
-  ();
 }
 
 let _f_u32 = _add1 #u32 #_
@@ -102,7 +122,6 @@ fn add1
       fold sarray_pts_to a s';
     ()
   };
-  ();
 }
 
 let f_u32 #len = add1 #u32 #_ #len
