@@ -622,8 +622,8 @@ fn mmcomb_gpu
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
-    pure (mrows * mcols <= max_blocks) **
-    pure (tile * tile <= max_threads) **
+    pure (mrows * mcols <= max_blocks /\
+          tile * tile <= max_threads) **
     gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB

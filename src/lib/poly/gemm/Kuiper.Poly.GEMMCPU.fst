@@ -18,7 +18,8 @@ module MC = Kuiper.Matrix.Casts
 
 inline_for_extraction noextract
 fn matmul_cpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (#et : Type0) {| scalar et |}
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
@@ -38,10 +39,7 @@ fn matmul_cpu
     a |-> sa **
     b |-> sb
   requires
-    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-       is not needed for all kernels. *)
-    pure (SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks)
+    pure (size_req rows shared cols)
   returns
     c : vec et
   ensures
@@ -74,7 +72,8 @@ fn matmul_cpu
    multiples of tile. *)
 inline_for_extraction noextract
 fn mmcomb_gpu_tiled
-  (tiled_mmcomb_gpu : tiled_matmulcomb_gpu_ty)
+  (#size_req : tiled_size_req_t)
+  (mmcomb_gpu : tiled_matmulcomb_gpu_ty size_req)
   (tile : valid_tile)
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -99,7 +98,7 @@ fn mmcomb_gpu_tiled
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
-    pure (rows * cols <= max_blocks) **
+    pure (size_req (rows / tile) (shared / tile) (cols / tile) tile) **
     gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
@@ -112,7 +111,7 @@ fn mmcomb_gpu_tiled
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
 
-  tiled_mmcomb_gpu
+  mmcomb_gpu
     tile
     comb
     #mrows #mshared #mcols // should not be needed
@@ -151,7 +150,7 @@ fn mmcomb_gpu_block_tiled1d
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
-    pure (rows * cols <= max_blocks) **
+    pure ((rows / bm) * (cols / bn) <= max_blocks) **
     gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
@@ -207,6 +206,8 @@ fn mmcomb_gpu_shmem_block_tiled2d
   {| csB : clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn < max_threads)})
+  (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
+  (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
@@ -248,10 +249,6 @@ fn mmcomb_gpu_shmem_block_tiled2d
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
 
-  // There is no way to prove this.
-  assume (pure (SZ.fits (bm*bk + (bm/tm * (bn/tn)))));
-  assume (pure (SZ.fits (bk*bn + (bm/tm * (bn/tn)))));
-
   tiled_mmcomb_gpu
     comb
     gA #eA gB #eB gC #eC
@@ -274,7 +271,8 @@ Basically:
 *)
 inline_for_extraction noextract
 fn matmul_transpose_gpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (#et : Type0) {| scalar et |}
   (#rows : szp)
   (#shared : szp)
@@ -290,7 +288,7 @@ fn matmul_transpose_gpu
     gA |-> eA **
     gB |-> eB
   requires
-    pure (rows * cols <= max_blocks) **
+    pure (size_req rows shared cols) **
     gC |-> eC
   ensures
     gC |-> mtranspose (MS.matmul eA eB)
@@ -300,6 +298,7 @@ fn matmul_transpose_gpu
      without this fact. *)
   M.gpu_matrix_pts_to_ref gA;
   M.gpu_matrix_pts_to_ref gB;
+  M.gpu_matrix_pts_to_ref gC;
   GT.ghost_transpose1 gC;
   mmcomb_gpu MS.comb2 gA gB (GT.row2col gC);
   GT.ghost_transpose1_back gC;
@@ -308,7 +307,8 @@ fn matmul_transpose_gpu
 
 inline_for_extraction noextract
 fn specialize_as_gemm_to_type_and_reprs_gpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
@@ -326,10 +326,7 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
     gA |-> ma **
     gB |-> mb
   requires
-    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-       is not needed for all kernels. *)
-    pure (SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks) **
+    pure (size_req rows shared cols) **
     gC |-> mc0
   ensures
     gC |-> MS.gemm alpha beta mc0 ma mb
@@ -343,7 +340,8 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
 
 inline_for_extraction noextract
 fn specialize_as_matmul_to_type_and_reprs_gpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
@@ -360,10 +358,7 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
     gA |-> ma **
     gB |-> mb
   requires
-    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-       is not needed for all kernels. *)
-    pure (SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks) **
+    pure (size_req rows shared cols) **
     gC |-> mc0
   ensures
     gC |-> MS.matmul ma mb
@@ -383,7 +378,8 @@ fn cpu_wrap_matmul
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (#rows #shared : szp) (* concrete args *)
   (#cols : szp)
   (a : vec et)
@@ -396,10 +392,8 @@ fn cpu_wrap_matmul
     a |-> sa **
     b |-> sb
   requires
-    (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-       is not needed for all kernels. *)
-    pure (SZ.fits (rows * cols)) **
-    pure (rows * cols <= max_blocks)
+    pure (size_req rows shared cols) **
+    pure (SZ.fits (rows * cols))
   returns
     c : vec et
   ensures
@@ -410,17 +404,20 @@ fn cpu_wrap_matmul
   Pulse.Lib.Vec.pts_to_len a;
   Pulse.Lib.Vec.pts_to_len b;
 
-  matmul_cpu mmcomb_gpu
+  let c = matmul_cpu mmcomb_gpu
     #_ #_ #rows #shared #cols
     #(rA _ _) #(rB _ _) #(rC _ _)
-    a b
+    a b;
+
+  c;
 }
 
 inline_for_extraction noextract
 let specialize_as_matmul_to_type_and_reprs_cpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : _)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
-  : fixed_repr_matmul_cpu_ty et rA rB rC
+  : fixed_repr_matmul_cpu_ty et size_req rA rB rC
   = cpu_wrap_matmul et rA rB rC mmcomb_gpu

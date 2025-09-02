@@ -12,11 +12,13 @@ open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
 open Kuiper.Matrix { gpu_matrix }
+include Kuiper.Poly.GEMMGPU.Type { size_req_t }
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
 unfold
 inline_for_extraction
 type matmul_cpu_ty
+  (size_req : size_req_t)
 =
   (#et : Type0) ->
   {| scalar et |} ->
@@ -36,27 +38,28 @@ type matmul_cpu_ty
   stt (vec et)
     (requires
       (cpu ** a |-> sa ** b |-> sb) **
-      (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-        is not needed for all kernels. *)
-      (pure (SZ.fits (rows * cols)) **
-      pure (rows * cols <= max_blocks)))
+      pure (size_req rows shared cols))
     (ensures fun c ->
       (cpu ** a |-> sa ** b |-> sb) **
-      (c |-> (to_seq lC <|
+      c |-> (to_seq lC <|
                 MS.matmul (from_seq lA sa)
-                          (from_seq lB sb))))
+                          (from_seq lB sb)))
 
 inline_for_extraction noextract
 val matmul_cpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
-  : matmul_cpu_ty
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
+  : matmul_cpu_ty size_req
 
 (* Does dynamic checks to ensure that the dimensions are multiples of tile. *)
 inline_for_extraction noextract
 val mmcomb_gpu_tiled
-  (mmcomb_gpu : tiled_matmulcomb_gpu_ty)
+  (#size_req : tiled_size_req_t)
+  (mmcomb_gpu : tiled_matmulcomb_gpu_ty size_req)
   (tile : valid_tile)
   : matmulcomb_gpu_ty
+     (fun rows shared cols ->
+       size_req (rows / tile) (shared / tile) (cols / tile) tile)
 
 inline_for_extraction noextract
 val mmcomb_gpu_block_tiled1d
@@ -64,6 +67,7 @@ val mmcomb_gpu_block_tiled1d
   (bm bn bk : szp)
   (tm : szp{tm /? bm /\ (bm/tm * bn < max_threads)})
   : matmulcomb_gpu_ty
+     (fun rows _ cols -> (rows / bm) * (cols / bn) <= max_blocks)
 
 inline_for_extraction noextract
 val mmcomb_gpu_shmem_block_tiled2d
@@ -75,12 +79,16 @@ val mmcomb_gpu_shmem_block_tiled2d
   {| csB : clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn < max_threads)})
+  (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
+  (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
   : matmulcomb_gpu_ty
+     (fun rows _ cols -> rows * cols <= max_blocks) // too strong probably?
 
 unfold
 inline_for_extraction
 type fixed_repr_matmul_cpu_ty
   (et : Type0) {| scalar et |}
+  (size_req : size_req_t)
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
 =
@@ -94,10 +102,8 @@ type fixed_repr_matmul_cpu_ty
   stt (vec et)
     (requires
       (cpu ** a |-> sa ** b |-> sb) **
-      (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-        is not needed for all kernels. *)
-      (pure (SZ.fits (rows * cols)) **
-      pure (rows * cols <= max_blocks)))
+       pure (size_req rows shared cols) **
+       pure (SZ.fits (rows * cols)))
     (ensures fun c ->
       (cpu ** a |-> sa ** b |-> sb) **
       (c |-> (to_seq (rC rows cols) <|
@@ -108,6 +114,7 @@ unfold
 inline_for_extraction
 type fixed_repr_gemm_gpu_ty
   (et : Type0) {| scalar et |}
+  (size_req : size_req_t)
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
 =
@@ -125,11 +132,8 @@ type fixed_repr_gemm_gpu_ty
   stt unit
     (requires
       (cpu ** gA |-> ma ** gB |-> mb) **
-      (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-        is not needed for all kernels. *)
-      (pure (SZ.fits (rows * cols)) **
-      pure (rows * cols <= max_blocks) **
-      gC |-> mc0))
+      (pure (size_req rows shared cols) **
+       gC |-> mc0))
     (ensures fun _ ->
       (cpu ** gA |-> ma ** gB |-> mb) **
       (gC |-> MS.gemm alpha beta mc0 ma mb))
@@ -138,6 +142,7 @@ unfold
 inline_for_extraction
 type fixed_repr_mmcomb_gpu_ty
   (et : Type0) {| scalar et |}
+  (size_req : size_req_t)
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
 =
@@ -153,30 +158,29 @@ type fixed_repr_mmcomb_gpu_ty
   stt unit
     (requires
       (cpu ** gA |-> ma ** gB |-> mb) **
-      (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
-        is not needed for all kernels. *)
-      (pure (SZ.fits (rows * cols)) **
-      pure (rows * cols <= max_blocks) **
-      gC |-> mc0))
+      (pure (size_req rows shared cols) **
+       gC |-> mc0))
     (ensures fun _ ->
       (cpu ** gA |-> ma ** gB |-> mb) **
       (gC |-> MS.matmul ma mb))
 
 inline_for_extraction noextract
 val specialize_as_gemm_to_type_and_reprs_gpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
-  : fixed_repr_gemm_gpu_ty et rA rB rC
+  : fixed_repr_gemm_gpu_ty et size_req rA rB rC
 
 inline_for_extraction noextract
 val specialize_as_matmul_to_type_and_reprs_gpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
-  : fixed_repr_mmcomb_gpu_ty et rA rB rC
+  : fixed_repr_mmcomb_gpu_ty et size_req rA rB rC
 
 // inline_for_extraction noextract
 // val specialize_as_gemm_to_type_and_reprs_gpu
@@ -190,8 +194,9 @@ val specialize_as_matmul_to_type_and_reprs_gpu
 
 inline_for_extraction noextract
 val specialize_as_matmul_to_type_and_reprs_cpu
-  (mmcomb_gpu : matmulcomb_gpu_ty)
+  (#size_req : size_req_t)
+  (mmcomb_gpu : matmulcomb_gpu_ty size_req)
   (et : Type0) {| scalar et |}
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
-  : fixed_repr_matmul_cpu_ty et rA rB rC
+  : fixed_repr_matmul_cpu_ty et size_req rA rB rC
