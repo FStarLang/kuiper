@@ -8,6 +8,7 @@ open Kuiper.Base
 open Kuiper.Kernel.Desc
 open Kuiper.Array
 open Kuiper.SHMem
+open FStar.Ghost
 
 ghost
 fn kmn_as_kfull_block_setup
@@ -80,6 +81,147 @@ let kmn_as_kfull
 
   f = (fun _ear -> f);
 }
+
+inline_for_extraction noextract
+fn adapt_kn_as_kmn
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  (#_ : squash (SZ.fits (k.nthr + 1024)))
+  (bid : szlt (sdivup k.nthr 1024sz))
+  (tid : szlt 1024sz)
+  ()
+  requires
+    gpu **
+    pad_f (sdivup k.nthr 1024sz * 1024) k.kpre (1024 * bid + tid) **
+    thread_id 1024sz tid **
+    block_id (sdivup k.nthr 1024sz) bid
+  ensures
+    gpu **
+    pad_f (sdivup k.nthr 1024sz * 1024) k.kpost (1024 * bid + tid) **
+    thread_id 1024sz tid **
+    block_id (sdivup k.nthr 1024sz) bid
+{
+  open FStar.SizeT;
+  let gid = 1024sz *^ bid +^ tid;
+  if (gid <^ k.nthr) {
+    rewrite
+      (if 1024 * bid + tid < k.nthr then k.kpre (1024 * bid + tid) else emp)
+    as
+      k.kpre gid;
+    let f = k.f;
+    f gid ();
+    rewrite
+      k.kpost gid
+    as
+      (if 1024 * bid + tid < k.nthr then k.kpost (1024 * bid + tid) else emp);
+    ()
+  } else {
+    rewrite
+      (if 1024 * bid + tid < k.nthr then k.kpre (1024 * bid + tid) else emp)
+    as
+      emp;
+    rewrite
+      emp
+    as
+      (if 1024 * bid + tid < k.nthr then k.kpost (1024 * bid + tid) else emp);
+    ()
+  }
+}
+
+// #set-options "--debug SMTFail --split_queries always"
+
+ghost
+fn pad_setup
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  // (nthr : sz)
+  // (kpre kpost : natlt nthr -> slprop)
+  // (setup : (
+  //   unit ->
+  //   stt_ghost unit emp_inames
+  //     (requires
+  //       full_pre)
+  //     (ensures fun _ ->
+  //       (forall+ (tid : natlt nthr). kpre tid) **
+  //       frame)
+  // ))
+  (#_ : squash (SZ.fits (k.nthr + 1024)))
+  ()
+  norewrite
+  requires
+    full_pre
+  ensures
+    (forall+ (bid : natlt (sdivup k.nthr 1024sz)).
+      forall+ (tid : natlt 1024sz).
+        (pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpre (1024 * bid + tid))) **
+    k.frame
+{
+  let setup = k.setup;
+  setup ();
+
+  (* We now factor that forall+ into chunks of blocksz.
+  But first, we gotta pad it with empties. *)
+
+  forevery_pad k.nthr (SZ.v (sdivup k.nthr 1024sz) * 1024) _;
+  forevery_factor
+    ((sdivup k.nthr 1024sz) * 1024)
+    (sdivup k.nthr 1024sz)
+    1024
+    (pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpre);
+
+  (* Convince Z3 *)
+  forevery_ext_2
+    #(natlt (sdivup k.nthr 1024sz)) #_
+    #(natlt (1024sz)) #_
+    _
+    (fun bid tid ->
+        pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpre (1024 * bid + tid));
+  ();
+}
+
+let pad_kn
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  (p : natlt k.nthr -> slprop)
+  (bid : natlt (sdivup k.nthr 1024sz))
+  (tid : natlt 1024sz)
+  : slprop
+= pad_f (sdivup k.nthr 1024sz * 1024) p (1024 * bid + tid)
+
+inline_for_extraction noextract
+let kn_as_kmn (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+     : kernel_desc_m_n full_pre full_post
+= let open k <: kernel_desc_n full_pre full_post in
+  // let nblk' = sdivup nthr 1024sz in
+  // let fullnthr' : Ghost.erased nat = sizet_to_nat nblk' * 1024 in
+  {
+  nblk = sdivup nthr 1024sz;
+  nthr = 1024sz;
+
+  frame = k.frame;
+
+  block_pre   = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid);// pad_f fullnthr' k.kpre  (1024 * bid + tid));
+  block_post  = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpost bid tid);// pad_f fullnthr' k.kpost  (1024 * bid + tid));
+  block_frame = (fun bid -> emp);
+
+  setup    = (fun () -> admit(); pad_setup k ());
+  teardown = magic();
+
+  kpre  = pad_kn k k.kpre;
+  kpost = pad_kn k k.kpost;
+
+  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
+  block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
+
+  f = adapt_kn_as_kmn k #();
+}
+
+inline_for_extraction noextract
+let kn_as_kfull (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+     : kernel_desc full_pre full_post
+  = k |> kn_as_kmn |> kmn_as_kfull
 
 ghost
 fn km1_as_kmn_block_setup

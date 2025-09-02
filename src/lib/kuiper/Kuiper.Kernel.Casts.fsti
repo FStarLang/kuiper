@@ -89,6 +89,52 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
   );
 }
 
+(* N independent jobs, no shared memory, to be broken up
+into blocks/threads as needed. *)
+noeq
+inline_for_extraction noextract
+type kernel_desc_n (full_pre : slprop) (full_post : slprop) = {
+  nthr : (x : SZ.t { x <= max_blocks * max_threads });
+
+  frame : slprop;
+
+  kpre  : (tid : natlt nthr) -> slprop;
+  kpost : (tid : natlt nthr) -> slprop;
+
+  setup : (
+    unit ->
+    stt_ghost unit emp_inames
+      (requires
+        full_pre)
+      (ensures fun _ ->
+        (forall+ (tid : natlt nthr). kpre tid) **
+        frame)
+  );
+
+  teardown : (
+    unit ->
+    stt_ghost unit emp_inames
+      (requires
+        (forall+ (tid : natlt nthr). kpost tid) **
+        frame)
+      (ensures fun _ ->
+        full_post)
+  );
+
+  f : (
+    tid : szlt nthr ->
+    unit ->
+    stt unit
+      (requires
+         gpu **
+         kpre tid)
+      (ensures fun _ ->
+         gpu **
+         kpost tid)
+  );
+}
+
+
 (* 1xN, no shared memory *)
 noeq
 inline_for_extraction noextract
@@ -204,6 +250,13 @@ inline_for_extraction noextract
 val kmn_as_kfull
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
+     : kernel_desc full_pre full_post
+
+[@@coercion]
+inline_for_extraction noextract
+val kn_as_kfull
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
      : kernel_desc full_pre full_post
 
 inline_for_extraction noextract
