@@ -32,10 +32,10 @@ __global__
 */
 static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
 {
-  if (blockIdx.x * (size_t)1024U + threadIdx.x < size * size)
+  if ((size_t)1024U * blockIdx.x + threadIdx.x < size * size)
   {
-    size_t trow = (blockIdx.x * (size_t)1024U + threadIdx.x) / size;
-    size_t tcol = (blockIdx.x * (size_t)1024U + threadIdx.x) % size;
+    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / size;
+    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % size;
     size_t k = (size_t)0U;
     uint16_t sum = 0U;
     while (k < size)
