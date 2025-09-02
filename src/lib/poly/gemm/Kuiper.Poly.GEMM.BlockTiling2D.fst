@@ -973,8 +973,8 @@ let mk_kernel
                /\ (bm/tm * (bn/tn)) <= max_threads))
   ()
   : kernel_desc
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 = {
   nblk;// = rows/^bm *^ (cols/^bn);
   nthr;// = (bm /^ tm *^ (bn /^ tn));
