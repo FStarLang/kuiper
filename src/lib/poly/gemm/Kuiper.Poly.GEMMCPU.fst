@@ -126,7 +126,7 @@ inline_for_extraction noextract
 fn mmcomb_gpu_block_tiled1d
   (tiled_mmcomb_gpu : block_tiled1d_matmulcomb_gpu_ty)
   (bm bn bk : szp)
-  (tm : szp{tm /? bm /\ (bm/tm * bn < max_threads)})
+  (tm : szp{tm /? bm /\ (bm/tm * bn <= max_threads)})
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
@@ -166,6 +166,7 @@ fn mmcomb_gpu_block_tiled1d
   // a HORRIBLE restriction
   dguard ((bm /^ tm *^ bn) = bm *^ bk);
   dguard ((bm /^ tm *^ bn) = bn *^ bk);
+  dassert (bm = bn);
   let mrows   = rows   /^ bm;
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
@@ -205,7 +206,7 @@ fn mmcomb_gpu_shmem_block_tiled2d
   {| csA : clayout slA |}
   {| csB : clayout slB |}
   (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn /\ (bm/tm * bn/tn < max_threads)})
+  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
   (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
   (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
   (#et : Type0) {| scalar et |}

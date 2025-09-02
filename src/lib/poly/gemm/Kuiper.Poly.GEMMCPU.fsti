@@ -65,7 +65,7 @@ inline_for_extraction noextract
 val mmcomb_gpu_block_tiled1d
   (mmcomb_gpu : block_tiled1d_matmulcomb_gpu_ty)
   (bm bn bk : szp)
-  (tm : szp{tm /? bm /\ (bm/tm * bn < max_threads)})
+  (tm : szp{tm /? bm /\ (bm/tm * bn <= max_threads)})
   : matmulcomb_gpu_ty
      (fun rows _ cols -> (rows / bm) * (cols / bn) <= max_blocks)
 
@@ -78,7 +78,7 @@ val mmcomb_gpu_shmem_block_tiled2d
   {| csA : clayout slA |}
   {| csB : clayout slB |}
   (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn /\ (bm/tm * bn/tn < max_threads)})
+  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
   (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
   (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
   : matmulcomb_gpu_ty
