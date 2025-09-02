@@ -239,7 +239,7 @@ fn cp_matrix
       exists* (vi : sz).
         pure (vi >= tid) **
         pure (vi % nthr == tid) **
-        (i |-> vi) **
+        i |-> vi **
         own_tile_stride_cells dst nthr tid **
         pure (vi < mlen + nthr)
   {
@@ -712,9 +712,9 @@ fn setup
   ()
   norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
@@ -846,8 +846,8 @@ fn teardown
       kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
@@ -893,8 +893,8 @@ fn teardown
 //                /\ (bm/tm * (bn/tn)) <= max_threads))
 //   ()
 //   : kernel_desc
-//       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-//       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+//       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+//       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (gC |-> MS.mmcomb comb eC eA eB))
 // = {
 //   nblk;// = rows/^bm *^ (cols/^bn);
 //   nthr;// = (bm /^ tm *^ (bn /^ tn));

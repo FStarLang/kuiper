@@ -21,7 +21,7 @@ class has_atomic_add (t:Type) = {
     (#v0 : erased t) ->
     stt_atomic t
       emp_inames
-      (requires gpu ** (r |-> v0))
+      (requires gpu ** r |-> v0)
       (ensures fun old ->
         ensures gpu ** (r |-> pure_op i v0) ** pure (old == reveal v0));
 }

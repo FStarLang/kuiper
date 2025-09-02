@@ -89,7 +89,7 @@ ensures
 
 fn hf (v : V.vec float)
   preserves
-    exists* s. (v |-> s) ** pure (Seq.length s == 4)
+    exists* s. v |-> s ** pure (Seq.length s == 4)
   preserves cpu
 {
   open Pulse.Lib.Vec;

@@ -183,7 +183,7 @@ fn varray_reindex
   returns
     va : varray (reindex_view vw bij)
   ensures
-    (va |-> Frac f v) **
+    va |-> Frac f v **
     pure (core va == core a)
 {
   varray_reindex_ bij a;
@@ -284,7 +284,7 @@ fn varray_begin
   returns
     va : varray (raw_view #et #len)
   ensures
-    (va |-> Frac f v) **
+    va |-> Frac f v **
     pure (core va == a)
 {
   varray_begin_ a;
@@ -441,7 +441,7 @@ fn varray_view_equiv
   returns
     va : varray vw'
   ensures
-    (va |-> Frac f v) **
+    va |-> Frac f v **
     pure (core va == core a)
 {
   varray_view_equiv_ a vw';
@@ -523,8 +523,8 @@ fn varray_join2_
   (#v2 : st2)
   requires pure (core al == core ar)
   requires
-    (al |-> Frac f v1) **
-    (ar |-> Frac f v2)
+    al |-> Frac f v1 **
+    ar |-> Frac f v2
   ensures
     (* ARGH AGAIN *)
     from_array (sum_aview vw1 vw2 #()) (core al) |-> Frac f (v1, v2)
@@ -545,8 +545,8 @@ fn varray_join2
   (#v2 : erased st2)
   requires pure (core al == core ar)
   requires
-    (al |-> Frac f v1) **
-    (ar |-> Frac f v2)
+    al |-> Frac f v1 **
+    ar |-> Frac f v2
   returns
     a : varray (sum_aview vw1 vw2 #())
   ensures
@@ -718,7 +718,7 @@ fn varray_read
   (#v : erased st)
   preserves
     gpu **
-    (a |-> Frac f v)
+    a |-> Frac f v
   returns
     e : et
   ensures
@@ -767,10 +767,10 @@ fn varray_from_array
   (#s : erased (seq et){Seq.length s == len vw})
   (#v : erased st)
   preserves
-    (a |-> s) **
+    a |-> s **
     cpu
   requires
-    (va |-> v)
+    va |-> v
   ensures
     pure (Pulse.Lib.Vec.length a == len vw) **
     (va |-> from_seq vw s)
@@ -794,10 +794,10 @@ fn varray_to_array
   (#s : erased (seq et){Seq.length s == len vw})
   (#v : erased st)
   preserves
-    (va |-> v) **
+    va |-> v **
     cpu
   requires
-    (a |-> s)
+    a |-> s
   ensures
     pure (Pulse.Lib.Vec.length a == len vw) **
     (a |-> to_seq vw v)

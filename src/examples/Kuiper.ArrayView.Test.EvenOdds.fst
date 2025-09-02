@@ -135,7 +135,7 @@ fn test (a : gpu_array u32 100)
   rewrite each core va as a;
 
   // All the bijection stuff is making this hard.
-  with v1. assert (a |-> v1);
+  with v1. assert a |-> v1;
   // assert (pure (Seq.equal v0 v1));
   assume (pure (Seq.equal v0 v1));
 

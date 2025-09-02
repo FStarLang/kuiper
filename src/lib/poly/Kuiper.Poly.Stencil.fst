@@ -113,8 +113,8 @@ fn setup
   ()
   norewrite
   requires
-    (gIn |-> Frac fIn eIn) **
-    (gOut |-> eOut)
+    gIn |-> Frac fIn eIn **
+    gOut |-> eOut
   ensures
     (forall+ (rc : natlt (rows *^ cols)).
       kpre stencil gIn fIn gOut eIn rc) **
@@ -192,7 +192,7 @@ fn teardown
       kpost stencil gIn fIn gOut eIn tid) **
     emp (* frame *)
   ensures
-    (gIn |-> Frac fIn eIn) **
+    gIn |-> Frac fIn eIn **
     (gOut |-> STS.stencil_result stencil eIn)
 {
   forevery_unzip #(natlt2 rows cols) _ _;
@@ -282,10 +282,10 @@ fn host_simple_stencil
   (#eOut : ematrix et rows cols)
   preserves
     cpu **
-    (gIn |-> Frac fIn eIn)
+    gIn |-> Frac fIn eIn
   requires
     pure (rows * cols <= max_blocks) **
-    (gOut |-> eOut)
+    gOut |-> eOut
   ensures
     gOut |-> STS.stencil_result stencil eIn
 {
@@ -308,10 +308,10 @@ fn specialize_host_simple_stencil
   (#eOut : ematrix et (rows - 2) (cols - 2))
   preserves
     cpu **
-    (gIn |-> eIn)
+    gIn |-> eIn
   requires
     pure (rows * cols <= max_blocks) **
-    (gOut |-> eOut)
+    gOut |-> eOut
   ensures
     gOut |-> STS.stencil_result stencil eIn
   {

@@ -179,7 +179,7 @@ let thread_row_offset
 //   preserves
 //     gpu **
 //     pure (SZ.fits (brows * bcols + nthr)) **
-//     (gM |-> Frac fM eM)
+//     gM |-> Frac fM eM
 //   requires
 //     own_tile_stride_cells sM nthr tid
 //   ensures
@@ -194,7 +194,7 @@ let thread_row_offset
 //       exists* (vi : sz).
 //         pure (vi >= tid) **
 //         pure (vi % nthr == tid) **
-//         (i |-> vi) **
+//         i |-> vi **
 //         own_tile_stride_cells sM nthr tid **
 //         pure (vi < mlen + nthr)
 //   {
@@ -362,8 +362,8 @@ let thread_row_offset
 //   (tid : szlt (bm/^tm *^ (bn/^tn)))
 //   preserves
 //     gpu **
-//     (gA |-> Frac fA eA) **
-//     (gB |-> Frac fB eB) **
+//     gA |-> Frac fA eA **
+//     gB |-> Frac fB eB **
 //     own_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
 //     own_tile_stride_cells sB (bm/tm * (bn/tn)) tid
 // {
@@ -392,16 +392,16 @@ let thread_row_offset
 //   (bcol : szlt (bn/tn))
 //   preserves
 //     gpu **
-//     (gA |-> Frac f eA) **
-//     (gB |-> Frac f eB)
+//     gA |-> Frac f eA **
+//     gB |-> Frac f eB
 //   requires
 //     pure (Seq.length vrAcol == tm /\
 //           Seq.length vrBrow == tn /\
 //           Seq.length vrchProd == tm * tn /\
 //           SZ.fits (tm * tn)) **
-//     (rAcol |-> vrAcol) **
-//     (rBrow |-> vrBrow) **
-//     (rchProd |-> vrchProd)
+//     rAcol |-> vrAcol **
+//     rBrow |-> vrBrow **
+//     rchProd |-> vrchProd
 //   ensures
 //     exists* vrAcol' vrBrow' vrchProd'.
 //       pure (Seq.length vrAcol' == tm /\
@@ -416,10 +416,10 @@ let thread_row_offset
 //     invariant
 //       exists* (vdotIdx : sz{vdotIdx <= bk}) (vrAcol : erased (lseq et tm))
 //         (vrBrow : erased (lseq et tn)) (vrchProd : erased (lseq et (tm*tn))).
-//         (dotIdx |-> vdotIdx) **
-//         (rAcol |-> vrAcol) **
-//         (rBrow |-> vrBrow) **
-//         (rchProd |-> vrchProd)
+//         dotIdx |-> vdotIdx **
+//         rAcol |-> vrAcol **
+//         rBrow |-> vrBrow **
+//         rchProd |-> vrchProd
 //   {
 //     open Pulse.Lib.Array;
 
@@ -427,8 +427,8 @@ let thread_row_offset
 //     while (SZ.(!i0 <^ tm))
 //       invariant
 //         exists* (vi : sz{vi <= tm}) (vrAcol : erased (lseq et tm)).
-//           (i0 |-> vi) **
-//           (rAcol |-> vrAcol)
+//           i0 |-> vi **
+//           rAcol |-> vrAcol
 //     {
 //       let va = M.gpu_matrix_read gA (arow *^ tm +^ !i0) !dotIdx;
 //       rAcol.(!i0) <- va;
@@ -440,8 +440,8 @@ let thread_row_offset
 //     while (SZ.(!i1 <^ tn))
 //       invariant
 //         exists* (vi : sz{vi <= tn}) (vrBrow : erased (lseq et tn)).
-//           (i1 |-> vi) **
-//           (rBrow |-> vrBrow)
+//           i1 |-> vi **
+//           rBrow |-> vrBrow
 //     {
 //       let vb = M.gpu_matrix_read gB !dotIdx (bcol *^ tn +^ !i1);
 //       rBrow.(!i1) <- vb;
@@ -453,15 +453,15 @@ let thread_row_offset
 //     while (SZ.(!resIdxM <^ tm))
 //       invariant
 //         exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : erased (lseq et (tm*tn))).
-//           (resIdxM |-> vresIdxM) **
-//           (rchProd |-> vrchProd)
+//           resIdxM |-> vresIdxM **
+//           rchProd |-> vrchProd
 //     {
 //       let mut resIdxN = 0sz;
 //       while (SZ.(!resIdxN <^ tn))
 //         invariant
 //           exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : erased (lseq et (tm*tn))).
-//             (resIdxN |-> vresIdxN) **
-//             (rchProd |-> vrchProd)
+//             resIdxN |-> vresIdxN **
+//             rchProd |-> vrchProd
 //       {
 //         let ra = rAcol.(!resIdxM);
 //         let rb = rBrow.(!resIdxN);
@@ -501,7 +501,7 @@ let thread_row_offset
 //     own_thread_tile bm bn tm tn gC bid tid **
 //     (exists* vrchProd.
 //       pure (Seq.length vrchProd == tm * tn) **
-//       (rchProd |-> vrchProd))
+//       rchProd |-> vrchProd)
 //   ensures
 //     gpu **
 //     own_thread_tile bm bn tm tn gC bid tid **
@@ -520,15 +520,15 @@ let thread_row_offset
 //   while (SZ.(!resIdxM <^ tm))
 //     invariant
 //       exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)).
-//         (resIdxM |-> vresIdxM) **
-//         (rchProd |-> vrchProd)
+//         resIdxM |-> vresIdxM **
+//         rchProd |-> vrchProd
 //   {
 //     let mut resIdxN = 0sz;
 //     while (SZ.(!resIdxN <^ tn))
 //       invariant
 //         exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)).
-//           (resIdxN |-> vresIdxN) **
-//           (rchProd |-> vrchProd)
+//           resIdxN |-> vresIdxN **
+//           rchProd |-> vrchProd
 //     {
 //       let vresIdxM = !resIdxM;
 //       let vresIdxN = !resIdxN;
@@ -643,10 +643,10 @@ let thread_row_offset
 //     invariant b.
 //       exists* (vbkIdx : SZ.t{vbkIdx <= mshared}) (vrAcol : lseq et tm) (vrBrow : lseq et tn) (vrchProd : lseq et (tm*tn)).
 //         pure (b == (SZ.v vbkIdx < mshared)) **
-//         (bkIdx |-> vbkIdx) **
-//         (rAcol |-> vrAcol) **
-//         (rBrow |-> vrBrow) **
-//         (rchProd |-> vrchProd) **
+//         bkIdx |-> vbkIdx **
+//         rAcol |-> vrAcol **
+//         rBrow |-> vrBrow **
+//         rchProd |-> vrchProd **
 //         (gA |-> Frac (fA /. (mrows * mcols * (bm/tm * (bn/tn)))) eA) **
 //         (gB |-> Frac (fB /. (mrows * mcols * (bm/tm * (bn/tn)))) eB) **
 //         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
@@ -727,9 +727,9 @@ let thread_row_offset
 //   (#eC : ematrix4 et mrows mcols bm bn)
 //   ()
 //   requires
-//     (gA |-> Frac fA eA) **
-//     (gB |-> Frac fB eB) **
-//     (gC |-> eC)
+//     gA |-> Frac fA eA **
+//     gB |-> Frac fB eB **
+//     gC |-> eC
 //   ensures
 //     (forall+ (bid : natlt (mrows *^ mcols))
 //              (tid : natlt (bm /^ tm *^ (bn /^ tn))).
@@ -842,8 +842,8 @@ let thread_row_offset
 //       kpost1 comb tm tn gA gB gC eA eB fA fB bid tid) **
 //     emp (* frame *)
 //   ensures
-//     (gA |-> Frac fA eA) **
-//     (gB |-> Frac fB eB) **
+//     gA |-> Frac fA eA **
+//     gB |-> Frac fB eB **
 //     (gC |-> MS.mmcomb comb eC eA eB)
 // {
 //   // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
@@ -884,8 +884,8 @@ let thread_row_offset
 //   (_ : squash (mrows * mcols <= max_blocks
 //                /\ (bm/tm * (bn/tn)) <= max_threads))
 //   : kernel_desc
-//       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-//       ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+//       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+//       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (gC |-> MS.mmcomb comb eC eA eB))
 // = {
 //   nblk = mrows *^ mcols;
 //   nthr = (bm /^ tm *^ (bn /^ tn));
@@ -935,12 +935,12 @@ let thread_row_offset
 //   (#eC : ematrix4 et mrows mcols bm bn)
 //   preserves
 //     cpu **
-//     (gA |-> Frac fA eA) **
-//     (gB |-> Frac fB eB)
+//     gA |-> Frac fA eA **
+//     gB |-> Frac fB eB
 //   requires
 //     pure (mrows * mcols <= max_blocks) **
 //     pure (bm/tm * (bn/tn) <= max_threads) **
-//     (gC |-> eC)
+//     gC |-> eC
 //   ensures
 //     gC |-> MS.mmcomb comb eC eA eB
 // {

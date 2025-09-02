@@ -109,7 +109,7 @@ fn setup
   norewrite
   requires
     block_setup_tok lena **
-    ((ga2 |-> s2) ** (ga1 |-> s1))
+    (ga2 |-> s2 ** ga1 |-> s1)
   ensures
     block_setup_tok lena **
     (forall+ (bid : natlt lena). kpre lena ga1 ga2 s1 s2 bid) **
@@ -138,8 +138,8 @@ let dp_kernel
   (#s1 #s2 : erased (seq et))
   (#_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   : kernel_desc
-      ((ga2 |-> s2) ** (ga1 |-> s1))
-      ((ga2 |-> s2) ** (exists* s1'. (ga1 |-> s1') **
+      (ga2 |-> s2 ** ga1 |-> s1)
+      (ga2 |-> s2 ** (exists* s1'. (ga1 |-> s1') **
                                      pure (len s1' == len s1 /\ squash (is_reduction zero add (pmul s1 s2) (Seq.head s1')))))
   = {
     nthr = lena;

@@ -51,7 +51,7 @@ fn gpu_read
   (r : gpu_ref a)
   (#f : perm)
   (#v0 : erased a)
-  preserves gpu ** (r |-> Frac f v0)
+  preserves gpu ** r |-> Frac f v0
   requires emp
   returns  v : a
   ensures  pure (v == reveal v0)

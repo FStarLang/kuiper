@@ -247,7 +247,7 @@ let kdesc
   (i : iname)
 : kernel_desc
     ((a |-> Frac f v_a) **
-      (r |-> r0))
+      r |-> r0)
     ((a |-> Frac f v_a) **
       (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a))
  = {

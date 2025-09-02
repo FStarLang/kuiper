@@ -259,7 +259,7 @@ fn kf
     invariant live sum
     invariant
       exists* (vbk : SZ.t).
-        (bk |-> vbk) **
+        bk |-> vbk **
         B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
         pure (vbk <= mshared)
     invariant
@@ -395,9 +395,9 @@ fn setup
   ()
   norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt2 tile  tile).
@@ -502,8 +502,8 @@ fn teardown
       kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   admit();
@@ -531,8 +531,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;

@@ -119,9 +119,9 @@ fn setup
   ()
   norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (rc : natlt (rows *^ cols)).
       kpre comb gA gB gC eA eB eC fA fB rc) **
@@ -181,8 +181,8 @@ fn teardown
       kpost comb gA gB gC eA eB eC fA fB rc) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     (gC |-> matrix_comb comb eC (MS.matmul eA eB))
 {
   forevery_unzip #(natlt2 rows cols) _ _;
@@ -294,11 +294,11 @@ fn mmcomb_gpu
   norewrite
   preserves
     cpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   requires
     pure (rows * cols <= max_blocks) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

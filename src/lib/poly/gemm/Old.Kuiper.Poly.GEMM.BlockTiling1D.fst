@@ -224,10 +224,10 @@ fn subproduct
   (#f : perm)
   preserves
     gpu **
-    (ar |-> Frac f ar0)
+    ar |-> Frac f ar0
   requires
     pure (Seq.length acc0 == tile) **
-    (acc |-> acc0)
+    acc |-> acc0
   ensures
     exists* acc'.
       pure (Seq.length acc' == tile) **
@@ -238,9 +238,9 @@ fn subproduct
     invariant b.
       exists* (vsk : SZ.t{vsk <= tile}) (accv : erased (lseq et tile)).
         pure (b == (SZ.v vsk < tile)) **
-        (sk |-> vsk) **
-        (acc |-> accv) **
-        (ar |-> Frac f ar0) **
+        sk |-> vsk **
+        acc |-> accv **
+        ar |-> Frac f ar0 **
         gpu
   {
     let mut i = 0sz;
@@ -253,10 +253,10 @@ fn subproduct
         exists* (vi : SZ.t{vi <= tile}) (accv : erased (lseq et tile))
           (vsk : SZ.t{vsk < tile}).
           pure (b == (SZ.v vi < tile)) **
-          (i |-> vi) **
-          (sk |-> vsk) **
-          (acc |-> accv) **
-          (ar |-> Frac f ar0) **
+          i |-> vi **
+          sk |-> vsk **
+          acc |-> accv **
+          ar |-> Frac f ar0 **
           gpu
     {
       let v1 = AV.varray_read ar (mkCIdx #tile 0sz !i !sk);
@@ -292,12 +292,12 @@ fn bring_2cols
   preserves
     gpu
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     own_2_cols tile ar tid
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     own_2_cols tile ar tid
 {
   let mut i = 0sz;
@@ -305,9 +305,9 @@ fn bring_2cols
     invariant b.
       exists* (vi : SZ.t{vi <= tile}).
         pure (b == (SZ.v vi < tile)) **
-        (i |-> vi) **
-        (gA |-> Frac fA eA) **
-        (gB |-> Frac fB eB) **
+        i |-> vi **
+        gA |-> Frac fA eA **
+        gB |-> Frac fB eB **
         own_2_cols tile ar tid **
         gpu
   {
@@ -384,8 +384,8 @@ fn kf
     invariant b.
       exists* (vbk : SZ.t{vbk <= mshared}) (sumv : lseq et tile).
         pure (b == (SZ.v vbk < mshared)) **
-        (bk |-> vbk) **
-        (sums |-> sumv) **
+        bk |-> vbk **
+        sums |-> sumv **
         (gA |-> Frac (fA /. mlayout_size lC) eA) **
         (gB |-> Frac (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. tile) x) **
@@ -439,8 +439,8 @@ fn kf
     invariant b.
       exists* (vrow : SZ.t{vrow <= tile}) (sumv : lseq et tile).
         pure (b == (SZ.v vrow < tile)) **
-        (row |-> vrow) **
-        (sums |-> sumv) **
+        row |-> vrow **
+        sums |-> sumv **
         (forall+ (ii : natlt tile).
           (exists* v.
             m4_pts_to_cell gC #1.0R
@@ -509,9 +509,9 @@ fn setup
   ()
   norewrite
   requires
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
-    (gC |-> eC)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
+    gC |-> eC
   ensures
     (forall+ (bid : natlt2 mrows mcols)
              (tid : natlt tile).
@@ -617,8 +617,8 @@ fn teardown
       kpost1 comb tile gA gB gC eA eB fA fB bid tid) **
     emp (* frame *)
   ensures
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     (gC |-> MS.mmcomb comb eC eA eB)
 {
   // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
@@ -652,8 +652,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile <= max_threads))
   : kernel_desc
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile;

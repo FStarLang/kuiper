@@ -35,13 +35,13 @@ type dotprod_ty
   stt et
   (requires
     (cpu **
-    (a1 |-> v1) **
-    (a2 |-> v2)) **
+    a1 |-> v1 **
+    a2 |-> v2) **
     pure (is_comm_semigroup #et zero add))
   (ensures fun (dp : et) ->
     (cpu **
-    (a1 |-> v1) **
-    (a2 |-> v2)) **
+    a1 |-> v1 **
+    a2 |-> v2) **
     pure (dp == sum (pmul v1 v2)))
 
 inline_for_extraction noextract

@@ -19,4 +19,4 @@ ghost
 fn test (a : vec u64) (vv : seq _)
   requires a |-> vv
   returns  x : seq u64
-  ensures  (a |-> vv) ** fooprop vv
+  ensures  a |-> vv ** fooprop vv

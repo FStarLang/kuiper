@@ -11,7 +11,7 @@ module U64 = FStar.UInt64
 inline_for_extraction noextract
 fn kernel_f (r : gpu_ref u64) (#v : erased u64)
   ()
-  requires gpu ** (r |-> v)
+  requires gpu ** r |-> v
   ensures  gpu ** (r |-> U64.add_underspec v 1uL)
 {
   let v = gpu_read r;
@@ -26,7 +26,7 @@ let kernel (r : gpu_ref u64) (#v : erased u64)
 fn galloc (x : u64)
   requires cpu
   returns  r : gpu_ref u64
-  ensures  cpu ** (r |-> x)
+  ensures  cpu ** r |-> x
 {
   let mut r = x;
   let gr = gpu_alloc0 #u64 ();
@@ -35,9 +35,9 @@ fn galloc (x : u64)
 }
 
 fn gread (gr : gpu_ref u64) (#v0 : erased u64)
-  requires cpu ** (gr |-> v0)
+  requires cpu ** gr |-> v0
   returns  v : u64
-  ensures  cpu ** (gr |-> v) ** pure (v == v0)
+  ensures  cpu ** gr |-> v ** pure (v == v0)
 {
   let mut r = 0uL;
   Kuiper.Ref.gpu_memcpy_device_to_host r gr;

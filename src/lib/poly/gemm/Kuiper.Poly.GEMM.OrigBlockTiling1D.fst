@@ -294,8 +294,8 @@ fn populate_shmem
   (tid : szlt (bm/tm * bn))
   preserves
     gpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     own_1_cell sA (tid/bk) (tid%bk) **
     own_1_cell sB (tid/bn) (tid%bn)
 {
@@ -328,11 +328,11 @@ fn subproducts1d
   (bcol : szlt bn)
   preserves
     gpu **
-    (gA |-> Frac f eA) **
-    (gB |-> Frac f eB)
+    gA |-> Frac f eA **
+    gB |-> Frac f eB
   requires
     pure (Seq.length resvs == tm) **
-    (rch1d |-> resvs)
+    rch1d |-> resvs
   ensures
     exists* resvs'.
       pure (Seq.length resvs' == tm) **
@@ -342,16 +342,16 @@ fn subproducts1d
   while (SZ.(!dotIdx <^ bk))
     invariant
       exists* (vIdx : SZ.t{vIdx <= bk}) (resvs : erased (lseq et tm)).
-        (dotIdx |-> vIdx) **
-        (rch1d |-> resvs)
+        dotIdx |-> vIdx **
+        rch1d |-> resvs
   {
     let tmpB = M.gpu_matrix_read gB !dotIdx bcol;
     let mut resIdx = 0sz;
     while (SZ.(!resIdx <^ tm))
       invariant
         exists* (vi : SZ.t{vi <= tm}) (resvs : erased (lseq et tm)).
-          (resIdx |-> vi) **
-          (rch1d |-> resvs)
+          resIdx |-> vi **
+          rch1d |-> resvs
     {
       let va = M.gpu_matrix_read gA (arow *^ tm +^ !resIdx) !dotIdx;
 
@@ -438,8 +438,8 @@ fn kf
   while (SZ.(!bkIdx <^ mshared))
     invariant
       exists* (vbkIdx : SZ.t{vbkIdx <= mshared}) (cache1dv : lseq et tm).
-        (bkIdx |-> vbkIdx) **
-        (cache1d |-> cache1dv) **
+        bkIdx |-> vbkIdx **
+        cache1d |-> cache1dv **
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x) **
         B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * vbkIdx) tid
@@ -524,8 +524,8 @@ fn kf
   while (SZ.(!resIdx <^ tm))
     invariant
       exists* (vresIdx : SZ.t{vresIdx <= tm}) (dotpv : lseq et tm).
-        (resIdx |-> vresIdx) **
-        (cache1d |-> dotpv)
+        resIdx |-> vresIdx **
+        cache1d |-> dotpv
   {
     let vresIdx = !resIdx;
     forevery_extract #(natlt tm) (SZ.v vresIdx) _;

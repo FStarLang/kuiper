@@ -93,7 +93,7 @@ fn gpu_array_alloc
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures
-    exists* (s:seq a). (x |-> s) ** pure (Seq.length s == sz)
+    exists* (s:seq a). x |-> s ** pure (Seq.length s == sz)
 
 fn gpu_array_free
   (#a:Type u#0)

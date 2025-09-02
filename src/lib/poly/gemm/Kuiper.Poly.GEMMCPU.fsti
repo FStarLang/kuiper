@@ -99,13 +99,13 @@ type fixed_repr_matmul_cpu_ty
   (#sb : erased (seq et){ len sb == shared * cols }) ->
   stt (vec et)
     (requires
-      (cpu ** (a |-> sa) ** (b |-> sb)) **
+      (cpu ** a |-> sa ** b |-> sb) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
       (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks)))
     (ensures fun c ->
-      (cpu ** (a |-> sa) ** (b |-> sb)) **
+      (cpu ** a |-> sa ** b |-> sb) **
       (c |-> (to_seq (rC rows cols) <|
                 MS.matmul (from_seq (rA rows shared) sa)
                           (from_seq (rB shared cols) sb))))
@@ -130,14 +130,14 @@ type fixed_repr_gemm_gpu_ty
   (#mc0 : ematrix et rows cols) ->
   stt unit
     (requires
-      (cpu ** (gA |-> ma) ** (gB |-> mb)) **
+      (cpu ** gA |-> ma ** gB |-> mb) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
       (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks) **
-      (gC |-> mc0)))
+      gC |-> mc0))
     (ensures fun _ ->
-      (cpu ** (gA |-> ma) ** (gB |-> mb)) **
+      (cpu ** gA |-> ma ** gB |-> mb) **
       (gC |-> MS.gemm alpha beta mc0 ma mb))
 
 unfold
@@ -158,14 +158,14 @@ type fixed_repr_mmcomb_gpu_ty
   (#mc0 : ematrix et rows cols) ->
   stt unit
     (requires
-      (cpu ** (gA |-> ma) ** (gB |-> mb)) **
+      (cpu ** gA |-> ma ** gB |-> mb) **
       (* Would be better to parametrize this. The fact about rows * cols <= max_blocks
         is not needed for all kernels. *)
       (pure (SZ.fits (rows * cols)) **
       pure (rows * cols <= max_blocks) **
-      (gC |-> mc0)))
+      gC |-> mc0))
     (ensures fun _ ->
-      (cpu ** (gA |-> ma) ** (gB |-> mb)) **
+      (cpu ** gA |-> ma ** gB |-> mb) **
       (gC |-> MS.matmul ma mb))
 
 inline_for_extraction noextract

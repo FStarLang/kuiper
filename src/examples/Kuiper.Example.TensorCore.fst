@@ -74,9 +74,9 @@ fn test
   matplus_zero_lem (matmul 'v1 'v2);
   assert m3 |-> matmul 'v1 'v2;
 
-  with x. assert (fa |-> x); drop_ (fa |-> x);
-  with x. assert (fb |-> x); drop_ (fb |-> x);
-  with x. assert (fc |-> x); drop_ (fc |-> x);
+  with x. assert fa |-> x; drop_ (fa |-> x);
+  with x. assert fb |-> x; drop_ (fb |-> x);
+  with x. assert fc |-> x; drop_ (fc |-> x);
   ()
 }
 
@@ -123,18 +123,18 @@ fn test2
   mma_store fc t3;
 
   with x1.
-    assert (t1 |-> x1);
+    assert t1 |-> x1;
     Pulse.Lib.Trade.elim_trade (t1 |-> x1) (m1 |-> v1);
   with x2.
-    assert (t2 |-> x2);
+    assert t2 |-> x2;
     Pulse.Lib.Trade.elim_trade (t2 |-> x2) (m2 |-> v2);
   with x3.
-    assert (t3 |-> x3);
+    assert t3 |-> x3;
     Pulse.Lib.Forall.elim_forall x3;
     Pulse.Lib.Trade.elim_trade (t3 |-> x3) _;
 
-  with x. assert (fa |-> x); drop_ (fa |-> x);
-  with x. assert (fb |-> x); drop_ (fb |-> x);
-  with x. assert (fc |-> x); drop_ (fc |-> x);
+  with x. assert fa |-> x; drop_ (fa |-> x);
+  with x. assert fb |-> x; drop_ (fb |-> x);
+  with x. assert fc |-> x; drop_ (fc |-> x);
   ()
 }

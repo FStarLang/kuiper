@@ -38,7 +38,7 @@ fn test (a : vec int{len a > 0})
   (#s : seq int)
   requires a |-> s
   returns  x : int
-  ensures  (a |-> s) ** pure (Seq.length s > 0 /\ x == Seq.head s)
+  ensures  a |-> s ** pure (Seq.length s > 0 /\ x == Seq.head s)
 {
   open Pulse.Lib.Vec;
   (* need final underscore due to pulse bug *)

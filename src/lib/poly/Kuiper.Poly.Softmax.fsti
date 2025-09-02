@@ -31,7 +31,7 @@ type softmax_ty (et : Type0) {| floating et |} =
   stt unit
   (requires
     cpu **
-    ((a |-> va) **
+    (a |-> va **
      pure (lena > 0 /\ lena <= max_blocks)))
   (ensures fun _ ->
     cpu **

@@ -148,8 +148,8 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   while (SZ.(!i <^ m_size))
      invariant live i ** live a
-     invariant exists* (s:seq et). (a1 |-> s) ** pure (len s == size)
-     invariant exists* (s:seq et). (a2 |-> s) ** pure (len s == size)
+     invariant exists* (s:seq et). a1 |-> s ** pure (len s == size)
+     invariant exists* (s:seq et). a2 |-> s ** pure (len s == size)
   {
     let v = !i;
     let va = !a;

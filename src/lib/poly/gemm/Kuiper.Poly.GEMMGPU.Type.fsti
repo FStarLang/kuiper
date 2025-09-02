@@ -42,7 +42,7 @@ type matmulcomb_gpu_fixed_ty
     (requires
       (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (pure (rows * cols <= max_blocks) **
-       (gC |-> eC)))
+       gC |-> eC))
     (ensures fun _ ->
       (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (gC |-> MS.mmcomb comb eC eA eB))
@@ -90,7 +90,7 @@ type tiled_matmulcomb_gpu_ty =
       (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (pure (mrows * mcols <= max_blocks) **
        pure (tile * tile <= max_threads) **
-       (gC |-> eC)))
+       gC |-> eC))
     (ensures fun _ ->
       (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (gC |-> MS.mmcomb comb eC eA eB))
@@ -121,12 +121,12 @@ type _OLD_tiled_matmulcomb_gpu_ty =
   (#eC : ematrix4 _ _ _ _ _) ->
   stt unit
     (requires
-      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (pure (mrows * mcols <= max_blocks) **
        pure (tile * tile <= max_threads) **
-       (gC |-> eC)))
+       gC |-> eC))
     (ensures fun _ ->
-      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (gC |-> MS.mmcomb comb eC eA eB))
 
 unfold inline_for_extraction
@@ -157,12 +157,12 @@ type block_tiled1d_matmulcomb_gpu_ty =
   (#eC : ematrix4 et mrows mcols bm bn) ->
   stt unit
     (requires
-      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (pure (mrows * mcols <= max_blocks) **
       pure (bm/tm * bn <= max_threads) **
-      (gC |-> eC)))
+      gC |-> eC))
     (ensures fun _ ->
-      (cpu ** (gA |-> Frac fA eA) ** (gB |-> Frac fB eB)) **
+      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (gC |-> MS.mmcomb comb eC eA eB)
     )
 

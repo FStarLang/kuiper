@@ -303,7 +303,7 @@ fn block_setup
   norewrite
   requires
     block_setup_tok lena **
-    (a |-> va)
+    a |-> va
   ensures
     block_setup_tok lena **
     (forall+ (i : natlt lena). kpre lena a va i) **

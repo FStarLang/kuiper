@@ -80,14 +80,14 @@ fn matmul_dist_gpu
   (#ea : ematrix dist size size)
   (#eb : ematrix dist size size)
   preserves
-    cpu ** (a |-> ea)
+    cpu ** a |-> ea
   requires
     pure (size * size <= max_blocks) **
-    (b |-> eb)
+    b |-> eb
   ensures
     exists* eb'. b |-> eb'
 {
-  assert (a |-> ea);
+  assert a |-> ea;
   M.gpu_matrix_share_2 a;
 
   P.mmcomb_gpu add' a a b;

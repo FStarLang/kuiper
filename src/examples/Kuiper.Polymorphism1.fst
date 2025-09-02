@@ -12,8 +12,8 @@ fn kswap
   (#t : Type0)
   (#v1 #v2 : erased t)
   (r1 r2 : gpu_ref t)
-  requires gpu ** ((r1 |-> v1) ** (r2 |-> v2))
-  ensures  gpu ** ((r1 |-> v2) ** (r2 |-> v1))
+  requires gpu ** (r1 |-> v1 ** r2 |-> v2)
+  ensures  gpu ** (r1 |-> v2 ** r2 |-> v1)
 {
   let v1 = gpu_read r1;
   let v2 = gpu_read r2;
@@ -27,8 +27,8 @@ let kernel
   (#v1 #v2 : _)
   (r1 r2 : gpu_ref t)
   : kernel_desc
-      ((r1 |-> v1) ** (r2 |-> v2))
-      ((r1 |-> v2) ** (r2 |-> v1))
+      (r1 |-> v1 ** r2 |-> v2)
+      (r1 |-> v2 ** r2 |-> v1)
   =
   { f = (fun () -> kswap r1 r2); } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
 

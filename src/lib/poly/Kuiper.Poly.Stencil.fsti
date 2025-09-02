@@ -22,9 +22,9 @@ fn specialize_host_simple_stencil
   (#eOut : ematrix et (rows - 2) (cols - 2))
   preserves
     cpu **
-    (gIn |-> eIn)
+    gIn |-> eIn
   requires
     pure (rows * cols <= max_blocks) **
-    (gOut |-> eOut)
+    gOut |-> eOut
   ensures
     gOut |-> STS.stencil_result stencil eIn

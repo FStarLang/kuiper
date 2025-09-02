@@ -624,7 +624,7 @@ fn mmcomb_gpu
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (tile * tile <= max_threads) **
-    (gC |-> eC)
+    gC |-> eC
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {

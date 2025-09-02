@@ -22,7 +22,7 @@ fn k_reduce
   (size : sz)
   (a : gpu_array tt size)
   (#v : erased (seq tt))
-  preserves gpu ** (a |-> v)
+  preserves gpu ** a |-> v
   requires pure (size > 0)
   returns  r : tt
   ensures  emp
@@ -53,7 +53,7 @@ fn k_reduce_and_set
   (#v : erased (seq tt))
   ()
   preserves gpu
-  requires ((a |-> v) ** pure (size > 0))
+  requires (a |-> v ** pure (size > 0))
   ensures  (exists* v'. (a |-> v') ** pure (Seq.length v' == size))
 {
   let r = k_reduce size a;
@@ -69,7 +69,7 @@ fn copy_to_gpu
   (sz : sz)
   (a : vec t)
   (#v : erased (seq t){len v == SZ.v sz})
-  preserves cpu ** (a |-> v)
+  preserves cpu ** a |-> v
   requires emp
   returns  ga : GA.gpu_array t sz
   ensures  ga |-> v
@@ -89,7 +89,7 @@ fn reduce
   (#v : erased (seq t))
   preserves cpu
   requires
-    (a |-> v) **
+    a |-> v **
     pure (size > 0 /\
           len v == size)
   returns  r : t
@@ -115,7 +115,7 @@ fn reduce_F32
   (size : sz)
   (#v : erased (seq f32))
   requires cpu
-        ** (a |-> v)
+        ** a |-> v
         ** pure (size > 0 /\
                  len v == size)
   returns  r : f32

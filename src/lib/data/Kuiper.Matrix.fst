@@ -432,10 +432,10 @@ fn gpu_matrix_from_array
   (#s : erased (seq et){Seq.length s == rows * cols})
   (#em : ematrix et rows cols)
   preserves
-    (a |-> s) **
+    a |-> s **
     cpu
   requires
-    (gm |-> em)
+    gm |-> em
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
     (gm |-> from_seq l s)
@@ -457,10 +457,10 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == rows * cols})
   (#em : ematrix et rows cols)
   preserves
-    (gm |-> em) **
+    gm |-> em **
     cpu
   requires
-    (a |-> s)
+    a |-> s
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
     (a |-> to_seq l em)

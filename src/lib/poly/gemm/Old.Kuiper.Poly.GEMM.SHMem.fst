@@ -212,7 +212,7 @@ fn subproduct
   (#f : perm)
   preserves
     gpu **
-    (ar |-> Frac f ar0)
+    ar |-> Frac f ar0
   requires
     acc |-> acc0
   ensures
@@ -224,9 +224,9 @@ fn subproduct
     invariant b.
       exists* (vsk : SZ.t{vsk <= tile}) accv.
         pure (b == (SZ.v vsk < tile)) **
-        (sk |-> vsk) **
-        (acc |-> accv) **
-        (ar |-> Frac f ar0) **
+        sk |-> vsk **
+        acc |-> accv **
+        ar |-> Frac f ar0 **
         gpu
   {
     let vsk = !sk;
@@ -303,8 +303,8 @@ fn kf
     invariant b.
       exists* (vbk : SZ.t{vbk <= mshared}) sumv.
         pure (b == (SZ.v vbk < mshared)) **
-        (bk |-> vbk) **
-        (sum |-> sumv) **
+        bk |-> vbk **
+        sum |-> sumv **
         (gA |-> Frac (fA /. mlayout_size lC) eA) **
         (gB |-> Frac (fB /. mlayout_size lC) eB) **
         (exists* x. varray_pts_to ar #(1.0R /. (tile *^ tile)) x) **
@@ -535,8 +535,8 @@ let mk_kernel
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
   : kernel_desc
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> eC))
-      ((gA |-> Frac fA eA) ** (gB |-> Frac fB eB) ** (gC |-> MS.mmcomb comb eC eA eB))
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
+      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (gC |-> MS.mmcomb comb eC eA eB))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;

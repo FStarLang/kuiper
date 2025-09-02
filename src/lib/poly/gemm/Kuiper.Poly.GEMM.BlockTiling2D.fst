@@ -228,7 +228,7 @@ fn cp_matrix
   preserves
     gpu **
     pure (SZ.fits (rows * cols + nthr)) **
-    (src |-> Frac fM esrc) **
+    src |-> Frac fM esrc **
     own_tile_stride_cells dst nthr tid
 {
   let mlen = rows *^ cols;
@@ -239,7 +239,7 @@ fn cp_matrix
       exists* (vi : sz).
         pure (vi >= tid) **
         pure (vi % nthr == tid) **
-        (i |-> vi) **
+        i |-> vi **
         own_tile_stride_cells dst nthr tid **
         pure (vi < mlen + nthr)
   {
@@ -413,8 +413,8 @@ fn populate_shmem
   (tid : szlt (bm/tm * (bn/tn)))
   preserves
     gpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB) **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB **
     thread_id (bm/^tm *^ (bn/^tn)) tid **
     own_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
     own_tile_stride_cells sB (bm/tm * (bn/tn)) tid
@@ -451,34 +451,34 @@ fn subproducts2d
   (bcol : szlt (bn/tn))
   preserves
     gpu **
-    (gA |-> Frac f eA) **
-    (gB |-> Frac f eB)
+    gA |-> Frac f eA **
+    gB |-> Frac f eB
   requires
     pure (Seq.length vrAcol == tm /\
           Seq.length vrBrow == tn /\
           Seq.length vrchProd == tm * tn /\
           SZ.fits (tm * tn)) **
-    (rAcol |-> vrAcol) **
-    (rBrow |-> vrBrow) **
-    (rchProd |-> vrchProd)
+    rAcol |-> vrAcol **
+    rBrow |-> vrBrow **
+    rchProd |-> vrchProd
   ensures
     exists* vrAcol' vrBrow' vrchProd'.
       pure (Seq.length vrAcol' == tm /\
             Seq.length vrBrow' == tn /\
             Seq.length vrchProd' == tm * tn) **
-      (rAcol |-> vrAcol') **
-      (rBrow |-> vrBrow') **
-      (rchProd |-> vrchProd')
+      rAcol |-> vrAcol' **
+      rBrow |-> vrBrow' **
+      rchProd |-> vrchProd'
 {
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ bk))
     invariant
       exists* (vdotIdx : sz{vdotIdx <= bk}) (vrAcol : erased (lseq et tm))
         (vrBrow : erased (lseq et tn)) (vrchProd : erased (lseq et (tm*tn))).
-        (dotIdx |-> vdotIdx) **
-        (rAcol |-> vrAcol) **
-        (rBrow |-> vrBrow) **
-        (rchProd |-> vrchProd)
+        dotIdx |-> vdotIdx **
+        rAcol |-> vrAcol **
+        rBrow |-> vrBrow **
+        rchProd |-> vrchProd
   {
     open Pulse.Lib.Array;
 
@@ -486,8 +486,8 @@ fn subproducts2d
     while (SZ.(!i0 <^ tm))
       invariant
         exists* (vi : sz{vi <= tm}) (vrAcol : erased (lseq et tm)).
-          (i0 |-> vi) **
-          (rAcol |-> vrAcol)
+          i0 |-> vi **
+          rAcol |-> vrAcol
     {
       (* get rid of a few non-linear arithmetic expressions *)
       let a_tile = gpu_matrix_extract_tile_ro' gA
@@ -503,8 +503,8 @@ fn subproducts2d
     while (SZ.(!i1 <^ tn))
       invariant
         exists* (vi : sz{vi <= tn}) (vrBrow : erased (lseq et tn)).
-          (i1 |-> vi) **
-          (rBrow |-> vrBrow)
+          i1 |-> vi **
+          rBrow |-> vrBrow
     {
       let b_tile = gpu_matrix_extract_tile_ro' gB
         1 (hide (SZ.v tn)) (hide (SZ.v !dotIdx)) (hide (SZ.v bcol));
@@ -519,15 +519,15 @@ fn subproducts2d
     while (SZ.(!resIdxM <^ tm))
       invariant
         exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : erased (lseq et (tm*tn))).
-          (resIdxM |-> vresIdxM) **
-          (rchProd |-> vrchProd)
+          resIdxM |-> vresIdxM **
+          rchProd |-> vrchProd
     {
       let mut resIdxN = 0sz;
       while (SZ.(!resIdxN <^ tn))
         invariant
           exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : erased (lseq et (tm*tn))).
-            (resIdxN |-> vresIdxN) **
-            (rchProd |-> vrchProd)
+            resIdxN |-> vresIdxN **
+            rchProd |-> vrchProd
       {
         (* works on arrays and therefore does not have the nice matrix abstraction *)
         let ra = rAcol.(!resIdxM);
@@ -570,7 +570,7 @@ fn epilogue
     own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
     (exists* vrchProd.
       pure (Seq.length vrchProd == tm * tn) **
-      (rchProd |-> vrchProd))
+      rchProd |-> vrchProd)
   ensures
     gpu **
     own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
@@ -586,16 +586,16 @@ fn epilogue
   while (SZ.(!resIdxM <^ tm))
     invariant
       exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)) (v : ematrix et tm tn).
-        (resIdxM |-> vresIdxM) **
-        (rchProd |-> vrchProd) **
+        resIdxM |-> vresIdxM **
+        rchProd |-> vrchProd **
         gpu_matrix_pts_to t_tile v
   {
     let mut resIdxN = 0sz;
     while (SZ.(!resIdxN <^ tn))
       invariant
         exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)) (v : ematrix et tm tn).
-          (resIdxN |-> vresIdxN) **
-          (rchProd |-> vrchProd) **
+          resIdxN |-> vresIdxN **
+          rchProd |-> vrchProd **
           gpu_matrix_pts_to t_tile v
 
     {
@@ -701,10 +701,10 @@ fn kf
   while (SZ.(!bkIdx <^ num_k_tiles))
     invariant
       exists* (vbkIdx : SZ.t{vbkIdx <= num_k_tiles}) (vrAcol : lseq et tm) (vrBrow : lseq et tn) (vrchProd : lseq et (tm*tn)).
-        (bkIdx |-> vbkIdx) **
-        (rAcol |-> vrAcol) **
-        (rBrow |-> vrBrow) **
-        (rchProd |-> vrchProd) **
+        bkIdx |-> vbkIdx **
+        rAcol |-> vrAcol **
+        rBrow |-> vrBrow **
+        rchProd |-> vrchProd **
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. ((bm/tm*(bn/tn)))) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. ((bm/tm*(bn/tn)))) x) **
         B.barrier_tok (barrier_p sA sB ((bm/tm*(bn/tn)))) (barrier_q sA sB ((bm/tm*(bn/tn)))) (2 * vbkIdx) tid **

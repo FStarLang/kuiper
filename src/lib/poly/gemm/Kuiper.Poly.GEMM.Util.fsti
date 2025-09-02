@@ -33,8 +33,8 @@ fn matmul_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   returns
     res : et
   ensures
@@ -57,8 +57,8 @@ fn matmul_tiled_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    (gA |-> Frac fA eA) **
-    (gB |-> Frac fB eB)
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
   returns
     res : et
   // ensures
@@ -80,11 +80,11 @@ fn subproduct_cols
   (#f : perm)
   preserves
     gpu **
-    (m1 |-> Frac f v1) **
-    (m2 |-> Frac f v2)
+    m1 |-> Frac f v1 **
+    m2 |-> Frac f v2
   requires
     pure (Seq.length acc0 == tile) **
-    (acc |-> acc0)
+    acc |-> acc0
   ensures
     exists* acc'.
       pure (Seq.length acc' == tile) **

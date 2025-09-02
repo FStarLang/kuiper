@@ -22,7 +22,7 @@ fn m2_to_m4
   returns
     gA4 : M4.gpu_matrix et lA
   ensures
-    (gA4 |-> Frac f eA) **
+    gA4 |-> Frac f eA **
     pure (M4.core gA4 == M.core gA)
 
 inline_for_extraction noextract
@@ -38,5 +38,5 @@ fn m4_to_m2
   returns
     gA : M.gpu_matrix et lA
   ensures
-    (gA |-> Frac f eA) **
+    gA |-> Frac f eA **
     pure (M4.core gA4 == M.core gA)

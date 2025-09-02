@@ -501,13 +501,13 @@ fn gpu_matrix_from_array
   (#s : erased (seq et){Seq.length s == mlayout_size l})
   (#em : _)
   preserves
-    (a |-> s) **
+    a |-> s **
     cpu
   requires
     (* silly, but this shows that the multiplication below does not overflow.
     If we had a mul_underspec, we would not need this, I think. *)
     pure (mlayout_size l > 0) **
-    (gm |-> em)
+    gm |-> em
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
     (gm |-> from_seq l s)
@@ -531,12 +531,12 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == mlayout_size l})
   (#em : _)
   preserves
-    (gm |-> em) **
+    gm |-> em **
     cpu
   requires
     (* same *)
     pure (mlayout_size l > 0) **
-    (a |-> s)
+    a |-> s
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
     (a |-> to_seq l em)

@@ -63,8 +63,8 @@ fn main
   (#va #vb : erased (seq u64))
   preserves
     cpu **
-    (a |-> va) **
-    (b |-> vb)
+    a |-> va **
+    b |-> vb
   requires
     pure (
       len va == rows * shared /\

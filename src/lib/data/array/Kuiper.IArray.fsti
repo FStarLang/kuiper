@@ -376,7 +376,7 @@ fn iarray_read
   (#v : (vw.sch.ait -> GTot et))
   preserves
     gpu **
-    (a |-> Frac f v)
+    a |-> Frac f v
   returns
     e : et
   ensures

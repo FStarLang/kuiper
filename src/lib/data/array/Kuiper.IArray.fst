@@ -514,7 +514,7 @@ fn iarray_read
   (#v : (vw.sch.ait -> GTot et))
   preserves
     gpu **
-    (a |-> Frac f v)
+    a |-> Frac f v
   returns
     e : et
   ensures
@@ -539,7 +539,7 @@ fn iarray_write
   preserves
     gpu
   requires
-    (a |-> v0)
+    a |-> v0
   ensures
     (a |-> oplus v0 (ci_to_ai vw ci) e)
 {

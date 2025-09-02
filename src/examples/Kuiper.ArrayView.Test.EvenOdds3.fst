@@ -222,7 +222,7 @@ fn test_write (a : gpu_array u32 100)
   rewrite each core va as a;
 
   with v1.
-    assert (a |-> v1);
+    assert a |-> v1;
     // assert (pure (Seq.equal v1 (Seq.upd v0 20 42ul)));
     assert (pure (Seq.equal v1 (Seq.upd (Seq.upd v0 20 42ul) 41 43ul))); // use extensionality
 
