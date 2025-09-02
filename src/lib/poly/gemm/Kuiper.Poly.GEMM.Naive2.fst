@@ -32,16 +32,13 @@ let kpre
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
   (fA fB : perm)
-  (bid : natlt (divup (rows * cols) blocksz))
-  (tid : natlt blocksz)
+  (gid : natlt (rows * cols))
   : slprop
   =
-  if in_bounds rows cols bid tid then (
-    (gA |-> Frac (fA /. (rows * cols)) eA) **
-    (gB |-> Frac (fB /. (rows * cols)) eB) **
-    M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-      (macc eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-   ) else emp
+    gA |-> Frac (fA /. (rows * cols)) eA **
+    gB |-> Frac (fB /. (rows * cols)) eB **
+    M.gpu_matrix_pts_to_cell gC #1.0R (gid / cols) (gid % cols)
+      (macc eC (gid / cols) (gid % cols))
 
 unfold
 let kpost
@@ -58,16 +55,13 @@ let kpost
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
   (fA fB : perm)
-  (bid : natlt (divup (rows * cols) blocksz))
-  (tid : natlt blocksz)
+  (gid : natlt (rows * cols))
   : slprop
   =
-  if in_bounds rows cols bid tid then (
-    (gA |-> Frac (fA /. (rows * cols)) eA) **
-    (gB |-> Frac (fB /. (rows * cols)) eB) **
-    M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-      (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-  ) else emp
+    gA |-> Frac (fA /. (rows * cols)) eA **
+    gB |-> Frac (fB /. (rows * cols)) eB **
+    M.gpu_matrix_pts_to_cell gC #1.0R (gid / cols) (gid % cols)
+      (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
 
 inline_for_extraction noextract
 fn kf
@@ -86,81 +80,43 @@ fn kf
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
-  (bid : szlt (divup (rows *^ cols) blocksz))
-  (tid : szlt blocksz)
+  (gid : szlt (rows * cols))
   ()
   norewrite
   requires
     gpu **
-    kpre comb gA gB gC eA eB eC fA fB bid tid **
-    thread_id blocksz tid **
-    block_id (divup (rows * cols) blocksz) bid
+    kpre comb gA gB gC eA eB eC fA fB gid
   ensures
     gpu **
-    kpost comb gA gB gC eA eB eC fA fB bid tid **
-    thread_id blocksz tid **
-    block_id (divup (rows * cols) blocksz) bid
+    kpost comb gA gB gC eA eB eC fA fB gid
 {
-  (* Should remove this admit by constraining the sizes, but it's
-     pretty benign. We know bid*blocksz does not overflow a size_t,
-     and size_t is almost certainly a multiple of blocksz, so this
-     cannot fail. *)
-  assert (pure (SZ.fits (bid * blocksz)));
-  assume (pure (SZ.fits (bid * blocksz + tid)));
-  let id = bid *^ blocksz +^ tid;
+  let id = gid;
 
-  if SZ.lt id (rows *^ cols) {
-    rewrite each in_bounds rows cols bid tid as true;
-
-    let trow, tcol = s_divmod cols id;
-    with i0 j0 v0.
-      rewrite
-        M.gpu_matrix_pts_to_cell gC #1.0R i0 j0 v0
-      as
-        M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
-
-    assert (pure (trow < rows));
-    assert (pure (tcol < cols));
-
-    let s = MU.matmul_dotprod gA gB trow tcol;
-    let v0 = M.gpu_matrix_read_cell gC trow tcol;
-    let v1 = comb v0 s;
-    M.gpu_matrix_write_cell gC trow tcol v1;
-
-    assert (pure (SZ.v trow == id / cols));
-    assert (pure (SZ.v tcol == id % cols));
+  let trow, tcol = s_divmod cols id;
+  with i0 j0 v0.
     rewrite
-      (gA |-> Frac (fA /. (rows * cols)) eA) **
-      (gB |-> Frac (fB /. (rows * cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC trow tcol
-        (MS.gemm_single comb eA eB eC trow tcol)
-    as kpost comb gA gB gC eA eB eC fA fB bid tid;
-
-    ()
-  } else {
-    (* Out of bounds, do nothing *)
-    assert (pure (in_bounds rows cols bid tid == false));
-    (* Funny, we need to go via emp to convince Pulse. *)
-    rewrite
-      (if in_bounds rows cols bid tid
-       then
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-            (macc eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-       else
-         emp)
-    as emp;
-    rewrite emp
+      M.gpu_matrix_pts_to_cell gC #1.0R i0 j0 v0
     as
-      (if in_bounds rows cols bid tid
-       then
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-       else emp);
-  }
+      M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
+
+  assert (pure (trow < rows));
+  assert (pure (tcol < cols));
+
+  let s = MU.matmul_dotprod gA gB trow tcol;
+  let v0 = M.gpu_matrix_read_cell gC trow tcol;
+  let v1 = comb v0 s;
+  M.gpu_matrix_write_cell gC trow tcol v1;
+
+  assert (pure (SZ.v trow == id / cols));
+  assert (pure (SZ.v tcol == id % cols));
+  rewrite
+    (gA |-> Frac (fA /. (rows * cols)) eA) **
+    (gB |-> Frac (fB /. (rows * cols)) eB) **
+    M.gpu_matrix_pts_to_cell gC trow tcol
+      (MS.gemm_single comb eA eB eC trow tcol)
+  as kpost comb gA gB gC eA eB eC fA fB gid;
+
+  ()
 }
 
 ghost
@@ -188,37 +144,11 @@ fn setup
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
-    (forall+ (bid : natlt (sdivup (rows *^ cols) blocksz))
-            (tid : natlt blocksz).
-      kpre comb gA gB gC eA eB eC fA fB bid tid) **
+    (forall+ (gid : natlt (rows *^ cols)).
+      kpre comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
   Kuiper.Poly.GEMM.Naive.setup comb gA gB gC #eA #eB #eC ();
-
-  (* At this point we split the matrices in cells. We now factor
-  that forall+ into chunks of blocksz. But first, we gotta pad it with empties. *)
-
-  assert (pure ((sdivup (rows *^ cols) blocksz) * blocksz >= rows *^ cols));
-  forevery_pad (rows *^ cols) (SZ.v (sdivup (rows *^ cols) blocksz) * blocksz)
-    (fun (rc : natlt (rows *^ cols)) -> Naive.kpre comb gA gB gC eA eB eC fA fB rc);
-  forevery_factor
-    ((sdivup (rows *^ cols) blocksz) * blocksz)
-    (sdivup (rows *^ cols) blocksz)
-    blocksz
-    _;
-
-  (* Convince Z3 *)
-  forevery_ext_2
-    (fun (bid : natlt (sdivup (rows *^ cols) blocksz)) (tid : natlt blocksz) ->
-       if bid * blocksz + tid < rows *^ cols
-       then
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (macc eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-       else emp)
-    (fun bid tid -> kpre comb gA gB gC eA eB eC fA fB bid tid);
-  ();
 }
 
 ghost
@@ -242,62 +172,14 @@ fn teardown
   ()
   norewrite
   requires
-    (forall+ (bid : natlt (sdivup (rows *^ cols) blocksz))
-            (tid : natlt blocksz).
-      kpost comb gA gB gC eA eB eC fA fB bid tid) **
+    (forall+ (gid : natlt (rows *^ cols)).
+      kpost comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  (* Idem. *)
-  forevery_ext_2 #(natlt (sdivup (rows *^ cols) blocksz)) #_ #(natlt blocksz)
-    (fun bid tid -> kpost comb gA gB gC eA eB eC fA fB bid tid)
-    (fun (bid : natlt (sdivup (rows *^ cols) blocksz)) (tid : natlt blocksz) ->
-       if bid * blocksz + tid < rows *^ cols
-       then
-        (gA |-> Frac (fA /. (rows * cols)) eA) **
-        (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-       else emp);
-  forevery_unfactor'
-    ((sdivup (rows *^ cols) blocksz) * blocksz)
-    (sdivup (rows *^ cols) blocksz)
-    blocksz
-    (fun (bid : natlt (sdivup (rows *^ cols) blocksz)) (tid : natlt blocksz) ->
-       if bid * blocksz + tid < rows *^ cols
-       then
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols)
-           (MS.gemm_single comb eA eB eC ((bid * blocksz + tid) / cols) ((bid * blocksz + tid) % cols))
-       else emp);
-  forevery_ext #(natlt (sdivup (rows *^ cols) blocksz * blocksz))
-    (fun i ->
-       if i / blocksz * blocksz + i % blocksz < rows *^ cols
-       then
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R ((i/blocksz * blocksz + i%blocksz) / cols) ((i/blocksz * blocksz + i%blocksz) % cols)
-           (MS.gemm_single comb eA eB eC ((i/blocksz * blocksz + i%blocksz) / cols) ((i/blocksz * blocksz + i%blocksz) % cols))
-       else emp)
-    (fun i ->
-       if i < rows *^ cols
-       then
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R (i / cols) (i % cols)
-           (MS.gemm_single comb eA eB eC (i / cols) (i % cols))
-       else emp);
-  forevery_unpad (rows *^ cols) (SZ.v (sdivup (rows *^ cols) blocksz) * blocksz)
-    (fun (i : natlt (rows *^ cols)) ->
-         (gA |-> Frac (fA /. (rows * cols)) eA) **
-         (gB |-> Frac (fB /. (rows * cols)) eB) **
-         M.gpu_matrix_pts_to_cell gC #1.0R (i / cols) (i % cols)
-           (MS.gemm_single comb eA eB eC (i / cols) (i % cols))
-       );
   Naive.teardown comb gA gB gC #eA #eB #eC ();
 }
 
@@ -319,24 +201,17 @@ let kdesc
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
-  : kernel_desc_m_n
+  : kernel_desc_n
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 =
 {
-  nblk = sdivup (rows *^ cols) blocksz;
-  nthr = blocksz;
+  nthr = rows *^ cols;
 
   frame = emp;
 
-  block_pre  = (fun bid -> forall+ (tid : natlt blocksz). kpre  comb gA gB gC eA eB eC fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt blocksz). kpost comb gA gB gC eA eB eC fA fB bid tid);
   setup    = setup    comb gA #fA gB #fB gC #eA #eB #eC ();
   teardown = teardown comb gA #fA gB #fB gC #eA #eB ();
-
-  block_setup = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
-  block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
-  block_frame = (fun _bid -> emp);
 
   kpre  = kpre  comb gA gB gC eA eB eC fA fB;
   kpost = kpost comb gA gB gC eA eB eC fA fB;
@@ -344,6 +219,10 @@ let kdesc
   f = kf comb gA #fA gB #fB gC #eA #eB #eC;
 }
 
+// FIXME: extraction of this function (in the inst module) is very slow, around
+// 1.5s for each one. This is *after* a lot of tweaking in the definition of the
+// kn_as_kmn cast. We seem to spend a lot of time normalizing, probably with an
+// exponential explosion somewhere.
 inline_for_extraction noextract
 fn mmcomb_gpu
   (#et : Type0) {| scalar et |}

@@ -25,7 +25,7 @@ let kpre
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
   (fA fB : perm)
-  (bid : nat{ bid < rows * cols })
+  (bid : natlt (rows * cols))
   : slprop
   =
   (* Note: as far as this algorithm is concerned, we could have
@@ -52,7 +52,7 @@ let kpost
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
   (fA fB : perm)
-  (bid : nat{ bid < rows * cols })
+  (bid : natlt (rows * cols))
   : slprop
   =
   (gA |-> Frac (fA /. (rows * cols)) eA) **
