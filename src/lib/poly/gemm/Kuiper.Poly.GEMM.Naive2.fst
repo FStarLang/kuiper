@@ -11,12 +11,6 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)
 
-inline_for_extraction noextract
-let blocksz = 1024sz
-
-let in_bounds (rows cols bid tid : nat) : GTot bool =
-  bid * blocksz + tid < rows * cols
-
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
@@ -35,10 +29,10 @@ let kpre
   (gid : natlt (rows * cols))
   : slprop
   =
-    gA |-> Frac (fA /. (rows * cols)) eA **
-    gB |-> Frac (fB /. (rows * cols)) eB **
-    M.gpu_matrix_pts_to_cell gC #1.0R (gid / cols) (gid % cols)
-      (macc eC (gid / cols) (gid % cols))
+  gA |-> Frac (fA /. (rows * cols)) eA **
+  gB |-> Frac (fB /. (rows * cols)) eB **
+  M.gpu_matrix_pts_to_cell gC (gid / cols) (gid % cols)
+    (macc eC (gid / cols) (gid % cols))
 
 unfold
 let kpost
@@ -58,10 +52,10 @@ let kpost
   (gid : natlt (rows * cols))
   : slprop
   =
-    gA |-> Frac (fA /. (rows * cols)) eA **
-    gB |-> Frac (fB /. (rows * cols)) eB **
-    M.gpu_matrix_pts_to_cell gC #1.0R (gid / cols) (gid % cols)
-      (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
+  gA |-> Frac (fA /. (rows * cols)) eA **
+  gB |-> Frac (fB /. (rows * cols)) eB **
+  M.gpu_matrix_pts_to_cell gC #1.0R (gid / cols) (gid % cols)
+    (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
 
 inline_for_extraction noextract
 fn kf
@@ -73,13 +67,12 @@ fn kf
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
   (gA : M.gpu_matrix et lA)
-  (#fA : perm)
   (gB : M.gpu_matrix et lB)
-  (#fB : perm)
   (gC : M.gpu_matrix et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
+  (#fA #fB : perm)
   (gid : szlt (rows * cols))
   ()
   norewrite
@@ -90,9 +83,7 @@ fn kf
     gpu **
     kpost comb gA gB gC eA eB eC fA fB gid
 {
-  let id = gid;
-
-  let trow, tcol = s_divmod cols id;
+  let trow, tcol = s_divmod cols gid;
   with i0 j0 v0.
     rewrite
       M.gpu_matrix_pts_to_cell gC #1.0R i0 j0 v0
@@ -107,14 +98,15 @@ fn kf
   let v1 = comb v0 s;
   M.gpu_matrix_write_cell gC trow tcol v1;
 
-  assert (pure (SZ.v trow == id / cols));
-  assert (pure (SZ.v tcol == id % cols));
+  assert (pure (SZ.v trow == gid / cols));
+  assert (pure (SZ.v tcol == gid % cols));
   rewrite
-    (gA |-> Frac (fA /. (rows * cols)) eA) **
-    (gB |-> Frac (fB /. (rows * cols)) eB) **
+    gA |-> Frac (fA /. (rows * cols)) eA **
+    gB |-> Frac (fB /. (rows * cols)) eB **
     M.gpu_matrix_pts_to_cell gC trow tcol
       (MS.gemm_single comb eA eB eC trow tcol)
-  as kpost comb gA gB gC eA eB eC fA fB gid;
+  as
+    kpost comb gA gB gC eA eB eC fA fB gid;
 
   ()
 }
@@ -136,7 +128,6 @@ fn setup
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
-  (_ : squash (rows * cols <= max_blocks))
   ()
   norewrite
   requires
@@ -168,7 +159,6 @@ fn teardown
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
-  (_ : squash (rows * cols <= max_blocks))
   ()
   norewrite
   requires
@@ -200,7 +190,7 @@ let kdesc
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
-  (_ : squash (rows * cols <= max_blocks))
+  (#_ : squash (rows * cols <= max_blocks * max_threads))
   : kernel_desc_n
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
@@ -210,13 +200,13 @@ let kdesc
 
   frame = emp;
 
-  setup    = setup    comb gA #fA gB #fB gC #eA #eB #eC ();
-  teardown = teardown comb gA #fA gB #fB gC #eA #eB ();
+  setup    = setup    comb gA #fA gB #fB gC #eA #eB #eC;
+  teardown = teardown comb gA #fA gB #fB gC #eA #eB;
 
   kpre  = kpre  comb gA gB gC eA eB eC fA fB;
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
-  f = kf comb gA #fA gB #fB gC #eA #eB #eC;
+  f = kf comb gA gB gC #eA #eB #eC #fA #fB;
 }
 
 // FIXME: extraction of this function (in the inst module) is very slow, around
@@ -251,5 +241,5 @@ fn mmcomb_gpu
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  launch_sync (kdesc comb gA gB gC #eA #eB #eC ());
+  launch_sync (kdesc comb gA gB gC);
 }

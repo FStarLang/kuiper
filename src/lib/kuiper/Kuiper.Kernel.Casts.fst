@@ -128,24 +128,10 @@ fn adapt_kn_as_kmn
   }
 }
 
-// #set-options "--debug SMTFail --split_queries always"
-
 ghost
 fn pad_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
-  // (nthr : sz)
-  // (kpre kpost : natlt nthr -> slprop)
-  // (setup : (
-  //   unit ->
-  //   stt_ghost unit emp_inames
-  //     (requires
-  //       full_pre)
-  //     (ensures fun _ ->
-  //       (forall+ (tid : natlt nthr). kpre tid) **
-  //       frame)
-  // ))
-  (#_ : squash (SZ.fits (k.nthr + 1024)))
   ()
   norewrite
   requires
@@ -193,16 +179,14 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
      : kernel_desc_m_n full_pre full_post
 = let open k <: kernel_desc_n full_pre full_post in
-  // let nblk' = sdivup nthr 1024sz in
-  // let fullnthr' : Ghost.erased nat = sizet_to_nat nblk' * 1024 in
   {
   nblk = sdivup nthr 1024sz;
   nthr = 1024sz;
 
   frame = k.frame;
 
-  block_pre   = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid);// pad_f fullnthr' k.kpre  (1024 * bid + tid));
-  block_post  = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpost bid tid);// pad_f fullnthr' k.kpost  (1024 * bid + tid));
+  block_pre   = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid);
+  block_post  = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpost bid tid);
   block_frame = (fun bid -> emp);
 
   setup    = (fun () -> admit(); pad_setup k ());

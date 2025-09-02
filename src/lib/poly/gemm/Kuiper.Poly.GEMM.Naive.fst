@@ -28,13 +28,9 @@ let kpre
   (bid : natlt (rows * cols))
   : slprop
   =
-  (* Note: as far as this algorithm is concerned, we could have
-  an existential for the gC cell and not state anything interesting.
-  However it is actually more comfortable to not have an existential here,
-  and we will need it anyway for the GEMM. *)
-  (gA |-> Frac (fA /. (rows * cols)) eA) **
-  (gB |-> Frac (fB /. (rows * cols)) eB) **
-  M.gpu_matrix_pts_to_cell gC #1.0R (bid / cols) (bid % cols)
+  gA |-> Frac (fA /. (rows * cols)) eA **
+  gB |-> Frac (fB /. (rows * cols)) eB **
+  M.gpu_matrix_pts_to_cell gC (bid / cols) (bid % cols)
     (macc eC (bid / cols) (bid % cols))
 
 unfold
@@ -55,8 +51,8 @@ let kpost
   (bid : natlt (rows * cols))
   : slprop
   =
-  (gA |-> Frac (fA /. (rows * cols)) eA) **
-  (gB |-> Frac (fB /. (rows * cols)) eB) **
+  gA |-> Frac (fA /. (rows * cols)) eA **
+  gB |-> Frac (fB /. (rows * cols)) eB **
   M.gpu_matrix_pts_to_cell gC #1.0R (bid / cols) (bid % cols)
     (MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
 
@@ -256,7 +252,7 @@ let kdesc
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
-  (_ : squash (rows * cols <= max_blocks))
+  (#_ : squash (rows * cols <= max_blocks))
   : kernel_desc_m_1
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
@@ -302,5 +298,5 @@ fn mmcomb_gpu
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  launch_sync (kdesc comb gA gB gC ());
+  launch_sync (kdesc comb gA gB gC);
 }
