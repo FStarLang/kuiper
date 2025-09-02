@@ -11,6 +11,8 @@ open Kuiper.SizeT
 open Kuiper.SHMem
 module SZ = FStar.SizeT
 
+(* A full kernel description, in its most general form. There are
+simpler version in the Kuiper.Kernel.Casts module. *)
 noeq
 inline_for_extraction noextract
 type kernel_desc (full_pre full_post : slprop) = {

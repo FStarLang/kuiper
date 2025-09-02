@@ -18,8 +18,8 @@ so they can be easily intro/elim'd when empty. *)
 noeq
 inline_for_extraction noextract
 type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
-  nblk : (x : SZ.t { 0 < x /\ x <= max_blocks });
-  nthr : (x : SZ.t { 0 < x /\ x <= max_threads });
+  nblk : (x : SZ.t { x <= max_blocks });
+  nthr : (x : SZ.t { x <= max_threads });
 
   frame : slprop;
 
@@ -93,7 +93,7 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
 noeq
 inline_for_extraction noextract
 type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
-  nthr : (x : SZ.t { 0 < x /\ x <= max_threads });
+  nthr : (x : SZ.t { x <= max_threads });
 
   frame : slprop;
 
@@ -141,7 +141,7 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
 noeq
 inline_for_extraction noextract
 type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
-  nblk : (x : SZ.t { 0 < x /\ x <= max_blocks });
+  nblk : (x : SZ.t { x <= max_blocks });
 
   frame : slprop;
 
