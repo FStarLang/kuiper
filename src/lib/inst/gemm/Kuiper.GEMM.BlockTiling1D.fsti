@@ -13,6 +13,7 @@ open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
 // Pretty hideous. But this must match the pure resource in the precondition of
 // the kernel exactly. Should we make it a squashed argument instead, to take
 // advantage of subtyping?
+inline_for_extraction noextract
 let size_req tile : size_req_t =
   fun rows shared cols ->
     (rows / tile) * (cols / tile) <= max_blocks /\

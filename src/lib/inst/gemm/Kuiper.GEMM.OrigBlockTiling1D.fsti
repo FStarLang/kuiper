@@ -9,6 +9,7 @@ open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
    stack-allocated variable-length array, and NVCC complains
    (karamel warns too). *)
 
+inline_for_extraction noextract
 let size_req tile : size_req_t =
   fun rows shared cols ->
     (rows / tile) * (cols / tile) <= max_blocks
