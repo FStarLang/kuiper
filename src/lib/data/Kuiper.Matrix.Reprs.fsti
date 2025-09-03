@@ -41,7 +41,7 @@ inline_for_extraction noextract
 instance val crepr_row_major_mirror : crepr row_major_mirror
 
 inline_for_extraction noextract
-instance strided_row_major_base (#rows #cols : nat)
+instance strided_row_major_base (#rows #cols : erased nat)
   {| d : concrete_sz cols |}
   : strided_row_major (row_major rows cols) =
 {
