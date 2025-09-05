@@ -122,6 +122,22 @@ fn mma_loadB
   ensures
     fr |-> m0
 
+fn mma_loadAccum
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragAcc m n k FragLAcc)
+  (#l : mlayout m n) {| strided_row_major l |}
+  (gm : gpu_matrix et l)
+  (#f : perm)
+  (#m0 : ematrix et m n)
+  (#f0 : erased (value_for et FragAcc m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+
 let fill_value
   (#et : Type)
   (#knd : fragment_kind)
