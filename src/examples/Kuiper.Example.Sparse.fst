@@ -780,7 +780,7 @@ fn sarray_product_dense
 }
 
 //TODO que pasa con esto?
-// let _product_dense_u32 = sarray_product_dense #u32 #_
+let product_dense_u32 #l = sarray_product_dense #u32 #_ #l
 
 (* producto intero sparse x sparse *)
 
@@ -813,14 +813,14 @@ fn sarray_product
       invariant live j ** live dp
     {
       let p_b = gpu_array_read b.pos !j;
-      if (p_a = p_b)
-        ensures live j ** live dp
-      {
+      if (p_a = p_b) {
         let x = gpu_array_read a.elems !i;
         let y = gpu_array_read b.elems !j;
         dp := !dp `add` (x `mul` y);
+        j := !j `SZ.add` 1sz;
+      } else {
+        j := !j `SZ.add` 1sz;
       };
-      j := !j `SZ.add` 1sz;
     };
     i := !i `SZ.add` 1sz;
   };
@@ -831,3 +831,5 @@ fn sarray_product
 
   !dp;
 }
+
+let product_sparse_u32 #l = sarray_product #u32 #_ #l
