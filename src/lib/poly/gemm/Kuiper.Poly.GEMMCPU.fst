@@ -261,6 +261,61 @@ fn mmcomb_gpu_shmem_block_tiled2d
   ()
 }
 
+inline_for_extraction noextract
+fn mmcomb_gpu_shmem_block_tc
+  (tiled_mmcomb_gpu : block_tiled_tc_matmulcomb_gpu_ty)
+  (bm bn bk : szp)
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
+  (tk : szp{tk /? bk})
+  (#rows #shared #cols : szp)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  {| cA : clayout lA |}
+  {| cB : clayout lB |}
+  (gA : M.gpu_matrix half lA)
+  (#fA : perm)
+  (gB : M.gpu_matrix half lB)
+  (#fB : perm)
+  (gC : M.gpu_matrix half (Kuiper.Matrix.Reprs.row_major rows cols))
+  (#eA : ematrix half rows shared)
+  (#eB : ematrix half shared cols)
+  (#eC : ematrix half rows cols)
+  norewrite
+  preserves
+    cpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (rows * cols <= max_blocks) **
+    gC |-> eC
+  ensures
+    (exists* eC'. gC |-> eC')
+{
+  dassert (bm `SZ.gt` 0sz);
+  dassert (bn `SZ.gt` 0sz);
+  dassert (bk `SZ.gt` 0sz);
+  dassert (tm `SZ.gt` 0sz);
+  dassert (bm %^ tm = 0sz);
+  dassert (bn %^ tn = 0sz);
+  dguard (rows   %^ bm = 0sz);
+  dguard (shared %^ bk = 0sz);
+  dguard (cols   %^ bn = 0sz);
+  let mrows   = rows   /^ bm;
+  let mshared = shared /^ bk;
+  let mcols   = cols   /^ bn;
+
+  // There is no way to prove this.
+  assume (pure (SZ.fits (bm*bk + (bm/tm * (bn/tn)))));
+  assume (pure (SZ.fits (bk*bn + (bm/tm * (bn/tn)))));
+
+  tiled_mmcomb_gpu
+    gA #eA gB #eB gC #() #eC
+    bm bn bk
+    tm tn tk;
+
+  ()
+}
 (* An example of computing tr(AB) by just shifting a view.
 Basically:
   - Instantiating rA=rB=row_major, rC=col_major

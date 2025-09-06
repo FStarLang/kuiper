@@ -217,3 +217,44 @@ type block_tiled2d_matmulcomb_gpu_ty =
       (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
       (gC |-> MS.mmcomb comb eC eA eB)
     )
+
+unfold inline_for_extraction
+type block_tiled_tc_matmulcomb_gpu_ty =
+  (#et_ab : Type0) ->
+  (#et_c : Type0) ->
+  {| scalar et_ab |} ->
+  {| scalar et_c |} ->
+  (#rows : szp) ->
+  (#shared : szp) ->
+  (#cols : szp) ->
+  (#lA : mlayout rows shared) ->
+  (#lB : mlayout shared cols) ->
+  {| clayout lA |} -> {| clayout lB |} ->
+  (gA : M.gpu_matrix et_ab lA) ->
+  (#eA : ematrix et_ab rows shared) ->
+  (gB : M.gpu_matrix et_ab lB) ->
+  (#eB : ematrix et_ab shared cols) ->
+  (gC : M.gpu_matrix et_c (Kuiper.Matrix.Reprs.row_major rows cols)) ->
+  (#_ : squash (SizeT.fits (rows * cols))) ->
+  (#eC : ematrix et_c rows cols) ->
+  (bm : szp{bm /? rows}) ->
+  (bn : szp{bn /? cols}) ->
+  (bk : szp{bk /? shared}) ->
+  (tm : szp{tm /? bm}) ->
+  (tn : szp{tn /? bn}) ->
+  (tk : szp{tk /? bk}) ->
+  (#_ : squash (SizeT.fits (bm*bk + bm/tm*(bn/tn)))) ->
+  (#_ : squash (SizeT.fits (bk*bn + bm/tm*(bn/tn)))) ->
+  (#_: squash (SizeT.fits (bm * bk) /\ SizeT.fits (bk * bn))) ->
+  (#fA : perm) ->
+  (#fB : perm) ->
+  stt unit
+    (requires
+      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
+      (pure (rows/bm * (cols/bn) <= max_blocks) **
+      pure (bm/tm * (bn/tn) <= max_threads) **
+      gC |-> eC))
+    (ensures fun _ ->
+      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
+      (exists* eC. gC |-> eC)
+    )
