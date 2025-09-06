@@ -84,6 +84,36 @@ val mmcomb_gpu_shmem_block_tiled2d
   : matmulcomb_gpu_ty
      (fun rows _ cols -> rows * cols <= max_blocks) // too strong probably?
 
+inline_for_extraction noextract
+fn mmcomb_gpu_shmem_block_tc
+  (tiled_mmcomb_gpu : block_tiled_tc_matmulcomb_gpu_ty)
+  (bm bn bk : szp)
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
+  (tk : szp{tk /? bk})
+  (#rows #shared #cols : szp)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  {| cA : clayout lA |}
+  {| cB : clayout lB |}
+  (gA : M.gpu_matrix half lA)
+  (#fA : perm)
+  (gB : M.gpu_matrix half lB)
+  (#fB : perm)
+  (gC : M.gpu_matrix half (Kuiper.Matrix.Reprs.row_major rows cols))
+  (#eA : ematrix half rows shared)
+  (#eB : ematrix half shared cols)
+  (#eC : ematrix half rows cols)
+  norewrite
+  preserves
+    cpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (rows * cols <= max_blocks) **
+    gC |-> eC
+  ensures
+
 unfold
 inline_for_extraction
 type fixed_repr_matmul_cpu_ty

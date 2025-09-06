@@ -923,7 +923,7 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
+      kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **

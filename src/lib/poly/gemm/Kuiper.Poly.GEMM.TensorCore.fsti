@@ -6,4 +6,4 @@ open Kuiper
 open Kuiper.Poly.GEMMGPU.Type
 
 inline_for_extraction noextract
-val mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty
+val mmcomb_gpu : block_tiled_tc_matmulcomb_gpu_ty
