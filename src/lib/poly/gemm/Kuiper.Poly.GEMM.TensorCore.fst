@@ -211,7 +211,8 @@ let own_shmem_cell
   : slprop
   = exists* v. gpu_matrix_pts_to_cell sm i j v
 
-let div_ceil (a : nat) (b : pos) = (a + (b-1))/b
+let div_ceil (a : nat) (b : pos) : erased int = (a + (b-1))/b
+
 let own_tile_stride_cells
   (#et : Type0)
   (#rows #cols : nat)
@@ -484,12 +485,16 @@ fn subproducts_tc
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant
-      exists* (vdotIdx : sz{vdotIdx <= (bk/^tk)}) (vaFrag : ematrix et_ab tm tk)
-        (vbFrag : ematrix et_ab tk tn) (vaccumFrag : ematrix et_acc tm tn).
-        dotIdx |-> vdotIdx **
-        aFrag |-> vaFrag **
-        bFrag |-> vbFrag **
-        accumFrag |-> vaccumFrag
+      live aFrag **
+      live bFrag **
+      live accumFrag **
+      live dotIdx
+      // exists* (vdotIdx : sz{vdotIdx <= (bk/^tk)}) (vaFrag : ematrix et_ab tm tk)
+      //   (vbFrag : ematrix et_ab tk tn) (vaccumFrag : ematrix et_acc tm tn).
+      //   dotIdx |-> vdotIdx **
+      //   aFrag |-> vaFrag **
+      //   bFrag |-> vbFrag **
+      //   accumFrag |-> vaccumFrag
   {
     (* only required because of rewrites_to *)
     let didx = !dotIdx;
@@ -995,4 +1000,38 @@ fn mmcomb_gpu
     (exists* eC'. gC |-> eC')
 {
   launch_sync (mk_kernel gA gB gC bm bn bk tm tn tk (rows/^bm *^ (cols/^bn)) (bm/^tm *^ (bn/^tn)) ());
+}
+
+fn test
+  (gA : gpu_matrix half (R.row_major 1024sz 1024sz))
+  (#eA : ematrix half 1024sz 1024sz)
+  (gB : gpu_matrix half (R.row_major 1024sz 1024sz))
+  (#eB : ematrix half 1024sz 1024sz)
+  (gC : gpu_matrix float (R.row_major 1024sz 1024sz))
+  (#_ : squash (SZ.fits (1024sz * 1024sz)))
+  (#eC : ematrix float 1024sz 1024sz)
+  (#_ : squash (SZ.fits (32*32 + 32/16*(32/16))))
+  (#_ : squash (SZ.fits (32*32 + 32/16*(32/16))))
+  (#_: squash (SZ.fits (32 * 32) /\ SZ.fits (32 * 32)))
+  (#fA #fB : perm)
+  norewrite
+  preserves
+    cpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (1024sz/32 * (1024sz/32) <= max_blocks) **
+    pure (32/16 * (32/16) <= max_threads) **
+    gC |-> eC
+  ensures
+    (exists* eC'. gC |-> eC')
+{
+  launch_sync (
+    mk_kernel
+      #_ #_ #_ #_ #_ #_ #_
+      #_ #(Kuiper.Matrix.Reprs.crepr_row_major.map _ _) gA #_
+      #_ #(Kuiper.Matrix.Reprs.crepr_row_major.map _ _) gB #_
+      gC
+      32sz 32sz 32sz 16sz 16sz 16sz (1024sz/^32sz *^ (1024sz/^32sz)) (32sz/^16sz *^ (32sz/^16sz)) ()
+  );
 }
