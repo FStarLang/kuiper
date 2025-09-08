@@ -90,10 +90,10 @@ let block_tile
   (bid : enatlt (rows/bm * (cols/bn)))
   : gpu_matrix et
       (subtile_layout lC bm bn
-        (bid_y rows cols (hide (SZ.v bm)) (hide (SZ.v bn)) bid)
-        (bid_x rows cols (hide (SZ.v bm)) (hide (SZ.v bn)) bid))
+        (bid_y rows cols (SZ.v bm) (SZ.v bn) bid)
+        (bid_x rows cols (SZ.v bm) (SZ.v bn) bid))
   =
-    gpu_matrix_subtile gC (hide (SZ.v bm)) (hide (SZ.v bn))
+    gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
       (bid_y rows cols bm bn bid) (bid_x rows cols bm bn bid)
 
 inline_for_extraction noextract
@@ -109,7 +109,7 @@ let thread_tile
       (subtile_layout lC_bt tm tn
         (tid_y bm bn tm tn tid) (tid_x bm bn tm tn tid))
   =
-   gpu_matrix_subtile gC_bt (hide (SZ.v tm)) (hide (SZ.v tn))
+   gpu_matrix_subtile gC_bt (SZ.v tm) (SZ.v tn)
     (tid_y bm bn tm tn tid) (tid_x bm bn tm tn tid)
 
 let own_thread_tile
@@ -420,11 +420,11 @@ fn populate_shmem
     own_tile_stride_cells sB (bm/tm * (bn/tn)) tid
 {
   let tileA = gpu_matrix_extract_tile_ro' gA
-    (hide (SZ.v bm)) (hide (SZ.v bk)) (hide (SZ.v tile_row)) (hide (SZ.v tile_shared));
+    (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
   cp_matrix bm bk #_ #_ tileA sA (get_bdim()) tid;
 
   let tileB = gpu_matrix_extract_tile_ro' gB
-    (hide (SZ.v bk)) (hide (SZ.v bn)) (hide (SZ.v tile_shared)) (hide (SZ.v tile_col));
+    (SZ.v bk) (SZ.v bn) (SZ.v tile_shared) (SZ.v tile_col);
   cp_matrix bk bn tileB sB (get_bdim()) tid;
 
   ambig_trade_elim ();
@@ -491,7 +491,7 @@ fn subproducts2d
     {
       (* get rid of a few non-linear arithmetic expressions *)
       let a_tile = gpu_matrix_extract_tile_ro' gA
-        (hide (SZ.v tm)) 1 (hide (SZ.v arow)) (hide (SZ.v !dotIdx));
+        (SZ.v tm) 1 (SZ.v arow) (SZ.v !dotIdx);
       let va = gpu_matrix_read a_tile !i0 0sz;
       ambig_trade_elim ();
       rAcol.(!i0) <- va;
@@ -507,7 +507,7 @@ fn subproducts2d
           rBrow |-> vrBrow
     {
       let b_tile = gpu_matrix_extract_tile_ro' gB
-        1 (hide (SZ.v tn)) (hide (SZ.v !dotIdx)) (hide (SZ.v bcol));
+        1 (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
       let vb = gpu_matrix_read b_tile 0sz !i1;
       ambig_trade_elim ();
       rBrow.(!i1) <- vb;
@@ -567,20 +567,20 @@ fn epilogue
   (tid : szlt (bm/tm * (bn/tn)))
   requires
     gpu **
-    own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
+    own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid) **
     (exists* vrchProd.
       pure (Seq.length vrchProd == tm * tn) **
       rchProd |-> vrchProd)
   ensures
     gpu **
-    own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid)) **
+    own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid) **
     (exists* vrchProd'.
       pure (Seq.length vrchProd' == tm * tn) **
       (rchProd |-> vrchProd'))
 {
-  unfold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
-  let t_tile = thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid));
-  assert (rewrites_to t_tile (thread_tile (block_tile gC bm bn (hide (SZ.v bid))) tm tn (hide (SZ.v tid))));
+  unfold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
+  let t_tile = thread_tile (block_tile gC bm bn (SZ.v bid)) tm tn (SZ.v tid);
+  assert (rewrites_to t_tile (thread_tile (block_tile gC bm bn (SZ.v bid)) tm tn (SZ.v tid)));
 
   let mut resIdxM = 0sz;
   while (SZ.(!resIdxM <^ tm))
@@ -620,7 +620,7 @@ fn epilogue
   };
 
   // rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
-  fold own_thread_tile gC bm bn tm tn (hide (SZ.v bid)) (hide (SZ.v tid));
+  fold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
   ()
 }
 
