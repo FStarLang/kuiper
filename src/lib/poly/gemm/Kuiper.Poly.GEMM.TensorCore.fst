@@ -434,11 +434,11 @@ fn populate_shmem
     own_tile_stride_cells sB (bm/tm * (bn/tn)) tid
 {
   let tileA = gpu_matrix_extract_tile_ro' gA
-    (hide (SZ.v bm)) (hide (SZ.v bk)) (hide (SZ.v tile_row)) (hide (SZ.v tile_shared));
+    (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
   cp_matrix bm bk #_ #_ tileA sA (get_bdim()) tid;
 
   let tileB = gpu_matrix_extract_tile_ro' gB
-    (hide (SZ.v bk)) (hide (SZ.v bn)) (hide (SZ.v tile_shared)) (hide (SZ.v tile_col));
+    (SZ.v bk) (SZ.v bn) (SZ.v tile_shared) (SZ.v tile_col);
   cp_matrix bk bn tileB sB (get_bdim()) tid;
 
   ambig_trade_elim ();
@@ -499,13 +499,11 @@ fn subproducts_tc
     (* only required because of rewrites_to *)
     let didx = !dotIdx;
 
-    gpu_matrix_extract_tile_ro gA tm tk arow !dotIdx;
-    let a_tile = gpu_matrix_subtile gA (hide (SZ.v tm)) (hide (SZ.v tk)) (hide (SZ.v arow)) (hide (SZ.v didx));
-    assert (rewrites_to a_tile (gpu_matrix_subtile gA (hide (SZ.v tm)) (hide (SZ.v tk)) (hide (SZ.v arow)) (hide (SZ.v didx))));
+    let a_tile = gpu_matrix_extract_tile_ro' gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v didx);
+    assert (rewrites_to a_tile (gpu_matrix_subtile gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v didx)));
 
-    gpu_matrix_extract_tile_ro gB tk tn !dotIdx bcol;
-    let b_tile = gpu_matrix_subtile gB (hide (SZ.v tk)) (hide (SZ.v tn)) (hide (SZ.v !dotIdx)) (hide (SZ.v bcol));
-    assert (rewrites_to b_tile (gpu_matrix_subtile gB (hide (SZ.v tk)) (hide (SZ.v tn)) (hide (SZ.v didx)) (hide (SZ.v bcol))));
+    let b_tile = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
+    assert (rewrites_to b_tile (gpu_matrix_subtile gB (SZ.v tk) (SZ.v tn) (SZ.v didx) (SZ.v bcol)));
 
     mma_loadA aFrag a_tile;
     mma_loadB bFrag b_tile;
@@ -561,10 +559,10 @@ fn epilogue
 
   (* Only create a tile in gC and write the accumulator values. In this version the input from gC
      was added by loading the tile into the accumulator before any other computations *)
-  let t_tile = thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (hide (SZ.v bid)))
-    (SZ.v tm) (SZ.v tn) (hide (SZ.v tid));
-  assert (rewrites_to t_tile (thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (hide (SZ.v bid)))
-    (SZ.v tm) (SZ.v tn) (hide (SZ.v tid))));
+  let t_tile = thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
+    (SZ.v tm) (SZ.v tn) (SZ.v tid);
+  assert (rewrites_to t_tile (thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
+    (SZ.v tm) (SZ.v tn) (SZ.v tid)));
 
   // from looking at the type of mma_store, it is not clear that cols mut be concretizable
   // 1. know that strided_row_major needs concrete sizes

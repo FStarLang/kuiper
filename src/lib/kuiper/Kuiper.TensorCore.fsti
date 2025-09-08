@@ -79,6 +79,7 @@ val fragment_pts_to
   (#m #n #k : nat)
   (#fl : fragment_layout)
   ([@@@mkey] f : fragment et knd m n k fl)
+  // why no permission?
   (em  : value_for et knd m n k)
   : slprop
 
