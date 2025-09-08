@@ -653,6 +653,22 @@ fn forevery_extract
 }
 
 ghost
+fn forevery_extract'
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p  : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p z **
+      (forall* (p' : a -> slprop).
+        p' z ** pure (forall (x:a{x =!= z}). p' x == p x)
+          @==> (forall+ (x:a). p' x))
+{
+  admit();
+}
+
+ghost
 fn forevery_extract_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
