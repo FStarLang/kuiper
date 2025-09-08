@@ -3,6 +3,7 @@ module Kuiper.Example.Sparse
 #lang-pulse
 open Kuiper
 module SZ = FStar.SizeT
+module KSeq = Kuiper.Seq.Common
 
 (* Propiedades sobre escalares *)
 
@@ -47,17 +48,6 @@ val zero_is_id_r
 (* Secuencias *)
 
 noextract
-let seq_take
-  (#a:_) (#l: nat)
-  (n : nat)
-  (s : lseq a l)
-  : Ghost (lseq a n)
-    (requires n <= l)
-    (ensures fun s' -> forall i. s' @! i == s @! i)
-=
-  Seq.slice s 0 n 
-
-noextract
 let seq_drop
   (#a:_) (#l: nat)
   (n : nat{n <= l})
@@ -67,24 +57,6 @@ let seq_drop
     (ensures fun s' -> forall i. s' @! i == s @! (i + n))
 =
   Seq.slice s n l
-
-noextract
-let inits
-  (#a:_) (#l : nat{l > 0})
-  (s : lseq a l)
-  : Ghost (lseq a (l - 1))
-    (requires true)
-    (ensures fun s' -> forall i. s' @! i == s @! i)
-=
-  seq_take (l - 1) s
-
-noextract
-let last
-  (#a:_) (#l : nat{l > 0})
-  (s : lseq a l)
-  : GTot a
-=
-  s @! (l - 1)
 
 
 let map_seq_len (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a)
@@ -96,82 +68,6 @@ let my_map_seq_index (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a) (i:nat{i < len s}
   : Lemma (ensures (Seq.map_seq_len f s; Seq.map_seq f s @! i == f (s @! i)))
           [SMTPat (Seq.map_seq f s @! i)]
   = Seq.map_seq_index f s i
-
-
-(* Fold *)
-
-
-let rec seq_fold_left'
-  (#a #b : _)
-  (f : b -> a -> b)
-  (#l : nat)
-  (acc : b)
-  (s : lseq a l)
-  : GTot b
-=
-  if l = 0
-    then acc
-    else f (seq_fold_left' f acc (inits s)) (last s)
-
-
-let rec lemma_fold_drop
-  (#a #b : _)
-  (f : b -> a -> b)
-  (#l : nat{l > 0})
-  (acc : b)
-  (s : lseq a l)
-  (n : nat{n <= l})
-  : Lemma 
-    (requires n > 0)
-    (ensures
-      seq_fold_left' f (f acc (s @! (n - 1))) (seq_drop n s) ==
-      seq_fold_left' f acc (seq_drop (n - 1) s) 
-    )
-=
-  if n = l
-    then ()
-    else lemma_fold_drop f acc (inits s) n
-
-let rec lemma_fold_left'
-  (#a #b : _)
-  (f : b -> a -> b)
-  (#l : nat{l > 0})
-  (acc : b)
-  (s : lseq a l)
-  (n : nat{n <= l})
-  : Lemma 
-    (requires true)
-    (ensures
-      seq_fold_left' f (seq_fold_left' f acc (seq_take n s)) (seq_drop n s) ==
-      seq_fold_left' f acc s
-    )
-=
-  if n = 0
-    then ()
-    else (
-      lemma_fold_left' f acc s (n - 1);
-      lemma_fold_drop f (seq_fold_left' f acc (seq_take (n - 1) s)) s n
-    )
-
-let rec lemma_fold_left
-  (#a #b : _)
-  (f : b -> a -> b)
-  (#l : nat)
-  (acc : b)
-  (s : lseq a l)
-  : Lemma 
-    (requires true)
-    (ensures
-      Kuiper.Seq.Common.seq_fold_left f acc s == seq_fold_left' f acc s
-    )
-=
-  if l = 0
-    then ()
-    else (
-      lemma_fold_left f #(l - 1) (f acc (Seq.head s)) (Seq.tail s);
-      lemma_fold_left' f acc s 1
-    )
-
 
 
 (* Producto interno *)
@@ -191,11 +87,8 @@ let sum
   (#et:_) {| scalar et |}
   (#l : nat)
   (s : lseq et l)
-  : Ghost et
-    (requires true)
-    (ensures fun r -> r == seq_fold_left' add zero s)
+  : GTot et
 = 
-  lemma_fold_left add zero s;
   DP.sum s
 
 let dprod
@@ -206,116 +99,33 @@ let dprod
 =
   sum (pmul s t)
 
-
-let seq_inits_pmul
-  (#et:_) {| scalar et |}
-  (#l : nat)
-  (s t : lseq et l)
-  : Lemma (requires l > 0) (ensures inits (s `pmul` t) == inits s `pmul` inits t)
-=
-  assert inits (s `pmul` t) `Seq.equal` (inits s `pmul` inits t)
-
-noextract
-let sum_last
-  (#et:_) {| scalar et |}
-  (#l n : nat{n < l})
-  (s : lseq et l)
-  : Lemma
-    (requires true)
-    (ensures sum (seq_take n s) `add` (s @! n) == sum (seq_take (n + 1) s))
-=
-  let sn = seq_take n s in
-  let sn' = seq_take (n + 1) s in
-  assert (seq_take n sn' `Seq.equal` sn)
-
-noextract
-let dprod_add
-  (#et:_) {| scalar et |}
-  (#nnz : nat)
-  (n : nat{n < nnz})
-  (s t : lseq et nnz)
-  (dp : et)
-  : Lemma
-    (requires dp == sum (seq_take n (pmul s t)))
-    (ensures dp `add` ((s @! n) `mul`(t @! n)) == sum (seq_take (n + 1) (pmul s t)))
-=
-  let open FStar.Seq in
-  let ps = seq_take n (pmul s t) in
-  let ps' = init_ghost (n + 1) (fun i ->
-    if i = n
-      then (s @! i) `mul` (t @! i)
-      else ps @! i
-  ) in
-
-  assert (ps' `equal` seq_take (n + 1) (pmul s t));
-  sum_last n (pmul s t)
-
-
-
 (* Propiedades sobre las posiciones de un array esparso *)
 
 noextract
-let in_bounds (l : nat) (s : seq nat) : prop =
-  forall i. 0 <= s @! i /\ s @! i < l
+let in_bounds (l h : nat) (s : seq nat) : prop =
+  forall i. l <= s @! i /\ s @! i < h
 
 noextract
 let sorted (s : seq nat) : prop =
   forall i j. i < j ==> s @! i < s @! j
 
-// MAYBE let valid_pos (nnz l : nat) = s : lseq nat nnz{in_bounds l s /\ sorted s}
 noextract
 let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop =
-  in_bounds l s /\ sorted s
+  in_bounds 0 l s /\ sorted s
 
 
-let valid_pos_implies_len_bounded
-  (#nnz l : nat)
+let rec bounded_from_sorted_in_bounds
+  (#nnz l h : nat)
   (s : lseq nat nnz)
   : Lemma
-    (requires valid_pos l s)
-    (ensures nnz <= l)
+    (requires l <= h /\ sorted s /\ in_bounds l h s)
+    (ensures nnz + l <= h)
 =
-  if l = 0
-    then (
-      // assert nnz == 0
-      //assert s `Seq.equal` Seq.empty
-      // que pasa acá?
-      admit()
-    )
-    else admit()
+  let open FStar.Seq in
 
-let rec valid_pos_mem
-  (#nnz l : nat)
-  (s : lseq nat nnz{valid_pos l s})
-  : Lemma
-      (requires l > 0 /\ Seq.mem (l - 1) s)
-      (ensures last s == l - 1)
-=
-  if len s = 1
+  if nnz = 0
     then ()
-    else valid_pos_mem #(nnz - 1) l (Seq.tail s)
-
-let rec valid_pos_not_mem_aux
-  (m n k : nat{k <= n})
-  (s : lseq nat m{valid_pos (n + 1) s})
-  : Lemma
-    (requires ~(Seq.mem n s) /\ forall i. k <= s @! i)
-    (ensures m + k <= n)
-=
-  if m = 0
-    then ()
-    else 
-      valid_pos_not_mem_aux (m - 1) n (k + 1) (Seq.tail s)
-
-
-let valid_pos_not_mem
-  (#nnz l : nat{l > 0})
-  (s : lseq nat nnz{valid_pos l s})
-  : Lemma
-      (requires ~(Seq.mem (l - 1) s))
-      (ensures nnz < l)
-=
-  valid_pos_not_mem_aux nnz (l - 1) 0 s
+    else bounded_from_sorted_in_bounds #(nnz - 1) ((s @! 0) + 1) h (tail s)
 
 let cast_pos
   (#nnz l : nat)
@@ -489,24 +299,13 @@ let _scale_u32 = sarray_scale #u32 #_
 
 (* producto interno sparse x dense *)
 
-noextract
-let seq_take_len
-  (#a:Type) (#l: nat)
-  (s : lseq a l)
-  : Lemma
-    (requires true)
-    (ensures seq_take l s == s)
-=
-  assert (seq_take l s `Seq.equal` s)
-
-
 
 let seq_project
-  (#et:_) {| scalar et |}
+  (#a:_)
   (#nnz #l : nat)
   (pos : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : GTot (lseq et nnz)
+  (s : lseq a l)
+  : GTot (lseq a nnz)
 =
   let open FStar.Seq in
   // me gustaría escribir:
@@ -514,213 +313,182 @@ let seq_project
   init_ghost nnz fun i ->
     index s (index pos i)
 
-let sparse_pmul
-  (#et:_) {| scalar et |}
-  (#nnz #l : nat{nnz <= l})
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : GTot (lseq et nnz)
-=
-  let open FStar.Seq in
-  elems `pmul` seq_project pos s
-
-let sparse_dprod
-  (#et:_) {| scalar et |}
-  (#nnz #l : nat{nnz <= l})
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : GTot et
-=
-  sum (sparse_pmul elems pos s)
-
 
 noextract
-let rec count_nonzeros
-  (#et : eqtype) {| scalar et |}
-  (#l : nat)
-  (s : lseq et l)
-  : GTot nat
-=
-  if l = 0
-    then 0
-    else 
-      let c = count_nonzeros (inits s) in
-      if last s = zero then c else c + 1
-
-noextract
-let rec nonzeros
-  (#et : eqtype) {| scalar et |}
-  (#l : nat)
-  (s : lseq et l)
-  : Ghost (seq et)
-    (requires true)
-    (ensures fun s' -> len s' == count_nonzeros s)
-=
-  if l = 0
-    then seq![] 
-    else
-      let nnz = nonzeros (inits s) in
-      let c = len nnz in
-      if last s = zero
-        then nnz
-        else Seq.init_ghost (c + 1) fun i ->
-          if i = c then last s else nnz @! i
-          
-noextract
-let rec lemma_nonzeros
-  (#et: eqtype) {| scalar et |}
-  (#l : nat)
-  (s : lseq et l)
-  : Lemma
-    (requires forall i. s @! i == zero)
-    (ensures nonzeros s == seq![])
-=
-  if l = 0
-    then ()
-    else lemma_nonzeros (inits s)
-
-noextract
-let rec sum_nonzeros
-  (#et: eqtype) {| scalar et |}
-  (#l : nat)
-  (s : lseq et l)
+let rec sum_all_zeros
+  (#et : _) {| scalar et |}
+  (l : nat)
+  (k : et)
   : Lemma
     (requires true)
-    (ensures sum s == sum #_ #_ #(count_nonzeros s)(nonzeros s))
-=
-  let c = count_nonzeros s in
-  if l = 0
-    then ()
-    else
-      let s' = inits s in
-      sum_nonzeros (inits s);
-      assert (sum s == sum (inits s) `add` last s);
-      if last s = zero
-        then ()
-        else assert (inits #_ #c (nonzeros s) `Seq.equal` nonzeros s')
-
-
-noextract
-let lemma_inits_seq_project
-  (#et : eqtype) {| scalar et |}
-  (#nnz #l : nat{0 < nnz /\ nnz <= l})
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : Lemma
-    (requires last pos == l - 1 /\ valid_pos (l - 1) (inits pos))
-    (ensures inits (seq_project pos s) == seq_project (inits pos) (inits s))
-=
-  assert inits (seq_project pos s) `Seq.equal` seq_project (inits pos) (inits s)
-
-noextract
-let lemma_inits_unsparse
-  (#et : eqtype) {| scalar et |}
-  (#nnz #l : nat{0 < nnz /\ nnz <= l})
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : Lemma
-    (requires last pos == l - 1 /\ valid_pos (l - 1) (inits pos))
-    (ensures
-      inits (unsparse nnz l elems pos) == unsparse (nnz - 1) (l - 1) (inits elems) (inits pos)
-    )
-=
-  assert inits (unsparse nnz l elems pos) `Seq.equal` unsparse (nnz - 1) (l - 1) (inits elems) (inits pos)
-
-noextract
-let lemma_unsparse_not_mem
-  (#et : eqtype) {| scalar et |}
-  (#nnz l : nat{0 < nnz /\ nnz < l})
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
-  : Lemma
-    (requires valid_pos (l - 1) pos)
-    (ensures
-      inits(unsparse nnz l elems pos) == unsparse nnz (l - 1) elems pos
-    )
-=
-  assert inits (unsparse nnz l elems pos) `Seq.equal` unsparse nnz (l - 1) elems pos
-
-noextract
-let lemma_seq_project_not_mem
-  (#et : eqtype) {| scalar et |}
-  (#nnz #l : nat{0 < nnz /\ nnz < l})
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : Lemma
-    (requires valid_pos (l - 1) pos)
-    (ensures
-      seq_project pos s == seq_project pos (inits s)
-    )
-=
-  assert seq_project pos s `Seq.equal` seq_project pos (inits s)
-
-
-noextract
-let rec lemma_sparse_nonzeros
-  (#et : eqtype) {| scalar et |}
-  (#nnz #l : nat{nnz <= l})
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : Lemma
-    (requires true)
-    (ensures
-      nonzeros (elems `pmul` seq_project pos s) ==
-      nonzeros (unsparse nnz l elems pos `pmul` s)
-    )
-=
-  let open FStar.Seq in
-  
-  let p1 = elems `pmul` seq_project pos s in
-  let p2 = unsparse nnz l elems pos `pmul` s in
-  
-  if l = 0
-    then ()
-    else
-      if nnz = 0
-        then lemma_nonzeros p2
-        else (
-          if (mem (l - 1) pos)
-            then (
-              valid_pos_mem l pos;
-              seq_inits_pmul elems (seq_project pos s);
-              seq_inits_pmul (unsparse nnz l elems pos) s;
-              lemma_inits_seq_project pos s;
-              lemma_inits_unsparse elems pos s;
-              lemma_sparse_nonzeros (inits elems) (inits pos) (inits s);
-              assert nonzeros p1 `equal` nonzeros p2
-            )
-            else (
-              valid_pos_not_mem l pos;
-              lemma_unsparse_not_mem l elems pos;
-              seq_inits_pmul (unsparse nnz l elems pos) s;
-              lemma_seq_project_not_mem pos s;
-              lemma_sparse_nonzeros elems pos (inits s);
-              assert nonzeros p1 `equal` nonzeros p2
-            )
-        )
-
-noextract
-let lemma_sparse_dprod
-  (#et : eqtype) {| scalar et |}
-  (#nnz #l : nat{nnz <= l})
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
-  (s : lseq et l)
-  : Lemma
-    (requires true)
-    (ensures sparse_dprod elems pos s == dprod (unsparse nnz l elems pos) s)
+    (ensures KSeq.seq_fold_left add k (Seq.create #et l zero) == k)
 = 
+  let open FStar.Seq in
+  if l = 0
+    then ()
+    else (
+      sum_all_zeros #et (l - 1) k;
+      assert create #et (l -1) zero `equal` tail (create #et l zero)
+    )
+
+
+noextract
+let shift
+  (#l a b : nat)
+  (s : lseq nat l)
+  : Ghost (lseq nat l)
+    (requires a > 0 /\ b > 0 /\ in_bounds a b s)
+    (ensures fun s' -> in_bounds (a - 1) (b -1) s')
+=
+  Seq.init_ghost l fun i -> let (k : nat) = (s @! i) - 1 in k
+
+noextract
+let shift_tail
+  (#nnz l : nat{nnz > 0 /\ l > 0})
+  (pos : lseq nat nnz{valid_pos l pos})
+  : Ghost (lseq nat (nnz -1))
+    (requires true)
+    (ensures valid_pos (l - 1))
+= 
+  assert (pos @! 0 >= 0);
+  shift 1 l (Seq.tail pos) 
+
+
+noextract
+let rec shift_tail_mem
+  (#nnz l : nat{nnz > 0 /\ l > 0})
+  (pos : lseq nat nnz{valid_pos l pos})
+  (i : nat)
+  : Lemma
+    (requires true)
+    (ensures Seq.mem (i + 1) (Seq.tail pos) <==> Seq.mem i (shift_tail l pos))
+=
+  let open FStar.Seq in
+  
+  let pos' = tail pos in
+  if len pos' = 0
+    then ()
+    else (
+      assert shift_tail #(nnz - 1) l (tail pos) `equal` tail (shift_tail l pos);
+      shift_tail_mem #(nnz - 1) l (tail pos) i
+    )
+
+
+noextract
+let shift_tail_unsparse
+  (#et:_) {| scalar et |}
+  (#nnz l : nat{nnz > 0 /\ l > 0})
+  (pos : lseq nat nnz{valid_pos l pos})
+  (elems : lseq et nnz)
+  : Lemma
+    (requires pos @! 0 == 0)
+    (ensures
+      Seq.tail (unsparse nnz l elems pos) ==
+      unsparse (nnz - 1) (l - 1) (Seq.tail elems) (shift_tail l pos)
+    )
+= 
+  let open FStar.Seq in
+
+  let pos' = shift_tail l pos in
+  let s1 = tail (unsparse nnz l elems pos) in
+  let s2 = unsparse (nnz - 1) (l - 1) (tail elems) pos' in
+
+  introduce forall i. s1 @! i == s2 @! i
+  with (
+    shift_tail_mem l pos i;
+    if mem i pos'
+      then assert index_mem i pos' == index_mem (i + 1) pos - 1
+      else ()
+  );
+  assert s1 `equal` s2
+
+noextract
+let rec shift_mem
+  (#nnz l : nat{nnz > 0 /\ l > 0})
+  (pos : lseq nat nnz{valid_pos l pos})
+  (i : nat)
+  : Lemma
+    (requires in_bounds 1 l pos)
+    (ensures Seq.mem (i + 1) pos <==> Seq.mem i (shift 1 l pos))
+= 
+  let open FStar.Seq in
+
+  if nnz = 1
+    then ()
+    else (
+      assert tail (shift 1 l pos) `equal` shift #(nnz - 1) 1 l (tail pos);
+      shift_mem #(nnz - 1) l (tail pos) i
+    )
+
+noextract
+let shift_unsparse
+  (#et:_) {| scalar et |}
+  (#nnz l : nat{nnz > 0 /\ nnz <= l})
+  (pos : lseq nat nnz{valid_pos l pos})
+  (elems : lseq et nnz)
+  : Lemma
+    (requires in_bounds 1 l pos)
+    (ensures
+      Seq.tail (unsparse nnz l elems pos) ==
+      unsparse nnz (l - 1) elems (shift 1 l pos))
+= 
+  let open FStar.Seq in
+  
+  let s1 = tail (unsparse nnz l elems pos) in
+  let s2 = unsparse nnz (l - 1) elems (shift 1 l pos) in
+  introduce forall i. s1 @! i == s2 @! i
+  with  shift_mem l pos i;
+  assert s1 `equal` s2
+
+noextract
+let rec lemma_sparse_dprod
+  (#et : eqtype) {| scalar et |}
+  (#nnz #l : nat)
+  (elems : lseq et nnz)
+  (pos   : lseq nat nnz{valid_pos l pos})
+  (s : lseq et l)
+  (k : et)
+  : Lemma
+    (requires true)
+    (ensures
+      KSeq.seq_fold_left add k (elems `pmul` seq_project pos s) ==
+      KSeq.seq_fold_left add k (unsparse nnz l elems pos `pmul` s))
+= 
+  let open FStar.Seq in
+  
+  bounded_from_sorted_in_bounds 0 l pos;
+
   let p1 = elems `pmul` seq_project pos s in
   let p2 = unsparse _ _ elems pos `pmul` s in
   
-  lemma_sparse_nonzeros elems pos s;
-  sum_nonzeros p1;
-  sum_nonzeros p2
-
+  if l = 0
+    then ()
+    else (
+      if nnz = 0
+        then (
+          assert p2 `equal` create l zero;
+          sum_all_zeros #et l k
+        )
+        else (
+          if mem 0 pos
+            then (
+              let (k' : et) = k `add` (p1 @! 0) in
+              assert k' == k `add` (p2 @! 0);
+              let pos' = shift_tail l pos in
+              shift_tail_unsparse l pos elems;
+              assert tail p1 `equal` (tail elems `pmul` seq_project  #_ #(nnz - 1) #(l - 1) pos' (tail s));
+              assert tail p2 `equal` (unsparse (nnz - 1) (l -1) (tail elems) pos' `pmul` tail s);
+              lemma_sparse_dprod #_ #_ #(nnz - 1) #(l - 1) (tail elems) pos' (tail s) k'
+            )
+            else (
+              let pos' = shift 1 l pos in
+              shift_unsparse l pos elems;
+              assert p1 `equal` (elems `pmul` seq_project #_ #nnz #(l - 1) pos' (tail s));
+              assert tail p2 `equal` (unsparse nnz (l - 1) elems pos' `pmul` tail s);
+              lemma_sparse_dprod #_ #_ #nnz #(l - 1) elems pos' (tail s) k
+            )
+        )
+    )
 
 inline_for_extraction noextract
 fn sarray_product_dense
@@ -730,8 +498,6 @@ fn sarray_product_dense
   (v : gpu_array et l)
   (#s #t : erased (lseq et l))
   preserves gpu ** a |-> s ** v |-> t
-  requires
-    pure (a.nnz <= l) // TODO esto se deduce de valid_pos
   returns
     dp: et
   ensures
@@ -756,22 +522,20 @@ fn sarray_product_dense
         dp |-> dp_v **
         pure (
           i_v <= a.nnz /\
-          dp_v == sum (seq_take i_v (sparse_pmul v_elems pos t))
+          KSeq.seq_fold_left add !dp (seq_drop i_v (v_elems `pmul` seq_project pos t)) ==
+          dprod v_elems (seq_project pos t)
         )
       )
   {
     let p = gpu_array_read a.pos !i;
     let x = gpu_array_read a.elems !i;
     let y = gpu_array_read v p;
-    
-    dprod_add !i v_elems (seq_project pos t) !dp; 
 
     dp := !dp `add` (x `mul` y);
     i := !i `SZ.add` 1sz;
   };
 
-  seq_take_len (sparse_pmul v_elems pos t);
-  lemma_sparse_dprod v_elems pos t; 
+  lemma_sparse_dprod v_elems pos t zero; 
 
   fold sarray_pts_to a s;
   fold v |-> t;
@@ -779,20 +543,20 @@ fn sarray_product_dense
   !dp;
 }
 
-//TODO que pasa con esto?
 let product_dense_u32 #l = sarray_product_dense #u32 #_ #l
 
-(* producto intero sparse x sparse *)
+
+(* sarray_product: producto intero sparse x sparse *)
 
 inline_for_extraction noextract
-fn sarray_product
+fn sarray_product_quadratic
   (#et : eqtype) {| scalar et |}
   (#l : erased nat)
   (a b : sarray et l)
   (#s #t : erased (lseq et l))
   preserves gpu ** a |-> s ** b |-> t
   requires
-    emp//pure (a.nnz <= l) // TODO esto se deduce de valid_pos
+    emp
   returns
     dp: et
   ensures
@@ -823,6 +587,56 @@ fn sarray_product
       };
     };
     i := !i `SZ.add` 1sz;
+  };
+
+
+  fold sarray_pts_to a s;
+  fold sarray_pts_to b t;
+
+  !dp;
+}
+
+let product_sparse_quadratic_u32 #l = sarray_product_quadratic #u32 #_ #l
+
+inline_for_extraction noextract
+fn sarray_product
+  (#et : eqtype) {| scalar et |}
+  (#l : erased nat)
+  (a b : sarray et l)
+  (#s #t : erased (lseq et l))
+  preserves gpu ** a |-> s ** b |-> t
+  requires
+    emp
+  returns
+    dp: et
+  ensures
+    emp //pure (dp == dprod s t)
+{
+  unfold sarray_pts_to a s;
+  unfold sarray_pts_to b t;
+
+  let mut dp : et = zero;
+
+  let mut i = 0sz;
+  let mut j = 0sz;
+  while (FStar.SizeT.(!i <^ a.nnz && !j <^ b.nnz))
+    invariant live i ** live j ** live dp
+  {
+    // esta lectura podria hacerse una sola vez
+    let p_a = gpu_array_read a.pos !i;
+    let p_b = gpu_array_read b.pos !j;
+    if (FStar.SizeT.(p_a <^ p_b)) {
+      i := !i `SZ.add` 1sz
+    }
+    else if (FStar.SizeT.(p_b <^ p_a)) {
+      j := !j `SZ.add` 1sz;
+    } else {
+      let x = gpu_array_read a.elems !i;
+      let y = gpu_array_read b.elems !j;
+      dp := !dp `add` (x `mul` y);
+      i := !i `SZ.add` 1sz;
+      j := !j `SZ.add` 1sz;
+    };
   };
 
 
