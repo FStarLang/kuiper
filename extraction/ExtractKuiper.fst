@@ -360,18 +360,21 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
       match cta knd with
       | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
       | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
-      | Some ("Kuiper.TensorCore.FragAccum", [], []) -> "_C", EQualified ([], "wmma::accumulator")
+      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> "_C", EQualified ([], "wmma::accumulator")
       | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
     in
     let layout : option expr =
       match cta layout with
       | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
       | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
-      | Some ("Kuiper.TensorCore.FragLAccum", [], []) -> None
+      | Some ("Kuiper.TensorCore.FragLAcc",   [], []) -> None
       | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
     in
     let faketype =
-      EQualified ([], "half")
+      match et with
+      | MLTY_Named ([], (["Kuiper"; "Float16"], "t")) -> EQualified ([], "half")
+      | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
+      | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
     in
     (* Tries to remove the size_t cast in literals, just to make the code
        more readable. *)
@@ -411,11 +414,19 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let fr = deref <| cb fr in
     EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
 
-  | "Kuiper.TensorCore.mma_sync'", [et], [ scal; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
+  // FIXME: the second case below is wrong, et_acc is a type, but apparently
+  // we are detecting it as an erased expression and slapping a unit (expression)
+  // argument for it.
+  // FIXME: for whatever reason, the C fragment gets a cast like *(auto *)&f,
+  // which is not allowed. We remove it via sed in fixup.sed. Figure out why.
+  | "Kuiper.TensorCore.mma_sync'", [et_ab; et_acc], [ scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ]
+  | "Kuiper.TensorCore.mma_sync'", [et_ab], [et_acc; scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
     let fa = deref <| cb fa in
     let fb = deref <| cb fb in
     let fc = deref <| cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
+  | "Kuiper.TensorCore.mma_sync'", targs, args ->
+    raise (Failed <| "unexpected types in mma_sync: " ^ show (targs, args))
 
   | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
     let fr = deref <| cb fr in
