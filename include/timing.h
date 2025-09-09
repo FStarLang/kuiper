@@ -10,8 +10,11 @@ static inline float __tdiff(struct timespec t1, struct timespec t2)
 		+ 1e-9 * (t2.tv_nsec - t1.tv_nsec);
 }
 
-/* Setear a 0 para no ver el parallel factor */
+/* Set to 0 to not print the parallel factor */
 static int time_par = 0;
+
+/* Set to 0 to disable all messages. */
+static int verbose = 0;
 
 #define __TIME(s, expr, v) ({						\
 		struct timespec __t1p, __t2p;				\
@@ -20,15 +23,16 @@ static int time_par = 0;
 		float *__vv = v;					\
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &__t1p);	\
 		clock_gettime(CLOCK_REALTIME, &__t1w);			\
-		fprintf(stderr, "About to call `" s "` \n");		\
+		verbose && fprintf(stderr, "About to call `" s "` \n");	\
 		ret = expr;						\
 		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &__t2p);	\
 		clock_gettime(CLOCK_REALTIME, &__t2w);			\
-		fprintf(stderr, "computed `" s "` in %.5fs total "	\
+		verbose &&						\
+		  fprintf(stderr, "computed `" s "` in %.5fs total "	\
 				"CPU time (wall time = %.5fs)\n",	\
 				__tdiff(__t1p, __t2p),			\
 				__tdiff(__t1w, __t2w));			\
-		if (time_par)						\
+		if (verbose && time_par)				\
 			fprintf(stderr, "(parallel factor = %.2f)\n",	\
 					__tdiff(__t1p, __t2p)/		\
 					__tdiff(__t1w, __t2w));		\
