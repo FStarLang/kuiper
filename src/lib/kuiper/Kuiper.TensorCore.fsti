@@ -49,16 +49,6 @@ let valid_frag_et_comb
   (et_ab == double /\ et_acc == double) \/
   False
 
-// [@@erasable]
-// class valid_frag (et : Type0) (knd : fragment_kind) (m n k : nat) = { x: unit }
-// instance valid_fragA_half_16x16x16 : valid_frag half FragA 16 16 16 = { x = () }
-// instance valid_fragB_half_16x16x16 : valid_frag half FragB 16 16 16 = { x = () }
-// instance valid_fragAcc_half_16x16x16 : valid_frag half FragAcc 16 16 16 = { x = () }
-
-// instance valid_fragA_half_32x8x16 : valid_frag half FragAcc 32 8 16 = { x = () }
-// instance valid_fragB_half_32x8x16 : valid_frag half FragAcc 32 8 16 = { x = () }
-// instance valid_fragAcc_half_32x8x16 : valid_frag half FragAcc 32 8 16 = { x = () }
-
 new
 val fragment
   (et : Type0)
@@ -67,11 +57,15 @@ val fragment
   (layout : fragment_layout)
   : Type0
 
-let value_for et knd m n k =
+let dims_for knd m n k =
   match knd with
-  | FragA   -> ematrix et m k
-  | FragB   -> ematrix et k n
-  | FragAcc -> ematrix et m n
+  | FragA   -> m, k
+  | FragB   -> k, n
+  | FragAcc -> m, n
+
+let value_for et knd m n k =
+  let o, p = dims_for knd m n k
+  in ematrix et o p
 
 val fragment_pts_to
   (#et : Type0)
@@ -122,8 +116,6 @@ fn mma_sync'
   (#ec : ematrix et_acc m n)
   preserves fa |-> ea
   preserves fb |-> eb
-  // this is trivially true because we currently do not allow mix-precision;
-  // mix-precision would have to be handled in the specs (matplus)
   preserves pure (valid_frag_et_comb et_ab et_acc)
   requires
     fc |-> ec
