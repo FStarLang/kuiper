@@ -3,7 +3,8 @@ module Kuiper.Concrete
 open Kuiper.SizeT
 module SZ = FStar.SizeT
 open FStar.Ghost
-open FStar.SizeT { (/^), (%^) }
+open FStar.SizeT
+open FStar.Mul
 
 // class concretizable_as (st mt : Type) (s : st) = {
 //   evidence : mt;
@@ -29,10 +30,24 @@ let concr' (#x : erased int) (d:concrete_sz x) : sz =
   concr x #d
 
 inline_for_extraction noextract
+instance concrete_sz_0 : concrete_sz 0 = { x = 0sz; }
+
+inline_for_extraction noextract
+instance concrete_sz_1 : concrete_sz 1 = { x = 1sz; }
+
+inline_for_extraction noextract
 instance concrete_sz_sz (x : SZ.t) : concrete_sz (SZ.v x) = { x; }
 
 // inline_for_extraction noextract
 // instance concrete_sz_erased (x : erased SZ.t) (d : concrete_sz (reveal x)) : concrete_sz (SZ.v x) = { x = concr (hide (SZ.v x)) #d; }
+
+inline_for_extraction noextract
+instance concrete_sz_mul (x y : int)
+  {| xx : concrete_sz x, yy : concrete_sz y |}
+  (#_ : squash (FStar.SizeT.fits (x * y)))
+  : concrete_sz (x * y) = {
+    x = xx.x *^ yy.x;
+  }
 
 inline_for_extraction noextract
 instance concrete_sz_div (x y : int { y =!= 0 })
