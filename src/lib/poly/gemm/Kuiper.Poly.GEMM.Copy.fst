@@ -45,23 +45,22 @@ fn cp_matrix
       (((tid + ite * nthr) / cols < rows) &&
        ((tid + ite * nthr) % cols < cols))
     as true;
-    // seemingly superfluous bindng necessary for rewrite
-    let vi = !i;
+
     assert (rewrites_to (tid + ite * nthr) !i);
 
     // Manual unfold and fold necessary.
     //  If unfold was automatic the vi in live_cell would not be rewritten above
     //  because it is under an exists*.
-    unfold live_cell dst (vi / cols) (vi % cols);
+    unfold live_cell dst (!i / cols) (!i % cols);
     gpu_matrix_write_cell dst (!i /^ cols) (!i %^ cols) v;
-    fold live_cell dst (vi / cols) (vi % cols);
+    fold live_cell dst (!i / cols) (!i % cols);
 
-    rewrite each SZ.v vi as (tid + ite * nthr);
+    rewrite each SZ.v !i as (tid + ite * nthr);
 
     Pulse.Lib.Trade.elim_trade _ _;
     fold live_tile_stride_cells dst nthr tid;
 
-    Math.Lemmas.modulo_addition_lemma vi nthr 1;
+    Math.Lemmas.modulo_addition_lemma !i nthr 1;
     i := !i +^ nthr;
   };
 

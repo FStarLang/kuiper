@@ -437,34 +437,31 @@ fn kf
     assert B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)) (2 * !bkIdx) tid;
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
-    // binding only required because of rewrite
-    // TODO Remove after merging newest FStar updates
-    let vbkIdx = !bkIdx;
     rewrite
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * (bn/tn) * warp_size)) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * (bn/tn) * warp_size)) x)
-      as barrier_p sA sB (bm/tm * (bn/tn) * warp_size) (2 * vbkIdx) tid;
+      as barrier_p sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx) tid;
 
     B.barrier_wait ();
-    rewrite (barrier_q sA sB (bm/tm * (bn/tn) * warp_size) (2 * vbkIdx) tid)
+    rewrite (barrier_q sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx) tid)
         as live_tile_stride_cells sA (bm/tm * (bn/tn) * warp_size) tid **
            live_tile_stride_cells sB (bm/tm * (bn/tn) * warp_size) tid;
 
     populate_shmem bm bn bk tm tn sA sB gA gB mrow !bkIdx mcol tid;
 
-    assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)) (2 * vbkIdx + 1) tid);
-    odd_2x1 vbkIdx;
-    assert (pure (odd (2 * vbkIdx + 1)));
+    assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)) (2 * !bkIdx + 1) tid);
+    odd_2x1 !bkIdx;
+    assert (pure (odd (2 * !bkIdx + 1)));
     rewrite live_tile_stride_cells sA (bm/tm * (bn/tn) * warp_size) tid **
             live_tile_stride_cells sB (bm/tm * (bn/tn) * warp_size) tid
-         as (barrier_p sA sB (bm/tm * (bn/tn) * warp_size) (2 * vbkIdx + 1) tid);
+         as (barrier_p sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx + 1) tid);
 
     B.barrier_wait ();
 
-    even_2x (vbkIdx + 1);
-    assert (pure (2 * (vbkIdx + 1) == 2 * vbkIdx + 2));
-    assert (pure (even (2 * vbkIdx + 2)));
-    rewrite (barrier_q sA sB (bm/tm * (bn/tn) * warp_size) (2 * vbkIdx + 1) tid)
+    even_2x (!bkIdx + 1);
+    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
+    assert (pure (even (2 * !bkIdx + 2)));
+    rewrite (barrier_q sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx + 1) tid)
     as
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * (bn/tn) * warp_size)) x) **
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * (bn/tn) * warp_size)) x);
