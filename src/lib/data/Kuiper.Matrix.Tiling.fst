@@ -404,8 +404,6 @@ fn gpu_matrix_extract_tile_ro'
       (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)
 {
-  // reveal was only required because of pos in
-  //   declaration of gpu_matrix_extract_tile
   gpu_matrix_extract_tile_ro gm trows tcols tr tc;
   gpu_matrix_subtile gm trows tcols tr tc;
 }
