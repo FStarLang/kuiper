@@ -123,8 +123,6 @@ fn subproducts_tc_2d
           array_fragment_pts_to accumFrags emAccumFrags
   {
     open Pulse.Lib.Array;
-    (* only required because of rewrites_to *)
-    let didx = !dotIdx;
     // Would like to write this here, but then the loop does not type check. Whye does it want to prove that gA |-> eA?
     // let tile_for_tc_tiles = gpu_matrix_extract_tile_ro' gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
 

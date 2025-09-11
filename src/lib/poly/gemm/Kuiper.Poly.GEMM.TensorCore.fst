@@ -261,7 +261,6 @@ fn subproducts_tc
       live accumFrag **
       live dotIdx
   {
-    (* only required because of rewrites_to *)
     let a_tile = gpu_matrix_extract_tile_ro' gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
     assert (rewrites_to a_tile (gpu_matrix_subtile gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx)));
 
