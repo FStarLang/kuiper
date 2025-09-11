@@ -43,32 +43,20 @@ fn populate_shmem
   (gB : gpu_matrix et lB)
   (#fA #fB : perm)
   (#eB : ematrix et shared cols)
-  (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
-  (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (tile_row : szlt (rows/bm))
   (tile_shared : szlt (shared/bk))
   (tile_col : szlt (cols/bn))
-  (tid : szlt (bm/^tm *^ (bn/^tn)))
+  (#nthr : erased nat)
+  (#_ : squash (SZ.fits (bm*bk + nthr-1)))
+  (#_ : squash (SZ.fits (bk*bn + nthr-1)))
+  (tid : szlt nthr)
   preserves
     gpu **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    thread_id (bm/^tm *^ (bn/^tn)) tid **
-    live_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
-    live_tile_stride_cells sB (bm/tm * (bn/tn)) tid
-{
-  let tileA = gpu_matrix_extract_tile_ro' gA
-    (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
-  cp_matrix bm bk #_ #_ tileA sA (get_bdim()) tid;
-
-  let tileB = gpu_matrix_extract_tile_ro' gB
-    (SZ.v bk) (SZ.v bn) (SZ.v tile_shared) (SZ.v tile_col);
-  cp_matrix bk bn tileB sB (get_bdim()) tid;
-
-  ambig_trade_elim ();
-  ambig_trade_elim ();
-  ();
-}
+    thread_id nthr tid **
+    live_tile_stride_cells sA nthr tid **
+    live_tile_stride_cells sB nthr tid
 
 unfold
 let block_tile_idx_rows
