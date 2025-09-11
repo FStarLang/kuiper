@@ -11,8 +11,10 @@ open Kuiper.TensorCore
 
 module SZ = FStar.SizeT
 
+inline_for_extraction noextract
 let warp_sz = 32sz
-let warp_size = (SZ.v warp_sz)
+inline_for_extraction noextract
+let warp_size = SZ.v warp_sz
 
 inline_for_extraction noextract
 val mk_kernel
