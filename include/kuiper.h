@@ -18,11 +18,6 @@ typedef half half_t; /* crutch */
  * need a more scalable solution. */
 #define __hexp(f) (__float2half(exp(__half2float(f))))
 
-#define gridDim_x   gridDim.x
-#define blockIdx_x  blockIdx.x
-#define blockDim_x  blockDim.x
-#define threadIdx_x threadIdx.x
-
 static inline
 void __MUST(cudaError_t rc, const char * str, const char * func, const char *fname, int line)
 {
