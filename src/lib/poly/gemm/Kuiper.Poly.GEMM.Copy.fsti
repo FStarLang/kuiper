@@ -13,11 +13,11 @@ let live_cell
   (#et : Type0)
   (#rows #cols : nat)
   (#lm : mlayout rows cols)
-  (sm : gpu_matrix et lm)
+  (gm : gpu_matrix et lm)
   (i : natlt rows)
   (j : natlt cols)
   : slprop
-  = exists* v. gpu_matrix_pts_to_cell sm i j v
+  = exists* v. gpu_matrix_pts_to_cell gm i j v
 
 let div_ceil (a : nat) (b : pos) : erased int = (a + (b-1))/b
 

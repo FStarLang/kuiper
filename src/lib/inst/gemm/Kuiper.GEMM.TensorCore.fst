@@ -1,10 +1,7 @@
 module Kuiper.GEMM.TensorCore
-
 #lang-pulse
+
 open Kuiper
-open Kuiper.Poly.GEMMCPU {
-  specialize_as_gemm_to_type_and_reprs_gpu as spec_gemm_gpu,
-}
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
@@ -14,7 +11,6 @@ module SZ = FStar.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore
 
-#push-options "--debug SMTFail --split_queries always"
 inline_for_extraction noextract
 fn specialize_gpu
   // specialize
@@ -28,7 +24,6 @@ fn specialize_gpu
   {| ca : crepr rA, cB : crepr rB, cC : crepr rC |}
   
   // do not specialize
-  // meaning that constraints must be checked dynamically (not enforced)
   (rows shared cols : szp)
   (gA : gpu_matrix et_ab (rA rows shared))
   (gB : gpu_matrix et_ab (rB shared cols))
