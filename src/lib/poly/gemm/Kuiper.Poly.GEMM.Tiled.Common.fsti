@@ -139,3 +139,40 @@ let thread_tile
   =
    gpu_matrix_subtile gC_bt tm tn
     (thread_tile_idx_rows bm bn tm tn tid) (thread_tile_idx_cols bm bn tm tn tid)
+
+// The same as thread_tile* functions.
+// Exists to clarify that instead of having number of tiles per block many threads per block,
+// we have number of tiles per block many warps per block
+unfold
+let warp_tile_idx_rows
+  (bm bn : erased nat)
+  (tm : erased nat {tm > 0 /\ tm /? bm})
+  (tn : erased nat {tn > 0 /\ tn /? bn})
+  (wid : enatlt (bm/tm * (bn/tn)))
+  : enatlt (bm/tm)
+  = wid / (bn/tn)
+
+unfold
+let warp_tile_idx_cols
+  (bm bn : erased nat)
+  (tm : erased nat {tm > 0 /\ tm /? bm})
+  (tn : erased nat {tn > 0 /\ tn /? bn})
+  (wid : natlt (bm/tm * (bn/tn)))
+  : enatlt (bn/tn)
+  = wid % (bn/tn)
+
+inline_for_extraction noextract
+let warp_tile
+  (#et : Type0) {| scalar et |}
+  (#bm #bn : erased nat)
+  (#lC_bt : mlayout bm bn)
+  (gC_bt : gpu_matrix et lC_bt)
+  (tm : erased nat{tm > 0 /\ tm /? bm})
+  (tn : erased nat{tn > 0 /\ tn /? bn})
+  (wid : natlt (bm/tm * (bn/tn)))
+  : Tot (gpu_matrix et
+          (subtile_layout lC_bt tm tn
+            (warp_tile_idx_rows bm bn tm tn wid) (warp_tile_idx_cols bm bn tm tn wid)))
+  =
+   gpu_matrix_subtile gC_bt tm tn
+    (warp_tile_idx_rows bm bn tm tn wid) (warp_tile_idx_cols bm bn tm tn wid)
