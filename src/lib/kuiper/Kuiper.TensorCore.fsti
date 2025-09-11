@@ -104,7 +104,7 @@ fn fragment_pts_to_ref
 
 fn mma_sync'
   (#et_ab #et_acc : Type)
-  // not *really* necessary I think
+  // valid_frag_et_dims constraints to scalars already, if not explicitly
   {| scalar et_ab, scalar et_acc |}
   (#m #n #k : erased nat)
   (#la #lb : fragment_layout)

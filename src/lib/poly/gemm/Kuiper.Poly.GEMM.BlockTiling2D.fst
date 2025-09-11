@@ -77,9 +77,6 @@ let tid_x
     tid % (bn/tn)
 
 inline_for_extraction noextract
-instance concrete_sz_1 : concrete_sz 1 = { x = 1sz }
-
-inline_for_extraction noextract
 let block_tile
   (#et : Type0) {| scalar et |}
   (#rows #cols : erased nat)

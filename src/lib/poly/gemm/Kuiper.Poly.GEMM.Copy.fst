@@ -18,7 +18,7 @@ fn cp_matrix
   (tid : szlt nthr)
   preserves
     gpu **
-    pure (SZ.fits (rows * cols + nthr)) **
+    pure (SZ.fits (rows * cols + nthr - 1)) **
     src |-> Frac fM esrc **
     live_tile_stride_cells dst nthr tid
 {
