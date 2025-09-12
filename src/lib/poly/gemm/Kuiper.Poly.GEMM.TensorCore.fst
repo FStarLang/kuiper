@@ -284,7 +284,9 @@ fn subproducts_tc
   ()
 }
 
+inline_for_extraction noextract
 instance concerete_sz_32 : concrete_sz 32 = { x = 32sz }
+
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}

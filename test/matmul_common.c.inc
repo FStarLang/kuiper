@@ -50,12 +50,18 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
             ok = fabs((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
 #endif
             if (!ok) {
+#if et == half
+                float vm1 = __half2float(m1[i * cols + j]);
+                float vm2 = __half2float(m2[i * cols + j]);
+#else
+                et vm1 = m1[i * cols + j];
+                et vm2 = m2[i * cols + j];
+#endif
                 fprintf(stderr, "Error at pos (%d, %d): %" PRIet " != %"
-                        PRIet "\n", i, j, m1[i * cols + j], m2[i * cols + j]);
+                        PRIet "\n", i, j, vm1, vm2);
                 fprintf(stderr,
                         "::error::%s -- Error at pos (%d, %d): %" PRIet " != %"
-                        PRIet "\n", progname, i, j, m1[i * cols + j],
-                        m2[i * cols + j]);
+                        PRIet "\n", progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
                     free(m1);

@@ -46,6 +46,26 @@ let array_fragment_pts_to
       forall+ (i : natlt (Seq.length s)).
         (s @! i) |-> (ems @! i)
 
+ghost
+fn gpu_array_fragment_extract
+  (#et:Type0)
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  (#l : fragment_layout)
+  ([@@@mkey] farr: array (fragment et knd m n k l))
+  (ems : seq (value_for et knd m n k))
+  (i : natlt (len ems))
+  (#em : (let o, p = (dims_for knd m n k) in ematrix et o p))
+  (#f : perm)
+  requires
+    array_fragment_pts_to 
+  ensures
+    factored
+      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
+      (gm |-> Frac f em)
+
+
+
 // inline_for_extraction noextract
 // fn populate_fragments
 //   (#et : Type0)
@@ -68,6 +88,7 @@ let array_fragment_pts_to
 // }
 
 #push-options "--debug SMTFail --split_queries always"
+#push-options "--print_implicits"
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -143,7 +164,7 @@ fn subproducts_tc_2d
       // which is odd, because a nat is expected, or there must be type classes that can resolve this.
       assert (rewrites_to a_tile (
         gpu_matrix_subtile (
-          gpu_matrix_subtile gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v didx))
+          gpu_matrix_subtile gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx))
           (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0));
 
       unfold array_fragment_pts_to aFrags;
@@ -153,9 +174,9 @@ fn subproducts_tc_2d
 
       mma_loadA a_frag a_tile;
 
-      let vdotIdx = !dotIdx;
+      // TODO purification does not seem to work under lambdas
       let vi = !i0;
-
+      let vdotIdx = !dotIdx;
       Pulse.Lib.Forall.elim_forall
         // type annotation is required, although it is not required in the RefArray example
         (fun (i : natlt (Seq.length saFrags)) ->
@@ -163,22 +184,37 @@ fn subproducts_tc_2d
             then ((saFrags @! i) |-> (ematrix_subtile (ematrix_subtile eA (wm*tm) tk arow vdotIdx) tm tk vi 0))
             else ((saFrags @! i) |-> (emAFrags @! i)));
 
-      ambig_trade_elim ();
+      assume 
+      pure (forall (x: natlt (Seq.Base.length saFrags) {~(x == SZ.v vi)}).
+        (match x = SZ.v vi with
+          | true ->
+            Seq.Base.index saFrags x |->
+            ematrix_subtile (ematrix_subtile eA
+                  (SZ.v wm * SZ.v tm)
+                  (SZ.v tk)
+                  (SZ.v arow)
+                  (SZ.v vdotIdx))
+              (SZ.v tm)
+              (SZ.v tk)
+              (SZ.v vi)
+              0
+          | _ -> Seq.Base.index saFrags x |-> Seq.Base.index emAFrags x) ==
+      fragment_pts_to (Seq.Base.index saFrags x) (Seq.Base.index emAFrags x));
 
-      // Pulse.Lib.Trade.elim_trade _ (forall+ (x: natlt (Seq.Base.length saFrags)).
-      //     match x = SZ.v vi with
-      //     | true ->
-      //       Seq.Base.index saFrags x |->
-      //       ematrix_subtile (ematrix_subtile eA
-      //             (SZ.v wm * SZ.v tm)
-      //             (SZ.v tk)
-      //             (SZ.v arow)
-      //             (SZ.v vdotIdx))
-      //         (SZ.v tm)
-      //         (SZ.v tk)
-      //         (SZ.v vi)
-      //         0
-      //     | _ -> Seq.Base.index saFrags x |-> Seq.Base.index emAFrags x);
+      Pulse.Lib.Trade.elim_trade _ (forall+ (x: natlt (Seq.Base.length saFrags)).
+          match x = SZ.v vi with
+          | true ->
+            Seq.Base.index saFrags x |->
+            ematrix_subtile (ematrix_subtile eA
+                  (SZ.v wm * SZ.v tm)
+                  (SZ.v tk)
+                  (SZ.v arow)
+                  (SZ.v vdotIdx))
+              (SZ.v tm)
+              (SZ.v tk)
+              (SZ.v vi)
+              0
+          | _ -> Seq.Base.index saFrags x |-> Seq.Base.index emAFrags x);
       admit();
 
 
@@ -197,7 +233,6 @@ fn subproducts_tc_2d
   //   {
   //     let tile_for_tc_tiles = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol);
   //     let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v bcol);
-  //     // only rquired because of rewrites_to
   //     let i1' = !i1;
   //     assert (rewrites_to b_tile (
   //       gpu_matrix_subtile (
@@ -349,8 +384,8 @@ let barrier_p
       (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
       (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
     else
-      own_tile_stride_cells m1 nthr tid **
-      own_tile_stride_cells m2 nthr tid
+      live_tile_stride_cells m1 nthr tid **
+      live_tile_stride_cells m2 nthr tid
 
 let barrier_q
   (#et : Type0)
@@ -603,16 +638,16 @@ fn kf
 
     B.barrier_wait ();
     rewrite (barrier_q sA sB (bm/tm * (bn/tn)) (2 * vbkIdx) tid)
-        as own_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
-           own_tile_stride_cells sB (bm/tm * (bn/tn)) tid;
+        as live_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
+           live_tile_stride_cells sB (bm/tm * (bn/tn)) tid;
 
     populate_shmem bm bn bk tm tn sA sB gA gB mrow !bkIdx mcol tid;
 
     assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn))) (barrier_q sA sB (bm/tm * (bn/tn))) (2 * vbkIdx + 1) tid);
     odd_2x1 vbkIdx;
     assert (pure (odd (2 * vbkIdx + 1)));
-    rewrite own_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
-            own_tile_stride_cells sB (bm/tm * (bn/tn)) tid
+    rewrite live_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
+            live_tile_stride_cells sB (bm/tm * (bn/tn)) tid
          as (barrier_p sA sB (bm/tm * (bn/tn)) (2 * vbkIdx + 1) tid);
 
     B.barrier_wait ();
