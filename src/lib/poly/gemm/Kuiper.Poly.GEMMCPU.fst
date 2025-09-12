@@ -305,7 +305,7 @@ fn mmcomb_gpu_shmem_block_tc
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
 
-  // There is no way to prove this.
+  // Should be dynamically checked.
   assume (pure (SZ.fits (bm*bk + (bm/tm * (bn/tn)))));
   assume (pure (SZ.fits (bk*bn + (bm/tm * (bn/tn)))));
 

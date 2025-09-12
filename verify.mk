@@ -229,7 +229,7 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
-	# Output into pre/
+	# Output into prel/
 	$(KRML) -bundle "$(MOD)=*" \
 		-tmpdir $(OUTDIR)/pre/ $<
 
@@ -244,6 +244,7 @@ $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
+NVCC_FLAGS += -arch=sm_75 # cc lower than 7.5 will be removed in future nvcc versions
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 
 %.o: %.cu %.h include/*.h
@@ -313,6 +314,7 @@ BUILD += $(patsubst %,obj/%.exe,$(TESTS))
 BUILD += obj/Kuiper_Example2.o
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
 BUILD := $(filter-out obj/Test_Kuiper_Example_TensorCore.exe,$(BUILD))
+BUILD := $(filter-out obj/Test_Kuiper_GEMM_TensorCore__F16_F16_128x128x16_16x16x16.exe,$(BUILD))
 endif
 
 build-targets: $(BUILD)
