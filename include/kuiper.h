@@ -9,9 +9,9 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 #include "atomics.h"
-#if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
+// #if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
 #include "tensorcores.h"
-#endif
+// #endif
 
 typedef half half_t; /* crutch */
 /* NOTE: making this a macro means it works in host/device, but we
