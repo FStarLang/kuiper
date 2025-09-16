@@ -13,6 +13,7 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Matrix
 
 module MS = Kuiper.Spec.GEMM
+module T = FStar.Tactics.V2
 module SZ = FStar.SizeT
 module B = Kuiper.Barrier
 
@@ -32,6 +33,23 @@ open Kuiper.Poly.GEMM.Copy
 open Kuiper.Poly.GEMM.Tiled.Common
 
 open Pulse.Lib.Array
+open Pulse.Lib.Trade
+
+// INVESTIGATE quietly fails
+// let array_fragment_pts_to
+//   (#et : Type0)
+//   (#knd : fragment_kind)
+//   (#m #n #k : nat)
+//   (#l : fragment_layout)
+//   ([@@@mkey] farr: array (fragment et knd m n k l))
+//   (#[T.exact (`1.0R)] f : perm)
+//   (ems : seq (value_for et knd m n k))
+//   : slprop = 
+//     exists* (s: erased (seq (fragment et knd m n k l)){Seq.length s == ems}).
+//       // pure (Seq.length s == Seq.length ems) **
+//       farr |-> Frac f s **
+//       forall+ (i : natlt (Seq.length ems)).
+//         (s @! i) |-> Frac f (ems @! i)
 
 let array_fragment_pts_to
   (#et : Type0)
@@ -39,32 +57,98 @@ let array_fragment_pts_to
   (#m #n #k : nat)
   (#l : fragment_layout)
   ([@@@mkey] farr: array (fragment et knd m n k l))
+  (#[T.exact (`1.0R)] f : perm)
   (ems : seq (value_for et knd m n k))
   : slprop = 
-    exists* (s: lseq (fragment et knd m n k l) (len ems)).
-      farr |-> s **
-      forall+ (i : natlt (Seq.length s)).
-        (s @! i) |-> (ems @! i)
+    // have to use lseq here otherwise the last line does not type check
+    exists* (s: lseq (fragment et knd m n k l) (Seq.length ems)).
+      // pure (Seq.length s == Seq.length ems) **
+      farr |-> Frac f s **
+      forall+ (i : natlt (Seq.length ems)).
+        (s @! i) |-> Frac f (ems @! i)
 
 ghost
-fn gpu_array_fragment_extract
+fn array_fragment_extract
   (#et:Type0)
   (#knd : fragment_kind)
   (#m #n #k : nat)
   (#l : fragment_layout)
-  ([@@@mkey] farr: array (fragment et knd m n k l))
+  (farr: array (fragment et knd m n k l))
   (ems : seq (value_for et knd m n k))
-  (i : natlt (len ems))
-  (#em : (let o, p = (dims_for knd m n k) in ematrix et o p))
   (#f : perm)
+  (i : natlt (Seq.length ems))
   requires
-    array_fragment_pts_to 
+    array_fragment_pts_to farr #f ems
   ensures
-    factored
-      (gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
-      (gm |-> Frac f em)
+    exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
+      farr |-> Frac f s **
+      (s @! i) |-> Frac f (ems @! i) **
+      (forall* (em' : value_for et knd m n k).
+        farr |-> Frac f s **
+         (s @! i) |-> Frac f em' @==>
+          array_fragment_pts_to farr #f (Seq.upd ems i em'))
+{
+  unfold array_fragment_pts_to;
+  // Why "cannot find typeclass"?
+  // with s. assert farr |-> Frac f s;
+  with s. assert pts_to farr #f s;
 
+  forevery_extract' i (fun (x : natlt (len s)) -> (s @! x) |-> (ems @! x));
+  admit();
+}
 
+val lemma_upd_index: #a:Type -> s:seq a -> i:nat{i < Seq.length s} -> Lemma
+  (requires True)
+  (ensures (Seq.upd s i (Seq.index s i)) == s)
+  [SMTPat (Seq.upd s i (Seq.index s i))]
+// ASSUMED, I do not have access to the definitions in Seq here
+let lemma_upd_index #_ s i = admit()
+
+ghost
+fn array_fragment_extract_ro
+  (#et:Type0)
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  (#l : fragment_layout)
+  (farr: array (fragment et knd m n k l))
+  (ems : seq (value_for et knd m n k))
+  (#f : perm)
+  (i : natlt (Seq.length ems))
+  requires
+    array_fragment_pts_to farr #f ems
+  ensures
+    exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
+      factored
+        (farr |-> Frac f s ** (s @! i) |-> Frac f (ems @! i))
+        (array_fragment_pts_to farr #f ems)
+{
+  array_fragment_extract farr ems i;
+  Pulse.Lib.Forall.elim_forall (ems @! i);
+}
+// ghost
+// fn array_fragment_extract_ro
+//   (#et:Type0)
+//   (#knd : fragment_kind)
+//   (#m #n #k : nat)
+//   (#l : fragment_layout)
+//   (farr: array (fragment et knd m n k l))
+//   (ems : seq (value_for et knd m n k))
+//   (i : natlt (len ems))
+//   // (#em : (let o, p = (dims_for knd m n k) in ematrix et o p))
+//   (#f : perm)
+//   (#s: lseq (fragment et knd m n k l) (len ems))
+//   requires
+//     farr |-> Frac f s **
+//     (forall+ (i : natlt (Seq.length s)). (s @! i) |-> Frac f (ems @! i))
+//   ensures
+//     factored
+//       ((s @! i) |-> Frac f (ems @! i))
+//       (farr |-> s **
+//        (forall+ (i : natlt (Seq.length s)). (s @! i) |-> Frac f (ems @! i)))
+
+// {
+//   admit();
+// }
 
 // inline_for_extraction noextract
 // fn populate_fragments
@@ -87,8 +171,7 @@ fn gpu_array_fragment_extract
 
 // }
 
-#push-options "--debug SMTFail --split_queries always"
-#push-options "--print_implicits"
+// #push-options "--print_implicits"
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -100,7 +183,7 @@ fn subproducts_tc_2d
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
   (aFrags : array (fragment et_ab FragA tm tn tk FragLRM))
-  (#emAFrags : erased (lseq (ematrix et_ab tm tk) wm))
+  (#emAFrags : erased (seq (ematrix et_ab tm tk)))
   (bFrags : array (fragment et_ab FragB tm tn tk FragLRM))
   (#emBFrags : erased (seq (ematrix et_ab tk tn)))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
@@ -114,10 +197,11 @@ fn subproducts_tc_2d
   (bcol : szlt (bn/(wn*tn)))
   preserves
     gpu **
-    pure (Seq.length emAFrags == wm /\
-          Seq.length emBFrags == wn /\
-          Seq.length emAccumFrags == wm * wn /\
-          SZ.fits (tm * tn)) **
+    pure (valid_frag_et_comb et_ab et_acc) **
+    pure (Seq.length emAFrags == wm) **
+    pure (Seq.length emBFrags == wn) ** 
+    pure (Seq.length emAccumFrags == wm * wn) **
+    pure (SZ.fits (wm * wn)) **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
@@ -135,9 +219,12 @@ fn subproducts_tc_2d
     invariant
       exists*
         (vdotIdx : sz{vdotIdx <= bk})
-        (emAFrags : erased (lseq (ematrix et_ab tm tk) wm))
-        (emBFrags : erased (lseq (ematrix et_ab tk tn) wn))
-        (emAccumFrags : erased (lseq (ematrix et_acc tm tn) (wm*wn))).
+        (emAFrags : seq (ematrix et_ab tm tk))
+        (emBFrags : seq (ematrix et_ab tk tn))
+        (emAccumFrags : seq (ematrix et_acc tm tn)).
+          pure (Seq.length emAFrags == wm) **
+          pure (Seq.length emBFrags == wn) **
+          pure (Seq.length emAccumFrags == wm*wn)**
           dotIdx |-> vdotIdx **
           array_fragment_pts_to aFrags emAFrags **
           array_fragment_pts_to bFrags emBFrags **
@@ -152,7 +239,8 @@ fn subproducts_tc_2d
       invariant
         exists*
           (vi : sz{vi <= wm})
-          (emAFrags : erased (lseq (ematrix et_ab tm tk) wm)).
+          (emAFrags : seq (ematrix et_ab tm tk)).
+            pure (Seq.length emAFrags == wm) **
             i0 |-> vi **
             array_fragment_pts_to aFrags emAFrags
     {
@@ -167,120 +255,109 @@ fn subproducts_tc_2d
           gpu_matrix_subtile gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx))
           (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0));
 
-      unfold array_fragment_pts_to aFrags;
-      with saFrags. assert aFrags |-> saFrags;
-      let a_frag = aFrags.(!i0);
-      forevery_extract' #(natlt (Seq.length saFrags)) !i0 _;
+      // unfortunately, when inferring emAFrags, the solver cannot prove that !i0 is small enough
+      with emAFrags. assert array_fragment_pts_to aFrags emAFrags;
+      array_fragment_extract aFrags emAFrags !i0;
 
-      mma_loadA a_frag a_tile;
-
-      // TODO purification does not seem to work under lambdas
-      let vi = !i0;
-      let vdotIdx = !dotIdx;
+      mma_loadA aFrags.(!i0) a_tile;
       Pulse.Lib.Forall.elim_forall
-        // type annotation is required, although it is not required in the RefArray example
-        (fun (i : natlt (Seq.length saFrags)) ->
-            if i = (SZ.v vi)
-            then ((saFrags @! i) |-> (ematrix_subtile (ematrix_subtile eA (wm*tm) tk arow vdotIdx) tm tk vi 0))
-            else ((saFrags @! i) |-> (emAFrags @! i)));
+        #(value_for et_ab FragA tm tn tk)
+        (ematrix_subtile (ematrix_subtile eA (wm*tm) tk arow !dotIdx) tm tk !i0 0);
 
-      assume 
-      pure (forall (x: natlt (Seq.Base.length saFrags) {~(x == SZ.v vi)}).
-        (match x = SZ.v vi with
-          | true ->
-            Seq.Base.index saFrags x |->
-            ematrix_subtile (ematrix_subtile eA
-                  (SZ.v wm * SZ.v tm)
-                  (SZ.v tk)
-                  (SZ.v arow)
-                  (SZ.v vdotIdx))
-              (SZ.v tm)
-              (SZ.v tk)
-              (SZ.v vi)
-              0
-          | _ -> Seq.Base.index saFrags x |-> Seq.Base.index emAFrags x) ==
-      fragment_pts_to (Seq.Base.index saFrags x) (Seq.Base.index emAFrags x));
-
-      Pulse.Lib.Trade.elim_trade _ (forall+ (x: natlt (Seq.Base.length saFrags)).
-          match x = SZ.v vi with
-          | true ->
-            Seq.Base.index saFrags x |->
-            ematrix_subtile (ematrix_subtile eA
-                  (SZ.v wm * SZ.v tm)
-                  (SZ.v tk)
-                  (SZ.v arow)
-                  (SZ.v vdotIdx))
-              (SZ.v tm)
-              (SZ.v tk)
-              (SZ.v vi)
-              0
-          | _ -> Seq.Base.index saFrags x |-> Seq.Base.index emAFrags x);
-      admit();
-
-
+      ambig_trade_elim ();
+      ambig_trade_elim ();
+      ambig_trade_elim ();
 
       i0 := !i0 +^ 1sz;
     };
 
-  //   let mut i1 = 0sz;
-  //   while (SZ.(!i1 <^ wn))
-  //     invariant
-  //       exists*
-  //         (vi : sz{vi <= wn})
-  //         (cbFrags : erased (lseq (ematrix et_ab tk tn) wn)).
-  //           i1 |-> vi **
-  //           bFrags |-> vbFrags
-  //   {
-  //     let tile_for_tc_tiles = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol);
-  //     let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v bcol);
-  //     let i1' = !i1;
-  //     assert (rewrites_to b_tile (
-  //       gpu_matrix_subtile (
-  //         gpu_matrix_subtile gB (SZ.v tk) (wn*tn) (SZ.v didx) (SZ.v bcol))
-  //         (SZ.v tk) (SZ.v tn) 0 (SZ.v i1')
-  //       )
-  //     );
+    let mut i1 = 0sz;
+    while (SZ.(!i1 <^ wn))
+      invariant
+        exists*
+          (vi : sz{vi <= wn})
+          (emBFrags : seq (ematrix et_ab tk tn)).
+            pure (Seq.length emBFrags == wn) **
+            i1 |-> vi **
+            array_fragment_pts_to bFrags emBFrags
+    {
+      // create tile for tensor core tiles that belong to the warp
+      let tile_for_tc_tiles = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol);
+      let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
+      // Expected are only nats, but later on when the tile is used we need to concretize.
+      // In this case wm*tm and 0 must be concretizable which means that either we have to write (SZ.v (wm*^tm)) and (SZ.v 0sz),
+      // which is odd, because a nat is expected, or there must be type classes that can resolve this.
+      assert (rewrites_to b_tile (
+        gpu_matrix_subtile (
+          gpu_matrix_subtile gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol))
+          (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1)));
 
-  //     mma_loadB bFrags.(!i1) b_tile;
+      // unfortunately, when inferring emBFrags, the solver cannot prove that !i1 is small enough
+      with emBFrags. assert array_fragment_pts_to bFrags emBFrags;
+      array_fragment_extract bFrags emBFrags !i1;
 
-  //     i1 := !i1 +^ 1sz;
-  //   };
+      mma_loadB bFrags.(!i1) b_tile;
+      Pulse.Lib.Forall.elim_forall
+        #(value_for et_ab FragB tm tn tk)
+        (ematrix_subtile (ematrix_subtile eB tk (wn*tn) !dotIdx bcol) tk tn 0 !i1);
 
-  //   let mut resIdxM = 0sz;
-  //   while (SZ.(!resIdxM <^ tm))
-  //     invariant
-  //       exists*
-  //         (vresIdxM : sz{vresIdxM <= tm})
-  //         (vaccumFrags : erased (lseq (ematrix et_acc tm tn) (wm*wn))).
-  //           resIdxM |-> vresIdxM **
-  //           accumFrags |-> vaccumFrags
-  //   {
-  //     let mut resIdxN = 0sz;
-  //     while (SZ.(!resIdxN <^ tn))
-  //       invariant
-  //         exists*
-  //           (vresIdxN : sz{vresIdxN <= tn})
-  //           (vaccumFrags : erased (lseq (ematrix et_acc tm tn) (wm*wn))).
-  //             resIdxN |-> vresIdxN **
-  //             accumFrags |-> vaccumFrags
-  //     {
-  //       let aFrag = aFrags.(!resIdxM);
-  //       let bFrag = bFrags.(!resIdxN);
-  //       let accFrag = accumFrags.(!resIdxM *^ tn +^ !resIdxN);
+      ambig_trade_elim ();
+      ambig_trade_elim ();
+      ambig_trade_elim ();
 
-  //       // can this assertion be removed?
-  //       let iM = !resIdxM;
-  //       let iN = !resIdxN;
-  //       assert(pure(SZ.fits(iM *^ tn +^ iN)));
+      i1 := !i1 +^ 1sz;
+    };
 
-  //       mma_sync' aFrag bFrag accFrag;
-  //       resIdxN := !resIdxN +^ 1sz;
-  //     };
+    let mut resIdxM = 0sz;
+    while (SZ.(!resIdxM <^ wm))
+      invariant
+        exists*
+          (vresIdxM : sz{vresIdxM <= wm})
+          (emAccumFrags : seq (ematrix et_acc tm tn)).
+            pure (Seq.length emAccumFrags == wm*wn) **
+            resIdxM |-> vresIdxM **
+            array_fragment_pts_to accumFrags emAccumFrags
+    {
+      let mut resIdxN = 0sz;
+      while (SZ.(!resIdxN <^ wn))
+        invariant
+          exists*
+            (vresIdxN : sz{vresIdxN <= wn})
+            (emAccumFrags : seq (ematrix et_acc tm tn)).
+              pure (Seq.length emAccumFrags == wm*wn) **
+              resIdxN |-> vresIdxN **
+              array_fragment_pts_to accumFrags emAccumFrags
+      {
+        with emAFrags. assert array_fragment_pts_to aFrags emAFrags;
+        with emBFrags. assert array_fragment_pts_to bFrags emBFrags;
+        with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
+        array_fragment_extract_ro aFrags emAFrags !resIdxM;
+        array_fragment_extract_ro bFrags emBFrags !resIdxN;
+        array_fragment_extract accumFrags emAccumFrags (!resIdxM * wn + !resIdxN);
 
-  //     resIdxM := !resIdxM +^ 1sz;
-  //   };
+        let a_frag = aFrags.(!resIdxM);
+        let b_frag = bFrags.(!resIdxN);
+        let acc_frag = accumFrags.(!resIdxM *^ wn +^ !resIdxN);
+        mma_sync' a_frag b_frag acc_frag;
 
-  //   dotIdx := !dotIdx +^ 1sz;
+        ambig_trade_elim ();
+        ambig_trade_elim ();
+
+        Pulse.Lib.Forall.elim_forall
+          #(value_for et_acc FragAcc tm tn tk) 
+          (MS.mma (Seq.index emAccumFrags (!resIdxM * wn + !resIdxN))
+                  (Seq.index emAFrags !resIdxM)
+                  (Seq.index emBFrags !resIdxN));
+        
+        ambig_trade_elim ();
+
+        resIdxN := !resIdxN +^ 1sz;
+      };
+
+      resIdxM := !resIdxM +^ 1sz;
+    };
+
+    dotIdx := !dotIdx +^ 1sz;
   }
 }
 
