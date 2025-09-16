@@ -232,10 +232,12 @@ fn subproducts2d
     gA |-> Frac f eA **
     gB |-> Frac f eB
   requires
-    pure (Seq.length vrAcol == tm /\
-          Seq.length vrBrow == tn /\
-          Seq.length vrchProd == tm * tn /\
-          SZ.fits (tm * tn)) **
+    pure (Seq.length vrAcol == tm) **
+    pure (Seq.length vrBrow == tn) **
+    pure (Seq.length vrchProd == tm * tn) **
+    // I think this should be implied through the clayouts and the facts that
+    //  tm and tn divide the matrix dimensions.
+    pure (SZ.fits (tm * tn)) **
     rAcol |-> vrAcol **
     rBrow |-> vrBrow **
     rchProd |-> vrchProd
@@ -310,9 +312,7 @@ fn subproducts2d
         (* works on arrays and therefore does not have the nice matrix abstraction *)
         let ra = rAcol.(!resIdxM);
         let rb = rBrow.(!resIdxN);
-        let iM = !resIdxM;
-        let iN = !resIdxN;
-        assert(pure(SZ.fits(iM *^ tn +^ iN)));
+        assert(pure(SZ.fits(!resIdxM *^ tn +^ !resIdxN)));
         let old = rchProd.(!resIdxM *^ tn +^ !resIdxN);
         let mad = old `add` (ra `mul` rb);
         rchProd.(!resIdxM *^ tn +^ !resIdxN) <- mad;
