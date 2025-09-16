@@ -57,15 +57,19 @@ val fragment
   (layout : fragment_layout)
   : Type0
 
-let dims_for knd m n k =
-  match knd with
-  | FragA   -> m, k
-  | FragB   -> k, n
-  | FragAcc -> m, n
+// let dims_for knd m n k =
+//   match knd with
+//   | FragA   -> m, k
+//   | FragB   -> k, n
+//   | FragAcc -> m, n
 
 let value_for et knd m n k =
-  let o, p = dims_for knd m n k
-  in ematrix et o p
+  // let o, p = dims_for knd m n k
+  // in ematrix et o p
+  match knd with
+  | FragA   -> ematrix et m k
+  | FragB   -> ematrix et k n
+  | FragAcc -> ematrix et m n
 
 val fragment_pts_to
   (#et : Type0)

@@ -285,9 +285,6 @@ fn subproducts_tc
 }
 
 inline_for_extraction noextract
-instance concerete_sz_32 : concrete_sz 32 = { x = 32sz }
-
-inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
   // (comb : binop et)
@@ -727,38 +724,4 @@ let mk_kernel
   kpost     = kpost gA eA gB eB gC bm bn bk tm tn fA fB;
 
   f = kf gA #eA gB #eB gC bm bn bk tm tn tk #() #() #fA #fB;
-}
-
-fn test
-  (gA : gpu_matrix half (R.row_major 1024sz 1024sz))
-  (#eA : ematrix half 1024sz 1024sz)
-  (gB : gpu_matrix half (R.row_major 1024sz 1024sz))
-  (#eB : ematrix half 1024sz 1024sz)
-  (gC : gpu_matrix float (R.row_major 1024sz 1024sz))
-  (#_ : squash (SZ.fits (1024sz * 1024sz)))
-  (#eC : ematrix float 1024sz 1024sz)
-  (#_ : squash (SZ.fits (32*32 + 32/16*(32/16))))
-  (#_ : squash (SZ.fits (32*32 + 32/16*(32/16))))
-  (#_: squash (SZ.fits (32 * 32) /\ SZ.fits (32 * 32)))
-  (#fA #fB : perm)
-  norewrite
-  preserves
-    cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  requires
-    pure (1024sz/32 * (1024sz/32) <= max_blocks) **
-    pure (32/16 * (32/16) <= max_threads) **
-    gC |-> eC
-  ensures
-    (exists* eC'. gC |-> eC')
-{
-  launch_sync (
-    mk_kernel
-      #_ #_ #_ #_ #_ #_ #_
-      #_ #(Kuiper.Matrix.Reprs.crepr_row_major.map _ _) gA #_
-      #_ #(Kuiper.Matrix.Reprs.crepr_row_major.map _ _) gB #_
-      gC
-      32sz 32sz 32sz 16sz 16sz 16sz (1024sz/^32sz *^ (1024sz/^32sz)) (32sz/^16sz *^ (32sz/^16sz) *^ warp_sz) ()
-  );
 }
