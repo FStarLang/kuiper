@@ -8,7 +8,7 @@
 
 #define DEFAULT_DIM   1024
 // #define DEFAULT_TILE  32
-#define DEFAULT_LAPS  2
+#define DEFAULT_LAPS  4
 
 int main(int argc, char **argv)
 {
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         for (j = 0; j < shared; j++) {
             m1_cpu[i * shared + j] =
 #if et == half
-                __float2half(2.0f);
+                __float2half(i / 1000);
 #else
                 2 * i * j;
 #endif
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
         for (j = 0; j < cols; j++) {
             m2_cpu[i * cols + j] =
 #if et == half
-                __float2half(2.0f);
+                __float2half(j / 1000);
 #else
                 2 * i * j;
 #endif
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
         for (j = 0; j < cols; j++) {
             m3_cpu[i * cols + j] =
 #if et == half
-            __float2half(1.0f);
+            __float2half(0.0001f);
 #else
             i - j;
 #endif
