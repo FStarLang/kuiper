@@ -9,6 +9,14 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs { row_major, col_major }
 open Kuiper.Spec.GEMM { mma }
 
+open Kuiper.Matrix.Tiling { factored }
+
+open Pulse.Lib.Array
+open Pulse.Lib.Trade
+
+module T = FStar.Tactics.V2
+module SZ = FStar.SizeT
+
 // inline_for_extraction noextract
 type fragment_kind =
   | FragA
@@ -120,7 +128,7 @@ fn mma_sync'
   (#ec : ematrix et_acc m n)
   preserves fa |-> ea
   preserves fb |-> eb
-  preserves pure (valid_frag_et_comb et_ab et_acc)
+  requires pure (valid_frag_et_comb et_ab et_acc)
   requires
     fc |-> ec
   ensures
@@ -229,16 +237,105 @@ fn with_fragment u#r
                  pure (valid_frag_et_dims et knd m n k) **
                  post r ** (exists* em. fragment_pts_to fr em))
   ))
-  preserves pure (valid_frag_et_dims et knd m n k)
+  requires pure (valid_frag_et_dims et knd m n k)
   requires pre
   returns  r : ret_t
   ensures  post r
+
+let array_fragment_pts_to
+  (#et : Type0)
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  (#l : fragment_layout)
+  ([@@@mkey] farr: array (fragment et knd m n k l))
+  (#[T.exact (`1.0R)] f : perm)
+  (ems : seq (value_for et knd m n k))
+  : slprop = 
+    // have to use lseq here otherwise the last line does not type check
+    exists* (s: lseq (fragment et knd m n k l) (Seq.length ems)).
+      // pure (Seq.length s == Seq.length ems) **
+      farr |-> Frac f s **
+      forall+ (i : natlt (Seq.length ems)).
+        (s @! i) |-> Frac f (ems @! i)
+    
+// Introduces an odd match into the context when used: farr |-> Frac f s
+//  is not immediately equal to array_fragment_pts_to farr #f s
+// instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : erased nat) (l : fragment_layout) 
+//   : has_pts_to (array (fragment et knd m n k l)) (seq (value_for et knd m n k)) = {
+//   pts_to = array_fragment_pts_to
+// }
+
+ghost
+fn array_fragment_extract
+  (#et:Type0)
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  (#l : fragment_layout)
+  (farr: array (fragment et knd m n k l))
+  (#f : perm)
+  (ems : seq (value_for et knd m n k))
+  (i : natlt (Seq.length ems))
+  requires
+    array_fragment_pts_to farr #f ems
+  ensures
+    exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
+      farr |-> Frac f s **
+      (s @! i) |-> Frac f (ems @! i) **
+      (forall* (em' : value_for et knd m n k).
+        farr |-> Frac f s **
+         (s @! i) |-> Frac f em' @==>
+          array_fragment_pts_to farr #f (Seq.upd ems i em'))
+{
+  unfold array_fragment_pts_to;
+  // Why "cannot find typeclass"?
+  // with s. assert farr |-> Frac f s;
+  with s. assert pts_to farr #f s;
+
+  forevery_extract' i (fun (x : natlt (len s)) -> (s @! x) |-> (ems @! x));
+  admit();
+}
+
+ghost
+fn array_fragment_extract_ro
+  (#et:Type0)
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  (#l : fragment_layout)
+  (farr: array (fragment et knd m n k l))
+  (ems : seq (value_for et knd m n k))
+  (#f : perm)
+  (i : natlt (Seq.length ems))
+  requires
+    array_fragment_pts_to farr #f ems
+  ensures
+    exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
+      factored
+        (farr |-> Frac f s ** (s @! i) |-> Frac f (ems @! i))
+        (array_fragment_pts_to farr #f ems)
+{
+  array_fragment_extract farr ems i;
+  Pulse.Lib.Forall.elim_forall (ems @! i);
+}
 
 (* Unsound, clearly *)
 fn __alloc_fragment
   (et : Type0) (knd : fragment_kind)
   (m n k : sz)
   (fl : fragment_layout)
-  preserves pure (valid_frag_et_dims et knd m n k)
+  requires pure (valid_frag_et_dims et knd m n k)
   returns  fr : fragment et knd m n k fl
   ensures  exists* v. fr |-> v
+
+(* Unsound *)
+fn __alloc_array_fragment
+  (et : Type0) (knd : fragment_kind)
+  (m n k : sz)
+  (fl : fragment_layout)
+  (size : sz)
+  requires pure (valid_frag_et_dims et knd m n k)
+  returns af: array (fragment et knd m n k fl)
+  ensures
+    pure (length af == SZ.v size) **
+    (exists* ems.
+      pure (Seq.length ems == length af) **
+      array_fragment_pts_to af ems)
