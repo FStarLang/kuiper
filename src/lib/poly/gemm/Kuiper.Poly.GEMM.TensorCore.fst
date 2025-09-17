@@ -70,7 +70,7 @@ let kpre1
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
   (fA fB : perm)
-  (bid : enatlt (rows/bm * (cols/bn)))
+  (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt (bm/tm*(bn/tn)*warp_size))
   : slprop
   =
@@ -98,11 +98,10 @@ let kpost1
   (gC : gpu_matrix et_c lC)
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
-  (bk : szp{bk /? shared})
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (fA fB : perm)
-  (bid : enatlt (rows/bm * (cols/bn)))
+  (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt (bm/tm*(bn/tn)*warp_size))
   : slprop
   =
@@ -211,11 +210,10 @@ let kpost
   (tid : natlt (bm/tm*(bn/tn)*warp_size))
   : slprop
   =
-  kpost1 gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
+  kpost1 gA eA gB eB gC bm bn tm tn fA fB bid tid **
   exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
   exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm*(bn/tn)*warp_size) tid
-
 
 inline_for_extraction noextract
 fn subproducts_tc
@@ -262,10 +260,7 @@ fn subproducts_tc
       live dotIdx
   {
     let a_tile = gpu_matrix_extract_tile_ro' gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
-    assert (rewrites_to a_tile (gpu_matrix_subtile gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx)));
-
     let b_tile = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
-    assert (rewrites_to b_tile (gpu_matrix_subtile gB (SZ.v tk) (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol)));
 
     mma_loadA aFrag a_tile;
     mma_loadB bFrag b_tile;
@@ -287,12 +282,6 @@ fn subproducts_tc
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
-  // (comb : binop et)
-
-  // rows should be an erased nat because not concerete value is required, but
-  // using erased nats here leads to very confusing reveals when calling mma_store
-  //  (maybe due to inferred type class instances?)
-  // making it a size because otherwise a nat would be extracted
   (#rows : erased nat)
   // cols is concretized so using size is more succinct
   (#cols : sz)
@@ -608,7 +597,7 @@ fn block_teardown
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn bk tm tn fA fB bid tid)
+      kpost1 (* comb *) gA eA gB eB gC bm bn tm tn fA fB bid tid)
 {
   admit();
 }
@@ -642,7 +631,7 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
+      kpost1 (* comb *) gA eA gB eB gC bm bn tm tn fA fB bid tid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **
@@ -711,7 +700,7 @@ let mk_kernel
 
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC bm bn tm tn fA fB bid tid);
 
   setup      = setup    gA eA gB eB gC eC bm bn bk tm tn tk nblk nthr fA fB;
   teardown   = teardown gA eA gB eB gC eC bm bn bk tm tn nblk nthr fA fB;
