@@ -2,6 +2,7 @@
 
 #define stem          Kuiper_GEMM_TensorCore_g_gemm_
 #define et            half
+#define et_is_half    1
 #define et_lbl        f16_f16
 #define tile_sizes    _64x64x64
 #define tc_tile_sizes _16x16x16

@@ -6,6 +6,7 @@
 
 #include "matmul_common.c.inc"
 
+
 #define DEFAULT_DIM   1024
 // #define DEFAULT_TILE  32
 #define DEFAULT_LAPS  4
@@ -41,15 +42,24 @@ int main(int argc, char **argv)
     printf("Shared = %lu\n", shared);
     printf("Columns = %lu\n", cols);
 
-    et *m1_cpu, *m2_cpu, *m3_cpu;
+    et *m1_cpu, *m2_cpu;
+#if mix_prec == 1
+    float *m3_cpu;
+#else
+    et *m3_cpu;
+#endif
     m1_cpu = (et *) malloc(rows * shared * sizeof(et));
     m2_cpu = (et *) malloc(shared * cols * sizeof(et));
+#if mix_prec == 1
+    m3_cpu = (float *) malloc(rows * cols * sizeof(float));
+#else
     m3_cpu = (et *) malloc(rows * cols * sizeof(et));
+#endif
 
     for (i = 0; i < rows; i++) {
         for (j = 0; j < shared; j++) {
             m1_cpu[i * shared + j] =
-#if et == half
+#if et_is_half == 1
                 __float2half(i / 1000);
 #else
                 2 * i * j;
@@ -60,7 +70,7 @@ int main(int argc, char **argv)
     for (i = 0; i < shared; i++) {
         for (j = 0; j < cols; j++) {
             m2_cpu[i * cols + j] =
-#if et == half
+#if et_is_half == 1
                 __float2half(j / 1000);
 #else
                 2 * i * j;
@@ -70,34 +80,76 @@ int main(int argc, char **argv)
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {
             m3_cpu[i * cols + j] =
-#if et == half
+#if et_is_half == 1 && mix_prec != 1
             __float2half(0.0001f);
 #else
-            i - j;
+            0.0001f;
 #endif
         }
     }
 
     et *m1 = (et *) kpr_wait_alloc(sizeof(et), rows * shared);
     et *m2 = (et *) kpr_wait_alloc(sizeof(et), shared * cols);
+#if mix_prec == 1
+    float *m3 = (float *) kpr_wait_alloc(sizeof(float), rows * cols);
+#else
     et *m3 = (et *) kpr_wait_alloc(sizeof(et), rows * cols);
+#endif
 
     cudaMemcpy(m1, m1_cpu, rows * shared * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
+#if mix_prec == 1
+    cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(float), cudaMemcpyHostToDevice);
+#else
     cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
+#endif
 
+#if mix_prec == 1
+    float *gold = NULL;
+#else
     et *gold = NULL;
-#if et == half
+#endif
+
+#if et_is_half == 1 && mix_prec != 1
     half alpha = __float2half(GEMM_ALPHA);
     half beta = __float2half(GEMM_BETA);
+#elif et_is_half == 1 && mix_prec == 1
+    half alpha = __float2half(GEMM_ALPHA);
+    float beta = GEMM_BETA;
 #else
     et alpha = GEMM_ALPHA;
     et beta = GEMM_BETA;
 #endif
-    if (check)
+
+    if (check) {
+#if mix_prec != 1
         TIME_void(gold =
                   cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
                             alpha, beta), NULL);
+// if mixed precision, compute gold by only using float
+#else
+
+        float *m1_cpu_float, *m2_cpu_float;
+        m1_cpu_float = (float *) malloc(rows * shared * sizeof(float));
+        m2_cpu_float = (float *) malloc(shared * cols * sizeof(float));
+
+        float alpha = GEMM_ALPHA;
+
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < shared; j++) {
+                m1_cpu_float[i * shared + j] = i / 1000;
+            }
+        }
+        for (i = 0; i < shared; i++) {
+            for (j = 0; j < cols; j++) {
+                m2_cpu_float[i * cols + j] = j / 1000;
+            }
+        }
+        TIME_void(gold =
+                    cpu_sgemm(rows, shared, cols, m1_cpu_float, m2_cpu_float, m3_cpu,
+                            alpha, beta), NULL);
+#endif
+    }
     for (int l = 0; l < laps; l++) {
         float t;
         TIME_void(TOKENPASTE5(stem, et_lbl, tile_sizes, tc_tile_sizes, layouts)
@@ -110,8 +162,13 @@ int main(int argc, char **argv)
 
         if (check) {
             cmp(rows, cols, m3, gold);
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
+#if mix_prec == 1
+            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(float),
                        cudaMemcpyHostToDevice);
+#else
+            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
+                        cudaMemcpyHostToDevice);
+#endif
         }
     }
     if (check)
