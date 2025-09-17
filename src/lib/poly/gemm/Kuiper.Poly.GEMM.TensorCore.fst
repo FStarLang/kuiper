@@ -238,10 +238,10 @@ fn subproducts_tc
   (bcol : szlt (bn/tn))
   preserves
     gpu **
-    pure (valid_frag_et_comb et_ab et_acc) **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
+    pure (valid_frag_et_comb et_ab et_acc) **
     aFrag |-> vaFrag **
     bFrag |-> vbFrag **
     accumFrag |-> vaccumFrag
@@ -293,15 +293,15 @@ fn epilogue
   (accumFrag : fragment et FragAcc tm tn tk FragLAcc)
   (gC : gpu_matrix et (R.row_major rows cols))
   (bid : szlt (rows/bm * (cols/bn)))
-  (tid : szlt (bm/tm * (bn/tn) * warp_size))
+  (wid : szlt (bm/tm * (bn/tn)))
   requires
     gpu **
-    live_warp_tile gC bm bn tm tn bid (tid/warp_size) **
+    live_warp_tile gC bm bn tm tn bid wid **
     (exists* vaccumFrag.
       accumFrag |-> vaccumFrag)
   ensures
     gpu **
-    live_warp_tile gC bm bn tm tn bid (tid/warp_size) **
+    live_warp_tile gC bm bn tm tn bid wid **
     (exists* vaccumFrag.
       accumFrag |-> vaccumFrag)
 {
@@ -310,9 +310,9 @@ fn epilogue
   (* Only create a tile in gC and write the accumulator values. In this version the input from gC
      was added by loading the tile into the accumulator before any other computations *)
   let w_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-    (SZ.v tm) (SZ.v tn) (SZ.v tid / warp_size);
+    (SZ.v tm) (SZ.v tn) (SZ.v wid);
   assert (rewrites_to w_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-    (SZ.v tm) (SZ.v tn) (SZ.v tid / warp_size)));
+    (SZ.v tm) (SZ.v tn) (SZ.v wid)));
 
   // from looking at the type of mma_store, it is not clear that cols mut be concretizable
   // 1. know that strided_row_major needs concrete sizes
@@ -391,8 +391,8 @@ fn kf
   let mcol = bid %^ num_n_tiles;
 
   let wid = tid /^ warp_sz;
-  let threadRow = wid /^ (bn/^tn);
-  let threadCol = wid %^ (bn/^tn);
+  let warpRow = wid /^ (bn/^tn);
+  let warpCol = wid %^ (bn/^tn);
 
   (* tensor core fragments *)
   let aFrag = __alloc_fragment et_ab FragA tm tn tk FragLRM;
@@ -401,8 +401,8 @@ fn kf
 
   (* get ownership over the thread's gC tile and load it into the accumulator *)
   unfold live_warp_tile;
-  let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (SZ.v tid / warp_size);
-  assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (SZ.v tid / warp_size)));
+  let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (SZ.v wid);
+  assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (SZ.v wid)));
   mma_loadAccum accumFrag t_tile;
   fold live_warp_tile;
 
@@ -453,12 +453,12 @@ fn kf
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * (bn/tn) * warp_size)) x) **
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * (bn/tn) * warp_size)) x);
 
-    subproducts_tc bm bn bk tm tn tk aFrag bFrag accumFrag sA sB threadRow threadCol;
+    subproducts_tc bm bn bk tm tn tk aFrag bFrag accumFrag sA sB warpRow warpCol;
 
     bkIdx := !bkIdx +^ 1sz;
   };
 
-  epilogue bm bn tm tn accumFrag gC bid tid;
+  epilogue bm bn tm tn accumFrag gC bid wid;
 
   with vaFrag. assert aFrag |-> vaFrag; drop_ (aFrag |-> vaFrag);
   with vbFrag. assert bFrag |-> vbFrag; drop_ (bFrag |-> vbFrag);

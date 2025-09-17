@@ -148,7 +148,7 @@ let warp_tile_idx_cols
   (bm bn : erased nat)
   (tm : erased nat {tm > 0 /\ tm /? bm})
   (tn : erased nat {tn > 0 /\ tn /? bn})
-  (wid : natlt (bm/tm * (bn/tn)))
+  (wid : enatlt (bm/tm * (bn/tn)))
   : enatlt (bn/tn)
   = wid % (bn/tn)
 
@@ -160,7 +160,7 @@ let warp_tile
   (gC_bt : gpu_matrix et lC_bt)
   (tm : erased nat{tm > 0 /\ tm /? bm})
   (tn : erased nat{tn > 0 /\ tn /? bn})
-  (wid : natlt (bm/tm * (bn/tn)))
+  (wid : enatlt (bm/tm * (bn/tn)))
   : Tot (gpu_matrix et
           (subtile_layout lC_bt tm tn
             (warp_tile_idx_rows bm bn tm tn wid) (warp_tile_idx_cols bm bn tm tn wid)))
