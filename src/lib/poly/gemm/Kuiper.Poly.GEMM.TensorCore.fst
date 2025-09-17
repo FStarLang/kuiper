@@ -401,8 +401,8 @@ fn kf
 
   (* get ownership over the thread's gC tile and load it into the accumulator *)
   unfold live_warp_tile;
-  let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (SZ.v wid);
-  assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (SZ.v wid)));
+  let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (tid / warp_size);
+  assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (tid / warp_size)));
   mma_loadAccum accumFrag t_tile;
   fold live_warp_tile;
 
