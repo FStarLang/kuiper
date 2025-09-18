@@ -29,6 +29,12 @@ type fragment_layout =
   | FragLCM
   | FragLAcc
 
+let valid_frag_layout
+  (knd : fragment_kind)
+  (layout : fragment_layout) : prop
+= ((knd == FragA \/ knd == FragB) /\ (layout == FragLRM \/ layout == FragLCM)) \/
+   (knd == FragAcc) /\ (layout == FragLAcc)
+
 // this ignores checking for a valid compute capability
 let valid_frag_et_dims
   (et : Type0)
@@ -232,12 +238,13 @@ fn with_fragment u#r
     (fr : fragment et knd m n k fl) ->
       stt ret_t (
         requires pure (valid_frag_et_dims et knd m n k) **
+                 pure (valid_frag_layout knd fl) **
                  pre  ** (exists* em. fragment_pts_to fr em))
         (ensures  fun r ->
-                 pure (valid_frag_et_dims et knd m n k) **
                  post r ** (exists* em. fragment_pts_to fr em))
   ))
   requires pure (valid_frag_et_dims et knd m n k)
+  requires pure (valid_frag_layout knd fl)
   requires pre
   returns  r : ret_t
   ensures  post r
@@ -323,17 +330,21 @@ fn __alloc_fragment
   (m n k : sz)
   (fl : fragment_layout)
   requires pure (valid_frag_et_dims et knd m n k)
+  requires pure (valid_frag_layout knd fl)
   returns  fr : fragment et knd m n k fl
   ensures  exists* v. fr |-> v
 
-(* Unsound *)
+(* Also clearly unsound *)
 fn __alloc_array_fragment
   (et : Type0) (knd : fragment_kind)
   (m n k : sz)
   (fl : fragment_layout)
   (size : sz)
   requires pure (valid_frag_et_dims et knd m n k)
+  requires pure (valid_frag_layout knd fl)
   returns af: array (fragment et knd m n k fl)
   ensures
     pure (length af == SZ.v size) **
-    (exists* ems. array_fragment_pts_to af ems)
+    (exists* ems.
+      pure (Seq.length ems == length af) **
+      array_fragment_pts_to af ems)

@@ -492,9 +492,9 @@ fn epilogue
         (wm*tm) (wn*tn)(SZ.v wid);
       fold live_warp_tile;
 
-      j := j +^ 1sz;
+      j := !j +^ 1sz;
     };
-    i := i +^ 1sz;
+    i := !i +^ 1sz;
   };
 
   ()
