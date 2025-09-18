@@ -7,6 +7,7 @@ open Kuiper
 open Kuiper.IArray
 open Kuiper.IView
 open Kuiper.Array.Vectorized
+open Kuiper.VectorType
 
 val iarray_pts_to_4cells
   (#et:Type0)
@@ -40,7 +41,7 @@ fn iarray_vec4_write_cells
   (a : iarray float vw)
   (ci : cw.sch.cit)
   (v : float4)
-  (#v0 : (float & float & float & float))
+  (#v0 : erased (float & float & float & float))
   preserves gpu
   requires  iarray_pts_to_4cells #float a (ci_to_ai vw ci) v0
   ensures   (exists* v1. iarray_pts_to_4cells #float a (ci_to_ai vw ci) v1 **

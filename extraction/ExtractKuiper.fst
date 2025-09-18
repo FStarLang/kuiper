@@ -76,7 +76,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
   | "Kuiper.Float64.t",               [] -> TInt Double
-  | "Kuiper.Array.Vectorized.float4", [] -> TQualified ([], "float4")
+  | "Kuiper.VectorType.float4", [] -> TQualified ([], "float4")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -567,12 +567,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
   (******** VECTOR OPS ********)
-  | "Kuiper.Array.Vectorized.make_float4", [], [ x; y; z; w; ] ->
+  | "Kuiper.VectorType.make_float4", [], [ x; y; z; w; ] ->
     EApp (EQualified ([], "make_float4"), [cb x; cb y; cb z; cb w])
-  | "Kuiper.Array.Vectorized.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
-  | "Kuiper.Array.Vectorized.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
-  | "Kuiper.Array.Vectorized.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
-  | "Kuiper.Array.Vectorized.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
+  | "Kuiper.VectorType.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
+  | "Kuiper.VectorType.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
+  | "Kuiper.VectorType.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
+  | "Kuiper.VectorType.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
 
   (******** KERNEL CALL ********)
 
