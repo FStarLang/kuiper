@@ -34,16 +34,21 @@ open Kuiper.Poly.GEMM.Tiled.Common
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
+type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
+  tm /? bm /\
+  tn /? bn /\
+  tk /? bk /\
+  wm * tm /? bm /\
+  wn * tn /? bn /\
+  SZ.fits (wm * wn)
+
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
   {| scalar et_ab, scalar et_acc |}
-  (bm bn bk: szp)
-  (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn})
-  (tk : szp{tk /? bk})
-  (wm : szp{wm * tm /? bm})
-  (wn : szp{wn * tn /? bn})
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (aFrags : array (fragment et_ab FragA tm tn tk FragLRM))
   (#emAFrags : erased (seq (ematrix et_ab tm tk)))
   (bFrags : array (fragment et_ab FragB tm tn tk FragLRM))
@@ -55,7 +60,7 @@ fn subproducts_tc_2d
   (#eA : ematrix et_ab bm bk)
   (#eB : ematrix et_ab bk bn)
   (#fA #fB : perm)
-  (arow: szlt (bm/(wm*tm)))
+  (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
   preserves
     gpu **
@@ -263,21 +268,21 @@ let kpre1
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (fA fB : perm)
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : enatlt (rows/bm * (cols/bn)))
   (tid : enatlt nthr)
   : slprop
   =
-  pure (SZ.fits (rows * shared)) **
-  pure (SZ.fits (shared * cols)) **
-  pure (SZ.fits (wm * wn)) **
-  pure (SZ.fits (wm * tm)) **
-  pure (SZ.fits (wn * tn)) **
-  pure (valid_frag_et_dims et_ab FragA tm tn tk) **
-  pure (valid_frag_et_dims et_ab FragB tm tn tk) **
-  pure (valid_frag_et_dims et_c FragAcc tm tn tk) **
-  pure (valid_frag_et_comb et_ab et_c) **
   gA |-> Frac (fA /. nthr) eA **
   gB |-> Frac (fB /. nthr) eB **
   live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
@@ -300,8 +305,8 @@ let kpost1
   (tn : szp{tn /? bn})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (fA fB : perm)
+  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : enatlt (rows/bm * (cols/bn)))
   (tid : enatlt nthr)
   : slprop
@@ -378,14 +383,14 @@ let kpre
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (fA fB : perm)
+  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
   : slprop
   =
-  kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB bid tid **
+  kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
   exists* (x : seq _). fst sh |-> Frac (1.0R /. nthr) x **
   exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. nthr) x **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) tid
