@@ -510,7 +510,6 @@ fn epilogue
       rewrite each tile_for_tc_tiles as warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
         (wm*tm) (wn*tn)(SZ.v wid);
       fold live_warp_tile;
- 
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;

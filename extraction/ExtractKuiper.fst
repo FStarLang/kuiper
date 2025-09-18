@@ -308,6 +308,39 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
   // Format.print1_warning "New kcall: %s\n" (show e');
   return e'
 
+let kpr_translate_alloc_fragment cb et knd m n k layout =
+    let macro_suff, knd =
+      match cta knd with
+      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
+      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
+      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> "_C", EQualified ([], "wmma::accumulator")
+      | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
+    in
+    let layout : option expr =
+      match cta layout with
+      | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
+      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
+      | Some ("Kuiper.TensorCore.FragLAcc",   [], []) -> None
+      | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
+    in
+    let faketype =
+      match et with
+      | MLTY_Named ([], (["Kuiper"; "Float16"], "t")) -> EQualified ([], "half")
+      | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
+      | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
+    in
+    (* Tries to remove the size_t cast in literals, just to make the code
+       more readable. *)
+    let ss x =
+      match x with
+      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
+      | _ -> x
+    in
+    let args =
+      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
+      @ (match layout with | Some l -> [l] | None -> [])
+    in
+      EApp (EQualified ([], "KPR_FRAGMENT_TYPE" ^ macro_suff), args)
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -355,41 +388,18 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
-  | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
-    let macro_suff, knd =
-      match cta knd with
-      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
-      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
-      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> "_C", EQualified ([], "wmma::accumulator")
-      | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
-    in
-    let layout : option expr =
-      match cta layout with
-      | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
-      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
-      | Some ("Kuiper.TensorCore.FragLAcc",   [], []) -> None
-      | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
-    in
-    let faketype =
-      match et with
-      | MLTY_Named ([], (["Kuiper"; "Float16"], "t")) -> EQualified ([], "half")
-      | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
-      | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
-    in
-    (* Tries to remove the size_t cast in literals, just to make the code
-       more readable. *)
-    let ss x =
-      match x with
-      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
-      | _ -> x
-    in
-    let args =
-      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
-      @ (match layout with | Some l -> [l] | None -> [])
-    in
+  | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
     EBufCreate (Stack,
-      EApp (EQualified ([], "KPR_FRAGMENT_INIT" ^ macro_suff), args),
+      EApp (EQualified ([], "KPR_INIT"),
+        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout])]),
       EConstant (SizeT, "1"))
+
+  | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
+    EBufCreate (Stack,
+      EApp (EQualified ([], "KPR_INIT"),
+        [kpr_translate_alloc_fragment cb et knd m n k layout]),
+      EConstant (SizeT, "1"))
+
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     let fr = deref <| cb fr in
