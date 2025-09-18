@@ -6,7 +6,6 @@ open Kuiper
 
 #set-options "--z3rlimit 20"
 
-
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 
@@ -383,6 +382,15 @@ let kpre
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
   (fA fB : perm)
   (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
@@ -422,10 +430,12 @@ let kpost
   (tid : natlt nthr)
   : slprop
   =
-  kpost1 gA eA gB eB gC bm bn tm tn wm wn nthr fA fB bid tid **
+  kpost1 gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid **
   exists* (x : seq _). fst sh |-> Frac (1.0R /. nthr) x **
   exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. nthr) x **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) tid
+
+#set-options "--debug x"
 
 inline_for_extraction noextract
 fn epilogue
@@ -459,16 +469,20 @@ fn epilogue
       array_fragment_pts_to accumFrags emAccumFrags')
 {
 
-
   let mut i = 0sz;
   while (SZ.(!i <^ wm))
     invariant
       live_warp_tile gC bm bn tm tn wm wn bid wid
+    invariant
+      exists* (vi : sz{vi <= wm}). i |-> vi
   {
     let mut j = 0sz;
     while (SZ.(!j <^ wn))
       invariant
         live_warp_tile gC bm bn tm tn wm wn bid wid
+      invariant
+        exists* (vj : sz{vj <= wn}). j |-> vj
+
     {
       unfold live_warp_tile;
 
@@ -486,7 +500,7 @@ fn epilogue
 
       with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
       array_fragment_extract_ro accumFrags emAccumFrags (!i * wn + !j);
-      
+         
       mma_store accumFrags.(!i *^ wn +^ !j) tc_tile;
 
       Pulse.Lib.Forall.elim_forall (Seq.Base.index emAccumFrags (!i * wn + !j)); 
@@ -496,15 +510,15 @@ fn epilogue
       rewrite each tile_for_tc_tiles as warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
         (wm*tm) (wn*tn)(SZ.v wid);
       fold live_warp_tile;
-
-      j := j +^ 1sz;
+ 
+      j := !j +^ 1sz;
     };
-    i := i +^ 1sz;
+    i := !i +^ 1sz;
   };
 
   ()
 }
-
+(*
 #push-options "--split_queries always --debug SMTFail"
 // #push-options "--z3rlimit 40 --retry 5"
 // #push-options "--print_implicits"
