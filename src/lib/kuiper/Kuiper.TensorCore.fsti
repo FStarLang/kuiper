@@ -336,6 +336,4 @@ fn __alloc_array_fragment
   returns af: array (fragment et knd m n k fl)
   ensures
     pure (length af == SZ.v size) **
-    (exists* ems.
-      pure (Seq.length ems == length af) **
-      array_fragment_pts_to af ems)
+    (exists* ems. array_fragment_pts_to af ems)
