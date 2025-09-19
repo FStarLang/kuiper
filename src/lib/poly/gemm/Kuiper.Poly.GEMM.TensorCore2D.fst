@@ -399,8 +399,8 @@ let kpre
   : slprop
   =
   kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
-  exists* (x : seq _). fst sh |-> Frac (1.0R /. nthr) x **
-  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. nthr) x **
+  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
+  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) tid
 
 unfold
@@ -423,16 +423,16 @@ let kpost
   (tn : szp{tn /? bn})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (fA fB : perm)
+  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
   : slprop
   =
   kpost1 gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid **
-  exists* (x : seq _). fst sh |-> Frac (1.0R /. nthr) x **
-  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. nthr) x **
+  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
+  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) tid
 
 #set-options "--debug x"

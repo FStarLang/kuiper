@@ -182,8 +182,8 @@ let kpre
   : slprop
   =
   kpre1 gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid **
-  exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
-  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
+  (exists* (x : seq _). gpu_pts_to_array (fst sh)       #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
+  (exists* (x : seq _). gpu_pts_to_array (fst (snd sh)) #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/tm * (bn/tn) * warp_size) tid
 
 unfold
