@@ -70,12 +70,14 @@ fn subproducts_tc_2d
     pure (Seq.length emAFrags == wm) **
     pure (Seq.length emBFrags == wn) ** 
     pure (Seq.length emAccumFrags == wm * wn) **
-    pure (SZ.fits (wm * wn)) **
     array_fragment_pts_to aFrags emAFrags **
     array_fragment_pts_to bFrags emBFrags **
     array_fragment_pts_to accumFrags emAccumFrags
   ensures
     exists* emAFrags' emBFrags' emAccumFrags'.
+      pure (Seq.length emAFrags' == wm) **
+      pure (Seq.length emBFrags' == wn) ** 
+      pure (Seq.length emAccumFrags' == wm * wn) **
       array_fragment_pts_to aFrags emAFrags' **
       array_fragment_pts_to bFrags emBFrags' **
       array_fragment_pts_to accumFrags emAccumFrags'
@@ -305,7 +307,7 @@ let kpost1
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
   (fA fB : perm)
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : enatlt (rows/bm * (cols/bn)))
   (tid : enatlt nthr)
   : slprop
@@ -392,7 +394,7 @@ let kpre
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
   (#_ : squash (valid_frag_et_comb et_ab et_c))
   (fA fB : perm)
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
@@ -401,7 +403,7 @@ let kpre
   kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) tid
+  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
 
 unfold
 let kpost
@@ -424,7 +426,7 @@ let kpost
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
   (fA fB : perm)
-  (nthr : nat {reveal nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
@@ -433,7 +435,7 @@ let kpost
   kpost1 gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) tid
+  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
 
 #set-options "--debug x"
 
@@ -468,7 +470,6 @@ fn epilogue
       pure (Seq.length emAccumFrags' == wm*wn) **
       array_fragment_pts_to accumFrags emAccumFrags')
 {
-
   let mut i = 0sz;
   while (SZ.(!i <^ wm))
     invariant
@@ -482,7 +483,6 @@ fn epilogue
         live_warp_tile gC bm bn tm tn wm wn bid wid
       invariant
         exists* (vj : sz{vj <= wn}). j |-> vj
-
     {
       unfold live_warp_tile;
 
@@ -517,8 +517,8 @@ fn epilogue
 
   ()
 }
-(*
-#push-options "--split_queries always --debug SMTFail"
+
+// #push-options "--split_queries always --debug SMTFail"
 // #push-options "--z3rlimit 40 --retry 5"
 // #push-options "--print_implicits"
 inline_for_extraction noextract
@@ -542,22 +542,32 @@ fn kf
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
+  (#fA #fB : perm)
   (nthr : erased nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
-  (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : szlt (rows/bm * (cols/bn)))
   (tid : szlt nthr)
   ()
   requires
     gpu **
-    kpre gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB sh bid tid **
+    kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid **
     thread_id nthr tid **
     block_id (rows/bm * (cols/bn)) bid
   ensures
     gpu **
-    kpost gA eA gB eB gC bm bn bk tm tn wm wn nthr fA fB sh bid tid **
+    kpost gA eA gB eB gC bm bn bk tm tn wm wn fA fB nthr sh bid tid **
     thread_id nthr tid **
     block_id (rows/bm * (cols/bn)) bid
 {
@@ -603,9 +613,10 @@ fn kf
   let mut fi : sz = 0sz;
   while (SZ.(!fi <^ wm*^wn)) 
     invariant 
-      exists* vaccFrags.
+      live fi **
+      (exists* vaccFrags.
         pure (Seq.length vaccFrags == wm*wn) **
-        array_fragment_pts_to accFrags vaccFrags
+        array_fragment_pts_to accFrags vaccFrags)
   {
     with vaccFrags. assert (array_fragment_pts_to accFrags vaccFrags);
     array_fragment_extract accFrags vaccFrags !fi;
@@ -615,6 +626,8 @@ fn kf
         #(value_for et_c FragAcc tm tn tk)
         (fill_value sc.zero);
     ambig_trade_elim();
+
+    fi := !fi +^ 1sz;
   };
 
   let mut bkIdx  : sz = 0sz;
@@ -649,7 +662,7 @@ fn kf
         as live_tile_stride_cells sA nthr tid **
            live_tile_stride_cells sB nthr tid;
 
-    populate_shmem bm bn bk tm tn sA sB gA gB mrow !bkIdx mcol tid;
+    copy_tiles_out_of_matrices bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
 
     assert (B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx + 1) tid);
     odd_2x1 !bkIdx;
@@ -715,6 +728,16 @@ fn setup
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
@@ -727,7 +750,7 @@ fn setup
   ensures
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB bid tid) **
+      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
     emp (* frame *)
 {
   admit();
@@ -753,12 +776,21 @@ fn block_setup
   (bk : szp{bk /? shared})
   // (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_: squash (SZ.fits (bm * bn)))
-  (#_: squash (SZ.fits (rows * cols)))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
@@ -770,11 +802,11 @@ fn block_setup
     block_setup_tok nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB bid tid)
+      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
   ensures
     block_setup_tok nthr **
     (forall+ (tid : natlt nthr).
-      kpre gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB sh bid tid) **
+      kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
     emp (* frame *)
 {
   admit();
@@ -813,12 +845,12 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn wm wn nthr fA fB sh bid tid) **
+      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn wm wn fA fB nthr sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn tm tn wm wn nthr fA fB bid tid)
+      kpost1 (* comb *) gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid)
 {
   admit();
 }
@@ -854,7 +886,7 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn tm tn wm wn nthr fA fB bid tid) **
+      kpost1 (* comb *) gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **
@@ -873,7 +905,6 @@ fn teardown
   admit();
 }
 
-#push-options "--debug SMTFail --split_queries always"
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
@@ -900,6 +931,12 @@ let mk_kernel
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
@@ -919,8 +956,8 @@ let mk_kernel
   shmems_desc = shmems_desc et_ab bm bn bk;
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC bm bn tm tn wm wn nthr fA fB bid tid);
+  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid);
 
   setup      = setup    gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;
   teardown   = teardown gA eA gB eB gC eC bm bn bk tm tn wm wn nblk nthr fA fB;
@@ -929,8 +966,8 @@ let mk_kernel
   block_setup    = block_setup gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;
   block_teardown = block_teardown gA eA gB eB gC eC bm bn bk tm tn wm wn nblk nthr fA fB;
 
-  kpre      = kpre  gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB;
-  kpost     = kpost gA eA gB eB gC bm bn bk tm tn wm wn nthr fA fB;
+  kpre      = kpre  gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr ;
+  kpost     = kpost gA eA gB eB gC bm bn bk tm tn wm wn fA fB nthr ;
 
-  f = kf gA #eA gB #eB gC bm bn bk tm tn tk wm wn (SZ.v nthr) #() #() #fA #fB;
+  f = kf gA #eA gB #eB gC bm bn bk tm tn tk wm wn (SZ.v nthr);
 }
