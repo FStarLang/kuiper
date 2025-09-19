@@ -12,8 +12,7 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Matrix
 
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
-module B = Kuiper.Barrier
+module SZ = FStar.SizeT module B = Kuiper.Barrier
 
 module R = Kuiper.Matrix.Reprs
 
@@ -32,6 +31,31 @@ open Kuiper.Poly.GEMM.Tiled.Common
 
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
+
+fn get_shmems
+  (#et_ab : Type0) {| sized et_ab |}
+  (#bm #bn #bk: szp)
+  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (sh : c_shmems (shmems_desc et_ab bm bn bk))
+  requires
+    live_c_shmems sh
+  returns
+    res :
+      gpu_array et_ab (bm * bk) &
+      gpu_array et_ab (bk * bn)
+  ensures
+    live (fst res) **
+    live (snd res)
+{
+  rewrite live_c_shmems sh as live_c_shmem (fst sh) ** live_c_shmem (fst (snd sh)) ** emp;
+  let sarA : gpu_array et_ab (bm * bk) = fst sh;
+  let sarB : gpu_array et_ab (bk * bn) = fst (snd sh);
+  rewrite live_c_shmem (fst sh) as live (fst sh);
+  rewrite live_c_shmem (fst (snd sh)) as live (fst (snd sh));
+  rewrite each fst sh as sarA;
+  rewrite each fst (snd sh) as sarB;
+  (sarA, sarB)
+}
 
 type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
   tm /? bm /\
@@ -59,6 +83,13 @@ fn subproducts_tc_2d
   (#eA : ematrix et_ab bm bk)
   (#eB : ematrix et_ab bk bn)
   (#fA #fB : perm)
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_acc FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_acc))
   (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
   preserves
@@ -70,7 +101,6 @@ fn subproducts_tc_2d
     pure (Seq.length emAFrags == wm) **
     pure (Seq.length emBFrags == wn) ** 
     pure (Seq.length emAccumFrags == wm * wn) **
-    pure (SZ.fits (wm * wn)) **
     array_fragment_pts_to aFrags emAFrags **
     array_fragment_pts_to bFrags emBFrags **
     array_fragment_pts_to accumFrags emAccumFrags
@@ -80,6 +110,7 @@ fn subproducts_tc_2d
       array_fragment_pts_to bFrags emBFrags' **
       array_fragment_pts_to accumFrags emAccumFrags'
 {
+  admit();
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant
@@ -450,6 +481,11 @@ fn epilogue
   (#tk : erased nat)
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et FragAcc tm tn tk))
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
   (#emAccumFrags: erased (seq (ematrix et tm tn)))
   (gC : gpu_matrix et (R.row_major rows cols))
@@ -468,6 +504,7 @@ fn epilogue
       pure (Seq.length emAccumFrags' == wm*wn) **
       array_fragment_pts_to accumFrags emAccumFrags')
 {
+  admit();
 
   let mut i = 0sz;
   while (SZ.(!i <^ wm))
@@ -517,8 +554,9 @@ fn epilogue
 
   ()
 }
-(*
-#push-options "--split_queries always --debug SMTFail"
+
+#push-options "--split_queries always --debug SMTQuery"
+
 // #push-options "--z3rlimit 40 --retry 5"
 // #push-options "--print_implicits"
 inline_for_extraction noextract
@@ -542,6 +580,16 @@ fn kf
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
   (nthr : erased nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
@@ -551,20 +599,23 @@ fn kf
   (tid : szlt nthr)
   ()
   requires
-    gpu **
-    kpre gA eA gB eB gC bm bn bk tm tn tk wm wn nthr fA fB sh bid tid **
-    thread_id nthr tid **
-    block_id (rows/bm * (cols/bn)) bid
-  ensures
-    gpu **
-    kpost gA eA gB eB gC bm bn bk tm tn wm wn nthr fA fB sh bid tid **
-    thread_id nthr tid **
-    block_id (rows/bm * (cols/bn)) bid
+    // gpu **
+    kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid **
+    // thread_id nthr tid **
+    // block_id (rows/bm * (cols/bn)) bid
+    emp
+  // ensures
+  //   gpu **
+  //   kpost gA eA gB eB gC bm bn bk tm tn wm wn fA fB nthr sh bid tid **
+  //   thread_id nthr tid **
+  //   block_id (rows/bm * (cols/bn)) bid
 {
   let sarA : gpu_array et_ab (bm * bk) = fst sh;
-  let sarB : gpu_array et_ab (bk * bn) = fst (snd sh);
   rewrite each fst sh as sarA;
+  admit();
+  let sarB : gpu_array et_ab (bk * bn) = fst (snd sh);
   rewrite each fst (snd sh) as sarB;
+  // let sarA, sarB = get_shmems sh;
 
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;

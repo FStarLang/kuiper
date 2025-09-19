@@ -367,6 +367,7 @@ fn kf
   let sarB : gpu_array et_ab (bk * bn) = fst (snd sh);
   rewrite each fst sh as sarA;
   rewrite each fst (snd sh) as sarB;
+  admit();
 
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;

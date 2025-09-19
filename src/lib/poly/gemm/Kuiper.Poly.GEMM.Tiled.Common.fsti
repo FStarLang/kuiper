@@ -19,7 +19,7 @@ instance concerete_sz_32 : concrete_sz 32 = { x = 32sz }
 inline_for_extraction noextract
 let shmems_desc
   (et:Type0) {| sized et |}
-  (bm bn bk: szp)
+  (bm bn bk: sz)
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   : list shmem_desc = [
   SHArray et (bm *^ bk);
