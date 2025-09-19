@@ -202,7 +202,7 @@ fn sarray_id
   preserves sarray_pts_to a s0
 {
   let mut i = 0sz;
-  while (FStar.SizeT.(!i <^ a.nnz))
+  while ((!i <^ a.nnz))
     invariant a |-> s0 ** live i
   {
     unfold sarray_pts_to a s0;
@@ -268,7 +268,7 @@ fn sarray_scale
   with v_elems. assert a.elems |-> v_elems;
   with v_pos. assert a.pos |-> v_pos;
   
-  while (FStar.SizeT.(!i <^ a.nnz))
+  while ((!i <^ a.nnz))
     invariant
       (exists* i_v v_elems'. 
         i |-> i_v **
@@ -515,7 +515,7 @@ fn sarray_product_dense
 
   let pos : erased (lseq nat a.nnz) = cast_pos l v_pos;
 
-  while (FStar.SizeT.(!i <^ a.nnz))
+  while ((!i <^ a.nnz))
     invariant
       (exists* i_v dp_v.
         i |-> i_v **
@@ -568,12 +568,12 @@ fn sarray_product_quadratic
   let mut dp : et = zero;
 
   let mut i = 0sz;
-  while (FStar.SizeT.(!i <^ a.nnz))
+  while ((!i <^ a.nnz))
     invariant live i ** live dp
   {
     let mut j = 0sz;
     let p_a = gpu_array_read a.pos !i;
-    while (FStar.SizeT.(!j <^ b.nnz))
+    while ((!j <^ b.nnz))
       invariant live j ** live dp
     {
       let p_b = gpu_array_read b.pos !j;
@@ -609,8 +609,8 @@ fn sarray_product
     emp
   returns
     dp: et
-  ensures
-    emp //pure (dp == dprod s t)
+  // ensures
+  //   pure (dp == dprod s t)
 {
   unfold sarray_pts_to a s;
   unfold sarray_pts_to b t;
@@ -619,16 +619,16 @@ fn sarray_product
 
   let mut i = 0sz;
   let mut j = 0sz;
-  while (FStar.SizeT.(!i <^ a.nnz && !j <^ b.nnz))
-    invariant live i ** live j ** live dp
+  while ((!i <^ a.nnz && !j <^ b.nnz))
+    invariant live i ** live j
+    invariant live dp
   {
     // esta lectura podria hacerse una sola vez
     let p_a = gpu_array_read a.pos !i;
     let p_b = gpu_array_read b.pos !j;
-    if (FStar.SizeT.(p_a <^ p_b)) {
+    if ((p_a <^ p_b)) {
       i := !i `SZ.add` 1sz
-    }
-    else if (FStar.SizeT.(p_b <^ p_a)) {
+    } else if ((p_b <^ p_a)) {
       j := !j `SZ.add` 1sz;
     } else {
       let x = gpu_array_read a.elems !i;
@@ -647,3 +647,66 @@ fn sarray_product
 }
 
 let product_sparse_u32 #l = sarray_product #u32 #_ #l
+
+type sarray_iterator
+  (#et : Type0) (#l : erased nat)
+  (a : sarray et l) =
+{
+  i   : (i   : sz{i <= a.nnz}); // índice en elems
+  // pos : (pos : sz{pos <= l});   // posición dentro del array "virtual"
+}
+
+fn sarray_iterator_init
+  (#et : Type0) {| scalar et |}
+  (#l : erased nat)
+  (a : sarray et l)
+  (s : erased (seq et))
+  // requires pure (a.nnz > 0)
+  preserves gpu
+  preserves a |-> s
+  returns sarray_iterator a
+{
+  // unfold sarray_pts_to a s;
+  // let p = gpu_array_read a.pos 0sz;
+  // fold sarray_pts_to a s;
+  let r : sarray_iterator a = { i = 0sz; (* pos = p; *) };
+  r
+}
+
+let sarray_iterator_end
+  (#et : Type0) (#l : erased nat)
+  (#a : sarray et l)
+  (i : sarray_iterator a)
+  : bool =
+  i.i = a.nnz
+
+fn sarray_iterator_get
+  (#et : Type0) {| scalar et |}
+  (#l : erased nat)
+  (#a : sarray et l)
+  (i : sarray_iterator a)
+  (#s : erased (seq et))
+  preserves gpu
+  preserves a |-> s
+  requires pure (not (sarray_iterator_end i))
+  returns
+    et & sz
+{
+  let i = i.i;
+  unfold sarray_pts_to a s;
+  let v = gpu_array_read a.elems i;
+  let p = gpu_array_read a.pos i;
+  fold sarray_pts_to a s;
+  (v, p)
+}
+
+fn sarray_iterator_next
+  (#et : Type0) (#l : erased nat)
+  (#a : sarray et l)
+  (i : sarray_iterator a)
+  requires pure (not (sarray_iterator_end i))
+  returns
+    sarray_iterator a
+{
+  admit();
+}
