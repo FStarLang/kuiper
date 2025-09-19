@@ -211,8 +211,8 @@ let kpost
   : slprop
   =
   kpost1 gA eA gB eB gC bm bn tm tn fA fB bid tid **
-  exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
-  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
+  (exists* (x : seq _). gpu_pts_to_array (fst sh)       #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
+  (exists* (x : seq _). gpu_pts_to_array (fst (snd sh)) #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm*(bn/tn)*warp_size) tid
 
 inline_for_extraction noextract
