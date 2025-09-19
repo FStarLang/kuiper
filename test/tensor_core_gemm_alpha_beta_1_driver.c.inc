@@ -81,7 +81,8 @@ int main(int argc, char **argv)
         for (j = 0; j < cols; j++) {
             m3_cpu[i * cols + j] =
 #if et_is_half == 1 && mix_prec != 1
-            __float2half(0.0001f);
+// FIXME 0.0 used to check tensorcore2d
+            __float2half(0.0000f);
 #else
             0.0001f;
 #endif

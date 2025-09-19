@@ -437,8 +437,6 @@ let kpost
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
 
-#set-options "--debug x"
-
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -518,9 +516,6 @@ fn epilogue
   ()
 }
 
-// #push-options "--split_queries always --debug SMTFail"
-// #push-options "--z3rlimit 40 --retry 5"
-// #push-options "--print_implicits"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)

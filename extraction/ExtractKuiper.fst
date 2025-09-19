@@ -391,7 +391,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
     EBufCreate (Stack,
       EApp (EQualified ([], "KPR_INIT"),
-        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout])]),
+        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])]),
       EConstant (SizeT, "1"))
 
   | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->

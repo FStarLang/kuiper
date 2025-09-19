@@ -67,6 +67,93 @@ fn cp_matrix
   ()
 }
 
+// let live_tile_stride_cells_from
+//   (#et : Type0)
+//   (#rows #cols : nat)
+//   (#lm : mlayout rows cols)
+//   ([@@@mkey] m : gpu_matrix et lm)
+//   (em : ematrix et rows cols)
+//   (nthr : nat)
+//   (tid : natlt nthr)
+//   (b : natle (div_ceil (rows*cols) nthr))
+//   : slprop
+//   =
+//   forall+ (it : natlt (div_ceil (rows*cols) nthr)).
+//     let flat_idx = tid + (it * nthr) <: nat in
+//     let i = flat_idx/cols <: nat in
+//     let j = flat_idx%cols <: nat in
+//       if (i < rows && j < cols)
+//       then 
+//         if b <= it then live_cell m i j
+//         else gpu_matrix_pts_to_cell m i j (macc em i j)
+//       else emp
+
+// inline_for_extraction noextract
+// fn cp_matrix_spec
+//   (#et : Type0) {| scalar et |}
+//   (rows cols: sz)
+//   (#lsrc #ldst : mlayout rows cols)
+//   {| clayout lsrc, clayout ldst |}
+//   (src : gpu_matrix et lsrc)
+//   (#f : perm)
+//   (#esrc : ematrix et rows cols)
+//   (dst : gpu_matrix et ldst)
+//   (nthr : sz)
+//   (tid : szlt nthr)
+//   preserves
+//     gpu **
+//     pure (SZ.fits (rows * cols + nthr - 1)) **
+//     src |-> Frac f esrc
+//   requires
+//     live_tile_stride_cells dst nthr tid
+//   ensures
+//     dst |-> esrc 
+// {
+//   let mlen = rows *^ cols;
+
+//   let mut i : sz = tid;
+//   while (SZ.(!i <^ mlen))
+//     invariant
+//       exists* (vi : sz).
+//         pure (vi >= tid) **
+//         pure (vi % nthr == tid) **
+//         i |-> vi **
+//         live_tile_stride_cells dst nthr tid **
+//         pure (vi < mlen + nthr)
+//   {
+//     let v = gpu_matrix_read src (!i /^ cols) (!i %^ cols);
+
+//     let ite : erased (natlt (div_ceil (rows*cols) nthr)) = (!i - tid) / nthr;
+
+//     unfold live_tile_stride_cells dst nthr tid;
+//     forevery_extract (reveal ite) _;
+
+//     rewrite each
+//       (((tid + ite * nthr) / cols < rows) &&
+//        ((tid + ite * nthr) % cols < cols))
+//     as true;
+
+//     assert (rewrites_to (tid + ite * nthr) !i);
+
+//     // Manual unfold and fold necessary.
+//     //  If unfold was automatic the vi in live_cell would not be rewritten above
+//     //  because it is under an exists*.
+//     unfold live_cell dst (!i / cols) (!i % cols);
+//     gpu_matrix_write_cell dst (!i /^ cols) (!i %^ cols) v;
+//     fold live_cell dst (!i / cols) (!i % cols);
+
+//     rewrite each SZ.v !i as (tid + ite * nthr);
+
+//     Pulse.Lib.Trade.elim_trade _ _;
+//     fold live_tile_stride_cells dst nthr tid;
+
+//     Math.Lemmas.modulo_addition_lemma !i nthr 1;
+//     i := !i +^ nthr;
+//   };
+
+//   ()
+// }
+
 inline_for_extraction noextract
 fn cp_matrix_one_cell_per_thread
   (#et : Type0) {| scalar et |}
