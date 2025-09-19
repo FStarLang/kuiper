@@ -11,15 +11,15 @@ fn cp_matrix
   (#lsrc #ldst : mlayout rows cols)
   {| clayout lsrc, clayout ldst |}
   (src : gpu_matrix et lsrc)
+  (#f : perm)
   (#esrc : ematrix et rows cols)
   (dst : gpu_matrix et ldst)
-  (#fM : perm)
   (nthr : sz)
   (tid : szlt nthr)
   preserves
     gpu **
     pure (SZ.fits (rows * cols + nthr - 1)) **
-    src |-> Frac fM esrc **
+    src |-> Frac f esrc **
     live_tile_stride_cells dst nthr tid
 {
   let mlen = rows *^ cols;
@@ -65,4 +65,29 @@ fn cp_matrix
   };
 
   ()
+}
+
+inline_for_extraction noextract
+fn cp_matrix_one_cell_per_thread
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : szp)
+  (#lsrc #ldst : mlayout rows cols)
+  {| clayout lsrc, clayout ldst |}
+  (src : gpu_matrix et lsrc)
+  (#esrc : ematrix et rows cols)
+  (dst : gpu_matrix et ldst)
+  (#f : perm)
+  (#nthr : erased nat{nthr == rows * cols})
+  (tid : szlt nthr)
+  preserves
+    gpu **
+    src |-> Frac f esrc
+  requires
+    live_cell dst (tid/cols) (tid%cols)
+  ensures
+    gpu_matrix_pts_to_cell dst (tid/cols) (tid%cols) (macc esrc (tid/cols) (tid%cols))
+{
+  unfold live_cell;
+  let v = gpu_matrix_read src (tid /^ cols) (tid %^ cols);
+  gpu_matrix_write_cell dst (tid /^ cols) (tid %^ cols) v;
 }

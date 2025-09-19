@@ -265,12 +265,11 @@ let array_fragment_pts_to
       forall+ (i : natlt (Seq.length ems)).
         (s @! i) |-> Frac f (ems @! i)
     
-// Introduces an odd match into the context when used: farr |-> Frac f s
-//  is not immediately equal to array_fragment_pts_to farr #f s
-// instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : erased nat) (l : fragment_layout) 
-//   : has_pts_to (array (fragment et knd m n k l)) (seq (value_for et knd m n k)) = {
-//   pts_to = array_fragment_pts_to
-// }
+unfold
+instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : erased nat) (l : fragment_layout)
+  : has_pts_to (array (fragment et knd m n k l)) (seq (value_for et knd m n k)) = {
+  pts_to = array_fragment_pts_to
+}
 
 ghost
 fn array_fragment_extract
