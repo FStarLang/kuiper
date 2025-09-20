@@ -1,4 +1,4 @@
-module Kuiper.Example.Sparse
+module Kuiper.Sparse
 
 #lang-pulse
 open Kuiper
@@ -623,7 +623,7 @@ fn sarray_product
     invariant live i ** live j
     invariant live dp
   {
-    // esta lectura podria hacerse una sola vez
+    // estas lecturas podrian hacerse una sola vez
     let p_a = gpu_array_read a.pos !i;
     let p_b = gpu_array_read b.pos !j;
     if ((p_a <^ p_b)) {
