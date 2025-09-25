@@ -5,6 +5,7 @@ module T = FStar.Tactics.V2
 
 open Kuiper
 open Kuiper.Array.Vectorized
+open Kuiper.VectorType
 
 open Kuiper.VArray
 

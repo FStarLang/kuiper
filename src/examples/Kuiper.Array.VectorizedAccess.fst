@@ -1,4 +1,4 @@
-module Kuiper.VectorizedAccs
+module Kuiper.Array.VectorizedAccess
 #lang-pulse
 
 open Kuiper
@@ -9,6 +9,7 @@ module SZ = FStar.SizeT
 module V = Pulse.Lib.Vec
 
 open Kuiper.Array.Vectorized
+open Kuiper.VectorType
 
 noextract
 unfold
@@ -101,15 +102,10 @@ fn hf (v : V.vec float)
   assert (pure (Seq.equal s (slice s 0 4)));
   assert a |-> slice s 0 4;
 
-  let two = Float32.one `add` one;
+  let two = add #float one one;
   launch_kernel_1 (kf 4sz #(slice s 0 4) 1 a two 1sz 0sz 0sz);
 
   gpu_memcpy_device_to_host v a 4sz;
-
-  // dguard (v.(0sz) = two);
-  // dguard (v.(1sz) = two);
-  // dguard (v.(2sz) = two);
-  // dguard (v.(3sz) = two);
 
   gpu_array_free a;
   ()

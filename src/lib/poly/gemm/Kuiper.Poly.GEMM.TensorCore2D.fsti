@@ -1,4 +1,4 @@
-module Kuiper.Poly.GEMM.TensorCore
+module Kuiper.Poly.GEMM.TensorCore2D
 
 #lang-pulse
 
@@ -37,9 +37,17 @@ val mk_kernel
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
+  (wm : szp{wm * tm /? bm})
+  (wn : szp{wn * tn /? bn})
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
-  (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
+  (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (#_ : squash (SZ.fits (rows * shared)))
+  (#_ : squash (SZ.fits (rows * cols)))
+  (#_ : squash (SZ.fits (shared * cols)))
+  (#_ : squash (SZ.fits (wm * wn)))
+  (#_ : squash (SZ.fits (wm * tm)))
+  (#_ : squash (SZ.fits (wn * tn)))
   (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))

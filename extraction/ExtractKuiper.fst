@@ -76,7 +76,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
   | "Kuiper.Float64.t",               [] -> TInt Double
-  | "Kuiper.Array.Vectorized.float4", [] -> TQualified ([], "float4")
+  | "Kuiper.VectorType.float4", [] -> TQualified ([], "float4")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -308,6 +308,39 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
   // Format.print1_warning "New kcall: %s\n" (show e');
   return e'
 
+let kpr_translate_alloc_fragment cb et knd m n k layout =
+    let macro_suff, knd =
+      match cta knd with
+      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
+      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
+      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> "_C", EQualified ([], "wmma::accumulator")
+      | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
+    in
+    let layout : option expr =
+      match cta layout with
+      | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
+      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
+      | Some ("Kuiper.TensorCore.FragLAcc",   [], []) -> None
+      | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
+    in
+    let faketype =
+      match et with
+      | MLTY_Named ([], (["Kuiper"; "Float16"], "t")) -> EQualified ([], "half")
+      | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
+      | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
+    in
+    (* Tries to remove the size_t cast in literals, just to make the code
+       more readable. *)
+    let ss x =
+      match x with
+      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
+      | _ -> x
+    in
+    let args =
+      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
+      @ (match layout with | Some l -> [l] | None -> [])
+    in
+      EApp (EQualified ([], "KPR_FRAGMENT_TYPE" ^ macro_suff), args)
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -355,38 +388,18 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
-  | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
-    let macro_suff, knd =
-      match cta knd with
-      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
-      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
-      | Some ("Kuiper.TensorCore.FragAccum", [], []) -> "_C", EQualified ([], "wmma::accumulator")
-      | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
-    in
-    let layout : option expr =
-      match cta layout with
-      | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
-      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
-      | Some ("Kuiper.TensorCore.FragLAccum", [], []) -> None
-      | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
-    in
-    let faketype =
-      EQualified ([], "half")
-    in
-    (* Tries to remove the size_t cast in literals, just to make the code
-       more readable. *)
-    let ss x =
-      match x with
-      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
-      | _ -> x
-    in
-    let args =
-      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
-      @ (match layout with | Some l -> [l] | None -> [])
-    in
+  | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
     EBufCreate (Stack,
-      EApp (EQualified ([], "KPR_FRAGMENT_INIT" ^ macro_suff), args),
+      EApp (EQualified ([], "KPR_INIT"),
+        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])]),
       EConstant (SizeT, "1"))
+
+  | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
+    EBufCreate (Stack,
+      EApp (EQualified ([], "KPR_INIT"),
+        [kpr_translate_alloc_fragment cb et knd m n k layout]),
+      EConstant (SizeT, "1"))
+
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     let fr = deref <| cb fr in
@@ -396,16 +409,34 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
     let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
+  | "Kuiper.TensorCore.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
+    // TODO remove duplicated code
+    let fr = deref <| cb fr in
+    let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
+    let ldm = cb <| get_strided_row_major_stride strided_l in
+    let offset = cb <| get_strided_row_major_offset strided_l in
+    let gm = cb gm in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
+    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm; layout ])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
     let fr = deref <| cb fr in
     EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
 
-  | "Kuiper.TensorCore.mma_sync'", [et], [ scal; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
+  // FIXME: the second case below is wrong, et_acc is a type, but apparently
+  // we are detecting it as an erased expression and slapping a unit (expression)
+  // argument for it.
+  // FIXME: for whatever reason, the C fragment gets a cast like *(auto *)&f,
+  // which is not allowed. We remove it via sed in fixup.sed. Figure out why.
+  | "Kuiper.TensorCore.mma_sync'", [et_ab; et_acc], [ scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ]
+  | "Kuiper.TensorCore.mma_sync'", [et_ab], [et_acc; scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
     let fa = deref <| cb fa in
     let fb = deref <| cb fb in
     let fc = deref <| cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
+  | "Kuiper.TensorCore.mma_sync'", targs, args ->
+    raise (Failed <| "unexpected types in mma_sync: " ^ show (targs, args))
 
   | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
     let fr = deref <| cb fr in
@@ -546,12 +577,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
 
   (******** VECTOR OPS ********)
-  | "Kuiper.Array.Vectorized.make_float4", [], [ x; y; z; w; ] ->
+  | "Kuiper.VectorType.make_float4", [], [ x; y; z; w; ] ->
     EApp (EQualified ([], "make_float4"), [cb x; cb y; cb z; cb w])
-  | "Kuiper.Array.Vectorized.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
-  | "Kuiper.Array.Vectorized.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
-  | "Kuiper.Array.Vectorized.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
-  | "Kuiper.Array.Vectorized.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
+  | "Kuiper.VectorType.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
+  | "Kuiper.VectorType.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
+  | "Kuiper.VectorType.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
+  | "Kuiper.VectorType.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
 
   (******** KERNEL CALL ********)
 

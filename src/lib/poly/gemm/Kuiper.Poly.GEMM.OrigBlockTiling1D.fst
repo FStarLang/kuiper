@@ -445,33 +445,32 @@ fn kf
         B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * vbkIdx) tid
   {
     (* This assert should not be needed. I don't know what effect it even has. *)
-    let vbkIdx = !bkIdx;
-    assert B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * vbkIdx) tid;
-    even_2x vbkIdx;
+    assert B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * !bkIdx) tid;
+    even_2x !bkIdx;
     rewrite
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
-      as barrier_p tm sA sB (2 * vbkIdx) tid;
+      as barrier_p tm sA sB (2 * !bkIdx) tid;
 
     B.barrier_wait ();
-    rewrite (barrier_q tm sA sB (2 * vbkIdx) tid)
+    rewrite (barrier_q tm sA sB (2 * !bkIdx) tid)
          as own_1_cell sA (tid /^ bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn);
 
     (* At this point we exclusively own a full column of the SHMEM
        cache. Populate it. *)
     populate_shmem tm sA sB gA gB mrow !bkIdx mcol tid;
 
-    assert (B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * vbkIdx + 1) tid);
-    odd_2x1 vbkIdx;
-    assert (pure (odd (2 * vbkIdx + 1)));
+    assert (B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * !bkIdx + 1) tid);
+    odd_2x1 !bkIdx;
+    assert (pure (odd (2 * !bkIdx + 1)));
     rewrite own_1_cell sA (tid/bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn)
-         as (barrier_p tm sA sB (2 * vbkIdx + 1) tid);
+         as (barrier_p tm sA sB (2 * !bkIdx + 1) tid);
     B.barrier_wait ();
-    even_2x (vbkIdx + 1);
+    even_2x (!bkIdx + 1);
     (* sigh *)
-    assert (pure (2 * (vbkIdx + 1) == 2 * vbkIdx + 2));
-    assert (pure (even (2 * vbkIdx + 2)));
-    rewrite (barrier_q tm sA sB (2 * vbkIdx + 1) tid)
+    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
+    assert (pure (even (2 * !bkIdx + 2)));
+    rewrite (barrier_q tm sA sB (2 * !bkIdx + 1) tid)
     as
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x);
@@ -527,34 +526,24 @@ fn kf
         resIdx |-> vresIdx **
         cache1d |-> dotpv
   {
-    let vresIdx = !resIdx;
-    forevery_extract #(natlt tm) (SZ.v vresIdx) _;
+    forevery_extract #(natlt tm) (SZ.v !resIdx) _;
 
     with bi0 bj0 i0 j0 v0.
       rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-          as m4_pts_to_cell gC mrow mcol (threadRow * tm + vresIdx) threadCol v0;
+          as m4_pts_to_cell gC mrow mcol (threadRow * tm + !resIdx) threadCol v0;
 
-    let v0 = M4.gpu_matrix_read_cell gC mrow mcol (threadRow *^ tm +^ vresIdx) threadCol;
+    let v0 = M4.gpu_matrix_read_cell gC mrow mcol (threadRow *^ tm +^ !resIdx) threadCol;
     open Pulse.Lib.Array;
     let v1 = cache1d.(!resIdx);
     let v' = comb v0 v1;
-    M4.gpu_matrix_write_cell gC mrow mcol (threadRow *^ tm +^ vresIdx) threadCol v';
+    M4.gpu_matrix_write_cell gC mrow mcol (threadRow *^ tm +^ !resIdx) threadCol v';
 
     with bi0 bj0 i0 j0 v0.
       rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-          as m4_pts_to_cell gC mrow mcol (threadRow * tm + vresIdx) threadCol v0;
+          as m4_pts_to_cell gC mrow mcol (threadRow * tm + !resIdx) threadCol v0;
 
     resIdx := !resIdx +^ 1sz;
-    Pulse.Lib.Trade.elim_trade
-      (exists* v.
-        m4_pts_to_cell gC #1.0R
-          mrow mcol
-          (threadRow * tm + vresIdx) threadCol v)
-      (forall+ (ii : natlt tm).
-        (exists* v.
-          m4_pts_to_cell gC #1.0R
-            mrow mcol
-            (threadRow * tm + ii) threadCol v));
+    Pulse.Lib.Trade.elim_trade _ _
   };
 
   M.gpu_matrix_concr sA; rewrite each M.core sA as sarA;

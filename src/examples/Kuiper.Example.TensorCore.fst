@@ -20,7 +20,7 @@ fn use_wmma_ker
   (m3 : gpu_matrix half (row_major 16 16))
   (fa : fragment   half FragA     16 16 16 FragLRM)
   (fb : fragment   half FragB     16 16 16 FragLRM)
-  (fc : fragment   half FragAccum 16 16 16 FragLAccum)
+  (fc : fragment   half FragAcc 16 16 16 FragLAcc)
   preserves
     (exists* v. m1 |-> v) **
     (exists* v. m2 |-> v) **
@@ -61,7 +61,7 @@ fn test
 {
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
-  let fc = __alloc_fragment half FragAccum 16sz 16sz 16sz FragLAccum;
+  let fc = __alloc_fragment half FragAcc 16sz 16sz 16sz FragLAcc;
 
   // use_wmma_ker m1 m2 m3 fragA fragB fragC;
   mma_loadA fa m1;
@@ -70,6 +70,7 @@ fn test
   mma_sync' fa fb fc;
   mma_store fc m3;
 
+  lemma_mma_is_matmul_add (fill_value #half #FragAcc #16 #16 #16 zero) 'v1 'v2;
   assume (pure (forall (x:half). zero `add` x == x));
   matplus_zero_lem (matmul 'v1 'v2);
   assert m3 |-> matmul 'v1 'v2;
@@ -102,7 +103,7 @@ fn test2
 {
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
-  let fc = __alloc_fragment half FragAccum 16sz 16sz 16sz FragLAccum;
+  let fc = __alloc_fragment half FragAcc 16sz 16sz 16sz FragLAcc;
 
   gpu_matrix_extract_tile_ro m1 16 16 1 1;
   let t1 = gpu_matrix_subtile m1 16 16 1 1;
@@ -121,6 +122,11 @@ fn test2
   mma_fill fc zero;
   mma_sync' fa fb fc;
   mma_store fc t3;
+
+  lemma_mma_is_matmul_add
+    (fill_value #half #FragAcc #16 #16 #16 zero)
+    (ematrix_subtile v1 16 16 1 1)
+    (ematrix_subtile v2 16 16 1 1);
 
   with x1.
     assert t1 |-> x1;

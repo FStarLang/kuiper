@@ -38,3 +38,8 @@ let lem_one_elem (#a:Type) (s : seq a) (v : a)
   : Lemma (requires length s == 1 /\ s @! 0 == v)
           (ensures s == seq![v])
   = assert (Seq.equal s seq![v])
+
+let lemma_upd_index (#a:Type) (s : seq a) (i : nat{i < Seq.length s})
+  : Lemma (requires True)
+          (ensures (Seq.upd s i (Seq.index s i)) == s)
+  = assert (Seq.equal (Seq.upd s i ( Seq.index s i)) s); ()

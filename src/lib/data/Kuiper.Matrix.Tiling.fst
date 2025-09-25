@@ -105,10 +105,10 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
   (tr    : enatlt (rows / trows))
   (tc    : enatlt (cols / tcols))
-  {| c_trows : concrete_sz (hide (reveal trows)),
-     c_tcols : concrete_sz (hide (reveal tcols)),
-     c_tr    : concrete_sz (hide (reveal tr)),
-     c_tc    : concrete_sz (hide (reveal tc)),
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
   |}
   : strided_row_major (subtile_layout l trows tcols tr tc) =
 {
@@ -126,10 +126,10 @@ instance c_subtile_layout
   (tcols : erased pos {tcols /? cols})
   (tr    : (enatlt (rows / trows)))
   (tc    : (enatlt (cols / tcols)))
-  {| c_trows : concrete_sz (hide (reveal trows)),
-     c_tcols : concrete_sz (hide (reveal tcols)),
-     c_tr    : concrete_sz (hide (reveal tr)),
-     c_tc    : concrete_sz (hide (reveal tc)),
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
   |}
   : clayout (subtile_layout l trows tcols tr tc) =
   {
@@ -404,8 +404,6 @@ fn gpu_matrix_extract_tile_ro'
       (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)
 {
-  // reveal was only required because of pos in
-  //   declaration of gpu_matrix_extract_tile
   gpu_matrix_extract_tile_ro gm trows tcols tr tc;
   gpu_matrix_subtile gm trows tcols tr tc;
 }

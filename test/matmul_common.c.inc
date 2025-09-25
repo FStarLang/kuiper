@@ -3,9 +3,16 @@
 
 const char *progname = NULL;
 
+// for tensor core operations assume the accumulator's type for inputs as well
+#if mix_prec != 1
 et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 {
     et *m3 = (et *) calloc(rows * cols, sizeof(et));
+#else
+float *cpu_mul(size_t rows, size_t shared, size_t cols, float *m1, float *m2)
+{
+    float *m3 = (float *) calloc(rows * cols, sizeof(float));
+#endif
     int i, j, k;
     for (i = 0; i < rows; i++) {
         for (k = 0; k < shared; k++) {
@@ -17,10 +24,17 @@ et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
     return m3;
 }
 
+#if mix_prec == 1
+float *cpu_sgemm(size_t rows, size_t shared, size_t cols, float *m1_cpu, float *m2_cpu,
+              float *m3_cpu, float alpha, float beta)
+{
+    float *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
+#else
 et *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
               et *m3_cpu, et alpha, et beta)
 {
     et *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
+#endif
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             mm[i * cols + j] =
@@ -30,6 +44,28 @@ et *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
     return mm;
 }
 
+#if mix_prec
+/* m1 is GPU-side result, m2 is CPU-computed result */
+void cmp(size_t rows, size_t cols, float *m1_gpu, float *m2)
+{
+    fprintf(stderr, "Checking result...\n");
+    int nerrs = 0;
+    int i, j;
+    float *m1 = (float *) calloc(sizeof(float), rows * cols);
+    MUST(cudaMemcpy
+         (m1, m1_gpu, rows * cols * sizeof(float), cudaMemcpyDeviceToHost));
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            bool ok;
+#ifdef EXACT
+            ok = m1[i * cols + j] == m2[i * cols + j];
+#else
+            /* Check if the relative error is less than TOLERANCE */
+            float diff = m1[i * cols + j] - m2[i * cols + j];
+            ok = fabs((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
+#endif
+
+#else
 /* m1 is GPU-side result, m2 is CPU-computed result */
 void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
 {
@@ -49,13 +85,21 @@ void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
             et diff = m1[i * cols + j] - m2[i * cols + j];
             ok = fabs((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
 #endif
+#endif
+
             if (!ok) {
+#if et_is_half == 1
+                float vm1 = __half2float(m1[i * cols + j]);
+                float vm2 = __half2float(m2[i * cols + j]);
+#else
+                et vm1 = m1[i * cols + j];
+                et vm2 = m2[i * cols + j];
+#endif
                 fprintf(stderr, "Error at pos (%d, %d): %" PRIet " != %"
-                        PRIet "\n", i, j, m1[i * cols + j], m2[i * cols + j]);
+                        PRIet "\n", i, j, vm1, vm2);
                 fprintf(stderr,
                         "::error::%s -- Error at pos (%d, %d): %" PRIet " != %"
-                        PRIet "\n", progname, i, j, m1[i * cols + j],
-                        m2[i * cols + j]);
+                        PRIet "\n", progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
                     free(m1);

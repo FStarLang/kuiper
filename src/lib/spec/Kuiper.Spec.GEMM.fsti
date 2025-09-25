@@ -146,3 +146,23 @@ let gemm
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
 = matrix_comb (lincomb beta alpha) m0 (matmul m1 m2)
+
+// only assumed
+val mma
+  (#et0 #et1 : Type)
+  (#rows #shared #columns : nat)
+  (mc : ematrix et1 rows columns)
+  (ma : ematrix et0 rows shared)
+  (mb : ematrix et0 shared columns)
+: ematrix et1 rows columns
+
+val lemma_mma_is_matmul_add
+  (#et : Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (mc : ematrix et rows columns)
+  (ma : ematrix et rows shared)
+  (mb : ematrix et shared columns)
+: Lemma (mma mc ma mb == matplus mc (matmul ma mb))
+// Warning because of type class?
+// Does not seem to work but the warning is emitted.
+        // [SMTPat (mma #et #et #rows #shared #columns mc ma mb)]

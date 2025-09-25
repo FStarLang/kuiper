@@ -61,6 +61,7 @@ fn gpu_matrix_pts_to_ref
 }
 
 
+#push-options "--retry 3"
 ghost
 fn gpu_matrix_concr
   (#et:Type)
@@ -81,6 +82,7 @@ fn gpu_matrix_concr
        as core g |-> Frac f (to_seq l em);
   ()
 }
+#pop-options
 
 ghost
 fn gpu_matrix_abs

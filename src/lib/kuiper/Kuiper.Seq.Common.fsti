@@ -65,6 +65,11 @@ val lem_one_elem (#a:Type) (s : seq a) (v : a)
           (ensures s == seq![v])
           [SMTPat (length s); SMTPat (seq![v])] // not sure this actually triggers
 
+val lemma_upd_index (#a:Type) (s : seq a) (i : nat{i < Seq.length s})
+  : Lemma (requires True)
+          (ensures (Seq.upd s i (Seq.index s i)) == s)
+          [SMTPat (Seq.upd s i (Seq.index s i))]
+
 let seq_replace
   (#a:Type)
   (s1 : seq a)
