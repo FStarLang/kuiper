@@ -437,6 +437,7 @@ let kpost
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
 
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -515,6 +516,7 @@ fn epilogue
 
   ()
 }
+#pop-options
 
 inline_for_extraction noextract
 fn kf
