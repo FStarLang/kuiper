@@ -114,14 +114,15 @@ fn gpu_array_read
   (r : gpu_array a sz)
   (#f : perm)
   (idx : SZ.t)
-  (#s : erased (seq a))
+  (#_ : squash (i <= SZ.v idx /\ SZ.v idx < j))
+  (#s : erased (seq a){Seq.length s == j-i})
   preserves gpu
   preserves gpu_pts_to_slice #a #sz r #f i j s
-  requires pure (i <= SZ.v idx /\ SZ.v idx < j)
   returns  x:a
-  ensures  pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
-                 i <= SZ.v idx /\ SZ.v idx < j /\
-                 x == Seq.index s (SZ.v idx - i))
+  ensures  //with_pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
+                //  i <= SZ.v idx /\ SZ.v idx < j) (fun _ ->
+             rewrites_to x (Seq.index s (SZ.v idx - i))
+          //  )
 
 [@@noextract_to "krml"]
 fn gpu_array_write
