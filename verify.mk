@@ -244,7 +244,7 @@ $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
 NVCC_FLAGS += -O3
 NVCC_FLAGS += -I include
 NVCC_FLAGS += -I obj # needed for files in test/ only..
-NVCC_FLAGS += -arch=sm_75 # cc lower than 7.5 will be removed in future nvcc versions
+# NVCC_FLAGS += -arch=sm_75 # cc lower than 7.5 will be removed in future nvcc versions
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 
 %.o: %.cu %.h include/*.h
