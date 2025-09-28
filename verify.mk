@@ -316,8 +316,8 @@ BUILD :=
 BUILD += $(patsubst %,obj/%.exe,$(TESTS))
 BUILD += obj/Kuiper_Example2.o
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
-BUILD := $(filter-out obj/Test_Kuiper_Example_TensorCore.exe,$(BUILD))
-BUILD := $(filter-out obj/Test_Kuiper_GEMM_TensorCore__F16_F16_128x128x16_16x16x16.exe,$(BUILD))
+TENSORCORE_TESTS := $(foreach f,$(BUILD),$(if $(findstring TensorCore,$(f)),$(f)))
+BUILD := $(filter-out $(TENSORCORE_TESTS),$(BUILD))
 endif
 
 build-targets: $(BUILD)
