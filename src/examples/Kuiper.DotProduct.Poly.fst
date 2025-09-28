@@ -44,6 +44,10 @@ fn kf
   (**)unfold gpu_pts_to_array1 ga2 tid;
   (**)unfold gpu_pts_to_array1 r   tid;
 
+  // Needed after API change in gpu_array_read
+  gpu_pts_to_slice_ref ga1 _ _;
+  gpu_pts_to_slice_ref ga2 _ _;
+
   gpu_array_write r tid (gpu_array_read ga1 tid `mul` gpu_array_read ga2 tid);
 
   (**)fold gpu_pts_to_array1 r   tid;

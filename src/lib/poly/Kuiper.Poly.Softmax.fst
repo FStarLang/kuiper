@@ -49,6 +49,7 @@ fn kf_exp
   assert (pure (i < lena));
   assert (pure (SZ.v i == bid));
   unfold gpu_pts_to_array1 a i;
+  gpu_pts_to_slice_ref a _ _; // Needed after API change.
   let x = gpu_array_read a i;
   let x = exp x;
   gpu_array_write a i x;
@@ -97,6 +98,7 @@ fn kf_div
   assert (pure (i < lena));
   assert (pure (SZ.v i == bid));
   unfold gpu_pts_to_array1 a i;
+  gpu_pts_to_slice_ref a _ _; // Needed after API change.
   let x = gpu_array_read a i;
   let x = x `div` d;
   gpu_array_write a i x;

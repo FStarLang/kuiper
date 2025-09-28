@@ -34,6 +34,7 @@ fn k_reduce
     invariant live i ** live r
   {
     let vi = !i;
+    gpu_pts_to_ref a;
     let v = gpu_array_read a vi;
     let vr = !r;
     let vr' = add vr v;
