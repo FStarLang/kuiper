@@ -283,7 +283,7 @@ TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
 
 NOTEST += Test_Kuiper_Softmax__F16
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
-NOTEST += Test_Kuiper_Example_TensorCore
+NOTEST += $(foreach f,$(TESTS),$(if $(findstring TensorCore,$(f)),$(f)))
 endif
 # RESTORE
 NOTEST += Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2
@@ -316,8 +316,8 @@ BUILD :=
 BUILD += $(patsubst %,obj/%.exe,$(TESTS))
 BUILD += obj/Kuiper_Example2.o
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
-TENSORCORE_TESTS := $(foreach f,$(BUILD),$(if $(findstring TensorCore,$(f)),$(f)))
-BUILD := $(filter-out $(TENSORCORE_TESTS),$(BUILD))
+TENSORCORE_BUILD := $(foreach f,$(BUILD),$(if $(findstring TensorCore,$(f)),$(f)))
+BUILD := $(filter-out $(TENSORCORE_BUILD),$(BUILD))
 endif
 
 build-targets: $(BUILD)
