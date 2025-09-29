@@ -5,3 +5,7 @@ obj
 depend.pdf
 .*.touch
 dep.graph
+
+kuiper-bench
+kuiper-bench.tgz
+_tmp

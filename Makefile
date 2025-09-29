@@ -84,3 +84,29 @@ wc:
 	find src/ \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 	echo CUDA:
 	find dist/ -name '*.cu' -exec cat {} \+ | grep '[^ ]' | wc -l
+
+.PHONY: bench-package
+bench-package: kuiper-bench.tgz
+
+kuiper-bench.tgz: all
+	rm -rf kuiper-bench
+	mkdir -p kuiper-bench
+	mkdir -p kuiper-bench/obj
+	cp -r obj/*.cu obj/*.h kuiper-bench/obj
+	cp -r include kuiper-bench/include
+	cp -r test kuiper-bench/test
+	cp -r scripts kuiper-bench/scripts
+	cp -r configure kuiper-bench/configure
+	cp -r bench-package.mk kuiper-bench/Makefile
+	cp -r nvcc.mk kuiper-bench/nvcc.mk
+	cp -r .common.mk kuiper-bench/.common.mk
+	cp -r .configure.mk kuiper-bench/.configure.mk
+	cp -r bench kuiper-bench/bench
+	tar czf kuiper-bench.tgz -C kuiper-bench .
+
+.PHONY: test-bench-package
+test-bench-package: bench-package
+	mkdir _tmp
+	cd _tmp && tar xzf ../kuiper-bench.tgz
+	$(MAKE) -C _tmp
+	rm -rf _tmp
