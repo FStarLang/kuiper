@@ -36,10 +36,10 @@ let max_threads : erased int = 1024
 and in thread_id, the first argument is always positive
 when this resource is actually live, but not placing that refinement
 here helps with inference in some places. *)
-val block_id (nblk : nat) (bid : nat) : slprop
+val block_id (nblk : int) (bid : int) : slprop
 
 (* Token given to a particular thread within a block *)
-val thread_id (nthr : nat) (tid : nat) : slprop
+val thread_id (nthr : int) (tid : int) : slprop
 
 (* Get a concrete value for the number of blocks (~ gridDim.x) *)
 fn get_gdim ()
