@@ -9,4 +9,3 @@ s/wmma__/wmma::/g
 s/\([a-zA-Z_0-9]*\) \*\([a-zA-Z_0-9]*\) = \(.*\)KPR_SHMEM_AT(/\1 *\2 = (\1 *)\3KPR_SHMEM_AT(/
 # try to unfold kpr_offset
 s/kpr_offset(\([^ ()]*\), \(([^ ]*)[^ ]*\))/(\1 + \2)/g
-s/\*(auto \*)\&//g
