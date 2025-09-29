@@ -106,6 +106,7 @@ kuiper-bench.tgz: all
 
 .PHONY: test-bench-package
 test-bench-package: bench-package
+	rm -rf _tmp
 	mkdir _tmp
 	cd _tmp && tar xzf ../kuiper-bench.tgz
 	$(MAKE) -C _tmp

@@ -48,9 +48,9 @@ check_tensor_cores
 # Export whatever variables are needed.
 vv () {
   if [ -v "$1" ]; then
-    echo "${1}=${!1}" >$out
+    echo "export ${1}=${!1}" >$out
     if $repeat; then
-      echo "${1}=${!1}"
+      echo "export ${1}=${!1}"
     fi
   fi
 }
