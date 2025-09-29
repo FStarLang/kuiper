@@ -71,7 +71,18 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.fragment", [et; knd; m; n; k; layout] ->
-    TQualified (([], "auto")) // :-)
+    // Note: it is difficult to try to construct a proper type
+    // here because
+    // 1) the indices are already erased to unit, and we cannot
+    //    recover them here
+    // 2) if we want to generate the templated types, i.e.
+    //    something like wmma::fragment<half, 16, 16, 16, wmma::row_major>,
+    //    we cannot just TQualified as karamel will sanitize the string,
+    //    and karamel also has no notion of templated types. Though this
+    //    seems not too difficult to add, it's probably easier to just
+    //    define macros like kpr_fragment_half_16_16_16_row_major that
+    //    expand to the proper templated type.
+    TQualified ([], "auto")
 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
