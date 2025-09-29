@@ -121,23 +121,25 @@ GPUH := $(realpath include/kuiper.h)
 
 KOTHERFLAGS += $(KO)
 
-KRML := $(KRML_HOME)/krml				\
-	-add-early-include '<kuiper.h>'			\
-	-fc++-compat					\
-	-fcast-allocations				\
-	-skip-compilation				\
-	-skip-makefiles					\
-	-faggressive-inlining				\
-	-fauto-for-loops				\
-	-fnoshort-enums					\
-	-cuda						\
-	-dbacktrace					\
-	$(if $(V),-verbose,-silent)			\
-	-drop Prims					\
-	-minimal					\
-	-header /dev/null				\
-	-warn-error -2@4-10@18				\
-	$(KOTHERFLAGS)
+KRML_FLAGS :=
+KRML_FLAGS += -add-early-include '<kuiper.h>'
+KRML_FLAGS += -fc++-compat
+KRML_FLAGS += -fcast-allocations
+KRML_FLAGS += -skip-compilation
+KRML_FLAGS += -skip-makefiles
+KRML_FLAGS += -faggressive-inlining
+KRML_FLAGS += -fauto-for-loops
+KRML_FLAGS += -fnoshort-enums
+KRML_FLAGS += -cuda
+KRML_FLAGS += -dbacktrace
+KRML_FLAGS += $(if $(V),-verbose,-silent)
+KRML_FLAGS += -drop Prims
+KRML_FLAGS += -minimal
+KRML_FLAGS += -header /dev/null
+KRML_FLAGS += -warn-error -2@4-10@18
+KRML_FLAGS += $(KOTHERFLAGS)
+
+KRML := $(KRML_HOME)/krml $(KRML_FLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
