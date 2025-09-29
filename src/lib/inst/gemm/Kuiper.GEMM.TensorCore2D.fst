@@ -76,8 +76,11 @@ fn specialize_gpu
   dguard (shared %^ bk = 0sz);
   dguard (cols   %^ bn = 0sz);
 
+  let nblk = rows/^bm *^ (cols/^bn);
+  let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
+
   launch_sync (
-    mk_kernel gA gB gC bm bn bk tm tn tk wm wn (rows/^bm *^ (cols/^bn)) (bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz) ()
+    mk_kernel gA gB gC bm bn bk tm tn tk wm wn nblk nthr ()
   );
 
   ()
