@@ -102,7 +102,8 @@ kuiper-bench.tgz: all
 	cp -r .common.mk kuiper-bench/.common.mk
 	cp -r .configure.mk kuiper-bench/.configure.mk
 	cp -r bench kuiper-bench/bench
-	rm -f kuiper-bench/bench/{*.o,bench} # clean built files
+	rm -f kuiper-bench/bench/*.o   # clean built files
+	rm -f kuiper-bench/bench/bench # clean built files
 	tar czf kuiper-bench.tgz ./kuiper-bench
 
 .PHONY: test-bench-package
