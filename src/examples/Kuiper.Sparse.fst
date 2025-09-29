@@ -4,6 +4,9 @@ module Kuiper.Sparse
 open Kuiper
 module SZ = FStar.SizeT
 
+// This is here to force extraction.
+let x = 1ul
+
 (* Propiedades sobre escalares *)
 
 assume
