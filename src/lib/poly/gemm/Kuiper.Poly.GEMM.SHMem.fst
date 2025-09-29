@@ -187,6 +187,7 @@ let kpost
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -376,6 +377,7 @@ fn kf
   rewrite each ar2 as fst (snd sh);
   ()
 }
+#pop-options
 
 ghost
 fn setup

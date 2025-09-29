@@ -367,8 +367,7 @@ fn subproducts1d
 
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
-// #push-options "--z3rlimit 30"
-#push-options "--retry 6"
+#push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -468,9 +467,10 @@ fn kf
     B.barrier_wait ();
     even_2x (!bkIdx + 1);
     (* sigh *)
-    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
-    assert (pure (even (2 * !bkIdx + 2)));
-    rewrite (barrier_q tm sA sB (2 * !bkIdx + 1) tid)
+    let vbkIdx = !bkIdx;
+    assert (pure (2 * (vbkIdx + 1) == 2 * vbkIdx + 1 + 1));
+    assert (pure (even (2 * vbkIdx + 2)));
+    rewrite (barrier_q tm sA sB (2 * vbkIdx + 1) tid)
     as
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x);
