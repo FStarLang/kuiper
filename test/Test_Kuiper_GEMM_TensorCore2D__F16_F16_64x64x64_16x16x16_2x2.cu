@@ -1,4 +1,4 @@
-#include "Kuiper_GEMM_TensorCore.h"
+#include "Kuiper_GEMM_TensorCore2D.h"
 
 #define stem          Kuiper_GEMM_TensorCore2D_g_gemm_
 #define et            half

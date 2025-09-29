@@ -71,7 +71,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.fragment", [et; knd; m; n; k; layout] ->
-    TBuf (TQualified (([], "auto"))) // :-)
+    TQualified (([], "auto")) // :-)
 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
@@ -389,29 +389,32 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
   | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
-    EBufCreate (Stack,
+    // EBufCreate (Stack,
       EApp (EQualified ([], "KPR_INIT"),
-        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])]),
-      EConstant (SizeT, "1"))
+        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])])
+      // ,EConstant (SizeT, "1")
+    // )
 
   | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
-    EBufCreate (Stack,
+    // EBufCreate (Stack,
       EApp (EQualified ([], "KPR_INIT"),
-        [kpr_translate_alloc_fragment cb et knd m n k layout]),
-      EConstant (SizeT, "1"))
+        [kpr_translate_alloc_fragment cb et knd m n k layout])
+      // ,EConstant (SizeT, "1")
+    // )
 
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
     // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
     let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
+
   | "Kuiper.TensorCore.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     // TODO remove duplicated code
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
@@ -421,7 +424,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm; layout ])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
 
   // FIXME: the second case below is wrong, et_acc is a type, but apparently
@@ -431,15 +434,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   // which is not allowed. We remove it via sed in fixup.sed. Figure out why.
   | "Kuiper.TensorCore.mma_sync'", [et_ab; et_acc], [ scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ]
   | "Kuiper.TensorCore.mma_sync'", [et_ab], [et_acc; scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
-    let fa = deref <| cb fa in
-    let fb = deref <| cb fb in
-    let fc = deref <| cb fc in
+    let fa = cb fa in
+    let fb = cb fb in
+    let fc = cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
   | "Kuiper.TensorCore.mma_sync'", targs, args ->
     raise (Failed <| "unexpected types in mma_sync: " ^ show (targs, args))
 
   | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
