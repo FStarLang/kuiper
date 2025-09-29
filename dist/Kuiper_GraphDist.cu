@@ -34,18 +34,24 @@ static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < size * size)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / size;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % size;
     size_t k = (size_t)0U;
     uint16_t sum = 0U;
     while (k < size)
     {
       uint16_t vsum = sum;
-      sum = add_(vsum, mult(a[trow * size + k], a[k * size + tcol]));
+      sum =
+        add_(vsum,
+          mult(a[((size_t)1024U * blockIdx.x + threadIdx.x) / size * size + k],
+            a[k * size + ((size_t)1024U * blockIdx.x + threadIdx.x) % size]));
       k += (size_t)1U;
     }
     uint16_t s = sum;
-    b[trow * size + tcol] = add_(b[trow * size + tcol], s);
+    b[((size_t)1024U * blockIdx.x + threadIdx.x) / size * size +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % size]
+    =
+      add_(b[((size_t)1024U * blockIdx.x + threadIdx.x) / size * size +
+          ((size_t)1024U * blockIdx.x + threadIdx.x) % size],
+        s);
   }
 }
 

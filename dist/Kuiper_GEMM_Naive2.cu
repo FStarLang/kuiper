@@ -11,13 +11,15 @@ __hoisted_0(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -66,13 +68,15 @@ __hoisted_1(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -121,13 +125,15 @@ __hoisted_2(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -174,13 +180,15 @@ __hoisted_3(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -227,13 +235,15 @@ __hoisted_4(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -282,13 +292,15 @@ __hoisted_5(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -337,13 +349,15 @@ __hoisted_6(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -390,13 +404,15 @@ __hoisted_7(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -443,13 +459,15 @@ __hoisted_8(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -485,13 +503,15 @@ __hoisted_9(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -527,13 +547,15 @@ __hoisted_10(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -569,13 +591,15 @@ __hoisted_11(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[trow * shared + k] * gB[k * cols + tcol];
-    gC[trow * cols + tcol] = sum;
+      sum +=
+        gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
+          gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
+    = sum;
   }
 }
 
@@ -611,13 +635,15 @@ __hoisted_12(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, 
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     float_t sum = (float_t)0.0f;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -653,13 +679,15 @@ __hoisted_13(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     double_t sum = (double_t)0.0l;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -695,13 +723,15 @@ __hoisted_14(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint32_t sum = 0U;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
@@ -737,13 +767,15 @@ __hoisted_15(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
 {
   if ((size_t)1024U * blockIdx.x + threadIdx.x < rows * cols)
   {
-    size_t trow = ((size_t)1024U * blockIdx.x + threadIdx.x) / cols;
-    size_t tcol = ((size_t)1024U * blockIdx.x + threadIdx.x) % cols;
     size_t k = (size_t)0U;
     uint64_t sum = 0ULL;
     for (; k < shared; k += (size_t)1U)
-      sum += gA[k * rows + trow] * gB[tcol * shared + k];
-    gC[tcol * rows + trow] = sum;
+      sum +=
+        gA[k * rows + ((size_t)1024U * blockIdx.x + threadIdx.x) / cols] *
+          gB[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
+    gC[((size_t)1024U * blockIdx.x + threadIdx.x) % cols * rows +
+      ((size_t)1024U * blockIdx.x + threadIdx.x) / cols]
+    = sum;
   }
 }
 
