@@ -1,6 +1,6 @@
 
 
-#include "Kuiper_VectorizedAccs.h"
+#include "Kuiper_Array_VectorizedAccess.h"
 
 __global__
 /**
@@ -15,7 +15,7 @@ static void __hoisted_0(float_t *a, float_t two)
   KPR_VECTZD_WRITE(a, (size_t)0U, make_float4(x, y, z, KPR_PROJ_W(fv) * two));
 }
 
-void Kuiper_VectorizedAccs_hf(float_t *v)
+void Kuiper_Array_VectorizedAccess_hf(float_t *v)
 {
   float_t *a = (float_t *)KPR_GPU_ALLOC((size_t)4U, (size_t)4U);
   MUST(cudaMemcpy(a, v, (size_t)16U, cudaMemcpyHostToDevice));

@@ -23,18 +23,18 @@ static void __hoisted_0(size_t shared, size_t cols, float_t *gA, float_t *gB, fl
   while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
-    size_t __anf0 = bkIdx;
+    size_t __anf01 = bkIdx;
     float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)512U; i1 += blockDim.x)
+    for (; i1 < (size_t)512U; i1 += (size_t)64U)
       sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
         tileA[(mrow * (size_t)64U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
+          __anf01 * (size_t)8U + i1 % (size_t)8U];
     float_t *tileB = gB;
     size_t i = threadIdx.x;
-    for (; i < (size_t)512U; i += blockDim.x)
+    for (; i < (size_t)512U; i += (size_t)64U)
       sB[i / (size_t)64U * (size_t)64U + i % (size_t)64U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
+        tileB[(__anf01 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
@@ -133,18 +133,19 @@ static void __hoisted_1(size_t shared, size_t cols, float_t *gA, float_t *gB, fl
   while (bkIdx < shared / (size_t)32U)
   {
     __syncthreads();
-    size_t __anf0 = bkIdx;
+    size_t __anf01 = bkIdx;
     float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += blockDim.x)
+    for (; i1 < (size_t)1024U; i1 += (size_t)4U)
       sA[i1 / (size_t)32U * (size_t)32U + i1 % (size_t)32U] =
         tileA[(mrow * (size_t)32U + i1 / (size_t)32U) * shared +
-          __anf0 * (size_t)32U + i1 % (size_t)32U];
+          __anf01 * (size_t)32U + i1 % (size_t)32U];
     float_t *tileB = gB;
     size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += blockDim.x)
+    for (; i < (size_t)1024U; i += (size_t)4U)
       sB[i / (size_t)32U * (size_t)32U + i % (size_t)32U] =
-        tileB[(__anf0 * (size_t)32U + i / (size_t)32U) * cols + mcol * (size_t)32U + i % (size_t)32U];
+        tileB[(__anf01 * (size_t)32U + i / (size_t)32U) * cols +
+          mcol * (size_t)32U + i % (size_t)32U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)32U)
@@ -252,18 +253,18 @@ __hoisted_2(
   while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
-    size_t __anf0 = bkIdx;
+    size_t __anf01 = bkIdx;
     float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)512U; i1 += blockDim.x)
+    for (; i1 < (size_t)512U; i1 += (size_t)64U)
       sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
         tileA[(mrow * (size_t)64U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
+          __anf01 * (size_t)8U + i1 % (size_t)8U];
     float_t *tileB = gB;
     size_t i = threadIdx.x;
-    for (; i < (size_t)512U; i += blockDim.x)
+    for (; i < (size_t)512U; i += (size_t)64U)
       sB[i / (size_t)64U * (size_t)64U + i % (size_t)64U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
+        tileB[(__anf01 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
     while (dotIdx < (size_t)8U)
@@ -370,18 +371,18 @@ __hoisted_3(
   while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
-    size_t __anf0 = bkIdx;
+    size_t __anf01 = bkIdx;
     float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += blockDim.x)
+    for (; i1 < (size_t)1024U; i1 += (size_t)256U)
       sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
         tileA[(mrow * (size_t)128U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
+          __anf01 * (size_t)8U + i1 % (size_t)8U];
     float_t *tileB = gB;
     size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += blockDim.x)
+    for (; i < (size_t)1024U; i += (size_t)256U)
       sB[i / (size_t)128U * (size_t)128U + i % (size_t)128U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)128U) * cols +
+        tileB[(__anf01 * (size_t)8U + i / (size_t)128U) * cols +
           mcol * (size_t)128U + i % (size_t)128U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
@@ -489,18 +490,18 @@ __hoisted_4(
   while (bkIdx < shared / (size_t)8U)
   {
     __syncthreads();
-    size_t __anf0 = bkIdx;
+    size_t __anf01 = bkIdx;
     float_t *tileA = gA;
     size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += blockDim.x)
+    for (; i1 < (size_t)1024U; i1 += (size_t)256U)
       sA[i1 % (size_t)8U * (size_t)128U + i1 / (size_t)8U] =
         tileA[(mrow * (size_t)128U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
+          __anf01 * (size_t)8U + i1 % (size_t)8U];
     float_t *tileB = gB;
     size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += blockDim.x)
+    for (; i < (size_t)1024U; i += (size_t)256U)
       sB[i / (size_t)128U * (size_t)128U + i % (size_t)128U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)128U) * cols +
+        tileB[(__anf01 * (size_t)8U + i / (size_t)128U) * cols +
           mcol * (size_t)128U + i % (size_t)128U];
     __syncthreads();
     size_t dotIdx = (size_t)0U;
