@@ -287,10 +287,7 @@ fn kf
     thread_id tile tid **
     block_id (mrows * mcols) bid
 {
-  let ar1 : gpu_array et (tile * tile) = fst sh;
-  let ar2 : gpu_array et (tile * tile) = fst (snd sh);
-  rewrite each fst sh as ar1;
-  rewrite each fst (snd sh) as ar2;
+  let (ar1, (ar2, _)) = sh;
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;

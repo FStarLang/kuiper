@@ -169,6 +169,46 @@ let collapse_tuple_proj (e : mlexpr) : mlexpr =
   in
   ml_visit id subst1 e
 
+// This stage is essential to allow to match on shared memory descriptors
+// like: let (ar1, (ar2, _)) = sh in ...
+// Otherwise karamel complains about a cast into Top remaining.
+let collapse_tuple_matches (e : mlexpr) : mlexpr =
+  let rec subst1 (e0 : mlexpr) : mlexpr =
+    match e0.expr with
+    | MLE_Let ((NonRec, [{ mllb_name = v; mllb_def = def; }]), body) -> (
+      let is_var v e =
+        match (unmagic e).expr with
+        | MLE_Var v' -> v = v'
+        | _ -> false
+      in
+      match body.expr with
+      | MLE_Match (sc, _) when is_var v sc ->
+        subst1 <| ml_subst body v def
+      | _ -> e0
+    )
+
+    | MLE_Match (sc, [b]) -> (
+      let sc = unmagic sc in
+      match sc.expr with
+      | MLE_Tuple [x; y] -> (
+        match b with
+        | MLP_Tuple [MLP_Var v1; MLP_Var v2], None, body ->
+          let e' = ml_subst body v1 x in
+          let e' = ml_subst e' v2 y in
+          e'
+        | MLP_Tuple [MLP_Var v; p], None, body ->
+          let e' = ml_subst body v x in
+          let e' = with_ty e0.mlty (MLE_Match (y, [p, None, e'])) in
+          subst1 e'
+        | _ -> e0
+      )
+      | _ -> e0
+    )
+    | _ -> e0
+  in
+  ml_visit id subst1 e
+
+
 let is_lid (s:string) (e : mlexpr) : bool =
   match e.expr with
   | MLE_Name p -> (string_of_mlpath p) = s

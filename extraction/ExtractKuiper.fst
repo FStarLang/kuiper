@@ -304,6 +304,7 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       let kf = apply_lam kf ml_threadidx in
       let kf = apply_lam kf ml_unit in
       let kf = collapse_tuple_proj kf in
+      let kf = collapse_tuple_matches kf in
       let kf = hoist env kf in
       let hd, rest_args = head_and_args kf in
       return (nblk, nthr, shmem_bytesz, hd, rest_args)

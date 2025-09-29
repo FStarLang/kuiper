@@ -363,10 +363,7 @@ fn kf
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
     block_id (rows/bm * (cols/bn)) bid
 {
-  let sarA : gpu_array et_ab (bm * bk) = fst sh;
-  let sarB : gpu_array et_ab (bk * bn) = fst (snd sh);
-  rewrite each fst sh as sarA;
-  rewrite each fst (snd sh) as sarB;
+  let (sarA, (sarB, _)) = sh;
 
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
