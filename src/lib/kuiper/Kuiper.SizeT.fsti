@@ -11,7 +11,10 @@ module U64 = FStar.UInt64
 
 unfold type sz  = FStar.SizeT.t
 unfold type szp = x:sz{FStar.SizeT.v x > 0}
-unfold type szlt (n:nat) = i:sz{SZ.v i < n}
+// Note: making this argument int instead of nat prevents
+// queries about non-negativity from appearing in the well-formedness
+// of types.
+unfold type szlt (n:int) = i:sz{SZ.v i < n}
 
 // Good riddance
 // unfold type szlt2
