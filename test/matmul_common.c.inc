@@ -39,74 +39,60 @@ et *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
         for (int j = 0; j < cols; j++) {
             mm[i * cols + j] =
                 alpha * mm[i * cols + j] + beta * m3_cpu[i * cols + j];
+            // printf("GG gemm @ (%d,%d) = %g\n", i, j, __half2float(mm[i * cols + j]));
         }
     }
     return mm;
 }
 
-#if mix_prec
-/* m1 is GPU-side result, m2 is CPU-computed result */
-void cmp(size_t rows, size_t cols, float *m1_gpu, float *m2)
-{
-    fprintf(stderr, "Checking result...\n");
-    int nerrs = 0;
-    int i, j;
-    float *m1 = (float *) calloc(sizeof(float), rows * cols);
-    MUST(cudaMemcpy
-         (m1, m1_gpu, rows * cols * sizeof(float), cudaMemcpyDeviceToHost));
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < cols; j++) {
-            bool ok;
-#ifdef EXACT
-            ok = m1[i * cols + j] == m2[i * cols + j];
-#else
-            /* Check if the relative error is less than TOLERANCE */
-            float diff = m1[i * cols + j] - m2[i * cols + j];
-            ok = fabs((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
-#endif
-
-#else
-/* m1 is GPU-side result, m2 is CPU-computed result */
-void cmp(size_t rows, size_t cols, et *m1_gpu, et *m2)
-{
-    fprintf(stderr, "Checking result...\n");
-    int nerrs = 0;
-    int i, j;
-    et *m1 = (et *) calloc(sizeof(et), rows * cols);
-    MUST(cudaMemcpy
-         (m1, m1_gpu, rows * cols * sizeof(et), cudaMemcpyDeviceToHost));
-    for (i = 0; i < rows; i++) {
-        for (j = 0; j < cols; j++) {
-            bool ok;
-#ifdef EXACT
-            ok = m1[i * cols + j] == m2[i * cols + j];
-#else
-            /* Check if the relative error is less than TOLERANCE */
-            et diff = m1[i * cols + j] - m2[i * cols + j];
-            ok = fabs((double)diff / (double)m2[i * cols + j]) <= TOLERANCE;
-#endif
-#endif
-
-            if (!ok) {
+double et2double (et v) {
 #if et_is_half == 1
-                float vm1 = __half2float(m1[i * cols + j]);
-                float vm2 = __half2float(m2[i * cols + j]);
+    return __half2float(v);
 #else
-                et vm1 = m1[i * cols + j];
-                et vm2 = m2[i * cols + j];
+    return v;
 #endif
-                fprintf(stderr, "Error at pos (%d, %d): %" PRIet " != %"
-                        PRIet "\n", i, j, vm1, vm2);
+}
+
+#if mix_prec == 1
+#define cet float
+#else
+#define cet et
+#endif
+
+/* m1 is GPU-side result, m2 is CPU-computed result */
+void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
+{
+    fprintf(stderr, "Checking result...\n");
+    int nerrs = 0;
+    int i, j;
+    cet *m1 = (cet *) calloc(sizeof(cet), rows * cols);
+    MUST(cudaMemcpy
+         (m1, m1_gpu, rows * cols * sizeof(cet), cudaMemcpyDeviceToHost));
+    for (i = 0; i < rows; i++) {
+        for (j = 0; j < cols; j++) {
+            double vm1 = et2double (m1[i * cols + j]);
+            double vm2 = et2double (m2[i * cols + j]);
+
+            double diff = vm1 - vm2;
+            bool ok = vm1 == vm2;
+#ifndef EXACT
+            /* Check, also, if the relative error is less than TOLERANCE */
+            ok = ok || (fabs(diff / vm2) <= TOLERANCE);
+#endif
+            if (!ok) {
+                fprintf(stderr, "diff=%g, vm1=%g, vm2=%g\n", diff, vm1, vm2);
+                fprintf(stderr, "Error at pos (%d, %d): %g != %g\n", i, j, vm1, vm2);
                 fprintf(stderr,
-                        "::error::%s -- Error at pos (%d, %d): %" PRIet " != %"
-                        PRIet "\n", progname, i, j, vm1, vm2);
+                        "::error::%s -- Error at pos (%d, %d): %g (gpu) != %g (cpu)\n", progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
                     free(m1);
+                    // printf("# of errors: %d\n", nerrs);
                     exit(1);
                 }
             }
         }
     }
+    // printf("# of errors: %d\n", nerrs);
     free(m1);
 }

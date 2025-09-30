@@ -11,6 +11,12 @@
 // #define DEFAULT_TILE  32
 #define DEFAULT_LAPS  4
 
+#if mix_prec == 1
+#define cet float
+#else
+#define cet et
+#endif
+
 int main(int argc, char **argv)
 {
     int i, j;
@@ -18,7 +24,7 @@ int main(int argc, char **argv)
     size_t rows = DEFAULT_DIM;
     size_t shared = DEFAULT_DIM;
     size_t cols = DEFAULT_DIM;
-    bool check = false;
+    bool check = true;
 
     progname = argv[0];
 
@@ -43,24 +49,19 @@ int main(int argc, char **argv)
     printf("Columns = %lu\n", cols);
 
     et *m1_cpu, *m2_cpu;
-#if mix_prec == 1
-    float *m3_cpu;
-#else
-    et *m3_cpu;
-#endif
+
+    cet *m3_cpu;
+
     m1_cpu = (et *) malloc(rows * shared * sizeof(et));
     m2_cpu = (et *) malloc(shared * cols * sizeof(et));
-#if mix_prec == 1
-    m3_cpu = (float *) malloc(rows * cols * sizeof(float));
-#else
-    m3_cpu = (et *) malloc(rows * cols * sizeof(et));
-#endif
+
+    m3_cpu = (cet *) malloc(rows * cols * sizeof(cet));
 
     for (i = 0; i < rows; i++) {
         for (j = 0; j < shared; j++) {
             m1_cpu[i * shared + j] =
 #if et_is_half == 1
-                __float2half(i / 1000);
+                __float2half(.5 + i / 100.0);
 #else
                 2 * i * j;
 #endif
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
         for (j = 0; j < cols; j++) {
             m2_cpu[i * cols + j] =
 #if et_is_half == 1
-                __float2half(j / 1000);
+                __float2half(.5 + j / 100.0);
 #else
                 2 * i * j;
 #endif
@@ -91,25 +92,13 @@ int main(int argc, char **argv)
 
     et *m1 = (et *) kpr_wait_alloc(sizeof(et), rows * shared);
     et *m2 = (et *) kpr_wait_alloc(sizeof(et), shared * cols);
-#if mix_prec == 1
-    float *m3 = (float *) kpr_wait_alloc(sizeof(float), rows * cols);
-#else
-    et *m3 = (et *) kpr_wait_alloc(sizeof(et), rows * cols);
-#endif
+    cet *m3 = (cet *) kpr_wait_alloc(sizeof(cet), rows * cols);
 
     cudaMemcpy(m1, m1_cpu, rows * shared * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
-#if mix_prec == 1
-    cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(float), cudaMemcpyHostToDevice);
-#else
-    cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
-#endif
+    cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(cet), cudaMemcpyHostToDevice);
 
-#if mix_prec == 1
-    float *gold = NULL;
-#else
-    et *gold = NULL;
-#endif
+    cet *gold = NULL;
 
 #if et_is_half == 1 && mix_prec != 1
     half alpha = __float2half(GEMM_ALPHA);
@@ -129,7 +118,6 @@ int main(int argc, char **argv)
                             alpha, beta), NULL);
 // if mixed precision, compute gold by only using float
 #else
-
         float *m1_cpu_float, *m2_cpu_float;
         m1_cpu_float = (float *) malloc(rows * shared * sizeof(float));
         m2_cpu_float = (float *) malloc(shared * cols * sizeof(float));
@@ -138,12 +126,12 @@ int main(int argc, char **argv)
 
         for (i = 0; i < rows; i++) {
             for (j = 0; j < shared; j++) {
-                m1_cpu_float[i * shared + j] = i / 1000;
+                m1_cpu_float[i * shared + j] = __half2float(m1_cpu[i * shared + j]);
             }
         }
         for (i = 0; i < shared; i++) {
             for (j = 0; j < cols; j++) {
-                m2_cpu_float[i * cols + j] = j / 1000;
+                m2_cpu_float[i * cols + j] = __half2float(m2_cpu[i * cols + j]);
             }
         }
         TIME_void(gold =

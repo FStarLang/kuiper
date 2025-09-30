@@ -11,7 +11,7 @@
 #define PRIet         "f"
 #define GEMM_ALPHA    1.0
 #define GEMM_BETA     1.0
-#define TOLERANCE     0.001f
+#define TOLERANCE     0.25f // bigger tolerance due to using halfs
 // #define NODYNTILE     1
 
 #include "tensor_core_gemm_alpha_beta_1_driver.c.inc"
