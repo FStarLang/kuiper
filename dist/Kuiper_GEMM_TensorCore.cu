@@ -14,9 +14,11 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)64U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
+  auto&
+  aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
+  auto&
+  bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)64U) * (uint32_t)64U) +
@@ -110,9 +112,9 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)32U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 32, 8, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 32, 8, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16));
+  auto& aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 32, 8, 16, wmma::row_major));
+  auto& bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 32, 8, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
@@ -206,9 +208,9 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)32U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 8, 32, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 8, 32, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16));
+  auto& aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 8, 32, 16, wmma::row_major));
+  auto& bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 8, 32, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
@@ -302,9 +304,9 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)8U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 32, 8, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 32, 8, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16));
+  auto& aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 32, 8, 16, wmma::row_major));
+  auto& bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 32, 8, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)8U) * (uint32_t)32U) +
@@ -398,9 +400,9 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)32U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 8, 32, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 8, 32, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16));
+  auto& aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 8, 32, 16, wmma::row_major));
+  auto& bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 8, 32, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
@@ -494,9 +496,11 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)64U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
+  auto&
+  aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
+  auto&
+  bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)64U) * (uint32_t)64U) +
@@ -590,9 +594,9 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)64U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 32, 8, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 32, 8, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16));
+  auto& aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 32, 8, 16, wmma::row_major));
+  auto& bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 32, 8, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)64U) * (uint32_t)64U) +
@@ -686,9 +690,9 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)64U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 8, 32, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 8, 32, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16));
+  auto& aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 8, 32, 16, wmma::row_major));
+  auto& bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 8, 32, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)64U) * (uint32_t)64U) +
@@ -782,9 +786,11 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)32U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
+  auto&
+  aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
+  auto&
+  bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
@@ -878,9 +884,11 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   uint32_t num_n_tiles = cols / (uint32_t)16U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
+  auto&
+  aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
+  auto&
+  bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)16U) * (uint32_t)16U) +
@@ -974,9 +982,11 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
   uint32_t num_n_tiles = cols / (uint32_t)32U;
   uint32_t mrow = blockIdx.x / num_n_tiles;
   uint32_t mcol = blockIdx.x % num_n_tiles;
-  auto aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
-  auto bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
-  auto accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(float, wmma::accumulator, 16, 16, 16));
+  auto&
+  aFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_a, 16, 16, 16, wmma::row_major));
+  auto&
+  bFrag = KPR_INIT(KPR_FRAGMENT_TYPE(half, wmma::matrix_b, 16, 16, 16, wmma::row_major));
+  auto& accumFrag = KPR_INIT(KPR_FRAGMENT_TYPE_C(float, wmma::accumulator, 16, 16, 16));
   wmma::load_matrix_sync(accumFrag,
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +

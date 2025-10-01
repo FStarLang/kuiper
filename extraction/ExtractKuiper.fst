@@ -82,7 +82,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
     //    seems not too difficult to add, it's probably easier to just
     //    define macros like kpr_fragment_half_16_16_16_row_major that
     //    expand to the proper templated type.
-    TQualified ([], "auto")
+    TQualified ([], "auto_AMP") // sed subtitutes this to auto&
 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
