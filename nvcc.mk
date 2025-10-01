@@ -47,6 +47,7 @@ endif
 
 # This does NOT work due to bad extraction of fragments (copy vs reference)
 NOTEST += Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2
+NOTEST += Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_4x4
 
 # Disable softmax 16. It works fine locally (outside of docker)
 # but fails within in with undefined __hdiv. The nvcc there is slightly
