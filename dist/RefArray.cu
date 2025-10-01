@@ -10,9 +10,9 @@ void RefArray_test(uint32_t **arr)
 
 void RefArray_use(void)
 {
-  KRML_CHECK_SIZE(sizeof (uint32_t *), (size_t)3U);
+  KRML_CHECK_SIZE(sizeof (uint32_t *), (uint32_t)3U);
   uint32_t *arr[3U];
-  for (uint32_t _i = 0U; _i < (size_t)3U; ++_i)
+  for (uint32_t _i = 0U; _i < (uint32_t)3U; ++_i)
     arr[_i] = NULL;
   uint32_t buf = 1U;
   *arr = &buf;

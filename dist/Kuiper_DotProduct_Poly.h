@@ -5,9 +5,9 @@
 
 #include <kuiper.h>
 
-extern size_t Kuiper_DotProduct_Poly_m_size;
+extern uint32_t Kuiper_DotProduct_Poly_m_size;
 
-extern size_t Kuiper_DotProduct_Poly_size;
+extern uint32_t Kuiper_DotProduct_Poly_size;
 
 
 #define Kuiper_DotProduct_Poly_H_DEFINED

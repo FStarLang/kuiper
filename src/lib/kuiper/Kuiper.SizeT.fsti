@@ -23,17 +23,22 @@ unfold type szlt (n:int) = i:sz{SZ.v i < n}
 
 unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
-(* Throughout this repo we assume a 64bit machine. This
-simplifies reasoning about overflow a bit. *)
-assume SizeTFitsU64 : FStar.SizeT.fits_u64
+(* Throughout this repo we would like to assume a 64bit machine, and use
+   size_t for array indices and whatnot, BUT, size_t has very poor
+   performance on the GPU compared to a 32-bit integer. So, our
+   fork of karamel extracts size_t to uint32_t, which means we should
+   NOT assume that a size_t can fit a u64, lest we could get overflow.
+
+   The right thing to do is use FStar.UInt32.t instead of SizeT.t where
+   this matters, but this is a pervasive change. *)
 assume SizeTFitsU32 : FStar.SizeT.fits_u32
 
 let fits_sizet (x:nat)
-  : Lemma (requires x < 0x10000000000000000)
+  : Lemma (requires x < 0x100000000)
           (ensures FStar.SizeT.fits x)
           [SMTPat (FStar.SizeT.fits x)]
-  = assert_norm (pow2 64 == 0x10000000000000000);
-    FStar.SizeT.fits_u64_implies_fits x
+  = assert_norm (pow2 32 == 0x100000000);
+    FStar.SizeT.fits_u32_implies_fits x
 
 [@@coercion; pulse_unfold] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
 [@@coercion; pulse_unfold] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x

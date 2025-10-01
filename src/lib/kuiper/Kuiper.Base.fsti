@@ -22,12 +22,14 @@ let gpu : slprop = mode GPU
 (* Token for being in GPU block setup code *)
 val block_setup_tok (nthr : nat) : slprop
 
-(* Arbitrary *)
-let max_blocks : erased int = pow2 30
+(* This should be 2^31-1, or 2^30. We constrain this more than normal due to our
+hack about interpreting size_t as uint32_t in karamel (see Kuiper.SizeT). When
+that is gone, this should be increased. *)
+let max_blocks : erased int = pow2 21
 
 (* Help F* *)
-let max_blocks_explicit : squash (reveal max_blocks == 1073741824) =
-  assert_norm (reveal max_blocks == 1073741824)
+let max_blocks_explicit : squash (reveal max_blocks == 2097152) =
+  assert_norm (reveal max_blocks == 2097152)
 
 (* Hard CUDA limit *)
 let max_threads : erased int = 1024

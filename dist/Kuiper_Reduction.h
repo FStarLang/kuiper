@@ -5,7 +5,7 @@
 
 #include <kuiper.h>
 
-extern size_t Kuiper_Reduction_size;
+extern uint32_t Kuiper_Reduction_size;
 
 
 #define Kuiper_Reduction_H_DEFINED

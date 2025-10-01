@@ -2,5 +2,5 @@
 
 #include "Kuiper_Reduction.h"
 
-size_t Kuiper_Reduction_size = (size_t)1024U;
+uint32_t Kuiper_Reduction_size = (uint32_t)1024U;
 

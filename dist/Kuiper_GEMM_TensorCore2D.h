@@ -7,9 +7,9 @@
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -17,9 +17,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_32x8x16_1x2_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -27,9 +27,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_32x8x16_1x2_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_8x32x16_2x1_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -37,9 +37,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_8x32x16_2x1_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x8x16_32x8x16_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -47,9 +47,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x8x16_32x8x16_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_8x32x16_8x32x16_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -57,9 +57,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_8x32x16_8x32x16_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_16x16x16_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -67,9 +67,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_16x16x16_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -77,9 +77,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_32x8x16_2x8_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -87,9 +87,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_32x8x16_2x8_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_8x32x16_8x2_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -97,9 +97,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_8x32x16_8x2_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_16x16x16_2x2_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -107,9 +107,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_16x16x16_2x2_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   half_t *gC
@@ -117,9 +117,9 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2_rrr(
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f32_32x32x32_16x16x16_2x2_rrr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
+  uint32_t rows,
+  uint32_t shared,
+  uint32_t cols,
   half_t *gA,
   half_t *gB,
   float_t *gC

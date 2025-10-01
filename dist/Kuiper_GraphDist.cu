@@ -30,34 +30,34 @@ __global__
 /**
   hoisted when extracting matmul_dist_gpu
 */
-static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
+static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
 {
-  if ((size_t)1024U * blockIdx.x + threadIdx.x < size * size)
+  if ((uint32_t)1024U * blockIdx.x + threadIdx.x < size * size)
   {
-    size_t k = (size_t)0U;
+    uint32_t k = (uint32_t)0U;
     uint16_t sum = 0U;
     while (k < size)
     {
       uint16_t vsum = sum;
       sum =
         add_(vsum,
-          mult(a[((size_t)1024U * blockIdx.x + threadIdx.x) / size * size + k],
-            a[k * size + ((size_t)1024U * blockIdx.x + threadIdx.x) % size]));
-      k += (size_t)1U;
+          mult(a[((uint32_t)1024U * blockIdx.x + threadIdx.x) / size * size + k],
+            a[k * size + ((uint32_t)1024U * blockIdx.x + threadIdx.x) % size]));
+      k += (uint32_t)1U;
     }
     uint16_t s = sum;
-    b[(size_t)1024U * blockIdx.x + threadIdx.x] =
-      add_(b[(size_t)1024U * blockIdx.x + threadIdx.x],
+    b[(uint32_t)1024U * blockIdx.x + threadIdx.x] =
+      add_(b[(uint32_t)1024U * blockIdx.x + threadIdx.x],
         s);
   }
 }
 
-void Kuiper_GraphDist_matmul_dist_gpu(size_t size, uint16_t *a, uint16_t *b)
+void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b)
 {
   KPR_KCALL(__hoisted_0,
-    (size * size + (size_t)1023U) / (size_t)1024U,
-    (size_t)1024U,
-    (size_t)0U,
+    (size * size + (uint32_t)1023U) / (uint32_t)1024U,
+    (uint32_t)1024U,
+    (uint32_t)0U,
     size,
     a,
     b);
