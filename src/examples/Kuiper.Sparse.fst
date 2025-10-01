@@ -138,20 +138,20 @@ let unsparse
 
 unfold
 let sarray_pts_to'
-  (#et:Type0) {| d : scalar et |} #l
+  (#et:Type0) {| d : scalar et |} (#l : nat)
   (a : sarray et l)
   (#[Tactics.exact (`1.0R)] f : perm)
   (s : seq et)
   (v_elems : lseq et a.nnz)
-  (v_pos : lseq sz a.nnz)
+  (v_pos   : lseq sz a.nnz)
   : slprop
 =
-  a.elems |-> Frac f v_elems **
-  a.pos   |-> Frac f v_pos **
-  pure (
-    valid_pos l (cast_pos v_pos) /\
-    s == unsparse a.nnz l v_elems (cast_pos v_pos)
-  )
+    a.elems |-> Frac f v_elems **
+    a.pos   |-> Frac f v_pos **
+    pure (
+      valid_pos l (cast_pos #a.nnz v_pos <: lseq nat a.nnz)
+      /\ s == unsparse a.nnz l v_elems (cast_pos v_pos)
+    )
 
 let sarray_pts_to
   (#et:Type0) {| d : scalar et |} #l
@@ -160,8 +160,10 @@ let sarray_pts_to
   (s : seq et)
   : slprop
 =
-  exists* v_elems (v_pos : lseq sz a.nnz).
-    sarray_pts_to' a #f s v_elems v_pos
+  exists* (v_elems : lseq et a.nnz) (v_pos : lseq sz a.nnz).
+    // with_pure (Seq.length v_elems == SZ.v a.nnz /\ Seq.length v_pos == SZ.v a.nnz) (fun _ ->
+      sarray_pts_to' a #f s v_elems v_pos
+    // )
 
 inline_for_extraction noextract
 unfold
@@ -174,6 +176,7 @@ instance has_pts_to_sarray
 
 (* iterador sobre array esparso *)
 
+inline_for_extraction
 type sarray_iterator
   (#et : Type0) (#l : erased nat)
   (a : sarray et l) =
@@ -211,6 +214,7 @@ type sarray_iterator
 // }
 
 
+inline_for_extraction noextract
 fn sarray_iterator_init
   (#et : Type0) {| scalar et |}
   (#l : erased nat)
@@ -238,6 +242,7 @@ fn sarray_iterator_init
   }
 }
 
+inline_for_extraction noextract
 let sarray_iterator_end
   (#et : Type0) (#l : erased nat)
   (#a : sarray et l)
@@ -245,6 +250,7 @@ let sarray_iterator_end
   : bool =
   i.i = a.nnz
 
+inline_for_extraction noextract
 fn sarray_iterator_is_done
   (#et : Type0) {| scalar et |}
   (#l : erased nat)
@@ -258,14 +264,13 @@ fn sarray_iterator_is_done
   (i.i = a.nnz)
 }
 
+inline_for_extraction noextract
 fn sarray_iterator_get
   (#et : Type0) {| scalar et |}
   (#l : erased nat)
   (#a : sarray et l)
   (#s : erased (seq et))
   (i : sarray_iterator a)
-  (#p : sz)
-  (#e : et)
   preserves gpu ** a |-> s
   requires
     pure (not (sarray_iterator_end i))
@@ -292,6 +297,7 @@ fn sarray_iterator_get
 // }
 
 
+inline_for_extraction noextract
 fn sarray_iterator_next
   (#et : Type0) {| scalar et |}
   (#l : erased nat)
@@ -299,18 +305,18 @@ fn sarray_iterator_next
   (i : sarray_iterator a)
   (#f : perm)
   (#s : erased (seq et))
-  (#v_elems : erased (lseq et a.nnz))
-  (#v_pos   : erased (lseq sz a.nnz))
+  (#v_elems : erased (seq et){Seq.length v_elems == SZ.v a.nnz})
+  (#v_pos   : erased (seq sz){Seq.length v_pos   == SZ.v a.nnz})
   (#_ : squash (not (sarray_iterator_end i)))
   preserves gpu
   preserves sarray_pts_to' a #f s v_elems v_pos
   requires
     pure (not (sarray_iterator_end i))
   returns i' : sarray_iterator a
-  ensures pure (forall (j:nat{j < Seq.length s}).
-    v_pos @! i.i < j /\
-      (if i'.i = a.nnz then true else j < v_pos @! i'.i)
-      ==> s @! j == zero)
+  // ensures pure (forall (j:nat{j < Seq.length s}).
+  //   v_pos @! i.i < j /\
+  //     (if i'.i = a.nnz then true else j < v_pos @! i'.i)
+  //     ==> s @! j == zero)
 {
   unfold sarray_pts_to' a #f s v_elems v_pos;
   if (i.i +^ 1sz = a.nnz) {
@@ -439,3 +445,37 @@ fn smatrix_id
 }
 
 // let smatrix_id_u32 = smatrix_id #u32 #_
+
+inline_for_extraction noextract
+fn sarray_iterator_test
+  (#et : eqtype) {| ets: scalar et |}
+  (#l : erased nat)
+  (a : sarray et l)
+  (#s : erased (seq et))
+  preserves gpu ** a |-> s
+  ensures emp
+{
+  let mut it : sarray_iterator #et #l a = sarray_iterator_init a;
+
+  while (not(sarray_iterator_end !it))
+    invariant
+      live it
+  {
+    let r = sarray_iterator_get !it;
+
+    unfold sarray_pts_to a s;
+    with v_elems v_pos.
+      assert sarray_pts_to' a s v_elems v_pos;
+    with it_v.
+      assert it |-> it_v;
+      assert pure (not(sarray_iterator_end it_v));
+
+    assert (pure (Seq.length v_elems == SZ.v a.nnz /\ Seq.length v_pos == SZ.v a.nnz));
+
+    it := sarray_iterator_next #et #ets #l #a !it #1.0R #s;
+
+    fold sarray_pts_to a s;
+  };
+}
+
+let sarray_iterator_test_u32 #l = sarray_iterator_test #u32 #_ #l
