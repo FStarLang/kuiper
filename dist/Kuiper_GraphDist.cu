@@ -46,11 +46,8 @@ static void __hoisted_0(size_t size, uint16_t *a, uint16_t *b)
       k += (size_t)1U;
     }
     uint16_t s = sum;
-    b[((size_t)1024U * blockIdx.x + threadIdx.x) / size * size +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % size]
-    =
-      add_(b[((size_t)1024U * blockIdx.x + threadIdx.x) / size * size +
-          ((size_t)1024U * blockIdx.x + threadIdx.x) % size],
+    b[(size_t)1024U * blockIdx.x + threadIdx.x] =
+      add_(b[(size_t)1024U * blockIdx.x + threadIdx.x],
         s);
   }
 }

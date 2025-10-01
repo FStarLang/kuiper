@@ -28,10 +28,10 @@ __hoisted_0(
   {
     __syncthreads();
     size_t __anf01 = bkIdx;
-    sA[threadIdx.x / (size_t)8U * (size_t)8U + threadIdx.x % (size_t)8U] =
+    sA[threadIdx.x] =
       gA4[(mrow * (size_t)64U + threadIdx.x / (size_t)8U) * shared +
         __anf01 * (size_t)8U + threadIdx.x % (size_t)8U];
-    sB[threadIdx.x / (size_t)64U * (size_t)64U + threadIdx.x % (size_t)64U] =
+    sB[threadIdx.x] =
       gB4[(__anf01 * (size_t)8U + threadIdx.x / (size_t)64U) * cols +
         mcol * (size_t)64U + threadIdx.x % (size_t)64U];
     __syncthreads();
@@ -123,10 +123,10 @@ __hoisted_1(
   {
     __syncthreads();
     size_t __anf01 = bkIdx;
-    sA[threadIdx.x / (size_t)8U * (size_t)8U + threadIdx.x % (size_t)8U] =
+    sA[threadIdx.x] =
       gA4[(mrow * (size_t)64U + threadIdx.x / (size_t)8U) * shared +
         __anf01 * (size_t)8U + threadIdx.x % (size_t)8U];
-    sB[threadIdx.x / (size_t)64U * (size_t)64U + threadIdx.x % (size_t)64U] =
+    sB[threadIdx.x] =
       gB4[(__anf01 * (size_t)8U + threadIdx.x / (size_t)64U) * cols +
         mcol * (size_t)64U + threadIdx.x % (size_t)64U];
     __syncthreads();

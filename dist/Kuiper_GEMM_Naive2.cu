@@ -17,9 +17,7 @@ __hoisted_0(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -74,9 +72,7 @@ __hoisted_1(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -131,9 +127,7 @@ __hoisted_2(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB,
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -186,9 +180,7 @@ __hoisted_3(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB,
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -465,9 +457,7 @@ __hoisted_8(size_t rows, size_t shared, size_t cols, float_t *gA, float_t *gB, f
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -509,9 +499,7 @@ __hoisted_9(size_t rows, size_t shared, size_t cols, double_t *gA, double_t *gB,
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -553,9 +541,7 @@ __hoisted_10(size_t rows, size_t shared, size_t cols, uint32_t *gA, uint32_t *gB
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 
@@ -597,9 +583,7 @@ __hoisted_11(size_t rows, size_t shared, size_t cols, uint64_t *gA, uint64_t *gB
       sum +=
         gA[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
           gB[k * cols + ((size_t)1024U * blockIdx.x + threadIdx.x) % cols];
-    gC[((size_t)1024U * blockIdx.x + threadIdx.x) / cols * cols +
-      ((size_t)1024U * blockIdx.x + threadIdx.x) % cols]
-    = sum;
+    gC[(size_t)1024U * blockIdx.x + threadIdx.x] = sum;
   }
 }
 

@@ -33,8 +33,8 @@ __hoisted_0(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -127,8 +127,8 @@ __hoisted_1(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -221,8 +221,8 @@ __hoisted_2(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -313,8 +313,8 @@ __hoisted_3(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -405,8 +405,8 @@ __hoisted_4(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -499,8 +499,8 @@ __hoisted_5(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -593,8 +593,8 @@ __hoisted_6(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -685,8 +685,8 @@ __hoisted_7(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -778,8 +778,8 @@ __hoisted_8(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -869,8 +869,8 @@ __hoisted_9(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -960,8 +960,8 @@ __hoisted_10(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -1049,8 +1049,8 @@ __hoisted_11(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -1138,8 +1138,8 @@ __hoisted_12(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -1229,8 +1229,8 @@ __hoisted_13(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -1320,8 +1320,8 @@ __hoisted_14(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -1409,8 +1409,8 @@ __hoisted_15(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -1498,8 +1498,8 @@ __hoisted_16(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -1589,8 +1589,8 @@ __hoisted_17(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -1680,8 +1680,8 @@ __hoisted_18(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -1769,8 +1769,8 @@ __hoisted_19(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -1858,8 +1858,8 @@ __hoisted_20(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -1949,8 +1949,8 @@ __hoisted_21(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -2040,8 +2040,8 @@ __hoisted_22(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -2129,8 +2129,8 @@ __hoisted_23(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -2217,8 +2217,8 @@ __hoisted_24(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -2298,8 +2298,8 @@ __hoisted_25(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -2379,8 +2379,8 @@ __hoisted_26(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -2460,8 +2460,8 @@ __hoisted_27(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -2541,8 +2541,8 @@ __hoisted_28(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -2622,8 +2622,8 @@ __hoisted_29(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -2703,8 +2703,8 @@ __hoisted_30(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -2784,8 +2784,8 @@ __hoisted_31(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -2866,8 +2866,8 @@ __hoisted_32(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -2944,8 +2944,8 @@ __hoisted_33(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -3022,8 +3022,8 @@ __hoisted_34(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -3100,8 +3100,8 @@ __hoisted_35(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -3178,8 +3178,8 @@ __hoisted_36(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -3256,8 +3256,8 @@ __hoisted_37(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -3334,8 +3334,8 @@ __hoisted_38(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -3412,8 +3412,8 @@ __hoisted_39(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -3490,8 +3490,8 @@ __hoisted_40(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -3568,8 +3568,8 @@ __hoisted_41(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -3646,8 +3646,8 @@ __hoisted_42(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -3724,8 +3724,8 @@ __hoisted_43(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -3802,8 +3802,8 @@ __hoisted_44(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -3880,8 +3880,8 @@ __hoisted_45(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -3958,8 +3958,8 @@ __hoisted_46(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -4036,8 +4036,8 @@ __hoisted_47(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -4115,8 +4115,8 @@ __hoisted_48(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -4206,8 +4206,8 @@ __hoisted_49(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -4297,8 +4297,8 @@ __hoisted_50(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -4388,8 +4388,8 @@ __hoisted_51(
     v2 =
       gB[(vbk * tile + threadIdx.x / tile) * cols + blockIdx.x % mcols * tile + threadIdx.x % tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -4479,8 +4479,8 @@ __hoisted_52(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -4570,8 +4570,8 @@ __hoisted_53(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -4661,8 +4661,8 @@ __hoisted_54(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -4752,8 +4752,8 @@ __hoisted_55(
     v2 =
       gB[(blockIdx.x % mcols * tile + threadIdx.x % tile) * shared + vbk * tile + threadIdx.x / tile];
     __syncthreads();
-    sa1[threadIdx.x / tile * tile + threadIdx.x % tile] = v1;
-    sa2[threadIdx.x / tile * tile + threadIdx.x % tile] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -4844,8 +4844,8 @@ __hoisted_56(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -4932,8 +4932,8 @@ __hoisted_57(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -5020,8 +5020,8 @@ __hoisted_58(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -5108,8 +5108,8 @@ __hoisted_59(
       gB[(vbk * (size_t)32U + threadIdx.x / (size_t)32U) * cols +
         blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -5196,8 +5196,8 @@ __hoisted_60(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -5284,8 +5284,8 @@ __hoisted_61(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -5372,8 +5372,8 @@ __hoisted_62(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -5460,8 +5460,8 @@ __hoisted_63(
       gB[(blockIdx.x % mcols * (size_t)32U + threadIdx.x % (size_t)32U) * shared +
         vbk * (size_t)32U + threadIdx.x / (size_t)32U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v1;
-    sa2[threadIdx.x / (size_t)32U * (size_t)32U + threadIdx.x % (size_t)32U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -5548,8 +5548,8 @@ __hoisted_64(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -5636,8 +5636,8 @@ __hoisted_65(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -5724,8 +5724,8 @@ __hoisted_66(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -5812,8 +5812,8 @@ __hoisted_67(
       gB[(vbk * (size_t)16U + threadIdx.x / (size_t)16U) * cols +
         blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
@@ -5900,8 +5900,8 @@ __hoisted_68(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     float_t sum1 = (float_t)0.0f;
@@ -5988,8 +5988,8 @@ __hoisted_69(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     double_t sum1 = (double_t)0.0l;
@@ -6076,8 +6076,8 @@ __hoisted_70(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint32_t sum1 = 0U;
@@ -6164,8 +6164,8 @@ __hoisted_71(
       gB[(blockIdx.x % mcols * (size_t)16U + threadIdx.x % (size_t)16U) * shared +
         vbk * (size_t)16U + threadIdx.x / (size_t)16U];
     __syncthreads();
-    sa1[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v1;
-    sa2[threadIdx.x / (size_t)16U * (size_t)16U + threadIdx.x % (size_t)16U] = v2;
+    sa1[threadIdx.x] = v1;
+    sa2[threadIdx.x] = v2;
     __syncthreads();
     size_t k = (size_t)0U;
     uint64_t sum1 = 0ULL;
