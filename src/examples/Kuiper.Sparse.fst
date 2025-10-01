@@ -180,7 +180,7 @@ type sarray_iterator
   (a : sarray et l) =
 {
   i   : (i   : sz{i <= a.nnz}); // índice en elems
-  pos : (pos : sz{pos <= l});   // posición dentro del array "virtual"
+  // pos : (pos : sz{pos <= l});   // posición dentro del array "virtual"
 }
 
 // let sarray_iterator_pts_to
@@ -224,20 +224,20 @@ fn sarray_iterator_init
   ensures pure (forall (j:nat{j < Seq.length s}). j < i.i ==> s @! j == zero)
 {
   open FStar.SizeT;
-  if (a.nnz >^ 0sz) {
-    unfold sarray_pts_to a s;
-    with v_elems v_pos.
-      assert sarray_pts_to' a s v_elems v_pos;
-      unfold sarray_pts_to' a s v_elems v_pos;
-    let p = gpu_array_read a.pos 0sz;
-    let i : sarray_iterator a = { i = 0sz; pos = p };
-    fold sarray_pts_to' a s v_elems v_pos;
-    fold sarray_pts_to a s;
+  // if (a.nnz >^ 0sz) {
+  //   unfold sarray_pts_to a s;
+  //   with v_elems v_pos.
+  //     assert sarray_pts_to' a s v_elems v_pos;
+  //     unfold sarray_pts_to' a s v_elems v_pos;
+  //   let p = gpu_array_read a.pos 0sz;
+  //   let i : sarray_iterator a = { i = 0sz };
+  //   fold sarray_pts_to' a s v_elems v_pos;
+  //   fold sarray_pts_to a s;
+  //   i
+  // } else {
+    let i : sarray_iterator a = { i = 0sz };
     i
-  } else {
-    let i : sarray_iterator a = { i = 0sz; pos = 0sz };
-    i
-  }
+  // }
 }
 
 inline_for_extraction noextract
@@ -317,17 +317,17 @@ fn sarray_iterator_next
       ==> s @! j == zero)
 {
   unfold sarray_pts_to' a #f s v_elems v_pos;
-  if (i.i +^ 1sz = a.nnz) {
-    let c_len : (x:sz{SZ.v x == reveal l}) = a.len; // magic();
-    let i' : sarray_iterator a = {i = i.i +^ 1sz; pos = c_len};
+  // if (i.i +^ 1sz = a.nnz) {
+  //   let c_len : (x:sz{SZ.v x == reveal l}) = a.len; // magic();
+  //   let i' : sarray_iterator a = {i = i.i +^ 1sz };
+  //   fold sarray_pts_to' a #f s v_elems v_pos;
+  //   i'
+  // } else {
+    // let pos = gpu_array_read a.pos (i.i +^ 1sz);
+    let i' : sarray_iterator a = {i = i.i +^ 1sz};
     fold sarray_pts_to' a #f s v_elems v_pos;
     i'
-  } else {
-    let pos = gpu_array_read a.pos (i.i +^ 1sz);
-    let i' : sarray_iterator a = {i = i.i +^ 1sz; pos = pos};
-    fold sarray_pts_to' a #f s v_elems v_pos;
-    i'
-  }
+  // }
 }
 
 // sparse matrix
