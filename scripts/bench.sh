@@ -2,7 +2,7 @@
 
 set -eux
 
-LAPS=5
+LAPS=10
 DIM=4096
 TILE=8
 CHECK=0
@@ -11,7 +11,7 @@ CHECK=0
 # tiles internally, so this is not a good test.
 
 # Just one lap of the naivest-one, it takes like a minute.
-./obj/Test_Kuiper_GEMM_Naive__F32.exe 1 $DIM $DIM $DIM 0
+# ./obj/Test_Kuiper_GEMM_Naive__F32.exe 1 $DIM $DIM $DIM 0
 ./obj/Test_Kuiper_GEMM_Naive2__F32.exe $LAPS $DIM $DIM $DIM 0
 ./obj/Test_Kuiper_GEMM_Tiled__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
 ./obj/Test_Kuiper_GEMM_SHMem__F32.exe $LAPS $DIM $DIM $DIM $TILE 0
@@ -24,8 +24,12 @@ CHECK=0
 
 ./obj/Test_Kuiper_GEMM_BlockTiling2D__F32_128x128x8_8x8_GEMM.exe $LAPS $DIM $DIM $DIM 0
 
-if [ "$KUIPER_CFG_TENSORCORES" -eq 1 ]; then
+if [ -f ./obj/Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2.exe ]; then
   ./obj/Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2.exe $LAPS $DIM $DIM $DIM 0
+fi
+
+if [ -f ./obj/Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_4x4.exe ]; then
+  ./obj/Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_4x4.exe $LAPS $DIM $DIM $DIM 0
 fi
 
 make -C bench
