@@ -161,9 +161,7 @@ let sarray_pts_to
   : slprop
 =
   exists* (v_elems : lseq et a.nnz) (v_pos : lseq sz a.nnz).
-    // with_pure (Seq.length v_elems == SZ.v a.nnz /\ Seq.length v_pos == SZ.v a.nnz) (fun _ ->
-      sarray_pts_to' a #f s v_elems v_pos
-    // )
+    sarray_pts_to' a #f s v_elems v_pos
 
 inline_for_extraction noextract
 unfold
@@ -313,10 +311,10 @@ fn sarray_iterator_next
   requires
     pure (not (sarray_iterator_end i))
   returns i' : sarray_iterator a
-  // ensures pure (forall (j:nat{j < Seq.length s}).
-  //   v_pos @! i.i < j /\
-  //     (if i'.i = a.nnz then true else j < v_pos @! i'.i)
-  //     ==> s @! j == zero)
+  ensures pure (forall (j:nat{j < Seq.length s}).
+    v_pos @! i.i < j /\
+      (if i'.i = a.nnz then true else j < v_pos @! i'.i)
+      ==> s @! j == zero)
 {
   unfold sarray_pts_to' a #f s v_elems v_pos;
   if (i.i +^ 1sz = a.nnz) {
