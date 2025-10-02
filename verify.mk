@@ -135,6 +135,7 @@ KRML_FLAGS += $(if $(V),-verbose,-silent)
 KRML_FLAGS += -drop Prims
 KRML_FLAGS += -minimal
 KRML_FLAGS += -header /dev/null
+KRML_FLAGS += -warn-error @6 # VLA
 KRML_FLAGS += -warn-error -2@4-10@18
 KRML_FLAGS += $(KOTHERFLAGS)
 
