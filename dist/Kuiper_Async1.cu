@@ -5,15 +5,15 @@
 uint64_t *Kuiper_Async1_galloc(uint64_t x)
 {
   uint64_t r = x;
-  uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC((uint32_t)8U, (uint32_t)1U);
-  MUST(cudaMemcpy(gr, &r, (uint32_t)8U, cudaMemcpyHostToDevice));
+  uint64_t *gr = (uint64_t *)KPR_GPU_ALLOC(8U, 1U);
+  MUST(cudaMemcpy(gr, &r, 8U, cudaMemcpyHostToDevice));
   return gr;
 }
 
 uint64_t Kuiper_Async1_gread(uint64_t *gr)
 {
   uint64_t r = 0ULL;
-  MUST(cudaMemcpy(&r, gr, (uint32_t)8U, cudaMemcpyDeviceToHost));
+  MUST(cudaMemcpy(&r, gr, 8U, cudaMemcpyDeviceToHost));
   return r;
 }
 
@@ -79,12 +79,12 @@ uint64_t Kuiper_Async1_main(void)
   uint64_t *r4 = Kuiper_Async1_galloc(4ULL);
   uint64_t *r5 = Kuiper_Async1_galloc(5ULL);
   uint64_t *r6 = Kuiper_Async1_galloc(6ULL);
-  KPR_KCALL(__hoisted_0, (uint32_t)1U, (uint32_t)1U, (uint32_t)0U, r1);
-  KPR_KCALL(__hoisted_1, (uint32_t)1U, (uint32_t)1U, (uint32_t)0U, r2);
-  KPR_KCALL(__hoisted_2, (uint32_t)1U, (uint32_t)1U, (uint32_t)0U, r3);
-  KPR_KCALL(__hoisted_3, (uint32_t)1U, (uint32_t)1U, (uint32_t)0U, r4);
-  KPR_KCALL(__hoisted_4, (uint32_t)1U, (uint32_t)1U, (uint32_t)0U, r5);
-  KPR_KCALL(__hoisted_5, (uint32_t)1U, (uint32_t)1U, (uint32_t)0U, r6);
+  KPR_KCALL(__hoisted_0, 1U, 1U, 0U, r1);
+  KPR_KCALL(__hoisted_1, 1U, 1U, 0U, r2);
+  KPR_KCALL(__hoisted_2, 1U, 1U, 0U, r3);
+  KPR_KCALL(__hoisted_3, 1U, 1U, 0U, r4);
+  KPR_KCALL(__hoisted_4, 1U, 1U, 0U, r5);
+  KPR_KCALL(__hoisted_5, 1U, 1U, 0U, r6);
   cudaDeviceSynchronize();
   uint64_t v1 = Kuiper_Async1_gread(r1);
   MUST(cudaFree(r1));
