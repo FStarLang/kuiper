@@ -2,9 +2,11 @@
 
 #include "Kuiper_GEMM_TensorCore2D.h"
 
+typedef uint32_t has_vec_cpy;
+
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_4x4_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_4x4
 */
 static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -45,17 +47,35 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)1024U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)64U + i2 / (uint32_t)16U) * shared +
-          __anf01 * (uint32_t)16U + i2 % (uint32_t)16U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)16U;
+      uint32_t col = i2 % (uint32_t)16U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)64U) + __anf01 * (uint32_t)16U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)16U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)1024U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)16U + i / (uint32_t)64U) * cols +
-          mcol * (uint32_t)64U + i % (uint32_t)64U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)64U;
+      uint32_t col = i % (uint32_t)64U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)16U) + mcol * (uint32_t)64U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)64U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)1U)
@@ -128,7 +148,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -154,7 +174,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x32x32_32x8x16_1x2_rrr
+  hoisted when extracting g_gemm_f16_f16_32x32x32_32x8x16_1x2
 */
 static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -195,17 +215,35 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)1024U; i2 += (uint32_t)64U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)32U + i2 / (uint32_t)32U) * shared +
-          __anf01 * (uint32_t)32U + i2 % (uint32_t)32U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)32U;
+      uint32_t col = i2 % (uint32_t)32U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)32U) + __anf01 * (uint32_t)32U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)32U + col + k] = local[k];
+      i2 += (uint32_t)64U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)1024U; i += (uint32_t)64U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)32U + i / (uint32_t)32U) * cols +
-          mcol * (uint32_t)32U + i % (uint32_t)32U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)32U;
+      uint32_t col = i % (uint32_t)32U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)32U) + mcol * (uint32_t)32U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)32U + col + k] = local[k];
+      i += (uint32_t)64U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)2U)
@@ -278,7 +316,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_32x8x16_1x2_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_32x8x16_1x2(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -304,7 +342,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_32x8x16_1x2_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x32x32_8x32x16_2x1_rrr
+  hoisted when extracting g_gemm_f16_f16_32x32x32_8x32x16_2x1
 */
 static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -345,17 +383,35 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)1024U; i2 += (uint32_t)64U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)32U + i2 / (uint32_t)32U) * shared +
-          __anf01 * (uint32_t)32U + i2 % (uint32_t)32U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)32U;
+      uint32_t col = i2 % (uint32_t)32U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)32U) + __anf01 * (uint32_t)32U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)32U + col + k] = local[k];
+      i2 += (uint32_t)64U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)1024U; i += (uint32_t)64U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)32U + i / (uint32_t)32U) * cols +
-          mcol * (uint32_t)32U + i % (uint32_t)32U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)32U;
+      uint32_t col = i % (uint32_t)32U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)32U) + mcol * (uint32_t)32U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)32U + col + k] = local[k];
+      i += (uint32_t)64U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)2U)
@@ -428,7 +484,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_8x32x16_2x1_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_8x32x16_2x1(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -454,7 +510,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_8x32x16_2x1_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x8x16_32x8x16_rrr
+  hoisted when extracting g_gemm_f16_f16_32x8x16_32x8x16
 */
 static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -495,17 +551,35 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)512U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)32U + i2 / (uint32_t)16U) * shared +
-          __anf01 * (uint32_t)16U + i2 % (uint32_t)16U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)512U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)16U;
+      uint32_t col = i2 % (uint32_t)16U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)32U) + __anf01 * (uint32_t)16U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)16U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)128U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)16U + i / (uint32_t)8U) * cols +
-          mcol * (uint32_t)8U + i % (uint32_t)8U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)128U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)8U;
+      uint32_t col = i % (uint32_t)8U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)16U) + mcol * (uint32_t)8U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)8U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)1U)
@@ -578,7 +652,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x8x16_32x8x16_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x8x16_32x8x16(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -604,7 +678,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x8x16_32x8x16_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_8x32x16_8x32x16_rrr
+  hoisted when extracting g_gemm_f16_f16_8x32x16_8x32x16
 */
 static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -645,17 +719,35 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)1024U; i2 += (uint32_t)128U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)32U + i2 / (uint32_t)32U) * shared +
-          __anf01 * (uint32_t)32U + i2 % (uint32_t)32U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)32U;
+      uint32_t col = i2 % (uint32_t)32U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)32U) + __anf01 * (uint32_t)32U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)32U + col + k] = local[k];
+      i2 += (uint32_t)128U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)1024U; i += (uint32_t)128U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)32U + i / (uint32_t)32U) * cols +
-          mcol * (uint32_t)32U + i % (uint32_t)32U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)32U;
+      uint32_t col = i % (uint32_t)32U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)32U) + mcol * (uint32_t)32U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)32U + col + k] = local[k];
+      i += (uint32_t)128U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)2U)
@@ -728,7 +820,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_8x32x16_8x32x16_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_8x32x16_8x32x16(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -754,7 +846,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_8x32x16_8x32x16_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_16x16x16_16x16x16_rrr
+  hoisted when extracting g_gemm_f16_f16_16x16x16_16x16x16
 */
 static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -795,17 +887,35 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)256U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)16U + i2 / (uint32_t)16U) * shared +
-          __anf01 * (uint32_t)16U + i2 % (uint32_t)16U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)256U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)16U;
+      uint32_t col = i2 % (uint32_t)16U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)16U) + __anf01 * (uint32_t)16U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)16U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)256U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)16U + i / (uint32_t)16U) * cols +
-          mcol * (uint32_t)16U + i % (uint32_t)16U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)256U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)16U;
+      uint32_t col = i % (uint32_t)16U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)16U) + mcol * (uint32_t)16U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)16U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)1U)
@@ -878,7 +988,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_16x16x16_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_16x16x16(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -904,7 +1014,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_16x16x16_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_4x4_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_4x4
 */
 static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -945,17 +1055,35 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)4096U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)64U + i2 / (uint32_t)64U) * shared +
-          __anf01 * (uint32_t)64U + i2 % (uint32_t)64U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)64U;
+      uint32_t col = i2 % (uint32_t)64U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)64U) + __anf01 * (uint32_t)64U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)64U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)4096U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)64U + i / (uint32_t)64U) * cols +
-          mcol * (uint32_t)64U + i % (uint32_t)64U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)64U;
+      uint32_t col = i % (uint32_t)64U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)64U) + mcol * (uint32_t)64U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)64U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)4U)
@@ -1028,7 +1156,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -1054,7 +1182,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_32x8x16_2x8_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_32x8x16_2x8
 */
 static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -1095,17 +1223,35 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)4096U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)64U + i2 / (uint32_t)64U) * shared +
-          __anf01 * (uint32_t)64U + i2 % (uint32_t)64U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)64U;
+      uint32_t col = i2 % (uint32_t)64U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)64U) + __anf01 * (uint32_t)64U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)64U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)4096U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)64U + i / (uint32_t)64U) * cols +
-          mcol * (uint32_t)64U + i % (uint32_t)64U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)64U;
+      uint32_t col = i % (uint32_t)64U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)64U) + mcol * (uint32_t)64U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)64U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)4U)
@@ -1178,7 +1324,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_32x8x16_2x8_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_32x8x16_2x8(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -1204,7 +1350,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_32x8x16_2x8_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_8x32x16_8x2_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_8x32x16_8x2
 */
 static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -1245,17 +1391,35 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)4096U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)64U + i2 / (uint32_t)64U) * shared +
-          __anf01 * (uint32_t)64U + i2 % (uint32_t)64U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)64U;
+      uint32_t col = i2 % (uint32_t)64U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)64U) + __anf01 * (uint32_t)64U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)64U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)4096U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)64U + i / (uint32_t)64U) * cols +
-          mcol * (uint32_t)64U + i % (uint32_t)64U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)64U;
+      uint32_t col = i % (uint32_t)64U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)64U) + mcol * (uint32_t)64U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)64U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)4U)
@@ -1328,7 +1492,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_8x32x16_8x2_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_8x32x16_8x2(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -1354,7 +1518,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_8x32x16_8x2_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x32x32_16x16x16_2x2_rrr
+  hoisted when extracting g_gemm_f16_f16_32x32x32_16x16x16_2x2
 */
 static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -1395,17 +1559,35 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)1024U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)32U + i2 / (uint32_t)32U) * shared +
-          __anf01 * (uint32_t)32U + i2 % (uint32_t)32U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)32U;
+      uint32_t col = i2 % (uint32_t)32U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)32U) + __anf01 * (uint32_t)32U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)32U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)1024U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)32U + i / (uint32_t)32U) * cols +
-          mcol * (uint32_t)32U + i % (uint32_t)32U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)32U;
+      uint32_t col = i % (uint32_t)32U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)32U) + mcol * (uint32_t)32U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)32U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)2U)
@@ -1478,7 +1660,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_16x16x16_2x2_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_16x16x16_2x2(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -1504,7 +1686,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x32x32_16x16x16_2x2_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_2x2_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_2x2
 */
 static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, half_t *gC)
 {
@@ -1545,17 +1727,35 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)4096U; i2 += (uint32_t)128U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)64U + i2 / (uint32_t)64U) * shared +
-          __anf01 * (uint32_t)64U + i2 % (uint32_t)64U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)64U;
+      uint32_t col = i2 % (uint32_t)64U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)64U) + __anf01 * (uint32_t)64U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)64U + col + k] = local[k];
+      i2 += (uint32_t)128U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)4096U; i += (uint32_t)128U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)64U + i / (uint32_t)64U) * cols +
-          mcol * (uint32_t)64U + i % (uint32_t)64U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)4096U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)64U;
+      uint32_t col = i % (uint32_t)64U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)64U) + mcol * (uint32_t)64U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)64U + col + k] = local[k];
+      i += (uint32_t)128U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)4U)
@@ -1628,7 +1828,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,
@@ -1654,7 +1854,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2_rrr(
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f32_32x32x32_16x16x16_2x2_rrr
+  hoisted when extracting g_gemm_f16_f32_32x32x32_16x16x16_2x2
 */
 static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, float_t *gC)
 {
@@ -1695,17 +1895,35 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     half_t *tileA = gA;
-    uint32_t i2 = threadIdx.x;
-    for (; i2 < (uint32_t)1024U; i2 += (uint32_t)32U)
-      sA[i2] =
-        tileA[(mrow * (uint32_t)32U + i2 / (uint32_t)32U) * shared +
-          __anf01 * (uint32_t)32U + i2 % (uint32_t)32U];
+    uint32_t i2 = threadIdx.x * (uint32_t)8U;
+    while (i2 < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i2 / (uint32_t)32U;
+      uint32_t col = i2 % (uint32_t)32U;
+      vec_memcpy(local,
+        tileA + shared * (mrow * (uint32_t)32U) + __anf01 * (uint32_t)32U + shared * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sA[row * (uint32_t)32U + col + k] = local[k];
+      i2 += (uint32_t)32U * (uint32_t)8U;
+    }
     half_t *tileB = gB;
-    uint32_t i = threadIdx.x;
-    for (; i < (uint32_t)1024U; i += (uint32_t)32U)
-      sB[i] =
-        tileB[(__anf01 * (uint32_t)32U + i / (uint32_t)32U) * cols +
-          mcol * (uint32_t)32U + i % (uint32_t)32U];
+    uint32_t i = threadIdx.x * (uint32_t)8U;
+    while (i < (uint32_t)1024U)
+    {
+      half_t local[8U];
+      memset(local, 0U, (uint32_t)8U * sizeof (half_t));
+      uint32_t row = i / (uint32_t)32U;
+      uint32_t col = i % (uint32_t)32U;
+      vec_memcpy(local,
+        tileB + cols * (__anf01 * (uint32_t)32U) + mcol * (uint32_t)32U + cols * row + col);
+      uint32_t k = (uint32_t)0U;
+      for (; k < (uint32_t)8U; k += (uint32_t)1U)
+        sB[row * (uint32_t)32U + col + k] = local[k];
+      i += (uint32_t)32U * (uint32_t)8U;
+    }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
     while (dotIdx < (uint32_t)2U)
@@ -1778,7 +1996,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f32_32x32x32_16x16x16_2x2_rrr(
+Kuiper_GEMM_TensorCore2D_g_gemm_f16_f32_32x32x32_16x16x16_2x2(
   uint32_t rows,
   uint32_t shared,
   uint32_t cols,

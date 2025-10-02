@@ -8,11 +8,14 @@ __global__
 */
 static void __hoisted_0(float_t *a, float_t two)
 {
-  float4 fv = KPR_VECTZD_READ(a, (uint32_t)0U);
-  float_t x = KPR_PROJ_X(fv) * two;
-  float_t y = KPR_PROJ_Y(fv) * two;
-  float_t z = KPR_PROJ_Z(fv) * two;
-  KPR_VECTZD_WRITE(a, (uint32_t)0U, make_float4(x, y, z, KPR_PROJ_W(fv) * two));
+  float_t local[4U];
+  memset(local, 0U, (uint32_t)4U * sizeof (float_t));
+  vec_memcpy(local, a);
+  *local *= two;
+  local[1U] *= two;
+  local[2U] *= two;
+  local[3U] *= two;
+  vec_memcpy(a, local);
 }
 
 void Kuiper_Array_VectorizedAccess_hf(float_t *v)
