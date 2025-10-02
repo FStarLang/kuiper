@@ -2,8 +2,6 @@
 
 #include "Kuiper_GEMM_TensorCore2D.h"
 
-typedef uint32_t has_vec_cpy;
-
 __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_4x4
@@ -59,7 +57,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)16U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -74,7 +72,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)64U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -225,7 +223,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)32U + col + k] = local[k];
-      i2 += (uint32_t)64U * (uint32_t)8U;
+      i2 += (uint32_t)512U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -240,7 +238,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)32U + col + k] = local[k];
-      i += (uint32_t)64U * (uint32_t)8U;
+      i += (uint32_t)512U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -393,7 +391,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)32U + col + k] = local[k];
-      i2 += (uint32_t)64U * (uint32_t)8U;
+      i2 += (uint32_t)512U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -408,7 +406,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)32U + col + k] = local[k];
-      i += (uint32_t)64U * (uint32_t)8U;
+      i += (uint32_t)512U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -559,7 +557,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)16U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -574,7 +572,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)8U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -725,7 +723,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)32U + col + k] = local[k];
-      i2 += (uint32_t)128U * (uint32_t)8U;
+      i2 += (uint32_t)1024U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -740,7 +738,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)32U + col + k] = local[k];
-      i += (uint32_t)128U * (uint32_t)8U;
+      i += (uint32_t)1024U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -891,7 +889,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)16U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -906,7 +904,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)16U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -1057,7 +1055,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)64U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -1072,7 +1070,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)64U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -1223,7 +1221,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)64U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -1238,7 +1236,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)64U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -1389,7 +1387,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)64U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -1404,7 +1402,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)64U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -1555,7 +1553,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)32U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -1570,7 +1568,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)32U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -1721,7 +1719,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)64U + col + k] = local[k];
-      i2 += (uint32_t)128U * (uint32_t)8U;
+      i2 += (uint32_t)1024U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -1736,7 +1734,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)64U + col + k] = local[k];
-      i += (uint32_t)128U * (uint32_t)8U;
+      i += (uint32_t)1024U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
@@ -1889,7 +1887,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sA[row * (uint32_t)32U + col + k] = local[k];
-      i2 += (uint32_t)32U * (uint32_t)8U;
+      i2 += (uint32_t)256U;
     }
     half_t *tileB = gB;
     uint32_t i = threadIdx.x * (uint32_t)8U;
@@ -1904,7 +1902,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
       uint32_t k = (uint32_t)0U;
       for (; k < (uint32_t)8U; k += (uint32_t)1U)
         sB[row * (uint32_t)32U + col + k] = local[k];
-      i += (uint32_t)32U * (uint32_t)8U;
+      i += (uint32_t)256U;
     }
     __syncthreads();
     uint32_t dotIdx = (uint32_t)0U;
