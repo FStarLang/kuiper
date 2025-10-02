@@ -24,7 +24,7 @@ __hoisted_0(
   float_t cache1d[8U];
   memset(cache1d, 0U, 8U * sizeof (float_t));
   uint32_t bkIdx = 0U;
-  while (bkIdx < mshared)
+  for (; bkIdx < mshared; bkIdx += 1U)
   {
     __syncthreads();
     uint32_t __anf01 = bkIdx;
@@ -34,15 +34,13 @@ __hoisted_0(
       gB4[(__anf01 * 8U + threadIdx.x / 64U) * cols + mcol * 64U + threadIdx.x % 64U];
     __syncthreads();
     uint32_t dotIdx = 0U;
-    while (dotIdx < 8U)
+    for (; dotIdx < 8U; dotIdx += 1U)
     {
       float_t tmpB = sB[dotIdx * 64U + threadIdx.x % 64U];
       uint32_t resIdx = 0U;
       for (; resIdx < 8U; resIdx += 1U)
         cache1d[resIdx] += sA[(threadIdx.x / 64U * 8U + resIdx) * 8U + dotIdx] * tmpB;
-      dotIdx += 1U;
     }
-    bkIdx += 1U;
   }
   uint32_t resIdx = 0U;
   for (; resIdx < 8U; resIdx += 1U)
@@ -115,7 +113,7 @@ __hoisted_1(
   float_t cache1d[8U];
   memset(cache1d, 0U, 8U * sizeof (float_t));
   uint32_t bkIdx = 0U;
-  while (bkIdx < mshared)
+  for (; bkIdx < mshared; bkIdx += 1U)
   {
     __syncthreads();
     uint32_t __anf01 = bkIdx;
@@ -125,15 +123,13 @@ __hoisted_1(
       gB4[(__anf01 * 8U + threadIdx.x / 64U) * cols + mcol * 64U + threadIdx.x % 64U];
     __syncthreads();
     uint32_t dotIdx = 0U;
-    while (dotIdx < 8U)
+    for (; dotIdx < 8U; dotIdx += 1U)
     {
       float_t tmpB = sB[dotIdx * 64U + threadIdx.x % 64U];
       uint32_t resIdx = 0U;
       for (; resIdx < 8U; resIdx += 1U)
         cache1d[resIdx] += sA[(threadIdx.x / 64U * 8U + resIdx) * 8U + dotIdx] * tmpB;
-      dotIdx += 1U;
     }
-    bkIdx += 1U;
   }
   uint32_t resIdx = 0U;
   for (; resIdx < 8U; resIdx += 1U)

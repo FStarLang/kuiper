@@ -9,7 +9,7 @@ __global__
 static void __hoisted_0(uint32_t lena, half_t *a)
 {
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -17,7 +17,6 @@ static void __hoisted_0(uint32_t lena, half_t *a)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         a[threadIdx.x] = __hadd(a[threadIdx.x], a[nextid]);
-    n += 1U;
   }
 }
 
@@ -34,7 +33,7 @@ __global__
 static void __hoisted_1(uint32_t lena, float_t *a)
 {
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -42,7 +41,6 @@ static void __hoisted_1(uint32_t lena, float_t *a)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         a[threadIdx.x] += a[nextid];
-    n += 1U;
   }
 }
 
@@ -59,7 +57,7 @@ __global__
 static void __hoisted_2(uint32_t lena, double_t *a)
 {
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -67,7 +65,6 @@ static void __hoisted_2(uint32_t lena, double_t *a)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         a[threadIdx.x] += a[nextid];
-    n += 1U;
   }
 }
 
@@ -84,7 +81,7 @@ __global__
 static void __hoisted_3(uint32_t lena, uint32_t *a)
 {
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -92,7 +89,6 @@ static void __hoisted_3(uint32_t lena, uint32_t *a)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         a[threadIdx.x] += a[nextid];
-    n += 1U;
   }
 }
 
@@ -109,7 +105,7 @@ __global__
 static void __hoisted_4(uint32_t lena, uint64_t *a)
 {
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -117,7 +113,6 @@ static void __hoisted_4(uint32_t lena, uint64_t *a)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         a[threadIdx.x] += a[nextid];
-    n += 1U;
   }
 }
 

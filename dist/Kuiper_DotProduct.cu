@@ -10,7 +10,7 @@ static void __hoisted_0(uint32_t lena, float_t *ga1, float_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx.x];
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -18,7 +18,6 @@ static void __hoisted_0(uint32_t lena, float_t *ga1, float_t *ga2)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         ga1[threadIdx.x] += ga1[nextid];
-    n += 1U;
   }
 }
 
@@ -49,7 +48,7 @@ static void __hoisted_1(uint32_t lena, double_t *ga1, double_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx.x];
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -57,7 +56,6 @@ static void __hoisted_1(uint32_t lena, double_t *ga1, double_t *ga2)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         ga1[threadIdx.x] += ga1[nextid];
-    n += 1U;
   }
 }
 
@@ -88,7 +86,7 @@ static void __hoisted_2(uint32_t lena, uint32_t *ga1, uint32_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx.x];
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -96,7 +94,6 @@ static void __hoisted_2(uint32_t lena, uint32_t *ga1, uint32_t *ga2)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         ga1[threadIdx.x] += ga1[nextid];
-    n += 1U;
   }
 }
 
@@ -125,7 +122,7 @@ static void __hoisted_3(uint32_t lena, uint64_t *ga1, uint64_t *ga2)
 {
   ga1[threadIdx.x] *= ga2[threadIdx.x];
   uint32_t n = 0U;
-  while ((uint32_t)(1U << (uint32_t)n) < lena)
+  for (; (uint32_t)(1U << (uint32_t)n) < lena; n += 1U)
   {
     uint32_t __anf0 = n;
     __syncthreads();
@@ -133,7 +130,6 @@ static void __hoisted_3(uint32_t lena, uint64_t *ga1, uint64_t *ga2)
     if (nextid < lena)
       if ((threadIdx.x & (uint32_t)(1U << (uint32_t)(__anf0 + 1U)) - 1U) == 0U)
         ga1[threadIdx.x] += ga1[nextid];
-    n += 1U;
   }
 }
 

@@ -187,7 +187,7 @@ let kpost
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -265,7 +265,6 @@ fn kf
       (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
   {
     let vbk = !bk;
-
     gpu_matrix_extract_tile_ro gA tile tile mrow vbk;
     let aTile = gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk);
     assert (rewrites_to aTile (gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk)));
@@ -350,7 +349,7 @@ fn kf
     assert (pure (2 * (vbk + 1) == 2 * vbk + 1 + 1));
 
     (* Move to next tile *)
-    bk := vbk +^ 1sz;
+    bk := !bk +^ 1sz;
   };
 
   let s = !sum;

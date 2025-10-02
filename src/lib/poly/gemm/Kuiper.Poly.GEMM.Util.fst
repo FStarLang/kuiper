@@ -110,7 +110,7 @@ fn matmul_tiled_dotprod
     ambig_trade_elim ();
     ambig_trade_elim ();
 
-    bk := vbk +^ 1sz;
+    bk := !bk +^ 1sz;
   };
 
   !sum

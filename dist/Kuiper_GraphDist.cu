@@ -36,14 +36,13 @@ static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
   {
     uint32_t k = 0U;
     uint16_t sum = 0U;
-    while (k < size)
+    for (; k < size; k += 1U)
     {
       uint16_t vsum = sum;
       sum =
         add_(vsum,
           mult(a[(1024U * blockIdx.x + threadIdx.x) / size * size + k],
             a[k * size + (1024U * blockIdx.x + threadIdx.x) % size]));
-      k += 1U;
     }
     uint16_t s = sum;
     b[1024U * blockIdx.x + threadIdx.x] = add_(b[1024U * blockIdx.x + threadIdx.x], s);

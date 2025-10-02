@@ -29,13 +29,13 @@ __hoisted_0(
   float_t rchProd[64U];
   memset(rchProd, 0U, 64U * sizeof (float_t));
   uint32_t bkIdx = 0U;
-  while (bkIdx < shared / 8U)
+  for (; bkIdx < shared / 8U; bkIdx += 1U)
   {
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     float_t *tileA = gA;
     uint32_t i1 = threadIdx.x * 4U;
-    while (i1 < 512U)
+    for (; i1 < 512U; i1 += 256U)
     {
       float_t local[4U];
       memset(local, 0U, 4U * sizeof (float_t));
@@ -45,11 +45,10 @@ __hoisted_0(
       uint32_t k = 0U;
       for (; k < 4U; k += 1U)
         sA[row * 8U + col + k] = local[k];
-      i1 += 256U;
     }
     float_t *tileB = gB;
     uint32_t i = threadIdx.x * 4U;
-    while (i < 512U)
+    for (; i < 512U; i += 256U)
     {
       float_t local[4U];
       memset(local, 0U, 4U * sizeof (float_t));
@@ -59,11 +58,10 @@ __hoisted_0(
       uint32_t k = 0U;
       for (; k < 4U; k += 1U)
         sB[row * 64U + col + k] = local[k];
-      i += 256U;
     }
     __syncthreads();
     uint32_t dotIdx = 0U;
-    while (dotIdx < 8U)
+    for (; dotIdx < 8U; dotIdx += 1U)
     {
       uint32_t i0 = 0U;
       for (; i0 < 8U; i0 += 1U)
@@ -72,20 +70,17 @@ __hoisted_0(
       for (; i1 < 8U; i1 += 1U)
         rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
       uint32_t resIdxM = 0U;
-      while (resIdxM < 8U)
+      for (; resIdxM < 8U; resIdxM += 1U)
       {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN += 1U)
           rchProd[resIdxM * 8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += 1U;
       }
-      dotIdx += 1U;
     }
-    bkIdx += 1U;
   }
   float_t *t_tile = gC;
   uint32_t resIdxM = 0U;
-  while (resIdxM < 8U)
+  for (; resIdxM < 8U; resIdxM += 1U)
   {
     uint32_t resIdxN = 0U;
     for (; resIdxN < 8U; resIdxN += 1U)
@@ -96,7 +91,6 @@ __hoisted_0(
           t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 8U * 8U + resIdxM) * cols +
             blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U + resIdxN]
         + alpha * rchProd[resIdxM * 8U + resIdxN];
-    resIdxM += 1U;
   }
 }
 
@@ -156,13 +150,13 @@ __hoisted_1(
   float_t rchProd[64U];
   memset(rchProd, 0U, 64U * sizeof (float_t));
   uint32_t bkIdx = 0U;
-  while (bkIdx < shared / 8U)
+  for (; bkIdx < shared / 8U; bkIdx += 1U)
   {
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     float_t *tileA = gA;
     uint32_t i1 = threadIdx.x * 4U;
-    while (i1 < 1024U)
+    for (; i1 < 1024U; i1 += 1024U)
     {
       float_t local[4U];
       memset(local, 0U, 4U * sizeof (float_t));
@@ -172,11 +166,10 @@ __hoisted_1(
       uint32_t k = 0U;
       for (; k < 4U; k += 1U)
         sA[row * 8U + col + k] = local[k];
-      i1 += 1024U;
     }
     float_t *tileB = gB;
     uint32_t i = threadIdx.x * 4U;
-    while (i < 1024U)
+    for (; i < 1024U; i += 1024U)
     {
       float_t local[4U];
       memset(local, 0U, 4U * sizeof (float_t));
@@ -186,11 +179,10 @@ __hoisted_1(
       uint32_t k = 0U;
       for (; k < 4U; k += 1U)
         sB[row * 128U + col + k] = local[k];
-      i += 1024U;
     }
     __syncthreads();
     uint32_t dotIdx = 0U;
-    while (dotIdx < 8U)
+    for (; dotIdx < 8U; dotIdx += 1U)
     {
       uint32_t i0 = 0U;
       for (; i0 < 8U; i0 += 1U)
@@ -199,20 +191,17 @@ __hoisted_1(
       for (; i1 < 8U; i1 += 1U)
         rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
       uint32_t resIdxM = 0U;
-      while (resIdxM < 8U)
+      for (; resIdxM < 8U; resIdxM += 1U)
       {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN += 1U)
           rchProd[resIdxM * 8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += 1U;
       }
-      dotIdx += 1U;
     }
-    bkIdx += 1U;
   }
   float_t *t_tile = gC;
   uint32_t resIdxM = 0U;
-  while (resIdxM < 8U)
+  for (; resIdxM < 8U; resIdxM += 1U)
   {
     uint32_t resIdxN = 0U;
     for (; resIdxN < 8U; resIdxN += 1U)
@@ -223,7 +212,6 @@ __hoisted_1(
           t_tile[(blockIdx.x / (cols / 128U) * 128U + threadIdx.x / 16U * 8U + resIdxM) * cols +
             blockIdx.x % (cols / 128U) * 128U + threadIdx.x % 16U * 8U + resIdxN]
         + alpha * rchProd[resIdxM * 8U + resIdxN];
-    resIdxM += 1U;
   }
 }
 
@@ -283,13 +271,13 @@ __hoisted_2(
   float_t rchProd[64U];
   memset(rchProd, 0U, 64U * sizeof (float_t));
   uint32_t bkIdx = 0U;
-  while (bkIdx < shared / 8U)
+  for (; bkIdx < shared / 8U; bkIdx += 1U)
   {
     __syncthreads();
     uint32_t __anf01 = bkIdx;
     float_t *tileA = gA;
     uint32_t i1 = threadIdx.x * 4U;
-    while (i1 < 1024U)
+    for (; i1 < 1024U; i1 += 1024U)
     {
       float_t local[4U];
       memset(local, 0U, 4U * sizeof (float_t));
@@ -299,11 +287,10 @@ __hoisted_2(
       uint32_t k = 0U;
       for (; k < 4U; k += 1U)
         sA[(col + k) * 128U + row] = local[k];
-      i1 += 1024U;
     }
     float_t *tileB = gB;
     uint32_t i = threadIdx.x * 4U;
-    while (i < 1024U)
+    for (; i < 1024U; i += 1024U)
     {
       float_t local[4U];
       memset(local, 0U, 4U * sizeof (float_t));
@@ -313,11 +300,10 @@ __hoisted_2(
       uint32_t k = 0U;
       for (; k < 4U; k += 1U)
         sB[row * 128U + col + k] = local[k];
-      i += 1024U;
     }
     __syncthreads();
     uint32_t dotIdx = 0U;
-    while (dotIdx < 8U)
+    for (; dotIdx < 8U; dotIdx += 1U)
     {
       uint32_t i0 = 0U;
       for (; i0 < 8U; i0 += 1U)
@@ -326,20 +312,17 @@ __hoisted_2(
       for (; i1 < 8U; i1 += 1U)
         rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
       uint32_t resIdxM = 0U;
-      while (resIdxM < 8U)
+      for (; resIdxM < 8U; resIdxM += 1U)
       {
         uint32_t resIdxN = 0U;
         for (; resIdxN < 8U; resIdxN += 1U)
           rchProd[resIdxM * 8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += 1U;
       }
-      dotIdx += 1U;
     }
-    bkIdx += 1U;
   }
   float_t *t_tile = gC;
   uint32_t resIdxM = 0U;
-  while (resIdxM < 8U)
+  for (; resIdxM < 8U; resIdxM += 1U)
   {
     uint32_t resIdxN = 0U;
     for (; resIdxN < 8U; resIdxN += 1U)
@@ -350,7 +333,6 @@ __hoisted_2(
           t_tile[(blockIdx.x / (cols / 128U) * 128U + threadIdx.x / 16U * 8U + resIdxM) * cols +
             blockIdx.x % (cols / 128U) * 128U + threadIdx.x % 16U * 8U + resIdxN]
         + alpha * rchProd[resIdxM * 8U + resIdxN];
-    resIdxM += 1U;
   }
 }
 
