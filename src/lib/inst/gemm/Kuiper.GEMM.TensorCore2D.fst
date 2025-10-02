@@ -6,17 +6,21 @@ open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 module SZ = FStar.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore2D
 
+#push-options "--split_queries always" // very slow otherwise?
 inline_for_extraction noextract
 fn specialize_gpu
   // specialize
   (et_ab et_c : Type0)
-  {| scalar et_ab, scalar et_c |}
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   (bm bn bk : szp)
+  (#_ : squash (chunk et_ab /? bk))
+  (#_ : squash (chunk et_ab /? bn))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
@@ -32,13 +36,11 @@ fn specialize_gpu
   (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_sz) -1)))
   (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_sz) -1)))
   (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_sz)) <= max_threads))
-  (rA rB rC : mrepr)
-  {| ca : crepr rA, cB : crepr rB, cC : crepr rC |}
   
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (rA rows shared))
-  (gB : gpu_matrix et_ab (rB shared cols))
+  (gA : gpu_matrix et_ab (row_major rows shared))
+  (gB : gpu_matrix et_ab (row_major shared cols))
   (gC : gpu_matrix et_c (row_major rows cols))
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
@@ -57,11 +59,6 @@ fn specialize_gpu
   ensures
     (exists* eC'. gC |-> eC')
 {
-  let mrows   = rows   /^ bm;
-  let mshared = shared /^ bk;
-  let mcols   = cols   /^ bn;
-
-  
   // All assumes should be dynamically checked.
   // odd constraints, required for the implementation of copy
   // (we stride through a tile with all threads and in the last iteration the iteration variable may go up to (tile_size + nthr-1))
@@ -85,26 +82,27 @@ fn specialize_gpu
 
   ()
 }
+#pop-options
 
-let g_gemm_f16_f16_64x64x16_16x16x16_4x4_rrr = specialize_gpu half half 64sz 64sz 16sz 16sz 16sz 16sz 4sz 4sz row_major row_major row_major
+let g_gemm_f16_f16_64x64x16_16x16x16_4x4 = specialize_gpu half half 64sz 64sz 16sz 16sz 16sz 16sz 4sz 4sz
 
-let g_gemm_f16_f16_32x32x32_32x8x16_1x2_rrr = specialize_gpu half half 32sz 32sz 32sz 32sz 8sz 16sz 1sz 2sz row_major row_major row_major
-let g_gemm_f16_f16_32x32x32_8x32x16_2x1_rrr = specialize_gpu half half 32sz 32sz 32sz 8sz 32sz 16sz 2sz 1sz row_major row_major row_major
+let g_gemm_f16_f16_32x32x32_32x8x16_1x2 = specialize_gpu half half 32sz 32sz 32sz 32sz 8sz 16sz 1sz 2sz
+let g_gemm_f16_f16_32x32x32_8x32x16_2x1 = specialize_gpu half half 32sz 32sz 32sz 8sz 32sz 16sz 2sz 1sz
 
 // Are these as fast as the non-tiled tensor core implementation?
 // 1 tensor core operation per warp
-let g_gemm_f16_f16_32x8x16_32x8x16_rrr = specialize_gpu half half 32sz 8sz 16sz 32sz 8sz 16sz 1sz 1sz row_major row_major row_major
-let g_gemm_f16_f16_8x32x16_8x32x16_rrr = specialize_gpu half half 32sz 32sz 32sz 8sz 32sz 16sz 1sz 1sz row_major row_major row_major
-let g_gemm_f16_f16_16x16x16_16x16x16_rrr = specialize_gpu half half 16sz 16sz 16sz 16sz 16sz 16sz 1sz 1sz row_major row_major row_major
+let g_gemm_f16_f16_32x8x16_32x8x16 = specialize_gpu half half 32sz 8sz 16sz 32sz 8sz 16sz 1sz 1sz
+let g_gemm_f16_f16_8x32x16_8x32x16 = specialize_gpu half half 32sz 32sz 32sz 8sz 32sz 16sz 1sz 1sz
+let g_gemm_f16_f16_16x16x16_16x16x16 = specialize_gpu half half 16sz 16sz 16sz 16sz 16sz 16sz 1sz 1sz
 
 // 16 tensor core operations per warp
-let g_gemm_f16_f16_64x64x64_16x16x16_4x4_rrr = specialize_gpu half half 64sz 64sz 64sz 16sz 16sz 16sz 4sz 4sz row_major row_major row_major
-let g_gemm_f16_f16_64x64x64_32x8x16_2x8_rrr = specialize_gpu half half 64sz 64sz 64sz 32sz 8sz 16sz 2sz 8sz row_major row_major row_major
-let g_gemm_f16_f16_64x64x64_8x32x16_8x2_rrr = specialize_gpu half half 64sz 64sz 64sz 8sz 32sz 16sz 8sz 2sz row_major row_major row_major
+let g_gemm_f16_f16_64x64x64_16x16x16_4x4 = specialize_gpu half half 64sz 64sz 64sz 16sz 16sz 16sz 4sz 4sz
+let g_gemm_f16_f16_64x64x64_32x8x16_2x8 = specialize_gpu half half 64sz 64sz 64sz 32sz 8sz 16sz 2sz 8sz
+let g_gemm_f16_f16_64x64x64_8x32x16_8x2 = specialize_gpu half half 64sz 64sz 64sz 8sz 32sz 16sz 8sz 2sz
 
 // 4 tensor core operations per warp
-let g_gemm_f16_f16_32x32x32_16x16x16_2x2_rrr = specialize_gpu half half 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz row_major row_major row_major
-let g_gemm_f16_f16_64x64x64_16x16x16_2x2_rrr = specialize_gpu half half 64sz 64sz 64sz 16sz 16sz 16sz 2sz 2sz row_major row_major row_major
+let g_gemm_f16_f16_32x32x32_16x16x16_2x2 = specialize_gpu half half 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz
+let g_gemm_f16_f16_64x64x64_16x16x16_2x2 = specialize_gpu half half 64sz 64sz 64sz 16sz 16sz 16sz 2sz 2sz
 
 // mixed precision
-let g_gemm_f16_f32_32x32x32_16x16x16_2x2_rrr = specialize_gpu half float 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz row_major row_major row_major
+let g_gemm_f16_f32_32x32x32_16x16x16_2x2 = specialize_gpu half float 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz

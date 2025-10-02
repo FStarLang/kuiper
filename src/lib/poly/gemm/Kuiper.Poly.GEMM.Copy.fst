@@ -4,6 +4,7 @@ module Kuiper.Poly.GEMM.Copy
 
 module SZ = FStar.SizeT
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn cp_matrix
   (#et : Type0) {| scalar et |}
@@ -36,7 +37,11 @@ fn cp_matrix
   {
     let v = gpu_matrix_read src (!i /^ cols) (!i %^ cols);
 
-    let ite : erased (natlt (div_ceil (rows*cols) nthr)) = (!i - tid) / nthr;
+    let ite : erased (natlt (divup (rows*cols) nthr)) = (!i - tid) / nthr;
+
+    assert (pure (!i % nthr == tid));
+    assert (pure ((!i - tid) % nthr == 0));
+    assert (pure (ite * nthr == !i - tid));
 
     unfold live_tile_stride_cells dst nthr tid;
     forevery_extract (reveal ite) _;
@@ -66,6 +71,7 @@ fn cp_matrix
 
   ()
 }
+#pop-options
 
 // let live_tile_stride_cells_from
 //   (#et : Type0)

@@ -9,7 +9,6 @@ module SZ = FStar.SizeT
 module V = Pulse.Lib.Vec
 
 open Kuiper.Array.Vectorized
-open Kuiper.VectorType
 
 noextract
 unfold
@@ -26,11 +25,12 @@ let kpre
   (bid : natlt nblk)
   (tid : natlt nthr)
   : slprop =
-  gpu_pts_to_slice a (global_id bid tid * 4) (global_id bid tid * 4 + 4) (slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4))
+  gpu_pts_to_slice a (global_id bid tid * 4) (global_id bid tid * 4 + 4)
+      (slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4))
 
 noextract
-let scale_seq (#len : nat) (s : seq float{length s == len}) (v : float)
-  = Seq.seq_of_list (List.mapT (fun x -> v `mul` x) (Seq.seq_to_list s))
+let scale_seq (v : float) (s : seq float)
+  = Seq.init (length s) (fun i -> v `mul` Seq.index s i)
 
 noextract
 unfold
@@ -44,19 +44,10 @@ let kpost
   (bid : natlt nblk)
   (tid : natlt nthr)
   : slprop =
-  let s_slice = slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4) in
   gpu_pts_to_slice a (global_id bid tid * 4) (global_id bid tid * 4 + 4)
-    (upd_seq_vec4 s_slice
-      0
-      (make_float4
-        ((Seq.index s_slice 0) `mul` v)
-        ((Seq.index s_slice 1) `mul` v)
-        ((Seq.index s_slice 2) `mul` v)
-        ((Seq.index s_slice 3) `mul` v)))
+      (scale_seq v <| slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4))
 
-// #push-options "--debug SMTFail --split_queries always"
 inline_for_extraction noextract
-// [@@CPrologue "__device__"] // no KrmlPrivate, example
 fn kf
   (size:sz)
   (#s:erased (seq float) { len s == SZ.v size })
@@ -74,15 +65,32 @@ ensures
   gpu **
   kpost v size a s nblk nthr bid tid
 {
+  open Pulse.Lib.Array;
   let global_idx = ((bid *^ nthr +^ tid) *^ 4sz); rewrite each ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4) as SZ.v global_idx;
-  let fv = gpu_array_vec4_read a global_idx;
-  let x = getx fv `mul` v;
-  let y = gety fv `mul` v;
-  let z = getz fv `mul` v;
-  let w = getw fv `mul` v;
 
-  let fv' = make_float4 x y z w;
-  gpu_array_vec4_write a global_idx fv';
+  with s0. assert (gpu_pts_to_slice a (SZ.v global_idx) (SZ.v global_idx + 4) s0);
+
+  let mut local = [| zero #float #_; 4sz |];
+
+  gpu_array_vec_cpy_dh local 0sz a global_idx;
+
+  with s1. assert (local |-> s1);
+  assert (pure (Seq.equal #float s0 s1));
+
+  local.(0sz) <- v `mul` local.(0sz);
+  local.(1sz) <- v `mul` local.(1sz);
+  local.(2sz) <- v `mul` local.(2sz);
+  local.(3sz) <- v `mul` local.(3sz);
+
+  with s2. assert (local |-> s2);
+  assert (pure (Seq.equal #float s2 (scale_seq v s1)));
+
+  gpu_array_vec_cpy_hd a global_idx local 0sz;
+
+  with s3.
+    assert (gpu_pts_to_slice a (SZ.v global_idx) (SZ.v global_idx + 4) s3);
+  assert (pure (Seq.equal s3 s2));
+  assert (pure (Seq.equal s3 (scale_seq v s0)));
 
   rewrite each SZ.v global_idx as ((SZ.v bid * SZ.v nthr + SZ.v tid) * 4);
   ()

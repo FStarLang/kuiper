@@ -9,6 +9,7 @@
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 #include "atomics.h"
+#include "vectorops.h"
 #if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
 #include "tensorcores.h"
 #endif

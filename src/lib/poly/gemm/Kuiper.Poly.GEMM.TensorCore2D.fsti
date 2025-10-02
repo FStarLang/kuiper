@@ -5,6 +5,7 @@ module Kuiper.Poly.GEMM.TensorCore2D
 open Kuiper
 open Kuiper.Matrix
 open Kuiper.EMatrix
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
@@ -19,12 +20,12 @@ let warp_size = SZ.v warp_sz
 inline_for_extraction noextract
 val mk_kernel
   (#et_ab #et_c : Type0)
-  {| scalar et_ab, scalar et_c |}
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA |}
+  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
   (gA : gpu_matrix et_ab lA)
   (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB |}
+  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c (row_major rows cols))
@@ -33,6 +34,8 @@ val mk_kernel
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
   (bk : szp{bk /? shared})
+  (#_ : squash (chunk et_ab /? bn))
+  (#_ : squash (chunk et_ab /? bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})

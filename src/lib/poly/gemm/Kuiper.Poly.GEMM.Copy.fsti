@@ -19,8 +19,6 @@ let live_cell
   : slprop
   = exists* v. gpu_matrix_pts_to_cell gm i j v
 
-let div_ceil (a : nat) (b : pos) : erased int = (a + (b-1))/b
-
 let live_tile_stride_cells
   (#et : Type0)
   (#rows #cols : nat)
@@ -31,11 +29,11 @@ let live_tile_stride_cells
   (tid : natlt nthr)
   : slprop
   =
-  forall+ (it : natlt (div_ceil (rows*cols) nthr)).
+  forall+ (it : natlt (divup (rows*cols) nthr)).
     let flat_idx = tid + (it * nthr) <: nat in
     let i = flat_idx/cols <: nat in
     let j = flat_idx%cols <: nat in
-      if (i < rows && j < cols)
+      if i < rows && j < cols
       then live_cell m i j
       else emp
 

@@ -87,7 +87,6 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
   | "Kuiper.Float64.t",               [] -> TInt Double
-  | "Kuiper.VectorType.float4", [] -> TQualified ([], "float4")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -579,8 +578,50 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** VECTORIZED ARRAY ********)
 
-  | "Kuiper.Array.Vectorized.gpu_array_vec4_read", [], [ _sz; _i; _j; a; _f; idx; _s ] ->
-    EApp (EQualified ([], "KPR_VECTZD_READ"), [ cb a; cb idx ])
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dd",
+    [ et ],
+    [ sized; _has_vec_cpy;
+      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
+    let dst_off = cb dst_off in
+    let dst_arr = cb dst_arr in
+    let dst_arr = EBufSub (dst_arr, dst_off) in
+    let src_off = cb src_off in
+    let src_arr = cb src_arr in
+    let src_arr = EBufSub (src_arr, src_off) in
+    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh",
+    [ et ],
+    [ sized; _has_vec_cpy;
+      dst_arr; dst_off;
+      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
+    let dst_off = cb dst_off in
+    let dst_arr = cb dst_arr in
+    let dst_arr = EBufSub (dst_arr, dst_off) in
+    let src_off = cb src_off in
+    let src_arr = cb src_arr in
+    let src_arr = EBufSub (src_arr, src_off) in
+    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh", _, _ ->
+    raise <| Failed <| "unexpected arguments to gpu_array_vec_cpy_dh: " ^ show x
+
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_hd",
+    [ et ],
+    [ sized; _has_vec_cpy;
+      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      src_arr; src_off;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
+    let dst_off = cb dst_off in
+    let dst_arr = cb dst_arr in
+    let dst_arr = EBufSub (dst_arr, dst_off) in
+    let src_off = cb src_off in
+    let src_arr = cb src_arr in
+    let src_arr = EBufSub (src_arr, src_off) in
+    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+
   | "Kuiper.Array.Vectorized.gpu_array_vec4_write", [], [ _sz; _i; _j; a; idx; v; _s ] ->
     EApp (EQualified ([], "KPR_VECTZD_WRITE"), [ cb a; cb idx; cb v ])
 

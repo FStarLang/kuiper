@@ -1,12 +1,13 @@
-module Kuiper.Poly.GEMM.Tiled.Common
+module Kuiper.Poly.GEMM.Tiled.Common.Vec
 
 #lang-pulse
 
 open Kuiper
+open Kuiper.Array.Vectorized
 open Kuiper.Matrix
 open Kuiper.Matrix.Reprs
 open Kuiper.Matrix.Tiling
-open Kuiper.Poly.GEMM.Copy
+open Kuiper.Poly.GEMM.Copy.Vec
 
 open Kuiper.EMatrix
 
@@ -26,19 +27,22 @@ let shmems_desc
   SHArray et (bk *^ bn);
 ]
 
+// Vectorized version
 inline_for_extraction noextract
-fn copy_tiles_out_of_matrices
-  (#et : Type0) {| scalar et |}
+fn copy_tiles_out_of_matrices_vec
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#rows #shared #cols : erased nat)
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
   (bk : szp{bk /? shared})
+  (#_ : squash (chunk et /? bk)) // extra req
+  (#_ : squash (chunk et /? bn)) // extra req
   (#slA : mlayout bm bk) {| clayout slA |}
   (#slB : mlayout bk bn) {| clayout slB |}
   (sA : gpu_matrix et slA)
   (sB : gpu_matrix et slB)
-  (#lA : mlayout rows shared) {| clayout lA |}
-  (#lB : mlayout shared cols) {| clayout lB |}
+  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
+  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
   (gA : gpu_matrix et lA)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
@@ -58,50 +62,6 @@ fn copy_tiles_out_of_matrices
     thread_id nthr tid **
     live_tile_stride_cells sA nthr tid **
     live_tile_stride_cells sB nthr tid
-
-inline_for_extraction noextract
-fn copy_tiles_out_of_matrices_one_cell_per_thread
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : erased nat)
-  (bm : szp{bm /? rows})
-  (bn : szp{bn /? cols})
-  (bk : szp{bk /? shared})
-  // every thread loads a single element for either matrix,
-  (#slA : mlayout bm bk) {| clayout slA |}
-  (#slB : mlayout bk bn) {| clayout slB |}
-  (sA : gpu_matrix et slA)
-  (sB : gpu_matrix et slB)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  {| clayout lA, clayout lB |}
-  (gA : gpu_matrix et lA)
-  (#eA : ematrix et rows shared)
-  (gB : gpu_matrix et lB)
-  (#eB : ematrix et shared cols)
-  (#fA #fB : perm)
-  (tile_row : szlt (rows/bm))
-  (tile_shared : szlt (shared/bk))
-  (tile_col : szlt (cols/bn))
-  (#nthr : erased nat {nthr == bm*bk /\ nthr == bk*bn})
-  (tid : szlt nthr)
-  preserves
-    gpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  requires
-    live_cell sA (tid/bk) (tid%bk) **
-    live_cell sB (tid/bn) (tid%bn)
-  ensures
-    gpu_matrix_pts_to_cell sA (tid/bk) (tid%bk)
-      (macc
-        (ematrix_subtile eA bm bk tile_row tile_shared)
-        (tid / bk)
-        (tid % bk)) **
-    gpu_matrix_pts_to_cell sB (tid/bn) (tid%bn)
-      (macc
-        (ematrix_subtile eB bk bn tile_shared tile_col)
-        (tid/bn)
-        (tid%bn))
 
 unfold
 let block_tile_idx_rows
