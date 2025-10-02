@@ -2,25 +2,91 @@ module Kuiper.GEMM.BlockTiling2D
 
 #lang-pulse
 open Kuiper
-open Kuiper.Poly.GEMMCPU {
-  specialize_as_matmul_to_type_and_reprs_cpu as spec_cpu,
-  specialize_as_gemm_to_type_and_reprs_gpu as spec_gemm_gpu,
-  mmcomb_gpu_shmem_block_tiled2d
-}
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.EMatrix
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm, crepr_row_major, crepr_col_major}
+
+module M = Kuiper.Matrix
+module MS = Kuiper.Spec.GEMM
 module P = Kuiper.Poly.GEMM.BlockTiling2D
+module SZ = FStar.SizeT
 
-let matmul_f32_64x64x8_8x8_rrr_rr = spec_cpu (mmcomb_gpu_shmem_block_tiled2d P.mmcomb_gpu 64sz 64sz 8sz
-  // cannot infer clayout :(
-  (rm _ _) (rm _ _) #(crepr_row_major.map 64sz 8sz) #(crepr_row_major.map 8sz 64sz) 8sz 8sz) f32 rm rm rm
-let matmul_f32_32x32x32_32x8_rrr_rr = spec_cpu (mmcomb_gpu_shmem_block_tiled2d P.mmcomb_gpu 32sz 32sz 32sz
-  (rm _ _) (rm _ _) #(crepr_row_major.map 32sz 32sz) #(crepr_row_major.map 32sz 32sz) 32sz 8sz) f32 rm rm rm
+inline_for_extraction noextract
+fn spec_as_gemm
+  (bm bn bk : szp)
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
+  {| clayout slA, clayout slB |}
+  (tm : szp{tm /? bm})
+  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
+  (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
+  (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (#_ : squash (chunk et /? bn))
+  (#_ : squash (chunk et /? bk))
+  (alpha beta : et)
+  (#rows #shared #cols : szp)
+  (gA : M.gpu_matrix et (rm rows shared))
+  (#fA : perm)
+  (gB : M.gpu_matrix et (rm shared cols))
+  (#fB : perm)
+  (gC : M.gpu_matrix et (rm rows cols))
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  norewrite
+  preserves
+    cpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (rows * cols <= max_blocks) **
+    gC |-> eC
+  ensures
+    gC |-> MS.gemm alpha beta eC eA eB
+{
+  // These didn't seem to be needed before!?
+  M.gpu_matrix_pts_to_ref gA;
+  M.gpu_matrix_pts_to_ref gB;
+  M.gpu_matrix_pts_to_ref gC;
 
-let g_gemm_f32_64x64x8_8x8_rrr_rr = spec_gemm_gpu (mmcomb_gpu_shmem_block_tiled2d P.mmcomb_gpu 64sz 64sz 8sz (rm _ _) (rm _ _)
-  #(crepr_row_major.map 64sz 8sz) #(crepr_row_major.map 8sz 64sz) 8sz 8sz) f32 rm rm rm
-let g_gemm_f32_128x128x8_8x8_rrr_rr = spec_gemm_gpu (mmcomb_gpu_shmem_block_tiled2d P.mmcomb_gpu 128sz 128sz 8sz (rm _ _) (rm _ _)
-  #(crepr_row_major.map 128sz 8sz) #(crepr_row_major.map 8sz 128sz) 8sz 8sz) f32 rm rm rm
+  dassert (bm `SZ.gt` 0sz);
+  dassert (bn `SZ.gt` 0sz);
+  dassert (bk `SZ.gt` 0sz);
+  dassert (tm `SZ.gt` 0sz);
+  dassert (bm %^ tm = 0sz);
+  dassert (bn %^ tn = 0sz);
+  dguard (rows   %^ bm = 0sz);
+  dguard (shared %^ bk = 0sz);
+  dguard (cols   %^ bn = 0sz);
+  let mrows   = rows   /^ bm;
+  let mshared = shared /^ bk;
+  let mcols   = cols   /^ bn;
+
+  P.mmcomb_gpu
+    (fun o n -> mul beta o `add` mul alpha n)
+    #rows #shared #cols
+    gA #eA gB #eB gC #eC
+    bm bn bk
+    tm tn
+    slA slB #_ #_;
+
+  ()
+}
+
+let g_gemm_f32_64x64x8_8x8_rr =
+  spec_as_gemm 64sz 64sz 8sz (rm _ _) (rm _ _)
+    #(crepr_row_major.map _ _) #(crepr_row_major.map _ _)
+     8sz 8sz f32
+
+let g_gemm_f32_128x128x8_8x8_rr =
+  spec_as_gemm 128sz 128sz 8sz (rm _ _) (rm _ _)
+    #(crepr_row_major.map _ _) #(crepr_row_major.map _ _)
+    8sz 8sz f32
 
 // Transposed A-tiles in shared memory
-let g_gemm_f32_128x128x8_8x8_rrr_cr = spec_gemm_gpu (mmcomb_gpu_shmem_block_tiled2d P.mmcomb_gpu 128sz 128sz 8sz (cm _ _) (rm _ _)
-  #(crepr_col_major.map 128sz 8sz) #(crepr_row_major.map 8sz 128sz) 8sz 8sz) f32 rm rm rm
+let g_gemm_f32_128x128x8_8x8_cr =
+  spec_as_gemm 128sz 128sz 8sz (cm _ _) (rm _ _)
+    #(crepr_col_major.map _ _) #(crepr_row_major.map _ _)
+    8sz 8sz f32

@@ -15,7 +15,7 @@ open Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module SZ = FStar.SizeT
 module B = Kuiper.Barrier
-
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 open Kuiper.EMatrix { ematrix }
 open Kuiper.VArray {
@@ -24,8 +24,8 @@ open Kuiper.VArray {
   varray_pts_to_cell
 }
 open Kuiper.Matrix.Tiling
-open Kuiper.Poly.GEMM.Copy
-open Kuiper.Poly.GEMM.Tiled.Common
+open Kuiper.Poly.GEMM.Copy.Vec
+open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
 let own_thread_tile
   (#et : Type0) {| scalar et |}
@@ -100,7 +100,7 @@ let kpost1
   own_thread_tile gC bm bn tm tn bid tid
 
 let barrier_p
-  (#et : Type0)
+  (#et : Type0) {| has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
@@ -117,7 +117,7 @@ let barrier_p
       live_tile_stride_cells m2 nthr tid
 
 let barrier_q
-  (#et : Type0)
+  (#et : Type0) {| has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
@@ -128,7 +128,7 @@ let barrier_q
   fun it tid -> barrier_p m1 m2 nthr (it+1) tid (* flip flop *)
 
 let barrier_tok
-  (#et : Type0)
+  (#et : Type0) {| has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
@@ -148,7 +148,7 @@ let barrier_tok
 
 unfold
 let kpre
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -180,7 +180,7 @@ let kpre
 
 unfold
 let kpost
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -406,13 +406,14 @@ fn epilogue
 
 inline_for_extraction noextract
 fn kf
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
+  {| strided_row_major lA, strided_row_major lB |}
   (gA : gpu_matrix et lA)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
@@ -421,6 +422,8 @@ fn kf
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
   (bk : szp{bk /? shared})
+  (#_ : squash (chunk et /? bn))
+  (#_ : squash (chunk et /? bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
@@ -500,7 +503,7 @@ fn kf
         as live_tile_stride_cells sA (bm/tm * (bn/tn)) tid **
            live_tile_stride_cells sB (bm/tm * (bn/tn)) tid;
 
-    copy_tiles_out_of_matrices bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)) tid;
+    copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)) tid;
 
     assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn))) (barrier_q sA sB (bm/tm * (bn/tn))) (2 * !bkIdx + 1) tid);
     odd_2x1 !bkIdx;
@@ -541,7 +544,7 @@ fn kf
 
 ghost
 fn setup
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -582,7 +585,7 @@ fn setup
 
 ghost
 fn block_setup
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -628,7 +631,7 @@ fn block_setup
 
 ghost
 fn block_teardown
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -672,7 +675,7 @@ fn block_teardown
 
 ghost
 fn teardown
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -718,13 +721,14 @@ fn teardown
 
 inline_for_extraction noextract
 let mk_kernel
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
+  {| strided_row_major lA, strided_row_major lB |}
   (gA : gpu_matrix et lA)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
@@ -734,6 +738,8 @@ let mk_kernel
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
   (bk : szp{bk /? shared})
+  (#_ : squash (chunk et /? bn))
+  (#_ : squash (chunk et /? bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
@@ -776,13 +782,14 @@ let mk_kernel
 
 inline_for_extraction noextract
 fn mmcomb_gpu
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
+  {| strided_row_major lA, strided_row_major lB |}
   (gA : gpu_matrix et lA)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
@@ -792,6 +799,8 @@ fn mmcomb_gpu
   (bm : szp{bm /? rows})
   (bn : szp{bn /? cols})
   (bk : szp{bk /? shared})
+  (#_ : squash (chunk et /? bn))
+  (#_ : squash (chunk et /? bk))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))

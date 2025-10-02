@@ -5,7 +5,7 @@
 #define et_lbl       f32
 #define tile_sizes   _128x128x8
 #define regch_sizes  _8x8
-#define layouts      _rrr_rr
+#define layouts      _rr
 #define PRIet        "f"
 #define GEMM_ALPHA   0.7
 #define GEMM_BETA    0.3

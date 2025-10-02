@@ -69,21 +69,6 @@ val mmcomb_gpu_block_tiled1d
   : matmulcomb_gpu_ty
      (fun rows _ cols -> (rows / bm) * (cols / bn) <= max_blocks)
 
-inline_for_extraction noextract
-val mmcomb_gpu_shmem_block_tiled2d
-  (mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty)
-  (bm bn bk : szp)
-  (slA : full_mlayout bm bk)
-  (slB : full_mlayout bk bn)
-  {| csA : clayout slA |}
-  {| csB : clayout slB |}
-  (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
-  (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
-  (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
-  : matmulcomb_gpu_ty
-     (fun rows _ cols -> rows * cols <= max_blocks) // too strong probably?
-
 // inline_for_extraction noextract
 // fn mmcomb_gpu_shmem_block_tc
 //   (tiled_mmcomb_gpu : block_tiled_tc_matmulcomb_gpu_ty)
