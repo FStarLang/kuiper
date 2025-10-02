@@ -215,8 +215,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
         blockIdx.x % (cols / (uint32_t)32U) * (uint32_t)32U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)32U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)),
     cols,
     wmma::mem_row_major);
   uint32_t bkIdx = (uint32_t)0U;
@@ -248,9 +247,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
             dotIdx * (uint32_t)16U),
         (uint32_t)32U);
       wmma::load_matrix_sync(bFrag,
-        kpr_offset(b_tile,
-          (uint32_t)32U * (__anf05 * (uint32_t)16U) +
-            threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)32U),
+        kpr_offset(b_tile, (uint32_t)32U * (__anf05 * (uint32_t)16U) + (uint32_t)0U * (uint32_t)32U),
         (uint32_t)32U);
       wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
       dotIdx += (uint32_t)1U;
@@ -260,8 +257,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   wmma::store_matrix_sync(kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
         blockIdx.x % (cols / (uint32_t)32U) * (uint32_t)32U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)32U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)),
     accumFrag,
     cols,
     wmma::mem_row_major);
@@ -311,8 +307,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)8U) * (uint32_t)32U) +
         blockIdx.x % (cols / (uint32_t)8U) * (uint32_t)8U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)32U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)8U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)32U)),
     cols,
     wmma::mem_row_major);
   uint32_t bkIdx = (uint32_t)0U;
@@ -344,9 +339,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
             dotIdx * (uint32_t)16U),
         (uint32_t)16U);
       wmma::load_matrix_sync(bFrag,
-        kpr_offset(b_tile,
-          (uint32_t)8U * (__anf05 * (uint32_t)16U) +
-            threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)8U),
+        kpr_offset(b_tile, (uint32_t)8U * (__anf05 * (uint32_t)16U) + (uint32_t)0U * (uint32_t)8U),
         (uint32_t)8U);
       wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
       dotIdx += (uint32_t)1U;
@@ -356,8 +349,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   wmma::store_matrix_sync(kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)8U) * (uint32_t)32U) +
         blockIdx.x % (cols / (uint32_t)8U) * (uint32_t)8U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)32U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)8U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)32U)),
     accumFrag,
     cols,
     wmma::mem_row_major);
@@ -407,8 +399,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
         blockIdx.x % (cols / (uint32_t)32U) * (uint32_t)32U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)32U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)),
     cols,
     wmma::mem_row_major);
   uint32_t bkIdx = (uint32_t)0U;
@@ -440,9 +431,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
             dotIdx * (uint32_t)16U),
         (uint32_t)32U);
       wmma::load_matrix_sync(bFrag,
-        kpr_offset(b_tile,
-          (uint32_t)32U * (__anf05 * (uint32_t)16U) +
-            threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)32U),
+        kpr_offset(b_tile, (uint32_t)32U * (__anf05 * (uint32_t)16U) + (uint32_t)0U * (uint32_t)32U),
         (uint32_t)32U);
       wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
       dotIdx += (uint32_t)1U;
@@ -452,8 +441,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   wmma::store_matrix_sync(kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)32U) * (uint32_t)32U) +
         blockIdx.x % (cols / (uint32_t)32U) * (uint32_t)32U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)32U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)8U)),
     accumFrag,
     cols,
     wmma::mem_row_major);
@@ -893,8 +881,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
     kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)16U) * (uint32_t)16U) +
         blockIdx.x % (cols / (uint32_t)16U) * (uint32_t)16U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)16U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)16U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)16U)),
     cols,
     wmma::mem_row_major);
   uint32_t bkIdx = (uint32_t)0U;
@@ -926,9 +913,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
             dotIdx * (uint32_t)16U),
         (uint32_t)16U);
       wmma::load_matrix_sync(bFrag,
-        kpr_offset(b_tile,
-          (uint32_t)16U * (__anf05 * (uint32_t)16U) +
-            threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)16U),
+        kpr_offset(b_tile, (uint32_t)16U * (__anf05 * (uint32_t)16U) + (uint32_t)0U * (uint32_t)16U),
         (uint32_t)16U);
       wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
       dotIdx += (uint32_t)1U;
@@ -938,8 +923,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB, 
   wmma::store_matrix_sync(kpr_offset(gC,
       cols * (blockIdx.x / (cols / (uint32_t)16U) * (uint32_t)16U) +
         blockIdx.x % (cols / (uint32_t)16U) * (uint32_t)16U
-      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)16U)
-      + threadIdx.x / (uint32_t)32U % (uint32_t)1U * (uint32_t)16U),
+      + cols * (threadIdx.x / (uint32_t)32U / (uint32_t)1U * (uint32_t)16U)),
     accumFrag,
     cols,
     wmma::mem_row_major);
