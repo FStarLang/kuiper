@@ -36,7 +36,7 @@ fn specialize_gpu
   (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_sz) -1)))
   (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_sz) -1)))
   (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_sz)) <= max_threads))
-  
+
   // do not specialize
   (rows shared cols : szp)
   (gA : gpu_matrix et_ab (row_major rows shared))

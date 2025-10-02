@@ -34,7 +34,7 @@ fn specialize_gpu
   (#_ : squash (SZ.fits (bk*bn + bm/tm * bn/tn * warp_size)))
   (rA rB rC : mrepr)
   {| ca : crepr rA, cB : crepr rB, cC : crepr rC |}
-  
+
   // do not specialize
   (rows shared cols : szp)
   (gA : gpu_matrix et_ab (rA rows shared))
@@ -61,7 +61,7 @@ fn specialize_gpu
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
 
-  
+
   // All assumes should be dynamically checked.
   // odd constraints, required for the implementation of copy
   // (we stride through a tile with all threads and in the last iteration the iteration variable may go up to (tile_size + nthr-1))

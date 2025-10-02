@@ -69,7 +69,7 @@ fn subproducts_tc_2d
   requires
     pure (valid_frag_et_comb et_ab et_acc) **
     pure (Seq.length emAFrags == wm) **
-    pure (Seq.length emBFrags == wn) ** 
+    pure (Seq.length emBFrags == wn) **
     pure (Seq.length emAccumFrags == wm * wn) **
     array_fragment_pts_to aFrags emAFrags **
     array_fragment_pts_to bFrags emBFrags **
@@ -77,7 +77,7 @@ fn subproducts_tc_2d
   ensures
     exists* emAFrags' emBFrags' emAccumFrags'.
       pure (Seq.length emAFrags' == wm) **
-      pure (Seq.length emBFrags' == wn) ** 
+      pure (Seq.length emBFrags' == wn) **
       pure (Seq.length emAccumFrags' == wm * wn) **
       array_fragment_pts_to aFrags emAFrags' **
       array_fragment_pts_to bFrags emBFrags' **
@@ -211,11 +211,11 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
 
         Pulse.Lib.Forall.elim_forall
-          #(value_for et_acc FragAcc tm tn tk) 
+          #(value_for et_acc FragAcc tm tn tk)
           (MS.mma (Seq.index emAccumFrags (!resIdxM * wn + !resIdxN))
                   (Seq.index emAFrags !resIdxM)
                   (Seq.index emBFrags !resIdxN));
-        
+
         ambig_trade_elim ();
 
         resIdxN := !resIdxN +^ 1sz;
@@ -500,10 +500,10 @@ fn epilogue
 
       with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
       array_fragment_extract_ro accumFrags emAccumFrags (!i * wn + !j);
-         
+
       mma_store accumFrags.(!i *^ wn +^ !j) tc_tile;
 
-      Pulse.Lib.Forall.elim_forall (Seq.Base.index emAccumFrags (!i * wn + !j)); 
+      Pulse.Lib.Forall.elim_forall (Seq.Base.index emAccumFrags (!i * wn + !j));
       ambig_trade_elim ();
       ambig_trade_elim ();
 
@@ -596,7 +596,7 @@ fn kf
   let warpCol = wid %^ (bn/^(wn*^tn));
 
   (* tensor core fragments *)
-  let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLRM wm; 
+  let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLRM wm;
   let bFrags = __alloc_array_fragment et_ab FragB tm tn tk FragLRM wn;
   let accFrags = __alloc_array_fragment et_c FragAcc tm tn tk FragLAcc (wm *^ wn);
 
@@ -608,8 +608,8 @@ fn kf
 
   // fill accumulators with 0 for now
   let mut fi : sz = 0sz;
-  while (SZ.(!fi <^ wm*^wn)) 
-    invariant 
+  while (SZ.(!fi <^ wm*^wn))
+    invariant
       live fi **
       (exists* vaccFrags.
         pure (Seq.length vaccFrags == wm*wn) **

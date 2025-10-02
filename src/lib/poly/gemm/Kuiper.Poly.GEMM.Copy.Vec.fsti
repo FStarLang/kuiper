@@ -53,7 +53,7 @@ let live_tile_stride_cells
     let i : nat = flat_idx / cols in
     let j : nat = flat_idx % cols in
     if i < rows
-       && j < cols - chunk et + 1 
+       && j < cols - chunk et + 1
        // this fact about j should be provable here, we add it only to avoid a
        // hard VC at this point, punting the proof on to the user (where it's
        // hopefully easier)

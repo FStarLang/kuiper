@@ -11,7 +11,7 @@ et *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 #else
 float *cpu_mul(size_t rows, size_t shared, size_t cols, float *m1, float *m2)
 {
-    float *m3 = (float *) calloc(rows * cols, sizeof(float));
+    float *m3 = (float *)calloc(rows * cols, sizeof(float));
 #endif
     int i, j, k;
     for (i = 0; i < rows; i++) {
@@ -25,8 +25,8 @@ float *cpu_mul(size_t rows, size_t shared, size_t cols, float *m1, float *m2)
 }
 
 #if mix_prec == 1
-float *cpu_sgemm(size_t rows, size_t shared, size_t cols, float *m1_cpu, float *m2_cpu,
-              float *m3_cpu, float alpha, float beta)
+float *cpu_sgemm(size_t rows, size_t shared, size_t cols, float *m1_cpu,
+                 float *m2_cpu, float *m3_cpu, float alpha, float beta)
 {
     float *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
 #else
@@ -45,7 +45,8 @@ et *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
     return mm;
 }
 
-double et2double (et v) {
+double et2double(et v)
+{
 #if et_is_half == 1
     return __half2float(v);
 #else
@@ -70,8 +71,8 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
          (m1, m1_gpu, rows * cols * sizeof(cet), cudaMemcpyDeviceToHost));
     for (i = 0; i < rows; i++) {
         for (j = 0; j < cols; j++) {
-            double vm1 = et2double (m1[i * cols + j]);
-            double vm2 = et2double (m2[i * cols + j]);
+            double vm1 = et2double(m1[i * cols + j]);
+            double vm2 = et2double(m2[i * cols + j]);
 
             double diff = vm1 - vm2;
             bool ok = vm1 == vm2;
@@ -81,9 +82,11 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
 #endif
             if (!ok) {
                 fprintf(stderr, "diff=%g, vm1=%g, vm2=%g\n", diff, vm1, vm2);
-                fprintf(stderr, "Error at pos (%d, %d): %g != %g\n", i, j, vm1, vm2);
+                fprintf(stderr, "Error at pos (%d, %d): %g != %g\n", i, j, vm1,
+                        vm2);
                 fprintf(stderr,
-                        "::error::%s -- Error at pos (%d, %d): %g (gpu) != %g (cpu)\n", progname, i, j, vm1, vm2);
+                        "::error::%s -- Error at pos (%d, %d): %g (gpu) != %g (cpu)\n",
+                        progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
                     free(m1);

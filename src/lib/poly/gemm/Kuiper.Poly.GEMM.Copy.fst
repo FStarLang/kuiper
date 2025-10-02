@@ -89,7 +89,7 @@ fn cp_matrix
 //     let i = flat_idx/cols <: nat in
 //     let j = flat_idx%cols <: nat in
 //       if (i < rows && j < cols)
-//       then 
+//       then
 //         if b <= it then live_cell m i j
 //         else gpu_matrix_pts_to_cell m i j (macc em i j)
 //       else emp
@@ -113,7 +113,7 @@ fn cp_matrix
 //   requires
 //     live_tile_stride_cells dst nthr tid
 //   ensures
-//     dst |-> esrc 
+//     dst |-> esrc
 // {
 //   let mlen = rows *^ cols;
 

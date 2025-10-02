@@ -10,7 +10,6 @@ open Kuiper.Array.Vectorized
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-module SZ = FStar.SizeT
 
 inline_for_extraction noextract
 fn gpu_matrix_vec_read

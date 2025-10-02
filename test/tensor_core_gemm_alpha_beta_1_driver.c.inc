@@ -6,7 +6,6 @@
 
 #include "matmul_common.c.inc"
 
-
 #define DEFAULT_DIM   1024
 // #define DEFAULT_TILE  32
 #define DEFAULT_LAPS  4
@@ -83,9 +82,9 @@ int main(int argc, char **argv)
             m3_cpu[i * cols + j] =
 #if et_is_half == 1 && mix_prec != 1
 // FIXME 0.0 used to check tensorcore2d
-            __float2half(0.0000f);
+                __float2half(0.0000f);
 #else
-            0.0001f;
+                0.0001f;
 #endif
         }
     }
@@ -119,14 +118,15 @@ int main(int argc, char **argv)
 // if mixed precision, compute gold by only using float
 #else
         float *m1_cpu_float, *m2_cpu_float;
-        m1_cpu_float = (float *) malloc(rows * shared * sizeof(float));
-        m2_cpu_float = (float *) malloc(shared * cols * sizeof(float));
+        m1_cpu_float = (float *)malloc(rows * shared * sizeof(float));
+        m2_cpu_float = (float *)malloc(shared * cols * sizeof(float));
 
         float alpha = GEMM_ALPHA;
 
         for (i = 0; i < rows; i++) {
             for (j = 0; j < shared; j++) {
-                m1_cpu_float[i * shared + j] = __half2float(m1_cpu[i * shared + j]);
+                m1_cpu_float[i * shared + j] =
+                    __half2float(m1_cpu[i * shared + j]);
             }
         }
         for (i = 0; i < shared; i++) {
@@ -135,8 +135,8 @@ int main(int argc, char **argv)
             }
         }
         TIME_void(gold =
-                    cpu_sgemm(rows, shared, cols, m1_cpu_float, m2_cpu_float, m3_cpu,
-                            alpha, beta), NULL);
+                  cpu_sgemm(rows, shared, cols, m1_cpu_float, m2_cpu_float,
+                            m3_cpu, alpha, beta), NULL);
 #endif
     }
     for (int l = 0; l < laps; l++) {
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
                        cudaMemcpyHostToDevice);
 #else
             cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
-                        cudaMemcpyHostToDevice);
+                       cudaMemcpyHostToDevice);
 #endif
         }
     }

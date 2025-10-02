@@ -47,7 +47,7 @@ fn use ()
   let mut r2 = 3ul; arr.(2sz) <- r2;
 
   let s = hide (seq![r0; r1; r2]);
-  let p = (fun (i : natlt (Seq.length s)) -> 
+  let p = (fun (i : natlt (Seq.length s)) ->
     (s @! i) |-> (seq![1ul;2ul;3ul] @! i));
 
   rewrite r0 |-> 1ul as p 0;
@@ -59,7 +59,7 @@ fn use ()
     assert arr |-> foo;
 
   assert pure (Seq.equal foo s);
-  
+
   rewrite arr |-> foo
        as arr |-> s;
 
