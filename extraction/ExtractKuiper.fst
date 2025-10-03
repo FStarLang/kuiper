@@ -653,7 +653,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     end
 
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
-    EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
+    _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   (* Misc stuff missing from F*? *)
   | "FStar.UInt64.zero" , [], [] -> EConstant (Krml.UInt64, "0")
