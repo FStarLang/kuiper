@@ -12,7 +12,7 @@ module SZ = FStar.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore2D
 
-#push-options "--split_queries always" // very slow otherwise?
+#push-options "--split_queries always --z3rlimit 15" // very slow otherwise?
 inline_for_extraction noextract
 fn specialize_gpu
   // specialize
