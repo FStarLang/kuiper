@@ -10,7 +10,7 @@
 // #define regch_sizes  _8x8
 #define GEMM_ALPHA   0.7
 #define GEMM_BETA    0.3
-#define TOLERANCE    0.25f
+#define TOLERANCE 0.20f
 #define PREARGS      //128,128,32,
 
 #include "tensor_core_gemm_alpha_beta_1_driver.c.inc"

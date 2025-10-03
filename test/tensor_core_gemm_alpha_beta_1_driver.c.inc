@@ -40,10 +40,10 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    printf("Laps = %d\n", laps);
-    printf("Rows = %lu\n", rows);
-    printf("Shared = %lu\n", shared);
-    printf("Columns = %lu\n", cols);
+    printf("+ Laps = %d\n", laps);
+    printf("+ Rows = %lu\n", rows);
+    printf("+ Shared = %lu\n", shared);
+    printf("+ Columns = %lu\n", cols);
 
     et *m1_cpu, *m2_cpu;
 
