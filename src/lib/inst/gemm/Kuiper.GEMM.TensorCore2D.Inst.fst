@@ -12,7 +12,7 @@ module SZ = FStar.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore2D
 
-#push-options "--split_queries always --z3rlimit 15" // very slow otherwise?
+#push-options "--split_queries always --z3rlimit 25" // very slow otherwise?
 inline_for_extraction noextract
 fn spec
   // specialize
@@ -26,6 +26,8 @@ fn spec
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /? (bm * bk)))
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) /? (bk * bn)))
   (#_ : squash (SZ.fits (wm * wn)))
   (#_ : squash (SZ.fits (wm * tm)))
   (#_ : squash (SZ.fits (wn * tn)))
@@ -59,16 +61,13 @@ fn spec
   ensures
     (exists* eC'. gC |-> eC')
 {
+  gpu_matrix_pts_to_ref gA;
+  gpu_matrix_pts_to_ref gB;
+  gpu_matrix_pts_to_ref gC;
+
   dassert (bm %^ tm = 0sz);
   dassert (bn %^ tn = 0sz);
   dassert (bk %^ tk = 0sz);
-
-  // All assumes should be dynamically checked.
-  // odd constraints, required for the implementation of copy
-  // (we stride through a tile with all threads and in the last iteration the iteration variable may go up to (tile_size + nthr-1))
-  assume (pure (SZ.fits (rows * shared)));
-  assume (pure (SZ.fits (shared * cols)));
-  assume (pure (SZ.fits (rows * cols)));
 
   // preconditions checcked at runtime
   // TODO should be checked at runtime but has ghost effect:
@@ -79,6 +78,9 @@ fn spec
 
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
+
+  dassert ((bm *^ bk) %^ (chunk et_ab *^ nthr) = 0sz);
+  dassert ((bk *^ bn) %^ (chunk et_ab *^ nthr) = 0sz);
 
   launch_sync (
     mk_kernel gA gB gC bm bn bk tm tn tk wm wn nblk nthr ()

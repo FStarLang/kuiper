@@ -17,6 +17,8 @@ for bm in 32 64 128; do
         for wn in 2 4 8 16; do
           if [ $((bn % (16 * wn))) -ne 0 ]; then continue; fi
           if [ $(((bm / (wm*16)) * (bn / (wn*16)) * 32)) -gt 1024 ]; then continue; fi
+          if [ $(((bm * bk) % (chunk * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
+          if [ $(((bk * bn) % (chunk * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
           nvcc -O3 -I include -I obj \
                   -o bench.exe \
                   -DKUIPER_CFG_TENSORCORES=1 \

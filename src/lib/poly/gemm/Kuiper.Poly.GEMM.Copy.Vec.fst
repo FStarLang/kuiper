@@ -32,6 +32,7 @@ fn cp_matrix_vec
     gpu **
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /? cols) **
+    pure (chunk et * nthr /? (rows * cols)) **
     src |-> Frac f esrc **
     live_tile_stride_cells dst nthr tid
 {

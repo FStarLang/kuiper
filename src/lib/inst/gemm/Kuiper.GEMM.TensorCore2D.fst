@@ -20,6 +20,10 @@ let g_gemm_f16_f16_16x16x16_8x8 bm bn bk =
   admit();
   spec half half bm bn bk 16sz 16sz 16sz 8sz 8sz
 
+// The queries below are sometimes complex. We should
+// normalize them, that would make them much simpler.
+#set-options "--split_queries always"
+
 let g_gemm_f16_f16_32x32x16_16x16x16_2x2 = spec half half 32sz 32sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_32x32x32_16x16x16_2x2 = spec half half 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_32x32x64_16x16x16_2x2 = spec half half 32sz 32sz 64sz 16sz 16sz 16sz 2sz 2sz
@@ -29,7 +33,6 @@ let g_gemm_f16_f16_32x64x32_16x16x16_2x2 = spec half half 32sz 64sz 32sz 16sz 16
 let g_gemm_f16_f16_32x64x32_16x16x16_2x4 = spec half half 32sz 64sz 32sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_32x64x64_16x16x16_2x2 = spec half half 32sz 64sz 64sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_32x64x64_16x16x16_2x4 = spec half half 32sz 64sz 64sz 16sz 16sz 16sz 2sz 4sz
-let g_gemm_f16_f16_32x128x16_16x16x16_2x2 = spec half half 32sz 128sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_32x128x16_16x16x16_2x4 = spec half half 32sz 128sz 16sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_32x128x16_16x16x16_2x8 = spec half half 32sz 128sz 16sz 16sz 16sz 16sz 2sz 8sz
 let g_gemm_f16_f16_32x128x32_16x16x16_2x2 = spec half half 32sz 128sz 32sz 16sz 16sz 16sz 2sz 2sz
@@ -56,7 +59,6 @@ let g_gemm_f16_f16_64x64x64_16x16x16_2x2 = spec half half 64sz 64sz 64sz 16sz 16
 let g_gemm_f16_f16_64x64x64_16x16x16_2x4 = spec half half 64sz 64sz 64sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_64x64x64_16x16x16_4x2 = spec half half 64sz 64sz 64sz 16sz 16sz 16sz 4sz 2sz
 let g_gemm_f16_f16_64x64x64_16x16x16_4x4 = spec half half 64sz 64sz 64sz 16sz 16sz 16sz 4sz 4sz
-let g_gemm_f16_f16_64x128x16_16x16x16_2x2 = spec half half 64sz 128sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_64x128x16_16x16x16_2x4 = spec half half 64sz 128sz 16sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_64x128x16_16x16x16_2x8 = spec half half 64sz 128sz 16sz 16sz 16sz 16sz 2sz 8sz
 let g_gemm_f16_f16_64x128x16_16x16x16_4x2 = spec half half 64sz 128sz 16sz 16sz 16sz 16sz 4sz 2sz
@@ -74,7 +76,6 @@ let g_gemm_f16_f16_64x128x64_16x16x16_2x8 = spec half half 64sz 128sz 64sz 16sz 
 let g_gemm_f16_f16_64x128x64_16x16x16_4x2 = spec half half 64sz 128sz 64sz 16sz 16sz 16sz 4sz 2sz
 let g_gemm_f16_f16_64x128x64_16x16x16_4x4 = spec half half 64sz 128sz 64sz 16sz 16sz 16sz 4sz 4sz
 let g_gemm_f16_f16_64x128x64_16x16x16_4x8 = spec half half 64sz 128sz 64sz 16sz 16sz 16sz 4sz 8sz
-let g_gemm_f16_f16_128x32x16_16x16x16_2x2 = spec half half 128sz 32sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_128x32x16_16x16x16_4x2 = spec half half 128sz 32sz 16sz 16sz 16sz 16sz 4sz 2sz
 let g_gemm_f16_f16_128x32x16_16x16x16_8x2 = spec half half 128sz 32sz 16sz 16sz 16sz 16sz 8sz 2sz
 let g_gemm_f16_f16_128x32x32_16x16x16_2x2 = spec half half 128sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz
@@ -83,7 +84,6 @@ let g_gemm_f16_f16_128x32x32_16x16x16_8x2 = spec half half 128sz 32sz 32sz 16sz 
 let g_gemm_f16_f16_128x32x64_16x16x16_2x2 = spec half half 128sz 32sz 64sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_128x32x64_16x16x16_4x2 = spec half half 128sz 32sz 64sz 16sz 16sz 16sz 4sz 2sz
 let g_gemm_f16_f16_128x32x64_16x16x16_8x2 = spec half half 128sz 32sz 64sz 16sz 16sz 16sz 8sz 2sz
-let g_gemm_f16_f16_128x64x16_16x16x16_2x2 = spec half half 128sz 64sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_128x64x16_16x16x16_2x4 = spec half half 128sz 64sz 16sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_128x64x16_16x16x16_4x2 = spec half half 128sz 64sz 16sz 16sz 16sz 16sz 4sz 2sz
 let g_gemm_f16_f16_128x64x16_16x16x16_4x4 = spec half half 128sz 64sz 16sz 16sz 16sz 16sz 4sz 4sz
@@ -101,7 +101,6 @@ let g_gemm_f16_f16_128x64x64_16x16x16_4x2 = spec half half 128sz 64sz 64sz 16sz 
 let g_gemm_f16_f16_128x64x64_16x16x16_4x4 = spec half half 128sz 64sz 64sz 16sz 16sz 16sz 4sz 4sz
 let g_gemm_f16_f16_128x64x64_16x16x16_8x2 = spec half half 128sz 64sz 64sz 16sz 16sz 16sz 8sz 2sz
 let g_gemm_f16_f16_128x64x64_16x16x16_8x4 = spec half half 128sz 64sz 64sz 16sz 16sz 16sz 8sz 4sz
-let g_gemm_f16_f16_128x128x16_16x16x16_2x2 = spec half half 128sz 128sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_128x128x16_16x16x16_2x4 = spec half half 128sz 128sz 16sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_128x128x16_16x16x16_2x8 = spec half half 128sz 128sz 16sz 16sz 16sz 16sz 2sz 8sz
 let g_gemm_f16_f16_128x128x16_16x16x16_4x2 = spec half half 128sz 128sz 16sz 16sz 16sz 16sz 4sz 2sz

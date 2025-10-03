@@ -25,6 +25,8 @@ fn spec
   (et : Type0) {| scalar et, has_vec_cpy et |}
   (#_ : squash (chunk et /? bn))
   (#_ : squash (chunk et /? bk))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bm * bk)))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bk * bn)))
   (alpha beta : et)
   (#rows #shared #cols : szp)
   (gA : M.gpu_matrix et (rm rows shared))

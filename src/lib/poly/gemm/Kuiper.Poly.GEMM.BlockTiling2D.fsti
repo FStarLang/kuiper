@@ -34,6 +34,8 @@ fn mmcomb_gpu
   (#_ : squash (chunk et /? bk))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bm * bk)))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bk * bn)))
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))

@@ -23,6 +23,8 @@ fn spec
   (tk : szp{tk /? bk})
   (wm : szp{wm * tm /? bm})
   (wn : szp{wn * tn /? bn})
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * 32) /? (bm * bk)))
+  (#_ : squash (chunk et_ab * (bm/(wm*tm) * (bn/(wn*tn)) * 32) /? (bk * bn)))
   (#_ : squash (SZ.fits (wm * wn)))
   (#_ : squash (SZ.fits (wm * tm)))
   (#_ : squash (SZ.fits (wn * tn)))

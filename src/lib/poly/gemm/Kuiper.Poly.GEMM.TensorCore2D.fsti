@@ -45,6 +45,8 @@ val mk_kernel
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (#_ : squash (chunk et_ab * nthr /? (bm * bk)))
+  (#_ : squash (chunk et_ab * nthr /? (bk * bn)))
   (#_ : squash (SZ.fits (rows * shared)))
   (#_ : squash (SZ.fits (rows * cols)))
   (#_ : squash (SZ.fits (shared * cols)))

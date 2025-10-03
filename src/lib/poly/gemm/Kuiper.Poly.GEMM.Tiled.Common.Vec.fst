@@ -36,6 +36,8 @@ fn copy_tiles_out_of_matrices_vec
   (tile_shared : szlt (shared/bk))
   (tile_col : szlt (cols/bn))
   (nthr : sz)
+  (#_ : squash (chunk et * nthr /? (bm * bk))) // extra req
+  (#_ : squash (chunk et * nthr /? (bk * bn))) // extra req
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (tid : szlt nthr)

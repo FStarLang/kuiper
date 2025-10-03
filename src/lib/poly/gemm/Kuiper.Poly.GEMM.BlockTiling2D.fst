@@ -432,6 +432,8 @@ fn kf
   (tn : szp{tn /? bn})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bm * bk)))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bk * bn)))
   (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et bm bn bk))
   (bid : szlt (rows/bm * (cols/bn)))
@@ -529,6 +531,7 @@ fn kf
 
     bkIdx := !bkIdx +^ 1sz;
   };
+  assert pure (!bkIdx == num_k_tiles);
 
   epilogue comb bm bn tm tn rchProd gC bid tid;
 
@@ -749,6 +752,8 @@ let mk_kernel
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
+  (#_ : squash (chunk et * nthr /? (bm * bk)))
+  (#_ : squash (chunk et * nthr /? (bk * bn)))
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#_ : squash (rows/bm * (cols/bn) <= max_blocks
@@ -777,7 +782,7 @@ let mk_kernel
   kpre      = kpre  comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB;
   kpost     = kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB;
 
-  f = kf comb gA #eA gB #eB gC bm bn bk slA slB tm tn #() #() #fA #fB;
+  f = kf comb gA #eA gB #eB gC bm bn bk slA slB tm tn #() #() #() #() #fA #fB;
 }
 
 inline_for_extraction noextract
@@ -803,6 +808,8 @@ fn mmcomb_gpu
   (#_ : squash (chunk et /? bk))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bm * bk)))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bk * bn)))
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))

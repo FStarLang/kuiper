@@ -4,7 +4,7 @@ module Kuiper.Poly.GEMM.TensorCore2D
 
 open Kuiper
 
-#set-options "--z3rlimit 20"
+#set-options "--z3rlimit 40"
 
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
@@ -438,7 +438,6 @@ let kpost
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
   barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
 
-#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -517,7 +516,6 @@ fn epilogue
 
   ()
 }
-#pop-options
 
 inline_for_extraction noextract
 fn kf
@@ -554,6 +552,8 @@ fn kf
   (#_ : squash (valid_frag_et_comb et_ab et_c))
   (#fA #fB : perm)
   (nthr : erased nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (#_ : squash (chunk et_ab * nthr /? (bm * bk)))
+  (#_ : squash (chunk et_ab * nthr /? (bk * bn)))
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
@@ -877,6 +877,8 @@ fn teardown
   (wn : szp{wn * tn /? bn})
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (#_ : squash (chunk et_ab * nthr /? (bm * bk)))
+  (#_ : squash (chunk et_ab * nthr /? (bk * bn)))
   (fA fB : perm)
   ()
   norewrite
@@ -930,6 +932,8 @@ let mk_kernel
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (#_ : squash (chunk et_ab * nthr /? (bm * bk)))
+  (#_ : squash (chunk et_ab * nthr /? (bk * bn)))
   (#_ : squash (SZ.fits (rows * shared)))
   (#_ : squash (SZ.fits (rows * cols)))
   (#_ : squash (SZ.fits (shared * cols)))
