@@ -78,5 +78,6 @@ static int verbose = 0;
 #define TOKENPASTE(x, y) __TOKENPASTE(x, y)
 #define TOKENPASTE3(x, y,z) TOKENPASTE(TOKENPASTE(x, y), z)
 #define TOKENPASTE5(v, w, x, y, z) TOKENPASTE(TOKENPASTE(TOKENPASTE(TOKENPASTE(v, w), x), y), z)
+#define TOKENPASTE6(u, v, w, x, y, z) TOKENPASTE(TOKENPASTE5(u, v, w, x, y), z)
 
 #endif

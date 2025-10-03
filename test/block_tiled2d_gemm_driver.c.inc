@@ -70,6 +70,10 @@ int main(int argc, char **argv)
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
 
+    #define F TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
+    #define STR(x) #x
+    #define XSTR(x) STR(x)
+
     et *gold = NULL;
     if (check) {
         // One extra lap if we're checking.
@@ -77,19 +81,14 @@ int main(int argc, char **argv)
                   cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
                             GEMM_ALPHA, GEMM_BETA), NULL);
 
-        TIME_void(TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
-                  (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), NULL);
+        F (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
 
         cmp(rows, cols, m3, gold);
 
         free(gold);
     }
 
-    #define F TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
-    #define STR(x) #x
-    #define XSTR(x) STR(x)
-
-    // warmup
+    // Warmup
     for (int l = 0; l < laps/10; l++) {
         F (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
     }
@@ -105,7 +104,6 @@ int main(int argc, char **argv)
     // I think the below is more accurate, but I'm reusing the
     // same formula from the sgemm.cu benchsuite
     // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
-
 
     fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F), (double)flops / t / 1e9);
 

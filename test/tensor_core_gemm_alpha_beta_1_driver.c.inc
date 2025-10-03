@@ -110,6 +110,10 @@ int main(int argc, char **argv)
     et beta = GEMM_BETA;
 #endif
 
+    #define F TOKENPASTE5(stem, et_lbl, tile_sizes, tc_tile_sizes, regch_sizes)
+    #define STR(x) #x
+    #define XSTR(x) STR(x)
+
     if (check) {
 #if mix_prec != 1
         TIME_void(gold =
@@ -138,30 +142,30 @@ int main(int argc, char **argv)
                   cpu_sgemm(rows, shared, cols, m1_cpu_float, m2_cpu_float,
                             m3_cpu, alpha, beta), NULL);
 #endif
+        F (PREARGS   rows, shared, cols, m1, m2, m3);
+
+        cmp(rows, cols, m3, gold);
+
+        free(gold);
     }
+
+    // Warmup
+    for (int l = 0; l < laps/10; l++) {
+        F (PREARGS    rows, shared, cols, m1, m2, m3);
+    }
+
+    // Now the actual bench
+    float t = 0;
     for (int l = 0; l < laps; l++) {
-        float t;
-        TIME_void(TOKENPASTE5(stem, et_lbl, tile_sizes, tc_tile_sizes, layouts)
-                  (PREARGS  rows, shared, cols, m1, m2, m3), &t);
-        uint64_t flops = (rows * shared * cols * 2.0);
+        float delta;
+        TIME_void(F (PREARGS   rows, shared, cols, m1, m2, m3), &delta);
+        t += delta;
+    }
+    uint64_t flops = laps * rows * shared * cols * 2.0;
         // I think the below is more accurate, but I'm reusing the
         // same formula from the sgemm.cu benchsuite
         // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n", (double)flops / t / 1e9);
-
-        if (check) {
-            cmp(rows, cols, m3, gold);
-#if mix_prec == 1
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(float),
-                       cudaMemcpyHostToDevice);
-#else
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
-                       cudaMemcpyHostToDevice);
-#endif
-        }
-    }
-    if (check)
-        free(gold);
+    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F), (double)flops / t / 1e9);
 
     cudaFree(m1);
     cudaFree(m2);

@@ -3,7 +3,7 @@
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16
 */
 static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -67,12 +67,11 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16_rrr(uint32_t rows,
-                                                            uint32_t shared,
-                                                            uint32_t cols,
-                                                            half_t *gA,
-                                                            half_t *gB,
-                                                            half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16(uint32_t rows,
+                                                        uint32_t shared,
+                                                        uint32_t cols,
+                                                        half_t *gA,
+                                                        half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -84,7 +83,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x32x32_32x8x16_rrr
+  hoisted when extracting g_gemm_f16_f16_32x32x32_32x8x16
 */
 static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -148,12 +147,11 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16_rrr(uint32_t rows,
-                                                           uint32_t shared,
-                                                           uint32_t cols,
-                                                           half_t *gA,
-                                                           half_t *gB,
-                                                           half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16(uint32_t rows,
+                                                       uint32_t shared,
+                                                       uint32_t cols,
+                                                       half_t *gA,
+                                                       half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -165,7 +163,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x32x32_8x32x16_rrr
+  hoisted when extracting g_gemm_f16_f16_32x32x32_8x32x16
 */
 static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -225,12 +223,11 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16_rrr(uint32_t rows,
-                                                           uint32_t shared,
-                                                           uint32_t cols,
-                                                           half_t *gA,
-                                                           half_t *gB,
-                                                           half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16(uint32_t rows,
+                                                       uint32_t shared,
+                                                       uint32_t cols,
+                                                       half_t *gA,
+                                                       half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -242,7 +239,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x8x16_32x8x16_rrr
+  hoisted when extracting g_gemm_f16_f16_32x8x16_32x8x16
 */
 static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -301,12 +298,11 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16_rrr(uint32_t rows,
-                                                          uint32_t shared,
-                                                          uint32_t cols,
-                                                          half_t *gA,
-                                                          half_t *gB,
-                                                          half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16(uint32_t rows,
+                                                      uint32_t shared,
+                                                      uint32_t cols,
+                                                      half_t *gA,
+                                                      half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -318,7 +314,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_8x32x16_8x32x16_rrr
+  hoisted when extracting g_gemm_f16_f16_8x32x16_8x32x16
 */
 static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -378,12 +374,11 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16_rrr(uint32_t rows,
-                                                          uint32_t shared,
-                                                          uint32_t cols,
-                                                          half_t *gA,
-                                                          half_t *gB,
-                                                          half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16(uint32_t rows,
+                                                      uint32_t shared,
+                                                      uint32_t cols,
+                                                      half_t *gA,
+                                                      half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -395,7 +390,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16
 */
 static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -459,12 +454,11 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16_rrr(uint32_t rows,
-                                                            uint32_t shared,
-                                                            uint32_t cols,
-                                                            half_t *gA,
-                                                            half_t *gB,
-                                                            half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16(uint32_t rows,
+                                                        uint32_t shared,
+                                                        uint32_t cols,
+                                                        half_t *gA,
+                                                        half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -476,7 +470,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_32x8x16_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_32x8x16
 */
 static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -540,12 +534,11 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16_rrr(uint32_t rows,
-                                                           uint32_t shared,
-                                                           uint32_t cols,
-                                                           half_t *gA,
-                                                           half_t *gB,
-                                                           half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16(uint32_t rows,
+                                                       uint32_t shared,
+                                                       uint32_t cols,
+                                                       half_t *gA,
+                                                       half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -557,7 +550,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_64x64x64_8x32x16_rrr
+  hoisted when extracting g_gemm_f16_f16_64x64x64_8x32x16
 */
 static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -621,12 +614,11 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16_rrr(uint32_t rows,
-                                                           uint32_t shared,
-                                                           uint32_t cols,
-                                                           half_t *gA,
-                                                           half_t *gB,
-                                                           half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16(uint32_t rows,
+                                                       uint32_t shared,
+                                                       uint32_t cols,
+                                                       half_t *gA,
+                                                       half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -638,7 +630,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_32x32x32_16x16x16_rrr
+  hoisted when extracting g_gemm_f16_f16_32x32x32_16x16x16
 */
 static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -702,12 +694,11 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16_rrr(uint32_t rows,
-                                                            uint32_t shared,
-                                                            uint32_t cols,
-                                                            half_t *gA,
-                                                            half_t *gB,
-                                                            half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16(uint32_t rows,
+                                                        uint32_t shared,
+                                                        uint32_t cols,
+                                                        half_t *gA,
+                                                        half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -719,7 +710,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f16_16x16x16_16x16x16_rrr
+  hoisted when extracting g_gemm_f16_f16_16x16x16_16x16x16
 */
 static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                         half_t *gC)
@@ -779,12 +770,11 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16_rrr(uint32_t rows,
-                                                            uint32_t shared,
-                                                            uint32_t cols,
-                                                            half_t *gA,
-                                                            half_t *gB,
-                                                            half_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16(uint32_t rows,
+                                                        uint32_t shared,
+                                                        uint32_t cols,
+                                                        half_t *gA,
+                                                        half_t *gB, half_t *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -796,7 +786,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16_rrr(uint32_t rows,
 
 __global__
 /**
-  hoisted when extracting g_gemm_f16_f32_32x32x32_16x16x16_rrr
+  hoisted when extracting g_gemm_f16_f32_32x32x32_16x16x16
 */
 static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                          float_t *gC)
@@ -860,12 +850,11 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
 }
 
 void
-Kuiper_GEMM_TensorCore_g_gemm_f16_f32_32x32x32_16x16x16_rrr(uint32_t rows,
-                                                            uint32_t shared,
-                                                            uint32_t cols,
-                                                            half_t *gA,
-                                                            half_t *gB,
-                                                            float_t *gC)
+Kuiper_GEMM_TensorCore_g_gemm_f16_f32_32x32x32_16x16x16(uint32_t rows,
+                                                        uint32_t shared,
+                                                        uint32_t cols,
+                                                        half_t *gA,
+                                                        half_t *gB, float_t *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);

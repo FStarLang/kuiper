@@ -2,6 +2,7 @@
 
 set -eux
 
+# These loops must match those in Kuiper.GEMM.BlockTiling2D.fst.sh!!
 for bm in 64 128; do
   for bn in 64 128; do
     if [ $((bn % 4)) -ne 0 ]; then continue; fi

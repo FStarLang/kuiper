@@ -7,7 +7,7 @@
 #define et_lbl        f16_f32
 #define tile_sizes    _32x32x32
 #define tc_tile_sizes _16x16x16
-#define layouts       _rrr
+#define regch_sizes
 #define GEMM_ALPHA    1.0
 #define GEMM_BETA     1.0
 #define TOLERANCE     0.25f     // bigger tolerance due to using halfs
