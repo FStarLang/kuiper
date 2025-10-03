@@ -22,7 +22,7 @@ CHECK=0
 
 ./obj/Test_Kuiper_GEMM_OrigBlockTiling1D__F32_GEMM.exe $LAPS $DIM $DIM $DIM 0
 
-./obj/Test_Kuiper_GEMM_BlockTiling2D__F32_128x128x8_8x8_GEMM.exe $LAPS $DIM $DIM $DIM 0
+./obj/Test_Kuiper_GEMM_BlockTiling2D__F32_128x128x32_8x8.exe $LAPS $DIM $DIM $DIM 0
 
 if [ -f ./obj/Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2.exe ]; then
   ./obj/Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2.exe $LAPS $DIM $DIM $DIM 0
