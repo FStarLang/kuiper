@@ -3,6 +3,7 @@
 set -eux
 
 # These loops must match those in Kuiper.GEMM.TensorCore2D.fst.sh!!
+chunk=8
 for bm in 32 64 128; do
   if [ $((bm % 16)) -ne 0 ]; then continue; fi # tc tile
   for bn in 32 64 128; do
