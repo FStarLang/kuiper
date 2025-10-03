@@ -68,7 +68,7 @@ float_t
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -147,7 +147,7 @@ double_t
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
         (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
@@ -227,7 +227,7 @@ uint32_t
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -304,7 +304,7 @@ uint64_t
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -381,7 +381,7 @@ float_t
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -460,7 +460,7 @@ double_t
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
         (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
@@ -540,7 +540,7 @@ uint32_t
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -617,7 +617,7 @@ uint64_t
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -687,7 +687,7 @@ float_t
     KPR_KCALL(__hoisted_8,
               rows / 32U * mcols,
               1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -759,7 +759,7 @@ double_t
     KPR_KCALL(__hoisted_9,
               rows / 32U * mcols,
               1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
         (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
@@ -832,7 +832,7 @@ uint32_t
     KPR_KCALL(__hoisted_10,
               rows / 32U * mcols,
               1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -902,7 +902,7 @@ uint64_t
     KPR_KCALL(__hoisted_11,
               rows / 32U * mcols,
               1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -972,7 +972,7 @@ float_t
     KPR_KCALL(__hoisted_12,
               rows / 32U * mcols,
               1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -1044,7 +1044,7 @@ double_t
     KPR_KCALL(__hoisted_13,
               rows / 32U * mcols,
               1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
         (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
@@ -1117,7 +1117,7 @@ uint32_t
     KPR_KCALL(__hoisted_14,
               rows / 32U * mcols,
               1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -1187,7 +1187,7 @@ uint64_t
     KPR_KCALL(__hoisted_15,
               rows / 32U * mcols,
               1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -1257,7 +1257,7 @@ float_t
     KPR_KCALL(__hoisted_16,
               rows / 16U * mcols,
               256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -1329,7 +1329,7 @@ double_t
     KPR_KCALL(__hoisted_17,
               rows / 16U * mcols,
               256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
         (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
@@ -1402,7 +1402,7 @@ uint32_t
     KPR_KCALL(__hoisted_18,
               rows / 16U * mcols,
               256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -1472,7 +1472,7 @@ uint64_t
     KPR_KCALL(__hoisted_19,
               rows / 16U * mcols,
               256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -1542,7 +1542,7 @@ float_t
     KPR_KCALL(__hoisted_20,
               rows / 16U * mcols,
               256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -1614,7 +1614,7 @@ double_t
     KPR_KCALL(__hoisted_21,
               rows / 16U * mcols,
               256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
         (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
@@ -1687,7 +1687,7 @@ uint32_t
     KPR_KCALL(__hoisted_22,
               rows / 16U * mcols,
               256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -1757,7 +1757,7 @@ uint64_t
     KPR_KCALL(__hoisted_23,
               rows / 16U * mcols,
               256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
@@ -1830,7 +1830,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_rrr(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -1896,7 +1896,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_rrr(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -1962,7 +1962,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_rrr(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2028,7 +2028,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_rrr(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2094,7 +2094,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_ccc(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2160,7 +2160,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_ccc(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2226,7 +2226,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_ccc(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2292,7 +2292,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_ccc(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2350,7 +2350,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_32,
               rows / 32U * mcols,
               1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2409,7 +2409,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_33,
               rows / 32U * mcols,
               1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2468,7 +2468,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_34,
               rows / 32U * mcols,
               1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2527,7 +2527,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_35,
               rows / 32U * mcols,
               1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2585,7 +2585,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_36,
               rows / 32U * mcols,
               1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2644,7 +2644,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_37,
               rows / 32U * mcols,
               1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2703,7 +2703,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_38,
               rows / 32U * mcols,
               1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2762,7 +2762,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_39,
               rows / 32U * mcols,
               1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2820,7 +2820,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_40,
               rows / 16U * mcols,
               256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2879,7 +2879,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_41,
               rows / 16U * mcols,
               256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2938,7 +2938,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_42,
               rows / 16U * mcols,
               256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -2997,7 +2997,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_43,
               rows / 16U * mcols,
               256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3055,7 +3055,7 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_44,
               rows / 16U * mcols,
               256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3114,7 +3114,7 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_45,
               rows / 16U * mcols,
               256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3173,7 +3173,7 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_46,
               rows / 16U * mcols,
               256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3232,7 +3232,7 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(uint32_t rows,
     KPR_KCALL(__hoisted_47,
               rows / 16U * mcols,
               256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3306,7 +3306,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_rrr(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, alpha, beta, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3380,7 +3380,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_rrr(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, alpha, beta, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3454,7 +3454,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_rrr(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, alpha, beta, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3528,7 +3528,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_rrr(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, alpha, beta, shared, cols, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3602,7 +3602,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_ccc(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, alpha, beta, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3676,7 +3676,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_ccc(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, alpha, beta, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3750,7 +3750,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_ccc(uint32_t tile,
               tile * tile,
               4U * (tile * tile) + 4U * (tile * tile),
               tile, alpha, beta, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3824,7 +3824,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_ccc(uint32_t tile,
               tile * tile,
               8U * (tile * tile) + 8U * (tile * tile),
               tile, alpha, beta, rows, shared, gA, gB, gC, mshared, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3892,7 +3892,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_rrr(float_t alpha,
               1024U,
               8192U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -3961,7 +3961,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_rrr(double_t alpha,
               1024U,
               16384U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4030,7 +4030,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_rrr(uint32_t alpha,
               1024U,
               8192U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4099,7 +4099,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_rrr(uint64_t alpha,
               1024U,
               16384U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4167,7 +4167,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_ccc(float_t alpha,
               1024U,
               8192U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4236,7 +4236,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_ccc(double_t alpha,
               1024U,
               16384U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4305,7 +4305,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_ccc(uint32_t alpha,
               1024U,
               8192U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4374,7 +4374,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_ccc(uint64_t alpha,
               1024U,
               16384U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4442,7 +4442,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_rrr(float_t alpha,
               256U,
               2048U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4511,7 +4511,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_rrr(double_t alpha,
               256U,
               4096U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4580,7 +4580,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_rrr(uint32_t alpha,
               256U,
               2048U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4649,7 +4649,7 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_rrr(uint64_t alpha,
               256U,
               4096U,
               alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4717,7 +4717,7 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_ccc(float_t alpha,
               256U,
               2048U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4786,7 +4786,7 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_ccc(double_t alpha,
               256U,
               4096U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4855,7 +4855,7 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_ccc(uint32_t alpha,
               256U,
               2048U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -4924,5 +4924,5 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_ccc(uint64_t alpha,
               256U,
               4096U,
               alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }

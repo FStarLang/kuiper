@@ -63,7 +63,7 @@ Kuiper_GEMM_OrigBlockTiling1D_matmul_f32_tiles64x8_8x64_rc8_rrr(uint32_t rows,
     KPR_KCALL(__hoisted_0,
               rows / 64U * mcols,
               512U, 4096U, shared, cols, shared / 8U, mcols, gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
     if (c != NULL)
@@ -140,5 +140,5 @@ Kuiper_GEMM_OrigBlockTiling1D_g_gemm_f32_tiles64x8_8x64_rc8_rrr(float_t alpha,
               rows / 64U * mcols,
               512U,
               4096U, alpha, beta, shared, cols, shared / 8U, mcols, gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }

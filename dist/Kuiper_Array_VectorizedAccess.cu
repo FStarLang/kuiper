@@ -22,7 +22,7 @@ void Kuiper_Array_VectorizedAccess_hf(float_t *v)
     float_t *a = (float_t *) KPR_GPU_ALLOC(4U, 4U);
     MUST(cudaMemcpy(a, v, 16U, cudaMemcpyHostToDevice));
     KPR_KCALL(__hoisted_0, 1U, 1U, 0U, a, 1.0f + 1.0f);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(v, a, 16U, cudaMemcpyDeviceToHost));
     MUST(cudaFree(a));
 }

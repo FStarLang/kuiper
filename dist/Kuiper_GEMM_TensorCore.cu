@@ -78,7 +78,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16(uint32_t rows,
     KPR_GUARD(cols % 64U == 0U);
     KPR_KCALL(__hoisted_0, rows / 64U * (cols / 64U), 512U, 4096U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -158,7 +158,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16(uint32_t rows,
     KPR_GUARD(cols % 32U == 0U);
     KPR_KCALL(__hoisted_1, rows / 32U * (cols / 32U), 128U, 4096U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -234,7 +234,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16(uint32_t rows,
     KPR_GUARD(cols % 32U == 0U);
     KPR_KCALL(__hoisted_2, rows / 32U * (cols / 32U), 128U, 4096U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -309,7 +309,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16(uint32_t rows,
     KPR_GUARD(cols % 8U == 0U);
     KPR_KCALL(__hoisted_3, rows / 32U * (cols / 8U), 32U, 1280U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -385,7 +385,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16(uint32_t rows,
     KPR_GUARD(cols % 32U == 0U);
     KPR_KCALL(__hoisted_4, rows / 32U * (cols / 32U), 128U, 4096U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -465,7 +465,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16(uint32_t rows,
     KPR_GUARD(cols % 64U == 0U);
     KPR_KCALL(__hoisted_5, rows / 64U * (cols / 64U), 512U, 16384U, shared,
               cols, gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -545,7 +545,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16(uint32_t rows,
     KPR_GUARD(cols % 64U == 0U);
     KPR_KCALL(__hoisted_6, rows / 64U * (cols / 64U), 512U, 16384U, shared,
               cols, gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -625,7 +625,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16(uint32_t rows,
     KPR_GUARD(cols % 64U == 0U);
     KPR_KCALL(__hoisted_7, rows / 64U * (cols / 64U), 512U, 16384U, shared,
               cols, gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -705,7 +705,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16(uint32_t rows,
     KPR_GUARD(cols % 32U == 0U);
     KPR_KCALL(__hoisted_8, rows / 32U * (cols / 32U), 128U, 4096U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -781,7 +781,7 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16(uint32_t rows,
     KPR_GUARD(cols % 16U == 0U);
     KPR_KCALL(__hoisted_9, rows / 16U * (cols / 16U), 32U, 1024U, shared, cols,
               gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -861,5 +861,5 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f32_32x32x32_16x16x16(uint32_t rows,
     KPR_GUARD(cols % 32U == 0U);
     KPR_KCALL(__hoisted_10, rows / 32U * (cols / 32U), 128U, 4096U, shared,
               cols, gA, gB, gC);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }

@@ -16,5 +16,5 @@ static void __hoisted_0(uint32_t size, uint64_t *a)
 void Kuiper_ArrayReversal_reverse_u64(uint32_t size, uint64_t *a)
 {
     KPR_KCALL(__hoisted_0, size / 2U, 1U, 0U, size, a);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }

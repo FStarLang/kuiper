@@ -24,7 +24,7 @@ void Kuiper_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
     MUST(cudaMemcpy(gr1, r1, 8U, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gr2, r2, 8U, cudaMemcpyHostToDevice));
     KPR_KCALL(__hoisted_0, 1U, 1U, 0U, gr1, gr2);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(r1, gr1, 8U, cudaMemcpyDeviceToHost));
     MUST(cudaMemcpy(r2, gr2, 8U, cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr1));
@@ -54,7 +54,7 @@ void Kuiper_Polymorphism1_swap_F32(float_t *r1, float_t *r2)
     MUST(cudaMemcpy(gr1, r1, 4U, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gr2, r2, 4U, cudaMemcpyHostToDevice));
     KPR_KCALL(__hoisted_1, 1U, 1U, 0U, gr1, gr2);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(r1, gr1, 4U, cudaMemcpyDeviceToHost));
     MUST(cudaMemcpy(r2, gr2, 4U, cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr1));

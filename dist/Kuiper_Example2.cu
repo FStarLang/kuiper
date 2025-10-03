@@ -13,6 +13,6 @@ static void __hoisted_0(void)
 uint64_t Kuiper_Example2_main(void)
 {
     KPR_KCALL(__hoisted_0, 1U, 1U, 0U);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     return 1ULL;
 }

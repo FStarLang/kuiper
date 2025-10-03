@@ -107,14 +107,6 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x64x64_16x16x16_2x4(uint32_t rows,
                                                               half_t * gC);
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x128x16_16x16x16_2x2(uint32_t rows,
-                                                               uint32_t shared,
-                                                               uint32_t cols,
-                                                               half_t * gA,
-                                                               half_t * gB,
-                                                               half_t * gC);
-
-void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_32x128x16_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
@@ -323,14 +315,6 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4(uint32_t rows,
                                                               half_t * gC);
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x2(uint32_t rows,
-                                                               uint32_t shared,
-                                                               uint32_t cols,
-                                                               half_t * gA,
-                                                               half_t * gB,
-                                                               half_t * gC);
-
-void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
@@ -467,14 +451,6 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x8(uint32_t rows,
                                                                half_t * gC);
 
 void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x32x16_16x16x16_2x2(uint32_t rows,
-                                                               uint32_t shared,
-                                                               uint32_t cols,
-                                                               half_t * gA,
-                                                               half_t * gB,
-                                                               half_t * gC);
-
-void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x32x16_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
@@ -532,14 +508,6 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x32x64_16x16x16_4x2(uint32_t rows,
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x32x64_16x16x16_8x2(uint32_t rows,
-                                                               uint32_t shared,
-                                                               uint32_t cols,
-                                                               half_t * gA,
-                                                               half_t * gB,
-                                                               half_t * gC);
-
-void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_2x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
                                                                half_t * gA,
@@ -681,14 +649,6 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x4(uint32_t rows,
                                                                half_t * gA,
                                                                half_t * gB,
                                                                half_t * gC);
-
-void
-Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x2(uint32_t rows,
-                                                                uint32_t shared,
-                                                                uint32_t cols,
-                                                                half_t * gA,
-                                                                half_t * gB,
-                                                                half_t * gC);
 
 void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x4(uint32_t rows,

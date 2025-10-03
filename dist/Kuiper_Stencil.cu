@@ -28,7 +28,7 @@ Kuiper_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols, float_t *gIn,
     uint32_t cols_sub2 = cols - 2U;
     KPR_KCALL(__hoisted_0, (rows - 2U) * cols_sub2, 1U, 0U, gIn, gOut,
               cols_sub2);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
@@ -59,5 +59,5 @@ Kuiper_Stencil_stencil3x3_i32_add_mul2_rc(uint32_t rows,
     uint32_t cols_sub2 = cols - 2U;
     KPR_KCALL(__hoisted_1, (rows - 2U) * cols_sub2, 1U, 0U, rows, gIn, gOut,
               cols_sub2);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
 }

@@ -84,7 +84,7 @@ uint64_t Kuiper_Async1_main(void)
     KPR_KCALL(__hoisted_3, 1U, 1U, 0U, r4);
     KPR_KCALL(__hoisted_4, 1U, 1U, 0U, r5);
     KPR_KCALL(__hoisted_5, 1U, 1U, 0U, r6);
-    cudaDeviceSynchronize();
+    MUST(cudaDeviceSynchronize());
     uint64_t v1 = Kuiper_Async1_gread(r1);
     MUST(cudaFree(r1));
     uint64_t v2 = Kuiper_Async1_gread(r2);
