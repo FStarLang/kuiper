@@ -10,6 +10,6 @@
 #define GEMM_ALPHA    1.0
 #define GEMM_BETA     1.0
 #define TOLERANCE 0.20f
-#define PREARGS       //128,128,32,
+#define PREARGS                 //128,128,32,
 
 #include "tensor_core_gemm_alpha_beta_1_driver.c.inc"

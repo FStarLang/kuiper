@@ -24,7 +24,8 @@ cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
     for (i = 0; i < rows; i++) {
         for (k = 0; k < shared; k++) {
             for (j = 0; j < cols; j++) {
-                m3[i * cols + j] += et2double(m1[i * shared + k]) * et2double(m2[k * cols + j]);
+                m3[i * cols + j] +=
+                    et2double(m1[i * shared + k]) * et2double(m2[k * cols + j]);
             }
         }
     }
@@ -32,7 +33,7 @@ cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 }
 
 cet *cpu_sgemm(size_t rows, size_t shared, size_t cols, et *m1_cpu, et *m2_cpu,
-              cet *m3_cpu, cet alpha, cet beta)
+               cet *m3_cpu, cet alpha, cet beta)
 {
     cet *mm = cpu_mul(rows, shared, cols, m1_cpu, m2_cpu);
     for (int i = 0; i < rows; i++) {

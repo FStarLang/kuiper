@@ -70,9 +70,9 @@ int main(int argc, char **argv)
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
 
-    #define F TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
-    #define STR(x) #x
-    #define XSTR(x) STR(x)
+#define F TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
+#define STR(x) #x
+#define XSTR(x) STR(x)
 
     et *gold = NULL;
     if (check) {
@@ -81,23 +81,24 @@ int main(int argc, char **argv)
                   cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
                             GEMM_ALPHA, GEMM_BETA), NULL);
 
-        F (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
+        F(PREARGS GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
 
         cmp(rows, cols, m3, gold);
 
         free(gold);
     }
-
     // Warmup
-    for (int l = 0; l < laps/10; l++) {
-        F (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
+    for (int l = 0; l < laps / 10; l++) {
+        F(PREARGS GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3);
     }
 
     // Now the actual bench
     float t = 0;
     for (int l = 0; l < laps; l++) {
         float delta;
-        TIME_void(F (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &delta);
+        TIME_void(F
+                  (PREARGS GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2,
+                   m3), &delta);
         t += delta;
     }
     uint64_t flops = laps * rows * shared * cols * 2.0;
@@ -105,7 +106,8 @@ int main(int argc, char **argv)
     // same formula from the sgemm.cu benchsuite
     // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
 
-    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F), (double)flops / t / 1e9);
+    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F),
+            (double)flops / t / 1e9);
 
     cudaFree(m1);
     cudaFree(m2);
