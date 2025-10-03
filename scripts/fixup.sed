@@ -11,3 +11,6 @@ s/auto_AMP/auto\&/g
 s/auto\& *\*/auto\&/g
 /auto\&$/{n;s/^\( *\)\*/\1/; b again}
 s/__id(\([^)]*\))/\1/g
+s/ \([[:alnum:]]*\) += 1ULL/\1++/g
+s/ \([[:alnum:]]*\) += 1UL/\1++/g
+s/ \([[:alnum:]]*\) += 1U/\1++/g

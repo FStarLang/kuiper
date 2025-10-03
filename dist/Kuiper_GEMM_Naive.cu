@@ -12,7 +12,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, float_t *gA,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     float_t sum = 0.0f;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -52,7 +52,7 @@ __hoisted_1(uint32_t shared, uint32_t cols, double_t *gA, double_t *gB,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     double_t sum = 0.0l;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -93,7 +93,7 @@ __hoisted_2(uint32_t shared, uint32_t cols, uint32_t *gA, uint32_t *gB,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint32_t sum = 0U;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -131,7 +131,7 @@ __hoisted_3(uint32_t shared, uint32_t cols, uint64_t *gA, uint64_t *gB,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint64_t sum = 0ULL;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -170,7 +170,7 @@ __hoisted_4(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     float_t sum = 0.0f;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -211,7 +211,7 @@ __hoisted_5(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     double_t sum = 0.0l;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -253,7 +253,7 @@ __hoisted_6(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint32_t sum = 0U;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -292,7 +292,7 @@ __hoisted_7(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint64_t sum = 0ULL;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -329,7 +329,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, float_t *gA,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     float_t sum = 0.0f;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -356,7 +356,7 @@ __hoisted_9(uint32_t shared, uint32_t cols, double_t *gA, double_t *gB,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     double_t sum = 0.0l;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -383,7 +383,7 @@ __hoisted_10(uint32_t shared, uint32_t cols, uint32_t *gA, uint32_t *gB,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint32_t sum = 0U;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -410,7 +410,7 @@ __hoisted_11(uint32_t shared, uint32_t cols, uint64_t *gA, uint64_t *gB,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint64_t sum = 0ULL;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
@@ -438,7 +438,7 @@ __hoisted_12(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     float_t sum = 0.0f;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -467,7 +467,7 @@ __hoisted_13(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     double_t sum = 0.0l;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -496,7 +496,7 @@ __hoisted_14(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint32_t sum = 0U;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
@@ -525,7 +525,7 @@ __hoisted_15(uint32_t rows,
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
     uint64_t sum = 0ULL;
-    for (; k < shared; k += 1U)
+    for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }

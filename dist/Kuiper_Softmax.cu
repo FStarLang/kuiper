@@ -17,7 +17,7 @@ __global__
 static void __hoisted_1(uint32_t lena, float_t *a_)
 {
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < lena; n += 1U) {
+    for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -77,7 +77,7 @@ __global__
 static void __hoisted_4(uint32_t lena, double_t *a_)
 {
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < lena; n += 1U) {
+    for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);

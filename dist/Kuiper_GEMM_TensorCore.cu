@@ -29,7 +29,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 4U * 16U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -45,7 +45,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 16U + i / 64U) * cols + mcol * 64U + i % 64U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 1U; dotIdx += 1U) {
+        for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -110,7 +110,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 4U * 8U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -126,7 +126,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 2U; dotIdx += 1U) {
+        for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -190,7 +190,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            cols * (threadIdx.x / 32U * 8U), cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -206,7 +206,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 2U; dotIdx += 1U) {
+        for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -267,7 +267,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            cols * (threadIdx.x / 32U * 32U), cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -282,7 +282,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             sB[i] = tileB[(__anf01 * 16U + i / 8U) * cols + mcol * 8U + i % 8U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 1U; dotIdx += 1U) {
+        for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -343,7 +343,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            cols * (threadIdx.x / 32U * 8U), cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -359,7 +359,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 2U; dotIdx += 1U) {
+        for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -421,7 +421,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 4U * 16U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -437,7 +437,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 64U + i / 64U) * cols + mcol * 64U + i % 64U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 4U; dotIdx += 1U) {
+        for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -502,7 +502,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 8U * 8U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -518,7 +518,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 64U + i / 64U) * cols + mcol * 64U + i % 64U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 4U; dotIdx += 1U) {
+        for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -583,7 +583,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 2U * 32U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -599,7 +599,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 64U + i / 64U) * cols + mcol * 64U + i % 64U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 4U; dotIdx += 1U) {
+        for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -664,7 +664,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 2U * 16U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -680,7 +680,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 2U; dotIdx += 1U) {
+        for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -744,7 +744,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            cols * (threadIdx.x / 32U * 16U), cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -760,7 +760,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 16U + i / 16U) * cols + mcol * 16U + i % 16U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 1U; dotIdx += 1U) {
+        for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;
@@ -822,7 +822,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                            + threadIdx.x / 32U % 2U * 16U, cols,
                            wmma::mem_row_major);
     uint32_t bkIdx = 0U;
-    for (; bkIdx < num_k_tiles; bkIdx += 1U) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         half_t *tileA = gA;
@@ -838,7 +838,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 2U; dotIdx += 1U) {
+        for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
             half_t *b_tile = sB;

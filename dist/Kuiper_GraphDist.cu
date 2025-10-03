@@ -32,7 +32,7 @@ static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
     if (1024U * blockIdx.x + threadIdx.x < size * size) {
         uint32_t k = 0U;
         uint16_t sum = 0U;
-        for (; k < size; k += 1U) {
+        for (; k < size; k++) {
             uint16_t vsum = sum;
             sum =
                 add_(vsum,

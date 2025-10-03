@@ -13,7 +13,7 @@ __hoisted_0(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         float_t sum = 0.0f;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -58,7 +58,7 @@ __hoisted_1(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         double_t sum = 0.0l;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -104,7 +104,7 @@ __hoisted_2(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint32_t sum = 0U;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -147,7 +147,7 @@ __hoisted_3(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint64_t sum = 0ULL;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -190,7 +190,7 @@ __hoisted_4(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         float_t sum = 0.0f;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -237,7 +237,7 @@ __hoisted_5(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         double_t sum = 0.0l;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -285,7 +285,7 @@ __hoisted_6(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint32_t sum = 0U;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -330,7 +330,7 @@ __hoisted_7(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint64_t sum = 0ULL;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -375,7 +375,7 @@ __hoisted_8(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         float_t sum = 0.0f;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -407,7 +407,7 @@ __hoisted_9(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         double_t sum = 0.0l;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -439,7 +439,7 @@ __hoisted_10(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint32_t sum = 0U;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -471,7 +471,7 @@ __hoisted_11(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint64_t sum = 0ULL;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[(1024U * blockIdx.x + threadIdx.x) / cols * shared + k] *
                 gB[k * cols + (1024U * blockIdx.x + threadIdx.x) % cols];
@@ -503,7 +503,7 @@ __hoisted_12(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         float_t sum = 0.0f;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -537,7 +537,7 @@ __hoisted_13(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         double_t sum = 0.0l;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -571,7 +571,7 @@ __hoisted_14(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint32_t sum = 0U;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];
@@ -605,7 +605,7 @@ __hoisted_15(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t k = 0U;
         uint64_t sum = 0ULL;
-        for (; k < shared; k += 1U)
+        for (; k < shared; k++)
             sum +=
                 gA[k * rows + (1024U * blockIdx.x + threadIdx.x) / cols] *
                 gB[(1024U * blockIdx.x + threadIdx.x) % cols * shared + k];

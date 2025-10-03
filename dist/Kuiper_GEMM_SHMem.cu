@@ -17,7 +17,7 @@ __hoisted_0(uint32_t tile,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -32,7 +32,7 @@ __hoisted_0(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -96,7 +96,7 @@ __hoisted_1(uint32_t tile,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -111,7 +111,7 @@ __hoisted_1(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -176,7 +176,7 @@ __hoisted_2(uint32_t tile,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -191,7 +191,7 @@ __hoisted_2(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -253,7 +253,7 @@ __hoisted_3(uint32_t tile,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -268,7 +268,7 @@ __hoisted_3(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -330,7 +330,7 @@ __hoisted_4(uint32_t tile,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -345,7 +345,7 @@ __hoisted_4(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -409,7 +409,7 @@ __hoisted_5(uint32_t tile,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -424,7 +424,7 @@ __hoisted_5(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -489,7 +489,7 @@ __hoisted_6(uint32_t tile,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -504,7 +504,7 @@ __hoisted_6(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -566,7 +566,7 @@ __hoisted_7(uint32_t tile,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -581,7 +581,7 @@ __hoisted_7(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -642,7 +642,7 @@ __hoisted_8(uint32_t shared,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -657,7 +657,7 @@ __hoisted_8(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -714,7 +714,7 @@ __hoisted_9(uint32_t shared,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -729,7 +729,7 @@ __hoisted_9(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -787,7 +787,7 @@ __hoisted_10(uint32_t shared,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -802,7 +802,7 @@ __hoisted_10(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -857,7 +857,7 @@ __hoisted_11(uint32_t shared,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -872,7 +872,7 @@ __hoisted_11(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -927,7 +927,7 @@ __hoisted_12(uint32_t rows,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -942,7 +942,7 @@ __hoisted_12(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -999,7 +999,7 @@ __hoisted_13(uint32_t rows,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -1014,7 +1014,7 @@ __hoisted_13(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -1072,7 +1072,7 @@ __hoisted_14(uint32_t rows,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -1087,7 +1087,7 @@ __hoisted_14(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -1142,7 +1142,7 @@ __hoisted_15(uint32_t rows,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -1157,7 +1157,7 @@ __hoisted_15(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -1212,7 +1212,7 @@ __hoisted_16(uint32_t shared,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -1227,7 +1227,7 @@ __hoisted_16(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1284,7 +1284,7 @@ __hoisted_17(uint32_t shared,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -1299,7 +1299,7 @@ __hoisted_17(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1357,7 +1357,7 @@ __hoisted_18(uint32_t shared,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -1372,7 +1372,7 @@ __hoisted_18(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1427,7 +1427,7 @@ __hoisted_19(uint32_t shared,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -1442,7 +1442,7 @@ __hoisted_19(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1497,7 +1497,7 @@ __hoisted_20(uint32_t rows,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -1512,7 +1512,7 @@ __hoisted_20(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1569,7 +1569,7 @@ __hoisted_21(uint32_t rows,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -1584,7 +1584,7 @@ __hoisted_21(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1642,7 +1642,7 @@ __hoisted_22(uint32_t rows,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -1657,7 +1657,7 @@ __hoisted_22(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1712,7 +1712,7 @@ __hoisted_23(uint32_t rows,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -1727,7 +1727,7 @@ __hoisted_23(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -1783,7 +1783,7 @@ __hoisted_24(uint32_t tile,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -1798,7 +1798,7 @@ __hoisted_24(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -1849,7 +1849,7 @@ __hoisted_25(uint32_t tile,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -1864,7 +1864,7 @@ __hoisted_25(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -1915,7 +1915,7 @@ __hoisted_26(uint32_t tile,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -1930,7 +1930,7 @@ __hoisted_26(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -1981,7 +1981,7 @@ __hoisted_27(uint32_t tile,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -1996,7 +1996,7 @@ __hoisted_27(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -2047,7 +2047,7 @@ __hoisted_28(uint32_t tile,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -2062,7 +2062,7 @@ __hoisted_28(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -2113,7 +2113,7 @@ __hoisted_29(uint32_t tile,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -2128,7 +2128,7 @@ __hoisted_29(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -2179,7 +2179,7 @@ __hoisted_30(uint32_t tile,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -2194,7 +2194,7 @@ __hoisted_30(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -2245,7 +2245,7 @@ __hoisted_31(uint32_t tile,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -2260,7 +2260,7 @@ __hoisted_31(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -2310,7 +2310,7 @@ __hoisted_32(uint32_t shared,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -2325,7 +2325,7 @@ __hoisted_32(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2368,7 +2368,7 @@ __hoisted_33(uint32_t shared,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -2383,7 +2383,7 @@ __hoisted_33(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2427,7 +2427,7 @@ __hoisted_34(uint32_t shared,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -2442,7 +2442,7 @@ __hoisted_34(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2486,7 +2486,7 @@ __hoisted_35(uint32_t shared,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -2501,7 +2501,7 @@ __hoisted_35(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2545,7 +2545,7 @@ __hoisted_36(uint32_t rows,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -2560,7 +2560,7 @@ __hoisted_36(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2603,7 +2603,7 @@ __hoisted_37(uint32_t rows,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -2618,7 +2618,7 @@ __hoisted_37(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2662,7 +2662,7 @@ __hoisted_38(uint32_t rows,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -2677,7 +2677,7 @@ __hoisted_38(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2721,7 +2721,7 @@ __hoisted_39(uint32_t rows,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -2736,7 +2736,7 @@ __hoisted_39(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -2780,7 +2780,7 @@ __hoisted_40(uint32_t shared,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -2795,7 +2795,7 @@ __hoisted_40(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -2838,7 +2838,7 @@ __hoisted_41(uint32_t shared,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -2853,7 +2853,7 @@ __hoisted_41(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -2897,7 +2897,7 @@ __hoisted_42(uint32_t shared,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -2912,7 +2912,7 @@ __hoisted_42(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -2956,7 +2956,7 @@ __hoisted_43(uint32_t shared,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -2971,7 +2971,7 @@ __hoisted_43(uint32_t shared,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -3015,7 +3015,7 @@ __hoisted_44(uint32_t rows,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -3030,7 +3030,7 @@ __hoisted_44(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -3073,7 +3073,7 @@ __hoisted_45(uint32_t rows,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -3088,7 +3088,7 @@ __hoisted_45(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -3132,7 +3132,7 @@ __hoisted_46(uint32_t rows,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -3147,7 +3147,7 @@ __hoisted_46(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -3191,7 +3191,7 @@ __hoisted_47(uint32_t rows,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -3206,7 +3206,7 @@ __hoisted_47(uint32_t rows,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -3253,7 +3253,7 @@ __hoisted_48(uint32_t tile,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -3268,7 +3268,7 @@ __hoisted_48(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3327,7 +3327,7 @@ __hoisted_49(uint32_t tile,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -3342,7 +3342,7 @@ __hoisted_49(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3401,7 +3401,7 @@ __hoisted_50(uint32_t tile,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -3416,7 +3416,7 @@ __hoisted_50(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3475,7 +3475,7 @@ __hoisted_51(uint32_t tile,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -3490,7 +3490,7 @@ __hoisted_51(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3549,7 +3549,7 @@ __hoisted_52(uint32_t tile,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -3564,7 +3564,7 @@ __hoisted_52(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3623,7 +3623,7 @@ __hoisted_53(uint32_t tile,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -3638,7 +3638,7 @@ __hoisted_53(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3697,7 +3697,7 @@ __hoisted_54(uint32_t tile,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -3712,7 +3712,7 @@ __hoisted_54(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3771,7 +3771,7 @@ __hoisted_55(uint32_t tile,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -3786,7 +3786,7 @@ __hoisted_55(uint32_t tile,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < tile; k += 1U)
+        for (; k < tile; k++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k] * sa2[k * tile +
                                                          threadIdx.x % tile];
@@ -3844,7 +3844,7 @@ __hoisted_56(float_t alpha,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -3859,7 +3859,7 @@ __hoisted_56(float_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -3912,7 +3912,7 @@ __hoisted_57(double_t alpha,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -3927,7 +3927,7 @@ __hoisted_57(double_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -3981,7 +3981,7 @@ __hoisted_58(uint32_t alpha,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -3996,7 +3996,7 @@ __hoisted_58(uint32_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -4050,7 +4050,7 @@ __hoisted_59(uint64_t alpha,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -4065,7 +4065,7 @@ __hoisted_59(uint64_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -4119,7 +4119,7 @@ __hoisted_60(float_t alpha,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -4134,7 +4134,7 @@ __hoisted_60(float_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -4187,7 +4187,7 @@ __hoisted_61(double_t alpha,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -4202,7 +4202,7 @@ __hoisted_61(double_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -4256,7 +4256,7 @@ __hoisted_62(uint32_t alpha,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -4271,7 +4271,7 @@ __hoisted_62(uint32_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -4325,7 +4325,7 @@ __hoisted_63(uint64_t alpha,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -4340,7 +4340,7 @@ __hoisted_63(uint64_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 32U; k += 1U)
+        for (; k < 32U; k++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k] * sa2[k * 32U +
                                                        threadIdx.x % 32U];
@@ -4394,7 +4394,7 @@ __hoisted_64(float_t alpha,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -4409,7 +4409,7 @@ __hoisted_64(float_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4462,7 +4462,7 @@ __hoisted_65(double_t alpha,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -4477,7 +4477,7 @@ __hoisted_65(double_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4531,7 +4531,7 @@ __hoisted_66(uint32_t alpha,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -4546,7 +4546,7 @@ __hoisted_66(uint32_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4600,7 +4600,7 @@ __hoisted_67(uint64_t alpha,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -4615,7 +4615,7 @@ __hoisted_67(uint64_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4669,7 +4669,7 @@ __hoisted_68(float_t alpha,
     float_t *gTile = gC;
     float_t sum = 0.0f;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         float_t
             v1 =
@@ -4684,7 +4684,7 @@ __hoisted_68(float_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         float_t sum1 = 0.0f;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4737,7 +4737,7 @@ __hoisted_69(double_t alpha,
     double_t *gTile = gC;
     double_t sum = 0.0l;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         double_t
             v1 =
@@ -4752,7 +4752,7 @@ __hoisted_69(double_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         double_t sum1 = 0.0l;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4806,7 +4806,7 @@ __hoisted_70(uint32_t alpha,
     uint32_t *gTile = gC;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint32_t
             v1 =
@@ -4821,7 +4821,7 @@ __hoisted_70(uint32_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint32_t sum1 = 0U;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];
@@ -4875,7 +4875,7 @@ __hoisted_71(uint64_t alpha,
     uint64_t *gTile = gC;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
-    for (; bk < mshared; bk += 1U) {
+    for (; bk < mshared; bk++) {
         uint32_t vbk = bk;
         uint64_t
             v1 =
@@ -4890,7 +4890,7 @@ __hoisted_71(uint64_t alpha,
         __syncthreads();
         uint32_t k = 0U;
         uint64_t sum1 = 0ULL;
-        for (; k < 16U; k += 1U)
+        for (; k < 16U; k++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k] * sa2[k * 16U +
                                                        threadIdx.x % 16U];

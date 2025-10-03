@@ -18,7 +18,7 @@ __hoisted_0(uint32_t shared,
     float_t cache1d[8U];
     memset(cache1d, 0U, 8U * sizeof(float_t));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < mshared; bkIdx += 1U) {
+    for (; bkIdx < mshared; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         sA[threadIdx.x] =
@@ -29,16 +29,16 @@ __hoisted_0(uint32_t shared,
                 threadIdx.x % 64U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 8U; dotIdx += 1U) {
+        for (; dotIdx < 8U; dotIdx++) {
             float_t tmpB = sB[dotIdx * 64U + threadIdx.x % 64U];
             uint32_t resIdx = 0U;
-            for (; resIdx < 8U; resIdx += 1U)
+            for (; resIdx < 8U; resIdx++)
                 cache1d[resIdx] +=
                     sA[(threadIdx.x / 64U * 8U + resIdx) * 8U + dotIdx] * tmpB;
         }
     }
     uint32_t resIdx = 0U;
-    for (; resIdx < 8U; resIdx += 1U)
+    for (; resIdx < 8U; resIdx++)
         gC4[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols + mcol * 64U +
             threadIdx.x % 64U] = cache1d[resIdx];
 }
@@ -94,7 +94,7 @@ __hoisted_1(float_t alpha,
     float_t cache1d[8U];
     memset(cache1d, 0U, 8U * sizeof(float_t));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < mshared; bkIdx += 1U) {
+    for (; bkIdx < mshared; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
         sA[threadIdx.x] =
@@ -105,16 +105,16 @@ __hoisted_1(float_t alpha,
                 threadIdx.x % 64U];
         __syncthreads();
         uint32_t dotIdx = 0U;
-        for (; dotIdx < 8U; dotIdx += 1U) {
+        for (; dotIdx < 8U; dotIdx++) {
             float_t tmpB = sB[dotIdx * 64U + threadIdx.x % 64U];
             uint32_t resIdx = 0U;
-            for (; resIdx < 8U; resIdx += 1U)
+            for (; resIdx < 8U; resIdx++)
                 cache1d[resIdx] +=
                     sA[(threadIdx.x / 64U * 8U + resIdx) * 8U + dotIdx] * tmpB;
         }
     }
     uint32_t resIdx = 0U;
-    for (; resIdx < 8U; resIdx += 1U)
+    for (; resIdx < 8U; resIdx++)
         gC4[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols + mcol * 64U +
             threadIdx.x % 64U] =
             beta * gC4[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols +
