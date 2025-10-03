@@ -18,6 +18,7 @@ for bm in 64 128; do
             for lb in r; do
               nvcc -O3 -I include -I obj \
                       -o bench.exe \
+                      -DKUIPER_CFG_TENSORCORES=0 \
                       -Dtile_sizes=_${bm}x${bn}x${bk} \
                       -Dregch_sizes=_${tm}x${tn} \
                       obj/Kuiper_GEMM_BlockTiling2D.cu \
