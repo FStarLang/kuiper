@@ -6,7 +6,6 @@
 #define tile_sizes   _64x64x8
 #define regch_sizes  _8x8
 #define layouts      _rr
-#define PRIet        "f"
 #define GEMM_ALPHA   0.7
 #define GEMM_BETA    0.3
 #define TOLERANCE    0.001f

@@ -7,7 +7,6 @@
 #define tile_sizes    _64x64x64
 #define tc_tile_sizes _16x16x16_4x4
 #define layouts
-#define PRIet         "f"
 #define GEMM_ALPHA    1.0
 #define GEMM_BETA     1.0
 #define TOLERANCE     0.25f
