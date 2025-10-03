@@ -351,7 +351,7 @@ let kpr_translate_alloc_fragment cb et knd m n k layout =
       [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
       @ (match layout with | Some l -> [l] | None -> [])
     in
-      EApp (EQualified ([], "KPR_FRAGMENT_TYPE" ^ macro_suff), args)
+      EApp (EQualified ([], "KPR_FRAG_TY" ^ macro_suff), args)
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -402,7 +402,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
     // EBufCreate (Stack,
       EApp (EQualified ([], "KPR_INIT"),
-        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])])
+        [EApp (EQualified ([], "KPR_ARRAY"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])])
       // ,EConstant (SizeT, "1")
     // )
 
@@ -419,8 +419,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
-    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
-    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer.
+    // Luckily addition works, but we trick karamel by adding this __id call
+    // so it will not complain about the types.
+    let gm = EApp (EQualified ([], "__id"), [gm]) in
+    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
 
   | "Kuiper.TensorCore.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
@@ -430,8 +433,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
-    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
-    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer.
+    // Luckily addition works, but we trick karamel by adding this __id call
+    // so it will not complain about the types.
+    let gm = EApp (EQualified ([], "__id"), [gm]) in
+    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm; layout ])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
@@ -458,8 +464,11 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
-    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
-    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer.
+    // Luckily addition works, but we trick karamel by adding this __id call
+    // so it will not complain about the types.
+    let gm = EApp (EQualified ([], "__id"), [gm]) in
+    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
 
   (******** FLOAT ARITHMETIC *******)
