@@ -6,9 +6,8 @@ using namespace nvcuda;
 
 // Some hacky macros to work around not being able to emit fragment types
 // directly during karamel extraction.
+#define kpr_fragment(...)                         wmma::fragment<__VA_ARGS__>
 #define KPR_INIT(ty)                              (ty){0}
-#define KPR_FRAG_TY(et, kind, m, n, k, layout)    wmma::fragment<kind, m, n, k, et, layout>
-#define KPR_FRAG_TY_C(et, kind, m, n, k)          wmma::fragment<kind, m, n, k, et>
-#define KPR_ARRAY(ty, size)                       ty[size]
+#define KPR_INIT_ARR(ty, size)                    (ty[size]){0}
 
 #endif /* __KUIPER_TENSORCORE_H */

@@ -16,27 +16,13 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -79,22 +65,24 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  16U * (threadIdx.x / 32U *
-                                                         64U) + __anf04 * 16U +
-                                                  16U * (i0 * 16U)), 16U);
+                                       tile_for_tc_a_tiles +
+                                       16U * (threadIdx.x / 32U * 64U) +
+                                       __anf04 * 16U + 16U * (__anf05 * 16U),
+                                       16U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  64U * (__anf05 * 16U) +
-                                                  i1 * 16U), 64U);
+                                       tile_for_tc_b_tiles +
+                                       64U * (__anf05 * 16U) + __anf06 * 16U,
+                                       64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -111,14 +99,15 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 4U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 4U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 4U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 64U) * 64U) +
-                                               blockIdx.x % (cols / 64U) * 64U +
-                                               cols * (threadIdx.x / 32U * 64U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 64U) * 64U) +
+                                    blockIdx.x % (cols / 64U) * 64U +
+                                    cols * (threadIdx.x / 32U * 64U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -155,26 +144,13 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           32,
-                                                           8,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           32,
-                                                           8,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16), 2U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 32, 8, 16, half, wmma::row_major), 1U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 32, 8, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 32, 8, 16, half), 2U);
     uint32_t fi = 0U;
     for (; fi < 2U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -217,24 +193,25 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 1U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U /
-                                                         2U * 32U) +
-                                                  __anf04 * 16U +
-                                                  32U * (i0 * 32U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U / 2U * 32U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 32U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  32U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 2U * 16U +
-                                                  i1 * 8U), 32U);
+                                       tile_for_tc_b_tiles +
+                                       32U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 2U * 16U +
+                                       __anf06 * 8U, 32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -251,16 +228,16 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 1U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 32U) * 32U) +
-                                               blockIdx.x % (cols / 32U) * 32U +
-                                               cols * (threadIdx.x / 32U / 2U *
-                                                       32U)
-                                               + threadIdx.x / 32U % 2U * 16U +
-                                               cols * (i * 32U)
-                                               + j * 8U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 32U) * 32U) +
+                                    blockIdx.x % (cols / 32U) * 32U +
+                                    cols * (threadIdx.x / 32U / 2U * 32U)
+                                    + threadIdx.x / 32U % 2U * 16U +
+                                    cols * (__anf11 * 32U)
+                                    + __anf01 * 8U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -297,26 +274,13 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           8,
-                                                           32,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           8,
-                                                           32,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16), 2U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 8, 32, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 8, 32, 16, half, wmma::row_major), 1U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 8, 32, 16, half), 2U);
     uint32_t fi = 0U;
     for (; fi < 2U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -359,22 +323,24 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U *
-                                                         16U) + __anf04 * 16U +
-                                                  32U * (i0 * 8U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U * 16U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 8U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 1U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  32U * (__anf05 * 16U) +
-                                                  i1 * 32U), 32U);
+                                       tile_for_tc_b_tiles +
+                                       32U * (__anf05 * 16U) + __anf06 * 32U,
+                                       32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -391,14 +357,15 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 1U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 32U) * 32U) +
-                                               blockIdx.x % (cols / 32U) * 32U +
-                                               cols * (threadIdx.x / 32U * 16U)
-                                               + cols * (i * 8U)
-                                               + j * 32U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 32U) * 32U) +
+                                    blockIdx.x % (cols / 32U) * 32U +
+                                    cols * (threadIdx.x / 32U * 16U)
+                                    + cols * (__anf11 * 8U)
+                                    + __anf01 * 32U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -435,26 +402,13 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           32,
-                                                           8,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           32,
-                                                           8,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16), 1U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 32, 8, 16, half, wmma::row_major), 1U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 32, 8, 16, half, wmma::row_major), 1U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 32, 8, 16, half), 1U);
     uint32_t fi = 0U;
     for (; fi < 1U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -497,22 +451,23 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 1U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  16U * (threadIdx.x / 32U *
-                                                         32U) + __anf04 * 16U +
-                                                  16U * (i0 * 32U)), 16U);
+                                       tile_for_tc_a_tiles +
+                                       16U * (threadIdx.x / 32U * 32U) +
+                                       __anf04 * 16U + 16U * (__anf05 * 32U),
+                                       16U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 1U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  8U * (__anf05 * 16U) +
-                                                  i1 * 8U), 8U);
+                                       tile_for_tc_b_tiles +
+                                       8U * (__anf05 * 16U) + __anf06 * 8U, 8U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -529,14 +484,15 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 1U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 1U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 8U) * 32U) +
-                                               blockIdx.x % (cols / 8U) * 8U +
-                                               cols * (threadIdx.x / 32U * 32U)
-                                               + cols * (i * 32U)
-                                               + j * 8U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 8U) * 32U) +
+                                    blockIdx.x % (cols / 8U) * 8U +
+                                    cols * (threadIdx.x / 32U * 32U)
+                                    + cols * (__anf11 * 32U)
+                                    + __anf01 * 8U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -572,26 +528,13 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           8,
-                                                           32,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           8,
-                                                           32,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16), 1U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 8, 32, 16, half, wmma::row_major), 1U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 8, 32, 16, half, wmma::row_major), 1U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 8, 32, 16, half), 1U);
     uint32_t fi = 0U;
     for (; fi < 1U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -634,22 +577,24 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 1U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U *
-                                                         8U) + __anf04 * 16U +
-                                                  32U * (i0 * 8U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U * 8U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 8U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 1U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  32U * (__anf05 * 16U) +
-                                                  i1 * 32U), 32U);
+                                       tile_for_tc_b_tiles +
+                                       32U * (__anf05 * 16U) + __anf06 * 32U,
+                                       32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -666,14 +611,15 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 1U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 1U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 32U) * 32U) +
-                                               blockIdx.x % (cols / 32U) * 32U +
-                                               cols * (threadIdx.x / 32U * 8U)
-                                               + cols * (i * 8U)
-                                               + j * 32U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 32U) * 32U) +
+                                    blockIdx.x % (cols / 32U) * 32U +
+                                    cols * (threadIdx.x / 32U * 8U)
+                                    + cols * (__anf11 * 8U)
+                                    + __anf01 * 32U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -709,27 +655,13 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         1U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  1U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 1U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 1U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 1U);
     uint32_t fi = 0U;
     for (; fi < 1U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -772,22 +704,24 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 1U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  16U * (threadIdx.x / 32U *
-                                                         16U) + __anf04 * 16U +
-                                                  16U * (i0 * 16U)), 16U);
+                                       tile_for_tc_a_tiles +
+                                       16U * (threadIdx.x / 32U * 16U) +
+                                       __anf04 * 16U + 16U * (__anf05 * 16U),
+                                       16U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 1U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  16U * (__anf05 * 16U) +
-                                                  i1 * 16U), 16U);
+                                       tile_for_tc_b_tiles +
+                                       16U * (__anf05 * 16U) + __anf06 * 16U,
+                                       16U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -804,14 +738,15 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 1U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 1U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 16U) * 16U) +
-                                               blockIdx.x % (cols / 16U) * 16U +
-                                               cols * (threadIdx.x / 32U * 16U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 16U) * 16U) +
+                                    blockIdx.x % (cols / 16U) * 16U +
+                                    cols * (threadIdx.x / 32U * 16U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -848,27 +783,13 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -911,22 +832,24 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U *
-                                                         64U) + __anf04 * 16U +
-                                                  64U * (i0 * 16U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U * 64U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 16U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  64U * (__anf05 * 16U) +
-                                                  i1 * 16U), 64U);
+                                       tile_for_tc_b_tiles +
+                                       64U * (__anf05 * 16U) + __anf06 * 16U,
+                                       64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -943,14 +866,15 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 4U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 4U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 4U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 64U) * 64U) +
-                                               blockIdx.x % (cols / 64U) * 64U +
-                                               cols * (threadIdx.x / 32U * 64U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 64U) * 64U) +
+                                    blockIdx.x % (cols / 64U) * 64U +
+                                    cols * (threadIdx.x / 32U * 64U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -987,27 +911,13 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           32,
-                                                           8,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           32,
-                                                           8,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 32, 8, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 32, 8, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 32, 8, 16, half, wmma::row_major), 8U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 32, 8, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1050,22 +960,24 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U *
-                                                         64U) + __anf04 * 16U +
-                                                  64U * (i0 * 32U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U * 64U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 32U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  64U * (__anf05 * 16U) +
-                                                  i1 * 8U), 64U);
+                                       tile_for_tc_b_tiles +
+                                       64U * (__anf05 * 16U) + __anf06 * 8U,
+                                       64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -1082,14 +994,15 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 8U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 8U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 64U) * 64U) +
-                                               blockIdx.x % (cols / 64U) * 64U +
-                                               cols * (threadIdx.x / 32U * 64U)
-                                               + cols * (i * 32U)
-                                               + j * 8U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 64U) * 64U) +
+                                    blockIdx.x % (cols / 64U) * 64U +
+                                    cols * (threadIdx.x / 32U * 64U)
+                                    + cols * (__anf11 * 32U)
+                                    + __anf01 * 8U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -1126,27 +1039,13 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           8,
-                                                           32,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           8,
-                                                           32,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 8, 32, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 8, 32, 16, half, wmma::row_major), 8U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 8, 32, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 8, 32, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1189,22 +1088,24 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U *
-                                                         64U) + __anf04 * 16U +
-                                                  64U * (i0 * 8U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U * 64U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 8U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  64U * (__anf05 * 16U) +
-                                                  i1 * 32U), 64U);
+                                       tile_for_tc_b_tiles +
+                                       64U * (__anf05 * 16U) + __anf06 * 32U,
+                                       64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -1221,14 +1122,15 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 8U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 64U) * 64U) +
-                                               blockIdx.x % (cols / 64U) * 64U +
-                                               cols * (threadIdx.x / 32U * 64U)
-                                               + cols * (i * 8U)
-                                               + j * 32U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 64U) * 64U) +
+                                    blockIdx.x % (cols / 64U) * 64U +
+                                    cols * (threadIdx.x / 32U * 64U)
+                                    + cols * (__anf11 * 8U)
+                                    + __anf01 * 32U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -1265,27 +1167,13 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1328,24 +1216,25 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U /
-                                                         2U * 64U) +
-                                                  __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U / 2U * 64U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 2U * 64U +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 2U * 64U +
+                                       __anf06 * 16U, 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -1362,17 +1251,16 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 4U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 4U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 4U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U / 2U *
-                                                       64U)
-                                               + threadIdx.x / 32U % 2U * 64U +
-                                               cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U / 2U * 64U)
+                                    + threadIdx.x / 32U % 2U * 64U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -1409,27 +1297,13 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1472,24 +1346,25 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U /
-                                                         2U * 64U) +
-                                                  __anf04 * 16U +
-                                                  64U * (i0 * 16U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U / 2U * 64U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 16U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 2U * 64U +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 2U * 64U +
+                                       __anf06 * 16U, 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -1506,17 +1381,16 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 4U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 4U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 4U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U / 2U *
-                                                       64U)
-                                               + threadIdx.x / 32U % 2U * 64U +
-                                               cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U / 2U * 64U)
+                                    + threadIdx.x / 32U % 2U * 64U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -1553,27 +1427,13 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  64U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1616,22 +1476,24 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U *
-                                                         128U) + __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U * 128U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) + __anf06 * 16U,
+                                       128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -1648,15 +1510,15 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 8U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 8U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 8U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U * 128U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U * 128U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -1693,27 +1555,13 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  64U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1756,22 +1604,24 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U *
-                                                         128U) + __anf04 * 16U +
-                                                  64U * (i0 * 16U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U * 128U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 16U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) + __anf06 * 16U,
+                                       128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -1788,15 +1638,15 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 8U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 8U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 8U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U * 128U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U * 128U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -1833,27 +1683,13 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  4U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -1896,22 +1732,24 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U *
-                                                         32U) + __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U * 32U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  32U * (__anf05 * 16U) +
-                                                  i1 * 16U), 32U);
+                                       tile_for_tc_b_tiles +
+                                       32U * (__anf05 * 16U) + __anf06 * 16U,
+                                       32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -1928,14 +1766,15 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 32U) * 32U) +
-                                               blockIdx.x % (cols / 32U) * 32U +
-                                               cols * (threadIdx.x / 32U * 32U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 32U) * 32U) +
+                                    blockIdx.x % (cols / 32U) * 32U +
+                                    cols * (threadIdx.x / 32U * 32U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -1972,27 +1811,13 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  4U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2035,24 +1860,25 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U /
-                                                         2U * 32U) +
-                                                  __anf04 * 16U +
-                                                  64U * (i0 * 16U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U / 2U * 32U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 16U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  64U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 2U * 32U +
-                                                  i1 * 16U), 64U);
+                                       tile_for_tc_b_tiles +
+                                       64U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 2U * 32U +
+                                       __anf06 * 16U, 64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -2069,16 +1895,16 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 64U) * 64U) +
-                                               blockIdx.x % (cols / 64U) * 64U +
-                                               cols * (threadIdx.x / 32U / 2U *
-                                                       32U)
-                                               + threadIdx.x / 32U % 2U * 32U +
-                                               cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 64U) * 64U) +
+                                    blockIdx.x % (cols / 64U) * 64U +
+                                    cols * (threadIdx.x / 32U / 2U * 32U)
+                                    + threadIdx.x / 32U % 2U * 32U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2115,27 +1941,13 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  4U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2178,24 +1990,25 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U /
-                                                         4U * 32U) +
-                                                  __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U / 4U * 32U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 4U * 32U +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 4U * 32U +
+                                       __anf06 * 16U, 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -2212,17 +2025,16 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U / 4U *
-                                                       32U)
-                                               + threadIdx.x / 32U % 4U * 32U +
-                                               cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U / 4U * 32U)
+                                    + threadIdx.x / 32U % 4U * 32U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2259,27 +2071,13 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  4U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2322,24 +2120,25 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  64U * (threadIdx.x / 32U /
-                                                         4U * 32U) +
-                                                  __anf04 * 16U +
-                                                  64U * (i0 * 16U)), 64U);
+                                       tile_for_tc_a_tiles +
+                                       64U * (threadIdx.x / 32U / 4U * 32U) +
+                                       __anf04 * 16U + 64U * (__anf05 * 16U),
+                                       64U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 4U * 32U +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 4U * 32U +
+                                       __anf06 * 16U, 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -2356,17 +2155,16 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U / 4U *
-                                                       32U)
-                                               + threadIdx.x / 32U % 4U * 32U +
-                                               cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U / 4U * 32U)
+                                    + threadIdx.x / 32U % 4U * 32U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2403,27 +2201,13 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  32U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2466,22 +2250,24 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U *
-                                                         64U) + __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U * 64U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) + __anf06 * 16U,
+                                       128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -2498,15 +2284,15 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 4U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 8U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 8U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U * 64U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U * 64U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -2543,27 +2329,13 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  32U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2606,24 +2378,25 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U /
-                                                         2U * 128U) +
-                                                  __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U / 2U * 128U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  128U * (__anf05 * 16U) +
-                                                  threadIdx.x / 32U % 2U * 64U +
-                                                  i1 * 16U), 128U);
+                                       tile_for_tc_b_tiles +
+                                       128U * (__anf05 * 16U) +
+                                       threadIdx.x / 32U % 2U * 64U +
+                                       __anf06 * 16U, 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -2640,17 +2413,16 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 8U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 4U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 4U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 128U) * 128U) +
-                                               blockIdx.x % (cols / 128U) *
-                                               128U +
-                                               cols * (threadIdx.x / 32U / 2U *
-                                                       128U)
-                                               + threadIdx.x / 32U % 2U * 64U +
-                                               cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 128U) * 128U) +
+                                    blockIdx.x % (cols / 128U) * 128U +
+                                    cols * (threadIdx.x / 32U / 2U * 128U)
+                                    + threadIdx.x / 32U % 2U * 64U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2687,27 +2459,13 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     uint32_t mcol = blockIdx.x % num_n_tiles;
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(float, wmma::accumulator, 16, 16, 16),
-                  4U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, float), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2750,22 +2508,24 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  32U * (threadIdx.x / 32U *
-                                                         32U) + __anf04 * 16U +
-                                                  32U * (i0 * 16U)), 32U);
+                                       tile_for_tc_a_tiles +
+                                       32U * (threadIdx.x / 32U * 32U) +
+                                       __anf04 * 16U + 32U * (__anf05 * 16U),
+                                       32U);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  32U * (__anf05 * 16U) +
-                                                  i1 * 16U), 32U);
+                                       tile_for_tc_b_tiles +
+                                       32U * (__anf05 * 16U) + __anf06 * 16U,
+                                       32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -2782,14 +2542,15 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / 32U) * 32U) +
-                                               blockIdx.x % (cols / 32U) * 32U +
-                                               cols * (threadIdx.x / 32U * 32U)
-                                               + cols * (i * 16U)
-                                               + j * 16U),
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / 32U) * 32U) +
+                                    blockIdx.x % (cols / 32U) * 32U +
+                                    cols * (threadIdx.x / 32U * 32U)
+                                    + cols * (__anf11 * 16U)
+                                    + __anf01 * 16U,
                                     __anf2, cols, wmma::mem_row_major);
         }
     }
@@ -2831,27 +2592,13 @@ __hoisted_20(uint32_t bm,
     uint32_t warpCol = threadIdx.x / 32U % (bn / 32U);
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         2U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  4U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 2U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -2894,23 +2641,23 @@ __hoisted_20(uint32_t bm,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  bk * (warpRow * 32U) +
-                                                  __anf04 * 16U +
-                                                  bk * (i0 * 16U)), bk);
+                                       tile_for_tc_a_tiles +
+                                       bk * (warpRow * 32U) + __anf04 * 16U +
+                                       bk * (__anf05 * 16U), bk);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  bn * (__anf05 * 16U) +
-                                                  warpCol * 32U + i1 * 16U),
-                                       bn);
+                                       tile_for_tc_b_tiles +
+                                       bn * (__anf05 * 16U) + warpCol * 32U +
+                                       __anf06 * 16U, bn);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -2927,17 +2674,17 @@ __hoisted_20(uint32_t bm,
     for (; i < 2U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 2U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 2U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / bn) * bm) +
-                                               blockIdx.x % (cols / bn) * bn +
-                                               cols * (threadIdx.x / 32U /
-                                                       (bn / 32U) * 32U)
-                                               +
-                                               threadIdx.x / 32U % (bn / 32U) *
-                                               32U + cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / bn) * bm) +
+                                    blockIdx.x % (cols / bn) * bn +
+                                    cols * (threadIdx.x / 32U / (bn / 32U) *
+                                            32U)
+                                    + threadIdx.x / 32U % (bn / 32U) * 32U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2987,27 +2734,13 @@ __hoisted_21(uint32_t bm,
     uint32_t warpCol = threadIdx.x / 32U % (bn / 64U);
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         4U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  16U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 4U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -3050,23 +2783,23 @@ __hoisted_21(uint32_t bm,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  bk * (warpRow * 64U) +
-                                                  __anf04 * 16U +
-                                                  bk * (i0 * 16U)), bk);
+                                       tile_for_tc_a_tiles +
+                                       bk * (warpRow * 64U) + __anf04 * 16U +
+                                       bk * (__anf05 * 16U), bk);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  bn * (__anf05 * 16U) +
-                                                  warpCol * 64U + i1 * 16U),
-                                       bn);
+                                       tile_for_tc_b_tiles +
+                                       bn * (__anf05 * 16U) + warpCol * 64U +
+                                       __anf06 * 16U, bn);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -3083,17 +2816,17 @@ __hoisted_21(uint32_t bm,
     for (; i < 4U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 4U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 4U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / bn) * bm) +
-                                               blockIdx.x % (cols / bn) * bn +
-                                               cols * (threadIdx.x / 32U /
-                                                       (bn / 64U) * 64U)
-                                               +
-                                               threadIdx.x / 32U % (bn / 64U) *
-                                               64U + cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / bn) * bm) +
+                                    blockIdx.x % (cols / bn) * bn +
+                                    cols * (threadIdx.x / 32U / (bn / 64U) *
+                                            64U)
+                                    + threadIdx.x / 32U % (bn / 64U) * 64U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -3143,27 +2876,13 @@ __hoisted_22(uint32_t bm,
     uint32_t warpCol = threadIdx.x / 32U % (bn / 128U);
     auto &
         aFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_a,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        bFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE(KPR_FRAGMENT_TYPE(half,
-                                                           wmma::matrix_b,
-                                                           16,
-                                                           16,
-                                                           16,
-                                                           wmma::row_major),
-                                         8U));
-    auto &
-        accFrags =
-        KPR_INIT(KPR_ARRAY_FRAGMENT_TYPE
-                 (KPR_FRAGMENT_TYPE_C(half, wmma::accumulator, 16, 16, 16),
-                  64U));
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_a, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & bFrags =
+        KPR_INIT_ARR(kpr_fragment
+                     (wmma::matrix_b, 16, 16, 16, half, wmma::row_major), 8U);
+    auto & accFrags =
+        KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16, 16, 16, half), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi += 1U)
         wmma::fill_fragment(accFrags[fi], 0.0f);
@@ -3206,23 +2925,23 @@ __hoisted_22(uint32_t bm,
             half_t *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0 += 1U) {
+                uint32_t __anf05 = i0;
                 auto & __anf1 = aFrags[i0];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_a_tiles,
-                                                  bk * (warpRow * 128U) +
-                                                  __anf04 * 16U +
-                                                  bk * (i0 * 16U)), bk);
+                                       tile_for_tc_a_tiles +
+                                       bk * (warpRow * 128U) + __anf04 * 16U +
+                                       bk * (__anf05 * 16U), bk);
             }
             uint32_t __anf05 = dotIdx;
             half_t *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1 += 1U) {
+                uint32_t __anf06 = i1;
                 auto & __anf1 = bFrags[i1];
                 wmma::load_matrix_sync(__anf1,
-                                       kpr_offset(tile_for_tc_b_tiles,
-                                                  bn * (__anf05 * 16U) +
-                                                  warpCol * 128U + i1 * 16U),
-                                       bn);
+                                       tile_for_tc_b_tiles +
+                                       bn * (__anf05 * 16U) + warpCol * 128U +
+                                       __anf06 * 16U, bn);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -3239,17 +2958,17 @@ __hoisted_22(uint32_t bm,
     for (; i < 8U; i += 1U) {
         uint32_t j = 0U;
         for (; j < 8U; j += 1U) {
+            uint32_t __anf11 = i;
+            uint32_t __anf01 = j;
             auto & __anf2 = accFrags[i * 8U + j];
-            wmma::store_matrix_sync(kpr_offset(gC,
-                                               cols * (blockIdx.x /
-                                                       (cols / bn) * bm) +
-                                               blockIdx.x % (cols / bn) * bn +
-                                               cols * (threadIdx.x / 32U /
-                                                       (bn / 128U) * 128U)
-                                               +
-                                               threadIdx.x / 32U % (bn / 128U) *
-                                               128U + cols * (i * 16U)
-                                               + j * 16U), __anf2, cols,
+            wmma::store_matrix_sync(gC +
+                                    cols * (blockIdx.x / (cols / bn) * bm) +
+                                    blockIdx.x % (cols / bn) * bn +
+                                    cols * (threadIdx.x / 32U / (bn / 128U) *
+                                            128U)
+                                    + threadIdx.x / 32U % (bn / 128U) * 128U +
+                                    cols * (__anf11 * 16U)
+                                    + __anf01 * 16U, __anf2, cols,
                                     wmma::mem_row_major);
         }
     }

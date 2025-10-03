@@ -320,11 +320,11 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
   return e'
 
 let kpr_translate_alloc_fragment cb et knd m n k layout =
-    let macro_suff, knd =
+    let knd =
       match cta knd with
-      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
-      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
-      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> "_C", EQualified ([], "wmma::accumulator")
+      | Some ("Kuiper.TensorCore.FragA",     [], []) -> EQualified ([], "wmma::matrix_a")
+      | Some ("Kuiper.TensorCore.FragB",     [], []) -> EQualified ([], "wmma::matrix_b")
+      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> EQualified ([], "wmma::accumulator")
       | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
     in
     let layout : option expr =
@@ -348,10 +348,10 @@ let kpr_translate_alloc_fragment cb et knd m n k layout =
       | _ -> x
     in
     let args =
-      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
+      [ knd; ss (cb m); ss (cb n); ss (cb k); faketype ]
       @ (match layout with | Some l -> [l] | None -> [])
     in
-      EApp (EQualified ([], "KPR_FRAG_TY" ^ macro_suff), args)
+      EApp (EQualified ([], "kpr_fragment"), args)
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -400,18 +400,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
   | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
-    // EBufCreate (Stack,
-      EApp (EQualified ([], "KPR_INIT"),
-        [EApp (EQualified ([], "KPR_ARRAY"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])])
-      // ,EConstant (SizeT, "1")
-    // )
+      EApp (EQualified ([], "KPR_INIT_ARR"),
+        [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])
 
   | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
-    // EBufCreate (Stack,
       EApp (EQualified ([], "KPR_INIT"),
         [kpr_translate_alloc_fragment cb et knd m n k layout])
-      // ,EConstant (SizeT, "1")
-    // )
 
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
