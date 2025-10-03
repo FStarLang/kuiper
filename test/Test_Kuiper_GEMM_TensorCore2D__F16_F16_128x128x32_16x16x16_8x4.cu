@@ -5,7 +5,7 @@
 #define et_is_half    1
 #define et_lbl        f16_f16
 #define tile_sizes    _128x128x32
-#define tc_tile_sizes _16x16x16_2x2
+#define tc_tile_sizes _16x16x16_8x4
 #define layouts
 #define PRIet         "f"
 #define GEMM_ALPHA    1.0

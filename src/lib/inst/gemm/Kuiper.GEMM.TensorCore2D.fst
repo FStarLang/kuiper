@@ -103,12 +103,20 @@ let g_gemm_f16_f16_16x16x16_16x16x16 = specialize_gpu half half 16sz 16sz 16sz 1
 let g_gemm_f16_f16_64x64x64_16x16x16_4x4 = specialize_gpu half half 64sz 64sz 64sz 16sz 16sz 16sz 4sz 4sz
 let g_gemm_f16_f16_64x64x64_32x8x16_2x8 = specialize_gpu half half 64sz 64sz 64sz 32sz 8sz 16sz 2sz 8sz
 let g_gemm_f16_f16_64x64x64_8x32x16_8x2 = specialize_gpu half half 64sz 64sz 64sz 8sz 32sz 16sz 8sz 2sz
+let g_gemm_f16_f16_128x128x32_16x16x16_4x4 = specialize_gpu half half 128sz 128sz 32sz 16sz 16sz 16sz 4sz 4sz
+let g_gemm_f16_f16_128x128x64_16x16x16_4x4 = specialize_gpu half half 128sz 128sz 64sz 16sz 16sz 16sz 4sz 4sz
+
+let g_gemm_f16_f16_128x128x32_16x16x16_8x8 = specialize_gpu half half 128sz 128sz 32sz 16sz 16sz 16sz 8sz 8sz
+let g_gemm_f16_f16_128x128x64_16x16x16_8x8 = specialize_gpu half half 128sz 128sz 64sz 16sz 16sz 16sz 8sz 8sz
 
 // 4 tensor core operations per warp
 let g_gemm_f16_f16_32x32x32_16x16x16_2x2   = specialize_gpu half half 32sz  32sz  32sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_64x64x64_16x16x16_2x2   = specialize_gpu half half 64sz  64sz  64sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_128x128x32_16x16x16_2x2 = specialize_gpu half half 128sz 128sz 32sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_128x128x64_16x16x16_2x2 = specialize_gpu half half 128sz 128sz 64sz 16sz 16sz 16sz 2sz 2sz
+
+let g_gemm_f16_f16_128x128x32_16x16x16_4x8 = specialize_gpu half half 128sz 128sz 32sz 16sz 16sz 16sz 4sz 8sz
+let g_gemm_f16_f16_128x128x32_16x16x16_8x4 = specialize_gpu half half 128sz 128sz 32sz 16sz 16sz 16sz 8sz 4sz
 
 // mixed precision
 let g_gemm_f16_f32_32x32x32_16x16x16_2x2 = specialize_gpu half float 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz
@@ -118,3 +126,11 @@ let g_gemm_f16_f32_32x32x32_16x16x16_2x2 = specialize_gpu half float 32sz 32sz 3
 let g_gemm_f16_f16_16x16x16_2x2 bm bn bk =
   admit();
   specialize_gpu half half bm bn bk 16sz 16sz 16sz 2sz 2sz
+
+let g_gemm_f16_f16_16x16x16_4x4 bm bn bk =
+  admit();
+  specialize_gpu half half bm bn bk 16sz 16sz 16sz 4sz 4sz
+
+let g_gemm_f16_f16_16x16x16_8x8 bm bn bk =
+  admit();
+  specialize_gpu half half bm bn bk 16sz 16sz 16sz 8sz 8sz
