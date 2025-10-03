@@ -59,6 +59,10 @@ fn specialize_gpu
   ensures
     (exists* eC'. gC |-> eC')
 {
+  dassert (bm %^ tm = 0sz);
+  dassert (bn %^ tn = 0sz);
+  dassert (bk %^ tk = 0sz);
+
   // All assumes should be dynamically checked.
   // odd constraints, required for the implementation of copy
   // (we stride through a tile with all threads and in the last iteration the iteration variable may go up to (tile_size + nthr-1))
@@ -101,8 +105,16 @@ let g_gemm_f16_f16_64x64x64_32x8x16_2x8 = specialize_gpu half half 64sz 64sz 64s
 let g_gemm_f16_f16_64x64x64_8x32x16_8x2 = specialize_gpu half half 64sz 64sz 64sz 8sz 32sz 16sz 8sz 2sz
 
 // 4 tensor core operations per warp
-let g_gemm_f16_f16_32x32x32_16x16x16_2x2 = specialize_gpu half half 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz
-let g_gemm_f16_f16_64x64x64_16x16x16_2x2 = specialize_gpu half half 64sz 64sz 64sz 16sz 16sz 16sz 2sz 2sz
+let g_gemm_f16_f16_32x32x32_16x16x16_2x2   = specialize_gpu half half 32sz  32sz  32sz 16sz 16sz 16sz 2sz 2sz
+let g_gemm_f16_f16_64x64x64_16x16x16_2x2   = specialize_gpu half half 64sz  64sz  64sz 16sz 16sz 16sz 2sz 2sz
+let g_gemm_f16_f16_128x128x32_16x16x16_2x2 = specialize_gpu half half 128sz 128sz 32sz 16sz 16sz 16sz 2sz 2sz
+let g_gemm_f16_f16_128x128x64_16x16x16_2x2 = specialize_gpu half half 128sz 128sz 64sz 16sz 16sz 16sz 2sz 2sz
 
 // mixed precision
 let g_gemm_f16_f32_32x32x32_16x16x16_2x2 = specialize_gpu half float 32sz 32sz 32sz 16sz 16sz 16sz 2sz 2sz
+
+
+// Dynamic parameter version for shmem size
+let g_gemm_f16_f16_16x16x16_2x2 bm bn bk =
+  admit();
+  specialize_gpu half half bm bn bk 16sz 16sz 16sz 2sz 2sz
