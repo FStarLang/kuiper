@@ -38,7 +38,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 	$(call msg,"ACCEPT")
 	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
 
-TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
+TESTS+=$(notdir $(basename $(wildcard test/Test_*.cu)))
 
 NOTEST += Test_Kuiper_Softmax__F16
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
@@ -63,6 +63,10 @@ EXTRACT += $(wildcard src/lib/inst/*.fst)
 EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
 EXTRACT += src/examples/Kuiper.Example2.fst
+
+# The Inst.fst modules just contain an instantiation function, not to be extracted.
+INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
+EXTRACT := $(filter-out $(INST_MODULES),$(EXTRACT))
 
 extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
 extraction-targets: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))

@@ -9,3 +9,6 @@ dep.graph
 kuiper-bench
 kuiper-bench.tgz
 _tmp
+
+# from tuning script
+bench.exe

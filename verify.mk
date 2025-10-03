@@ -76,7 +76,15 @@ pulse/Makefile:
 .PHONY: prepare
 prepare: .fstar.touch .krml.touch .pulse.touch
 
+AUTOGEN_SCRIPTS := $(shell find src -name '*.fst.sh')
+AUTOGEND := $(patsubst %.fst.sh,%.fst,$(AUTOGEN_SCRIPTS))
+
+%.fst: %.fst.sh
+	@$(call msg,"GEN",$@)
+	./$< > $@
+
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
+ROOTS += $(AUTOGEND)
 
 FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
 
