@@ -68,11 +68,11 @@ class crepr (r:mrepr) = {
 
 inline_for_extraction noextract
 instance clayout_from_crepr
-  (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)})
+  (rows : nat) (cols : nat{SZ.fits (rows * cols)})
+  {| concrete_sz rows, concrete_sz cols |}
   (m : mrepr) (d : crepr m)
   : clayout (m rows cols)
-  = d.map rows cols
-
+  = d.map (concr rows) (concr cols)
 
 (* Is a layout basically a strided row major? *)
 inline_for_extraction noextract

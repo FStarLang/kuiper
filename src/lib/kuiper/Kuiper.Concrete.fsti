@@ -29,11 +29,15 @@ inline_for_extraction noextract
 let concr' (#x : erased int) (d:concrete_sz x) : sz =
   concr x #d
 
-inline_for_extraction noextract
-instance concrete_sz_0 : concrete_sz 0 = { x = 0sz; }
-
-inline_for_extraction noextract
-instance concrete_sz_1 : concrete_sz 1 = { x = 1sz; }
+inline_for_extraction noextract instance _ : concrete_sz 0 = { x = 0sz; }
+inline_for_extraction noextract instance _ : concrete_sz 1 = { x = 1sz; }
+inline_for_extraction noextract instance _ : concrete_sz 2 = { x = 2sz; }
+inline_for_extraction noextract instance _ : concrete_sz 4 = { x = 4sz; }
+inline_for_extraction noextract instance _ : concrete_sz 8 = { x = 8sz; }
+inline_for_extraction noextract instance _ : concrete_sz 16 = { x = 16sz; }
+inline_for_extraction noextract instance _ : concrete_sz 32 = { x = 32sz; }
+inline_for_extraction noextract instance _ : concrete_sz 64 = { x = 64sz; }
+inline_for_extraction noextract instance _ : concrete_sz 128 = { x = 128sz; }
 
 inline_for_extraction noextract
 instance concrete_sz_sz (x : SZ.t) : concrete_sz (SZ.v x) = { x; }
