@@ -94,7 +94,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   64U * (__anf05 * 16U) +
-                                                  0U * 64U + i1 * 16U), 64U);
+                                                  i1 * 16U), 64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -374,7 +374,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   32U * (__anf05 * 16U) +
-                                                  0U * 32U + i1 * 32U), 32U);
+                                                  i1 * 32U), 32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -512,7 +512,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   8U * (__anf05 * 16U) +
-                                                  0U * 8U + i1 * 8U), 8U);
+                                                  i1 * 8U), 8U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -649,7 +649,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   32U * (__anf05 * 16U) +
-                                                  0U * 32U + i1 * 32U), 32U);
+                                                  i1 * 32U), 32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -787,7 +787,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   16U * (__anf05 * 16U) +
-                                                  0U * 16U + i1 * 16U), 16U);
+                                                  i1 * 16U), 16U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 1U; resIdxM += 1U) {
@@ -926,7 +926,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   64U * (__anf05 * 16U) +
-                                                  0U * 64U + i1 * 16U), 64U);
+                                                  i1 * 16U), 64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -1065,7 +1065,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   64U * (__anf05 * 16U) +
-                                                  0U * 64U + i1 * 8U), 64U);
+                                                  i1 * 8U), 64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -1204,7 +1204,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   64U * (__anf05 * 16U) +
-                                                  0U * 64U + i1 * 32U), 64U);
+                                                  i1 * 32U), 64U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -1631,7 +1631,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   128U * (__anf05 * 16U) +
-                                                  0U * 128U + i1 * 16U), 128U);
+                                                  i1 * 16U), 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -1771,7 +1771,7 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   128U * (__anf05 * 16U) +
-                                                  0U * 128U + i1 * 16U), 128U);
+                                                  i1 * 16U), 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM += 1U) {
@@ -1911,7 +1911,7 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   32U * (__anf05 * 16U) +
-                                                  0U * 32U + i1 * 16U), 32U);
+                                                  i1 * 16U), 32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {
@@ -2481,7 +2481,7 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   128U * (__anf05 * 16U) +
-                                                  0U * 128U + i1 * 16U), 128U);
+                                                  i1 * 16U), 128U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM += 1U) {
@@ -2765,7 +2765,7 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                 wmma::load_matrix_sync(__anf1,
                                        kpr_offset(tile_for_tc_b_tiles,
                                                   32U * (__anf05 * 16U) +
-                                                  0U * 32U + i1 * 16U), 32U);
+                                                  i1 * 16U), 32U);
             }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM += 1U) {

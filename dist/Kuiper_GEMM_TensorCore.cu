@@ -224,8 +224,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                               32U * (threadIdx.x / 32U * 8U) +
                                               dotIdx * 16U), 32U);
             wmma::load_matrix_sync(bFrag,
-                                   kpr_offset(b_tile,
-                                              32U * (__anf05 * 16U) + 0U * 32U),
+                                   kpr_offset(b_tile, 32U * (__anf05 * 16U)),
                                    32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -305,8 +304,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                               16U * (threadIdx.x / 32U * 32U) +
                                               dotIdx * 16U), 16U);
             wmma::load_matrix_sync(bFrag,
-                                   kpr_offset(b_tile,
-                                              8U * (__anf05 * 16U) + 0U * 8U),
+                                   kpr_offset(b_tile, 8U * (__anf05 * 16U)),
                                    8U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -386,8 +384,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                               32U * (threadIdx.x / 32U * 8U) +
                                               dotIdx * 16U), 32U);
             wmma::load_matrix_sync(bFrag,
-                                   kpr_offset(b_tile,
-                                              32U * (__anf05 * 16U) + 0U * 32U),
+                                   kpr_offset(b_tile, 32U * (__anf05 * 16U)),
                                    32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -811,8 +808,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                               16U * (threadIdx.x / 32U * 16U) +
                                               dotIdx * 16U), 16U);
             wmma::load_matrix_sync(bFrag,
-                                   kpr_offset(b_tile,
-                                              16U * (__anf05 * 16U) + 0U * 16U),
+                                   kpr_offset(b_tile, 16U * (__anf05 * 16U)),
                                    16U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
