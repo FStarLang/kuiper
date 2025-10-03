@@ -24,7 +24,7 @@ for bm in 32 64 128; do
                   -Dregch_sizes=_${wm}x${wn} \
                   obj/Kuiper_GEMM_TensorCore2D.cu \
                   test/Tune_Kuiper_GEMM_TensorCore2D.cu
-          ./bench.exe 200 4096 4096 4096 0
+          ./bench.exe 200 4096 4096 4096 0 || echo "RES ERROR"
         done
       done
     done

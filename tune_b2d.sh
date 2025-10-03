@@ -22,7 +22,7 @@ for bm in 64 128; do
                       -Dregch_sizes=_${tm}x${tn} \
                       obj/Kuiper_GEMM_BlockTiling2D.cu \
                       test/Tune_Kuiper_GEMM_BlockTiling2D.cu
-              ./bench.exe 50 4096 4096 4096 0
+              ./bench.exe 50 4096 4096 4096 0 || echo "RES ERROR"
             done
           done
         done
