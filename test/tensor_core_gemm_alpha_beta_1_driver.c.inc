@@ -10,9 +10,7 @@
 // #define DEFAULT_TILE  32
 #define DEFAULT_LAPS  4
 
-#if mix_prec == 1
-#define cet float
-#else
+#ifndef cet
 #define cet et
 #endif
 
@@ -115,33 +113,10 @@ int main(int argc, char **argv)
     #define XSTR(x) STR(x)
 
     if (check) {
-#if mix_prec != 1
         TIME_void(gold =
-                  cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu,
-                            alpha, beta), NULL);
-// if mixed precision, compute gold by only using float
-#else
-        float *m1_cpu_float, *m2_cpu_float;
-        m1_cpu_float = (float *)malloc(rows * shared * sizeof(float));
-        m2_cpu_float = (float *)malloc(shared * cols * sizeof(float));
-
-        float alpha = GEMM_ALPHA;
-
-        for (i = 0; i < rows; i++) {
-            for (j = 0; j < shared; j++) {
-                m1_cpu_float[i * shared + j] =
-                    __half2float(m1_cpu[i * shared + j]);
-            }
-        }
-        for (i = 0; i < shared; i++) {
-            for (j = 0; j < cols; j++) {
-                m2_cpu_float[i * cols + j] = __half2float(m2_cpu[i * cols + j]);
-            }
-        }
-        TIME_void(gold =
-                  cpu_sgemm(rows, shared, cols, m1_cpu_float, m2_cpu_float,
+                  cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu,
                             m3_cpu, alpha, beta), NULL);
-#endif
+
         F (PREARGS   rows, shared, cols, m1, m2, m3);
 
         cmp(rows, cols, m3, gold);

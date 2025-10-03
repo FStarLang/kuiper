@@ -4,6 +4,7 @@
 #define et            half
 #define et_is_half    1
 #define mix_prec      1
+#define cet           float
 #define et_lbl        f16_f32
 #define tile_sizes    _32x32x32
 #define tc_tile_sizes _16x16x16
