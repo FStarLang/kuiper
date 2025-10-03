@@ -180,64 +180,27 @@ type sarray_iterator
   (a : sarray et l) =
 {
   i   : (i   : sz{i <= a.nnz}); // índice en elems
-  // pos : (pos : sz{pos <= l});   // posición dentro del array "virtual"
 }
-
-// let sarray_iterator_pts_to
-//   (#et:Type0) {| d : scalar et |}
-//   (#l : erased nat)
-//   (#a : sarray et l)
-//   (i : sarray_iterator a)
-//   (#[Tactics.exact (`1.0R)] f : perm)
-//   (elem : nat & et)
-//   : slprop
-// =
-//   exists* (v_elems : lseq et a.nnz) (v_pos : lseq sz a.nnz).
-//     a.elems |-> Frac f v_elems **
-//     a.pos   |-> Frac f v_pos **
-//     pure (
-//       i.i < a.nnz /\
-//       elem == (SZ.v (v_pos @! i.i), v_elems @! i.i)
-//     )
-
-// inline_for_extraction noextract
-// unfold
-// instance has_pts_to_sarray_iterator
-//   (#et: Type0) {| scalar et |}
-//   (#l : erased nat)
-//   (#a : sarray et l)
-//   : has_pts_to (sarray_iterator a) (nat & et) =
-// {
-//   pts_to = sarray_iterator_pts_to
-// }
-
 
 inline_for_extraction noextract
 fn sarray_iterator_init
   (#et : Type0) {| scalar et |}
   (#l : erased nat)
   (a : sarray et l)
+  (#f : perm)
   (#s : erased (seq et))
+  (#v_elems : erased (seq et){len v_elems == a.nnz})
+  (#v_pos   : erased (seq sz){len v_pos   == a.nnz})
   preserves gpu
-  preserves a |-> s
-  returns i : sarray_iterator a
-  ensures pure (forall (j:nat{j < Seq.length s}). j < i.i ==> s @! j == zero)
+  preserves sarray_pts_to' a #f s v_elems v_pos
+  returns i : sarray_iterator #et #l a
+  ensures pure (
+    forall (j : natlt (Seq.length s)).
+      i.i < a.nnz /\ j < v_pos @! i.i ==> s @! j == zero
+  )
 {
-  open FStar.SizeT;
-  // if (a.nnz >^ 0sz) {
-  //   unfold sarray_pts_to a s;
-  //   with v_elems v_pos.
-  //     assert sarray_pts_to' a s v_elems v_pos;
-  //     unfold sarray_pts_to' a s v_elems v_pos;
-  //   let p = gpu_array_read a.pos 0sz;
-  //   let i : sarray_iterator a = { i = 0sz };
-  //   fold sarray_pts_to' a s v_elems v_pos;
-  //   fold sarray_pts_to a s;
-  //   i
-  // } else {
     let i : sarray_iterator a = { i = 0sz };
-    i
-  // }
+    i;
 }
 
 inline_for_extraction noextract
@@ -247,20 +210,6 @@ let sarray_iterator_end
   (i : sarray_iterator a)
   : bool =
   i.i = a.nnz
-
-inline_for_extraction noextract
-fn sarray_iterator_is_done
-  (#et : Type0) {| scalar et |}
-  (#l : erased nat)
-  (#a : sarray et l)
-  (i : sarray_iterator a)
-  (#s : erased (seq et))
-  preserves gpu ** a |-> s
-  returns is_done : bool
-  ensures pure (is_done == sarray_iterator_end i)
-{
-  (i.i = a.nnz)
-}
 
 inline_for_extraction noextract
 fn sarray_iterator_get
@@ -287,14 +236,6 @@ fn sarray_iterator_get
   (p, v)
 }
 
-// fn incr (r : ref int)
-//   preserves live r
-//   ensures   pure (!r == old(!r) + 1)
-// {
-//   r := !r + 1;
-// }
-
-
 inline_for_extraction noextract
 fn sarray_iterator_next
   (#et : Type0) {| scalar et |}
@@ -303,31 +244,25 @@ fn sarray_iterator_next
   (i : sarray_iterator a)
   (#f : perm)
   (#s : erased (seq et))
-  (#v_elems : erased (seq et){Seq.length v_elems == SZ.v a.nnz})
-  (#v_pos   : erased (seq sz){Seq.length v_pos   == SZ.v a.nnz})
+  (#v_elems : erased (seq et){len v_elems == a.nnz})
+  (#v_pos   : erased (seq sz){len v_pos   == a.nnz})
   (#_ : squash (not (sarray_iterator_end i)))
   preserves gpu
   preserves sarray_pts_to' a #f s v_elems v_pos
   requires
     pure (not (sarray_iterator_end i))
   returns i' : sarray_iterator a
-  ensures pure (forall (j:nat{j < Seq.length s}).
+  ensures pure (
+    forall (j : natlt (len s)).
     v_pos @! i.i < j /\
       (if i'.i = a.nnz then true else j < v_pos @! i'.i)
-      ==> s @! j == zero)
+      ==> s @! j == zero
+  )
 {
   unfold sarray_pts_to' a #f s v_elems v_pos;
-  // if (i.i +^ 1sz = a.nnz) {
-  //   let c_len : (x:sz{SZ.v x == reveal l}) = a.len; // magic();
-  //   let i' : sarray_iterator a = {i = i.i +^ 1sz };
-  //   fold sarray_pts_to' a #f s v_elems v_pos;
-  //   i'
-  // } else {
-    // let pos = gpu_array_read a.pos (i.i +^ 1sz);
     let i' : sarray_iterator a = {i = i.i +^ 1sz};
     fold sarray_pts_to' a #f s v_elems v_pos;
     i'
-  // }
 }
 
 // sparse matrix
@@ -453,7 +388,15 @@ fn sarray_iterator_test
   preserves gpu ** a |-> s
   ensures emp
 {
-  let mut it : sarray_iterator #et #l a = sarray_iterator_init a;
+  unfold sarray_pts_to a;
+
+  with v_elems v_pos.
+    assert sarray_pts_to' a s v_elems v_pos;
+  
+  admit();
+  let mut it : sarray_iterator #et #l a = sarray_iterator_init #et #ets #l a #1.0R #s #v_elems #v_pos;
+
+  fold sarray_pts_to a s;
 
   while (not(sarray_iterator_end !it))
     invariant
@@ -462,13 +405,6 @@ fn sarray_iterator_test
     let r = sarray_iterator_get !it;
 
     unfold sarray_pts_to a s;
-    with v_elems v_pos.
-      assert sarray_pts_to' a s v_elems v_pos;
-    with it_v.
-      assert it |-> it_v;
-      assert pure (not(sarray_iterator_end it_v));
-
-    assert (pure (Seq.length v_elems == SZ.v a.nnz /\ Seq.length v_pos == SZ.v a.nnz));
 
     it := sarray_iterator_next #et #ets #l #a !it #1.0R #s;
 
