@@ -2,6 +2,8 @@
 
 set -eux
 
+make -f verify.mk obj/Kuiper_GEMM_TensorCore2D.o
+
 # These loops must match those in Kuiper.GEMM.TensorCore2D.fst.sh!!
 chunk=8
 for bm in 32 64 128; do
@@ -25,7 +27,7 @@ for bm in 32 64 128; do
                   -DKUIPER_CFG_TENSORCORES=1 \
                   -Dtile_sizes=_${bm}x${bn}x${bk} \
                   -Dregch_sizes=_${wm}x${wn} \
-                  obj/Kuiper_GEMM_TensorCore2D.cu \
+                  obj/Kuiper_GEMM_TensorCore2D.o \
                   test/Tune_Kuiper_GEMM_TensorCore2D.cu
           ./bench.exe 200 4096 4096 4096 0 || echo "RES ERROR"
         done

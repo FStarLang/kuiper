@@ -2,6 +2,8 @@
 
 set -eux
 
+make -f verify.mk obj/Kuiper_GEMM_BlockTiling2D.o
+
 # These loops must match those in Kuiper.GEMM.BlockTiling2D.fst.sh!!
 for bm in 64 128; do
   for bn in 64 128; do
@@ -21,7 +23,7 @@ for bm in 64 128; do
                       -DKUIPER_CFG_TENSORCORES=0 \
                       -Dtile_sizes=_${bm}x${bn}x${bk} \
                       -Dregch_sizes=_${tm}x${tn} \
-                      obj/Kuiper_GEMM_BlockTiling2D.cu \
+                      obj/Kuiper_GEMM_BlockTiling2D.o \
                       test/Tune_Kuiper_GEMM_BlockTiling2D.cu
               ./bench.exe 50 4096 4096 4096 0 || echo "RES ERROR"
             done
