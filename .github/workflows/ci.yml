@@ -48,6 +48,8 @@ jobs:
       # If these fail, stop right now.
       - run: which z3-4.8.5
 
+      - run: sudo apt-get install -y indent
+
       - name: Get submodules
         run: |
           git submodule init
