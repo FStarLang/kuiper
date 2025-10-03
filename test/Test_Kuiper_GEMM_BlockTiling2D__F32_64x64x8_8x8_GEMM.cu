@@ -11,5 +11,6 @@
 #define GEMM_BETA    0.3
 #define TOLERANCE    0.001f
 #define NODYNTILE    1
+#define PREARGS
 
 #include "block_tiled2d_gemm_driver.c.inc"

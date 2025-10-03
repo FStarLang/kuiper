@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     for (int l = 0; l < laps; l++) {
         float t;
         TIME_void(TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
-                  (GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &t);
+                  (PREARGS    GEMM_ALPHA, GEMM_BETA, rows, shared, cols, m1, m2, m3), &t);
         uint64_t flops = (rows * shared * cols * 2.0);
         // I think the below is more accurate, but I'm reusing the
         // same formula from the sgemm.cu benchsuite

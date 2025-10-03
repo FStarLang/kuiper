@@ -90,3 +90,22 @@ let g_gemm_f32_128x128x8_8x8_cr =
   spec_as_gemm 128sz 128sz 8sz (cm _ _) (rm _ _)
     #(crepr_col_major.map _ _) #(crepr_row_major.map _ _)
     8sz 8sz f32
+
+let g_gemm_f32_128x128x16_8x8_cr =
+  spec_as_gemm 128sz 128sz 16sz (cm _ _) (rm _ _)
+    #(crepr_col_major.map _ _) #(crepr_row_major.map _ _)
+    8sz 8sz f32
+
+let g_gemm_f32_128x128x32_8x8_cr =
+  spec_as_gemm 128sz 128sz 32sz (cm _ _) (rm _ _)
+    #(crepr_col_major.map _ _) #(crepr_row_major.map _ _)
+    8sz 8sz f32
+
+// Dynamic parameter version. Only admitted since otherwise we
+// need to repeat all requirements here. We only use this for some
+// quick tuning, so it's not a big deal.
+let g_gemm_f32_8x8_cr bm bn bk =
+  admit();
+  spec_as_gemm bm bn bk (cm _ _) (rm _ _)
+    #(crepr_col_major.map _ _) #(crepr_row_major.map _ _)
+    8sz 8sz f32
