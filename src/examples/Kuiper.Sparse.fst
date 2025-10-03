@@ -281,6 +281,18 @@ type smatrix (et : Type0)
   row_off   : gpu_array sz (rows + 1); // posición de cada elemento
 }
 
+// Medio fea esta
+noextract
+let slice_row
+  #a (#rows #nnz : nat) 
+  (row_off : lseq nat (rows + 1){forall k. row_off @! k <= nnz})
+  (s : lseq a nnz)
+  (i : nat{i < rows /\ row_off @! i <= row_off @! (i + 1)})
+  : GTot (lseq a ((row_off @! (i + 1)) - (row_off @! i)))
+=
+  let ri = row_off @! i in
+  let re = row_off @! (i + 1) in
+  Seq.slice s ri re
 
 let valid_smatrix
   (#nnz rows cols : nat)
@@ -292,12 +304,10 @@ let valid_smatrix
   (row_off @! 0 == 0) /\
   (row_off @! rows == nnz) /\
   (forall i j. i < j ==> row_off @! i <= row_off @! j) /\
-  // índices de columnas están dentro de rango
-  in_bounds 0 cols col_ind /\
-  // índices de columna están ordenados (por fila)
+  // indices de columna son posiciones validas por cada fila
   (forall (i : natlt rows).
-    let cols = Seq.slice col_ind (row_off @! i) (row_off @! (i + 1)) in
-    forall j k. j < k ==> cols @! j < cols @! k
+    let row_cols = slice_row row_off col_ind i in
+    valid_pos cols row_cols 
   )
    
 
@@ -312,10 +322,9 @@ let smatrix_unsparse
     (ensures fun _ -> true) 
 =
   mkM fun i j ->
-    let cols = Seq.slice col_ind (row_off @! i) (row_off @! (i + 1)) in
-    if Seq.mem j cols
-      then elems @! Seq.index_mem j cols
-      else zero
+    let row_cols = slice_row row_off col_ind i in
+    let row_elems = slice_row row_off elems i in
+    unsparse _ cols row_elems row_cols @! j
 
 let smatrix_pts_to
   (#et:Type0) {| d : scalar et |}
@@ -374,7 +383,7 @@ fn smatrix_id
     
     fold smatrix_pts_to m e;
     
-  };
+  }
 }
 
 // let smatrix_id_u32 = smatrix_id #u32 #_
