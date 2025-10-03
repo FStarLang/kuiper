@@ -7,10 +7,10 @@ chunk=8
 for bm in 32 64 128; do
   if [ $((bm % 16)) -ne 0 ]; then continue; fi # tc tile
   for bn in 32 64 128; do
-    if [ $((bn % 8)) -ne 0 ]; then continue; fi # chunk
+    if [ $((bn % chunk)) -ne 0 ]; then continue; fi # chunk
     if [ $((bn % 16)) -ne 0 ]; then continue; fi # tc tile
     for bk in 8 16 32 64; do
-      if [ $((bk % 8)) -ne 0 ]; then continue; fi # chunk
+      if [ $((bk % chunk)) -ne 0 ]; then continue; fi # chunk
       if [ $((bk % 16)) -ne 0 ]; then continue; fi # tc tile
       if [ $(((2 * bm * bk) + (2 * bk * bn))) -gt 49152 ]; then continue; fi # shmem size constraint
       for wm in 2 4 8 16; do
@@ -18,8 +18,8 @@ for bm in 32 64 128; do
         for wn in 2 4 8 16; do
           if [ $((bn % (16 * wn))) -ne 0 ]; then continue; fi
           if [ $(((bm / (wm*16)) * (bn / (wn*16)) * 32)) -gt 1024 ]; then continue; fi
-          if [ $(((bm * bk) % (chunk * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
-          if [ $(((bk * bn) % (chunk * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
+          if [ $(((bm * bk) % (chunk * 32 * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
+          if [ $(((bk * bn) % (chunk * 32 * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
           nvcc -O3 -I include -I obj \
                   -o bench.exe \
                   -DKUIPER_CFG_TENSORCORES=1 \
