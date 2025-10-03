@@ -39,27 +39,39 @@ fn cp_matrix_vec
   let mlen = rows *^ cols;
 
   assume pure (SZ.fits (tid * chunk et)); // ?
-  let mut i : sz = tid *^ chunk et;
+  let offset : sz = tid *^ chunk et;
+  let mut i : sz = 0sz;
 
-  // i is the flat_idx
+  (* It's very important to make the initializer and bound of this loop
+  independent of the tid, this way NVCC can see clearly that it can be unrolled
+  (when rows/cols are defined constants). Note, something like:
+        uint32_t i2 = threadIdx.x * 8U;
+        for (; i2 < 1024U; i2 += 256U) { ... }
+  is NOT unrolled, even if NVCC could see statically that threadIdx.x < 32U, and
+  therefore this is always 4 iterations. *)
+
   let git = Pulse.Lib.GhostReference.alloc 0;
   while ((!i <^ mlen))
     invariant
       live i ** live git **
-      pure (SZ.v !i == tid * chunk et + GR.read git * nthr * chunk et) **
+      pure (SZ.v !i == GR.read git * nthr * chunk et) **
       live_tile_stride_cells dst nthr tid
   {
+    assume pure (!i + offset < mlen); // prove this, it follows from rounding down
     let mut local = [| zero #et #_; chunk et |];
 
-    let row = !i /^ cols; assert (rewrites_to row (!i /^ cols));
-    let col = !i %^ cols; assert (rewrites_to col (!i %^ cols));
+    assume pure (SZ.fits (!i + nthr * chunk et));
+    let row = (!i +^ offset) /^ cols; assert (rewrites_to row ((!i +^ offset) /^ cols));
+    let col = (!i +^ offset) %^ cols; assert (rewrites_to col ((!i +^ offset) %^ cols));
     assume (pure (col + chunk et <= cols)); // ?
-    assert pure (row < rows && col < cols - chunk et + 1);
+    assert pure (SZ.v offset == tid * chunk et);
+    assert pure (row < rows);
+    assert pure (col < cols - chunk et + 1);
 
     gpu_matrix_vec_read src row col local;
 
     let ite : erased int = GR.read git;
-    assert (pure (ite == (!i / chunk et - tid) / nthr));
+    assert (pure (ite == (!i / chunk et ) / nthr));
 
     unfold live_tile_stride_cells dst nthr tid;
     assert (pure (ite < divup (rows*cols) (chunk et * nthr)));
@@ -107,7 +119,7 @@ fn cp_matrix_vec
     i := vi +^ nthr *^ chunk et;
     GR.write git (GR.read git + 1);
     assume pure
-      (vi + nthr == tid * chunk et + (GR.read git + 1) * nthr * chunk et);
+      (vi + nthr == (GR.read git + 1) * nthr * chunk et);
   };
 
   drop_ (git |-> _);
