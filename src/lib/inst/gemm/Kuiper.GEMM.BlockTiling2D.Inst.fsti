@@ -9,7 +9,9 @@ open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
 
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+
+unfold
+let sz_fits (x:int) = 0 <= x /\ x < 4294967296
 
 inline_for_extraction noextract
 fn spec
@@ -21,13 +23,13 @@ fn spec
   // {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
-  (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
-  (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
+  (#_ : squash (sz_fits (bm*bk + (bm/tm * (bn/tn)))))
+  (#_ : squash (sz_fits (bk*bn + (bm/tm * (bn/tn)))))
   (et : Type0) {| scalar et, has_vec_cpy et |}
-  (#_ : squash (chunk et /? bn))
-  (#_ : squash (chunk et /? bk))
-  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bm * bk)))
-  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /? (bk * bn)))
+  (#_ : squash (chunk et /?+ bn))
+  (#_ : squash (chunk et /?+ bk))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bm * bk)))
+  (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bk * bn)))
   (alpha beta : et)
   (#rows #shared #cols : szp)
   (gA : M.gpu_matrix et (rm rows shared))

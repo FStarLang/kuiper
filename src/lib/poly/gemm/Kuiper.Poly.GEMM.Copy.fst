@@ -4,7 +4,7 @@ module Kuiper.Poly.GEMM.Copy
 
 module SZ = FStar.SizeT
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn cp_matrix
   (#et : Type0) {| scalar et |}

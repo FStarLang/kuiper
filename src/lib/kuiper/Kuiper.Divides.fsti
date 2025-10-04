@@ -8,6 +8,10 @@ let divides (x y : int) : prop =
 unfold
 let ( /? ) = divides
 
+unfold
+let ( /?+ ) (x : pos) (y : int) =
+  y % x = 0
+
 val get_factor (x y : int)
   : Ghost int (requires x /? y)
               (ensures fun z -> x * z == y)

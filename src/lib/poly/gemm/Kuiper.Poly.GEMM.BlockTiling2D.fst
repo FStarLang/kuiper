@@ -4,7 +4,7 @@ module Kuiper.Poly.GEMM.BlockTiling2D
 
 open Kuiper
 
-#set-options "--z3rlimit 20"
+#set-options "--z3rlimit 30"
 
 
 open Kuiper.Matrix.Reprs.Type
