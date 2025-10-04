@@ -4,6 +4,8 @@ module Kuiper.ArrayView.Test.EvenOdds
 positions in it. *)
 #lang-pulse
 
+#set-options "--z3rlimit 15"
+
 open Kuiper
 open Kuiper.View
 open Kuiper.VArray

@@ -62,7 +62,7 @@ fn gpu_matrix_pts_to_ref
 
 
 // Sporadically fails
-#push-options "--retry 3"
+#push-options "--retry 3 --z3rlimit 20"
 ghost
 fn gpu_matrix_concr
   (#et:Type)
@@ -86,7 +86,7 @@ fn gpu_matrix_concr
 #pop-options
 
 // Sporadically fails
-#push-options "--retry 3"
+#push-options "--retry 3 --z3rlimit 20"
 ghost
 fn gpu_matrix_abs
   (#et:Type)
