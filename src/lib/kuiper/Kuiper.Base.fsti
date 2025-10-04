@@ -25,13 +25,16 @@ val block_setup_tok (nthr : nat) : slprop
 (* This should be 2^31-1, or 2^30. We constrain this more than normal due to our
 hack about interpreting size_t as uint32_t in karamel (see Kuiper.SizeT). When
 that is gone, this should be increased. *)
-let max_blocks : erased int = pow2 21
+unfold
+let max_blocks : erased int = 2097152 // 2^21
 
 (* Help F* *)
-let max_blocks_explicit : squash (reveal max_blocks == 2097152) =
-  assert_norm (reveal max_blocks == 2097152)
+let max_blocks_explicit : squash (reveal max_blocks == 2097152 /\ reveal max_blocks == pow2 21) =
+  assert_norm (reveal max_blocks == 2097152);
+  assert_norm (reveal max_blocks == pow2 21)
 
 (* Hard CUDA limit *)
+unfold
 let max_threads : erased int = 1024
 
 (* Token given to a particular block within a grid. Both here

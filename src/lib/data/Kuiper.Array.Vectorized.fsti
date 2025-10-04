@@ -10,15 +10,22 @@ open Kuiper.Seq.Common { seq_blit }
 module SZ = FStar.SizeT
 
 inline_for_extraction noextract
+unfold
 class has_vec_cpy (et : Type) = {
   [@@@FStar.Tactics.Typeclasses.no_method] _chunk : szp;
 }
 
+unfold
 inline_for_extraction noextract
-let chunk (et : Type) {| hvc : has_vec_cpy et |} : szp = hvc._chunk
+let chunk (et : Type) {| hvc : has_vec_cpy et |} : szp =
+  match hvc with
+  | Mkhas_vec_cpy chunk -> chunk
 
+unfold
 inline_for_extraction noextract
 instance has_vec_cpy_float : has_vec_cpy float = { _chunk = 4sz; }
+
+unfold
 inline_for_extraction noextract
 instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; }
 
