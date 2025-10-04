@@ -9,7 +9,7 @@
 #ifndef regch_sizes
 #define regch_sizes  _8x8
 #endif
-#define layouts      _cr
+#define layouts
 #define GEMM_ALPHA   0.7
 #define GEMM_BETA    0.3
 #define TOLERANCE    0.001f

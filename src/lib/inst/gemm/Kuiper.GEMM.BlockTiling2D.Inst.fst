@@ -17,9 +17,9 @@ module SZ = FStar.SizeT
 inline_for_extraction noextract
 fn spec
   (bm bn bk : szp)
-  (slA : full_mlayout bm bk)
-  (slB : full_mlayout bk bn)
-  {| clayout slA, clayout slB |}
+  // (slA : full_mlayout bm bk)
+  // (slB : full_mlayout bk bn)
+  // {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
   (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
@@ -74,7 +74,8 @@ fn spec
     gA #eA gB #eB gC #eC
     bm bn bk
     tm tn
-    slA slB #_ #_;
+    (cm _ _) (rm _ _) //slA slB
+    #_ #_;
 
   ()
 }

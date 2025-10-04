@@ -29,24 +29,44 @@ let g_gemm_f16_f16_16x16x16_8x8 bm bn bk =
 
 EOF
 
-chunk=8
-for bm in 32 64 128; do
-  if [ $((bm % 16)) -ne 0 ]; then continue; fi # tc tile
-  for bn in 32 64 128; do
-    if [ $((bn % chunk)) -ne 0 ]; then continue; fi # chunk
-    if [ $((bn % 16)) -ne 0 ]; then continue; fi # tc tile
-    for bk in 8 16 32 64; do
-      if [ $((bk % chunk)) -ne 0 ]; then continue; fi # chunk
-      if [ $((bk % 16)) -ne 0 ]; then continue; fi # tc tile
-      if [ $(((2 * bm * bk) + (2 * bk * bn))) -gt 49152 ]; then continue; fi # shmem size constraint
-      for wm in 2 4 8 16; do
-        if [ $((bm % (16 * wm))) -ne 0 ]; then continue; fi
-        for wn in 2 4 8 16; do
-          if [ $((bn % (16 * wn))) -ne 0 ]; then continue; fi
-          if [ $(((bm / (wm*16)) * (bn / (wn*16)) * 32)) -gt 1024 ]; then continue; fi
-          if [ $(((bm * bk) % (chunk * 32 * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
-          if [ $(((bk * bn) % (chunk * 32 * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
-          echo "let g_gemm_f16_f16_${bm}x${bn}x${bk}_16x16x16_${wm}x${wn} = spec half half ${bm}sz ${bn}sz ${bk}sz 16sz 16sz 16sz ${wm}sz ${wn}sz"
+# Tweak these lists to control which instances are generated
+all_tm="16"
+all_tn="16"
+all_tk="16"
+all_bm="64 128"
+all_bn="64 128"
+all_bk="16 32 64"
+all_wm="2 4 8 16"
+all_wn="2 4 8 16"
+
+chunk=8 # 8 halfs = 16 bytes
+
+for tm in $all_tm; do
+  for tn in $all_tn; do
+    if [ $tm -eq 8  ] && [ $tn -ne 32 ]; then continue; fi
+    if [ $tm -eq 16 ] && [ $tn -ne 16 ]; then continue; fi
+    if [ $tm -eq 32 ] && [ $tn -ne 8  ]; then continue; fi
+    for tk in $all_tk; do
+      for bm in $all_bm; do
+        if [ $((bm % tm)) -ne 0 ]; then continue; fi # tc tile
+        for bn in $all_bn; do
+          if [ $((bn % chunk)) -ne 0 ]; then continue; fi # chunk
+          if [ $((bn % tn)) -ne 0 ]; then continue; fi # tc tile
+          for bk in $all_bk; do
+            if [ $((bk % chunk)) -ne 0 ]; then continue; fi # chunk
+            if [ $((bk % tk)) -ne 0 ]; then continue; fi # tc tile
+            if [ $(((2 * bm * bk) + (2 * bk * bn))) -gt 49152 ]; then continue; fi # shmem size constraint
+            for wm in $all_wm; do
+              if [ $((bm % (tm * wm))) -ne 0 ]; then continue; fi
+              for wn in $all_wn; do
+                if [ $((bn % (tn * wn))) -ne 0 ]; then continue; fi
+                if [ $(((bm / (wm*tm)) * (bn / (wn*tn)) * 32)) -gt 1024 ]; then continue; fi # max threads
+                if [ $(((bm * bk) % (chunk * 32 * (bm/(wm*tm)) * (bn/(wn*tn))))) -ne 0 ]; then continue; fi # copy fullness
+                if [ $(((bk * bn) % (chunk * 32 * (bm/(wm*tm)) * (bn/(wn*tn))))) -ne 0 ]; then continue; fi # copy fullness
+                echo "let g_gemm_f16_f16_${bm}x${bn}x${bk}_${tm}x${tn}x${tk}_${wm}x${wn} = spec half half ${bm}sz ${bn}sz ${bk}sz ${tm}sz ${tn}sz ${tk}sz ${wm}sz ${wn}sz"
+              done
+            done
+          done
         done
       done
     done
