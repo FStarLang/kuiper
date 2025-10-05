@@ -104,8 +104,11 @@ let get_record_field fname (e:mlexpr) : mlexpr =
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
 let get_sizet (e : mlexpr) : mlexpr = get_record_field "size" e
-let get_strided_row_major_offset (e : mlexpr) : mlexpr = get_record_field "offset" e
-let get_strided_row_major_stride (e : mlexpr) : mlexpr = get_record_field "stride" e
+// repeated names get a numeric prefix, and we have both strided_row_major and strided_col_major
+let get_strided_row_major_offset (e : mlexpr) : mlexpr =
+  try get_record_field "offset" e with | _ -> get_record_field "offset1" e
+let get_strided_row_major_stride (e : mlexpr) : mlexpr =
+  try get_record_field "stride" e with | _ -> get_record_field "stride1" e
 
 let _MUST (e : expr) : expr =
     EApp (EQualified ([], "MUST"), [e])
@@ -330,7 +333,7 @@ let kpr_translate_alloc_fragment cb et knd m n k layout =
     let layout : option expr =
       match cta layout with
       | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
-      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
+      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::col_major")
       | Some ("Kuiper.TensorCore.FragLAcc",   [], []) -> None
       | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
     in
@@ -408,6 +411,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
         [kpr_translate_alloc_fragment cb et knd m n k layout])
 
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
+  | "Kuiper.TensorCore.mma_loadA_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     let fr = cb fr in
     let ldm = cb <| get_strided_row_major_stride strided_l in

@@ -145,6 +145,21 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
   : strided_row_major (subtile_layout l trows tcols tr tc)
 
 inline_for_extraction noextract
+instance val strided_col_major_subtile (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : strided_col_major (subtile_layout l trows tcols tr tc)
+
+inline_for_extraction noextract
 instance val c_subtile_layout
   (#rows #cols : erased nat)
   (l : mlayout rows cols)

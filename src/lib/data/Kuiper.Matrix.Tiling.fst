@@ -117,6 +117,72 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
   pf = (fun i j -> strided_row_major_subtile_proof #rows #cols l trows tcols tr tc i j);
 }
 
+inline_for_extraction noextract
+let strided_col_major_subtile_offset
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : sz {trows > 0 /\ trows /? rows})
+  (tcols : sz {tcols > 0 /\ tcols /? cols})
+  (tr    : szlt (rows / trows))
+  (tc    : szlt (cols / tcols))
+  : res : sz { SZ.v res == sub.offset + sub.stride * (tc * tcols) + tr * trows }
+  = sub.pf (tr * trows) (tc * tcols);
+    assert (l.map.f (tr * trows, tc * tcols) == sub.offset + sub.stride * (tc * tcols) + tr * trows);
+    assume (SZ.fits (l.map.f (tr * trows, tc * tcols))); // We actually don't have this right now
+    assume (sub.stride > 0); // This one we should be able to prove, but it's needed to know that tr*trows does not overflow!
+    sub.offset +^ sub.stride *^ (tc *^ tcols) +^ tr *^ trows
+
+let strided_col_major_subtile_proof
+  (#rows #cols : nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : nat {trows > 0 /\ trows /? rows})
+  (tcols : nat {tcols > 0 /\ tcols /? cols})
+  (tr    : natlt (rows / trows))
+  (tc    : natlt (cols / tcols))
+  (i : natlt trows)
+  (j : natlt tcols)
+  : Lemma (
+      (subtile_layout l trows tcols tr tc).map.f (i, j) ==
+      sub.offset + sub.stride * (tc * tcols) + tr * trows
+        + sub.stride * j + i
+    )
+=
+  calc (==) {
+    (subtile_layout l trows tcols tr tc).map.f (i, j) <: int;
+    == {}
+    l.map.f (tr * trows + i, tc * tcols + j);
+    == { sub.pf (tr * trows + i) (tc * tcols + j) }
+    sub.offset + sub.stride * (tc * tcols + j) + tr * trows + i;
+    == {}
+    sub.offset + sub.stride * (tc * tcols) + sub.stride * j + tr * trows + i;
+    == {}
+      sub.offset + sub.stride * (tc * tcols) + tr * trows
+        + sub.stride * j + i;
+  };
+  ()
+
+inline_for_extraction noextract
+instance strided_col_major_subtile (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : strided_col_major (subtile_layout l trows tcols tr tc) =
+{
+  offset = strided_col_major_subtile_offset l (concr' c_trows) (concr' c_tcols) (concr' c_tr) (concr' c_tc);
+  stride = sub.stride;
+  pf = (fun i j -> strided_col_major_subtile_proof #rows #cols l trows tcols tr tc i j);
+}
+
 
 inline_for_extraction noextract
 instance c_subtile_layout

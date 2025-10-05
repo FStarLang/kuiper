@@ -367,7 +367,7 @@ fn subproducts1d
 
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
-#push-options "--z3rlimit 30"
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}

@@ -156,6 +156,22 @@ fn mma_loadA
   ensures
     fr |-> m0
 
+fn mma_loadA_cm
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragA m n k FragLCM)
+  (#l : mlayout m k) {| strided_col_major l |}
+  (gm : gpu_matrix et l)
+  (#f : perm)
+  (#m0 : ematrix et m k)
+  (#f0 : erased (value_for et FragA m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+
 fn mma_loadB
   (#et : Type)
   (#m #n #k : erased nat)
