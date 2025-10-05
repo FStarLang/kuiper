@@ -4,7 +4,7 @@ module Kuiper.DotProduct.Poly
 
 open Kuiper
 module V = Pulse.Lib.Vec
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction
 let m_size : sz = 1024sz
@@ -136,7 +136,7 @@ let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
 
 inline_for_extraction noextract
 fn main (#et:Type0) {| scalar et |} (_:unit)
-  requires cpu ** pure SZ.fits_u32
+  requires cpu
   ensures  cpu
 {
   let a1 = V.alloc #et zero m_size;

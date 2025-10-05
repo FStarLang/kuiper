@@ -8,7 +8,7 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 let live_cell
   (#et : Type0)

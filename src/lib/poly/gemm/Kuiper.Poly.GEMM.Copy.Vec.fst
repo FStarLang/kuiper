@@ -8,7 +8,7 @@ open Kuiper.Matrix
 open Kuiper.Matrix.Vectorized
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module GR = Pulse.Lib.GhostReference
 open Pulse.Lib.Trade { trade }
 

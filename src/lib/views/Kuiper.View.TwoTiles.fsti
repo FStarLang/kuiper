@@ -11,7 +11,7 @@ open Kuiper.Matrix {} // instances
 // "Definition Kuiper.View.fits cannot be found." ????
 // open Kuiper.View { cview }
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module MC = Kuiper.Matrix.Common
 module R  = Kuiper.Matrix.Reprs
 module Concat = Kuiper.View.Concat

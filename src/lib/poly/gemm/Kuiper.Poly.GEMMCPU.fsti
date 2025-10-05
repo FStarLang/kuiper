@@ -10,7 +10,7 @@ open Kuiper.Poly.GEMMGPU.Type
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.Matrix { gpu_matrix }
 include Kuiper.Poly.GEMMGPU.Type { size_req_t }
 

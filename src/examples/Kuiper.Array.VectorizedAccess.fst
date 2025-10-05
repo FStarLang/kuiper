@@ -5,7 +5,7 @@ open Kuiper
 
 open FStar.Seq.Base
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module V = Pulse.Lib.Vec
 
 open Kuiper.Array.Vectorized

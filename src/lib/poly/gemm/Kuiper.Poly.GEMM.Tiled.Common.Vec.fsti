@@ -11,7 +11,7 @@ open Kuiper.Poly.GEMM.Copy.Vec
 
 open Kuiper.EMatrix
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 instance concrete_sz_32 : concrete_sz 32 = { x = 32sz }

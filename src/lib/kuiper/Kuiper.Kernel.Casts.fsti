@@ -7,7 +7,7 @@ open Kuiper.ForEvery
 open Kuiper.Base
 open Kuiper.Kernel.Desc
 open Kuiper.SizeT
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* PLEASE NOTE: the types here are very order sensitive. Make
 sure to keep uniformity if you change anything. For instance,

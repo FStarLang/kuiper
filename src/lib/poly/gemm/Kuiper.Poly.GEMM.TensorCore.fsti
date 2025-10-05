@@ -9,7 +9,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 let warp_sz = 32sz

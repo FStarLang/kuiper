@@ -1,7 +1,7 @@
 module Kuiper.Concrete
 
 open Kuiper.SizeT
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open FStar.Ghost
 open FStar.SizeT
 open FStar.Mul

@@ -15,7 +15,7 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 // inline_for_extraction noextract
 type fragment_kind =

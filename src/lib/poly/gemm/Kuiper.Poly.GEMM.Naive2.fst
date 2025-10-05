@@ -6,7 +6,7 @@ open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Poly.GEMM.Util
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)

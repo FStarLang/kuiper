@@ -6,7 +6,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.Injection
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module Enumerable = Kuiper.Enumerable
 
 let from_subtiles_id

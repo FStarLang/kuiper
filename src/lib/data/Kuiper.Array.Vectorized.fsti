@@ -7,7 +7,7 @@ open FStar.Seq
 open Kuiper
 open Kuiper.Seq.Common { seq_blit }
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 unfold

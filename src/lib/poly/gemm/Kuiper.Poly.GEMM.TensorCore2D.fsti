@@ -10,7 +10,7 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 let warp_sz = 32sz
@@ -31,22 +31,22 @@ val mk_kernel
   (gC : gpu_matrix et_c (row_major rows cols))
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
-  (bm : szp{bm /? rows})
-  (bn : szp{bn /? cols})
-  (bk : szp{bk /? shared})
-  (#_ : squash (chunk et_ab /? bn))
-  (#_ : squash (chunk et_ab /? bk))
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_ : squash (chunk et_ab /?+ bn))
+  (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn})
-  (tk : szp{tk /? bk})
-  (wm : szp{wm * tm /? bm})
-  (wn : szp{wn * tn /? bn})
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (tk : szp{tk /?+ bk})
+  (wm : szp{wm * tm /?+ bm})
+  (wn : szp{wn * tn /?+ bn})
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (#_ : squash (chunk et_ab * nthr /? (bm * bk)))
-  (#_ : squash (chunk et_ab * nthr /? (bk * bn)))
+  (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
+  (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (#_ : squash (SZ.fits (rows * shared)))
   (#_ : squash (SZ.fits (rows * cols)))
   (#_ : squash (SZ.fits (shared * cols)))

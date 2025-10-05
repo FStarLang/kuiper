@@ -10,7 +10,7 @@ open FStar.SizeT
 open FStar.FiniteSet.Base
 open FStar.FiniteSet.Ambient
 module Set = FStar.FiniteSet.Base
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 noextract
 let index_flip (#a:Type) (s:seq a) (i:nat { i < len s }) = Seq.index s (Seq.length s - i - 1 <: nat)

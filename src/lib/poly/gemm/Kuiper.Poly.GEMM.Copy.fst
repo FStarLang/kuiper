@@ -2,7 +2,12 @@ module Kuiper.Poly.GEMM.Copy
 
 #lang-pulse
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
+
+let modulo_helper (i:nat) (nthr:pos) (tid:nat)
+  : Lemma (requires i % nthr == tid)
+          (ensures  (i - tid) % nthr == 0)
+  = ()
 
 #push-options "--z3rlimit 40"
 inline_for_extraction noextract
@@ -40,6 +45,7 @@ fn cp_matrix
     let ite : erased (natlt (divup (rows*cols) nthr)) = (!i - tid) / nthr;
 
     assert (pure (!i % nthr == tid));
+    modulo_helper !i nthr tid;
     assert (pure ((!i - tid) % nthr == 0));
     assert (pure (ite * nthr == !i - tid));
 

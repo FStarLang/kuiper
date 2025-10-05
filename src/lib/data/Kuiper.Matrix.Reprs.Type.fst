@@ -4,7 +4,7 @@ module Kuiper.Matrix.Reprs.Type
 open Kuiper
 open Kuiper.Bijection
 open FStar.Tactics.Typeclasses
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 #push-options "--warn_error -288"
 let clayout_fits (#rows #cols : nat) (#l : mlayout rows cols)

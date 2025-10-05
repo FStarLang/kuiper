@@ -3,7 +3,7 @@ module Kuiper.Poly.DotProduct
 #lang-pulse
 
 open Kuiper
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* pointwise mul of sequences *)
 let pmul

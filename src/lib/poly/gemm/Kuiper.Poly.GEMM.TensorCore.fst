@@ -12,7 +12,7 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Matrix
 
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
 module R = Kuiper.Matrix.Reprs

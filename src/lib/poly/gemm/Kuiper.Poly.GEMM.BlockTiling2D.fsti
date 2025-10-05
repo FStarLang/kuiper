@@ -8,7 +8,7 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
 
 inline_for_extraction noextract

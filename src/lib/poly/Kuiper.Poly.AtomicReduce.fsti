@@ -7,7 +7,7 @@ module Kuiper.Poly.AtomicReduce
 open Kuiper
 open Kuiper.Atomics
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 type reduce_ty

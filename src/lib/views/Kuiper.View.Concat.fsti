@@ -9,7 +9,7 @@ open Kuiper
 open Kuiper.View
 open Kuiper.Bijection
 open Kuiper.Injection
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module IView = Kuiper.IView
 
 let aview_concat

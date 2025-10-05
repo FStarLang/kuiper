@@ -1,5 +1,23 @@
 module Kuiper.SizeT
 
+(* F*'s SizeT + some more definitions. We also
+redefine the fits predicate to make it more amenable
+to prove by normalization. *)
+
+(* Must be before the include, or it inherits an assume qualifier. *)
+let my_fits (x:nat) : prop =
+  0 <= x /\ x < 0x100000000
+unfold let fits = my_fits
+
+// We don't have DISallow lists, so we must
+// list all identifiers we want to use from FStar.SizeT
+include FStar.SizeT {
+  t, v, add, mul, rem, uint_to_t, uint32_to_sizet,
+  ( <^ ), ( <=^ ), ( >^ ), ( >=^ ),
+  lt, lte, gt, gte,
+  ( /^ ), ( %^ ), ( +^ ), ( -^ ), ( *^ ),
+}
+
 open FStar.Ghost
 open Pulse.Lib.Core
 open FStar.Mul
@@ -32,12 +50,18 @@ unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
    The right thing to do is use FStar.UInt32.t instead of SizeT.t where
    this matters, but this is a pervasive change. *)
 assume SizeTFitsU32 : FStar.SizeT.fits_u32
+(* We also assume that those are the ONLY values of size_t that we will
+   ever encounter. *)
+val fits_iff_u32 (x:nat)
+  : Lemma (FStar.SizeT.fits x <==> FStar.UInt.fits x 32)
+          [SMTPat (FStar.SizeT.fits x)]
 
-let fits_sizet (x:nat)
-  : Lemma (requires x < 0x100000000)
+let fits_ok (x:nat)
+  : Lemma (requires my_fits x)
           (ensures FStar.SizeT.fits x)
           [SMTPat (FStar.SizeT.fits x)]
-  = assert_norm (pow2 32 == 0x100000000);
+  = assert (x < pow2 32);
+    assert_norm (pow2 32 == 0x100000000);
     FStar.SizeT.fits_u32_implies_fits x
 
 [@@coercion; pulse_unfold] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x

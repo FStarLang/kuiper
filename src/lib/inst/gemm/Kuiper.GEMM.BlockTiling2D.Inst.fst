@@ -10,7 +10,7 @@ open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module P = Kuiper.Poly.GEMM.BlockTiling2D
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 #set-options "--z3rlimit 30"
 
@@ -55,10 +55,10 @@ fn spec
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
 
-  dassert (bm `SZ.gt` 0sz);
-  dassert (bn `SZ.gt` 0sz);
-  dassert (bk `SZ.gt` 0sz);
-  dassert (tm `SZ.gt` 0sz);
+  dassert (bm >^ 0sz);
+  dassert (bn >^ 0sz);
+  dassert (bk >^ 0sz);
+  dassert (tm >^ 0sz);
   dassert (bm %^ tm = 0sz);
   dassert (bn %^ tn = 0sz);
   dguard (rows   %^ bm = 0sz);

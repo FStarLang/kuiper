@@ -1,6 +1,6 @@
 module Kuiper.Sized
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 module U8  = FStar.UInt8
 module U16 = FStar.UInt16

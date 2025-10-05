@@ -7,7 +7,7 @@ module Kuiper.Poly.AtomicReduce
 open Kuiper
 open Kuiper.Atomics
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module W = Pulse.Lib.WithPure
 
 let rec contributions

@@ -11,7 +11,7 @@ open Kuiper.Bijection
 open Kuiper.GhostMap { is_ghost_map }
 open Kuiper.View
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module F = FStar.FunctionalExtensionality
 
 let view_equiv (#et #st : Type)

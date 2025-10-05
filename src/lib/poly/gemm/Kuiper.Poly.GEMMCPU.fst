@@ -5,7 +5,7 @@ module Kuiper.Poly.GEMMCPU
 open Kuiper
 open Kuiper.Matrix.Common
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.EMatrix { ematrix }
 open Kuiper.EMatrix4 { ematrix4 }
 open Kuiper.Matrix.Reprs.Type
@@ -103,7 +103,7 @@ fn mmcomb_gpu_tiled
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (tile `SZ.gt` 0sz);
+  dassert (tile >^ 0sz);
   dguard (rows   %^ tile = 0sz);
   dguard (shared %^ tile = 0sz);
   dguard (cols   %^ tile = 0sz);
@@ -155,10 +155,10 @@ fn mmcomb_gpu_block_tiled1d
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (bm `SZ.gt` 0sz);
-  dassert (bn `SZ.gt` 0sz);
-  dassert (bk `SZ.gt` 0sz);
-  dassert (tm `SZ.gt` 0sz);
+  dassert (bm >^ 0sz);
+  dassert (bn >^ 0sz);
+  dassert (bk >^ 0sz);
+  dassert (tm >^ 0sz);
   dassert (bm %^ tm = 0sz);
   dguard (rows   %^ bm = 0sz);
   dguard (shared %^ bk = 0sz);
@@ -228,10 +228,10 @@ fn mmcomb_gpu_shmem_block_tc
   ensures
     (exists* eC'. gC |-> eC')
 {
-  dassert (bm `SZ.gt` 0sz);
-  dassert (bn `SZ.gt` 0sz);
-  dassert (bk `SZ.gt` 0sz);
-  dassert (tm `SZ.gt` 0sz);
+  dassert (bm >^ 0sz);
+  dassert (bn >^ 0sz);
+  dassert (bk >^ 0sz);
+  dassert (tm >^ 0sz);
   dassert (bm %^ tm = 0sz);
   dassert (bn %^ tn = 0sz);
   dguard (rows   %^ bm = 0sz);

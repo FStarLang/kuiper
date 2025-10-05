@@ -13,7 +13,7 @@ open Kuiper.Sized
 open Kuiper.SizeT
 open Kuiper.Seq.Common
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 new
 val gpu_array (a : Type u#0) (sz : nat) : Type u#0

@@ -6,7 +6,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Common
 open Kuiper.Matrix.Reprs.Type
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* Move? *)
 inline_for_extraction noextract

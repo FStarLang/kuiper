@@ -11,7 +11,7 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 open Kuiper.EMatrix
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 inline_for_extraction noextract
 fn copy_tiles_out_of_matrices_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}

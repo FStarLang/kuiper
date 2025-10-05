@@ -4,8 +4,6 @@ include FStar.Mul
 
 include FStar.FunctionalExtensionality { (^->>), (^->) }
 
-include FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
-
 include Pulse
 include Pulse.Lib.BigStar
 include Pulse.Lib.GhostReference { ref as gref, pts_to as gref_pts_to }
@@ -20,7 +18,6 @@ include Kuiper.Assert
 include Kuiper.Base
 include Kuiper.Ref
 include Kuiper.Sized
-include Kuiper.Scalars
 include Kuiper.Array
 include Kuiper.Kernel
 include Kuiper.SHMem
@@ -36,6 +33,7 @@ include Kuiper.Divides
 include Kuiper.PtsTo
 include Kuiper.Enumerable { enumerable }
 include Kuiper.TradeHelpers
+include Kuiper.Scalars
 
 [@@coercion; pulse_unfold]
 unfold let kpr_box_to_ref  (#a:Type0) (b:Pulse.Lib.Box.box a) : Pulse.Lib.Reference.ref a = Pulse.Lib.Box.box_to_ref b

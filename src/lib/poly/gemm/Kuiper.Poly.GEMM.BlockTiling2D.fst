@@ -13,7 +13,7 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Matrix
 
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
@@ -531,7 +531,10 @@ fn kf
 
     bkIdx := !bkIdx +^ 1sz;
   };
-  assert pure (!bkIdx == num_k_tiles);
+  let vbkIdx = !bkIdx;
+  assert pure (vbkIdx <= num_k_tiles);
+  assert pure (not (vbkIdx < num_k_tiles));
+  assert pure (vbkIdx == num_k_tiles); // Somehow this is flaky.
 
   epilogue comb bm bn tm tn rchProd gC bid tid;
 

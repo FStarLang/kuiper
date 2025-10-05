@@ -8,7 +8,7 @@ open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore2D
 

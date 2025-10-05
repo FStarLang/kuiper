@@ -20,7 +20,7 @@ open Kuiper.Math
 open Kuiper.IsReduction
 
 module V = Pulse.Lib.Vec
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 module HR = Kuiper.Poly.HReduce
 friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)

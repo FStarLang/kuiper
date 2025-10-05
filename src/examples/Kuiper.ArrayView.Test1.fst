@@ -9,7 +9,7 @@ open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.View
 open FStar.FunctionalExtensionality { (^->>) }
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module IView = Kuiper.IView
 
 inline_for_extraction noextract

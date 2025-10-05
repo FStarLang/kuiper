@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Bijection
 open Kuiper.Injection
 open FStar.Tactics.Typeclasses
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 [@@erasable]
 noeq

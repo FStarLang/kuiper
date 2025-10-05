@@ -5,7 +5,7 @@ module Kuiper.Base
 open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Main
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 type mode_t = | CPU | GPU
 

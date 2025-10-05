@@ -7,7 +7,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore
 #set-options "--z3rlimit 20"

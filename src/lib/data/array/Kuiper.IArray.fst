@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.IView
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
 

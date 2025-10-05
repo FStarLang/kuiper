@@ -9,7 +9,7 @@ open Kuiper.Math
 open Kuiper.Seq.Common
 open Kuiper.IsReduction
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module U32 = FStar.UInt32
 
 [@@CPrologue "__device__"]

@@ -6,7 +6,7 @@ open Kuiper
 open Pulse.Lib.Trade
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module Tiling = Kuiper.Matrix.Tiling
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type

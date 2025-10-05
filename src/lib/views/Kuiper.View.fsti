@@ -9,7 +9,7 @@ open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.IView
 module F = FStar.FunctionalExtensionality
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 [@@erasable]
 noeq
