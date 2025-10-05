@@ -5,7 +5,7 @@ redefine the fits predicate to make it more amenable
 to prove by normalization. *)
 
 (* Must be before the include, or it inherits an assume qualifier. *)
-let my_fits (x:nat) : prop =
+unfold let my_fits (x:nat) : prop =
   0 <= x /\ x < 0x100000000
 unfold let fits = my_fits
 
