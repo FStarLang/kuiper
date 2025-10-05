@@ -1,8 +1,8 @@
 #include "Kuiper_GEMM_BlockTiling2D.h"
 
-#define stem         Kuiper_GEMM_BlockTiling2D_g_gemm_
+// #define stem         Kuiper_GEMM_BlockTiling2D_g_gemm_
 #define et           float
-#define et_lbl       f32
+// #define et_lbl       f32
 // #define tile_sizes   _128x128x32
 // #define regch_sizes  _8x8
 #define layouts

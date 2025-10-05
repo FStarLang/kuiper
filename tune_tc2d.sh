@@ -4,34 +4,26 @@ set -eux
 
 make -f verify.mk obj/Kuiper_GEMM_TensorCore2D.o
 
-# These loops must match those in Kuiper.GEMM.TensorCore2D.fst.sh!!
-chunk=8
-for bm in 32 64 128; do
-  if [ $((bm % 16)) -ne 0 ]; then continue; fi # tc tile
-  for bn in 32 64 128; do
-    if [ $((bn % chunk)) -ne 0 ]; then continue; fi # chunk
-    if [ $((bn % 16)) -ne 0 ]; then continue; fi # tc tile
-    for bk in 8 16 32 64; do
-      if [ $((bk % chunk)) -ne 0 ]; then continue; fi # chunk
-      if [ $((bk % 16)) -ne 0 ]; then continue; fi # tc tile
-      if [ $(((2 * bm * bk) + (2 * bk * bn))) -gt 49152 ]; then continue; fi # shmem size constraint
-      for wm in 2 4 8 16; do
-        if [ $((bm % (16 * wm))) -ne 0 ]; then continue; fi
-        for wn in 2 4 8 16; do
-          if [ $((bn % (16 * wn))) -ne 0 ]; then continue; fi
-          if [ $(((bm / (wm*16)) * (bn / (wn*16)) * 32)) -gt 1024 ]; then continue; fi
-          if [ $(((bm * bk) % (chunk * 32 * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
-          if [ $(((bk * bn) % (chunk * 32 * (bm * bn / (wm * wn * 16 * 16))))) -ne 0 ]; then continue; fi # copy fullness
-          nvcc -O3 -I include -I obj \
-                  -o bench.exe \
-                  -DKUIPER_CFG_TENSORCORES=1 \
-                  -Dtile_sizes=_${bm}x${bn}x${bk} \
-                  -Dregch_sizes=_${wm}x${wn} \
-                  obj/Kuiper_GEMM_TensorCore2D.o \
-                  test/Tune_Kuiper_GEMM_TensorCore2D.cu
-          ./bench.exe 200 4096 4096 4096 0 || echo "RES ERROR"
-        done
-      done
-    done
-  done
+funcs=$(grep -Eo 'Kuiper_GEMM_TensorCore2D_g_gemm_[^() ]*' obj/Kuiper_GEMM_TensorCore2D.cu)
+
+for func in $funcs; do
+  # Skip the dynamic versions
+  if [ "$func" = "Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_2x2" ] \
+  || [ "$func" = "Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_4x4" ] \
+  || [ "$func" = "Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_8x8" ]
+  then
+    echo "Skipping $func"
+    continue
+  fi
+  nvcc -O3 -I include -I obj \
+          -o bench.exe \
+          -DKUIPER_CFG_TENSORCORES=1 \
+          -Dstem=$func \
+          -Dtile_sizes= \
+          -Dtc_tile_sizes= \
+          -Dregch_sizes= \
+          -Det_lbl= \
+          obj/Kuiper_GEMM_TensorCore2D.o \
+          test/Tune_Kuiper_GEMM_TensorCore2D.cu
+  ./bench.exe 200 4096 4096 4096 0 || echo "RES ERROR"
 done
