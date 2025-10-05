@@ -49,13 +49,13 @@ fn subproducts_tc_2d
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (aFrags : array (fragment et_ab FragA tm tn tk FragLRM))
+  (aFrags : array (fragment et_ab FragA tm tn tk FragLCM))
   (#emAFrags : erased (seq (ematrix et_ab tm tk)))
   (bFrags : array (fragment et_ab FragB tm tn tk FragLRM))
   (#emBFrags : erased (seq (ematrix et_ab tk tn)))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (#emAccumFrags : erased (seq (ematrix et_acc tm tn)))
-  (gA : gpu_matrix et_ab (R.row_major bm bk))
+  (gA : gpu_matrix et_ab (R.col_major bm bk))
   (gB : gpu_matrix et_ab (R.row_major bk bn))
   (#eA : ematrix et_ab bm bk)
   (#eB : ematrix et_ab bk bn)
@@ -126,7 +126,7 @@ fn subproducts_tc_2d
       with emAFrags. assert array_fragment_pts_to aFrags emAFrags;
       array_fragment_extract aFrags emAFrags !i0;
 
-      mma_loadA aFrags.(!i0) a_tile;
+      mma_loadA_cm aFrags.(!i0) a_tile;
       Pulse.Lib.Forall.elim_forall
         #(value_for et_ab FragA tm tn tk)
         (ematrix_subtile (ematrix_subtile eA (wm*tm) tk arow !dotIdx) tm tk !i0 0);
@@ -404,7 +404,7 @@ let kpre
   kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
+  barrier_tok (R.col_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
 
 unfold
 let kpost
@@ -436,7 +436,7 @@ let kpost
   kpost1 gA eA gB eB gC bm bn tm tn wm wn fA fB nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
+  barrier_tok (R.col_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
 
 inline_for_extraction noextract
 fn epilogue
@@ -573,11 +573,11 @@ fn kf
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
 
-  unfold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB 0 nthr tid;
+  unfold barrier_tok (R.col_major bm bk) (R.row_major bk bn) sarA sarB 0 nthr tid;
 
-  gpu_matrix_abs' (R.row_major bm bk) sarA;
-  let sA = from_array (R.row_major bm bk) sarA;
-  rewrite each from_array (R.row_major bm bk) sarA as sA;
+  gpu_matrix_abs' (R.col_major bm bk) sarA;
+  let sA = from_array (R.col_major bm bk) sarA;
+  rewrite each from_array (R.col_major bm bk) sarA as sA;
 
   gpu_matrix_abs' (R.row_major bk bn) sarB;
   let sB = from_array (R.row_major bk bn) sarB;
@@ -593,7 +593,7 @@ fn kf
   let warpCol = wid %^ (bn/^(wn*^tn));
 
   (* tensor core fragments *)
-  let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLRM wm;
+  let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLCM wm;
   let bFrags = __alloc_array_fragment et_ab FragB tm tn tk FragLRM wn;
   let accFrags = __alloc_array_fragment et_c FragAcc tm tn tk FragLAcc (wm *^ wn);
 
@@ -689,7 +689,7 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * num_k_tiles) nthr tid;
+  fold barrier_tok (R.col_major bm bk) (R.row_major bk bn) sarA sarB (2 * num_k_tiles) nthr tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
