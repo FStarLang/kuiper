@@ -8,14 +8,18 @@ open Kuiper.EMatrix
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 open Kuiper.Matrix.Reprs
+module R = Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 
-inline_for_extraction noextract
-let warp_sz = 32sz
-inline_for_extraction noextract
-let warp_size = SZ.v warp_sz
+type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
+  tm /?+ bm /\
+  tn /?+ bn /\
+  tk /?+ bk /\
+  wm * tm /?+ bm /\
+  wn * tn /?+ bn /\
+  SZ.fits (wm * wn)
 
 inline_for_extraction noextract
 val mk_kernel
@@ -28,28 +32,23 @@ val mk_kernel
   (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (row_major rows cols))
+  (gC : gpu_matrix et_c (R.row_major rows cols))
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
-  (bm : szp{bm /?+ rows})
-  (bn : szp{bn /?+ cols})
-  (bk : szp{bk /?+ shared})
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (tm : szp{tm /?+ bm})
-  (tn : szp{tn /?+ bn})
-  (tk : szp{tk /?+ bk})
-  (wm : szp{wm * tm /?+ bm})
-  (wn : szp{wn * tn /?+ bn})
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
-  (#_ : squash (SZ.fits (rows * shared)))
-  (#_ : squash (SZ.fits (rows * cols)))
-  (#_ : squash (SZ.fits (shared * cols)))
   (#_ : squash (SZ.fits (wm * wn)))
   (#_ : squash (SZ.fits (wm * tm)))
   (#_ : squash (SZ.fits (wn * tn)))

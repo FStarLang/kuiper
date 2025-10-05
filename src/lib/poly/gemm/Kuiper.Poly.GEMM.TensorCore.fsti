@@ -12,11 +12,6 @@ open Kuiper.TensorCore
 module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
-let warp_sz = 32sz
-inline_for_extraction noextract
-let warp_size = SZ.v warp_sz
-
-inline_for_extraction noextract
 val mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}

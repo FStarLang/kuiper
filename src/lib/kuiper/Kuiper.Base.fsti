@@ -37,6 +37,12 @@ let max_blocks_explicit : squash (reveal max_blocks == 2097152 /\ reveal max_blo
 unfold
 let max_threads : erased int = 1024
 
+
+inline_for_extraction noextract
+unfold let warp_sz = 32sz
+inline_for_extraction noextract
+unfold let warp_size = 32
+
 (* Token given to a particular block within a grid. Both here
 and in thread_id, the first argument is always positive
 when this resource is actually live, but not placing that refinement
