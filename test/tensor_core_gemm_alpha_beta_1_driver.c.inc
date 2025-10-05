@@ -1,4 +1,3 @@
-#include "timing.h"
 #include "test-common.h"
 #include <inttypes.h>
 #include <stdint.h>

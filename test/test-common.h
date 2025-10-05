@@ -2,6 +2,7 @@
 #define __KUIPER_TEST_COMMON 1
 
 #include <kuiper.h>
+#include "timing.h"
 
 extern const char *progname;
 
