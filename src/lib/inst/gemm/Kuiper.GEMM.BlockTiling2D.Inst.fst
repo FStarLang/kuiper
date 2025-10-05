@@ -10,7 +10,6 @@ open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module P = Kuiper.Poly.GEMM.BlockTiling2D
-module SZ = Kuiper.SizeT
 
 #set-options "--z3rlimit 30"
 
