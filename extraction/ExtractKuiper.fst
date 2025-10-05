@@ -343,15 +343,8 @@ let kpr_translate_alloc_fragment cb et knd m n k layout =
       | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
       | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
     in
-    (* Tries to remove the size_t cast in literals, just to make the code
-       more readable. *)
-    let ss x =
-      match x with
-      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
-      | _ -> x
-    in
     let args =
-      [ knd; ss (cb m); ss (cb n); ss (cb k); faketype ]
+      [ knd; cb m; cb n; cb k; faketype ]
       @ (match layout with | Some l -> [l] | None -> [])
     in
       EApp (EQualified ([], "kpr_fragment"), args)

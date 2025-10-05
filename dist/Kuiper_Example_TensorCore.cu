@@ -7,11 +7,11 @@ inline
 {
     auto & fa =
         KPR_INIT(kpr_fragment
-                 (wmma::matrix_a, 16, 16, 16, half, wmma::row_major));
+                 (wmma::matrix_a, 16U, 16U, 16U, half, wmma::row_major));
     auto & fb =
         KPR_INIT(kpr_fragment
-                 (wmma::matrix_b, 16, 16, 16, half, wmma::row_major));
-    auto & fc = KPR_INIT(kpr_fragment(wmma::accumulator, 16, 16, 16, half));
+                 (wmma::matrix_b, 16U, 16U, 16U, half, wmma::row_major));
+    auto & fc = KPR_INIT(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half));
     wmma::load_matrix_sync(fa, m1, 16U);
     wmma::load_matrix_sync(fb, m2, 16U);
     wmma::fill_fragment(fc, 0.0f);
@@ -25,11 +25,11 @@ inline
 {
     auto & fa =
         KPR_INIT(kpr_fragment
-                 (wmma::matrix_a, 16, 16, 16, half, wmma::row_major));
+                 (wmma::matrix_a, 16U, 16U, 16U, half, wmma::row_major));
     auto & fb =
         KPR_INIT(kpr_fragment
-                 (wmma::matrix_b, 16, 16, 16, half, wmma::row_major));
-    auto & fc = KPR_INIT(kpr_fragment(wmma::accumulator, 16, 16, 16, half));
+                 (wmma::matrix_b, 16U, 16U, 16U, half, wmma::row_major));
+    auto & fc = KPR_INIT(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half));
     half_t *t2 = m2;
     half_t *t3 = m3;
     wmma::load_matrix_sync(fa, m1 + 784U, 48U);
