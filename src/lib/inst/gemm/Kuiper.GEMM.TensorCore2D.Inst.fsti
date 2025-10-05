@@ -56,4 +56,4 @@ fn spec
   requires
     gC |-> eC
   ensures
-    (exists* eC'. gC |-> eC')
+    exists* eC'. gC |-> eC'
