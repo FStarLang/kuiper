@@ -38,4 +38,4 @@ go () {
   done
 }
 
-go () |& tee $outf
+go |& tee $outf
