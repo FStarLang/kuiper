@@ -20,9 +20,9 @@ test:
 accept:
 	+$(MAKE) -f verify.mk accept
 
-.PHONY: extraction-targets
-extraction-targets:
-	+$(MAKE) -f verify.mk extraction-targets
+.PHONY: extract-all
+extract-all:
+	+$(MAKE) -f verify.mk extract-all
 
 .PHONY: echo-fstar
 echo-fstar:
@@ -58,7 +58,7 @@ clean-modules:
 clean-full: clean clean-modules
 	rm -f .*.touch
 
-dist: extraction-targets
+dist: extract-all
 	rm -f dist/*
 	cp obj/*.cu obj/*.h dist
 

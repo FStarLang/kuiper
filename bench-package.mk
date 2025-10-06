@@ -1,7 +1,7 @@
 include .common.mk
 include .configure.mk
 
-default: build-targets
+default: build-all
 	./scripts/bench.sh
 
 OUTDIR   := obj
