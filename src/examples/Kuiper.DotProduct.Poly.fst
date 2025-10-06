@@ -63,10 +63,7 @@ fn block_setup
   norewrite
   requires
     block_setup_tok m_size **
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      gr |-> sr)
+    (live ga1 ** live ga2 ** live gr)
   ensures
     block_setup_tok m_size **
     (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
@@ -94,10 +91,7 @@ fn block_teardown
     (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
     emp (* frame *)
   ensures
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      gr |-> sr)
+    (live ga1 ** live ga2 ** live gr)
 {
   forevery_tonat size
     (fun i -> kpost m_size ga1 ga2 gr i);
@@ -120,14 +114,8 @@ fn block_teardown
 inline_for_extraction noextract
 let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   : kernel_desc
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      r |-> sr)
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      r |-> sr)
+    (live ga1 ** live ga2 ** live r)
+    (live ga1 ** live ga2 ** live r)
 = {
   f = kf #et ga1 ga2 r;
   nthr = m_size;

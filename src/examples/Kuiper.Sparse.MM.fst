@@ -22,12 +22,12 @@ fn smatrix_sdmm
   (gC : gpu_matrix et lC)
   #a #b
   requires
-    exists* c. gpu_matrix_pts_to gC #1.0R c
+    live gC
   preserves
     gpu ** gA |-> a ** gB |-> b
   ensures
     // gC |-> matmul a b
-    exists* c. gpu_matrix_pts_to gC #1.0R c
+    live gC
 {
 
   let mut i = 0sz;
@@ -35,12 +35,15 @@ fn smatrix_sdmm
 
   while ((!i <^ rows))
     invariant live i ** pure (!i <= rows)
-    invariant exists* c. gpu_matrix_pts_to gC #1.0R c
+    invariant live gC
   {
+    let ri = gpu_array_read gA.row_off !i;
+    let re = gpu_array_read gA.row_off (!i +^ 1sz);
+
     let mut j = 0sz;
     while((!j <^ cols))
       invariant live j ** pure (!j <= cols)
-      invariant exists* c. gpu_matrix_pts_to gC #1.0R c
+      invariant live gC
     {
       with v_i.
         assert i |-> v_i;
@@ -52,9 +55,6 @@ fn smatrix_sdmm
       let row_cols = hide (slice_row (cast_pos v_off) (cast_pos v_ind) v_i);
 
       let mut dp : et = zero;
-      
-      let ri = gpu_array_read gA.row_off !i;
-      let re = gpu_array_read gA.row_off (!i +^ 1sz);
 
       let mut k = ri;
 
@@ -78,17 +78,23 @@ fn smatrix_sdmm
 
         k := !k +^ 1sz;
       };
-      // admit();
+
       with c. assert gpu_matrix_pts_to gC #1.0R c;
       gpu_matrix_write gC !i !j !dp #c;
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
   };
+
   fold smatrix_pts_to gA;
 }
 
-let _mmsd_u32 (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
+let _mmsd_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
   smatrix_sdmm #u32 #_
   rows shared cols
   #(row_major _ _) #(row_major _ _)
+
+let _mmsd_u32_cc (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
+  smatrix_sdmm #u32 #_
+  rows shared cols
+  #(col_major _ _) #(col_major _ _)

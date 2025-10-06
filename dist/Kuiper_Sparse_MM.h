@@ -12,11 +12,18 @@ typedef struct Kuiper_Sparse_smatrix__uint32_t_s {
 } Kuiper_Sparse_smatrix__uint32_t;
 
 void
-Kuiper_Sparse_MM__mmsd_u32(uint32_t rows,
-                           uint32_t shared,
-                           uint32_t cols,
-                           Kuiper_Sparse_smatrix__uint32_t gA,
-                           uint32_t * gB, uint32_t * gC);
+Kuiper_Sparse_MM__mmsd_u32_rr(uint32_t rows,
+                              uint32_t shared,
+                              uint32_t cols,
+                              Kuiper_Sparse_smatrix__uint32_t gA,
+                              uint32_t * gB, uint32_t * gC);
+
+void
+Kuiper_Sparse_MM__mmsd_u32_cc(uint32_t rows,
+                              uint32_t shared,
+                              uint32_t cols,
+                              Kuiper_Sparse_smatrix__uint32_t gA,
+                              uint32_t * gB, uint32_t * gC);
 
 #define Kuiper_Sparse_MM_H_DEFINED
 #endif                          /* Kuiper_Sparse_MM_H */
