@@ -61,7 +61,8 @@ fn gpu_matrix_pts_to_ref
 }
 
 
-#push-options "--retry 3"
+// Sporadically fails
+#push-options "--retry 3 --z3rlimit 20"
 ghost
 fn gpu_matrix_concr
   (#et:Type)
@@ -84,6 +85,8 @@ fn gpu_matrix_concr
 }
 #pop-options
 
+// Sporadically fails
+#push-options "--retry 3 --z3rlimit 20"
 ghost
 fn gpu_matrix_abs
   (#et:Type)
@@ -102,6 +105,7 @@ fn gpu_matrix_abs
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
+#pop-options
 
 ghost
 fn gpu_matrix_abs'

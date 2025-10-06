@@ -1,5 +1,4 @@
 
-
 #include "Kuiper_Example2.h"
 
 __global__
@@ -13,8 +12,7 @@ static void __hoisted_0(void)
 
 uint64_t Kuiper_Example2_main(void)
 {
-  KPR_KCALL(__hoisted_0, (size_t)1U, (size_t)1U, (size_t)0U);
-  cudaDeviceSynchronize();
-  return 1ULL;
+    KPR_KCALL(__hoisted_0, 1U, 1U, 0U);
+    MUST(cudaDeviceSynchronize());
+    return 1ULL;
 }
-

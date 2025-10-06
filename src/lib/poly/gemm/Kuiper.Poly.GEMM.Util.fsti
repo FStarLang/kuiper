@@ -5,7 +5,7 @@ module Kuiper.Poly.GEMM.Util
 open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.EMatrix4 { ematrix4 }

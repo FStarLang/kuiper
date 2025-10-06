@@ -13,6 +13,7 @@ ROOTS := $(shell find $(SRC) -name '*.fst' -o -name '*.fsti')
 FSTAR_OPTIONS += --with_fstarc
 EXTRACT += --extract '-*,+ExtractKuiper,+ExtractionUtils'
 FSTAR_OPTIONS += --lax --MLish --MLish_effect FStarC.Effect
+FSTAR_OPTIONS += --warn_error -328 # spurious warn about let rec
 
 OTHERFLAGS += --already_cached 'Prims,FStarC'
 

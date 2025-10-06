@@ -15,7 +15,7 @@ open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 // inline_for_extraction noextract
 type fragment_kind =
@@ -40,7 +40,7 @@ let valid_frag_et_dims
   (et : Type0)
   (knd : fragment_kind)
   (m n k : nat) : prop
-= 
+=
   ((((knd == FragA \/ knd == FragB) /\ (et == half \/ et == u8 \/ et == i8)) \/
      (knd == FragAcc /\ (et == float \/ et == half \/ et == int))) /\
      ((m == 16 /\ n == 16 /\ k == 16) \/
@@ -138,13 +138,29 @@ fn mma_sync'
   requires
     fc |-> ec
   ensures
-    fc |-> mma ec ea eb 
+    fc |-> mma ec ea eb
 
 fn mma_loadA
   (#et : Type)
   (#m #n #k : erased nat)
   (fr : fragment et FragA m n k FragLRM)
   (#l : mlayout m k) {| strided_row_major l |}
+  (gm : gpu_matrix et l)
+  (#f : perm)
+  (#m0 : ematrix et m k)
+  (#f0 : erased (value_for et FragA m n k))
+  preserves
+    gm |-> Frac f m0
+  requires
+    fr |-> f0
+  ensures
+    fr |-> m0
+
+fn mma_loadA_cm
+  (#et : Type)
+  (#m #n #k : erased nat)
+  (fr : fragment et FragA m n k FragLCM)
+  (#l : mlayout m k) {| strided_col_major l |}
   (gm : gpu_matrix et l)
   (#f : perm)
   (#m0 : ematrix et m k)
@@ -257,14 +273,14 @@ let array_fragment_pts_to
   ([@@@mkey] farr: array (fragment et knd m n k l))
   (#[T.exact (`1.0R)] f : perm)
   (ems : seq (value_for et knd m n k))
-  : slprop = 
+  : slprop =
     // have to use lseq here otherwise the last line does not type check
     exists* (s: lseq (fragment et knd m n k l) (Seq.length ems)).
       // pure (Seq.length s == Seq.length ems) **
       farr |-> Frac f s **
       forall+ (i : natlt (Seq.length ems)).
         (s @! i) |-> Frac f (ems @! i)
-    
+
 unfold
 instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : erased nat) (l : fragment_layout)
   : has_pts_to (array (fragment et knd m n k l)) (seq (value_for et knd m n k)) = {

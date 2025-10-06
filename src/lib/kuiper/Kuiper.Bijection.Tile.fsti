@@ -4,7 +4,7 @@ open Kuiper.Bijection
 open Kuiper.Common
 open Kuiper.SizeT
 open FStar.Ghost
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 let tile_ff

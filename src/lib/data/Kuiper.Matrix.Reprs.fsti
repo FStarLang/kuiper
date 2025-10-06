@@ -49,3 +49,13 @@ instance strided_row_major_base (#rows #cols : erased nat)
   stride = concr' d;
   pf = ez;
 }
+
+inline_for_extraction noextract
+instance strided_col_major_base (#rows #cols : erased nat)
+  {| d : concrete_sz rows |}
+  : strided_col_major (col_major rows cols) =
+{
+  offset = 0sz;
+  stride = concr' d;
+  pf = ez;
+}

@@ -1,4 +1,3 @@
-#include "timing.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>

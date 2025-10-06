@@ -5,7 +5,7 @@ open Kuiper
 module Array = Kuiper.Array
 (* ^ Why do I need this? Is it because Kuiper is a module and not a namespace? *)
 module Vec = Pulse.Lib.Vec
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* From the CPU, read one element from a gpu array. *)
 inline_for_extraction noextract

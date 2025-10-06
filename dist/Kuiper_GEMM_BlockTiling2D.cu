@@ -1,580 +1,7332 @@
 
-
 #include "Kuiper_GEMM_BlockTiling2D.h"
 
 __global__
 /**
-  hoisted when extracting matmul_f32_64x64x8_8x8_rrr_rr
-*/
-static void __hoisted_0(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
-{
-  float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
-  float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)2048U);
-  size_t num_n_tiles = cols / (size_t)64U;
-  size_t mrow = blockIdx.x / num_n_tiles;
-  size_t mcol = blockIdx.x % num_n_tiles;
-  float_t rAcol[8U];
-  memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
-  float_t rBrow[8U];
-  memset(rBrow, 0U, (size_t)8U * sizeof (float_t));
-  float_t rchProd[64U];
-  memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
-  size_t bkIdx = (size_t)0U;
-  while (bkIdx < shared / (size_t)8U)
-  {
-    __syncthreads();
-    size_t __anf0 = bkIdx;
-    float_t *tileA = gA;
-    size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)512U; i1 += blockDim.x)
-      sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
-        tileA[(mrow * (size_t)64U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
-    float_t *tileB = gB;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)512U; i += blockDim.x)
-      sB[i / (size_t)64U * (size_t)64U + i % (size_t)64U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
-    __syncthreads();
-    size_t dotIdx = (size_t)0U;
-    while (dotIdx < (size_t)8U)
-    {
-      size_t i0 = (size_t)0U;
-      for (; i0 < (size_t)8U; i0 += (size_t)1U)
-        rAcol[i0] = sA[(threadIdx.x / (size_t)8U * (size_t)8U + i0) * (size_t)8U + dotIdx];
-      size_t i1 = (size_t)0U;
-      for (; i1 < (size_t)8U; i1 += (size_t)1U)
-        rBrow[i1] = sB[dotIdx * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + i1];
-      size_t resIdxM = (size_t)0U;
-      while (resIdxM < (size_t)8U)
-      {
-        size_t resIdxN = (size_t)0U;
-        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-          rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += (size_t)1U;
-      }
-      dotIdx += (size_t)1U;
-    }
-    bkIdx += (size_t)1U;
-  }
-  float_t *t_tile = gC;
-  size_t resIdxM = (size_t)0U;
-  while (resIdxM < (size_t)8U)
-  {
-    size_t resIdxN = (size_t)0U;
-    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      t_tile[(blockIdx.x / (cols / (size_t)64U) * (size_t)64U +
-        threadIdx.x / (size_t)8U * (size_t)8U + resIdxM)
-      * cols
-      +
-        blockIdx.x % (cols / (size_t)64U) * (size_t)64U +
-          threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
-      = rchProd[resIdxM * (size_t)8U + resIdxN];
-    resIdxM += (size_t)1U;
-  }
-}
-
-float_t
-*Kuiper_GEMM_BlockTiling2D_matmul_f32_64x64x8_8x8_rrr_rr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  float_t *a,
-  float_t *b
-)
-{
-  float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * shared);
-  float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U, shared * cols);
-  float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
-  MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
-  MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_GUARD(rows % (size_t)64U == (size_t)0U);
-  KPR_GUARD(shared % (size_t)8U == (size_t)0U);
-  KPR_GUARD(cols % (size_t)64U == (size_t)0U);
-  KPR_KCALL(__hoisted_0,
-    rows / (size_t)64U * (cols / (size_t)64U),
-    (size_t)64U,
-    (size_t)4096U,
-    shared,
-    cols,
-    gA,
-    gB,
-    gC);
-  cudaDeviceSynchronize();
-  KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
-  float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
-  if (c != NULL)
-    memset(c, 0U, rows * cols * sizeof (float_t));
-  MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
-  MUST(cudaFree(gA));
-  MUST(cudaFree(gB));
-  MUST(cudaFree(gC));
-  return c;
-}
-
-__global__
-/**
-  hoisted when extracting matmul_f32_32x32x32_32x8_rrr_rr
-*/
-static void __hoisted_1(size_t shared, size_t cols, float_t *gA, float_t *gB, float_t *gC)
-{
-  float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
-  float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)4096U);
-  size_t num_n_tiles = cols / (size_t)32U;
-  size_t mrow = blockIdx.x / num_n_tiles;
-  size_t mcol = blockIdx.x % num_n_tiles;
-  float_t rAcol[32U];
-  memset(rAcol, 0U, (size_t)32U * sizeof (float_t));
-  float_t rBrow[8U];
-  memset(rBrow, 0U, (size_t)8U * sizeof (float_t));
-  float_t rchProd[256U];
-  memset(rchProd, 0U, (size_t)256U * sizeof (float_t));
-  size_t bkIdx = (size_t)0U;
-  while (bkIdx < shared / (size_t)32U)
-  {
-    __syncthreads();
-    size_t __anf0 = bkIdx;
-    float_t *tileA = gA;
-    size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += blockDim.x)
-      sA[i1 / (size_t)32U * (size_t)32U + i1 % (size_t)32U] =
-        tileA[(mrow * (size_t)32U + i1 / (size_t)32U) * shared +
-          __anf0 * (size_t)32U + i1 % (size_t)32U];
-    float_t *tileB = gB;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += blockDim.x)
-      sB[i / (size_t)32U * (size_t)32U + i % (size_t)32U] =
-        tileB[(__anf0 * (size_t)32U + i / (size_t)32U) * cols + mcol * (size_t)32U + i % (size_t)32U];
-    __syncthreads();
-    size_t dotIdx = (size_t)0U;
-    while (dotIdx < (size_t)32U)
-    {
-      size_t i0 = (size_t)0U;
-      for (; i0 < (size_t)32U; i0 += (size_t)1U)
-        rAcol[i0] = sA[(threadIdx.x / (size_t)4U * (size_t)32U + i0) * (size_t)32U + dotIdx];
-      size_t i1 = (size_t)0U;
-      for (; i1 < (size_t)8U; i1 += (size_t)1U)
-        rBrow[i1] = sB[dotIdx * (size_t)32U + threadIdx.x % (size_t)4U * (size_t)8U + i1];
-      size_t resIdxM = (size_t)0U;
-      while (resIdxM < (size_t)32U)
-      {
-        size_t resIdxN = (size_t)0U;
-        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-          rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += (size_t)1U;
-      }
-      dotIdx += (size_t)1U;
-    }
-    bkIdx += (size_t)1U;
-  }
-  float_t *t_tile = gC;
-  size_t resIdxM = (size_t)0U;
-  while (resIdxM < (size_t)32U)
-  {
-    size_t resIdxN = (size_t)0U;
-    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      t_tile[(blockIdx.x / (cols / (size_t)32U) * (size_t)32U +
-        threadIdx.x / (size_t)4U * (size_t)32U + resIdxM)
-      * cols
-      +
-        blockIdx.x % (cols / (size_t)32U) * (size_t)32U +
-          threadIdx.x % (size_t)4U * (size_t)8U + resIdxN]
-      = rchProd[resIdxM * (size_t)8U + resIdxN];
-    resIdxM += (size_t)1U;
-  }
-}
-
-float_t
-*Kuiper_GEMM_BlockTiling2D_matmul_f32_32x32x32_32x8_rrr_rr(
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  float_t *a,
-  float_t *b
-)
-{
-  float_t *gA = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * shared);
-  float_t *gB = (float_t *)KPR_GPU_ALLOC((size_t)4U, shared * cols);
-  float_t *gC = (float_t *)KPR_GPU_ALLOC((size_t)4U, rows * cols);
-  MUST(cudaMemcpy(gA, a, (size_t)4U * (rows * shared), cudaMemcpyHostToDevice));
-  MUST(cudaMemcpy(gB, b, (size_t)4U * (shared * cols), cudaMemcpyHostToDevice));
-  KPR_GUARD(rows % (size_t)32U == (size_t)0U);
-  KPR_GUARD(shared % (size_t)32U == (size_t)0U);
-  KPR_GUARD(cols % (size_t)32U == (size_t)0U);
-  KPR_KCALL(__hoisted_1,
-    rows / (size_t)32U * (cols / (size_t)32U),
-    (size_t)4U,
-    (size_t)8192U,
-    shared,
-    cols,
-    gA,
-    gB,
-    gC);
-  cudaDeviceSynchronize();
-  KRML_CHECK_SIZE(sizeof (float_t), rows * cols);
-  float_t *c = (float_t *)KRML_HOST_MALLOC(sizeof (float_t) * (rows * cols));
-  if (c != NULL)
-    memset(c, 0U, rows * cols * sizeof (float_t));
-  MUST(cudaMemcpy(c, gC, (size_t)4U * (rows * cols), cudaMemcpyDeviceToHost));
-  MUST(cudaFree(gA));
-  MUST(cudaFree(gB));
-  MUST(cudaFree(gC));
-  return c;
-}
-
-__global__
-/**
-  hoisted when extracting g_gemm_f32_64x64x8_8x8_rrr_rr
+  hoisted when extracting g_gemm_f32_8x8
 */
 static void
-__hoisted_2(
-  float_t alpha,
-  float_t beta,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+__hoisted_0(uint32_t bm,
+            uint32_t bn,
+            uint32_t bk,
+            float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
-  float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)2048U);
-  size_t num_n_tiles = cols / (size_t)64U;
-  size_t mrow = blockIdx.x / num_n_tiles;
-  size_t mcol = blockIdx.x % num_n_tiles;
-  float_t rAcol[8U];
-  memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
-  float_t rBrow[8U];
-  memset(rBrow, 0U, (size_t)8U * sizeof (float_t));
-  float_t rchProd[64U];
-  memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
-  size_t bkIdx = (size_t)0U;
-  while (bkIdx < shared / (size_t)8U)
-  {
-    __syncthreads();
-    size_t __anf0 = bkIdx;
-    float_t *tileA = gA;
-    size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)512U; i1 += blockDim.x)
-      sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
-        tileA[(mrow * (size_t)64U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
-    float_t *tileB = gB;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)512U; i += blockDim.x)
-      sB[i / (size_t)64U * (size_t)64U + i % (size_t)64U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)64U) * cols + mcol * (size_t)64U + i % (size_t)64U];
-    __syncthreads();
-    size_t dotIdx = (size_t)0U;
-    while (dotIdx < (size_t)8U)
-    {
-      size_t i0 = (size_t)0U;
-      for (; i0 < (size_t)8U; i0 += (size_t)1U)
-        rAcol[i0] = sA[(threadIdx.x / (size_t)8U * (size_t)8U + i0) * (size_t)8U + dotIdx];
-      size_t i1 = (size_t)0U;
-      for (; i1 < (size_t)8U; i1 += (size_t)1U)
-        rBrow[i1] = sB[dotIdx * (size_t)64U + threadIdx.x % (size_t)8U * (size_t)8U + i1];
-      size_t resIdxM = (size_t)0U;
-      while (resIdxM < (size_t)8U)
-      {
-        size_t resIdxN = (size_t)0U;
-        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-          rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += (size_t)1U;
-      }
-      dotIdx += (size_t)1U;
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4U * (bm * bk));
+    uint32_t num_n_tiles = cols / bn;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    uint32_t threadRow = threadIdx.x / (bn / 8U);
+    uint32_t threadCol = threadIdx.x % (bn / 8U);
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / bk; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < bm * bk; i1 += bm / 8U * (bn / 8U) * 4U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / bk;
+            uint32_t col = (i1 + threadIdx.x * 4U) % bk;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * bm) + __anf01 * bk +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * bm + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < bk * bn; i += bm / 8U * (bn / 8U) * 4U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / bn;
+            uint32_t col = (i + threadIdx.x * 4U) % bn;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * bk) + mcol * bn + cols * row +
+                       col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * bn + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < bk; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * bm + threadRow * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * bn + threadCol * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
     }
-    bkIdx += (size_t)1U;
-  }
-  float_t *t_tile = gC;
-  size_t resIdxM = (size_t)0U;
-  while (resIdxM < (size_t)8U)
-  {
-    size_t resIdxN = (size_t)0U;
-    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      t_tile[(blockIdx.x / (cols / (size_t)64U) * (size_t)64U +
-        threadIdx.x / (size_t)8U * (size_t)8U + resIdxM)
-      * cols
-      +
-        blockIdx.x % (cols / (size_t)64U) * (size_t)64U +
-          threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
-      =
-        beta *
-          t_tile[(blockIdx.x / (cols / (size_t)64U) * (size_t)64U +
-            threadIdx.x / (size_t)8U * (size_t)8U + resIdxM)
-          * cols
-          +
-            blockIdx.x % (cols / (size_t)64U) * (size_t)64U +
-              threadIdx.x % (size_t)8U * (size_t)8U + resIdxN]
-        + alpha * rchProd[resIdxM * (size_t)8U + resIdxN];
-    resIdxM += (size_t)1U;
-  }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / bn) * bm +
+                    threadIdx.x / (bn / 8U) * 8U + resIdxM) * cols +
+                   blockIdx.x % (cols / bn) * bn +
+                   threadIdx.x % (bn / 8U) * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / bn) * bm +
+                        threadIdx.x / (bn / 8U) * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / bn) * bn +
+                       threadIdx.x % (bn / 8U) * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x8_8x8_rrr_rr(
-  float_t alpha,
-  float_t beta,
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_8x8(uint32_t bm,
+                                         uint32_t bn,
+                                         uint32_t bk,
+                                         float_t alpha,
+                                         float_t beta,
+                                         uint32_t rows,
+                                         uint32_t shared,
+                                         uint32_t cols,
+                                         float_t *gA, float_t *gB, float_t *gC)
 {
-  KPR_GUARD(rows % (size_t)64U == (size_t)0U);
-  KPR_GUARD(shared % (size_t)8U == (size_t)0U);
-  KPR_GUARD(cols % (size_t)64U == (size_t)0U);
-  KPR_KCALL(__hoisted_2,
-    rows / (size_t)64U * (cols / (size_t)64U),
-    (size_t)64U,
-    (size_t)4096U,
-    alpha,
-    beta,
-    shared,
-    cols,
-    gA,
-    gB,
-    gC);
-  cudaDeviceSynchronize();
+    KPR_ASSERT(bm > 0U);
+    KPR_ASSERT(bn > 0U);
+    KPR_ASSERT(bk > 0U);
+    KPR_ASSERT(bm % 8U == 0U);
+    KPR_ASSERT(bn % 8U == 0U);
+    KPR_GUARD(rows % bm == 0U);
+    KPR_GUARD(shared % bk == 0U);
+    KPR_GUARD(cols % bn == 0U);
+    KPR_KCALL(__hoisted_0,
+              rows / bm * (cols / bn),
+              bm / 8U * (bn / 8U),
+              4U * (bm * bk) + 4U * (bk * bn),
+              bm, bn, bk, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
 /**
-  hoisted when extracting g_gemm_f32_128x128x8_8x8_rrr_rr
+  hoisted when extracting g_gemm_f32_32x32x32_8x8
 */
 static void
-__hoisted_3(
-  float_t alpha,
-  float_t beta,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+__hoisted_1(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
-  float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)4096U);
-  size_t num_n_tiles = cols / (size_t)128U;
-  size_t mrow = blockIdx.x / num_n_tiles;
-  size_t mcol = blockIdx.x % num_n_tiles;
-  float_t rAcol[8U];
-  memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
-  float_t rBrow[8U];
-  memset(rBrow, 0U, (size_t)8U * sizeof (float_t));
-  float_t rchProd[64U];
-  memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
-  size_t bkIdx = (size_t)0U;
-  while (bkIdx < shared / (size_t)8U)
-  {
-    __syncthreads();
-    size_t __anf0 = bkIdx;
-    float_t *tileA = gA;
-    size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += blockDim.x)
-      sA[i1 / (size_t)8U * (size_t)8U + i1 % (size_t)8U] =
-        tileA[(mrow * (size_t)128U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
-    float_t *tileB = gB;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += blockDim.x)
-      sB[i / (size_t)128U * (size_t)128U + i % (size_t)128U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)128U) * cols +
-          mcol * (size_t)128U + i % (size_t)128U];
-    __syncthreads();
-    size_t dotIdx = (size_t)0U;
-    while (dotIdx < (size_t)8U)
-    {
-      size_t i0 = (size_t)0U;
-      for (; i0 < (size_t)8U; i0 += (size_t)1U)
-        rAcol[i0] = sA[(threadIdx.x / (size_t)16U * (size_t)8U + i0) * (size_t)8U + dotIdx];
-      size_t i1 = (size_t)0U;
-      for (; i1 < (size_t)8U; i1 += (size_t)1U)
-        rBrow[i1] = sB[dotIdx * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + i1];
-      size_t resIdxM = (size_t)0U;
-      while (resIdxM < (size_t)8U)
-      {
-        size_t resIdxN = (size_t)0U;
-        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-          rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += (size_t)1U;
-      }
-      dotIdx += (size_t)1U;
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
     }
-    bkIdx += (size_t)1U;
-  }
-  float_t *t_tile = gC;
-  size_t resIdxM = (size_t)0U;
-  while (resIdxM < (size_t)8U)
-  {
-    size_t resIdxN = (size_t)0U;
-    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
-        threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
-      * cols
-      +
-        blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
-          threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
-      =
-        beta *
-          t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
-            threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
-          * cols
-          +
-            blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
-              threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
-        + alpha * rchProd[resIdxM * (size_t)8U + resIdxN];
-    resIdxM += (size_t)1U;
-  }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x8_8x8_rrr_rr(
-  float_t alpha,
-  float_t beta,
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
 {
-  KPR_GUARD(rows % (size_t)128U == (size_t)0U);
-  KPR_GUARD(shared % (size_t)8U == (size_t)0U);
-  KPR_GUARD(cols % (size_t)128U == (size_t)0U);
-  KPR_KCALL(__hoisted_3,
-    rows / (size_t)128U * (cols / (size_t)128U),
-    (size_t)256U,
-    (size_t)8192U,
-    alpha,
-    beta,
-    shared,
-    cols,
-    gA,
-    gB,
-    gC);
-  cudaDeviceSynchronize();
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_1,
+              rows / 32U * (cols / 32U),
+              16U, 8192U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
 }
 
 __global__
 /**
-  hoisted when extracting g_gemm_f32_128x128x8_8x8_rrr_cr
+  hoisted when extracting g_gemm_f32_32x32x32_8x16
 */
 static void
-__hoisted_4(
-  float_t alpha,
-  float_t beta,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+__hoisted_2(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
 {
-  float_t *sA = (float_t *)KPR_SHMEM_AT((size_t)0U);
-  float_t *sB = (float_t *)KPR_SHMEM_AT((size_t)4096U);
-  size_t num_n_tiles = cols / (size_t)128U;
-  size_t mrow = blockIdx.x / num_n_tiles;
-  size_t mcol = blockIdx.x % num_n_tiles;
-  float_t rAcol[8U];
-  memset(rAcol, 0U, (size_t)8U * sizeof (float_t));
-  float_t rBrow[8U];
-  memset(rBrow, 0U, (size_t)8U * sizeof (float_t));
-  float_t rchProd[64U];
-  memset(rchProd, 0U, (size_t)64U * sizeof (float_t));
-  size_t bkIdx = (size_t)0U;
-  while (bkIdx < shared / (size_t)8U)
-  {
-    __syncthreads();
-    size_t __anf0 = bkIdx;
-    float_t *tileA = gA;
-    size_t i1 = threadIdx.x;
-    for (; i1 < (size_t)1024U; i1 += blockDim.x)
-      sA[i1 % (size_t)8U * (size_t)128U + i1 / (size_t)8U] =
-        tileA[(mrow * (size_t)128U + i1 / (size_t)8U) * shared +
-          __anf0 * (size_t)8U + i1 % (size_t)8U];
-    float_t *tileB = gB;
-    size_t i = threadIdx.x;
-    for (; i < (size_t)1024U; i += blockDim.x)
-      sB[i / (size_t)128U * (size_t)128U + i % (size_t)128U] =
-        tileB[(__anf0 * (size_t)8U + i / (size_t)128U) * cols +
-          mcol * (size_t)128U + i % (size_t)128U];
-    __syncthreads();
-    size_t dotIdx = (size_t)0U;
-    while (dotIdx < (size_t)8U)
-    {
-      size_t i0 = (size_t)0U;
-      for (; i0 < (size_t)8U; i0 += (size_t)1U)
-        rAcol[i0] = sA[dotIdx * (size_t)128U + threadIdx.x / (size_t)16U * (size_t)8U + i0];
-      size_t i1 = (size_t)0U;
-      for (; i1 < (size_t)8U; i1 += (size_t)1U)
-        rBrow[i1] = sB[dotIdx * (size_t)128U + threadIdx.x % (size_t)16U * (size_t)8U + i1];
-      size_t resIdxM = (size_t)0U;
-      while (resIdxM < (size_t)8U)
-      {
-        size_t resIdxN = (size_t)0U;
-        for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-          rchProd[resIdxM * (size_t)8U + resIdxN] += rAcol[resIdxM] * rBrow[resIdxN];
-        resIdxM += (size_t)1U;
-      }
-      dotIdx += (size_t)1U;
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 2U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
     }
-    bkIdx += (size_t)1U;
-  }
-  float_t *t_tile = gC;
-  size_t resIdxM = (size_t)0U;
-  while (resIdxM < (size_t)8U)
-  {
-    size_t resIdxN = (size_t)0U;
-    for (; resIdxN < (size_t)8U; resIdxN += (size_t)1U)
-      t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
-        threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
-      * cols
-      +
-        blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
-          threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
-      =
-        beta *
-          t_tile[(blockIdx.x / (cols / (size_t)128U) * (size_t)128U +
-            threadIdx.x / (size_t)16U * (size_t)8U + resIdxM)
-          * cols
-          +
-            blockIdx.x % (cols / (size_t)128U) * (size_t)128U +
-              threadIdx.x % (size_t)16U * (size_t)8U + resIdxN]
-        + alpha * rchProd[resIdxM * (size_t)8U + resIdxN];
-    resIdxM += (size_t)1U;
-  }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 2U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 2U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x8_8x8_rrr_cr(
-  float_t alpha,
-  float_t beta,
-  size_t rows,
-  size_t shared,
-  size_t cols,
-  float_t *gA,
-  float_t *gB,
-  float_t *gC
-)
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
 {
-  KPR_GUARD(rows % (size_t)128U == (size_t)0U);
-  KPR_GUARD(shared % (size_t)8U == (size_t)0U);
-  KPR_GUARD(cols % (size_t)128U == (size_t)0U);
-  KPR_KCALL(__hoisted_4,
-    rows / (size_t)128U * (cols / (size_t)128U),
-    (size_t)256U,
-    (size_t)8192U,
-    alpha,
-    beta,
-    shared,
-    cols,
-    gA,
-    gB,
-    gC);
-  cudaDeviceSynchronize();
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_2,
+              rows / 32U * (cols / 32U),
+              8U, 8192U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
 }
 
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x32x32_16x8
+*/
+static void
+__hoisted_3(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_3,
+              rows / 32U * (cols / 32U),
+              8U, 8192U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x32x32_16x16
+*/
+static void
+__hoisted_4(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 16U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 16U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 2U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 2U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 2U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_4,
+              rows / 32U * (cols / 32U),
+              4U, 8192U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x32x64_8x8
+*/
+static void
+__hoisted_5(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_5,
+              rows / 32U * (cols / 32U),
+              16U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x32x64_8x16
+*/
+static void
+__hoisted_6(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 2U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 2U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 2U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_6,
+              rows / 32U * (cols / 32U),
+              8U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x32x64_16x8
+*/
+static void
+__hoisted_7(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_7,
+              rows / 32U * (cols / 32U),
+              8U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x32x64_16x16
+*/
+static void
+__hoisted_8(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 16U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 16U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 2U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 32U + threadIdx.x / 2U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 32U +
+                        threadIdx.x / 2U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_8,
+              rows / 32U * (cols / 32U),
+              4U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x32_8x8
+*/
+static void
+__hoisted_9(float_t alpha,
+            float_t beta,
+            uint32_t shared,
+            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_9,
+              rows / 32U * (cols / 64U),
+              32U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x32_8x16
+*/
+static void
+__hoisted_10(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_10,
+              rows / 32U * (cols / 64U),
+              16U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x32_16x8
+*/
+static void
+__hoisted_11(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_11,
+              rows / 32U * (cols / 64U),
+              16U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x32_16x16
+*/
+static void
+__hoisted_12(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_12,
+              rows / 32U * (cols / 64U),
+              8U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x64_8x8
+*/
+static void
+__hoisted_13(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_13,
+              rows / 32U * (cols / 64U),
+              32U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x64_8x16
+*/
+static void
+__hoisted_14(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_14,
+              rows / 32U * (cols / 64U),
+              16U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x64_16x8
+*/
+static void
+__hoisted_15(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_15,
+              rows / 32U * (cols / 64U),
+              16U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x64x64_16x16
+*/
+static void
+__hoisted_16(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 32U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 32U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_16,
+              rows / 32U * (cols / 64U),
+              8U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x32_8x8
+*/
+static void
+__hoisted_17(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 16U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 16U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 16U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_17,
+              rows / 32U * (cols / 128U),
+              64U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x32_8x16
+*/
+static void
+__hoisted_18(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_18,
+              rows / 32U * (cols / 128U),
+              32U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x32_16x8
+*/
+static void
+__hoisted_19(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 16U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 16U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 16U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_19,
+              rows / 32U * (cols / 128U),
+              32U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x32_16x16
+*/
+static void
+__hoisted_20(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(4096U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 1024U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_20,
+              rows / 32U * (cols / 128U),
+              16U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x64_8x8
+*/
+static void
+__hoisted_21(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 16U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 16U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 16U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_21,
+              rows / 32U * (cols / 128U),
+              64U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x64_8x16
+*/
+static void
+__hoisted_22(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_22,
+              rows / 32U * (cols / 128U),
+              32U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x64_16x8
+*/
+static void
+__hoisted_23(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 16U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 16U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 16U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_23,
+              rows / 32U * (cols / 128U),
+              32U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_32x128x64_16x16
+*/
+static void
+__hoisted_24(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 32U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 32U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 32U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 32U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 32U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_24,
+              rows / 32U * (cols / 128U),
+              16U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x32_8x8
+*/
+static void
+__hoisted_25(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_25,
+              rows / 64U * (cols / 32U),
+              32U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x32_8x16
+*/
+static void
+__hoisted_26(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 2U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 2U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 2U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_26,
+              rows / 64U * (cols / 32U),
+              16U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x32_16x8
+*/
+static void
+__hoisted_27(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_27,
+              rows / 64U * (cols / 32U),
+              16U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x32_16x16
+*/
+static void
+__hoisted_28(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 2U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 2U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 2U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_28,
+              rows / 64U * (cols / 32U),
+              8U, 12288U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x64_8x8
+*/
+static void
+__hoisted_29(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_29,
+              rows / 64U * (cols / 32U),
+              32U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x64_8x16
+*/
+static void
+__hoisted_30(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 2U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 2U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 2U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_30,
+              rows / 64U * (cols / 32U),
+              16U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x64_16x8
+*/
+static void
+__hoisted_31(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_31,
+              rows / 64U * (cols / 32U),
+              16U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x32x64_16x16
+*/
+static void
+__hoisted_32(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 32U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 2U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 64U + threadIdx.x / 2U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 64U +
+                        threadIdx.x / 2U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_32,
+              rows / 64U * (cols / 32U),
+              8U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x32_8x8
+*/
+static void
+__hoisted_33(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_33,
+              rows / 64U * (cols / 64U),
+              64U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x32_8x16
+*/
+static void
+__hoisted_34(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_34,
+              rows / 64U * (cols / 64U),
+              32U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x32_16x8
+*/
+static void
+__hoisted_35(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_35,
+              rows / 64U * (cols / 64U),
+              32U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x32_16x16
+*/
+static void
+__hoisted_36(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_36,
+              rows / 64U * (cols / 64U),
+              16U, 16384U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x64_8x8
+*/
+static void
+__hoisted_37(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float_t alpha,
+                                                  float_t beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float_t *gA,
+                                                  float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_37,
+              rows / 64U * (cols / 64U),
+              64U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x64_8x16
+*/
+static void
+__hoisted_38(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_38,
+              rows / 64U * (cols / 64U),
+              32U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x64_16x8
+*/
+static void
+__hoisted_39(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_39,
+              rows / 64U * (cols / 64U),
+              32U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x64x64_16x16
+*/
+static void
+__hoisted_40(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 64U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 64U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_40,
+              rows / 64U * (cols / 64U),
+              16U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x32_8x8
+*/
+static void
+__hoisted_41(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 16U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 16U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 16U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_41,
+              rows / 64U * (cols / 128U),
+              128U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x32_8x16
+*/
+static void
+__hoisted_42(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_42,
+              rows / 64U * (cols / 128U),
+              64U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x32_16x8
+*/
+static void
+__hoisted_43(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 16U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 16U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 16U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_43,
+              rows / 64U * (cols / 128U),
+              64U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x32_16x16
+*/
+static void
+__hoisted_44(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(8192U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 2048U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_44,
+              rows / 64U * (cols / 128U),
+              32U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x64_8x8
+*/
+static void
+__hoisted_45(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 16U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 16U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 16U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_45,
+              rows / 64U * (cols / 128U),
+              128U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x64_8x16
+*/
+static void
+__hoisted_46(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_46,
+              rows / 64U * (cols / 128U),
+              64U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x64_16x8
+*/
+static void
+__hoisted_47(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 16U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 16U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 16U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_47,
+              rows / 64U * (cols / 128U),
+              64U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_64x128x64_16x16
+*/
+static void
+__hoisted_48(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 64U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 8192U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 64U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 64U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 64U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 64U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_48,
+              rows / 64U * (cols / 128U),
+              32U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x32_8x8
+*/
+static void
+__hoisted_49(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_49,
+              rows / 128U * (cols / 32U),
+              64U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x32_8x16
+*/
+static void
+__hoisted_50(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 2U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 2U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 2U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_50,
+              rows / 128U * (cols / 32U),
+              32U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x32_16x8
+*/
+static void
+__hoisted_51(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_51,
+              rows / 128U * (cols / 32U),
+              32U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x32_16x16
+*/
+static void
+__hoisted_52(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 1024U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 2U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 2U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 2U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_52,
+              rows / 128U * (cols / 32U),
+              16U, 20480U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x64_8x8
+*/
+static void
+__hoisted_53(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_53,
+              rows / 128U * (cols / 32U),
+              64U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x64_8x16
+*/
+static void
+__hoisted_54(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 2U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 2U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 2U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_54,
+              rows / 128U * (cols / 32U),
+              32U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x64_16x8
+*/
+static void
+__hoisted_55(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 4U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 4U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U + threadIdx.x % 4U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_55,
+              rows / 128U * (cols / 32U),
+              32U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x32x64_16x16
+*/
+static void
+__hoisted_56(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 32U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 64U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 2U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 32U + threadIdx.x % 2U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 32U) * 128U + threadIdx.x / 2U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 32U) * 32U +
+                   threadIdx.x % 2U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 32U) * 128U +
+                        threadIdx.x / 2U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 32U) * 32U +
+                       threadIdx.x % 2U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 32U == 0U);
+    KPR_KCALL(__hoisted_56,
+              rows / 128U * (cols / 32U),
+              16U, 40960U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x32_8x8
+*/
+static void
+__hoisted_57(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_57,
+              rows / 128U * (cols / 64U),
+              128U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x32_8x16
+*/
+static void
+__hoisted_58(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_58,
+              rows / 128U * (cols / 64U),
+              64U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x32_16x8
+*/
+static void
+__hoisted_59(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_59,
+              rows / 128U * (cols / 64U),
+              64U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x32_16x16
+*/
+static void
+__hoisted_60(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 2048U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_60,
+              rows / 128U * (cols / 64U),
+              32U, 24576U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x64_8x8
+*/
+static void
+__hoisted_61(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x8(float_t alpha,
+                                                   float_t beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float_t *gA,
+                                                   float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_61,
+              rows / 128U * (cols / 64U),
+              128U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x64_8x16
+*/
+static void
+__hoisted_62(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 4U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 4U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x16(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_62,
+              rows / 128U * (cols / 64U),
+              64U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x64_16x8
+*/
+static void
+__hoisted_63(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 8U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 8U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U + threadIdx.x % 8U * 8U +
+                       resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_63,
+              rows / 128U * (cols / 64U),
+              64U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x64x64_16x16
+*/
+static void
+__hoisted_64(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(32768U);
+    uint32_t num_n_tiles = cols / 64U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 64U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 8192U; i1 += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 128U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 64U;
+            uint32_t col = (i + threadIdx.x * 4U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 64U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 4U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 64U + threadIdx.x % 4U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 64U) * 128U + threadIdx.x / 4U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 64U) * 64U +
+                   threadIdx.x % 4U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 64U) * 128U +
+                        threadIdx.x / 4U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 64U) * 64U +
+                       threadIdx.x % 4U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 64U == 0U);
+    KPR_GUARD(cols % 64U == 0U);
+    KPR_KCALL(__hoisted_64,
+              rows / 128U * (cols / 64U),
+              32U, 49152U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x128x32_8x8
+*/
+static void
+__hoisted_65(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[64U];
+    memset(rchProd, 0U, 64U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 1024U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 1024U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 16U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 128U + threadIdx.x / 16U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 16U * 8U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 128U +
+                        threadIdx.x / 16U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float_t alpha,
+                                                    float_t beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float_t *gA,
+                                                    float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_65,
+              rows / 128U * (cols / 128U),
+              256U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x128x32_8x16
+*/
+static void
+__hoisted_66(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[8U];
+    memset(rAcol, 0U, 8U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 8U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 8U * 8U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 8U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 8U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 128U + threadIdx.x / 8U * 8U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 128U +
+                        threadIdx.x / 8U * 8U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_66,
+              rows / 128U * (cols / 128U),
+              128U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x128x32_16x8
+*/
+static void
+__hoisted_67(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[8U];
+    memset(rBrow, 0U, 8U * sizeof(float_t));
+    float_t rchProd[128U];
+    memset(rchProd, 0U, 128U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 512U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 16U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 8U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 16U * 8U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 8U; resIdxN++)
+                    rchProd[resIdxM * 8U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 8U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 128U +
+                    threadIdx.x / 16U * 16U + resIdxM) * cols +
+                   blockIdx.x % (cols / 128U) * 128U + threadIdx.x % 16U * 8U +
+                   resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 128U +
+                        threadIdx.x / 16U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 16U * 8U + resIdxN]
+                + alpha * rchProd[resIdxM * 8U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float_t alpha,
+                                                     float_t beta,
+                                                     uint32_t rows,
+                                                     uint32_t shared,
+                                                     uint32_t cols,
+                                                     float_t *gA,
+                                                     float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_67,
+              rows / 128U * (cols / 128U),
+              128U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}
+
+__global__
+/**
+  hoisted when extracting g_gemm_f32_128x128x32_16x16
+*/
+static void
+__hoisted_68(float_t alpha,
+             float_t beta,
+             uint32_t shared,
+             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+{
+    float_t *sA = (float_t *) KPR_SHMEM_AT(0U);
+    float_t *sB = (float_t *) KPR_SHMEM_AT(16384U);
+    uint32_t num_n_tiles = cols / 128U;
+    uint32_t mrow = blockIdx.x / num_n_tiles;
+    uint32_t mcol = blockIdx.x % num_n_tiles;
+    float_t rAcol[16U];
+    memset(rAcol, 0U, 16U * sizeof(float_t));
+    float_t rBrow[16U];
+    memset(rBrow, 0U, 16U * sizeof(float_t));
+    float_t rchProd[256U];
+    memset(rchProd, 0U, 256U * sizeof(float_t));
+    uint32_t bkIdx = 0U;
+    for (; bkIdx < shared / 32U; bkIdx++) {
+        __syncthreads();
+        uint32_t __anf01 = bkIdx;
+        float_t *tileA = gA;
+        uint32_t i1 = 0U;
+        for (; i1 < 4096U; i1 += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
+            uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 128U) + __anf01 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sA[(col + k) * 128U + row] = local[k];
+        }
+        float_t *tileB = gB;
+        uint32_t i = 0U;
+        for (; i < 4096U; i += 256U) {
+            float_t local[4U];
+            memset(local, 0U, 4U * sizeof(float_t));
+            uint32_t row = (i + threadIdx.x * 4U) / 128U;
+            uint32_t col = (i + threadIdx.x * 4U) % 128U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf01 * 32U) + mcol * 128U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 4U; k++)
+                sB[row * 128U + col + k] = local[k];
+        }
+        __syncthreads();
+        uint32_t dotIdx = 0U;
+        for (; dotIdx < 32U; dotIdx++) {
+            uint32_t i0 = 0U;
+            for (; i0 < 16U; i0++)
+                rAcol[i0] = sA[dotIdx * 128U + threadIdx.x / 8U * 16U + i0];
+            uint32_t i1 = 0U;
+            for (; i1 < 16U; i1++)
+                rBrow[i1] = sB[dotIdx * 128U + threadIdx.x % 8U * 16U + i1];
+            uint32_t resIdxM = 0U;
+            for (; resIdxM < 16U; resIdxM++) {
+                uint32_t resIdxN = 0U;
+                for (; resIdxN < 16U; resIdxN++)
+                    rchProd[resIdxM * 16U + resIdxN] +=
+                        rAcol[resIdxM] * rBrow[resIdxN];
+            }
+        }
+    }
+    float_t *t_tile = gC;
+    uint32_t resIdxM = 0U;
+    for (; resIdxM < 16U; resIdxM++) {
+        uint32_t resIdxN = 0U;
+        for (; resIdxN < 16U; resIdxN++)
+            t_tile[(blockIdx.x / (cols / 128U) * 128U + threadIdx.x / 8U * 16U +
+                    resIdxM) * cols + blockIdx.x % (cols / 128U) * 128U +
+                   threadIdx.x % 8U * 16U + resIdxN]
+                = beta *
+                t_tile[(blockIdx.x / (cols / 128U) * 128U +
+                        threadIdx.x / 8U * 16U + resIdxM) * cols +
+                       blockIdx.x % (cols / 128U) * 128U +
+                       threadIdx.x % 8U * 16U + resIdxN]
+                + alpha * rchProd[resIdxM * 16U + resIdxN];
+    }
+}
+
+void
+Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float_t alpha,
+                                                      float_t beta,
+                                                      uint32_t rows,
+                                                      uint32_t shared,
+                                                      uint32_t cols,
+                                                      float_t *gA,
+                                                      float_t *gB, float_t *gC)
+{
+    KPR_GUARD(rows % 128U == 0U);
+    KPR_GUARD(shared % 32U == 0U);
+    KPR_GUARD(cols % 128U == 0U);
+    KPR_KCALL(__hoisted_68,
+              rows / 128U * (cols / 128U),
+              64U, 32768U, alpha, beta, shared, cols, gA, gB, gC);
+    MUST(cudaDeviceSynchronize());
+}

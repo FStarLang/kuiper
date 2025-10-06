@@ -7,7 +7,7 @@ open Kuiper.Matrix.Common
 open Kuiper.Matrix.Reprs.Type
 
 module T  = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* Matrix4 is deprecated at the moment. We restrict these layouts to be
    full only, to not have to update this module to the new possibly-strided

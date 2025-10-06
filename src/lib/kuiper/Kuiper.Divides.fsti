@@ -8,6 +8,10 @@ let divides (x y : int) : prop =
 unfold
 let ( /? ) = divides
 
+unfold
+let ( /?+ ) (x : pos) (y : int) =
+  y % x = 0
+
 val get_factor (x y : int)
   : Ghost int (requires x /? y)
               (ensures fun z -> x * z == y)
@@ -40,7 +44,7 @@ val lemma_pow2_div (x y : nat)
           (ensures pow2 x /? pow2 y)
           [SMTPat (pow2 x /? pow2 y)]
 
-let divup (m:nat) (k:pos) =
+let divup (m:nat) (k:pos) : int =
   (m + (k-1)) / k
 
 val lem_divup_back (m:nat) (k:pos)

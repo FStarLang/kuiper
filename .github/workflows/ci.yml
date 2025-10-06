@@ -48,6 +48,8 @@ jobs:
       # If these fail, stop right now.
       - run: which z3-4.8.5
 
+      - run: sudo apt-get install -y indent
+
       - name: Get submodules
         run: |
           git submodule init
@@ -129,13 +131,18 @@ jobs:
       - name: Run CI Makefile rule
         run: |
           eval $(opam env)
-          make -kj$(nproc) -Otarget ci |& tee LOG
+          make -kj$(nproc) -Otarget ci
 
-      - name: Make artifact with test executables
+      - name: Make bench-package
+        run: |
+          eval $(opam env)
+          make -kj$(nproc) -Otarget bench-package
+
+      - name: Make artifact with bench-package
         uses: actions/upload-artifact@master
         with:
-          name: test-executables
-          path: obj/*.exe
+          name: kuiper-bench
+          path: kuiper-bench.tgz
 
       - name: Make artifact with output
         if: ${{ always () }}
@@ -186,10 +193,10 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@master
         with:
-          name: test-executables
-          path: obj/
-      - run: chmod +x obj/*.exe
+          name: kuiper-bench
 
-      - name: Run bench script
+      - run: tar xzf kuiper-bench.tgz
+
+      - working-directory: kuiper-bench
         run: |
-          ./scripts/bench.sh
+          make -kj$(nproc) -Otarget

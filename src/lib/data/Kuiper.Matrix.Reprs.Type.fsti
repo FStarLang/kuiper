@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Bijection
 open Kuiper.Injection
 open FStar.Tactics.Typeclasses
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 [@@erasable]
 noeq
@@ -68,17 +68,30 @@ class crepr (r:mrepr) = {
 
 inline_for_extraction noextract
 instance clayout_from_crepr
-  (rows : SZ.t) (cols : SZ.t{SZ.fits (rows * cols)})
+  (rows : nat) (cols : nat{SZ.fits (rows * cols)})
+  {| concrete_sz rows, concrete_sz cols |}
   (m : mrepr) (d : crepr m)
   : clayout (m rows cols)
-  = d.map rows cols
+  = d.map (concr rows) (concr cols)
 
-
-(* Is a layout basically a strided row major? *)
 inline_for_extraction noextract
 class strided_row_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
+  [@@@no_method]
   offset : sz;
+  [@@@no_method]
   stride : sz;
+  [@@@no_method]
   pf : i:natlt rows -> j:natlt cols ->
          squash (l.map.f (i,j) == offset + stride * i + j);
+}
+
+inline_for_extraction noextract
+class strided_col_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
+  [@@@no_method]
+  offset : sz;
+  [@@@no_method]
+  stride : sz;
+  [@@@no_method]
+  pf : i:natlt rows -> j:natlt cols ->
+         squash (l.map.f (i,j) == offset + stride * j + i);
 }

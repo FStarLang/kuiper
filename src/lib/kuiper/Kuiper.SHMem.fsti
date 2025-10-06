@@ -4,7 +4,7 @@ module Kuiper.SHMem
 
 open Pulse.Lib.Core
 open Kuiper.Array
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* Description of one shared memory array "request" *)
 noeq

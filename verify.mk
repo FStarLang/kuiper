@@ -76,7 +76,15 @@ pulse/Makefile:
 .PHONY: prepare
 prepare: .fstar.touch .krml.touch .pulse.touch
 
+AUTOGEN_SCRIPTS := $(shell find src -name '*.fst.sh')
+AUTOGEND := $(patsubst %.fst.sh,%.fst,$(AUTOGEN_SCRIPTS))
+
+%.fst: %.fst.sh
+	@$(call msg,"GEN",$@)
+	./$< > $@
+
 ROOTS := $(shell find src/ -name '*.fst' -o -name '*.fsti')
+ROOTS += $(AUTOGEND)
 
 FILTER_OUT = $(foreach v,$(2),$(if $(findstring $(1),$(v)),,$(v)))
 
@@ -97,7 +105,6 @@ FSTAR_FLAGS += --cmi
 FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
 FSTAR_FLAGS += --z3version 4.13.3
-FSTAR_FLAGS += --initial_fuel 0 --initial_ifuel 0
 FSTAR_FLAGS += --ext kuiper
 FSTAR_FLAGS += --ext optimize_let_vc
 FSTAR_FLAGS += --ext __unrefine
@@ -121,23 +128,26 @@ GPUH := $(realpath include/kuiper.h)
 
 KOTHERFLAGS += $(KO)
 
-KRML := $(KRML_HOME)/krml				\
-	-add-early-include '<kuiper.h>'			\
-	-fc++-compat					\
-	-fcast-allocations				\
-	-skip-compilation				\
-	-skip-makefiles					\
-	-faggressive-inlining				\
-	-fauto-for-loops				\
-	-fnoshort-enums					\
-	-cuda						\
-	-dbacktrace					\
-	$(if $(V),-verbose,-silent)			\
-	-drop Prims					\
-	-minimal					\
-	-header /dev/null				\
-	-warn-error -2@4-10@18				\
-	$(KOTHERFLAGS)
+KRML_FLAGS :=
+KRML_FLAGS += -add-early-include '<kuiper.h>'
+KRML_FLAGS += -fc++-compat
+KRML_FLAGS += -fcast-allocations
+KRML_FLAGS += -skip-compilation
+KRML_FLAGS += -skip-makefiles
+KRML_FLAGS += -faggressive-inlining
+KRML_FLAGS += -fauto-for-loops
+KRML_FLAGS += -fnoshort-enums
+KRML_FLAGS += -cuda
+KRML_FLAGS += -dbacktrace
+KRML_FLAGS += $(if $(V),-verbose,-silent)
+KRML_FLAGS += -drop Prims
+KRML_FLAGS += -minimal
+KRML_FLAGS += -header /dev/null
+KRML_FLAGS += -warn-error @6 # VLA
+KRML_FLAGS += -warn-error -2@4-10@18
+KRML_FLAGS += $(KOTHERFLAGS)
+
+KRML := $(KRML_HOME)/krml $(KRML_FLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
@@ -235,95 +245,10 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 
 $(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
 	# Postprocess via sed and generate the actual target
-	sed -f scripts/fixup.sed $< > $@
+	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 
 $(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
 	# Same. Though no code in here there are still empty lines and whatnot
-	sed -f scripts/fixup.sed $< > $@
+	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 
-NVCC_FLAGS += -O3
-NVCC_FLAGS += -I include
-NVCC_FLAGS += -I obj # needed for files in test/ only..
-# NVCC_FLAGS += -arch=sm_75 # cc lower than 7.5 will be removed in future nvcc versions
-NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
-
-%.o: %.cu %.h include/*.h
-	$(call msg,"NVCC")
-	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
-
-remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
-
-.SECONDEXPANSION:
-$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
-	$(call msg,"NVCC")
-	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
-
-# argh
-.SECONDEXPANSION:
-$(OUTDIR)/%.exe: $(OUTDIR)/%.o $(OUTDIR)/$$(call remove__, %).o
-	$(call msg,"NVLD")
-	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
-
-$(OUTDIR)/%.output: $(OUTDIR)/%.exe
-	timeout -k 1 180 $< > $@
-
-test/%.output.expected:
-	$(error You need to create the '$@' file)
-
-$(OUTDIR)/%.test: $(OUTDIR)/%.output test/%.output.expected
-	./scripts/diff.sh $^
-	$(call msg,"TEST OK")
-	@touch $@
-
-$(OUTDIR)/%.accept: $(OUTDIR)/%.output
-	$(call msg,"ACCEPT")
-	$(Q)cp $< $(patsubst $(OUTDIR)/%,test/%,$<).expected
-
-TESTS+=$(notdir $(basename $(wildcard test/*.cu)))
-
-NOTEST += Test_Kuiper_Softmax__F16
-ifeq ($(KUIPER_CFG_TENSORCORES),0)
-NOTEST += $(foreach f,$(TESTS),$(if $(findstring TensorCore,$(f)),$(f)))
-endif
-# RESTORE
-NOTEST += Test_Kuiper_GEMM_TensorCore2D__F16_F16_64x64x64_16x16x16_2x2
-
-# Disable softmax 16. It works fine locally (outside of docker)
-# but fails within in with undefined __hdiv. The nvcc there is slightly
-# older. Suprisignly using / just works, but that fails for other
-# operators. Forget it for now, but we should be principled about using
-# the correct feature flags or whatever.
-
-TESTS := $(filter-out $(NOTEST), $(TESTS))
-
-EXTRACT :=
-
-# Extract everything in src/examples
-EXTRACT += $(wildcard src/examples/*.fst)
-# Extract everything in src/lib/inst, they are the C api for the library
-EXTRACT += $(wildcard src/lib/inst/*.fst)
-# And src/lib/inst/gemm...
-EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
-EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
-EXTRACT += src/examples/Kuiper.Example2.fst
-
-extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
-extraction-targets: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
-
-BUILD :=
-
-# *Build* every executable in test/, we can do this without a GPU
-BUILD += $(patsubst %,obj/%.exe,$(TESTS))
-BUILD += obj/Kuiper_Example2.o
-ifeq ($(KUIPER_CFG_TENSORCORES),0)
-TENSORCORE_BUILD := $(foreach f,$(BUILD),$(if $(findstring TensorCore,$(f)),$(f)))
-BUILD := $(filter-out $(TENSORCORE_BUILD),$(BUILD))
-endif
-
-build-targets: $(BUILD)
-
-.PHONY: test
-test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))
-
-.PHONY: accept
-accept: $(patsubst %,$(OUTDIR)/%.accept,$(TESTS))
+include nvcc.mk

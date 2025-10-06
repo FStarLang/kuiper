@@ -6,7 +6,7 @@ open Kuiper
 open Kuiper.Bijection
 open Kuiper.IView
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
   fun x' ->

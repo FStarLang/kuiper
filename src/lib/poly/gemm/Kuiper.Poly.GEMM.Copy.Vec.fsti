@@ -1,0 +1,84 @@
+module Kuiper.Poly.GEMM.Copy.Vec
+
+#lang-pulse
+
+open Kuiper
+open Kuiper.Matrix
+open Kuiper.Matrix.Reprs.Type
+open Kuiper.EMatrix
+open Kuiper.Array.Vectorized
+
+module SZ = Kuiper.SizeT
+
+let live_cell
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (gm : gpu_matrix et lm)
+  (i : natlt rows)
+  (j : natlt cols)
+  : slprop
+  = exists* v. gpu_matrix_pts_to_cell gm i j v
+
+let live_chunk
+  (#et : Type0) {| has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  ([@@@mkey] m : gpu_matrix et lm)
+  // (em : ematrix et rows cols)
+  (i : natlt rows)
+  (j : natlt (cols - chunk et + 1))
+  : slprop
+=
+  forall+ (k : natlt (chunk et)).
+    live_cell m i (j + k)
+
+let live_tile_stride_cells
+  (#et : Type0) {| has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  ([@@@mkey] m : gpu_matrix et lm)
+  // (#_ : squash (chunk et /? cols))
+  // ^ We will have this in any interesting client, but
+  // since it's not needed here let's just skip it, to make
+  // the type more defined.
+  // (em : ematrix et rows cols)
+  (nthr : nat)
+  (tid : natlt nthr)
+  : slprop
+=
+  // Number of chunks each thread will copy
+  forall+ (it : natlt (divup (rows*cols) (chunk et * nthr))).
+    let flat_idx = tid * chunk et + it * nthr * chunk et <: nat in
+    let i : nat = flat_idx / cols in
+    let j : nat = flat_idx % cols in
+    if i < rows
+       && j < cols - chunk et + 1
+       // this fact about j should be provable here, we add it only to avoid a
+       // hard VC at this point, punting the proof on to the user (where it's
+       // hopefully easier)
+    then live_chunk m i j
+    else emp
+
+inline_for_extraction noextract
+fn cp_matrix_vec
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: sz)
+  // (#_ : squash (chunk et /? cols))
+  (#lsrc #ldst : mlayout rows cols)
+  {| clayout lsrc, clayout ldst |}
+  {| strided_row_major lsrc |}
+  (src : gpu_matrix et lsrc)
+  (#f : perm)
+  (#esrc : ematrix et rows cols)
+  (dst : gpu_matrix et ldst)
+  (nthr : sz)
+  (tid : szlt nthr)
+  preserves
+    gpu **
+    // Where does rows*cols + nthr >= 1 come from?
+    pure (SZ.fits (rows * cols + nthr - 1)) **
+    pure (chunk et /? cols) **
+    pure (chunk et * nthr /? (rows * cols)) **
+    src |-> Frac f esrc **
+    live_tile_stride_cells dst nthr tid

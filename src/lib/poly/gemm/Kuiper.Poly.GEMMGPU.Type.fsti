@@ -3,6 +3,7 @@ module Kuiper.Poly.GEMMGPU.Type
 #lang-pulse
 
 open Kuiper
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix { ematrix, matrix_comb }
 open Kuiper.EMatrix4 { ematrix4 }
 open Kuiper.Matrix.Reprs.Type
@@ -179,7 +180,7 @@ type block_tiled1d_matmulcomb_gpu_ty =
 
 unfold inline_for_extraction
 type block_tiled2d_matmulcomb_gpu_ty =
-  (#et : Type0) -> {| scalar et |} ->
+  (#et : Type0) -> {| scalar et |} -> {| has_vec_cpy et |} ->
   (comb : binop et) ->
   (#rows : szp) ->
   (#shared : szp) ->
@@ -188,6 +189,7 @@ type block_tiled2d_matmulcomb_gpu_ty =
   (#lB : mlayout shared cols) ->
   (#lC : mlayout rows cols) ->
   {| clayout lA |} -> {| clayout lB |} -> {| clayout lC |} ->
+  {| strided_row_major lA |} -> {| strided_row_major lB |} ->
   (gA : M.gpu_matrix et lA) ->
   (#eA : ematrix et rows shared) ->
   (gB : M.gpu_matrix et lB) ->
@@ -197,6 +199,8 @@ type block_tiled2d_matmulcomb_gpu_ty =
   (bm : szp{bm /? rows}) ->
   (bn : szp{bn /? cols}) ->
   (bk : szp{bk /? shared}) ->
+  (#_ : squash (chunk et /? bn)) ->
+  (#_ : squash (chunk et /? bk)) ->
   (tm : szp{tm /? bm}) ->
   (tn : szp{tn /? bn}) ->
   (#_ : squash (SizeT.fits (bm*bk + bm/tm*(bn/tn)))) ->

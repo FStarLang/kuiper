@@ -9,7 +9,7 @@ open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.View
 open FStar.FunctionalExtensionality { (^->>) }
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module IView = Kuiper.IView
 
 inline_for_extraction noextract
@@ -163,6 +163,7 @@ let seq_rev (#a:Type) (s:seq a) : seq a =
 (* awkward, we should be able to start from a random array (not "core a")
    and use abs on it. *)
 (* fixed! but could be nicer. *)
+#push-options "--z3rlimit 20"
 fn write3
   (p : gpu_array u32 50)
   (#s : erased (lseq u32 50))
@@ -198,3 +199,4 @@ fn write3
   assert (pure (Seq.equal (to_seq (reverse_view u32 50) (R (seq_rev (Seq.upd s 49 123ul)))) (Seq.upd s 49 123ul)));
   ();
 }
+#pop-options

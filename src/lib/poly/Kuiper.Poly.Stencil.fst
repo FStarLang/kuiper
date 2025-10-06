@@ -5,7 +5,7 @@ module Kuiper.Poly.Stencil
 open Kuiper
 module M = Kuiper.Matrix
 module STS = Kuiper.Spec.Stencil
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Reprs { row_major }

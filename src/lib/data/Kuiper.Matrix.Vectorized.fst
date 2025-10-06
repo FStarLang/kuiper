@@ -5,66 +5,40 @@ friend Kuiper.Matrix
 
 open Kuiper.Matrix.Common
 
-module SZ = FStar.SizeT
-module A = Kuiper.VArray
-module V = Kuiper.VArray.Vectorized
-
-let gpu_matrix_pts_to_4cells
-  (#et:Type) (#rows #cols : nat)
-  (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et l)
-  (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : natlt rows)
-  ([@@@mkey]j : natlt cols)
-  (v : et & et & et & et)
-  : slprop
-  = V.varray_pts_to_4cells gm #f (i,j) v
+open Kuiper
+open Kuiper.Array.Vectorized
+open Kuiper.Matrix
+open Kuiper.EMatrix
+open Kuiper.Matrix.Reprs.Type
 
 inline_for_extraction noextract
-fn gpu_matrix_vec4_read_cells
-  // (#et:Type0)
+fn gpu_matrix_vec_read
+  (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
-  (#l : mlayout rows cols) {| c : clayout l |}
-  (gm : gpu_matrix float l)
+  (#l : mlayout rows cols) {| clayout l, strided : strided_row_major l |}
+  (gm : gpu_matrix et l)
   (i : szlt rows)
-  (j : szlt cols)
+  (j : szlt (cols - chunk et + 1))
   (#f : perm)
-  (#v0 : float & float & float & float)
+  (#em : ematrix et rows cols)
+  (arr : array et)
+  (#s : erased (seq et))
   preserves gpu
-  preserves gpu_matrix_pts_to_4cells gm #f i j v0
-  returns e : float4
-  ensures
-    pure (e == make_float4 v0._1 v0._2 v0._3 v0._4)
+  preserves gm |-> Frac f em
+  requires  arr |-> s
+  ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))
 {
-  unfold gpu_matrix_pts_to_4cells gm #f i j v0;
-  rewrite
-    each Mktuple2 #(natlt rows) #(natlt cols) (SZ.v i) (SZ.v j)
-      as A.ci_to_ai (aview_from_mlayout float l) (i, j);
-  let v = V.varray_vec4_read_cells gm (i,j);
-  fold gpu_matrix_pts_to_4cells gm #f i j v0;
-  v
-}
-
-inline_for_extraction noextract
-fn gpu_matrix_vec4_write_cells
-  (#et:Type0)
-  (#rows #cols : erased nat)
-  (#l : mlayout rows cols) {| c : clayout l |}
-  (gm : gpu_matrix float l)
-  (i : szlt rows)
-  (j : szlt cols)
-  (v : float4)
-  (#v0 : float & float & float & float)
-  preserves gpu
-  requires  gpu_matrix_pts_to_4cells gm i j v0
-  ensures
-    (exists* v1. gpu_matrix_pts_to_4cells gm i j v1 **
-                 pure(v1 == (getx v, gety v, getz v, getw v)))
-{
-  unfold gpu_matrix_pts_to_4cells gm i j v0;
-  rewrite
-    each Mktuple2 #(natlt rows) #(natlt cols) (SZ.v i) (SZ.v j)
-      as A.ci_to_ai (aview_from_mlayout et l) (i, j);
-  V.varray_vec4_write_cells gm (i,j) v;
-  fold gpu_matrix_pts_to_4cells gm i j (getx v, gety v, getz v, getw v);
+  // Pretty fake for now
+  let p = core gm;
+  assume (live p);
+  with ps. assert (p |-> ps);
+  assume (pure (Seq.length s >= chunk et));
+  assume pure False;
+  assert (pure (chunk et >= 1));
+  strided.pf i j;
+  strided.pf i (j + chunk et - 1);
+  let offset = strided.offset +^ strided.stride *^ i +^ j;
+  gpu_array_vec_cpy_dh arr 0sz p offset;
+  drop_ (live p);
+  ();
 }

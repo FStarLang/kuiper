@@ -6,7 +6,7 @@ open Kuiper.Bijection
 open Kuiper.Injection
 module B = Kuiper.Array (* base *)
 module T = FStar.Tactics.V2
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module IView = Kuiper.IView
 module IArray = Kuiper.IArray
 

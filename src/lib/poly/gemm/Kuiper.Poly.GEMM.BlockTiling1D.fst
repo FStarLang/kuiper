@@ -17,7 +17,7 @@ open Kuiper.Matrix {
 open Kuiper.Matrix.Tiling
 
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
 module R = Kuiper.Matrix.Reprs
@@ -287,10 +287,7 @@ fn kf
     thread_id tile tid **
     block_id (mrows * mcols) bid
 {
-  let ar1 : gpu_array et (tile * tile) = fst sh;
-  let ar2 : gpu_array et (tile * tile) = fst (snd sh);
-  rewrite each fst sh as ar1;
-  rewrite each fst (snd sh) as ar2;
+  let (ar1, (ar2, _)) = sh;
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
@@ -628,7 +625,7 @@ fn mmcomb_gpu
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (tile `SZ.gt` 0sz);
+  dassert (tile >^ 0sz);
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
   launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC ());
 }

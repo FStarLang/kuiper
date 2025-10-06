@@ -30,7 +30,7 @@ let clayout4_imap
 
 (* This is only between abstract indices and concrete indices.
    Nothing here depends on the *actual* layout. *)
-#push-options "--split_queries always" // flaky
+#push-options "--split_queries always --retry 5" // flaky
 inline_for_extraction noextract
 let clayout4_bij
   (#mrows #mcols #brows #bcols : nat)

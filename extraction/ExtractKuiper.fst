@@ -71,12 +71,22 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.fragment", [et; knd; m; n; k; layout] ->
-    TBuf (TQualified (([], "auto"))) // :-)
+    // Note: it is difficult to try to construct a proper type
+    // here because
+    // 1) the indices are already erased to unit, and we cannot
+    //    recover them here
+    // 2) if we want to generate the templated types, i.e.
+    //    something like wmma::fragment<half, 16, 16, 16, wmma::row_major>,
+    //    we cannot just TQualified as karamel will sanitize the string,
+    //    and karamel also has no notion of templated types. Though this
+    //    seems not too difficult to add, it's probably easier to just
+    //    define macros like kpr_fragment_half_16_16_16_row_major that
+    //    expand to the proper templated type.
+    TQualified ([], "auto_AMP") // sed subtitutes this to auto&
 
   | "Kuiper.Float16.t",               [] -> TInt Half
   | "Kuiper.Float32.t",               [] -> TInt Float
   | "Kuiper.Float64.t",               [] -> TInt Double
-  | "Kuiper.VectorType.float4", [] -> TQualified ([], "float4")
   | _ -> raise NotSupportedByKrmlExtension
 
 let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
@@ -94,8 +104,11 @@ let get_record_field fname (e:mlexpr) : mlexpr =
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
 let get_sizet (e : mlexpr) : mlexpr = get_record_field "size" e
-let get_strided_row_major_offset (e : mlexpr) : mlexpr = get_record_field "offset" e
-let get_strided_row_major_stride (e : mlexpr) : mlexpr = get_record_field "stride" e
+// repeated names get a numeric prefix, and we have both strided_row_major and strided_col_major
+let get_strided_row_major_offset (e : mlexpr) : mlexpr =
+  try get_record_field "offset" e with | _ -> get_record_field "offset1" e
+let get_strided_row_major_stride (e : mlexpr) : mlexpr =
+  try get_record_field "stride" e with | _ -> get_record_field "stride1" e
 
 let _MUST (e : expr) : expr =
     EApp (EQualified ([], "MUST"), [e])
@@ -293,6 +306,7 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       let kf = apply_lam kf ml_threadidx in
       let kf = apply_lam kf ml_unit in
       let kf = collapse_tuple_proj kf in
+      let kf = collapse_tuple_matches kf in
       let kf = hoist env kf in
       let hd, rest_args = head_and_args kf in
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
@@ -309,17 +323,17 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
   return e'
 
 let kpr_translate_alloc_fragment cb et knd m n k layout =
-    let macro_suff, knd =
+    let knd =
       match cta knd with
-      | Some ("Kuiper.TensorCore.FragA",     [], []) -> "", EQualified ([], "wmma::matrix_a")
-      | Some ("Kuiper.TensorCore.FragB",     [], []) -> "", EQualified ([], "wmma::matrix_b")
-      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> "_C", EQualified ([], "wmma::accumulator")
+      | Some ("Kuiper.TensorCore.FragA",     [], []) -> EQualified ([], "wmma::matrix_a")
+      | Some ("Kuiper.TensorCore.FragB",     [], []) -> EQualified ([], "wmma::matrix_b")
+      | Some ("Kuiper.TensorCore.FragAcc",   [], []) -> EQualified ([], "wmma::accumulator")
       | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
     in
     let layout : option expr =
       match cta layout with
       | Some ("Kuiper.TensorCore.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
-      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::column_major")
+      | Some ("Kuiper.TensorCore.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::col_major")
       | Some ("Kuiper.TensorCore.FragLAcc",   [], []) -> None
       | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
     in
@@ -329,18 +343,11 @@ let kpr_translate_alloc_fragment cb et knd m n k layout =
       | MLTY_Named ([], (["Kuiper"; "Float32"], "t")) -> EQualified ([], "float")
       | MLTY_Named ([], (["Kuiper"; "Float64"], "t")) -> EQualified ([], "double")
     in
-    (* Tries to remove the size_t cast in literals, just to make the code
-       more readable. *)
-    let ss x =
-      match x with
-      | EConstant (SizeT, s) -> int_lit (FStarC.Util.int_of_string s)
-      | _ -> x
-    in
     let args =
-      [ faketype; knd; ss (cb m); ss (cb n); ss (cb k) ]
+      [ knd; cb m; cb n; cb k; faketype ]
       @ (match layout with | Some l -> [l] | None -> [])
     in
-      EApp (EQualified ([], "KPR_FRAGMENT_TYPE" ^ macro_suff), args)
+      EApp (EQualified ([], "kpr_fragment"), args)
 
 let kpr_translate_expr : translate_expr_t = fun env e ->
   let e = flatten_app e in
@@ -389,39 +396,43 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)
 
   | "Kuiper.TensorCore.__alloc_array_fragment", [et], [ knd; m; n; k; layout; size ] ->
-    EBufCreate (Stack,
-      EApp (EQualified ([], "KPR_INIT"),
-        [EApp (EQualified ([], "KPR_ARRAY_FRAGMENT_TYPE"), [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])]),
-      EConstant (SizeT, "1"))
+      EApp (EQualified ([], "KPR_INIT_ARR"),
+        [kpr_translate_alloc_fragment cb et knd m n k layout; cb size])
 
   | "Kuiper.TensorCore.__alloc_fragment", [et], [ knd; m; n; k; layout ] ->
-    EBufCreate (Stack,
       EApp (EQualified ([], "KPR_INIT"),
-        [kpr_translate_alloc_fragment cb et knd m n k layout]),
-      EConstant (SizeT, "1"))
+        [kpr_translate_alloc_fragment cb et knd m n k layout])
 
   | "Kuiper.TensorCore.mma_loadA", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
+  | "Kuiper.TensorCore.mma_loadA_cm", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ]
   | "Kuiper.TensorCore.mma_loadB", [et], [ m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
-    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
-    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer.
+    // Luckily addition works, but we trick karamel by adding this __id call
+    // so it will not complain about the types.
+    let gm = EApp (EQualified ([], "__id"), [gm]) in
+    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
+
   | "Kuiper.TensorCore.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
     // TODO remove duplicated code
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
-    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
-    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer.
+    // Luckily addition works, but we trick karamel by adding this __id call
+    // so it will not complain about the types.
+    let gm = EApp (EQualified ([], "__id"), [gm]) in
+    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm; layout ])
 
   | "Kuiper.TensorCore.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     EApp (EQualified ([], "wmma::fill_fragment"), [ fr; cb i ])
 
   // FIXME: the second case below is wrong, et_acc is a type, but apparently
@@ -431,21 +442,24 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   // which is not allowed. We remove it via sed in fixup.sed. Figure out why.
   | "Kuiper.TensorCore.mma_sync'", [et_ab; et_acc], [ scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ]
   | "Kuiper.TensorCore.mma_sync'", [et_ab], [et_acc; scal_ab; scal_acc; m; n; k; la; lb; fa; fb; fc; ea; eb; ec ] ->
-    let fa = deref <| cb fa in
-    let fb = deref <| cb fb in
-    let fc = deref <| cb fc in
+    let fa = cb fa in
+    let fb = cb fb in
+    let fc = cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
   | "Kuiper.TensorCore.mma_sync'", targs, args ->
     raise (Failed <| "unexpected types in mma_sync: " ^ show (targs, args))
 
   | "Kuiper.TensorCore.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
-    let fr = deref <| cb fr in
+    let fr = cb fr in
     let layout = EQualified ([], "wmma::mem_row_major") in // FAKE the API only supports this one for now
     let ldm = cb <| get_strided_row_major_stride strided_l in
     let offset = cb <| get_strided_row_major_offset strided_l in
     let gm = cb gm in
-    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer
-    let gm = EApp (EQualified ([], "kpr_offset"), [gm; offset]) in
+    // Cannot use EBufSub: gm is a matrix (varray), not a karamel buffer.
+    // Luckily addition works, but we trick karamel by adding this __id call
+    // so it will not complain about the types.
+    let gm = EApp (EQualified ([], "__id"), [gm]) in
+    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
 
   (******** FLOAT ARITHMETIC *******)
@@ -564,8 +578,50 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** VECTORIZED ARRAY ********)
 
-  | "Kuiper.Array.Vectorized.gpu_array_vec4_read", [], [ _sz; _i; _j; a; _f; idx; _s ] ->
-    EApp (EQualified ([], "KPR_VECTZD_READ"), [ cb a; cb idx ])
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dd",
+    [ et ],
+    [ sized; _has_vec_cpy;
+      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
+    let dst_off = cb dst_off in
+    let dst_arr = cb dst_arr in
+    let dst_arr = EBufSub (dst_arr, dst_off) in
+    let src_off = cb src_off in
+    let src_arr = cb src_arr in
+    let src_arr = EBufSub (src_arr, src_off) in
+    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh",
+    [ et ],
+    [ sized; _has_vec_cpy;
+      dst_arr; dst_off;
+      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
+    let dst_off = cb dst_off in
+    let dst_arr = cb dst_arr in
+    let dst_arr = EBufSub (dst_arr, dst_off) in
+    let src_off = cb src_off in
+    let src_arr = cb src_arr in
+    let src_arr = EBufSub (src_arr, src_off) in
+    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh", _, _ ->
+    raise <| Failed <| "unexpected arguments to gpu_array_vec_cpy_dh: " ^ show x
+
+  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_hd",
+    [ et ],
+    [ sized; _has_vec_cpy;
+      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      src_arr; src_off;
+      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
+    let dst_off = cb dst_off in
+    let dst_arr = cb dst_arr in
+    let dst_arr = EBufSub (dst_arr, dst_off) in
+    let src_off = cb src_off in
+    let src_arr = cb src_arr in
+    let src_arr = EBufSub (src_arr, src_off) in
+    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
+
   | "Kuiper.Array.Vectorized.gpu_array_vec4_write", [], [ _sz; _i; _j; a; idx; v; _s ] ->
     EApp (EQualified ([], "KPR_VECTZD_WRITE"), [ cb a; cb idx; cb v ])
 
@@ -594,7 +650,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     end
 
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
-    EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
+    _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
   (* Misc stuff missing from F*? *)
   | "FStar.UInt64.zero" , [], [] -> EConstant (Krml.UInt64, "0")

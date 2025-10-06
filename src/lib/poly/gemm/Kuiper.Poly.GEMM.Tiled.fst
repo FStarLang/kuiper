@@ -5,7 +5,7 @@ module Kuiper.Poly.GEMM.Tiled
 open Kuiper
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Poly.GEMM.Util
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix
@@ -259,6 +259,6 @@ fn mmcomb_gpu
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (tile `SZ.gt` 0sz);
+  dassert (tile >^ 0sz);
   launch_sync (mk_kernel tile comb gA gB gC ());
 }

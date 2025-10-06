@@ -10,7 +10,7 @@ open Kuiper.Poly.GEMM.Copy
 
 open Kuiper.EMatrix
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 fn copy_tiles_out_of_matrices

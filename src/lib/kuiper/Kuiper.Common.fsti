@@ -2,7 +2,7 @@ module Kuiper.Common
 
 open Pulse.Lib.Core
 open Kuiper.Divides
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* Some base definitions we want everywhere, only over F* and Pulse constructs.
 This module should have no Kuiper dependencies. *)

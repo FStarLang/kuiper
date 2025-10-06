@@ -16,7 +16,7 @@ open Kuiper.Matrix {
 }
 
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
 module R = Kuiper.Matrix.Reprs
@@ -187,6 +187,7 @@ let kpost
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -220,10 +221,7 @@ fn kf
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
 {
-  let ar1 : gpu_array et (tile * tile) = fst sh;
-  let ar2 : gpu_array et (tile * tile) = fst (snd sh);
-  rewrite each fst sh as ar1;
-  rewrite each fst (snd sh) as ar2;
+  let (ar1, (ar2, _)) = sh;
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
@@ -267,7 +265,6 @@ fn kf
       (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
   {
     let vbk = !bk;
-
     gpu_matrix_extract_tile_ro gA tile tile mrow vbk;
     let aTile = gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk);
     assert (rewrites_to aTile (gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v mrow) (SZ.v vbk)));
@@ -352,7 +349,7 @@ fn kf
     assert (pure (2 * (vbk + 1) == 2 * vbk + 1 + 1));
 
     (* Move to next tile *)
-    bk := vbk +^ 1sz;
+    bk := !bk +^ 1sz;
   };
 
   let s = !sum;
@@ -376,6 +373,7 @@ fn kf
   rewrite each ar2 as fst (snd sh);
   ()
 }
+#pop-options
 
 ghost
 fn setup
@@ -585,7 +583,7 @@ fn mmcomb_gpu
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (tile `SZ.gt` 0sz);
+  dassert (tile >^ 0sz);
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
   launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC ());
 }

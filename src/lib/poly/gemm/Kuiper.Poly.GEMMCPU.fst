@@ -5,7 +5,7 @@ module Kuiper.Poly.GEMMCPU
 open Kuiper
 open Kuiper.Matrix.Common
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open Kuiper.EMatrix { ematrix }
 open Kuiper.EMatrix4 { ematrix4 }
 open Kuiper.Matrix.Reprs.Type
@@ -103,7 +103,7 @@ fn mmcomb_gpu_tiled
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (tile `SZ.gt` 0sz);
+  dassert (tile >^ 0sz);
   dguard (rows   %^ tile = 0sz);
   dguard (shared %^ tile = 0sz);
   dguard (cols   %^ tile = 0sz);
@@ -155,10 +155,10 @@ fn mmcomb_gpu_block_tiled1d
   ensures
     gC |-> MS.mmcomb comb eC eA eB
 {
-  dassert (bm `SZ.gt` 0sz);
-  dassert (bn `SZ.gt` 0sz);
-  dassert (bk `SZ.gt` 0sz);
-  dassert (tm `SZ.gt` 0sz);
+  dassert (bm >^ 0sz);
+  dassert (bn >^ 0sz);
+  dassert (bk >^ 0sz);
+  dassert (tm >^ 0sz);
   dassert (bm %^ tm = 0sz);
   dguard (rows   %^ bm = 0sz);
   dguard (shared %^ bk = 0sz);
@@ -198,70 +198,6 @@ fn mmcomb_gpu_block_tiled1d
 }
 
 inline_for_extraction noextract
-fn mmcomb_gpu_shmem_block_tiled2d
-  (tiled_mmcomb_gpu : block_tiled2d_matmulcomb_gpu_ty)
-  (bm bn bk : szp)
-  (slA : full_mlayout bm bk)
-  (slB : full_mlayout bk bn)
-  {| csA : clayout slA |}
-  {| csB : clayout slB |}
-  (tm : szp{tm /? bm})
-  (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
-  (#_ : squash (SZ.fits (bm*bk + (bm/tm * (bn/tn)))))
-  (#_ : squash (SZ.fits (bk*bn + (bm/tm * (bn/tn)))))
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : full_mlayout rows shared)
-  (#lB : full_mlayout shared cols)
-  (#lC : full_mlayout rows cols)
-  {| cA : clayout lA |}
-  {| cB : clayout lB |}
-  {| cC : clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (#fA : perm)
-  (gB : M.gpu_matrix et lB)
-  (#fB : perm)
-  (gC : M.gpu_matrix et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
-  norewrite
-  preserves
-    cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  requires
-    pure (rows * cols <= max_blocks) **
-    gC |-> eC
-  ensures
-    gC |-> MS.mmcomb comb eC eA eB
-{
-  dassert (bm `SZ.gt` 0sz);
-  dassert (bn `SZ.gt` 0sz);
-  dassert (bk `SZ.gt` 0sz);
-  dassert (tm `SZ.gt` 0sz);
-  dassert (bm %^ tm = 0sz);
-  dassert (bn %^ tn = 0sz);
-  dguard (rows   %^ bm = 0sz);
-  dguard (shared %^ bk = 0sz);
-  dguard (cols   %^ bn = 0sz);
-  let mrows   = rows   /^ bm;
-  let mshared = shared /^ bk;
-  let mcols   = cols   /^ bn;
-
-  tiled_mmcomb_gpu
-    comb
-    gA #eA gB #eB gC #eC
-    bm bn bk
-    tm tn
-    slA slB
-    #csA #csB;
-
-  ()
-}
-
-inline_for_extraction noextract
 fn mmcomb_gpu_shmem_block_tc
   (tiled_mmcomb_gpu : block_tiled_tc_matmulcomb_gpu_ty)
   (bm bn bk : szp)
@@ -292,10 +228,10 @@ fn mmcomb_gpu_shmem_block_tc
   ensures
     (exists* eC'. gC |-> eC')
 {
-  dassert (bm `SZ.gt` 0sz);
-  dassert (bn `SZ.gt` 0sz);
-  dassert (bk `SZ.gt` 0sz);
-  dassert (tm `SZ.gt` 0sz);
+  dassert (bm >^ 0sz);
+  dassert (bn >^ 0sz);
+  dassert (bk >^ 0sz);
+  dassert (tm >^ 0sz);
   dassert (bm %^ tm = 0sz);
   dassert (bn %^ tn = 0sz);
   dguard (rows   %^ bm = 0sz);

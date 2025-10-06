@@ -4,7 +4,7 @@ module Kuiper.Bijection
 open Kuiper.Common
 open Kuiper.SizeT
 open FStar.Ghost { erased }
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
 
 (* A theory of bijections, used to shift views

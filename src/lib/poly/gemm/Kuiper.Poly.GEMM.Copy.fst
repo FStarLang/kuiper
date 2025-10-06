@@ -2,8 +2,14 @@ module Kuiper.Poly.GEMM.Copy
 
 #lang-pulse
 
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
+let modulo_helper (i:nat) (nthr:pos) (tid:nat)
+  : Lemma (requires i % nthr == tid)
+          (ensures  (i - tid) % nthr == 0)
+  = ()
+
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn cp_matrix
   (#et : Type0) {| scalar et |}
@@ -36,7 +42,12 @@ fn cp_matrix
   {
     let v = gpu_matrix_read src (!i /^ cols) (!i %^ cols);
 
-    let ite : erased (natlt (div_ceil (rows*cols) nthr)) = (!i - tid) / nthr;
+    let ite : erased (natlt (divup (rows*cols) nthr)) = (!i - tid) / nthr;
+
+    assert (pure (!i % nthr == tid));
+    modulo_helper !i nthr tid;
+    assert (pure ((!i - tid) % nthr == 0));
+    assert (pure (ite * nthr == !i - tid));
 
     unfold live_tile_stride_cells dst nthr tid;
     forevery_extract (reveal ite) _;
@@ -66,6 +77,7 @@ fn cp_matrix
 
   ()
 }
+#pop-options
 
 // let live_tile_stride_cells_from
 //   (#et : Type0)
@@ -83,7 +95,7 @@ fn cp_matrix
 //     let i = flat_idx/cols <: nat in
 //     let j = flat_idx%cols <: nat in
 //       if (i < rows && j < cols)
-//       then 
+//       then
 //         if b <= it then live_cell m i j
 //         else gpu_matrix_pts_to_cell m i j (macc em i j)
 //       else emp
@@ -107,7 +119,7 @@ fn cp_matrix
 //   requires
 //     live_tile_stride_cells dst nthr tid
 //   ensures
-//     dst |-> esrc 
+//     dst |-> esrc
 // {
 //   let mlen = rows *^ cols;
 

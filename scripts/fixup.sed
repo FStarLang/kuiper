@@ -1,3 +1,4 @@
+:again
 s/threadIdx_x/threadIdx.x/g
 s/blockDim_x/blockDim.x/g
 s/blockIdx_x/blockIdx.x/g
@@ -5,8 +6,11 @@ s/gridDim_x/gridDim.x/g
 s/wmma__/wmma::/g
 /__global__/{n;/^$/d}
 /__device__/{n;/^$/d}
-# cast the damn SHMEM
-s/\([a-zA-Z_0-9]*\) \*\([a-zA-Z_0-9]*\) = \(.*\)KPR_SHMEM_AT(/\1 *\2 = (\1 *)\3KPR_SHMEM_AT(/
-# try to unfold kpr_offset
-s/kpr_offset(\([^ ()]*\), \(([^ ]*)[^ ]*\))/(\1 + \2)/g
-s/\*(auto \*)\&//g
+s/auto_AMP/auto\&/g
+# an awful fix to rewrite auto& *foo into auto& foo
+s/auto\& *\*/auto\&/g
+/auto\&$/{n;s/^\( *\)\*/\1/; b again}
+s/__id(\([^)]*\))/\1/g
+s/ \([[:alnum:]]*\) += 1ULL/\1++/g
+s/ \([[:alnum:]]*\) += 1UL/\1++/g
+s/ \([[:alnum:]]*\) += 1U/\1++/g

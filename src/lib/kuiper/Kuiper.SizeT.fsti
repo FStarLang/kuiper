@@ -1,5 +1,23 @@
 module Kuiper.SizeT
 
+(* F*'s SizeT + some more definitions. We also
+redefine the fits predicate to make it more amenable
+to prove by normalization. *)
+
+(* Must be before the include, or it inherits an assume qualifier. *)
+unfold let my_fits (x:nat) : prop =
+  0 <= x /\ x < 0x100000000
+unfold let fits = my_fits
+
+// We don't have DISallow lists, so we must
+// list all identifiers we want to use from FStar.SizeT
+include FStar.SizeT {
+  t, v, add, mul, rem, uint_to_t, uint32_to_sizet,
+  ( <^ ), ( <=^ ), ( >^ ), ( >=^ ),
+  lt, lte, gt, gte,
+  ( /^ ), ( %^ ), ( +^ ), ( -^ ), ( *^ ),
+}
+
 open FStar.Ghost
 open Pulse.Lib.Core
 open FStar.Mul
@@ -11,7 +29,10 @@ module U64 = FStar.UInt64
 
 unfold type sz  = FStar.SizeT.t
 unfold type szp = x:sz{FStar.SizeT.v x > 0}
-unfold type szlt (n:nat) = i:sz{SZ.v i < n}
+// Note: making this argument int instead of nat prevents
+// queries about non-negativity from appearing in the well-formedness
+// of types.
+unfold type szlt (n:int) = i:sz{SZ.v i < n}
 
 // Good riddance
 // unfold type szlt2
@@ -20,17 +41,28 @@ unfold type szlt (n:nat) = i:sz{SZ.v i < n}
 
 unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
-(* Throughout this repo we assume a 64bit machine. This
-simplifies reasoning about overflow a bit. *)
-assume SizeTFitsU64 : FStar.SizeT.fits_u64
-assume SizeTFitsU32 : FStar.SizeT.fits_u32
+(* Throughout this repo we would like to assume a 64bit machine, and use
+   size_t for array indices and whatnot, BUT, size_t has very poor
+   performance on the GPU compared to a 32-bit integer. So, our
+   fork of karamel extracts size_t to uint32_t, which means we should
+   NOT assume that a size_t can fit a u64, lest we could get overflow.
 
-let fits_sizet (x:nat)
-  : Lemma (requires x < 0x10000000000000000)
+   The right thing to do is use FStar.UInt32.t instead of SizeT.t where
+   this matters, but this is a pervasive change. *)
+assume SizeTFitsU32 : FStar.SizeT.fits_u32
+(* We also assume that those are the ONLY values of size_t that we will
+   ever encounter. *)
+val fits_iff_u32 (x:nat)
+  : Lemma (FStar.SizeT.fits x <==> FStar.UInt.fits x 32)
+          [SMTPat (FStar.SizeT.fits x)]
+
+let fits_ok (x:nat)
+  : Lemma (requires my_fits x)
           (ensures FStar.SizeT.fits x)
           [SMTPat (FStar.SizeT.fits x)]
-  = assert_norm (pow2 64 == 0x10000000000000000);
-    FStar.SizeT.fits_u64_implies_fits x
+  = assert (x < pow2 32);
+    assert_norm (pow2 32 == 0x100000000);
+    FStar.SizeT.fits_u32_implies_fits x
 
 [@@coercion; pulse_unfold] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
 [@@coercion; pulse_unfold] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x

@@ -5,7 +5,7 @@ module Kuiper.Poly.GEMM.Naive
 open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 module MU = Kuiper.Poly.GEMM.Util
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
@@ -179,7 +179,7 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (gC |-> matrix_comb comb eC (MS.matmul eA eB))
+    gC |-> matrix_comb comb eC (MS.matmul eA eB)
 {
   forevery_unzip #(natlt2 rows cols) _ _;
   forevery_unzip #(natlt2 rows cols) _ _;

@@ -9,7 +9,7 @@ open Kuiper.Array
 open Kuiper.Base
 open Kuiper.SizeT
 open Kuiper.SHMem
-module SZ = FStar.SizeT
+module SZ = Kuiper.SizeT
 
 (* A full kernel description, in its most general form. There are
 simpler version in the Kuiper.Kernel.Casts module. *)

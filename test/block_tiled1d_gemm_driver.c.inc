@@ -1,4 +1,3 @@
-#include "timing.h"
 #include "test-common.h"
 #include <inttypes.h>
 #include <stdint.h>
@@ -17,7 +16,7 @@ int main(int argc, char **argv)
     size_t rows = DEFAULT_DIM;
     size_t shared = DEFAULT_DIM;
     size_t cols = DEFAULT_DIM;
-    bool check = false;
+    bool check = true;
 
     progname = argv[0];
 
