@@ -84,3 +84,7 @@ let g_gemm_f32_128x128x32_8x8 = spec 128sz 128sz 32sz 8sz 8sz f32
 let g_gemm_f32_128x128x32_8x16 = spec 128sz 128sz 32sz 8sz 16sz f32
 let g_gemm_f32_128x128x32_16x8 = spec 128sz 128sz 32sz 16sz 8sz f32
 let g_gemm_f32_128x128x32_16x16 = spec 128sz 128sz 32sz 16sz 16sz f32
+let g_gemm_f32_128x128x64_8x8 = spec 128sz 128sz 64sz 8sz 8sz f32
+let g_gemm_f32_128x128x64_8x16 = spec 128sz 128sz 64sz 8sz 16sz f32
+let g_gemm_f32_128x128x64_16x8 = spec 128sz 128sz 64sz 16sz 8sz f32
+let g_gemm_f32_128x128x64_16x16 = spec 128sz 128sz 64sz 16sz 16sz f32
