@@ -16,6 +16,8 @@ module R = Kuiper.Matrix.Reprs
 module GT = Kuiper.Ghost.Transpose
 module MC = Kuiper.Matrix.Casts
 
+#set-options "--z3rlimit 20"
+
 inline_for_extraction noextract
 fn matmul_cpu
   (#size_req : size_req_t)
@@ -166,6 +168,7 @@ fn mmcomb_gpu_block_tiled1d
   // a HORRIBLE restriction
   dguard ((bm /^ tm *^ bn) = bm *^ bk);
   dguard ((bm /^ tm *^ bn) = bn *^ bk);
+  Math.Lemmas.lemma_cancel_mul bm bn bk; // odd...
   dassert (bm = bn);
   let mrows   = rows   /^ bm;
   let mshared = shared /^ bk;
