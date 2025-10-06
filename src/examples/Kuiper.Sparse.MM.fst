@@ -13,38 +13,34 @@ open Kuiper.Matrix.Reprs
 inline_for_extraction noextract
 fn smatrix_sdmm
   (#et : Type0) {| scalar et |}
-  (#erows #eshared #ecols : erased nat)
-  (#lB : mlayout eshared ecols)
-  (#lC : mlayout erows ecols)
-  {| clayout lB, clayout lC |}
   (rows shared cols : szp)
-  (gA : smatrix et erows eshared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  {| clayout lB, clayout lC |}
+  (gA : smatrix et (SZ.v rows) (SZ.v shared))
   (gB : gpu_matrix et lB)
-  (gC : gpu_matrix et #erows #ecols lC)
+  (gC : gpu_matrix et lC)
   #a #b
   requires
-    (exists* c. gpu_matrix_pts_to gC #1.0R c) **
-    pure (
-      erows == SZ.v rows /\
-      eshared == SZ.v shared /\
-      ecols == SZ.v cols
-    )
+    exists* c. gpu_matrix_pts_to gC #1.0R c
   preserves
     gpu ** gA |-> a ** gB |-> b
   ensures
     // gC |-> matmul a b
-    (exists* c. gpu_matrix_pts_to gC #1.0R c)
+    exists* c. gpu_matrix_pts_to gC #1.0R c
 {
 
   let mut i = 0sz;
   unfold smatrix_pts_to gA;
 
   while ((!i <^ rows))
-    invariant live i
+    invariant live i ** pure (!i <= rows)
+    invariant exists* c. gpu_matrix_pts_to gC #1.0R c
   {
     let mut j = 0sz;
     while((!j <^ cols))
-      invariant live j
+      invariant live j ** pure (!j <= cols)
+      invariant exists* c. gpu_matrix_pts_to gC #1.0R c
     {
       with v_i.
         assert i |-> v_i;
@@ -82,17 +78,17 @@ fn smatrix_sdmm
 
         k := !k +^ 1sz;
       };
-      admit();
+      // admit();
       with c. assert gpu_matrix_pts_to gC #1.0R c;
-      gpu_matrix_write #et #erows #ecols #lC #_ gC !i !j dp #c;
-    }
+      gpu_matrix_write gC !i !j !dp #c;
+      j := !j +^ 1sz;
+    };
+    i := !i +^ 1sz;
   };
   fold smatrix_pts_to gA;
 }
 
-let _mmsd_u32 rows shared cols =
-  smatrix_sdmm #u32 #_ #_ #_ #_
-  #(row_major _ _) #(row_major _ _)
-  #(clayout_from_crepr shared cols row_major crepr_row_major)
-  #(clayout_from_crepr rows cols row_major crepr_row_major)
+let _mmsd_u32 (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
+  smatrix_sdmm #u32 #_
   rows shared cols
+  #(row_major _ _) #(row_major _ _)
