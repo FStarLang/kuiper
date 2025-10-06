@@ -136,7 +136,6 @@ let unsparse
       then elems @! index_mem i pos
       else zero
 
-unfold
 let sarray_pts_to'
   (#et:Type0) {| d : scalar et |} (#l : nat)
   (a : sarray et l)
@@ -189,8 +188,8 @@ fn sarray_iterator_init
   (a : sarray et l)
   (#f : perm)
   (#s : erased (seq et))
-  (#v_elems : erased (seq et){len v_elems == a.nnz})
-  (#v_pos   : erased (seq sz){len v_pos   == a.nnz})
+  (#v_elems : erased (seq et){Seq.length v_elems == a.nnz})
+  (#v_pos   : erased (seq sz){Seq.length v_pos   == a.nnz})
   preserves gpu
   preserves sarray_pts_to' a #f s v_elems v_pos
   returns i : sarray_iterator #et #l a
@@ -200,6 +199,8 @@ fn sarray_iterator_init
   )
 {
     let i : sarray_iterator a = { i = 0sz };
+    unfold sarray_pts_to' a #f s v_elems v_pos;
+    fold sarray_pts_to' a #f s v_elems v_pos;
     i;
 }
 
@@ -278,7 +279,7 @@ type smatrix (et : Type0)
   nnz       : sz; // número de no-zeros
   elems     : gpu_array et nnz; // elementos (no zero)
   col_ind   : gpu_array sz nnz; // columna de cada elemento
-  row_off   : gpu_array sz (rows + 1); // posición de cada elemento
+  row_off   : gpu_array sz (rows + 1); // posición de cada comienzo de  fila
 }
 
 // Medio fea esta
@@ -386,7 +387,7 @@ fn smatrix_id
   }
 }
 
-// let smatrix_id_u32 = smatrix_id #u32 #_
+let smatrix_id_u32 = smatrix_id #u32 #_
 
 inline_for_extraction noextract
 fn sarray_iterator_test
@@ -401,13 +402,12 @@ fn sarray_iterator_test
 
   with v_elems v_pos.
     assert sarray_pts_to' a s v_elems v_pos;
-  
-  admit();
-  let mut it : sarray_iterator #et #l a = sarray_iterator_init #et #ets #l a #1.0R #s #v_elems #v_pos;
+
+  let mut it : sarray_iterator #et #l a = sarray_iterator_init a;
 
   fold sarray_pts_to a s;
 
-  while (not(sarray_iterator_end !it))
+  while (not (sarray_iterator_end !it))
     invariant
       live it
   {

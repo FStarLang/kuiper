@@ -22,6 +22,7 @@ fn sarray_id
     invariant a |-> s0 ** live i
   {
     unfold sarray_pts_to a s0;
+    unfold sarray_pts_to' a s0;
     with v_elems. assert a.elems |-> v_elems;
 
     let v = gpu_array_read a.elems !i;
@@ -32,7 +33,8 @@ fn sarray_id
       assert pure (Seq.equal v_elems (Seq.upd v_elems i_v v));
 
     i := !i `SZ.add` 1sz;
-    
+
+    fold sarray_pts_to' a s0;
     fold sarray_pts_to a s0;
   }
 }
@@ -77,6 +79,7 @@ fn sarray_scale
   ensures  a |-> scale_seq k s
 {
   unfold sarray_pts_to a s;
+  unfold sarray_pts_to' a s;
 
   let mut i = 0sz;
 
@@ -105,6 +108,7 @@ fn sarray_scale
 
   scale_unsparse k #a.nnz #l v_elems (cast_pos v_pos);
 
+  fold sarray_pts_to' a (scale_seq k s);
   fold sarray_pts_to a (scale_seq k s);
 }
 

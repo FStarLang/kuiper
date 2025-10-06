@@ -240,6 +240,7 @@ fn sarray_product_dense
   unfold a |-> s; // que pasa con esto?
   unfold v |-> t;
   unfold sarray_pts_to a s;
+  unfold sarray_pts_to' a s;
 
   with v_elems. assert a.elems |-> v_elems;
   with v_pos. assert a.pos |-> v_pos;
@@ -271,6 +272,7 @@ fn sarray_product_dense
 
   lemma_sparse_dprod v_elems pos t zero; 
 
+  fold sarray_pts_to' a s;
   fold sarray_pts_to a s;
   fold v |-> t;
 
@@ -297,7 +299,9 @@ fn sarray_product_quadratic
     emp //pure (dp == dprod s t)
 {
   unfold sarray_pts_to a s;
+  unfold sarray_pts_to' a s;
   unfold sarray_pts_to b t;
+  unfold sarray_pts_to' b t;
 
   let mut dp : et = zero;
 
@@ -324,7 +328,9 @@ fn sarray_product_quadratic
   };
 
 
+  fold sarray_pts_to' a s;
   fold sarray_pts_to a s;
+  fold sarray_pts_to' b t;
   fold sarray_pts_to b t;
 
   !dp;
@@ -347,7 +353,9 @@ fn sarray_product
   //   pure (dp == dprod s t)
 {
   unfold sarray_pts_to a s;
+  unfold sarray_pts_to' a s;
   unfold sarray_pts_to b t;
+  unfold sarray_pts_to' b t;
 
   let mut dp : et = zero;
 
@@ -374,7 +382,9 @@ fn sarray_product
   };
 
 
+  fold sarray_pts_to' a s;
   fold sarray_pts_to a s;
+  fold sarray_pts_to' b t;
   fold sarray_pts_to b t;
 
   !dp;
