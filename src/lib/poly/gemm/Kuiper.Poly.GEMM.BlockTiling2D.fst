@@ -477,6 +477,7 @@ fn kf
   (* register caches *)
   let mut rAcol : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
   let mut rBrow : Pulse.Lib.Array.array et = [| zero #et #_ ; tn |];
+  assume pure (SZ.fits (tm * tn)); // should be obvious
   let mut rchProd : Pulse.Lib.Array.array et = [| zero #et #_ ; tm*^tn |];
 
   let mut bkIdx  : sz = 0sz;

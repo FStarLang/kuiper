@@ -30,7 +30,7 @@ let clayout4_imap
 
 (* This is only between abstract indices and concrete indices.
    Nothing here depends on the *actual* layout. *)
-#push-options "--split_queries always --retry 5" // flaky
+#push-options "--split_queries always --retry 5 --z3rlimit 20" // flaky
 inline_for_extraction noextract
 let clayout4_bij
   (#mrows #mcols #brows #bcols : nat)
@@ -60,7 +60,7 @@ let clayout4_bij
 // FIXME: The VC for this definition is huge. It's incredible
 // we can actually print it out and solve it. Try to make
 // sense of it and report bug in F*.
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40 --split_queries always"
 inline_for_extraction noextract
 instance cview_from_clayout4
   (et : Type)
@@ -143,6 +143,7 @@ fn gpu_matrix_pts_to_ref
   fold gpu_matrix_pts_to g #f em;
 }
 
+#push-options "--z3rlimit 40"
 ghost
 fn gpu_matrix_concr
   (#et:Type)
@@ -161,7 +162,10 @@ fn gpu_matrix_concr
   assert pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em));
   a'
 }
+#pop-options
 
+#restart-solver // work around z3 crash
+#push-options "--z3seed 2 --z3rlimit 40"
 ghost
 fn gpu_matrix_abs
   (#et:Type)
@@ -181,6 +185,7 @@ fn gpu_matrix_abs
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
+#pop-options
 
 ghost
 fn gpu_matrix_abs'
@@ -362,7 +367,7 @@ let gpu_matrix_pts_to_cell
         undivmod bcols (bj, j)) v
 
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 80"
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
@@ -398,7 +403,7 @@ fn gpu_matrix_read_cell
 }
 #pop-options
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 80"
 inline_for_extraction noextract
 fn gpu_matrix_write_cell
   (#et:Type0)
