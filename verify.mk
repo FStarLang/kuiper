@@ -2,8 +2,12 @@ default: all
 include .common.mk
 
 all: verify-all
-all: extraction-targets
-all: build-targets
+all: extract-all
+all: build-all
+
+minimal: verify-minimal
+minimal: extract-minimal
+minimal: build-minimal
 
 .PHONY: .force
 .force:
@@ -173,7 +177,13 @@ endif
 	# add them too. Instead, I'm using this expression below to turn the
 	# $(ROOTS) into .checked. I don't like this since it involves choosing
 	# the directory too and that is the job of --dep.
-verify-all: $(foreach f, $(ROOTS), obj/$(notdir $(f)).checked)
+
+MY_CHECKED_FILES := $(foreach f, $(ROOTS), obj/$(notdir $(f)).checked)
+verify-all: $(MY_CHECKED_FILES)
+
+TENSORCORE_CHECKED_FILES := $(foreach f,$(MY_CHECKED_FILES),$(if $(findstring TensorCore,$(f)),$(f)))
+MINIMAL_CHECKED_FILES := $(filter-out $(TENSORCORE_CHECKED_FILES),$(MY_CHECKED_FILES))
+verify-minimal: $(MINIMAL_CHECKED_FILES)
 
 # Ignore some warnings from the Pulse library, it's out of scope for us.
 # Also admit queries, we just want a quick build and it's supposed to be

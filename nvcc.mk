@@ -54,6 +54,7 @@ endif
 TESTS := $(filter-out $(NOTEST), $(TESTS))
 
 EXTRACT :=
+EXTRACT_MINIMAL :=
 
 # Extract everything in src/examples
 EXTRACT += $(wildcard src/examples/*.fst)
@@ -68,10 +69,19 @@ EXTRACT += src/examples/Kuiper.Example2.fst
 INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
 EXTRACT := $(filter-out $(INST_MODULES),$(EXTRACT))
 
-extraction-targets: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
-extraction-targets: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
+extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
+extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
+
+EXTRACT_MINIMAL := $(EXTRACT)
+EXTRACT_MINIMAL := $(filter-out src/lib/inst/gemm/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
+EXTRACT_MINIMAL := $(filter-out src/lib/inst/gemm/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
+EXTRACT_MINIMAL := $(filter-out src/examples/Kuiper.Example.TensorCore.fst, $(EXTRACT_MINIMAL))
+
+extract-minimal: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))
+extract-minimal: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))
 
 BUILD :=
+BUILD_MINIMAL :=
 
 # *Build* every executable in test/, we can do this without a GPU
 BUILD += $(patsubst %,obj/%.exe,$(TESTS))
@@ -81,7 +91,14 @@ TENSORCORE_BUILD := $(foreach f,$(BUILD),$(if $(findstring TensorCore,$(f)),$(f)
 BUILD := $(filter-out $(TENSORCORE_BUILD),$(BUILD))
 endif
 
-build-targets: $(BUILD)
+build-all: $(BUILD)
+
+BUILD_MINIMAL := $(BUILD)
+# For minimal, filter out everything mentioning tensorcore
+TENSORCORE_BUILD := $(foreach f,$(BUILD),$(if $(findstring TensorCore,$(f)),$(f)))
+BUILD_MINIMAL := $(filter-out $(TENSORCORE_BUILD),$(BUILD_MINIMAL))
+
+build-minimal: $(BUILD_MINIMAL)
 
 .PHONY: test
 test: $(patsubst %,$(OUTDIR)/%.test,$(TESTS))

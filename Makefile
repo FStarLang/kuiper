@@ -4,6 +4,10 @@ include .common.mk
 all:
 	+$(MAKE) -f verify.mk all
 
+.PHONY: minimal
+minimal:
+	+$(MAKE) -f verify.mk minimal
+
 .PHONY: prepare
 prepare:
 	+$(MAKE) -f verify.mk prepare
