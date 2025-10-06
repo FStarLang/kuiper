@@ -113,6 +113,10 @@ let get_strided_row_major_stride (e : mlexpr) : mlexpr =
 let _MUST (e : expr) : expr =
     EApp (EQualified ([], "MUST"), [e])
 
+let _mlMUST (e : mlexpr) : mlexpr =
+    with_ty ml_unit_ty <|
+      MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "MUST"), [e])
+
 let ctr = mk_ref 0
 
 let extra_unit_binder = {mlbinder_name = "extra_unit"; mlbinder_ty = ml_unit_ty; mlbinder_attrs = []}
@@ -314,13 +318,26 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
     | _ ->
       failwith ("launch_kernel: not a record: " ^ show kdesc)
   in
-  let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
+  let assert_shmem_size : mlexpr =
+    with_ty ml_unit_ty <|
+      MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
+  in
+  let shmem_setup : mlexpr =
+    let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
+    let aa : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
+    _mlMUST <|
+      with_ty ml_unit_ty <|
+      MLE_App (kk, [ hd; aa; smem_bytesz ])
+  in
   let e' =
-  with_ty ml_unit_ty <|
-    MLE_App (kcall, [ hd; nblk; nthr; smem_bytesz ] @ rest_args)
+    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
+    with_ty ml_unit_ty <|
+      MLE_App (kcall, [ hd; nblk; nthr; smem_bytesz ] @ rest_args)
   in
   // Format.print1_warning "New kcall: %s\n" (show e');
-  return e'
+  return <|
+    with_ty ml_unit_ty <|
+    MLE_Seq [assert_shmem_size; shmem_setup; e']
 
 let kpr_translate_alloc_fragment cb et knd m n k layout =
     let knd =
