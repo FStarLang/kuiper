@@ -63,6 +63,10 @@ float_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_0,
               mrows * mcols,
               tile * tile,
@@ -142,6 +146,10 @@ double_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_1,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_1,
               mrows * mcols,
               tile * tile,
@@ -222,6 +230,10 @@ uint32_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_2,
               mrows * mcols,
               tile * tile,
@@ -299,6 +311,10 @@ uint64_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_3,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_3,
               mrows * mcols,
               tile * tile,
@@ -376,6 +392,10 @@ float_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_4,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_4,
               mrows * mcols,
               tile * tile,
@@ -455,6 +475,10 @@ double_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_5,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_5,
               mrows * mcols,
               tile * tile,
@@ -535,6 +559,10 @@ uint32_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_6,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_6,
               mrows * mcols,
               tile * tile,
@@ -612,6 +640,10 @@ uint64_t
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_7,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_7,
               mrows * mcols,
               tile * tile,
@@ -683,10 +715,14 @@ float_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_8,
-              rows / 32U * mcols,
-              1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_8, mrows * mcols, 1024U, 8192U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
@@ -755,10 +791,14 @@ double_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_9,
-              rows / 32U * mcols,
-              1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_9, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_9, mrows * mcols, 1024U, 16384U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
@@ -828,10 +868,14 @@ uint32_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_10,
-              rows / 32U * mcols,
-              1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_10, mrows * mcols, 1024U, 8192U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
@@ -898,10 +942,14 @@ uint64_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_11,
-              rows / 32U * mcols,
-              1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_11, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_11, mrows * mcols, 1024U, 16384U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
@@ -968,10 +1016,14 @@ float_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_12,
-              rows / 32U * mcols,
-              1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_12, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_12, mrows * mcols, 1024U, 8192U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
@@ -1040,10 +1092,14 @@ double_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_13,
-              rows / 32U * mcols,
-              1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_13, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_13, mrows * mcols, 1024U, 16384U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
@@ -1113,10 +1169,14 @@ uint32_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_14,
-              rows / 32U * mcols,
-              1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_14, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_14, mrows * mcols, 1024U, 8192U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
@@ -1183,10 +1243,14 @@ uint64_t
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_15,
-              rows / 32U * mcols,
-              1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_15, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_15, mrows * mcols, 1024U, 16384U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
@@ -1253,10 +1317,14 @@ float_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_16,
-              rows / 16U * mcols,
-              256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_16, mrows * mcols, 256U, 2048U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
@@ -1325,10 +1393,14 @@ double_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_17,
-              rows / 16U * mcols,
-              256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_17, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_17, mrows * mcols, 256U, 4096U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
@@ -1398,10 +1470,14 @@ uint32_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_18,
-              rows / 16U * mcols,
-              256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_18, mrows * mcols, 256U, 2048U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
@@ -1468,10 +1544,14 @@ uint64_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_19,
-              rows / 16U * mcols,
-              256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_19, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_19, mrows * mcols, 256U, 4096U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
@@ -1538,10 +1618,14 @@ float_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_20,
-              rows / 16U * mcols,
-              256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_20, mrows * mcols, 256U, 2048U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
     float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
@@ -1610,10 +1694,14 @@ double_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_21,
-              rows / 16U * mcols,
-              256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_21, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_21, mrows * mcols, 256U, 4096U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
     double_t *c =
@@ -1683,10 +1771,14 @@ uint32_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_22,
-              rows / 16U * mcols,
-              256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_22, mrows * mcols, 256U, 2048U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint32_t), rows * cols);
     uint32_t *c = (uint32_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint32_t));
@@ -1753,10 +1845,14 @@ uint64_t
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_23,
-              rows / 16U * mcols,
-              256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_23, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_23, mrows * mcols, 256U, 4096U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
     KRML_CHECK_SIZE(sizeof(uint64_t), rows * cols);
     uint64_t *c = (uint64_t *) KRML_HOST_CALLOC(rows * cols, sizeof(uint64_t));
@@ -1825,6 +1921,10 @@ Kuiper_GEMM_SHMem_g_matmul_f32_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_24,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_24,
               mrows * mcols,
               tile * tile,
@@ -1891,6 +1991,10 @@ Kuiper_GEMM_SHMem_g_matmul_f64_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_25,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_25,
               mrows * mcols,
               tile * tile,
@@ -1957,6 +2061,10 @@ Kuiper_GEMM_SHMem_g_matmul_u32_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_26,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_26,
               mrows * mcols,
               tile * tile,
@@ -2023,6 +2131,10 @@ Kuiper_GEMM_SHMem_g_matmul_u64_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_27,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_27,
               mrows * mcols,
               tile * tile,
@@ -2089,6 +2201,10 @@ Kuiper_GEMM_SHMem_g_matmul_f32_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_28,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_28,
               mrows * mcols,
               tile * tile,
@@ -2155,6 +2271,10 @@ Kuiper_GEMM_SHMem_g_matmul_f64_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_29,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_29,
               mrows * mcols,
               tile * tile,
@@ -2221,6 +2341,10 @@ Kuiper_GEMM_SHMem_g_matmul_u32_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_30,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_30,
               mrows * mcols,
               tile * tile,
@@ -2287,6 +2411,10 @@ Kuiper_GEMM_SHMem_g_matmul_u64_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_31,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_31,
               mrows * mcols,
               tile * tile,
@@ -2346,10 +2474,14 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_rrr(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_32,
-              rows / 32U * mcols,
-              1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_32, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_32, mrows * mcols, 1024U, 8192U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2405,10 +2537,14 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_rrr(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_33,
-              rows / 32U * mcols,
-              1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_33, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_33, mrows * mcols, 1024U, 16384U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2464,10 +2600,14 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_rrr(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_34,
-              rows / 32U * mcols,
-              1024U, 8192U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_34, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_34, mrows * mcols, 1024U, 8192U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2523,10 +2663,14 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_rrr(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_35,
-              rows / 32U * mcols,
-              1024U, 16384U, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_35, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_35, mrows * mcols, 1024U, 16384U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2581,10 +2725,14 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile32_ccc(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_36,
-              rows / 32U * mcols,
-              1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_36, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_36, mrows * mcols, 1024U, 8192U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2640,10 +2788,14 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile32_ccc(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_37,
-              rows / 32U * mcols,
-              1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_37, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_37, mrows * mcols, 1024U, 16384U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2699,10 +2851,14 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile32_ccc(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_38,
-              rows / 32U * mcols,
-              1024U, 8192U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_38, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_38, mrows * mcols, 1024U, 8192U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2758,10 +2914,14 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile32_ccc(uint32_t rows,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_39,
-              rows / 32U * mcols,
-              1024U, 16384U, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_39, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_39, mrows * mcols, 1024U, 16384U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2816,10 +2976,14 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_rrr(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_40,
-              rows / 16U * mcols,
-              256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_40, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_40, mrows * mcols, 256U, 2048U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2875,10 +3039,14 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_rrr(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_41,
-              rows / 16U * mcols,
-              256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_41, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_41, mrows * mcols, 256U, 4096U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2934,10 +3102,14 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_rrr(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_42,
-              rows / 16U * mcols,
-              256U, 2048U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_42, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_42, mrows * mcols, 256U, 2048U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -2993,10 +3165,14 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_rrr(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_43,
-              rows / 16U * mcols,
-              256U, 4096U, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_43, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_43, mrows * mcols, 256U, 4096U, shared, cols, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -3051,10 +3227,14 @@ Kuiper_GEMM_SHMem_g_matmul_f32_tile16_ccc(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_44,
-              rows / 16U * mcols,
-              256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_44, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_44, mrows * mcols, 256U, 2048U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -3110,10 +3290,14 @@ Kuiper_GEMM_SHMem_g_matmul_f64_tile16_ccc(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_45,
-              rows / 16U * mcols,
-              256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_45, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_45, mrows * mcols, 256U, 4096U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -3169,10 +3353,14 @@ Kuiper_GEMM_SHMem_g_matmul_u32_tile16_ccc(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_46,
-              rows / 16U * mcols,
-              256U, 2048U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_46, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_46, mrows * mcols, 256U, 2048U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -3228,10 +3416,14 @@ Kuiper_GEMM_SHMem_g_matmul_u64_tile16_ccc(uint32_t rows,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_47,
-              rows / 16U * mcols,
-              256U, 4096U, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_47, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_47, mrows * mcols, 256U, 4096U, rows, shared, gA, gB,
+              gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -3301,6 +3493,10 @@ Kuiper_GEMM_SHMem_g_gemm_f32_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_48,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_48,
               mrows * mcols,
               tile * tile,
@@ -3375,6 +3571,10 @@ Kuiper_GEMM_SHMem_g_gemm_f64_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_49,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_49,
               mrows * mcols,
               tile * tile,
@@ -3449,6 +3649,10 @@ Kuiper_GEMM_SHMem_g_gemm_u32_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_50,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_50,
               mrows * mcols,
               tile * tile,
@@ -3523,6 +3727,10 @@ Kuiper_GEMM_SHMem_g_gemm_u64_rrr(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_51,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_51,
               mrows * mcols,
               tile * tile,
@@ -3597,6 +3805,10 @@ Kuiper_GEMM_SHMem_g_gemm_f32_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_52,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_52,
               mrows * mcols,
               tile * tile,
@@ -3671,6 +3883,10 @@ Kuiper_GEMM_SHMem_g_gemm_f64_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_53,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_53,
               mrows * mcols,
               tile * tile,
@@ -3745,6 +3961,10 @@ Kuiper_GEMM_SHMem_g_gemm_u32_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(4U * (tile * tile) + 4U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_54,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              4U * (tile * tile) + 4U * (tile * tile)));
     KPR_KCALL(__hoisted_54,
               mrows * mcols,
               tile * tile,
@@ -3819,6 +4039,10 @@ Kuiper_GEMM_SHMem_g_gemm_u64_ccc(uint32_t tile,
     uint32_t mshared = shared / tile;
     uint32_t mcols = cols / tile;
     KPR_ASSERT(tile > 0U);
+    KPR_SHMEM_FITS(8U * (tile * tile) + 8U * (tile * tile));
+    MUST(cudaFuncSetAttribute(__hoisted_55,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              8U * (tile * tile) + 8U * (tile * tile)));
     KPR_KCALL(__hoisted_55,
               mrows * mcols,
               tile * tile,
@@ -3886,12 +4110,14 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_rrr(float_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_56,
-              rows / 32U * mcols,
-              1024U,
-              8192U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_56, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_56, mrows * mcols, 1024U, 8192U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -3955,12 +4181,14 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_rrr(double_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_57,
-              rows / 32U * mcols,
-              1024U,
-              16384U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_57, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_57, mrows * mcols, 1024U, 16384U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4024,12 +4252,14 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_rrr(uint32_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_58,
-              rows / 32U * mcols,
-              1024U,
-              8192U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_58, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_58, mrows * mcols, 1024U, 8192U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4093,12 +4323,14 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_rrr(uint64_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_59,
-              rows / 32U * mcols,
-              1024U,
-              16384U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_59, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_59, mrows * mcols, 1024U, 16384U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4161,12 +4393,14 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile32_ccc(float_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_60,
-              rows / 32U * mcols,
-              1024U,
-              8192U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_60, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_60, mrows * mcols, 1024U, 8192U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4230,12 +4464,14 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile32_ccc(double_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_61,
-              rows / 32U * mcols,
-              1024U,
-              16384U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_61, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_61, mrows * mcols, 1024U, 16384U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4299,12 +4535,14 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile32_ccc(uint32_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_62,
-              rows / 32U * mcols,
-              1024U,
-              8192U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_62, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
+    KPR_KCALL(__hoisted_62, mrows * mcols, 1024U, 8192U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4368,12 +4606,14 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile32_ccc(uint64_t alpha,
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
+    uint32_t mrows = rows / 32U;
+    uint32_t mshared = shared / 32U;
     uint32_t mcols = cols / 32U;
-    KPR_KCALL(__hoisted_63,
-              rows / 32U * mcols,
-              1024U,
-              16384U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 32U, mcols);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_63, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
+    KPR_KCALL(__hoisted_63, mrows * mcols, 1024U, 16384U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4436,12 +4676,14 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_rrr(float_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_64,
-              rows / 16U * mcols,
-              256U,
-              2048U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_64, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_64, mrows * mcols, 256U, 2048U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4505,12 +4747,14 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_rrr(double_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_65,
-              rows / 16U * mcols,
-              256U,
-              4096U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_65, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_65, mrows * mcols, 256U, 4096U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4574,12 +4818,14 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_rrr(uint32_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_66,
-              rows / 16U * mcols,
-              256U,
-              2048U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_66, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_66, mrows * mcols, 256U, 2048U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4643,12 +4889,14 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_rrr(uint64_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_67,
-              rows / 16U * mcols,
-              256U,
-              4096U,
-              alpha, beta, shared, cols, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_67, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_67, mrows * mcols, 256U, 4096U, alpha, beta, shared,
+              cols, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4711,12 +4959,14 @@ Kuiper_GEMM_SHMem_g_gemm_f32_tile16_ccc(float_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_68,
-              rows / 16U * mcols,
-              256U,
-              2048U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_68, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_68, mrows * mcols, 256U, 2048U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4780,12 +5030,14 @@ Kuiper_GEMM_SHMem_g_gemm_f64_tile16_ccc(double_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_69,
-              rows / 16U * mcols,
-              256U,
-              4096U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_69, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_69, mrows * mcols, 256U, 4096U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4849,12 +5101,14 @@ Kuiper_GEMM_SHMem_g_gemm_u32_tile16_ccc(uint32_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_70,
-              rows / 16U * mcols,
-              256U,
-              2048U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(2048U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_70, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
+    KPR_KCALL(__hoisted_70, mrows * mcols, 256U, 2048U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -4918,11 +5172,13 @@ Kuiper_GEMM_SHMem_g_gemm_u64_tile16_ccc(uint64_t alpha,
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
+    uint32_t mrows = rows / 16U;
+    uint32_t mshared = shared / 16U;
     uint32_t mcols = cols / 16U;
-    KPR_KCALL(__hoisted_71,
-              rows / 16U * mcols,
-              256U,
-              4096U,
-              alpha, beta, rows, shared, gA, gB, gC, shared / 16U, mcols);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_71, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
+    KPR_KCALL(__hoisted_71, mrows * mcols, 256U, 4096U, alpha, beta, rows,
+              shared, gA, gB, gC, mshared, mcols);
     MUST(cudaDeviceSynchronize());
 }
