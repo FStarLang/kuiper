@@ -12,7 +12,7 @@ minimal: build-minimal
 .PHONY: .force
 .force:
 
-.configure.output: ./configure
+.configure.output: ./configure $(which nvcc)
 	./configure $@
 
 include .configure.output
