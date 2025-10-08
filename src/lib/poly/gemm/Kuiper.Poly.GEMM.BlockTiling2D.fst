@@ -386,7 +386,7 @@ fn epilogue
       // all obvious but without the asserts the next line fails
       assert pure (SZ.fits (tm * tn));
       assert pure (SZ.fits ((tm-1) * tn + tn));
-      with vrchProd. assert Pulse.Lib.Array.Core.pts_to rchProd vrchProd;
+      with vrchProd. assert Pulse.Lib.Array.pts_to rchProd vrchProd;
       assert pure (Seq.length vrchProd == tm * tn);
       let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
       let v' = comb v0 v1;
