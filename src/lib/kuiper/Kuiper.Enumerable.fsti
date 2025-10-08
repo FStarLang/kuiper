@@ -59,6 +59,12 @@ val injection_implies_lte_cardinal
   (inj : injection a b)
   : Lemma (cardinal a #_ <= cardinal b #_)
 
+val injection_equal_cardinal_implies_bijection
+  (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}
+  (inj : injection a b)
+  : Lemma (requires cardinal a #_ == cardinal b #_)
+          (ensures  FStar.Functions.is_surj inj.f)
+
 instance enumerable_unit : enumerable unit = {
   _cardinal = 1;
   bij = bij_unit_natlt1;

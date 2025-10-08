@@ -6,11 +6,18 @@ open Kuiper.Bijection
 open FStar.Tactics.Typeclasses
 module SZ = Kuiper.SizeT
 
-#push-options "--warn_error -288"
+let full_layout_size_lt #rows #cols (l : mlayout rows cols)
+  : Lemma (ensures l.len >= rows * cols)
+= Kuiper.Enumerable.injection_implies_lte_cardinal (natlt rows & natlt cols) (natlt l.len) l.map
+
+let full_layout_size #rows #cols (l : mlayout rows cols)
+  : Lemma (requires is_full_layout l)
+          (ensures  l.len == rows * cols)
+          [SMTPat (is_full_layout l)]
+= let b : bijection (natlt rows & natlt cols) (natlt l.len) = Kuiper.Bijection.bij_inj' l.map in
+  Kuiper.Enumerable.bijection_implies_equal_cardinal (natlt rows & natlt cols) (natlt l.len) b
+
 let clayout_fits (#rows #cols : nat) (#l : mlayout rows cols)
   (c : clayout l)
   : Lemma (SZ.fits (mlayout_size l))
-  = admit()
-    (* I feel this should be provable: c_to is injective and has rows * cols distinct
-    arguments, and returns size_t's (that fit). *)
-#pop-options
+  = () // This is now trivial, nice

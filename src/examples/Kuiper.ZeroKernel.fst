@@ -14,32 +14,39 @@ fn kf
   ensures emp
 { () }
 
+ghost
+fn block_setup ()
+  norewrite
+  requires block_setup_tok 0 ** emp
+  ensures  block_setup_tok 0 ** (forall+ (tid : natlt 0). emp) ** emp
+{
+  forevery_emp_intro (natlt 0) #_;
+}
+
+ghost
+fn block_teardown ()
+  norewrite
+  requires (forall+ (tid : natlt 0). emp) ** emp
+  ensures  emp
+{
+  forevery_emp_elim (natlt 0) #_;
+}
+
 inline_for_extraction noextract
 let kdesc :
-  kernel_desc
+  kernel_desc_1_n
     emp emp
 = {
-  nblk = 0sz;
   nthr = 0sz;
 
-  shmems_desc = [];
+  kpre  = (fun _ -> emp);
+  kpost = (fun _ -> emp);
 
-  kpre  = (fun _ _ _ -> emp);
-  kpost = (fun _ _ _ -> emp);
-
-  f = (fun _ _ _ -> kf);
+  f = (fun _ -> kf);
 
   frame = emp;
-  setup    = magic();
-  teardown = magic();
-
-  block_pre  = (fun _ -> emp);
-  block_post = (fun _ -> emp);
-
-  block_setup    = magic();
-  block_teardown = magic();
-
-  block_frame = (fun _ _ -> emp);
+  block_setup    = block_setup;
+  block_teardown = block_teardown;
 }
 
 fn test ()

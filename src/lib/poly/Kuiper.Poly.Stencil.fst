@@ -52,6 +52,7 @@ let kpost
   M.gpu_matrix_pts_to_cell gOut (tid / cols) (tid % cols)
     (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn (tid / cols) (tid % cols))
 
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -92,6 +93,7 @@ fn kf
 
   M.gpu_matrix_write_cell gOut i j sv;
 }
+#pop-options
 
 // #set-options "--print_implicits --debug SMTFail --split_queries always --print_bound_var_types"
 

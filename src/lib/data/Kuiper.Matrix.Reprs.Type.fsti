@@ -20,18 +20,6 @@ let is_full_layout (l : mlayout 'rows 'cols) : prop =
 let full_mlayout (rows cols : nat) =
   l : mlayout rows cols { is_full_layout l }
 
-#push-options "--warn_error -288"
-let full_layout_size_lt #rows #cols (l : mlayout rows cols)
-  : Lemma (ensures  l.len >= rows * cols)
-          [SMTPat (has_type l (mlayout rows cols))]
-  = admit()
-#pop-options
-
-let full_layout_size #rows #cols (l : mlayout rows cols)
-  : Lemma (requires is_full_layout l)
-          (ensures  l.len == rows * cols)
-          [SMTPat (is_full_layout l)]
-  = admit()
 
 let mlayout_size (#rows #cols : nat) (l : mlayout rows cols) : GTot nat =
   l.len
@@ -50,12 +38,19 @@ class clayout (#rows #cols : erased nat) (l : mlayout rows cols) = {
   [@@@no_method]  c_to   : (i:SZ.t{i < rows}) -> (j:SZ.t{j < cols}) -> r:SZ.t{SZ.v r == l.map.f (SZ.v i, SZ.v j)};
 }
 
-#push-options "--warn_error -288"
+val full_layout_size_lt #rows #cols (l : mlayout rows cols)
+  : Lemma (ensures  l.len >= rows * cols)
+          [SMTPat (has_type l (mlayout rows cols))]
+
+val full_layout_size #rows #cols (l : mlayout rows cols)
+  : Lemma (requires is_full_layout l)
+          (ensures  l.len == rows * cols)
+          [SMTPat (is_full_layout l)]
+
 val clayout_fits (#rows #cols : nat) (#l : mlayout rows cols)
   (c : clayout l)
   : Lemma (SZ.fits (mlayout_size l))
           [SMTPat (has_type c (clayout l))]
-#pop-options
 
 inline_for_extraction
 type crepr_t (r : mrepr) =

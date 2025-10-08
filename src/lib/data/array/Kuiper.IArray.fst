@@ -234,8 +234,23 @@ fn iarray_end2_
     core a |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 {
   unfold iarray_pts_to a #f v;
-  (* prove later... this should be fine. *)
-  admit();
+  let b : (vw.sch.ait =~ natlt vw.len) = full_view_bij vw;
+  forevery_iso b _;
+
+  forevery_ext #(natlt vw.len)
+    (fun i -> iarray_pts_to_cell a #f (b.gg i) (v (b.gg i)))
+    (fun (i : natlt vw.len) -> gpu_pts_to_cell (core a) #f i (v (it_of_nat vw i)));
+
+  forevery_tostar #(natlt vw.len) _;
+
+  let s = Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i));
+  bigstar_extensionality 0 (Enumerable.cardinal (natlt vw.len) #_)
+    (fun i -> gpu_pts_to_cell (core a) #f i (v (it_of_nat vw i)))
+    (fun i -> gpu_pts_to_cell (core a) #f i (s @! i))
+    (fun _ -> ());
+  rewrite each Enumerable.cardinal (natlt vw.len) #_ as vw.len;
+
+  B.gpu_array_unslice_1 (core a);
 }
 
 inline_for_extraction noextract

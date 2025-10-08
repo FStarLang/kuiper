@@ -39,6 +39,7 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
 let even_view et len : aview et _ = strided_view et len 2 0
 let odd_view  et len : aview et _ = strided_view et len 2 1
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 instance _cview_strided
    (#et : Type) (#len : erased nat{SZ.fits len})
@@ -59,6 +60,7 @@ instance _cview_strided
     compat = ez;
   };
 }
+#pop-options
 
 inline_for_extraction noextract
 instance _cview_even #et (#len : erased nat{SZ.fits len}) {| concrete_sz len |} : IView.ciview (even_view et len).iview =

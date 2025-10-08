@@ -128,6 +128,15 @@ fn adapt_kn_as_kmn
   }
 }
 
+let pad_kn
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  (p : natlt k.nthr -> slprop)
+  (bid : natlt (sdivup k.nthr 1024sz))
+  (tid : natlt 1024sz)
+  : slprop
+= pad_f (sdivup k.nthr 1024sz * 1024) p (1024 * bid + tid)
+
 ghost
 fn pad_setup
   (#full_pre #full_post : slprop)
@@ -139,7 +148,7 @@ fn pad_setup
   ensures
     (forall+ (bid : natlt (sdivup k.nthr 1024sz)).
       forall+ (tid : natlt 1024sz).
-        (pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpre (1024 * bid + tid))) **
+        pad_kn k k.kpre bid tid) **
     k.frame
 {
   let setup = k.setup;
@@ -161,18 +170,8 @@ fn pad_setup
     #(natlt (1024sz)) #_
     _
     (fun bid tid ->
-        pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpre (1024 * bid + tid));
-  ();
+        pad_kn k k.kpre bid tid);
 }
-
-let pad_kn
-  (#full_pre #full_post : slprop)
-  (k : kernel_desc_n full_pre full_post)
-  (p : natlt k.nthr -> slprop)
-  (bid : natlt (sdivup k.nthr 1024sz))
-  (tid : natlt 1024sz)
-  : slprop
-= pad_f (sdivup k.nthr 1024sz * 1024) p (1024 * bid + tid)
 
 inline_for_extraction noextract
 let kn_as_kmn (#full_pre #full_post : slprop)
@@ -189,7 +188,7 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   block_post  = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpost bid tid);
   block_frame = (fun bid -> emp);
 
-  setup    = (fun () -> admit(); pad_setup k ());
+  setup    = (fun () -> admit(); pad_setup k ()); // this failure is due to a mismatching hash-consing on a refinement type
   teardown = magic();
 
   kpre  = pad_kn k k.kpre;

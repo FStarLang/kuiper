@@ -844,5 +844,35 @@ fn forevery_join_either
   ensures
     forall+ (x:either a b). p x
 {
-  admit();
+  unfold op_forall_Plus #a (fun x -> p (Inl x));
+  unfold op_forall_Plus #b (fun x -> p (Inr x));
+
+  // Shift the second one
+  bigstar_congr #0 #0 0 (cardinal b #_) (cardinal a #_) (cardinal a #_ + cardinal b #_)
+    (fun i -> p (Inr (of_nat i)))
+    (fun i -> p (Inr (of_nat (i - cardinal a #_))))
+    (fun i -> assert (p (Inr (of_nat (0 + i))) == p (Inr (of_nat ((cardinal a #_ + i) - cardinal a #_)))));
+  rewrite
+    bigstar 0 (cardinal b #_) (fun i -> p (Inr (of_nat i)))
+  as
+    bigstar (cardinal a #_) (cardinal a #_ + cardinal b #_) (fun i -> p (Inr (of_nat (i - cardinal a #_))));
+
+  // Make uniform
+  rewrite
+    bigstar 0 (cardinal a #_) (fun i -> p (Inl (of_nat i)))
+  as
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i));
+  bigstar_extensionality
+    (cardinal a #_)
+    (cardinal a #_ + cardinal b #_)
+    (fun i -> p (Inr (of_nat (i - cardinal a #_))))
+    (fun i -> p (of_nat i))
+    (fun i -> assert (p (Inr (of_nat (i - cardinal a #_))) == p (of_nat i)));
+
+  // Paste
+  bigstar_paste #_ #0 #(cardinal a #_ + cardinal b #_) (cardinal a #_) #(fun i -> p (of_nat i));
+
+  fold op_forall_Plus #(either a b) (fun x -> p x);
+
+  ();
 }
