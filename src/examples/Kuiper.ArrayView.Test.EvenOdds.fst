@@ -109,7 +109,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   varray_read #_ #_ #_ #(_cview_odd #_ _ solve) a 10sz;
 }
 
-#push-options "--z3rlimit 30"
+#push-options "--z3rlimit 40"
 fn test (a : gpu_array u32 100)
   (#v0 : erased (lseq u32 100))
   preserves gpu
@@ -120,9 +120,16 @@ fn test (a : gpu_array u32 100)
   let va = varray_begin a;
   let va = varray_reindex (bij_nat_interleave #100) va;
   let va = varray_review  (bij_seq_interleave #u32 #100) va;
-  let va = varray_view_equiv va (sum_aview (even_view u32 100) (odd_view u32 100));
+  assert pure (no_overlap (even_view u32 100).iview.step.imap.f (odd_view u32 100).iview.step.imap.f);
+  // ^ This seems pretty important for performance, or we have to keep
+  // proving that it is well-formed (i.e. the no_overlap precondition).
+  let vw = sum_aview (even_view u32 100) (odd_view u32 100);
+  let va = varray_view_equiv va vw;
 
-  let vl, vr = varray_split2 _ _ va;
+  // Using underscores here, instead of the explicit views, seems
+  // to cause an SMT query with uvars (at least that's what
+  // it looks like in F* terms), which then fails.
+  let vl, vr = varray_split2 (even_view u32 100) (odd_view u32 100) va;
 
   let x = foo_even vl;
   let y = foo_odd vr;
@@ -134,7 +141,7 @@ fn test (a : gpu_array u32 100)
   // assume (pure (is_full_view (sum_aview (even_view u32 100) (odd_view u32 100))));
   varray_concr va;
 
-  assume (pure (core va == a));
+  assert (pure (core va == a));
   rewrite each core va as a;
 
   // All the bijection stuff is making this hard.
