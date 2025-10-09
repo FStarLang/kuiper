@@ -585,8 +585,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 1024U == 0U);
-    KPR_ASSERT(1024U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
@@ -720,8 +720,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
@@ -857,8 +857,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
@@ -992,8 +992,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 256U == 0U);
-    KPR_ASSERT(1024U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
@@ -1129,8 +1129,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_7, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -1264,8 +1264,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -1401,8 +1401,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_9, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -1536,8 +1536,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -1673,8 +1673,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_11, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -1808,8 +1808,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_12, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -1945,8 +1945,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_13, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -2080,8 +2080,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_14, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -2217,8 +2217,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_15, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -2352,8 +2352,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -2489,8 +2489,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_17, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -2626,8 +2626,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -2761,8 +2761,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_19, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -2898,8 +2898,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -3035,8 +3035,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_21, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -3170,8 +3170,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -3307,8 +3307,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_23, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -3444,8 +3444,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_24, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -3579,8 +3579,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_25, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -3716,8 +3716,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(8192U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_26, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -3853,8 +3853,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_27, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -3988,8 +3988,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_28, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -4125,8 +4125,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_29, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -4262,8 +4262,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_30, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -4397,8 +4397,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(8192U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_31, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -4532,8 +4532,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(1024U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_32, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -4669,8 +4669,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(1024U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_33, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -4804,8 +4804,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_34, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -4941,8 +4941,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_35, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -5076,8 +5076,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(1024U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
     MUST(cudaFuncSetAttribute
          (__hoisted_36, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
@@ -5213,8 +5213,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(2048U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_37, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -5348,8 +5348,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_38, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -5485,8 +5485,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_39, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -5620,8 +5620,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_40, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -5757,8 +5757,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_41, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -5892,8 +5892,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
     MUST(cudaFuncSetAttribute
          (__hoisted_42, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
@@ -6029,8 +6029,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_43, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -6164,8 +6164,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_44, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -6301,8 +6301,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_45, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -6436,8 +6436,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_46, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -6573,8 +6573,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_47, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -6708,8 +6708,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
     MUST(cudaFuncSetAttribute
          (__hoisted_48, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
@@ -6845,8 +6845,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 2048U == 0U);
-    KPR_ASSERT(2048U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_49, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -6980,8 +6980,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_50, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7117,8 +7117,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 2048U == 0U);
-    KPR_ASSERT(2048U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_51, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7254,8 +7254,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_52, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7389,8 +7389,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_53, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7526,8 +7526,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_54, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7663,8 +7663,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_55, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7798,8 +7798,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_56, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
@@ -7935,8 +7935,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 4096U == 0U);
-    KPR_ASSERT(4096U % 4096U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_57, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8072,8 +8072,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_58, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8207,8 +8207,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_59, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8344,8 +8344,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_60, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8481,8 +8481,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_61, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8616,8 +8616,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_62, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8753,8 +8753,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_63, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -8890,8 +8890,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_64, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -9025,8 +9025,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_65, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
@@ -9162,8 +9162,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 4096U == 0U);
-    KPR_ASSERT(8192U % 4096U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_66, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -9299,8 +9299,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 2048U == 0U);
-    KPR_ASSERT(8192U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_67, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -9434,8 +9434,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_68, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -9571,8 +9571,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 2048U == 0U);
-    KPR_ASSERT(8192U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_69, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -9708,8 +9708,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_70, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -9843,8 +9843,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_71, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -9980,8 +9980,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_72, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -10117,8 +10117,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_73, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
@@ -10252,8 +10252,8 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 256U == 0U);
-    KPR_ASSERT(8192U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
     MUST(cudaFuncSetAttribute
          (__hoisted_74, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
