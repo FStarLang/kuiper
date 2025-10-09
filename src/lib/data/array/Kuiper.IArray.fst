@@ -381,7 +381,30 @@ fn iarray_share_n
 {
   (* Boring: share everything N-wise under the forall+, then commute
   the bigstar with forall+ *)
-  admit();
+  unfold iarray_pts_to a #f v;
+  forevery_map
+    (fun i -> gpu_pts_to_slice (core a) #f (it_to_nat vw i) (it_to_nat vw i + 1) seq![v i])
+    (fun i -> bigstar #uid 0 k (fun _ -> gpu_pts_to_slice (core a) #(f /. Real.of_int k) (it_to_nat vw i) (it_to_nat vw i + 1) seq![v i]))
+    fn i { gpu_slice_share #uid (core a) _ _ k };
+
+  forevery_tostar #(vw.sch.ait) _;
+  bigstar_commute _ _ _ _ _;
+  bigstar_map #uid #uid #0 #k
+    #(fun _ -> bigstar 0 (Enumerable.cardinal (vw.sch.ait) #_) (fun i ->
+                 gpu_pts_to_slice (core a) #(f /. Real.of_int k) (it_to_nat vw (Enumerable.of_nat i)) (it_to_nat vw (Enumerable.of_nat i) + 1) seq![v (Enumerable.of_nat i)])
+    )
+    #(fun _ -> a |-> Frac (f /. Real.of_int k) v)
+    fn _ {
+      forevery_fromstar #(vw.sch.ait) (fun i ->
+        gpu_pts_to_slice (core a) #(f /. Real.of_int k) (it_to_nat vw i) (it_to_nat vw i + 1) seq![v i]);
+      forevery_ext #(vw.sch.ait)
+        (fun i -> gpu_pts_to_cell (core a) #(f /. Real.of_int k) (it_to_nat vw i) (v i))
+        (fun i -> iarray_pts_to_cell a #(f /. Real.of_int k) i (v i));
+      fold iarray_pts_to a #(f /. Real.of_int k) v;
+      ();
+    };
+
+  ();
 }
 
 ghost
