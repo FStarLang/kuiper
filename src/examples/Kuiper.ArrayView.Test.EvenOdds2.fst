@@ -50,6 +50,11 @@ let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
   igm = solve;
 }
 
+let lem_no_overlap #et (len : nat)
+  : Lemma (no_overlap (even_view et len).iview.step.imap.f (odd_view et len).iview.step.imap.f)
+          [SMTPat (no_overlap (even_view et len).iview.step.imap.f (odd_view et len).iview.step.imap.f)]
+  = ()
+
 inline_for_extraction noextract
 instance _cview_even #et
   (#len : erased nat{SZ.fits len})
@@ -161,6 +166,46 @@ fn test_simpler (a : gpu_array u32 100)
   res
 }
 
+#push-options "--split_queries always"
+let surj_lemma' #et (#len:nat) (i : natlt len)
+  : Lemma (exists (j : either (natlt ((len + 1) / 2)) (natlt (len / 2))).
+             it_to_nat (sum_aview (even_view et len) (odd_view et len)) j == i)
+= let vw = sum_aview (even_view et len) (odd_view et len) in
+  if i % 2 = 0
+  then assert (it_to_nat vw (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i)
+  else assert (it_to_nat vw (Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i)
+#pop-options
+
+let surj_lemma #et (len:nat)
+  : Lemma (is_surj (it_to_nat (sum_aview (even_view et len) (odd_view et len))))
+          [SMTPat (it_to_nat (sum_aview (even_view et len) (odd_view et len)))]
+  = Classical.forall_intro (surj_lemma' #et #len)
+
+let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
+  (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
+  : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
+= admit(); // terrible SMT performance here, just admit
+  lem_no_overlap #et len;
+  calc (==) {
+    it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
+    == {}
+    it_to_nat (even_view et len) (i / 2);
+    == {}
+    (i / 2) * 2;
+    == {(* i is even *) }
+    i;
+  };
+  it_nat_rel (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) i;
+  assert (it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i);
+  assert (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2) == it_of_nat (sum_aview (even_view et len) (odd_view et len)) i);
+  ()
+
+let lem_idx2 #et (#len : nat) (i : natlt len{i % 2 = 1})
+  (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
+  : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
+= admit()
+
+#push-options "--split_queries always"
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
   : Lemma (
             to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr)
@@ -168,17 +213,15 @@ let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len
             seq_interleave sl sr
   )
   [SMTPat (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr))]
-= let aux (i : natlt len)
-      : Lemma (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr) @! i
-               ==
-               seq_interleave sl sr @! i)
-  = admit () // flaky
+= let vw = sum_aview (even_view et len) (odd_view et len) in
+  surj_lemma #et len;
+  let aux (i : natlt len)
+      : Lemma (to_seq vw (sl, sr) @! i == seq_interleave sl sr @! i)
+  = if i % 2 = 0 then lem_idx1 #et #len i #() else lem_idx2 #et #len i #()
   in
   Classical.forall_intro (Classical.move_requires aux);
-  assert (Seq.equal
-              (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr))
-              (seq_interleave sl sr))
-
+  assert (to_seq vw (sl, sr) `Seq.equal` seq_interleave sl sr)
+#pop-options
 
 let split_lemma #et (#len:nat) (s : lseq et len)
   : Lemma (
@@ -190,8 +233,8 @@ let split_lemma #et (#len:nat) (s : lseq et len)
 (* Very easy proof: map each side to a sequence, they are trivially equal by
    SMT, the bijection then gives us our result. *)
 = assert (Seq.equal
-            (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s))
-            s)
+            s
+            (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s)))
 
 #push-options "--z3rlimit 50"
 fn test_write (a : gpu_array u32 100)

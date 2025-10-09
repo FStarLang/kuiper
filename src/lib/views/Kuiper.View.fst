@@ -6,6 +6,11 @@ open Kuiper
 open Kuiper.Bijection
 module F = FStar.FunctionalExtensionality
 
+let it_nat_rel #a #st (vw : aview a st) (i : vw.iview.sch.ait)
+  (j : natlt (len vw){FStar.Functions.in_image vw.iview.step.imap.f j})
+  : Lemma (it_to_nat vw i == j <==> i == it_of_nat vw j)
+  = IView.it_nat_rel vw.iview i j
+
 let to_from (#a:Type) (#st:Type)
   (vw : aview a st { is_full_view vw })
   (s : lseq a (len vw))

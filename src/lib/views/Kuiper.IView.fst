@@ -22,6 +22,11 @@ let full_iff_cardinal
 = Classical.move_requires (full_iff_cardinal_1) vw;
   Classical.move_requires (full_iff_cardinal_2) vw
 
+let it_nat_rel (vw : aiview) (i : vw.sch.ait)
+  (j : natlt vw.len{FStar.Functions.in_image vw.step.imap.f j})
+  : Lemma (it_to_nat vw i == j <==> i == it_of_nat vw j)
+  = ()
+
 let full_view_bij (avw : aiview { is_full_view avw })
   : Ghost (avw.sch.ait =~ natlt avw.len)
           (requires True)
