@@ -69,36 +69,6 @@ val mmcomb_gpu_block_tiled1d
   : matmulcomb_gpu_ty
      (fun rows _ cols -> (rows / bm) * (cols / bn) <= max_blocks)
 
-// inline_for_extraction noextract
-// fn mmcomb_gpu_shmem_block_tc
-//   (tiled_mmcomb_gpu : block_tiled_tc_matmulcomb_gpu_ty)
-//   (bm bn bk : szp)
-//   (tm : szp{tm /? bm})
-//   (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
-//   (tk : szp{tk /? bk})
-//   (#rows #shared #cols : szp)
-//   (#lA : full_mlayout rows shared)
-//   (#lB : full_mlayout shared cols)
-//   {| cA : clayout lA |}
-//   {| cB : clayout lB |}
-//   (gA : M.gpu_matrix half lA)
-//   (#fA : perm)
-//   (gB : M.gpu_matrix half lB)
-//   (#fB : perm)
-//   (gC : M.gpu_matrix half (Kuiper.Matrix.Reprs.row_major rows cols))
-//   (#eA : ematrix half rows shared)
-//   (#eB : ematrix half shared cols)
-//   (#eC : ematrix half rows cols)
-//   norewrite
-//   preserves
-//     cpu **
-//     gA |-> Frac fA eA **
-//     gB |-> Frac fB eB
-//   requires
-//     pure (rows * cols <= max_blocks) **
-//     gC |-> eC
-//   ensures
-
 unfold
 inline_for_extraction
 type fixed_repr_matmul_cpu_ty
@@ -196,16 +166,6 @@ val specialize_as_matmul_to_type_and_reprs_gpu
   (rA rB rC : mrepr)
   {| crepr rA, crepr rB, crepr rC |}
   : fixed_repr_mmcomb_gpu_ty et size_req rA rB rC
-
-// inline_for_extraction noextract
-// val specialize_as_gemm_to_type_and_reprs_gpu
-//   (mmcomb_gpu : mmcomb_gpu_ty)
-//   (et : Type0) {| scalar et |}
-//   (rA rB rC : mrepr)
-//   {| cA : crepr rA |}
-//   {| cB : crepr rB |}
-//   {| cC : crepr rC |}
-//   : fixed_repr_gemm_gpu_ty et rA rB rC #cA #cB #cC
 
 inline_for_extraction noextract
 val specialize_as_matmul_to_type_and_reprs_cpu
