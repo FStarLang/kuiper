@@ -21,9 +21,13 @@ let mod_prod (a b : int) (k : pos) :
 and prove it. BUT, we must consider overflow! So we make the relation
 weaker than you may expect. *)
 instance real_like_u8 : real_like u8 = {
+  to_real = (fun x -> Real.of_int (UInt8.v x));
+
   approximates = (fun x r ->
     exists (x' : int).
       r == Real.of_int x' /\ UInt8.v x == x' % 256);
+
+  to_real_ok = (fun x -> ());
 
   a0 = ();
   a1 = ();

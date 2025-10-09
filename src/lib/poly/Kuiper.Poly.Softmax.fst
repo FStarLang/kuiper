@@ -6,6 +6,7 @@ module Array = Kuiper.Array
 (* ^ Why do I need this? Is it because Kuiper is a module and not a namespace? *)
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
+open Kuiper.Approximates
 
 (* From the CPU, read one element from a gpu array. *)
 inline_for_extraction noextract
@@ -127,7 +128,7 @@ let kdiv
 
 inline_for_extraction noextract
 fn softmax_gpu
-  (#et : Type0) {| floating et |}
+  (#et : Type0) {| floating et, real_like et |}
   (#lena : szp { lena < max_threads })
   (a : gpu_array et lena)
   preserves cpu
@@ -142,9 +143,9 @@ fn softmax_gpu
   (* Compute average. Need swap space since hreduce trashes the input. *)
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
-  Kuiper.Poly.HReduce.reduce lena a';
-  with s.
-    unfold Kuiper.IsReduction.gpu_pts_to_slice_sum a' 0 lena s;
+  with va. assert a' |-> va;
+  assume pure (seq_approximates va (to_real_seq va));
+  Kuiper.Poly.HReduce.reduce lena a' #va #(to_real_seq va);
   let avg = arr_read_1 zero a';
   gpu_array_free a';
 
@@ -156,7 +157,7 @@ fn softmax_gpu
 
 inline_for_extraction noextract
 fn softmax
-  (#et : Type0) {| floating et |}
+  (#et : Type0) {| floating et, real_like et |}
   (#lena : szp { lena < max_threads })
   (a : Vec.lvec et lena)
   preserves cpu

@@ -2,11 +2,12 @@ module Kuiper.Poly.Softmax
 
 #lang-pulse
 open Kuiper
+open Kuiper.Approximates
 
 module Vec = Pulse.Lib.Vec
 
 unfold
-type softmax_gpu_ty (et : Type0) {| floating et |} =
+type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
   (#lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena) ->
   (#va : erased (seq et)) ->
@@ -20,11 +21,11 @@ type softmax_gpu_ty (et : Type0) {| floating et |} =
      (exists* v'. gpu_pts_to_array a v'))
 
 inline_for_extraction noextract
-val softmax_gpu (#et:Type0) {| floating et |}
+val softmax_gpu (#et:Type0) {| floating et, real_like et |}
   : softmax_gpu_ty et
 
 unfold
-type softmax_ty (et : Type0) {| floating et |} =
+type softmax_ty (et : Type0) {| floating et, real_like et |} =
   (#lena : szp { lena < max_threads }) ->
   (a : Vec.lvec et lena) ->
   (#va : erased (seq et)) ->
@@ -38,5 +39,5 @@ type softmax_ty (et : Type0) {| floating et |} =
     (exists* v'. a |-> v'))
 
 inline_for_extraction noextract
-val softmax (#et : Type0) {| floating et |}
+val softmax (#et : Type0) {| floating et, real_like et |}
 : softmax_ty et
