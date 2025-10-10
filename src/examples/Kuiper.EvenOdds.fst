@@ -4,6 +4,10 @@ module Kuiper.EvenOdds
 
 #lang-pulse
 
+// Just here so this extracts, otherwise karamel won't generate a .cu
+// file and the makefile gets confused.
+let _ = 1ul
+
 open Kuiper
 open Kuiper.Bijection
 
