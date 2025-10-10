@@ -456,8 +456,12 @@ fn epilogue
       rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
 
       with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
-      let eidx : erased nat = !i * wn + !j;
+      let vi = !i;
+      let vj = !j;
+      let eidx : erased nat = vi * wn + vj;
 
+      assert pure (vi < wm);
+      assert pure (vj < wn);
       assert pure (eidx < wm * wn);
       assert pure (SZ.fits eidx);
       let idx = !i *^ wn +^ !j;
