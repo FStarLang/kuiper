@@ -3,7 +3,7 @@ module Kuiper.Bijection
 #lang-pulse
 
 open Kuiper.Common
-open FStar.Functions
+open Kuiper.Functions
 
 let galois_nopat (#a #b : _) (d : a =~ b) (x:a) (y:b)
   : Lemma (d.ff x == y <==> x == d.gg y)
@@ -21,17 +21,6 @@ let galois_forall (#a #b : _) (d : a =~ b)
           [SMTPat (has_type d (a =~ b))] // OK? Useful?
   = Classical.forall_intro_2 (galois_nopat d)
 #pop-options
-
-val __pigeon (n1:nat) (n2:nat{n2 < n1})
-  (f : natlt n1 -> natlt n2)
-  : Lemma (requires is_inj f) (ensures False)
-let __pigeon n1 n2 f = admit()
-
-val pigeon (n1:nat) (n2:nat{n2 < n1})
-  (f : natlt n1 -> natlt n2)
-  : Lemma (exists x y. f x == f y /\ x =!= y)
-let pigeon n1 n2 f =
-  Classical.forall_intro (Classical.move_requires (__pigeon n1 n2))
 
 let __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
   : Lemma (n1 == n2) =

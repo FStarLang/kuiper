@@ -81,6 +81,7 @@ lint: lint-c lint-fstar
 .PHONY: list-admits
 list-admits:
 	-git grep -w 'assume_\|assume\|admit\|magic' src
+	#-find src -name '*.fsti' -printf '%f\n' | while read fsti; do fst=$${fsti%i}; if ! find src -name "$$fst" | grep -q "$$fst" ; then echo "Module $$fsti is assumed"; fi; done
 
 .PHONY: wc
 wc:

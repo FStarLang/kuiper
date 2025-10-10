@@ -8,9 +8,6 @@ open Kuiper.View { aview }
 open Kuiper.IView { ciview }
 open Kuiper.Matrix {} // instances
 
-// "Definition Kuiper.View.fits cannot be found." ????
-// open Kuiper.View { cview }
-
 module SZ = Kuiper.SizeT
 module MC = Kuiper.Matrix.Common
 module R  = Kuiper.Matrix.Reprs

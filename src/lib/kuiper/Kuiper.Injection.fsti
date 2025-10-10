@@ -119,3 +119,7 @@ let inj_sz_sum
   f = inj_sz_sum_f n1 n2 s1;
   is_inj = ez; (* does not work if inj_sz_sum_f is inlined. *)
 }
+
+val inj_cardinal (n1 n2 : nat)
+  : Lemma (requires exists (b : natlt n1 @~> natlt n2). True)
+          (ensures n1 <= n2)
