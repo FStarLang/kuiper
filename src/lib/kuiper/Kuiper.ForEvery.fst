@@ -699,6 +699,51 @@ fn forevery_extract_if
 }
 
 ghost
+fn forevery_extract_if_eqtype
+  (#a:eqtype) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p z **
+    (forall+ (x:a).
+      if x = z then emp else p x)
+{
+  forevery_extract_if z p;
+}
+
+ghost
+fn forevery_unextract_if
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    p z **
+    (forall+ (x:a).
+      if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)
+  ensures
+    forall+ (x:a). p x
+{
+  admit();
+}
+
+ghost
+fn forevery_unextract_if_eqtype
+  (#a:eqtype) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    p z **
+    (forall+ (x:a).
+      if x = z then emp else p x)
+  ensures
+    forall+ (x:a). p x
+{
+  forevery_unextract_if z p;
+}
+
+ghost
 fn forevery_extract_if_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
@@ -716,8 +761,6 @@ fn forevery_extract_if_2
   forevery_unflatten' #a #_ #b _;
   rewrite p (z,w)._1 (z,w)._2 as p z w;
 }
-
-
 
 ghost
 fn forevery_boolean_split

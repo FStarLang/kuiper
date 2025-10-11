@@ -7,7 +7,8 @@ open Kuiper.Matrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs { row_major, col_major }
-open Kuiper.Spec.GEMM { mma }
+open Kuiper.Spec.GEMM
+open Kuiper.Approximates
 
 open Kuiper.Matrix.Tiling { factored }
 
@@ -120,6 +121,34 @@ fn fragment_pts_to_ref
     pure (valid_frag_et_dims et knd m n k) **
     pure (knd == FragAcc <==> fl == FragLAcc) // useful?
 
+(* A pure version of the mma operation *)
+val emma
+  (#et0 #et1 : Type)
+  (#rows #shared #columns : nat)
+  (mc : ematrix et1 rows columns)
+  (ma : ematrix et0 rows shared)
+  (mb : ematrix et0 shared columns)
+  : ematrix et1 rows columns
+
+val emma_approx_lemma
+  (#et0 : Type) {| scalar et0, real_like et0 |}
+  (#et1 : Type) {| scalar et1, real_like et1 |}
+  (#rows #shared #columns : nat)
+  (mc : ematrix et1 rows columns)
+  (ma : ematrix et0 rows shared)
+  (mb : ematrix et0 shared columns)
+  (rc : ematrix real rows columns)
+  (ra : ematrix real rows shared)
+  (rb : ematrix real shared columns)
+  : Lemma (requires
+            ematrix_approximates ma ra /\
+            ematrix_approximates mb rb /\
+            ematrix_approximates mc rc)
+          (ensures
+            ematrix_approximates (emma mc ma mb)
+                                 (matplus rc (matmul ra rb)))
+
+(* The actual multiplication operation *)
 fn mma_sync'
   (#et_ab #et_acc : Type)
   // valid_frag_et_dims constraints to scalars already, if not explicitly
@@ -138,7 +167,7 @@ fn mma_sync'
   requires
     fc |-> ec
   ensures
-    fc |-> mma ec ea eb
+    fc |-> emma ec ea eb
 
 fn mma_loadA
   (#et : Type)
@@ -212,8 +241,8 @@ let fill_value
   : value_for et knd m n k
 =
   match knd with
-  | FragA     -> EMatrix.const_matrix #_ #m #k i
-  | FragB     -> EMatrix.const_matrix #_ #k #n i
+  | FragA   -> EMatrix.const_matrix #_ #m #k i
+  | FragB   -> EMatrix.const_matrix #_ #k #n i
   | FragAcc -> EMatrix.const_matrix #_ #m #n i
 
 fn mma_fill
@@ -287,6 +316,8 @@ instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : era
   pts_to = array_fragment_pts_to
 }
 
+#set-options "--debug SMTFail --split_queries always --print_implicits"
+
 ghost
 fn array_fragment_extract
   (#et:Type0)
@@ -294,27 +325,67 @@ fn array_fragment_extract
   (#m #n #k : nat)
   (#l : fragment_layout)
   (farr: array (fragment et knd m n k l))
-  (#f : perm)
+  // (#f : perm) // Assuming 1.0R for now
   (ems : seq (value_for et knd m n k))
   (i : natlt (Seq.length ems))
   requires
-    array_fragment_pts_to farr #f ems
+    array_fragment_pts_to farr ems
   ensures
     exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
-      farr |-> Frac f s **
-      (s @! i) |-> Frac f (ems @! i) **
+      farr |-> s **
+      (s @! i) |-> (ems @! i) **
       (forall* (em' : value_for et knd m n k).
-        farr |-> Frac f s **
-         (s @! i) |-> Frac f em' @==>
-          array_fragment_pts_to farr #f (Seq.upd ems i em'))
+        (farr |-> s **
+         (s @! i) |-> em') @==>
+          array_fragment_pts_to farr (Seq.upd ems i em'))
 {
   unfold array_fragment_pts_to;
   // Why "cannot find typeclass"?
   // with s. assert farr |-> Frac f s;
-  with s. assert pts_to farr #f s;
+  with s. assert pts_to farr s;
 
-  forevery_extract' i (fun (x : natlt (len s)) -> (s @! x) |-> (ems @! x));
-  admit();
+  forevery_extract_if_eqtype i
+    (fun (x : natlt (Seq.length s)) -> (s @! x) |-> (ems @! x));
+  
+  ghost
+  fn f_elim (em' : value_for et knd m n k)
+    requires
+      (forall+ (j : natlt (Seq.length ems)).
+        if op_Equality #(natlt (Seq.length ems)) j i then emp
+        else (s @! j) |-> (ems @! j))
+    ensures
+      (farr |-> s ** (s @! i) |-> em')
+      @==> array_fragment_pts_to farr (Seq.upd ems i em')
+  {
+    ghost
+    fn f_elim2 ()
+      requires
+        (forall+ (j : natlt (Seq.length ems)).
+          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          else (s @! j) |-> (ems @! j)) **
+        (farr |-> s ** (s @! i) |-> em')
+      ensures
+        (array_fragment_pts_to farr (Seq.upd ems i em'))
+    {
+      let ems' = Seq.upd ems i em';
+      forevery_ext
+        (fun (j : natlt (Seq.length ems)) ->
+          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          else (s @! j) |-> (ems @! j))
+        (fun (j : natlt (Seq.length ems')) ->
+          if op_Equality #(natlt (Seq.length ems)) j i then emp
+          else (s @! j) |-> (ems' @! j));
+      forevery_unextract_if_eqtype i _;
+      forevery_rw_type
+        (natlt (Seq.length ems))
+        (natlt (Seq.length ems'))
+        _;
+      fold array_fragment_pts_to farr ems';
+    };
+    intro_trade _ _ _ f_elim2;
+  };
+  intro_forall (forevery _ _) f_elim;
+  ();
 }
 
 ghost

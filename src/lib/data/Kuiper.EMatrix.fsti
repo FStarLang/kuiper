@@ -4,6 +4,7 @@ module Kuiper.EMatrix
 (* An "erased" matrix, for specification purposes only *)
 
 open Kuiper
+open Kuiper.Approximates
 open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
 
@@ -72,3 +73,12 @@ val ematrix_ext #et #rows #cols
   : Lemma (requires equal m1 m2)
           (ensures m1 == m2)
           [SMTPat (equal m1 m2)]
+
+let ematrix_approximates #et
+  {| scalar et, Kuiper.Approximates.real_like et |}
+  #rows #cols
+  (m1 : ematrix et rows cols)
+  (m2 : ematrix real rows cols)
+  : prop
+  = forall (i:natlt rows) (j:natlt cols).
+      approximates (macc m1 i j) (macc m2 i j)

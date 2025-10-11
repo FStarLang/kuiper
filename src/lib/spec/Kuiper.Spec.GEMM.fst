@@ -104,21 +104,3 @@ let matmul_is_gemm
   : Lemma (mmcomb comb2 m0 m1 m2 == matmul m1 m2)
           [SMTPat (mmcomb comb2 m0 m1 m2)]
   = ematrix_ext (mmcomb comb2 m0 m1 m2) (matmul m1 m2)
-
-let mma
-  (#et0 #et1 : Type)
-  (#rows #shared #columns : nat)
-  (mc : ematrix et1 rows columns)
-  (ma : ematrix et0 rows shared)
-  (mb : ematrix et0 shared columns)
-: ematrix et1 rows columns
-= magic()
-
-let lemma_mma_is_matmul_add
-  (#et : Type) {| scalar et |}
-  (#rows #shared #columns : nat)
-  (mc : ematrix et rows columns)
-  (ma : ematrix et rows shared)
-  (mb : ematrix et shared columns)
-: Lemma (mma mc ma mb == matplus mc (matmul ma mb))
-= admit()

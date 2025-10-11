@@ -2,6 +2,7 @@ module Kuiper.Scalars
 
 open Kuiper.Sized
 open FStar.Tactics.Typeclasses { solve, tcinstance }
+open FStar.Real
 
 module U8  = FStar.UInt8
 module U16 = FStar.UInt16
@@ -124,4 +125,13 @@ instance _ : floating F64.t = {
   is_scalar = solve;
   div = F64.div;
   exp = F64.exp;
+}
+
+noextract 
+instance _ : scalar real = {
+  is_sized = { size = 0sz };
+  add = (+.);
+  mul = ( *. );
+  zero = 0.0R;
+  one = 1.0R;
 }
