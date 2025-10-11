@@ -12,3 +12,6 @@ fn ambig_trade_elim
   requires
     p ** (p @==> q)
   ensures q
+
+unfold
+let factored (p q : slprop) : slprop = p ** trade p q

@@ -11,9 +11,6 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Pulse.Lib.Trade
 
-unfold
-let factored (p q : slprop) : slprop = p ** (p @==> q)
-
 let ematrix_subtile
   (#et : _)
   (#rows #cols : _)
