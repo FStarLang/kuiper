@@ -327,6 +327,23 @@ let smatrix_unsparse
     let row_elems = slice_row row_off elems i in
     unsparse _ cols row_elems row_cols @! j
 
+
+unfold
+let pure_smatrix_pt_to
+  (#et:Type0) {| d : scalar et |}
+  #rows #cols
+  (m : smatrix et rows cols)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (e : ematrix et rows cols)
+  (v_elems   : lseq et m.nnz)
+  (v_col_ind : lseq sz m.nnz)
+  (v_row_off : lseq sz (rows + 1))
+  : prop
+=
+  valid_smatrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
+  e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off) 
+
+
 let smatrix_pts_to
   (#et:Type0) {| d : scalar et |}
   #rows #cols
@@ -341,10 +358,7 @@ let smatrix_pts_to
     m.elems   |-> Frac f v_elems **
     m.col_ind |-> Frac f v_col_ind **
     m.row_off |-> Frac f v_row_off **
-    pure (
-      valid_smatrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
-      e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off) 
-    )
+    pure (pure_smatrix_pt_to m e v_elems v_col_ind v_row_off)
 
 inline_for_extraction noextract
 unfold
@@ -355,6 +369,96 @@ instance has_pts_to_smatrix
   pts_to = smatrix_pts_to;
 }
 
+module T = FStar.Tactics.V2
+
+ghost
+fn smatrix_share_n
+  (#et:Type0) {| scalar et |}
+  (#[T.exact (`0)]uid: int)
+  (#rows #cols : nat)
+  (m : smatrix et rows cols)
+  (k : pos)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  requires
+    smatrix_pts_to m #f em
+  ensures
+    bigstar #uid 0 k (fun _ -> smatrix_pts_to m #(f /. k) em)
+{
+  unfold smatrix_pts_to m #f em;
+  with v_elems.
+    assert gpu_pts_to_array m.elems #f v_elems;
+  with v_col_ind.
+    assert gpu_pts_to_array m.col_ind #f v_col_ind;
+  with v_row_off.
+    assert gpu_pts_to_array m.row_off #f v_row_off;
+
+  gpu_slice_share #uid m.elems _ _ k;
+  gpu_slice_share #uid m.col_ind _ _ k;
+  gpu_slice_share #uid m.row_off _ _ k;
+
+  bigstar_zip 0 k
+    (fun _ -> gpu_pts_to_array m.col_ind #(f /. k) v_col_ind)
+    (fun _ -> gpu_pts_to_array m.row_off #(f /. k) v_row_off);
+  bigstar_zip 0 k
+    (fun _ -> gpu_pts_to_array m.elems #(f /.k) v_elems) _;
+
+  ghost
+  fn aux (i:natlt k)
+    requires (
+      gpu_pts_to_array m.elems #(f /. k) v_elems **
+      gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+      gpu_pts_to_array m.row_off #(f /. k) v_row_off
+    )
+    ensures smatrix_pts_to m #(f /. k) em
+  {
+    fold smatrix_pts_to m #(f /. k) em;
+  };
+  bigstar_map #0 #uid #0 #k aux;
+}
+
+ghost
+fn smatrix_gather_n
+  (#et:Type0) {| scalar et |}
+  (#uid: int)
+  (#rows #cols : nat)
+  (m : smatrix et rows cols)
+  (k : pos)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  requires
+    bigstar #uid 0 k (fun _ -> smatrix_pts_to m #(f /. k) em)
+  ensures
+    smatrix_pts_to m #f em
+{
+  ghost
+  fn aux (i:natlt k)
+    requires smatrix_pts_to m #(f /. k) em
+    ensures ( 
+      exists* (v_elems    : lseq et m.nnz).
+      exists* (v_col_ind  : lseq sz m.nnz).
+      exists* (v_row_off  : lseq sz (rows + 1)).
+        m.elems   |-> Frac (f /. k) v_elems **
+        m.col_ind |-> Frac (f /. k) v_col_ind **
+        m.row_off |-> Frac (f /. k) v_row_off **
+        pure (pure_smatrix_pt_to m em v_elems v_col_ind v_row_off)
+    )
+  {
+    unfold smatrix_pts_to m #(f /. k) em;
+  };
+  bigstar_map #uid #0 #0 #k aux;
+
+  // como saco el existencial de adentro de bigstar?
+  // forall . exists != exists . forall
+  admit();
+
+  // bigstar_unzip ...
+  
+  gpu_slice_gather m.elems _ _ k;
+  gpu_slice_gather m.col_ind _ _ k;
+  gpu_slice_gather m.row_off _ _ k;
+  fold smatrix_pts_to m #f em;
+}
 inline_for_extraction noextract
 fn smatrix_id
   (#et : Type0) {| scalar et |}
