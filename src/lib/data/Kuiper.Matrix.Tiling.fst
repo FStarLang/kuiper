@@ -21,7 +21,7 @@ let from_subtiles_id
 = assert (equal (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)) em);
   ()
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 40"
 let tiles_from_subtiles_id
   (#et : _)
   (#rows #cols : _)

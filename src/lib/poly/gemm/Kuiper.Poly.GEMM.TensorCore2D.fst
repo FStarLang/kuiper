@@ -202,11 +202,10 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
         ambig_trade_elim ();
 
+        with v. assert acc_frag `fragment_pts_to` v;
         Pulse.Lib.Forall.elim_forall
           #(value_for et_acc FragAcc tm tn tk)
-          (MS.mma (Seq.index emAccumFrags (!resIdxM * wn + !resIdxN))
-                  (Seq.index emAFrags !resIdxM)
-                  (Seq.index emBFrags !resIdxN));
+          v;
 
         ambig_trade_elim ();
 
