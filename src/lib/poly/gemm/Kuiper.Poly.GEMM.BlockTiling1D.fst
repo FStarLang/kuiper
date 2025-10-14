@@ -253,6 +253,8 @@ fn bring_2cols
   }
 }
 
+#restart-solver // try to work around Z3 crash
+
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
