@@ -43,18 +43,13 @@ let seq_interleave #a (#n : nat)
     else
       Seq.index s2 (i / 2)
 
-let interleave_lemma1 #a #n (s : lseq a n)
+val interleave_lemma1 #a #n (s : lseq a n)
   : Lemma (ensures seq_interleave (seq_evens s) (seq_odds s) == s)
           [SMTPat (seq_interleave (seq_evens s) (seq_odds s))]
-= assert (Seq.equal (seq_interleave (seq_evens s) (seq_odds s)) s);
-  ()
 
-let interleave_lemma2 #a (#n:nat) (s1 : lseq a ((n + 1) / 2)) (s2 : lseq a (n / 2))
+val interleave_lemma2 #a (#n:nat) (s1 : lseq a ((n + 1) / 2)) (s2 : lseq a (n / 2))
   : Lemma (ensures seq_evens (seq_interleave s1 s2) == s1 /\ seq_odds (seq_interleave s1 s2) == s2)
           [SMTPat (seq_evens (seq_interleave s1 s2)); SMTPat (seq_odds (seq_interleave s1 s2))]
-= assert (Seq.equal (seq_evens (seq_interleave s1 s2)) s1);
-  assert (Seq.equal (seq_odds (seq_interleave s1 s2)) s2);
-  ()
 
 noextract
 let bij_seq_interleave (#et:Type) (#len:nat)

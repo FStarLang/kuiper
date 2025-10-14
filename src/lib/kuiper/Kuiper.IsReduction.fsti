@@ -8,6 +8,8 @@ open Kuiper.Seq.Common
 open Kuiper.Len
 open Kuiper.Array
 open Kuiper.Conditional
+open Kuiper.Approximates
+open FStar.Real
 
 noeq
 type is_reduction (#a:Type0) (z:a) (f : a -> a -> a) : (s : seq a) -> (r : a) -> Type0 =
@@ -65,26 +67,28 @@ val op_is_reduction
 is the reduction of all the values in the (original) slice v. *)
 unfold
 let gpu_pts_to_slice_sum_inner
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (#sz:nat)
   (r : gpu_array et sz)
   (i j :nat)
   (v : seq et)
+  (rr : seq Real.real { seq_approximates v rr })
   (s : seq et)
 : slprop
 = gpu_pts_to_slice r i j s
   ** pure (i < j /\ j <= sz /\
            len v = sz /\
            len s = j - i /\
-           squash (is_reduction zero add (Seq.slice v i j) (s @! 0))) // SQUASH VERY IMPORTANT!!
+           squash ((s @! 0) `approximates` seq_fold_left (+.) 0.0R (Seq.slice rr i j))) // SQUASH VERY IMPORTANT!!
 
 (* Not easy to mark this unfold as it has a lambda (in the exists) *)
 let gpu_pts_to_slice_sum
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (#sz:nat)
   ([@@@mkey] r: gpu_array et sz)
   ([@@@mkey] i : nat)
   (j:nat)
   (v: seq et)
+  (rr : seq Real.real { seq_approximates v rr })
 : slprop
-= exists* s. gpu_pts_to_slice_sum_inner r i j v s
+= exists* s. gpu_pts_to_slice_sum_inner r i j v rr s

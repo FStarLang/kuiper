@@ -699,6 +699,51 @@ fn forevery_extract_if
 }
 
 ghost
+fn forevery_extract_if_eqtype
+  (#a:eqtype) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p z **
+    (forall+ (x:a).
+      if x = z then emp else p x)
+{
+  forevery_extract_if z p;
+}
+
+ghost
+fn forevery_unextract_if
+  (#a:Type0) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    p z **
+    (forall+ (x:a).
+      if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)
+  ensures
+    forall+ (x:a). p x
+{
+  admit();
+}
+
+ghost
+fn forevery_unextract_if_eqtype
+  (#a:eqtype) {| enumerable a |}
+  (z : a)
+  (p : a -> slprop)
+  requires
+    p z **
+    (forall+ (x:a).
+      if x = z then emp else p x)
+  ensures
+    forall+ (x:a). p x
+{
+  forevery_unextract_if z p;
+}
+
+ghost
 fn forevery_extract_if_2
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
@@ -716,8 +761,6 @@ fn forevery_extract_if_2
   forevery_unflatten' #a #_ #b _;
   rewrite p (z,w)._1 (z,w)._2 as p z w;
 }
-
-
 
 ghost
 fn forevery_boolean_split
@@ -844,5 +887,35 @@ fn forevery_join_either
   ensures
     forall+ (x:either a b). p x
 {
-  admit();
+  unfold op_forall_Plus #a (fun x -> p (Inl x));
+  unfold op_forall_Plus #b (fun x -> p (Inr x));
+
+  // Shift the second one
+  bigstar_congr #0 #0 0 (cardinal b #_) (cardinal a #_) (cardinal a #_ + cardinal b #_)
+    (fun i -> p (Inr (of_nat i)))
+    (fun i -> p (Inr (of_nat (i - cardinal a #_))))
+    (fun i -> assert (p (Inr (of_nat (0 + i))) == p (Inr (of_nat ((cardinal a #_ + i) - cardinal a #_)))));
+  rewrite
+    bigstar 0 (cardinal b #_) (fun i -> p (Inr (of_nat i)))
+  as
+    bigstar (cardinal a #_) (cardinal a #_ + cardinal b #_) (fun i -> p (Inr (of_nat (i - cardinal a #_))));
+
+  // Make uniform
+  rewrite
+    bigstar 0 (cardinal a #_) (fun i -> p (Inl (of_nat i)))
+  as
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i));
+  bigstar_extensionality
+    (cardinal a #_)
+    (cardinal a #_ + cardinal b #_)
+    (fun i -> p (Inr (of_nat (i - cardinal a #_))))
+    (fun i -> p (of_nat i))
+    (fun i -> assert (p (Inr (of_nat (i - cardinal a #_))) == p (of_nat i)));
+
+  // Paste
+  bigstar_paste #_ #0 #(cardinal a #_ + cardinal b #_) (cardinal a #_) #(fun i -> p (of_nat i));
+
+  fold op_forall_Plus #(either a b) (fun x -> p x);
+
+  ();
 }

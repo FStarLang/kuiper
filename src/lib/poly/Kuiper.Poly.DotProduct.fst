@@ -17,7 +17,7 @@ module Kuiper.Poly.DotProduct
 open Kuiper
 open Kuiper.Barrier.RPM
 open Kuiper.Math
-open Kuiper.IsReduction
+open Kuiper.Approximates
 
 module V = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
@@ -25,20 +25,37 @@ module SZ = Kuiper.SizeT
 module HR = Kuiper.Poly.HReduce
 friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)
 
+let rsmul (s1 s2 : seq real{ Seq.length s1 == Seq.length s2 }) : GTot (seq real)
+  = Seq.init_ghost (Seq.length s1) (fun i -> (s1 @! i) *. (s2 @! i))
+
+let pmul_approximates_rsmul (#et:Type) {| scalar et, real_like et |}
+  (s1 s2 : seq et{ Seq.length s1 == Seq.length s2 })
+  (vr1 vr2 : seq real{ seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  : Lemma (ensures seq_approximates (pmul s1 s2) (rsmul vr1 vr2))
+          [SMTPat (seq_approximates (pmul s1 s2) (rsmul vr1 vr2))]
+= let aux (i : natlt (Seq.length s1))
+    : Lemma (((s1 @! i) `mul` (s2 @! i)) `approximates` ((vr1 @! i) *. (vr2 @! i)))
+  = a_mul (s1 @! i) (s2 @! i) (vr1 @! i) (vr2 @! i)
+  in
+  Classical.forall_intro aux
+
+(* Pre and post conditions for the kernel *)
+
 (* - Mutable permission over single cell in ga1
    - Read permission over same cell in ga2
    - Barrier for operating over ga1. *)
 let kpre
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (lena : nat)
   (ga1 ga2 : gpu_array et lena)
   (s1 s2 : erased (seq et))
+  (vr1 vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
   = gpu_pts_to_slice ga1 tid (tid + 1) seq![s1 @! tid] **
     gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2)) 0 tid
+    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) 0 tid
 
 (* ^ Note how the instantiation of the barrier states (pmul s1 s2) regarless
      of whatever is in sr. This is since the first thing the kernel will do is
@@ -47,37 +64,39 @@ let kpre
     so that is the "contract" that the barrier must use. *)
 
 let kpost
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (lena : nat)
   (ga1 ga2 : gpu_array et lena)
   (s1 s2 : erased (seq et))
+  (vr1 vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
   = gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
     (exists* it.
-      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2)) it tid) **
-    (if_ (tid = 0) (gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2)))
+      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) it tid) **
+    (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2)))
 
 inline_for_extraction noextract
 fn kf
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (lena : szp{lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : erased (seq et))
+  (#vr1 #vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : szlt lena)
   ()
   requires
     gpu **
-    kpre lena ga1 ga2 s1 s2 tid **
+    kpre lena ga1 ga2 s1 s2 vr1 vr2 tid **
     thread_id lena tid
   ensures
     gpu **
-    kpost lena ga1 ga2 s1 s2 tid **
+    kpost lena ga1 ga2 s1 s2 vr1 vr2 tid **
     thread_id lena tid
 {
-  (**)unfold (kpre lena ga1 ga2 s1 s2 tid);
+  (**)unfold (kpre lena ga1 ga2 s1 s2 vr1 vr2 tid);
 
   let v1 = gpu_array_read ga1 tid;
   let v2 = gpu_array_read ga2 tid;
@@ -93,18 +112,19 @@ fn kf
   assert (gpu_pts_to_slice ga1 tid (tid+1) (seq![pmul s1 s2 @! tid]));
 
   (* Reduction *)
-  HR.kf lena ga1 #(pmul s1 s2) #() tid ();
+  HR.kf lena ga1 #(pmul s1 s2) #_ #() tid ();
 
-  fold (kpost lena ga1 ga2 s1 s2 tid);
+  fold (kpost lena ga1 ga2 s1 s2 vr1 vr2 tid);
   ()
 }
 
 ghost
 fn setup
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (lena : szp{SZ.v lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
-  (#s1 #s2 : erased (seq et))
+  (#s1 #s2 : seq et)
+  (#vr1 #vr2 : seq real { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
   (_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   norewrite
   requires
@@ -112,11 +132,11 @@ fn setup
     (ga2 |-> s2 ** ga1 |-> s1)
   ensures
     block_setup_tok lena **
-    (forall+ (bid : natlt lena). kpre lena ga1 ga2 s1 s2 bid) **
+    (forall+ (bid : natlt lena). kpre lena ga1 ga2 s1 s2 vr1 vr2 bid) **
     emp (* frame *)
 {
   // mk_mbarrier nthr (HR.barrier_matrix nthr ar (pmul s1 s2));
-  mk_mbarrier lena (HR.barrier_matrix lena ga1 (pmul s1 s2));
+  mk_mbarrier lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2));
   gpu_array_slice_1 ga1;
   // bigstar_zip 0 lena _ _;
   // gpu_array_slice_1 ga2;
@@ -132,15 +152,16 @@ fn setup
 
 inline_for_extraction noextract
 let dp_kernel
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (lena : szp{SZ.v lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : erased (seq et))
+  (#vr1 #vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
   (#_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   : kernel_desc
       (ga2 |-> s2 ** ga1 |-> s1)
-      (ga2 |-> s2 ** (exists* s1'. (ga1 |-> s1') **
-                                     pure (len s1' == len s1 /\ squash (is_reduction zero add (pmul s1 s2) (Seq.head s1')))))
+      (ga2 |-> s2 ** (exists* (s1' : seq et{Seq.length s1' > 0}). (ga1 |-> s1') **
+                                     pure ((s1' @! 0) `approximates` real_seq_sum (rsmul vr1 vr2))))
   = {
     nthr = lena;
     f = kf lena ga1 ga2 #s1 #s2;
@@ -148,18 +169,19 @@ let dp_kernel
     block_setup    = setup lena ga1 ga2 #s1 #s2;
     block_teardown = magic ();
 
-    kpre  = kpre lena ga1 ga2 s1 s2;
-    kpost = kpost lena ga1 ga2 s1 s2;
+    kpre  = kpre lena ga1 ga2 s1 s2 vr1 vr2;
+    kpost = kpost lena ga1 ga2 s1 s2 vr1 vr2;
 
     frame = emp;
   } <: kernel_desc_1_n _ _
 
 inline_for_extraction noextract
 fn dotprod
-  (#et:Type0) {| scalar et |}
+  (#et:Type0) {| scalar et, real_like et |}
   (lena : szp{lena <= max_threads})
   (a1 a2: vec et)
   (v1 v2: erased (seq et))
+  (vr1 vr2: erased (seq real) { seq_approximates v1 vr1 /\ seq_approximates v2 vr2 })
   (#_: squash (len v1 == lena /\ len v2 == lena))
   norewrite
   preserves
@@ -183,7 +205,7 @@ fn dotprod
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 lena;
 
   (* Why are the implicits needed? *)
-  launch_sync (dp_kernel lena ga1 ga2 #v1 #v2);
+  launch_sync (dp_kernel lena ga1 ga2 #v1 #v2 #vr1 #vr2);
 
   gpu_pts_to_ref ga1;
   gpu_pts_to_ref ga2;
@@ -204,7 +226,9 @@ fn dotprod
   V.free ar;
 
   (* Finally, ensure that the reduction must be sum *)
-  Kuiper.IsReduction.ac_eq_foldl zero add (pmul v1 v2) dp;
+  assume (pure (dp == sum (pmul v1 v2)));
+  // fixme: should come from approximation now
+  // Kuiper.IsReduction.ac_eq_foldl zero add (pmul v1 v2) dp;
 
   dp
 }

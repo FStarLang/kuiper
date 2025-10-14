@@ -2,7 +2,9 @@ module Kuiper.Injection
 
 #lang-pulse
 open Kuiper.Common
+open Kuiper.GhostPull
 open Kuiper.SizeT
+
 open FStar.Functions
 module SZ = Kuiper.SizeT
 open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
@@ -47,9 +49,6 @@ val lem_forall_pat (#a #b : _) (d : a @~> b)
   : Lemma (forall x y. d.f x == d.f y ==> x == y)
           [SMTPat (has_type d (a @~> b))] // OK? Useful?
 #pop-options
-
-(* An axiom. Used to be in the F* library. *)
-val ghost_pull (#a #b:Type) (f: a -> GTot b) : GTot (g:(a -> b) { forall x. f x == g x })
 
 let image_of (#a #b: Type) (i: a @~> b) : Type = FStar.Functions.image_of i.f
 
@@ -120,3 +119,7 @@ let inj_sz_sum
   f = inj_sz_sum_f n1 n2 s1;
   is_inj = ez; (* does not work if inj_sz_sum_f is inlined. *)
 }
+
+val inj_cardinal (n1 n2 : nat)
+  : Lemma (requires exists (b : natlt n1 @~> natlt n2). True)
+          (ensures n1 <= n2)

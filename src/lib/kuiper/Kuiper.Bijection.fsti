@@ -234,6 +234,27 @@ let inj_bij' (#a #b : Type) (bij : a =~ b) : (b @~> a) =
     is_inj = ez;
   }
 
+let bij_inj (#a #b : Type) (inj : a @~> b)
+  : GTot (a =~ image_of inj)
+= let ff : a -> image_of inj = (fun x -> inj.f x) in
+  {
+    ff = ff;
+    gg = Kuiper.GhostPull.ghost_pull (FStar.Functions.inverse_of_bij ff);
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+let bij_inj' (#a #b : Type) (inj : a @~> b)
+  : Ghost (a =~ b)
+          (requires Functions.is_surj inj.f)
+          (ensures fun _ -> True)
+= {
+  ff = inj.f;
+  gg = Kuiper.GhostPull.ghost_pull (FStar.Functions.inverse_of_bij inj.f);
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
 let bij_erase (#a #b : Type) (bij : a =~ b) : (erased a =~ erased b) =
 {
   ff = (fun (x : erased a) -> bij.ff x <: erased b);

@@ -202,11 +202,10 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
         ambig_trade_elim ();
 
+        with v. assert acc_frag `fragment_pts_to` v;
         Pulse.Lib.Forall.elim_forall
           #(value_for et_acc FragAcc tm tn tk)
-          (MS.mma (Seq.index emAccumFrags (!resIdxM * wn + !resIdxN))
-                  (Seq.index emAFrags !resIdxM)
-                  (Seq.index emBFrags !resIdxN));
+          v;
 
         ambig_trade_elim ();
 
@@ -456,8 +455,12 @@ fn epilogue
       rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
 
       with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
-      let eidx : erased nat = !i * wn + !j;
+      let vi = !i;
+      let vj = !j;
+      let eidx : erased nat = vi * wn + vj;
 
+      assert pure (vi < wm);
+      assert pure (vj < wn);
       assert pure (eidx < wm * wn);
       assert pure (SZ.fits eidx);
       let idx = !i *^ wn +^ !j;

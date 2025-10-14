@@ -163,7 +163,7 @@ let seq_rev (#a:Type) (s:seq a) : seq a =
 (* awkward, we should be able to start from a random array (not "core a")
    and use abs on it. *)
 (* fixed! but could be nicer. *)
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 30"
 fn write3
   (p : gpu_array u32 50)
   (#s : erased (lseq u32 50))

@@ -23,10 +23,6 @@ let g_gemm_f16_f16_16x16x16_8x8 bm bn bk =
   admit();
   spec half half bm bn bk 16sz 16sz 16sz 8sz 8sz
 
-// The queries below are sometimes complex. We should
-// normalize them, that would make them much simpler.
-#set-options "--split_queries always"
-
 EOF
 
 # Tweak these lists to control which instances are generated
@@ -55,7 +51,7 @@ for tm in $all_tm; do
           for bk in $all_bk; do
             if [ $((bk % chunk)) -ne 0 ]; then continue; fi # chunk
             if [ $((bk % tk)) -ne 0 ]; then continue; fi # tc tile
-            if [ $(((2 * bm * bk) + (2 * bk * bn))) -gt 49152 ]; then continue; fi # shmem size constraint
+            if [ $(((2 * bm * bk) + (2 * bk * bn))) -gt 101376 ]; then continue; fi # shmem size constraint
             for wm in $all_wm; do
               if [ $((bm % (tm * wm))) -ne 0 ]; then continue; fi
               for wn in $all_wn; do

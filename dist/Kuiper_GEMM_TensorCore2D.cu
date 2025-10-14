@@ -107,7 +107,7 @@ __hoisted_0(uint32_t bm,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / bn) * bm) +
                                     blockIdx.x % (cols / bn) * bn +
@@ -115,7 +115,7 @@ __hoisted_0(uint32_t bm,
                                             32U)
                                     + threadIdx.x / 32U % (bn / 32U) * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -141,6 +141,10 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_2x2(uint32_t bm,
     uint32_t nthr = bm / 32U * (bn / 32U) * 32U;
     KPR_ASSERT(bm * bk % (8U * nthr) == 0U);
     KPR_ASSERT(bk * bn % (8U * nthr) == 0U);
+    KPR_SHMEM_FITS(2U * (bm * bk) + 2U * (bk * bn));
+    MUST(cudaFuncSetAttribute(__hoisted_0,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * (bm * bk) + 2U * (bk * bn)));
     KPR_KCALL(__hoisted_0,
               nblk,
               nthr,
@@ -255,7 +259,7 @@ __hoisted_1(uint32_t bm,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / bn) * bm) +
                                     blockIdx.x % (cols / bn) * bn +
@@ -263,7 +267,7 @@ __hoisted_1(uint32_t bm,
                                             64U)
                                     + threadIdx.x / 32U % (bn / 64U) * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -289,6 +293,10 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_4x4(uint32_t bm,
     uint32_t nthr = bm / 64U * (bn / 64U) * 32U;
     KPR_ASSERT(bm * bk % (8U * nthr) == 0U);
     KPR_ASSERT(bk * bn % (8U * nthr) == 0U);
+    KPR_SHMEM_FITS(2U * (bm * bk) + 2U * (bk * bn));
+    MUST(cudaFuncSetAttribute(__hoisted_1,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * (bm * bk) + 2U * (bk * bn)));
     KPR_KCALL(__hoisted_1,
               nblk,
               nthr,
@@ -403,7 +411,7 @@ __hoisted_2(uint32_t bm,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / bn) * bm) +
                                     blockIdx.x % (cols / bn) * bn +
@@ -411,7 +419,7 @@ __hoisted_2(uint32_t bm,
                                             128U)
                                     + threadIdx.x / 32U % (bn / 128U) * 128U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -437,6 +445,10 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_8x8(uint32_t bm,
     uint32_t nthr = bm / 128U * (bn / 128U) * 32U;
     KPR_ASSERT(bm * bk % (8U * nthr) == 0U);
     KPR_ASSERT(bk * bn % (8U * nthr) == 0U);
+    KPR_SHMEM_FITS(2U * (bm * bk) + 2U * (bk * bn));
+    MUST(cudaFuncSetAttribute(__hoisted_2,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              2U * (bm * bk) + 2U * (bk * bn)));
     KPR_KCALL(__hoisted_2,
               nblk,
               nthr,
@@ -548,14 +560,14 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -573,8 +585,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 1024U == 0U);
-    KPR_ASSERT(1024U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
     KPR_KCALL(__hoisted_3, nblk, 128U, 4096U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -681,14 +696,14 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -705,8 +720,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
     KPR_KCALL(__hoisted_4, nblk, 64U, 4096U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -814,14 +832,14 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -839,8 +857,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
     KPR_KCALL(__hoisted_5, nblk, 64U, 4096U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -947,14 +968,14 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -971,8 +992,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(1024U % 256U == 0U);
-    KPR_ASSERT(1024U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(4096U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
     KPR_KCALL(__hoisted_6, nblk, 32U, 4096U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1080,14 +1104,14 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -1105,8 +1129,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_7, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_7, nblk, 128U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1213,14 +1240,14 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -1237,8 +1264,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_8, nblk, 64U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1346,14 +1376,14 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -1371,8 +1401,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_9, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_9, nblk, 64U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1479,14 +1512,14 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -1503,8 +1536,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_10, nblk, 32U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1612,14 +1648,14 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -1637,8 +1673,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_11, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_11, nblk, 128U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1745,14 +1784,14 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -1769,8 +1808,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_12, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_12, nblk, 64U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -1878,14 +1920,14 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -1903,8 +1945,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_13, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_13, nblk, 64U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2011,14 +2056,14 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 64U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -2035,8 +2080,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_14, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_14, nblk, 32U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2144,14 +2192,14 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2169,8 +2217,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_15, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_15, nblk, 128U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2277,14 +2328,14 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -2301,8 +2352,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_16, nblk, 64U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2410,14 +2464,14 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 64U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2435,8 +2489,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_17, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_17, nblk, 128U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2544,14 +2601,14 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2569,8 +2626,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_18, nblk, 64U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2677,14 +2737,14 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -2701,8 +2761,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(1024U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_19, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_19, nblk, 32U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2810,14 +2873,14 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 32U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2835,8 +2898,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_20, nblk, 256U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -2944,14 +3010,14 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -2969,8 +3035,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_21, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_21, nblk, 128U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3077,14 +3146,14 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -3101,8 +3170,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_22, nblk, 64U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3210,14 +3282,14 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 64U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -3235,8 +3307,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_23, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_23, nblk, 128U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3344,14 +3419,14 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -3369,8 +3444,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_24, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_24, nblk, 64U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3477,14 +3555,14 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -3501,8 +3579,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_25, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_25, nblk, 32U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3610,14 +3691,14 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 32U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -3635,8 +3716,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(8192U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_26, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_26, nblk, 256U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3744,14 +3828,14 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -3769,8 +3853,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_27, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_27, nblk, 128U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -3877,14 +3964,14 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -3901,8 +3988,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_28, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_28, nblk, 64U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4010,14 +4100,14 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 64U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -4035,8 +4125,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_29, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_29, nblk, 128U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4144,14 +4237,14 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -4169,8 +4262,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_30, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_30, nblk, 64U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4277,14 +4373,14 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 64U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -4301,8 +4397,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(8192U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_31, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_31, nblk, 32U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4409,14 +4508,14 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -4433,8 +4532,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(1024U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_32, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_32, nblk, 128U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4542,14 +4644,14 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -4567,8 +4669,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(1024U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_33, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_33, nblk, 128U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4675,14 +4780,14 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -4699,8 +4804,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_34, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_34, nblk, 64U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4808,14 +4916,14 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 128U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -4833,8 +4941,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(1024U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_35, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_35, nblk, 64U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -4941,14 +5052,14 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 128U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -4965,8 +5076,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(1024U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(6144U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_36, cudaFuncAttributeMaxDynamicSharedMemorySize, 6144U));
     KPR_KCALL(__hoisted_36, nblk, 32U, 6144U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5074,14 +5188,14 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -5099,8 +5213,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(2048U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_37, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_37, nblk, 256U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5207,14 +5324,14 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -5231,8 +5348,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_38, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_38, nblk, 128U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5340,14 +5460,14 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -5365,8 +5485,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_39, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_39, nblk, 128U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5473,14 +5596,14 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -5497,8 +5620,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_40, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_40, nblk, 64U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5606,14 +5732,14 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 128U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -5631,8 +5757,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_41, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_41, nblk, 64U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5739,14 +5868,14 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 128U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -5763,8 +5892,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(12288U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_42, cudaFuncAttributeMaxDynamicSharedMemorySize, 12288U));
     KPR_KCALL(__hoisted_42, nblk, 32U, 12288U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -5872,14 +6004,14 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -5897,8 +6029,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_43, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_43, nblk, 256U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6005,14 +6140,14 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -6029,8 +6164,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_44, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_44, nblk, 128U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6138,14 +6276,14 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -6163,8 +6301,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_45, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_45, nblk, 128U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6271,14 +6412,14 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -6295,8 +6436,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_46, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_46, nblk, 64U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6404,14 +6548,14 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U / 2U * 128U)
                                     + threadIdx.x / 32U % 2U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -6429,8 +6573,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_47, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_47, nblk, 64U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6537,14 +6684,14 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 64U) * 128U) +
                                     blockIdx.x % (cols / 64U) * 64U +
                                     cols * (threadIdx.x / 32U * 128U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -6561,8 +6708,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
-    KPR_ASSERT(8192U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(24576U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_48, cudaFuncAttributeMaxDynamicSharedMemorySize, 24576U));
     KPR_KCALL(__hoisted_48, nblk, 32U, 24576U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6670,14 +6820,14 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -6695,8 +6845,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 2048U == 0U);
-    KPR_ASSERT(2048U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_49, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_49, nblk, 256U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6803,14 +6956,14 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -6827,8 +6980,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_50, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_50, nblk, 128U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -6936,14 +7092,14 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 64U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -6961,8 +7117,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 2048U == 0U);
-    KPR_ASSERT(2048U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_51, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_51, nblk, 256U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7070,14 +7229,14 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -7095,8 +7254,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_52, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_52, nblk, 128U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7203,14 +7365,14 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -7227,8 +7389,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_53, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_53, nblk, 64U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7336,14 +7501,14 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 128U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -7361,8 +7526,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 1024U == 0U);
-    KPR_ASSERT(2048U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_54, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_54, nblk, 128U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7470,14 +7638,14 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 128U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -7495,8 +7663,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 512U == 0U);
-    KPR_ASSERT(2048U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_55, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_55, nblk, 64U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7603,14 +7774,14 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 128U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -7627,8 +7798,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(2048U % 256U == 0U);
-    KPR_ASSERT(2048U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(8192U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_56, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_56, nblk, 32U, 8192U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7736,14 +7910,14 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 32U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -7761,8 +7935,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 4096U == 0U);
-    KPR_ASSERT(4096U % 4096U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_57, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_57, nblk, 512U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -7870,14 +8047,14 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -7895,8 +8072,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_58, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_58, nblk, 256U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8003,14 +8183,14 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -8027,8 +8207,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_59, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_59, nblk, 128U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8136,14 +8319,14 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 64U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -8161,8 +8344,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 2048U == 0U);
-    KPR_ASSERT(4096U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_60, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_60, nblk, 256U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8270,14 +8456,14 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -8295,8 +8481,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_61, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_61, nblk, 128U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8403,14 +8592,14 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -8427,8 +8616,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_62, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_62, nblk, 64U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8536,14 +8728,14 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 128U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -8561,8 +8753,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 1024U == 0U);
-    KPR_ASSERT(4096U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_63, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_63, nblk, 128U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8670,14 +8865,14 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 128U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -8695,8 +8890,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 512U == 0U);
-    KPR_ASSERT(4096U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_64, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_64, nblk, 64U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8803,14 +9001,14 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 128U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -8827,8 +9025,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(4096U % 256U == 0U);
-    KPR_ASSERT(4096U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(16384U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_65, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
     KPR_KCALL(__hoisted_65, nblk, 32U, 16384U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -8936,14 +9137,14 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 32U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -8961,8 +9162,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 4096U == 0U);
-    KPR_ASSERT(8192U % 4096U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_66, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_66, nblk, 512U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9070,14 +9274,14 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 32U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -9095,8 +9299,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 2048U == 0U);
-    KPR_ASSERT(8192U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_67, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_67, nblk, 256U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9203,14 +9410,14 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 32U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -9227,8 +9434,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_68, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_68, nblk, 128U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9336,14 +9546,14 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 64U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -9361,8 +9571,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 2048U == 0U);
-    KPR_ASSERT(8192U % 2048U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_69, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_69, nblk, 256U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9470,14 +9683,14 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 64U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -9495,8 +9708,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_70, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_70, nblk, 128U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9603,14 +9819,14 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 64U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -9627,8 +9843,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_71, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_71, nblk, 64U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9736,14 +9955,14 @@ static void __hoisted_72(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 2U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 2U + j];
+            auto & __anf03 = accFrags[i * 2U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 4U * 128U)
                                     + threadIdx.x / 32U % 4U * 32U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -9761,8 +9980,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 1024U == 0U);
-    KPR_ASSERT(8192U % 1024U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_72, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_72, nblk, 128U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -9870,14 +10092,14 @@ static void __hoisted_73(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 4U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 4U + j];
+            auto & __anf03 = accFrags[i * 4U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U / 2U * 128U)
                                     + threadIdx.x / 32U % 2U * 64U +
                                     cols * (__anf11 * 16U)
-                                    + __anf01 * 16U, __anf04, cols,
+                                    + __anf01 * 16U, __anf03, cols,
                                     wmma::mem_row_major);
         }
     }
@@ -9895,8 +10117,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 512U == 0U);
-    KPR_ASSERT(8192U % 512U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_73, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_73, nblk, 64U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }
@@ -10003,14 +10228,14 @@ static void __hoisted_74(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; j < 8U; j++) {
             uint32_t __anf11 = i;
             uint32_t __anf01 = j;
-            auto & __anf04 = accFrags[i * 8U + j];
+            auto & __anf03 = accFrags[i * 8U + j];
             wmma::store_matrix_sync(gC +
                                     cols * (blockIdx.x / (cols / 128U) * 128U) +
                                     blockIdx.x % (cols / 128U) * 128U +
                                     cols * (threadIdx.x / 32U * 128U)
                                     + cols * (__anf11 * 16U)
                                     + __anf01 * 16U,
-                                    __anf04, cols, wmma::mem_row_major);
+                                    __anf03, cols, wmma::mem_row_major);
         }
     }
 }
@@ -10027,8 +10252,11 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
-    KPR_ASSERT(8192U % 256U == 0U);
-    KPR_ASSERT(8192U % 256U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_ASSERT(0U == 0U);
+    KPR_SHMEM_FITS(32768U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_74, cudaFuncAttributeMaxDynamicSharedMemorySize, 32768U));
     KPR_KCALL(__hoisted_74, nblk, 32U, 32768U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }

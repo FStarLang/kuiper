@@ -1,5 +1,6 @@
 module Kuiper.Functions
 
+open Kuiper.Common
 include FStar.Functions
 
 (* Base properties and facts about functions. *)
@@ -35,3 +36,7 @@ let merge_either (f1 : 'a -> 'c) (f2 : 'b -> 'c) (x : either 'a 'b) : 'c =
 
 let left  (e : either 'a 'b{Inl? e}) : 'a = let Inl x = e in x
 let right (e : either 'a 'b{Inr? e}) : 'b = let Inr x = e in x
+
+val pigeon (n1:nat) (n2:nat{n2 < n1})
+  (f : natlt n1 -> natlt n2)
+  : Lemma (~ (is_inj f))

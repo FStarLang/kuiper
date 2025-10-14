@@ -78,11 +78,29 @@ uint64_t Kuiper_Async1_main(void)
     uint64_t *r4 = Kuiper_Async1_galloc(4ULL);
     uint64_t *r5 = Kuiper_Async1_galloc(5ULL);
     uint64_t *r6 = Kuiper_Async1_galloc(6ULL);
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, 1U, 1U, 0U, r1);
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, 1U, 1U, 0U, r2);
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_2, 1U, 1U, 0U, r3);
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_3, 1U, 1U, 0U, r4);
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_4, 1U, 1U, 0U, r5);
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_5, 1U, 1U, 0U, r6);
     MUST(cudaDeviceSynchronize());
     uint64_t v1 = Kuiper_Async1_gread(r1);

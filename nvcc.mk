@@ -23,7 +23,11 @@ $(OUTDIR)/%.exe: $(OUTDIR)/%.o $(OUTDIR)/$$(call remove__, %).o
 	$(call msg,"NVLD")
 	$(Q)nvcc $(NVCC_FLAGS) $(NVLD_CFLAGS) -o $@ $^
 
-$(OUTDIR)/%.output: $(OUTDIR)/%.exe
+.PHONY: nvidia-smi-check
+nvidia-smi-check:
+	nvidia-smi >/dev/null || (echo "*** nvidia-smi failed! Is CUDA set up properly?\n" >&2; false)
+
+$(OUTDIR)/%.output: $(OUTDIR)/%.exe nvidia-smi-check
 	timeout -k 1 180 $< > $@
 
 test/%.output.expected:

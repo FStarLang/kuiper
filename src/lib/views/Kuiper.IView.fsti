@@ -64,7 +64,6 @@ let is_full_view_lempat (avw : aiview { is_full_view avw })
           [SMTPat (in_image avw.step.imap.f i)]
   = ()
 
-(* Will this be useful? *)
 val full_iff_cardinal
   (vw : aiview)
   : Lemma (is_full_view vw <==> vw.sch.ait_enum._cardinal == vw.len)
@@ -194,6 +193,11 @@ let it_of_nat
   : GTot vw.sch.ait
   = i <~| vw.step.imap
 
+val it_nat_rel (vw : aiview) (i : vw.sch.ait)
+  (j : natlt vw.len{FStar.Functions.in_image vw.step.imap.f j})
+  : Lemma (it_to_nat vw i == j <==> i == it_of_nat vw j)
+          [SMTPat (it_to_nat vw i); SMTPat (it_of_nat vw j)]
+
 let ci_to_ai
   (vw : aiview) {| cw : ciview vw |}
   (i : cw.sch.cit)
@@ -251,3 +255,8 @@ let compose_cstep
     c2.compat (step12.imap.f ai)
   );
 }
+
+val full_view_bij (avw : aiview { is_full_view avw })
+  : Ghost (avw.sch.ait =~ natlt avw.len)
+          (requires True)
+          (ensures fun b -> forall x. b.ff x == it_to_nat avw x)

@@ -26,6 +26,9 @@ float_t Kuiper_DotProduct_dotprod_f32(uint32_t lena, float_t *a1, float_t *a2)
     float_t *ga2 = (float_t *) KPR_GPU_ALLOC(4U, lena);
     MUST(cudaMemcpy(ga1, a1, 4U * lena, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(ga2, a2, 4U * lena, cudaMemcpyHostToDevice));
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, 1U, lena, 0U, lena, ga1, ga2);
     MUST(cudaDeviceSynchronize());
     float_t *ar = (float_t *) KRML_HOST_MALLOC(sizeof(float_t));
@@ -65,6 +68,9 @@ double_t Kuiper_DotProduct_dotprod_f64(uint32_t lena, double_t *a1,
     double_t *ga2 = (double_t *) KPR_GPU_ALLOC(8U, lena);
     MUST(cudaMemcpy(ga1, a1, 8U * lena, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(ga2, a2, 8U * lena, cudaMemcpyHostToDevice));
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, 1U, lena, 0U, lena, ga1, ga2);
     MUST(cudaDeviceSynchronize());
     double_t *ar = (double_t *) KRML_HOST_MALLOC(sizeof(double_t));
@@ -104,6 +110,9 @@ uint32_t Kuiper_DotProduct_dotprod_u32(uint32_t lena, uint32_t *a1,
     uint32_t *ga2 = (uint32_t *) KPR_GPU_ALLOC(4U, lena);
     MUST(cudaMemcpy(ga1, a1, 4U * lena, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(ga2, a2, 4U * lena, cudaMemcpyHostToDevice));
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_2, 1U, lena, 0U, lena, ga1, ga2);
     MUST(cudaDeviceSynchronize());
     uint32_t *ar = (uint32_t *) KRML_HOST_CALLOC(1U, sizeof(uint32_t));
@@ -141,6 +150,9 @@ uint64_t Kuiper_DotProduct_dotprod_u64(uint32_t lena, uint64_t *a1,
     uint64_t *ga2 = (uint64_t *) KPR_GPU_ALLOC(8U, lena);
     MUST(cudaMemcpy(ga1, a1, 8U * lena, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(ga2, a2, 8U * lena, cudaMemcpyHostToDevice));
+    KPR_SHMEM_FITS(0U);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_3, 1U, lena, 0U, lena, ga1, ga2);
     MUST(cudaDeviceSynchronize());
     uint64_t *ar = (uint64_t *) KRML_HOST_CALLOC(1U, sizeof(uint64_t));

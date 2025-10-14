@@ -125,4 +125,6 @@ void INFO ()
 	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
 }
 
+#define KPR_SHMEM_FITS(e) KPR_ASSERT((e) <= 101376) // 99KiB
+
 #endif /* __KUIPER_H */

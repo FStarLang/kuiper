@@ -146,6 +146,11 @@ let it_of_nat
   : GTot vw.iview.sch.ait
   = IView.it_of_nat vw.iview i
 
+val it_nat_rel #a #st (vw : aview a st) (i : vw.iview.sch.ait)
+  (j : natlt (len vw){FStar.Functions.in_image vw.iview.step.imap.f j})
+  : Lemma (it_to_nat vw i == j <==> i == it_of_nat vw j)
+          [SMTPat (it_to_nat vw i); SMTPat (it_of_nat vw j)]
+
 let ci_to_ai
   (#et:Type) (#st : Type0)
   (vw : aview et st)

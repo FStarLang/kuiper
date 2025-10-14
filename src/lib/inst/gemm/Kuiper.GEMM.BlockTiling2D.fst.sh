@@ -35,7 +35,7 @@ for bm in $all_bm; do
     if [ $((bn % chunk)) -ne 0 ]; then continue; fi
     for bk in $all_bk; do
       if [ $((bk % chunk)) -ne 0 ]; then continue; fi
-      if [ $(((4 * bm * bk) + (4 * bk * bn))) -gt 49152 ]; then continue; fi
+      if [ $(((4 * bm * bk) + (4 * bk * bn))) -gt 101376 ]; then continue; fi
       for tm in $all_tm; do
         if [ $((bm % tm)) -ne 0 ]; then continue; fi
         for tn in $all_tn; do
