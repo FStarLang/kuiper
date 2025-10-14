@@ -172,7 +172,7 @@ fn setup
 
 }
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60"
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
