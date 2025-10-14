@@ -300,7 +300,8 @@ let rec freevars_of_mlexpr (e : mlexpr) : list (string & mlty) =
         match p with
         | MLP_Var v -> [v]
         | MLP_CTor (_, args) -> List.collect pat_bound args
-        | MLP_Record (_, fields) -> List.map (fun (f, _) -> f) fields
+        | MLP_Record (_, fields) ->
+          List.concatMap (fun (_, p) -> pat_bound p) fields
         | MLP_Tuple ps -> List.collect pat_bound ps
         | _ -> []
       in
