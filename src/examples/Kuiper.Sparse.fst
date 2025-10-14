@@ -3,9 +3,10 @@ module Kuiper.Sparse
 #lang-pulse
 open Kuiper
 module SZ = FStar.SizeT
+open Kuiper.Sparse.Extra
 
 // This is here to force extraction.
-let x = 1ul
+let _ = 1ul
 
 (* Propiedades sobre escalares *)
 
@@ -113,6 +114,7 @@ let cast_pos
 
 (* Sparse array *)
 noeq
+inline_for_extraction
 type sarray (et : Type0)
   (l : erased nat) =
   // ^ longitud "virtual" del array
@@ -420,45 +422,83 @@ fn smatrix_share_n
 ghost
 fn smatrix_gather_n
   (#et:Type0) {| scalar et |}
-  (#uid: int)
   (#rows #cols : nat)
   (m : smatrix et rows cols)
   (k : pos)
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    bigstar #uid 0 k (fun _ -> smatrix_pts_to m #(f /. k) em)
+    forall+ (_ : natlt k). smatrix_pts_to m #(f /. k) em
   ensures
     smatrix_pts_to m #f em
 {
+  forevery_extract_if_eqtype #(natlt k) 0 _;
+  unfold smatrix_pts_to;
+  with v_elems.   assert gpu_pts_to_array m.elems   #(f /. k) v_elems;
+  with v_col_ind. assert gpu_pts_to_array m.col_ind #(f /. k) v_col_ind;
+  with v_row_off. assert gpu_pts_to_array m.row_off #(f /. k) v_row_off;
+
   ghost
-  fn aux (i:natlt k)
-    requires smatrix_pts_to m #(f /. k) em
-    ensures ( 
-      exists* (v_elems    : lseq et m.nnz).
-      exists* (v_col_ind  : lseq sz m.nnz).
-      exists* (v_row_off  : lseq sz (rows + 1)).
-        m.elems   |-> Frac (f /. k) v_elems **
-        m.col_ind |-> Frac (f /. k) v_col_ind **
-        m.row_off |-> Frac (f /. k) v_row_off **
-        pure (pure_smatrix_pt_to m em v_elems v_col_ind v_row_off)
-    )
+  fn aux (x : natlt k)
+    norewrite
+    preserves
+      gpu_pts_to_array m.elems   #(f /. k) v_elems **
+      gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+      gpu_pts_to_array m.row_off #(f /. k) v_row_off
+    requires
+      (if op_Equality #(natlt k) x 0 then emp else
+        smatrix_pts_to m #(f /. k) em
+      )
+    ensures
+      (if op_Equality #(natlt k) x 0 then emp else
+        gpu_pts_to_array m.elems   #(f /. k) v_elems **
+        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+        gpu_pts_to_array m.row_off #(f /. k) v_row_off
+      )
   {
-    unfold smatrix_pts_to m #(f /. k) em;
+    if (x = 0) {
+      rewrite each op_Equality #(natlt k) x 0 as true;
+      rewrite emp as
+      (if op_Equality #(natlt k) x 0 then emp else
+        gpu_pts_to_array m.elems   #(f /. k) v_elems **
+        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+        gpu_pts_to_array m.row_off #(f /. k) v_row_off
+      );
+      ();
+    } else {
+      rewrite each op_Equality #(natlt k) x 0 as false;
+      unfold smatrix_pts_to;
+
+      gpu_array_pts_to_eq m.elems;
+      gpu_array_pts_to_eq m.col_ind;
+      gpu_array_pts_to_eq m.row_off;
+
+      rewrite 
+        gpu_pts_to_array m.elems   #(f /. k) v_elems **
+        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+        gpu_pts_to_array m.row_off #(f /. k) v_row_off
+      as
+      (if op_Equality #(natlt k) x 0 then emp else
+        gpu_pts_to_array m.elems   #(f /. k) v_elems **
+        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+        gpu_pts_to_array m.row_off #(f /. k) v_row_off
+      );
+    }
   };
-  bigstar_map #uid #0 #0 #k aux;
 
-  // como saco el existencial de adentro de bigstar?
-  // forall . exists != exists . forall
-  admit();
+  forevery_map_extra _ _ _ aux;
+  forevery_unextract_if_eqtype #(natlt k) 0 _;
 
-  // bigstar_unzip ...
-  
-  gpu_slice_gather m.elems _ _ k;
-  gpu_slice_gather m.col_ind _ _ k;
-  gpu_slice_gather m.row_off _ _ k;
+  forevery_unzip #(natlt k) _ _;
+  forevery_unzip #(natlt k) _ _;
+
+  gpu_slice_gather' m.elems   _ _ k;
+  gpu_slice_gather' m.col_ind _ _ k;
+  gpu_slice_gather' m.row_off _ _ k;
+
   fold smatrix_pts_to m #f em;
 }
+
 inline_for_extraction noextract
 fn smatrix_id
   (#et : Type0) {| scalar et |}
