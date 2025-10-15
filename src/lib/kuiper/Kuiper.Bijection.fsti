@@ -43,15 +43,19 @@ let bij_unit_natlt1 : bijection unit (natlt 1) = {
 let ( |~> ) (#a #b : Type) (x : a) (bij : a =~ b) : b = bij.ff x
 let ( <~| ) (#a #b : Type) (x : b) (bij : a =~ b) : a = bij.gg x
 
-val galois (#a #b : _) (d : a =~ b) (x:a) (y:b)
-  : Lemma (d.ff x == y <==> x == d.gg y)
-          [SMTPat (d.ff x); SMTPat (d.gg y)]
+val galois (#a #b : _) (d : a =~ b) (x:a)
+  : Lemma (x == d.gg (d.ff x))
+          [SMTPat (d.ff x)]
 
-#push-options "--warn_error -288"
-val galois_forall (#a #b : _) (d : a =~ b)
-  : Lemma (forall (x:a) (y:b). d.ff x == y <==> x == d.gg y)
-          [SMTPat (has_type d (a =~ b))] // OK? Useful?
-#pop-options
+
+val galois_gg (#a #b : _) (d : a =~ b) (y:b)
+  : Lemma (y == d.ff (d.gg y))
+          [SMTPat (d.gg y)]
+// #push-options "--warn_error -288"
+// val galois_forall (#a #b : _) (d : a =~ b)
+//   : Lemma (forall (x:a) (y:b). d.ff x == y <==> x == d.gg y)
+//           [SMTPat (has_type d (a =~ b))] // OK? Useful?
+// #pop-options
 
 inline_for_extraction noextract
 let bij_self (a:Type) : (a =~ a) =

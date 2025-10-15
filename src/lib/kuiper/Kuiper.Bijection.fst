@@ -10,17 +10,15 @@ let galois_nopat (#a #b : _) (d : a =~ b) (x:a) (y:b)
   = d.ff_gg y;
     d.gg_ff x
 
-let galois (#a #b : _) (d : a =~ b) (x:a) (y:b)
-  : Lemma (d.ff x == y <==> x == d.gg y)
-          [SMTPat (d.ff x); SMTPat (d.gg y)]
-  = galois_nopat d x y
+let galois (#a #b : _) (d : a =~ b) (x:a)
+  : Lemma (x == d.gg (d.ff x))
+          [SMTPat (d.ff x)]
+  = galois_nopat d x (d.ff x)
 
-#push-options "--warn_error -288"
-let galois_forall (#a #b : _) (d : a =~ b)
-  : Lemma (forall (x:a) (y:b). d.ff x == y <==> x == d.gg y)
-          [SMTPat (has_type d (a =~ b))] // OK? Useful?
-  = Classical.forall_intro_2 (galois_nopat d)
-#pop-options
+let galois_gg (#a #b : _) (d : a =~ b) (y:b)
+  : Lemma (y == d.ff (d.gg y))
+          [SMTPat (d.gg y)]
+  = galois_nopat d (d.gg y) y
 
 let __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
   : Lemma (n1 == n2) =

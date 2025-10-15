@@ -40,16 +40,6 @@ let inj_id #a : (a @~> a) = {
 inline_for_extraction
 let ( |~> ) (#a #b : Type) (x : a) (i : a `injection` b) : b = i.f x
 
-val lem_pat (#a #b : _) (d : a @~> b) (x y : a)
-  : Lemma (d.f x == d.f y ==> x == y)
-          [SMTPat (d.f x); SMTPat (d.f y)]
-
-#push-options "--warn_error -288"
-val lem_forall_pat (#a #b : _) (d : a @~> b)
-  : Lemma (forall x y. d.f x == d.f y ==> x == y)
-          [SMTPat (has_type d (a @~> b))] // OK? Useful?
-#pop-options
-
 let image_of (#a #b: Type) (i: a @~> b) : Type = FStar.Functions.image_of i.f
 
 let inverse_f (#a #b : Type) (i : a @~> b) (y : image_of i) : GTot a =
@@ -62,6 +52,23 @@ let inverse (#a #b : Type) (i : a @~> b) : Ghost.erased (image_of i @~> a) = {
 
   is_inj = ez;
 }
+
+let is_injection (#a #b : Type) (i : a @~> b)
+: Lemma (forall x y. i.f x == i.f y ==> x == y)
+= introduce forall x y. i.f x == i.f y ==> x==y
+  with introduce i.f x == i.f y ==> x==y
+  with _. ( i.is_inj x y )
+
+let lem_pat (#a #b : _) (d : a @~> b) (x : a)
+  : Lemma ((inverse d).f (d.f x) == x)
+          [SMTPat (d.f x)]
+  = is_injection d
+
+// #push-options "--warn_error -288"
+// val lem_forall_pat (#a #b : _) (d : a @~> b)
+//   : Lemma (forall x y. d.f x == d.f y ==> x == y)
+//           [SMTPat (has_type d (a @~> b))] // OK? Useful?
+// #pop-options
 
 let ( <~| ) (#a #b : Type) (y : b) (i : a `injection` b{in_image i.f y}) : GTot a =
   y |~> inverse i
