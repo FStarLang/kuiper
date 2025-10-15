@@ -31,7 +31,7 @@ fn matmul_dotprod
     gB |-> Frac fB eB
   returns
     res : et
-  //ensures pure (res == MS.matmul_single eA eB i j)
+  ensures pure (res == MS.matmul_single eA eB i j)
 {
   unfold smatrix_pts_to gA #fA eA;
   with v_row_off.
@@ -53,14 +53,13 @@ fn matmul_dotprod
       exists* v_k.
         k |-> v_k **
         live dp **
-        pure (
-          ri <= v_k /\
-          (v_k < re ==> SZ.v (v_ind @! v_k) == row_cols @! (v_k - ri)) 
-        )
+        pure (ri <= v_k)
       
   {
     let x = gpu_array_read gA.elems !k;
     let c = gpu_array_read gA.col_ind !k;
+
+    assert pure (SZ.v c == row_cols @! (!k - ri));
 
     let y = M.gpu_matrix_read gB c j;
 
@@ -71,6 +70,7 @@ fn matmul_dotprod
 
   fold smatrix_pts_to gA;
 
+  assume pure (!dp == MS.matmul_single eA eB i j);
   !dp;
 
 }
@@ -116,10 +116,8 @@ let kpost
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  (exists* v.
-    M.gpu_matrix_pts_to_cell gC #1.0R (bid / cols) (bid % cols)
-    //(MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
-    v)
+  M.gpu_matrix_pts_to_cell gC (bid / cols) (bid % cols)
+    (MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
 
 inline_for_extraction noextract
 fn kf
@@ -141,12 +139,10 @@ fn kf
   norewrite
   requires
     gpu **
-    kpre comb gA gB gC eA eB eC fA fB bid **
-    block_id (rows *^ cols) bid
+    kpre comb gA gB gC eA eB eC fA fB bid
   ensures
     gpu **
-    kpost comb gA gB gC eA eB eC fA fB bid **
-    block_id (rows *^ cols) bid
+    kpost comb gA gB gC eA eB eC fA fB bid
 {
   let trow = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
   let tcol = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
@@ -241,70 +237,51 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    //gC |-> matrix_comb comb eC (MS.matmul eA eB)
-    live gC
+    gC |-> matrix_comb comb eC (MS.matmul eA eB)
 {
-  forevery_unzip #(natlt2 rows cols) _ _;
-  forevery_unzip #(natlt2 rows cols) _ _;
+  forevery_rw_size (rows *^ cols) (rows * cols);
 
-  forevery_tostar #(natlt2 rows cols)
-    (fun i -> gA |-> Frac (fA /. (rows * cols)) eA);
-  smatrix_gather_n gA _;
-  forevery_tostar #(natlt2 rows cols)
+  forevery_unzip #(natlt (rows * cols)) _ _;
+  forevery_unzip #(natlt (rows * cols)) _ _;
+
+  smatrix_gather_n gA (rows * cols) #fA #eA;
+  forevery_tostar #(natlt (rows * cols))
     (fun i -> gB |-> Frac (fB /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
-  forevery_factor (rows *^ cols) rows cols _;
+  forevery_factor (rows * cols) rows cols _;
 
   (* we get things back with some arithmetic in it *)
-  assert (forall+ (r:natlt rows) (c:natlt cols).
-    exists* v.
+  assert forall+ (r:natlt rows) (c:natlt cols).
       M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
-      //(MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)
-      v
+        (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)
   );
 
   (* need to use ext to get rid of it-- automatically applying ext would be really useful. *)
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
+  forevery_ext_2
+    (fun (r:natlt rows) (c:natlt cols) ->
+      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)))
+    (fun (r:natlt rows) (c:natlt cols) ->
+      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c));
 
   ghost
-  fn aux (r : natlt rows) (c : natlt cols)
-    norewrite
-    requires (
-      exists* v. M.gpu_matrix_pts_to_cell gC
-        ((r * cols + c) / cols) ((r * cols + c) % cols) v
-    )
-    ensures (exists* v. M.gpu_matrix_pts_to_cell gC r c v)
+  fn aux (r:natlt rows) (c:natlt cols)
+    requires
+      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c)
+    ensures
+      M.gpu_matrix_pts_to_cell gC r c (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
-    with v. assert M.gpu_matrix_pts_to_cell gC
-      ((r * cols + c) / cols) ((r * cols + c) % cols) v;
-    
-    assert pure ((r * cols + c) / cols == r); 
-    assert pure ((r * cols + c) % cols == c); 
-    
-    admit();
-    assert M.gpu_matrix_pts_to_cell gC r c v;
+    ()
   };
-  
-  forevery_map_2
-    #(natlt (SZ.v rows)) #_
-    #(natlt (SZ.v cols)) #_ 
-    (fun (r:natlt rows) (c:natlt cols) ->
-      exists* v.
-        M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols) v)
-    (fun (r:natlt rows) (c:natlt cols) ->
-      exists* v.
-        M.gpu_matrix_pts_to_cell gC r c v)
+  forevery_map_2 #(natlt rows) #_ #(natlt cols)
+    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
+    _
     aux;
-  assert (forall+ r c.
-      exists* v.
-      M.gpu_matrix_pts_to_cell gC r c v);
-
-  admit();
 
   M.gpu_matrix_implode gC;
-  ()
 }
 
 inline_for_extraction noextract
@@ -323,15 +300,15 @@ let kdesc
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
-  (#_ : squash (rows * cols <= max_blocks))
-  : kernel_desc_m_1
+  (#_ : squash (rows * cols <= max_blocks * max_threads))
+  : kernel_desc_n
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (
       gA |-> Frac fA eA ** gB |-> Frac fB eB **
-      live gC//gC |-> MS.mmcomb comb eC eA eB
+      gC |-> MS.mmcomb comb eC eA eB
     )
 = {
-  nblk = rows *^ cols;
+  nthr = rows *^ cols;
 
   frame = emp;
 
@@ -366,15 +343,14 @@ fn mmcomb_gpu
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
-    pure (rows * cols <= max_blocks) ** (* size_req *)
+    pure (rows * cols <= max_blocks * max_threads) ** (* size_req *)
     gC |-> eC
-  //ensures gC |-> MS.mmcomb comb eC eA eB
-  ensures live gC
+  ensures gC |-> MS.mmcomb comb eC eA eB
 {
   launch_sync (kdesc comb gA gB gC);
 }
 
 let _gemm_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
-  mmcomb_gpu #u32 #_ (fun x _ -> x)
+  mmcomb_gpu #u32 #_ (fun _ x -> x)
   #rows #shared #cols
   #(row_major _ _) #(row_major _ _)
