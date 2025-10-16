@@ -80,8 +80,11 @@ lint: lint-c lint-fstar
 
 .PHONY: list-admits
 list-admits:
-	-git grep -w 'assume_\|assume\|admit\|magic' src
-	#-find src -name '*.fsti' -printf '%f\n' | while read fsti; do fst=$${fsti%i}; if ! find src -name "$$fst" | grep -q "$$fst" ; then echo "Module $$fsti is assumed"; fi; done
+	(git grep --color -w 'assume_\|assume\|admit\|magic' src; \
+	find src -name \*.fsti | sort \
+		| sed 's/i$$//;/Kuiper.Kernel.Base.fst/d;/Kuiper.\(Array.Vectorized\|AtomicOps\).fst/d;/Kuiper.TensorCore.Base.fst/d;/Kuiper.\(Float[0-9]\+\|SizeT\).fst/d' \
+		| while read fn; do if [[ ! -f $$fn ]]; then echo Missing implementation file: $$fn; fi; done \
+	) | less -R
 
 .PHONY: wc
 wc:
