@@ -82,7 +82,7 @@ lint: lint-c lint-fstar
 list-admits:
 	(git grep --color -w 'assume_\|assume\|admit\|magic' src; \
 	find src -name \*.fsti | sort \
-		| sed 's/i$$//;/Kuiper.Kernel.Base.fst/d;/Kuiper.\(Array.Vectorized\|AtomicOps\).fst/d;/Kuiper.TensorCore.Base.fst/d;/Kuiper.\(Float[0-9]\+\|SizeT\).fst/d' \
+		| sed 's/i$$//;/Kuiper.Kernel.Base.fst/d;/Kuiper.Base.fst/d;/Kuiper.\(Ref\|Array\|Array.Vectorized\|AtomicOps\).fst/d;/Kuiper.TensorCore.Base.fst/d;/Kuiper.\(Float[0-9]\+\|SizeT\).fst/d' \
 		| while read fn; do if [[ ! -f $$fn ]]; then echo Missing implementation file: $$fn; fi; done \
 	) | less -R
 
