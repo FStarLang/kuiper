@@ -223,6 +223,7 @@ fn iarray_reindex_
     from_array (reindex_view vw bij) (core a) |-> Frac f (v `oo` bij.gg)
 
 inline_for_extraction noextract
+unobservable
 fn iarray_reindex
   (#et : Type0)
   (#vw : aiview)

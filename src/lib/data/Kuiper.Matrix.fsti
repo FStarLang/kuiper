@@ -36,10 +36,7 @@ instance cview_from_clayout
   };
 
   step = {
-    cimap = {
-      f      = clayout_imap c;
-      is_inj = ez;
-    };
+    cimap = Kuiper.Injection.mk_cinj (clayout_imap c);
     compat = ez;
   };
 }
