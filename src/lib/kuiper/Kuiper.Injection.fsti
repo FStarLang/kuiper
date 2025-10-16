@@ -49,7 +49,7 @@ let inverse_f (#a #b : Type) (i : a @~> b) (y : image_of i) : GTot a =
     (fun (x:a) -> i.f x == y)
 
 (* An injection can be inverted, but this requires choice. *)
-let inverse (#a #b : Type) (i : a @~> b) : Ghost.erased (image_of i @~> a) = {
+let inverse (#a #b : Type) (i : a @~> b) : (image_of i @~> a) = {
   f = inverse_f i;
 
   is_inj = ez;
