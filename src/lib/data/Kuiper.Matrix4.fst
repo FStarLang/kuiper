@@ -5,6 +5,7 @@ open Kuiper
 open Kuiper.Bijection
 open Kuiper.GhostMap
 open Kuiper.EMatrix4
+open Kuiper.Injection { mk_cinj }
 module A = Kuiper.VArray
 module T = FStar.Tactics.V2
 open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
@@ -78,10 +79,7 @@ instance cview_from_clayout4
   };
 
   step = {
-    cimap = {
-      f = clayout4_imap c;
-      is_inj = (fun idx1 idx2 -> ());
-    };
+    cimap = mk_cinj (clayout4_imap c) #(fun idx1 idx2 -> ());
     compat = ez;
   };
 }

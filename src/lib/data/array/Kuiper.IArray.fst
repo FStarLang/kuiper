@@ -298,6 +298,7 @@ fn iarray_reindex_
   ()
 }
 
+unobservable
 fn iarray_reindex
   (#et : Type0)
   (#vw : aiview)
@@ -440,12 +441,12 @@ fn iarray_write_cell
     Cell a (ci_to_ai vw ci) |-> v1
 {
   let ai : erased vw.sch.ait = ci |> cw.sch.bij.gg; (* abstract index *)
-  let ni = ci |~> cw.step.cimap;                    (* numerical index *)
+  let ni = cw.step.cimap.cf ci;                    (* numerical index *)
   rewrite each ci_to_ai vw ci as ai;
 
   cw.step.compat ai;
-  assert pure ((cw.step.cimap.f (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
-  assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
+  assert pure ((cw.step.cimap.cf (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
+  assert pure (SZ.v (cw.step.cimap.cf (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;
@@ -499,13 +500,13 @@ fn iarray_read_cell
     pure (v == v0)
 {
   let ai : erased vw.sch.ait = ci |> cw.sch.bij.gg; (* abstract index *)
-  let ni = ci |~> cw.step.cimap;                    (* numerical index *)
+  let ni = cw.step.cimap.cf ci;                    (* numerical index *)
   rewrite each ci_to_ai vw ci as ai;
 
   cw.step.compat ai;
-  assert pure ((cw.step.cimap.f (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
+  assert pure ((cw.step.cimap.cf (cw.sch.bij.ff ai)) == SZ.uint_to_t (vw.step.imap.f ai));
   (* ^ FIXME: this should be exactly what we get from the line above? *)
-  assert pure (SZ.v (cw.step.cimap.f (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
+  assert pure (SZ.v (cw.step.cimap.cf (cw.sch.bij.ff ai)) == vw.step.imap.f ai);
 
   unfold iarray_pts_to_cell a #f ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;

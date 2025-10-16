@@ -19,7 +19,7 @@ let view_equiv (#et #st : Type)
   : prop
 = vw1.iview.len == vw2.iview.len /\
   vw1.iview.sch.ait == vw2.iview.sch.ait /\
-  F.feq vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
   (* probably need more about the mappings in igm *)
   True
 

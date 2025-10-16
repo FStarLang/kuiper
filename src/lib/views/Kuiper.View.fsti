@@ -107,7 +107,7 @@ let igm_review (#mt #it #et : Type) (igm : is_ghost_map mt it et)
 {
   acc = (fun (v : mt') (i : it) -> igm.acc (bij.gg v) i);
   upd = (fun (v : mt') (i : it) (x : et) -> bij.ff (igm.upd (bij.gg v) i x));
-  bij = bij_erase (bij_sym bij) `bij_comp` igm.bij;
+  bij = bij_sym bij `bij_comp` igm.bij;
   l1 = ez;
   l2 = ez;
 }
@@ -181,12 +181,18 @@ let to_seq
   = Seq.init_ghost (len vw) fun (i : natlt (len vw)) ->
       reveal (vw.igm.acc v (it_of_nat vw i))
 
+let from_seq_aux
+  (#a:Type) (#st:Type)
+  (vw : aview a st)
+  (s : lseq a (len vw))
+  = F.on_g vw.iview.sch.ait fun i -> s @! it_to_nat vw i
+
 let from_seq
   (#a:Type) (#st:Type)
   (vw : aview a st)
   (s : lseq a (len vw))
   : GTot st
-  = vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i)
+  = vw.igm.bij.gg (from_seq_aux vw s)
 
 val to_from (#a:Type) (#st:Type)
   (vw : aview a st { is_full_view vw })

@@ -8,8 +8,8 @@ module F = FStar.FunctionalExtensionality
 let ghost_map_acc
   (#mt:Type) (#it:Type) (#et:Type)
   (gm : is_ghost_map mt it et)
-  (i : it) (m : erased mt)
-  : Lemma (hide (gm.bij.ff m i) == gm.acc m i)
+  (i : it) (m : mt)
+  : Lemma (gm.bij.ff m i == gm.acc m i)
           [SMTPatOr [[SMTPat (gm.bij.ff m i)];
                      [SMTPat (gm.acc m i)]]]
   = gm.l1 i m
@@ -17,7 +17,7 @@ let ghost_map_acc
 let ghost_map_upd
   (#mt:Type) (#it:Type) (#et:Type)
   (gm : is_ghost_map mt it et)
-  (i : it) (m : erased mt) (e : et)
+  (i : it) (m : mt) (e : et)
   : Lemma (gm.bij.ff (gm.upd m i e) == oplus (gm.bij.ff m) i e)
           [SMTPatOr [[SMTPat (gm.bij.ff (gm.upd m i e))];
                      [SMTPat (oplus (gm.bij.ff m) i e)]]]
@@ -29,15 +29,12 @@ let prod_ff
   (#mb #ib : Type)
   (gm1 : is_ghost_map ma ia et)
   (gm2 : is_ghost_map mb ib et)
-  : erased (ma & mb) -> (either ia ib ^->> et)
+  : (ma & mb) -> (either ia ib ^->> et)
   = fun m ->
       F.on_g _ <| fun (i : either ia ib) ->
       match i with
       | Inl i1 -> gm1.bij.ff (fst m) i1
       | Inr i2 -> gm2.bij.ff (snd m) i2
-
-let oo #a #b #c (g : b ^->> c) (f : a -> b) : (a ^->> c)
-  = F.on_g _ <| fun x -> g (f x)
 
 let prod_gg
   (#et : Type)
@@ -45,12 +42,10 @@ let prod_gg
   (#mb #ib : Type)
   (gm1 : is_ghost_map ma ia et)
   (gm2 : is_ghost_map mb ib et)
-  : GTot ((either ia ib ^->> et) -> erased (ma & mb))
-  = let gg1 = gm1.bij.gg in
-    let gg2 = gm2.bij.gg in
-    fun (gm : (either ia ib) ^->> et) ->
-    (reveal <| gg1 (F.on_g _ <| gm `oo` Inl),
-     reveal <| gg2 (F.on_g _ <| gm `oo` Inr))
+  : ((either ia ib ^->> et) -> GTot (ma & mb))
+  = fun (gm : (either ia ib) ^->> et) ->
+    (gm1.bij.gg (F.on_g _ <| gm `oo` Inl),
+     gm2.bij.gg (F.on_g _ <| gm `oo` Inr))
 
 let prod_ff_gg
   (#et : Type)
@@ -68,7 +63,7 @@ let prod_gg_ff
   (#mb #ib : Type)
   (gm1 : is_ghost_map ma ia et)
   (gm2 : is_ghost_map mb ib et)
-  (m : erased (ma & mb))
+  (m : ma & mb)
   : squash (prod_gg gm1 gm2 (prod_ff gm1 gm2 m) == m)
   = let m1, m2 = m in
     let m1', m2' = prod_gg gm1 gm2 (prod_ff gm1 gm2 m) in
@@ -86,9 +81,9 @@ let prod_bij
   (#mb #ib : Type)
   (gm1 : is_ghost_map ma ia et)
   (gm2 : is_ghost_map mb ib et)
-  : GTot (bijection (erased (ma & mb)) (either ia ib ^->> et))
+  : GTot (bijection ((ma & mb)) (either ia ib ^->> et))
 = Mkbijection
-    #(erased (ma & mb))
+    #((ma & mb))
     #(either ia ib ^->> et) // Some terrible inference here, forced me to give these parameters explicitly
     (prod_ff gm1 gm2)
     (prod_gg gm1 gm2)

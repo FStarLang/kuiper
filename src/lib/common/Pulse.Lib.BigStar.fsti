@@ -251,14 +251,15 @@ fn bigstar_if_intro
   requires p x
   ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp)
 
-class permutation (a:Type) = {
-   f          : a -> a;
-   g          : a -> a;
+[@@erasable]
+noeq type permutation (a:Type) = {
+   f          : a -> GTot a;
+   g          : a -> GTot a;
    [@@@FStar.Tactics.Typeclasses.no_method]
    proof : (x: a) -> (y: a) -> squash (f x == y <==> g y == x);
 }
 
-instance perm_inv (#a:Type) (p: permutation a) : permutation a = {
+let perm_inv (#a:Type) (p: permutation a) : permutation a = {
   f = p.g;
   g = p.f;
   proof = fun x y -> p.proof y x

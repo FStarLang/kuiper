@@ -60,7 +60,7 @@ let varray_pts_to
   (v : st)
   : slprop
   =
-    (VA?._0 a) |-> Frac f (fun i -> reveal (vw.igm.acc v i))
+    (VA?._0 a) |-> Frac f (vw.igm.acc v)
 
 ghost
 fn varray_pts_to_ref
@@ -163,7 +163,7 @@ fn varray_reindex_
     (from_array (reindex_view vw bij) (core a))._0;
   IArray.iarray_ext (from_array (reindex_view vw bij) (core a))._0
     _
-    (fun i -> (reindex_view vw bij).igm.acc v i);
+    ((reindex_view vw bij).igm.acc v);
   fold varray_pts_to (from_array (reindex_view vw bij) (core a)) #f v;
   ()
 }
@@ -206,23 +206,23 @@ fn varray_review_
 {
   unfold varray_pts_to a #f v;
   IArray.iarray_ext a._0
-    (fun i -> vw.igm.acc v i)
-    (fun i -> (review_view vw bij).igm.acc (bij.ff v) i);
+    (vw.igm.acc v)
+    ((review_view vw bij).igm.acc (bij.ff v));
 
-  rewrite IArray.iarray_pts_to #et #vw.iview a._0 #f (fun i -> (review_view vw bij).igm.acc (bij.ff v) i)
+  rewrite IArray.iarray_pts_to #et #vw.iview a._0 #f ((review_view vw bij).igm.acc (bij.ff v))
        as IArray.iarray_pts_to #et #vw.iview
             (from_array (review_view vw bij) (core a))._0
             #f
-            (fun i -> (review_view vw bij).igm.acc (bij.ff v) i);
+            ((review_view vw bij).igm.acc (bij.ff v));
   assert pure (vw.iview == (review_view vw bij).iview);
   rewrite IArray.iarray_pts_to #et #vw.iview
             (from_array (review_view vw bij) (core a))._0
             #f
-            (fun i -> (review_view vw bij).igm.acc (bij.ff v) i)
+            ((review_view vw bij).igm.acc (bij.ff v))
        as IArray.iarray_pts_to #et #(review_view vw bij).iview
             (from_array (review_view vw bij) (core a))._0
             #f
-            (fun i -> (review_view vw bij).igm.acc (bij.ff v) i)
+            ((review_view vw bij).igm.acc (bij.ff v))
        by slprop_equiv_norm (); // ugly
   fold varray_pts_to (from_array (review_view vw bij) (core a)) #f (bij.ff v);
   ()
@@ -268,7 +268,7 @@ fn varray_begin_
     (from_array (raw_view #et #len) a)._0;
   IArray.iarray_ext _
     (IArray.g_seq_acc v)
-    (fun i -> (raw_view #et #len).igm.acc v i);
+    ((raw_view #et #len).igm.acc v);
   fold varray_pts_to (from_array (raw_view #et #len) a) #f v;
   ()
 }
@@ -471,7 +471,7 @@ fn varray_split2_
   IArray.iarray_ext
     (IArray.from_array vw1.iview (IArray.core a._0))
     (fun i -> (sum_aview vw1 vw2).igm.acc v (Inl i))
-    (fun i -> vw1.igm.acc (fst v) i);
+    (vw1.igm.acc (fst v));
   rewrite each (IArray.from_array vw1.iview (IArray.core a._0))
             as (from_array vw1 (core a))._0;
   fold varray_pts_to (from_array vw1 (core a)) #f (fst v);
@@ -479,7 +479,7 @@ fn varray_split2_
   IArray.iarray_ext
     (IArray.from_array vw2.iview (IArray.core a._0))
     (fun i -> (sum_aview vw1 vw2).igm.acc v (Inr i))
-    (fun i -> vw2.igm.acc (snd v) i);
+    (vw2.igm.acc (snd v));
   rewrite each (IArray.from_array vw2.iview (IArray.core a._0))
             as (from_array vw2 (core a))._0;
   fold varray_pts_to (from_array vw2 (core a)) #f (snd v);
@@ -576,7 +576,7 @@ fn varray_share_n
   IArray.iarray_share_n #_ #_ #uid (VA?._0 a) k;
   ghost
   fn aux (i : nat)
-    requires IArray.iarray_pts_to a._0 #(f /. k) (fun i -> vw.igm.acc v i)
+    requires IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v)
     ensures  varray_pts_to #et a #(f /. k) v
   {
     fold varray_pts_to a #(f /. k) v;
@@ -603,7 +603,7 @@ fn varray_gather_n
   ghost
   fn aux (i : nat)
     requires varray_pts_to #et a #(f /. k) v
-    ensures  IArray.iarray_pts_to a._0 #(f /. k) (fun i -> vw.igm.acc v i)
+    ensures  IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v)
   {
     unfold varray_pts_to a #(f /. k) v;
   };
@@ -751,7 +751,7 @@ fn varray_write
   vw.igm.l2 (ci_to_ai vw ci) v0 e;
   IArray.iarray_ext a._0
     _
-    (fun i -> vw.igm.acc (vw.igm.upd v0 (ci_to_ai vw ci) e) i);
+    (vw.igm.acc (vw.igm.upd v0 (ci_to_ai vw ci) e));
   fold varray_pts_to a (vw.igm.upd v0 (ci_to_ai vw ci) e);
   ()
 }

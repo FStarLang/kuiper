@@ -66,10 +66,7 @@ instance _cview_even #et
     bij    = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
     compat = ez;
   };
 }
@@ -85,10 +82,7 @@ instance _cview_odd #et
     bij  = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj (fun (i : szlt (len / 2)) -> 1sz `SZ.add` (i `SZ.mul` 2sz) <: szlt len);
     compat = ez;
   };
 }
@@ -205,7 +199,7 @@ let lem_idx2 #et (#len : nat) (i : natlt len{i % 2 = 1})
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
 = admit()
 
-#push-options "--split_queries always"
+#push-options "--split_queries always --z3rlimit 10"
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
   : Lemma (
             to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr)

@@ -20,20 +20,19 @@ let to_from (#a:Type) (#st:Type)
     (* funny, mentioning the term above (= from_seq vw s) makes the proof work. *)
     let aux (i : natlt (len vw))
       : Lemma (to_seq vw (from_seq vw s) @! i == s @! i) =
+      let g = from_seq_aux vw s in
       calc (==) {
         to_seq vw (from_seq vw s) @! i;
         == {}
-        Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> reveal (vw.igm.acc (from_seq vw s) (it_of_nat vw j))) @! i;
+        Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> (vw.igm.acc (from_seq vw s) (it_of_nat vw j))) @! i;
         == {}
-        reveal (vw.igm.acc (from_seq vw s) (it_of_nat vw i));
+        (vw.igm.acc (from_seq vw s) (it_of_nat vw i));
         == {}
         vw.igm.bij.ff (from_seq vw s) (it_of_nat vw i);
         == {}
-        vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i))
-          (it_of_nat vw i);
-        == {}
-        (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i)
-          (it_of_nat vw i);
+        vw.igm.bij.ff (vw.igm.bij.gg g) (it_of_nat vw i);
+        == { vw.igm.bij.ff_gg g }
+        g (it_of_nat vw i);
         == {}
         s @! it_to_nat vw (it_of_nat vw i);
         == { assert_norm (it_to_nat vw (it_of_nat vw i) == i) }
@@ -55,14 +54,15 @@ let from_to (#a:Type) (#st:Type)
   let rf = vw.igm.bij.ff rhs in
   let aux (i : vw.iview.sch.ait)
     : Lemma (lf i == rf i) =
+    let g = from_seq_aux vw (to_seq vw v) in
     calc (==) {
       lf i;
       == {}
       vw.igm.bij.ff (from_seq vw (to_seq vw v)) i;
       == {}
-      vw.igm.bij.ff (vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> to_seq vw v @! it_to_nat vw i)) i;
-      == {}
-      (F.on_g vw.iview.sch.ait <| fun i -> to_seq vw v @! it_to_nat vw i) i;
+      vw.igm.bij.ff (vw.igm.bij.gg g) i;
+      == { vw.igm.bij.ff_gg g }
+      g i;
       == {}
       to_seq vw v @! it_to_nat vw i;
       == {}
