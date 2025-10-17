@@ -187,7 +187,7 @@ let kpost
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 100"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
