@@ -8,7 +8,6 @@ open Pulse.Lib.BoundedIntegers
 open Pulse.Lib.PartitionRange
 open FStar.SizeT
 open FStar.FiniteSet.Base
-open FStar.FiniteSet.Ambient
 module Set = FStar.FiniteSet.Base
 module SZ = Kuiper.SizeT
 
@@ -20,25 +19,29 @@ let reverse_spec (#a:Type) (s:seq a) : GTot _ = Seq.init (len s) (fun i -> index
 noextract
 let partition_range (n:nat { n % 2 == 0 })
 : partitions 0 n (n / 2)
-= fun i -> Set.union (Set.singleton i) (Set.singleton (n - i - 1))
+= fun i ->
+    FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+    Set.union (Set.singleton i) (Set.singleton (n - i - 1))
 
 noextract
 let star_over_partition_range (n:nat { n % 2 == 0 }) (f:idx 0 n -> slprop) (i:nat { i < n / 2 })
 : Lemma
   (ensures star_over_partition f (select (partition_range n) i) ==
             f i ** f (n - i - 1 <: nat))
-= slprop_equivs()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  slprop_equivs()
 
 noextract
 let partition_range_disjoint (n:nat { n % 2 == 0 })
 : Lemma (parts_disjoint (partition_range n))
-= ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma()
 
 #restart-solver
 #push-options "--fuel 0 --ifuel 0"
 let partition_covers_range_lemma (n:nat { n % 2 == 0 })
 : Lemma (ensures parts_covers_range (partition_range n))
-= introduce forall z. z `Set.mem` range 0 n ==> z `Set.mem` union_partitions (partition_range n)
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  introduce forall z. z `Set.mem` range 0 n ==> z `Set.mem` union_partitions (partition_range n)
   with introduce _ ==> _
   with _. (
     if z < n / 2
