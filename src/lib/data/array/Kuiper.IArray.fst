@@ -272,6 +272,32 @@ fn iarray_end2
 }
 
 ghost
+fn iarray_cell_reindex
+  (#et : Type0)
+  (#f : perm)
+  (#vw #vw' : aiview)
+  (a : iarray et vw)
+  (i : vw.sch.ait)
+  (a' : iarray et vw')
+  (i' : vw'.sch.ait)
+  (#v: et)
+
+  requires
+    pure (vw.len == vw'.len /\ core a == core a')
+  requires
+    pure (it_to_nat vw i == it_to_nat vw' i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
+{
+  unfold iarray_pts_to_cell a #f i v;
+  rewrite each it_to_nat vw i as it_to_nat vw' i';
+  rewrite each core a as core a';
+  fold iarray_pts_to_cell a' #f i' v;
+}
+
+ghost
 fn iarray_reindex_
   (#et : Type0)
   (#vw : aiview)

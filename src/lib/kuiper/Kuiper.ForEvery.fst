@@ -151,6 +151,24 @@ fn bigstar_permute''
 }
 
 ghost
+fn forevery_ext_inst
+  (#a: Type0) (new_inst #old_inst : enumerable a)
+  (p: a -> slprop)
+  requires
+    op_forall_Plus #a #old_inst (fun x -> p x)
+  ensures
+    op_forall_Plus #a #new_inst (fun x -> p x)
+{
+  unfold op_forall_Plus #a #old_inst (fun x -> p x);
+  bijection_implies_equal_cardinal a a #old_inst #new_inst (bij_self _);
+  bigstar_permute''
+    (fun i -> p (of_nat #a #old_inst i))
+    (bij_sym old_inst.bij `bij_comp` new_inst.bij);
+  rewrite each cardinal a #old_inst as cardinal a #new_inst;
+  fold op_forall_Plus #a #new_inst (fun x -> p x);
+}
+
+ghost
 fn forevery_iso
   (#a:Type0) {| ea : enumerable a |}
   (#b:Type0) {| eb : enumerable b |}
@@ -538,6 +556,23 @@ fn forevery_map_2
     (fun x -> forevery_map (fun y -> p1 x y)
                           (fun y -> p2 x y)
                           (f x));
+}
+
+ghost
+fn forevery_map'
+  (#a:Type0) {| da: enumerable a |}
+  (#b:Type0 { a == b }) {| db: enumerable b |}
+  (p1 : a -> slprop)
+  (p2 : b -> slprop)
+  (f : (x:a -> y:b { x === y } -> stt_ghost unit emp_inames (p1 x) (fun _ -> p2 y)))
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:b). p2 x
+{
+  rewrite each a as b;
+  forevery_ext_inst #b db #da p1;
+  forevery_map #b p1 p2 fn x { f x x };
 }
 
 ghost
