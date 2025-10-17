@@ -20,6 +20,7 @@ let view_equiv (#et #st : Type)
 = vw1.iview.len == vw2.iview.len /\
   vw1.iview.sch.ait == vw2.iview.sch.ait /\
   F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  (forall (x: st) (i: vw1.iview.sch.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
   (* probably need more about the mappings in igm *)
   True
 
@@ -252,6 +253,26 @@ fn varray_end
     a' : gpu_array et len
   ensures
     a' |-> Frac f v
+
+ghost
+fn varray_cell_reindex
+  (#et:Type0) (#st #st':Type0)
+  (#f : perm)
+  (#vw : aview et st)
+  (#vw' : aview et st')
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (a' : varray vw')
+  (i' : vw'.iview.sch.ait)
+  (#v : et)
+  requires
+    pure (len vw == len vw' /\ core a == core a')
+  requires
+    pure (IView.it_to_nat vw.iview i == IView.it_to_nat vw'.iview i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
 
 ghost
 fn varray_abs

@@ -90,6 +90,15 @@ fn forevery_unflatten'
     forall+ (x:a) (y:b). f (x, y)
 
 ghost
+fn forevery_ext_inst
+  (#a: Type0) (new_inst #old_inst : enumerable a)
+  (p: a -> slprop)
+  requires
+    op_forall_Plus #a #old_inst (fun x -> p x)
+  ensures
+    op_forall_Plus #a #new_inst (fun x -> p x)
+
+ghost
 fn forevery_iso
   (#a:Type0) {| enumerable a |}
   (#b:Type0) {| enumerable b |}
@@ -343,6 +352,18 @@ fn forevery_map_2
     forall+ (x:a) (y:b). p1 x y
   ensures
     forall+ (x:a) (y:b). p2 x y
+
+ghost
+fn forevery_map'
+  (#a:Type0) {| da: enumerable a |}
+  (#b:Type0 { a == b }) {| db: enumerable b |}
+  (p1 : a -> slprop)
+  (p2 : b -> slprop)
+  (f : (x:a -> y:b { x === y } -> stt_ghost unit emp_inames (p1 x) (fun _ -> p2 y)))
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:b). p2 x
 
 unfold
 let pad_f (#n1 : nat) (n2 : nat{n1 <= n2})
