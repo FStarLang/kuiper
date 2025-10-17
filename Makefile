@@ -1,5 +1,7 @@
 include .common.mk
 
+SHELL := bash
+
 .PHONY: all
 all:
 	+$(MAKE) -f verify.mk all
