@@ -225,7 +225,7 @@ fn teardown
     ()
   };
 
-  forevery_map_2 #(natlt rows) #_ #(natlt cols)
+  forevery_map_2 #(natlt rows) #(natlt cols)
     (fun r c -> M.gpu_matrix_pts_to_cell gOut r c (STS.stencil_result_at_idx stencil eIn r c))
     _
     convert_single_res_to_access_on_entire_res;

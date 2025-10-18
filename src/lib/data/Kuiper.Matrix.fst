@@ -398,7 +398,7 @@ fn gpu_matrix_explode
     (fun rc -> A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
     (fun rc -> gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2))
     aux;
-  forevery_unflatten #(natlt rows) #_ #(natlt cols) (fun r c ->
+  forevery_unflatten #(natlt rows) #(natlt cols) (fun r c ->
     gpu_matrix_pts_to_cell gm #f r c (macc em r c));
   ()
 }
@@ -419,7 +419,7 @@ fn gpu_matrix_implode
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  forevery_flatten #(natlt rows) #_ #(natlt cols)
+  forevery_flatten #(natlt rows) #(natlt cols)
     (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
   forevery_ext #(natlt rows & natlt cols)
     (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2))

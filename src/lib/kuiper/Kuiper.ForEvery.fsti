@@ -8,27 +8,29 @@ open Kuiper.Enumerable
 open Pulse.Lib.BigStar
 open Pulse.Lib.Trade
 
+let t2b =
+  FStar.IndefiniteDescription.strong_excluded_middle
+
 val ( forall+ )
-  (#a:Type) {| enumerable a |}
+  (#a:Type)
   (f : a -> slprop)
   : slprop
 
+val timeless_forevery #a (p: a -> slprop) :
+  Lemma (requires forall x. timeless (p x))
+    (ensures timeless (op_forall_Plus p))
+    [SMTPat (timeless (op_forall_Plus p))]
+
 unfold
 let forevery
-  (a:Type) {| enumerable a |}
+  (a:Type)
   (f : a -> slprop)
   : slprop
   = op_forall_Plus #a f
 
-val forevery_ext_lem
-  (#a:Type0) {| enumerable a |}
-  (f : a -> slprop)
-  (g : a -> slprop { forall x. f x == g x })
-  : Lemma (ensures (forall+ (x:a). f x) == (forall+ (x:a). g x))
-
 ghost
 fn forevery_ext
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (f : a -> slprop)
   (g : a -> slprop { forall x. f x == g x })
   requires
@@ -37,9 +39,168 @@ fn forevery_ext
     forall+ (x:a). g x
 
 ghost
+fn forevery_intro_empty (#a:Type0) (p: a -> slprop)
+  requires
+    pure (forall (x:a). False)
+  ensures
+    forall+ (x:a). p x
+
+ghost
+fn forevery_intro_false (#a:Type0) (p: a -> slprop)
+  ensures
+    forall+ (x:a {False}). p x
+
+ghost
+fn forevery_intro_fill (#a: Type0) (p: a -> slprop)
+  (f: (x:a -> stt_ghost unit emp_inames emp (fun _ -> p x)))
+  ensures
+    forall+ x. p x
+
+ghost
+fn forevery_insert
+  (#a: Type0)
+  (#f: a->prop)
+  (p: a -> slprop)
+  (y: a)
+  requires
+    forall+ (x:a {f x}). p x
+  requires
+    p y
+  requires
+    pure (~(f y))
+  ensures
+    forall+ (x:a {f x \/ y == x}). p x
+
+ghost
+fn forevery_remove'
+  (#a: Type0)
+  (f: a->prop)
+  (p: a -> slprop)
+  (y: a { f y })
+  requires
+    forall+ (x:a {f x}). p x
+  ensures
+    forall+ (x:a {f x /\ x =!= y}). p x
+  ensures
+    p y
+
+ghost
+fn forevery_remove
+  (#a: Type0)
+  (p: a -> slprop)
+  (y: a)
+  requires
+    forall+ (x:a). p x
+  ensures
+    forall+ (x:a {x =!= y}). p x
+  ensures
+    p y
+
+ghost
+fn forevery_fill
+  (#a: Type0)
+  (#f: a->prop)
+  (p: a -> slprop)
+  (pred: a -> prop)
+  (g: (x:a{pred x} -> stt_ghost unit emp_inames emp (fun _ -> p x)))
+  requires
+    forall+ (x:a {f x}). p x
+  requires
+    pure (forall x. pred x ==> ~(f x))
+  ensures
+    forall+ (x:a {f x \/ pred x}). p x
+
+ghost
+fn forevery_refine_ext'
+  (#a: Type0)
+  (#f: a->prop)
+  (g: a->prop { forall x. f x <==> g x })
+  (p: (x:a{f x} -> slprop))
+  requires
+    forall+ (x:a {f x}). p x
+  ensures
+    forall+ (w:a {g w}). p w
+
+ghost
+fn forevery_refine_ext
+  (#a: Type0)
+  (#f g: a->prop)
+  (p: a -> slprop)
+  requires
+    forall+ (x:a {f x}). p x
+  requires
+    pure (forall x. f x <==> g x)
+  ensures
+    forall+ (w:a {g w}). p w
+
+ghost
+fn forevery_unrefine
+  (#a: Type0)
+  (#f: a->prop)
+  (p: a -> slprop)
+  requires
+    forall+ (x:a {f x}). p x
+  requires
+    pure (forall x. f x)
+  ensures
+    forall+ x. p x
+
+ghost
+fn forevery_refine_split
+  (#a:Type0)
+  (p: a -> slprop)
+  (f: a -> prop)
+  requires
+    forall+ x. p x
+  ensures
+    forall+ (x:a{f x}). p x
+  ensures
+    forall+ (x:a{~(f x)}). p x
+
+ghost
+fn forevery_refine_join
+  (#a:Type0)
+  (p: a -> slprop)
+  (f g: a -> prop)
+  requires
+    forall+ (x:a{f x}). p x
+  requires
+    forall+ (x:a{g x}). p x
+  requires
+    pure (forall x. ~(f x /\ g x))
+  ensures
+    forall+ (x:a{f x \/ g x}). p x
+
+let unless (p: prop) (q: slprop) : slprop =
+  if t2b p then emp else q
+
+let when_ (p: prop) (q: slprop) : slprop =
+  if t2b p then q else emp
+
+ghost
+fn forevery_unrefine_pred
+  (#a:Type0)
+  (p: a -> slprop)
+  (f: a -> prop)
+  requires
+    forall+ (x:a { f x }). p x
+  ensures
+    forall+ (x:a). when_ (f x) (p x)
+
+ghost
+fn forevery_refine_pred
+  (#a:Type0)
+  (p: a -> slprop)
+  (f: a -> prop)
+  requires
+    forall+ (x:a). when_ (f x) (p x)
+  ensures
+    forall+ (x:a { f x }). p x
+
+ghost
 fn forevery_ext_2
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (f : a -> b -> slprop)
   (g : a -> b -> slprop)
   requires
@@ -51,8 +212,8 @@ fn forevery_ext_2
 
 ghost
 fn forevery_flatten
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (f : a -> b -> slprop)
   requires
     forall+ (x:a) (y:b). f x y
@@ -61,8 +222,8 @@ fn forevery_flatten
 
 ghost
 fn forevery_flatten'
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (f : a & b -> slprop)
   requires
     forall+ (x:a) (y:b). f (x, y)
@@ -71,8 +232,8 @@ fn forevery_flatten'
 
 ghost
 fn forevery_unflatten
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (f : a -> b -> slprop)
   requires
     forall+ (xy : a & b). f xy._1 xy._2
@@ -81,8 +242,8 @@ fn forevery_unflatten
 
 ghost
 fn forevery_unflatten'
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (f : a & b -> slprop)
   requires
     forall+ (xy : a & b). f xy
@@ -90,19 +251,10 @@ fn forevery_unflatten'
     forall+ (x:a) (y:b). f (x, y)
 
 ghost
-fn forevery_ext_inst
-  (#a: Type0) (new_inst #old_inst : enumerable a)
-  (p: a -> slprop)
-  requires
-    op_forall_Plus #a #old_inst (fun x -> p x)
-  ensures
-    op_forall_Plus #a #new_inst (fun x -> p x)
-
-ghost
 fn forevery_iso
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
-  (bij : erased (a =~ b))
+  (#a:Type0)
+  (#b:Type0)
+  (bij : a =~ b)
   (p : a -> slprop)
   requires
     forall+ (x:a). p x
@@ -111,9 +263,9 @@ fn forevery_iso
 
 ghost
 fn forevery_iso_back
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
-  (bij : erased (a =~ b))
+  (#a:Type0)
+  (#b:Type0)
+  (bij : a =~ b)
   (p : a -> slprop)
   requires
     forall+ (y:b). p (bij.gg y)
@@ -123,8 +275,8 @@ fn forevery_iso_back
 (* Normally not needed... *)
 ghost
 fn forevery_permute
-  (#a:Type0) {| enumerable a |}
-  (bij : erased (a =~ a))
+  (#a:Type0)
+  (bij : a =~ a)
   (p : a -> slprop)
   requires
     forall+ (x:a). p x
@@ -133,31 +285,36 @@ fn forevery_permute
 
 ghost
 fn forevery_permute_back
-  (#a:Type0) {| enumerable a |}
-  (bij : erased (a =~ a))
+  (#a:Type0)
+  (bij : a =~ a)
   (p : a -> slprop)
   requires
     forall+ (x:a). p (bij.ff x)
   ensures
     forall+ (x:a). p x
 
-ghost
-fn forevery_tostar
-  (#a:Type0) {| enumerable a |}
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
+// FIXME: without this, Pulse will not type-check calls to forevery_natlt_{extend,restrict}
+let natlt_coerce #m #n (i: natlt n { i < m }) : natlt m = i
 
 ghost
-fn forevery_fromstar
-  (#a:Type0) {| enumerable a |}
-  (p : a -> slprop)
+fn forevery_natlt_extend
+  (#n: nat)
+  (m: nat { m >= n })
+  (p: natlt n -> slprop)
   requires
-    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
+    forall+ (i: natlt n). p i
   ensures
-    forall+ (x:a). p x
+    forall+ (i: natlt m { i < n }). p (natlt_coerce i)
+
+ghost
+fn forevery_natlt_restrict
+  (#n: nat)
+  (m: nat { m >= n })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt m { i < n }). p (natlt_coerce i)
+  ensures
+    forall+ (i: natlt n). p i
 
 ghost
 fn forevery_fromnat
@@ -178,8 +335,26 @@ fn forevery_tonat
     bigstar 0 n (fun i -> p i)
 
 ghost
+fn forevery_tostar
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    forall+ (x:a). p x
+  ensures
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
+
+ghost
+fn forevery_fromstar
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  requires
+    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
+  ensures
+    forall+ (x:a). p x
+
+ghost
 fn forevery_emp_intro
-  (a : Type0) {| enumerable a |}
+  (a : Type0)
   requires
     emp
   ensures
@@ -187,7 +362,7 @@ fn forevery_emp_intro
 
 ghost
 fn forevery_emp_elim
-  (a : Type0) {| enumerable a |}
+  (a : Type0)
   requires
     forall+ (_ : a). emp
   ensures
@@ -208,6 +383,30 @@ fn forevery_unit_elim
     forall+ (_:unit). p
   ensures
     p
+
+ghost
+fn forevery_singleton_intro'
+  (#a:Type0)
+  (p : a -> slprop)
+  (x: a)
+  requires
+    pure (forall (y: a). x == y)
+  requires
+    p x
+  ensures
+    forall+ (x:a). p x
+
+ghost
+fn forevery_singleton_elim'
+  (#a:Type0)
+  (p : a -> slprop)
+  (x: a)
+  requires
+    pure (forall (y: a). x == y)
+  requires
+    forall+ (x:a). p x
+  ensures
+    p x
 
 ghost
 fn forevery_singleton_intro
@@ -234,7 +433,7 @@ fn forevery_singleton_elim
  *)
 ghost
 fn forevery_eta
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (p : a -> slprop)
   requires
     forevery a p
@@ -243,7 +442,7 @@ fn forevery_eta
 
 ghost
 fn forevery_uneta
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (p : a -> slprop)
   requires
     forevery a (fun x -> p x)
@@ -252,13 +451,13 @@ fn forevery_uneta
 
 ghost
 fn forevery_rw_type
-  (a:Type0) {| d : enumerable a |}
+  (a:Type0)
   (b:Type{a == b})
   (f : a -> slprop)
   requires
     forall+ (x:a). f x
   ensures
-    forevery b #d (fun (x:b) -> f x)
+    forall+ (x:b). f x
 
 ghost
 fn forevery_rw_size
@@ -314,7 +513,7 @@ fn forevery_unfactor'
 
 ghost
 fn forevery_zip
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (p1 p2 : a -> slprop)
   requires
     (forall+ (x:a). p1 x) **
@@ -324,7 +523,7 @@ fn forevery_zip
 
 ghost
 fn forevery_unzip
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (p1 p2 : a -> slprop)
   requires
     forall+ (x:a). p1 x ** p2 x
@@ -334,7 +533,7 @@ fn forevery_unzip
 
 ghost
 fn forevery_map
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (p1 p2 : a -> slprop)
   (f : (x:a -> stt_ghost unit emp_inames (p1 x) (fun _ -> p2 x)))
   requires
@@ -344,8 +543,8 @@ fn forevery_map
 
 ghost
 fn forevery_map_2
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (p1 p2 : a -> b -> slprop)
   (f : (x:a -> y:b -> stt_ghost unit emp_inames (p1 x y) (fun _ -> p2 x y)))
   requires
@@ -355,8 +554,8 @@ fn forevery_map_2
 
 ghost
 fn forevery_map'
-  (#a:Type0) {| da: enumerable a |}
-  (#b:Type0 { a == b }) {| db: enumerable b |}
+  (#a:Type0)
+  (#b:Type0 { a == b })
   (p1 : a -> slprop)
   (p2 : b -> slprop)
   (f : (x:a -> y:b { x === y } -> stt_ghost unit emp_inames (p1 x) (fun _ -> p2 y)))
@@ -395,7 +594,7 @@ fn forevery_unpad
 
 ghost
 fn forevery_extract
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (z : a)
   (p : a -> slprop)
   requires
@@ -405,7 +604,7 @@ fn forevery_extract
 
 ghost
 fn forevery_extract'
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (z : a)
   (p  : a -> slprop)
   requires
@@ -418,8 +617,8 @@ fn forevery_extract'
 
 ghost
 fn forevery_extract_2
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (z : a) (w : b)
   (p : a -> b -> slprop)
   requires
@@ -429,7 +628,7 @@ fn forevery_extract_2
 
 ghost
 fn forevery_extract_if
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (z : a)
   (p : a -> slprop)
   requires
@@ -437,23 +636,23 @@ fn forevery_extract_if
   ensures
     p z **
     (forall+ (x:a).
-      if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)
+      if t2b (x == z) then emp else p x)
 
 ghost
 fn forevery_unextract_if
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (z : a)
   (p : a -> slprop)
   requires
     p z **
     (forall+ (x:a).
-      if Enumerable.to_nat x = Enumerable.to_nat z then emp else p x)
+      if t2b (x == z) then emp else p x)
   ensures
     forall+ (x:a). p x
 
 ghost
 fn forevery_extract_if_eqtype
-  (#a:eqtype) {| enumerable a |}
+  (#a:eqtype)
   (z : a)
   (p : a -> slprop)
   requires
@@ -465,7 +664,7 @@ fn forevery_extract_if_eqtype
 
 ghost
 fn forevery_unextract_if_eqtype
-  (#a:eqtype) {| enumerable a |}
+  (#a:eqtype)
   (z : a)
   (p : a -> slprop)
   requires
@@ -477,8 +676,8 @@ fn forevery_unextract_if_eqtype
 
 ghost
 fn forevery_extract_if_2
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (z : a) (w : b)
   (p : a -> b -> slprop)
   requires
@@ -486,23 +685,23 @@ fn forevery_extract_if_2
   ensures
     p z w **
     (forall+ (x:a) (y:b).
-      if (Enumerable.to_nat x, Enumerable.to_nat y) = (Enumerable.to_nat z, Enumerable.to_nat w) then emp else p x y)
+      if t2b ((x,y) == (z,w)) then emp else p x y)
 
 
 ghost
 fn forevery_intro_if
-  (#a:Type0) {| enumerable a |}
+  (#a:Type0)
   (z : a)
   (p : a -> slprop)
   requires
     p z
   ensures
     (forall+ (x:a).
-      if Enumerable.to_nat x = Enumerable.to_nat z then p x else emp)
+      if t2b (x == z) then p x else emp)
 
 ghost
 fn forevery_split_either
-  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (#a #b : Type0)
   (p : either a b -> slprop)
   requires
     forall+ (x:either a b). p x
@@ -512,7 +711,7 @@ fn forevery_split_either
 
 ghost
 fn forevery_join_either
-  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (#a #b : Type0)
   (p : either a b -> slprop)
   requires
     (forall+ (x:a). p (Inl x)) **

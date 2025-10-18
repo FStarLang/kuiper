@@ -226,7 +226,7 @@ fn teardown
     in (I think). *)
     // () (* BUG! Should not be needed. *)
   };
-  forevery_map_2 #(natlt rows) #_ #(natlt cols)
+  forevery_map_2 #(natlt rows) #(natlt cols)
     (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
     _
     aux;

@@ -614,30 +614,30 @@ fn iarray_write
 
   forevery_intro_if (ci_to_ai vw ci) (fun i -> iarray_pts_to_cell a i e);
   forevery_zip #vw.sch.ait
-    (fun i -> if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
+    (fun i -> if t2b (i == ci_to_ai vw ci)
               then iarray_pts_to_cell a i e
               else emp)
     _;
   ghost
   fn aux (i : vw.sch.ait)
     requires
-      (if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
+      (if t2b (i == ci_to_ai vw ci)
        then iarray_pts_to_cell a i e
        else emp)
     **
-      (if Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)
+      (if t2b (i == ci_to_ai vw ci)
        then emp
        else iarray_pts_to_cell a i (v0 i))
     ensures
        iarray_pts_to_cell a i (oplus v0 (ci_to_ai vw ci) e i)
   {
-    let cond = Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci);
+    let cond = t2b (i == ci_to_ai vw ci);
     if cond {
       rewrite each (ci_to_ai vw ci) as i;
+      rewrite each t2b True as true;
       assert (pure (e == oplus v0 i e i));
-      ();
     } else {
-      rewrite each (Enumerable.to_nat i = Enumerable.to_nat (ci_to_ai vw ci)) as false;
+      rewrite each (t2b (i == ci_to_ai vw ci)) as false;
       ();
     };
   };
