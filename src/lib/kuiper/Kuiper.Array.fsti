@@ -5,13 +5,14 @@ module Kuiper.Array
 open Pulse.Lib.Vec
 open Pulse.Lib.WithPure
 open Pulse
-open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open FStar.Seq
 open Kuiper.Base
 open Kuiper.Sized
 open Kuiper.SizeT
 open Kuiper.Seq.Common
+open Kuiper.Common
+open Kuiper.ForEvery
 
 module SZ = Kuiper.SizeT
 
@@ -255,7 +256,7 @@ fn gpu_memcpy_device_to_device
     pure (Seq.length gv == reveal sz)
 
 
-(* Not making this unfold as it appears under bigstars. Maybe
+(* Not making this unfold as it appears under forall+. Maybe
 pulse should only do weak unfolding. *)
 let gpu_pts_to_array1
   (#a:Type0)
@@ -264,46 +265,27 @@ let gpu_pts_to_array1
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey]i:nat)
 : slprop =
-  exists* s. gpu_pts_to_slice arr i (i+1) s
+  exists* s. gpu_pts_to_slice arr #f i (i+1) s
 
 ghost
 fn gpu_array_slice_1
-  (#[exact (`0)] uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
   requires pts_to arr #f v
-  ensures  bigstar #uid 0 sz (fun i -> gpu_pts_to_cell arr #f i (v @! i))
+  ensures  forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
 
 ghost
 fn gpu_array_unslice_1
-  (#uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
-  requires bigstar #uid 0 sz (fun i -> gpu_pts_to_cell arr #f i (v @! i))
+  requires forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
   ensures  pts_to arr #f v
-
-ghost
-fn gpu_array_slice_1_underspec
-  (#[exact (`0)] uid: int) (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  (#v : erased (seq a))
-  requires arr |-> Frac f v
-  ensures  bigstar #uid 0 sz (gpu_pts_to_array1 arr #f)
-
-ghost
-fn gpu_array_unslice_1_underspec
-  (#uid: int) (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  requires bigstar #uid 0 sz (gpu_pts_to_array1 arr #f)
-  ensures exists* (v : seq a). arr |-> Frac f v
 
 ghost
 fn gpu_slice_concat
@@ -350,7 +332,7 @@ fn gpu_slice_empty_elim
 
 ghost
 fn gpu_slice_share
-  (#uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (m n:nat)
@@ -358,42 +340,19 @@ fn gpu_slice_share
   (#f : perm)
   requires gpu_pts_to_slice arr #f m n 'v
   ensures
-    bigstar #uid 0 k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
+    forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
 
 ghost
 fn gpu_slice_gather
-  (#uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (m n:nat)
   (k: nat { k > 0 })
   (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
   requires
-    bigstar #uid 0 k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
+    forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
   ensures gpu_pts_to_slice arr #f m n 'v
-
-ghost
-fn gpu_slice_share_underspec
-  (#uid : int) (#a : Type u#0)
-  (#sz : nat)
-  (arr : gpu_array a sz)
-  (m n : nat)
-  (k : nat { k > 0 })
-  requires gpu_pts_to_slice arr #'f m n 'v
-  ensures bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_slice arr #('f /. Real.of_int k) m n v)
-
-ghost
-fn gpu_slice_gather_underspec
-  (#uid : int) (#a : Type u#0)
-  (#sz : nat)
-  (arr : gpu_array a sz)
-  (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
-  (m n : nat)
-  (k : nat { k > 0 })
-  requires bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v)
-  ensures
-    exists* v.
-      gpu_pts_to_slice arr #f m n v
 
 val adjacent
   (#a : Type u#0)

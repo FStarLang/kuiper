@@ -22,34 +22,21 @@ let mbarrier_tok
     it tid
 
 ghost
-fn mk_mbarrier_proof
-  (n : nat)
-  (p : rpm_t n)
-  (it: nat)
-  requires bigstar 0 n (row p it)
-  ensures  bigstar 0 n (col p it)
-{
-  (* very nice. *)
-  bigstar_commute 0 n 0 n (p it);
-}
-
-ghost
 fn mk_mbarrier
   (n: nat { 0 < n /\ n <= max_threads })
   (p : rpm_t n)
-  requires block_setup_tok n
-  ensures  block_setup_tok n ** bigstar 0 n (mbarrier_tok n p 0)
+  preserves block_setup_tok n
+  ensures forall+ i. mbarrier_tok n p 0 i
 {
-  B.mk_barrier n (row p) (col p) (mk_mbarrier_proof n p);
-  (* Need to intro an exists in every component of the bigstar. *)
-  ghost
-  fn aux (i : natlt n)
-    requires B.barrier_tok #n (row p) (col p) 0 i
-    ensures  mbarrier_tok n p 0 i
-  {
-    fold (mbarrier_tok n p 0 i);
+  B.mk_barrier n (row p) (col p) fn it {
+    (* very nice. *)
+    forevery_commute (p it);
   };
-  bigstar_map #0 #0 #0 #n aux;
+  (* Need to intro an exists in every component of the bigstar. *)
+  forevery_map
+    (B.barrier_tok #n (row p) (col p) 0)
+    (mbarrier_tok n p 0)
+    fn i { fold (mbarrier_tok n p 0 i) };
 }
 
 inline_for_extraction noextract

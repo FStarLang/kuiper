@@ -123,7 +123,6 @@ fn setup
     emp (* frame *)
 {
   M.gpu_matrix_share_n gIn (rows *^ cols);
-  forevery_fromstar #(natlt2 rows cols) _;
 
   M.gpu_matrix_explode gOut;
 
@@ -199,8 +198,11 @@ fn teardown
 {
   forevery_unzip #(natlt2 rows cols) _ _;
 
-  forevery_tostar #(natlt2 rows cols)
-    (fun i -> gIn |-> Frac (fIn /. (rows * cols)) eIn);
+  forevery_rw_type
+    (natlt (v (SizeT.mul rows cols)))
+    (natlt (v rows * v cols))
+    (fun _ ->
+      M.gpu_matrix_pts_to #et gIn #(fIn /. (v rows * v cols)) eIn);
   M.gpu_matrix_gather_n gIn _;
 
   forevery_factor (rows *^ cols) rows cols _;

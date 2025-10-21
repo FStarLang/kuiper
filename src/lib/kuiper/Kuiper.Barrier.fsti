@@ -4,7 +4,7 @@ module Kuiper.Barrier
 
 open Kuiper.Common
 open Pulse.Lib.Pervasives
-open Pulse.Lib.BigStar
+open Kuiper.ForEvery
 open FStar.Tactics.V2
 open Kuiper.Base
 open Kuiper.SizeT
@@ -21,8 +21,8 @@ type barrier_side (n:nat) =
 type barrier_transform (#n:nat) (p q : barrier_side n) =
   it:nat ->
   stt_ghost unit emp_inames
-           (requires bigstar 0 n (p it))
-           (ensures  fun _ -> bigstar 0 n (q it))
+           (requires forall+ (i:natlt n). p it i)
+           (ensures  fun _ -> forall+ (i:natlt n). q it i)
 
 (* A token representing that there is a barrier in scope.
    This is a ghost token, and is not used at runtime. *)
@@ -53,7 +53,8 @@ fn mk_barrier
   (p q : barrier_side n)
   (pf : barrier_transform p q)
   requires block_setup_tok n
-  ensures  block_setup_tok n ** bigstar 0 n (barrier_tok p q 0)
+  ensures  block_setup_tok n
+  ensures  forall+ (i:natlt n). barrier_tok p q 0 i
 
 (* Wait on the barrier. This function blocks until all threads call it
    simultaneously. Each thread provides the current p

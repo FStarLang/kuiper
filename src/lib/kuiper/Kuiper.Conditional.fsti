@@ -4,6 +4,7 @@ module Kuiper.Conditional
 
 open Pulse.Lib.Pervasives
 open Pulse.Lib.BigStar
+open Kuiper.ForEvery
 
 [@@no_mkeys]
 let if_ (b: bool) (p: slprop): slprop = cond b p emp
@@ -102,3 +103,19 @@ fn bigstar_if_intro
   (p: (i: nat { m <= i /\ i < n }) -> slprop)
   requires p x
   ensures bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
+
+ghost
+fn forevery_if_elim
+  (#a: eqtype)
+  (x : a)
+  (p: a -> slprop)
+  requires forall+ (i:a). if_ (i = x) (p i)
+  ensures  p x
+
+ghost
+fn forevery_if_intro
+  (#a: eqtype)
+  (x : a)
+  (p: a -> slprop)
+  requires p x
+  ensures forall+ (i:a). if_ (i = x) (p i)

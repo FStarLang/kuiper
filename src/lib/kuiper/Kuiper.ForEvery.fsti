@@ -46,6 +46,13 @@ fn forevery_intro_empty (#a:Type0) (p: a -> slprop)
     forall+ (x:a). p x
 
 ghost
+fn forevery_elim_empty (#a:Type0) (p: a -> slprop)
+  requires
+    pure (forall (x:a). False)
+  requires
+    forall+ (x:a). p x
+
+ghost
 fn forevery_intro_false (#a:Type0) (p: a -> slprop)
   ensures
     forall+ (x:a {False}). p x
@@ -251,6 +258,16 @@ fn forevery_unflatten'
     forall+ (x:a) (y:b). f (x, y)
 
 ghost
+fn forevery_commute
+  (#a:Type0)
+  (#b:Type0)
+  (f : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). f x y
+  ensures
+    forall+ (y:b) (x:a). f x y
+
+ghost
 fn forevery_iso
   (#a:Type0)
   (#b:Type0)
@@ -317,6 +334,28 @@ fn forevery_natlt_restrict
     forall+ (i: natlt n). p i
 
 ghost
+fn forevery_natlt_pop
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt n). p i
+  ensures
+    forall+ (i: natlt (n-1)). p (natlt_coerce i)
+  ensures
+    p (n-1)
+
+ghost
+fn forevery_natlt_push
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt (n-1)). p (natlt_coerce i)
+  requires
+    p (n-1)
+  ensures
+    forall+ (i: natlt n). p i
+
+ghost
 fn forevery_fromnat
   (n : nat)
   (p : natlt n -> slprop)
@@ -353,6 +392,18 @@ fn forevery_fromstar
     forall+ (x:a). p x
 
 ghost
+fn forevery_exists
+  (#a: Type0) {| enumerable a |}
+  (#b: Type0)
+  (p: a -> b -> slprop)
+  requires
+    forall+ (x:a). exists* (y:b). p x y
+  returns
+    y:(a->GTot b)
+  ensures
+    forall+ (x:a). p x (y x)
+
+ghost
 fn forevery_emp_intro
   (a : Type0)
   requires
@@ -383,6 +434,26 @@ fn forevery_unit_elim
     forall+ (_:unit). p
   ensures
     p
+
+ghost
+fn forevery_bool_intro
+  (p: bool -> slprop)
+  requires
+    p false
+  requires
+    p true
+  ensures
+    forall+ (x: bool). p x
+
+ghost
+fn forevery_bool_elim
+  (p: bool -> slprop)
+  requires
+    forall+ (x: bool). p x
+  ensures
+    p false
+  ensures
+    p true
 
 ghost
 fn forevery_singleton_intro'
@@ -530,6 +601,32 @@ fn forevery_unzip
   ensures
     (forall+ (x:a). p1 x) **
     (forall+ (x:a). p2 x)
+
+ghost
+fn forevery_zip3
+  (#a:Type0)
+  (p1 p2 p3 : a -> slprop)
+  requires
+    forall+ (x:a). p1 x
+  requires
+    forall+ (x:a). p2 x
+  requires
+    forall+ (x:a). p3 x
+  ensures
+    forall+ (x:a). p1 x ** p2 x ** p3 x
+
+ghost
+fn forevery_unzip3
+  (#a:Type0)
+  (p1 p2 p3 : a -> slprop)
+  requires
+    forall+ (x:a). p1 x ** p2 x ** p3 x
+  ensures
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+  ensures
+    forall+ (x:a). p3 x
 
 ghost
 fn forevery_map

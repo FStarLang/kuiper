@@ -128,6 +128,16 @@ fn forevery_intro_empty (#a:Type0) (p: a -> slprop)
 }
 
 ghost
+fn forevery_elim_empty (#a:Type0) (p: a -> slprop)
+  requires
+    pure (forall (x:a). False)
+  requires
+    forall+ (x:a). p x
+{
+  drop_ (forall+ (x:a). p x);
+}
+
+ghost
 fn forevery_intro_false (#a:Type0) (p: a -> slprop)
   ensures
     forall+ (x:a {False}). p x
@@ -502,7 +512,7 @@ fn forevery_singleton_elim'
     p x
 {
   forevery_remove p x;
-  drop_ (forall+ (y: a{~(y == x)}). p y);
+  forevery_elim_empty (fun (y: a{~(y == x)}) -> p y);
 }
 
 ghost
@@ -679,7 +689,41 @@ fn forevery_zip
       forevery_refine_ext #a #(fun (z:a) -> ~(pred z) /\ (z =!= x))
         (fun (z:a) -> ~(pred z \/ x == z)) p2;
     };
-  drop_ (forall+ (x: a{l_False}). p2 x);
+  forevery_elim_empty (fun (x: a{l_False}) -> p2 x);
+}
+
+ghost
+fn forevery_zip3
+  (#a:Type0)
+  (p1 p2 p3 : a -> slprop)
+  requires
+    forall+ (x:a). p1 x
+  requires
+    forall+ (x:a). p2 x
+  requires
+    forall+ (x:a). p3 x
+  ensures
+    forall+ (x:a). p1 x ** p2 x ** p3 x
+{
+  forevery_zip p2 p3;
+  forevery_zip p1 (fun x -> p2 x ** p3 x);
+}
+
+ghost
+fn forevery_unzip3
+  (#a:Type0)
+  (p1 p2 p3 : a -> slprop)
+  requires
+    forall+ (x:a). p1 x ** p2 x ** p3 x
+  ensures
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+  ensures
+    forall+ (x:a). p3 x
+{
+  forevery_unzip p1 (fun x -> p2 x ** p3 x);
+  forevery_unzip p2 p3;
 }
 
 ghost
@@ -831,6 +875,29 @@ fn forevery_unflatten'
   forevery_unflatten (fun x y -> f (x, y));
 }
 
+let swap_bij a b : (a & b =~ b & a) =
+  {
+    ff = (fun (x,y) -> (y,x));
+    gg = (fun (y,x) -> (x,y));
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+ghost
+fn forevery_commute
+  (#a:Type0)
+  (#b:Type0)
+  (f : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). f x y
+  ensures
+    forall+ (y:b) (x:a). f x y
+{
+  forevery_flatten f;
+  forevery_iso (swap_bij a b) (fun xy -> f (fst xy) (snd xy));
+  forevery_unflatten (fun y x -> f x y);
+}
+
 ghost
 fn forevery_iso_back
   (#a:Type0)
@@ -904,6 +971,39 @@ fn forevery_natlt_restrict
 }
 
 ghost
+fn forevery_natlt_pop
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt n). p i
+  ensures
+    forall+ (i: natlt (n-1)). p (natlt_coerce i)
+  ensures
+    p (n-1)
+{
+  forevery_refine_split p (fun i -> i < n-1);
+  forevery_singleton_elim' #(x: natlt n {~(b2t (x < n - 1))}) p (n-1);
+  forevery_natlt_restrict #(n-1) n (fun i -> p (natlt_coerce i));
+}
+
+ghost
+fn forevery_natlt_push
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt (n-1)). p (natlt_coerce i)
+  requires
+    p (n-1)
+  ensures
+    forall+ (i: natlt n). p i
+{
+  forevery_natlt_extend #(n-1) n (fun i -> p (natlt_coerce i));
+  forevery_singleton_intro' #(x: natlt n {~(b2t (x < n - 1))}) p (n-1);
+  forevery_refine_join p _ _;
+  forevery_unrefine p;
+}
+
+ghost
 fn rec forevery_fromnat
   (n : nat)
   (p : natlt n -> slprop)
@@ -922,9 +1022,7 @@ fn rec forevery_fromnat
     bigstar_extract 0 n p (n-1);
     rewrite each (n-1+1) as n; bigstar_zs_elim #_;
     forevery_fromnat (n-1) (fun j -> p (natlt_coerce j));
-    forevery_natlt_extend #(n-1) n _;
-    forevery_insert #(natlt n) p (n-1);
-    forevery_unrefine p;
+    forevery_natlt_push n p;
   }
 }
 
@@ -941,12 +1039,10 @@ fn rec forevery_tonat
 {
   if (n = 0) {
     assert rewrites_to n 0;
-    drop_ (forall+ (x : natlt n). p x);
+    forevery_elim_empty (fun (x : natlt n) -> p x);
     bigstar_zs_intro 0 p;
   } else {
-    forevery_remove p (n-1);
-    forevery_refine_ext #(natlt n) (fun x -> x < n - 1) p;
-    forevery_natlt_restrict #(n-1) n (fun i -> p (natlt_coerce i));
+    forevery_natlt_pop n p;
     forevery_tonat (n-1) _;
     bigstar_zs_intro n p;
     rewrite bigstar #0 n n p as bigstar #0 (n - 1 + 1) n (fun j -> p j);
@@ -979,6 +1075,59 @@ fn forevery_fromstar
 {
   forevery_fromnat (cardinal a #_) (fun i -> p (of_nat i));
   forevery_iso_back d.bij (fun i -> p i);
+}
+
+ghost
+fn rec forevery_exists_natlt
+  (#n: nat)
+  (#b: Type0)
+  (p: natlt n -> b -> slprop)
+  requires
+    forall+ (x:natlt n). exists* (y:b). p x y
+  returns
+    y:(natlt n -> b)
+  ensures
+    forall+ (x:natlt n). p x (y x)
+  decreases
+    n
+{
+  if (n = 0) {
+    let y: (natlt n -> b) = (fun _ -> ());
+    forevery_ext
+      (fun x -> exists* (y:b). p x y)
+      (fun x -> p x (y x));
+    y
+  } else {
+    forevery_natlt_pop n _;
+    with yn1. assert p (n-1) yn1; let yn1_ = reveal yn1;
+    let y = forevery_exists_natlt #(n-1) (fun x y -> p (natlt_coerce x) y);
+    let y': (natlt n -> b) =
+      (fun i -> if i = n-1 then yn1_ else y (natlt_coerce i));
+    rewrite p (n-1) yn1 as p (n-1) (y' (n-1));
+    forevery_ext (fun (i: natlt (n-1)) -> p (natlt_coerce i) (y i))
+      (fun (i: natlt (n-1)) -> p (natlt_coerce i) (y' (natlt_coerce i)));
+    forevery_natlt_push n (fun i -> p i (y' i));
+    y'
+  }
+}
+
+ghost
+fn forevery_exists
+  (#a: Type0) {| d : enumerable a |}
+  (#b: Type0)
+  (p: a -> b -> slprop)
+  requires
+    forall+ (x:a). exists* (y:b). p x y
+  returns
+    y:(a->GTot b)
+  ensures
+    forall+ (x:a). p x (y x)
+{
+  forevery_iso d.bij (fun x -> exists* (y:b). p x y);
+  let y = forevery_exists_natlt (fun i y -> p (of_nat i) y);
+  let y' = (fun x -> y (to_nat x));
+  forevery_iso_back d.bij (fun x -> p x (y' x));
+  y'
 }
 
 ghost
@@ -1043,6 +1192,37 @@ fn forevery_unit_elim
     p
 {
   forevery_singleton_elim #unit (fun _ -> p);
+}
+
+ghost
+fn forevery_bool_intro
+  (p: bool -> slprop)
+  requires
+    p false
+  requires
+    p true
+  ensures
+    forall+ (x: bool). p x
+{
+  forevery_intro_false p;
+  forevery_insert p false;
+  forevery_insert p true;
+  forevery_unrefine p;
+}
+
+ghost
+fn forevery_bool_elim
+  (p: bool -> slprop)
+  requires
+    forall+ (x: bool). p x
+  ensures
+    p false
+  ensures
+    p true
+{
+  forevery_remove p false;
+  forevery_remove' (fun x -> x =!= false) p true;
+  forevery_elim_empty _;
 }
 
 ghost

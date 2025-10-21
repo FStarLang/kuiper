@@ -686,7 +686,6 @@ ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
@@ -694,19 +693,18 @@ fn varray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 {
   unfold varray_pts_to a #f v;
-  IArray.iarray_share_n #_ #_ #uid (VA?._0 a) k;
-  ghost
-  fn aux (i : nat)
-    requires IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v)
-    ensures  varray_pts_to #et a #(f /. k) v
-  {
-    fold varray_pts_to a #(f /. k) v;
-  };
-  bigstar_map #uid #uid aux;
-  ();
+  IArray.iarray_share_n (VA?._0 a) k;
+  forevery_map
+    (fun (i: natlt k) ->
+      IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v))
+    (fun (i: natlt k) ->
+      varray_pts_to #et a #(f /. k) v)
+    fn i {
+      fold varray_pts_to a #(f /. k) v;
+    }
 }
 
 // TODO: remove?
@@ -714,25 +712,24 @@ ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
   (#v : st)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
 {
-  ghost
-  fn aux (i : nat)
-    requires varray_pts_to #et a #(f /. k) v
-    ensures  IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v)
-  {
-    unfold varray_pts_to a #(f /. k) v;
-  };
-  bigstar_map #uid #uid aux;
-  IArray.iarray_gather_n #_ #_ #uid (VA?._0 a) k;
+  forevery_map
+    (fun (i: natlt k) ->
+      varray_pts_to #et a #(f /. k) v)
+    (fun (i: natlt k) ->
+      IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v))
+    fn i {
+      unfold varray_pts_to a #(f /. k) v;
+    };
+  IArray.iarray_gather_n (VA?._0 a) k;
   fold varray_pts_to a #f v;
 }
 

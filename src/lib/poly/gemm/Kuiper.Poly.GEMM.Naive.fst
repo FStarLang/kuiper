@@ -125,9 +125,7 @@ fn setup
 {
   // Sharing the input matrices (splitting permissions)
   M.gpu_matrix_share_n gA (rows *^ cols);
-  forevery_fromstar #(natlt2 rows cols) _;
   M.gpu_matrix_share_n gB (rows *^ cols);
-  forevery_fromstar #(natlt2 rows cols) _;
 
   // Sharing the output matrix (splitting each cell)
   M.gpu_matrix_explode gC;
@@ -184,11 +182,19 @@ fn teardown
   forevery_unzip #(natlt2 rows cols) _ _;
   forevery_unzip #(natlt2 rows cols) _ _;
 
-  forevery_tostar #(natlt2 rows cols)
-    (fun i -> gA |-> Frac (fA /. (rows * cols)) eA);
+  forevery_rw_type
+    (natlt (v (SizeT.mul rows cols)))
+    (natlt (v rows * v cols))
+    (fun _ ->
+      M.gpu_matrix_pts_to #et gA #(fA /. (v rows * v cols)) eA);
+
+  forevery_rw_type
+    (natlt (v (SizeT.mul rows cols)))
+    (natlt (v rows * v cols))
+    (fun _ ->
+      M.gpu_matrix_pts_to #et gB #(fB /. (v rows * v cols)) eB);
+
   M.gpu_matrix_gather_n gA _;
-  forevery_tostar #(natlt2 rows cols)
-    (fun i -> gB |-> Frac (fB /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
   forevery_factor (rows *^ cols) rows cols _;
