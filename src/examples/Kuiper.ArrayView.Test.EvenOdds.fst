@@ -135,13 +135,9 @@ fn test (a : gpu_array u32 100)
   // assume (pure (is_full_view (sum_aview (even_view u32 100) (odd_view u32 100))));
   varray_concr va;
 
-  assert (pure (core va == a));
-  rewrite each core va as a;
-
-  // All the bijection stuff is making this hard.
-  with v1. assert a |-> v1;
-  // assert (pure (Seq.equal v0 v1));
-  assume (pure (Seq.equal v0 v1));
+  with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;
+  assume (pure (Seq.equal v0 v1)); // All the bijection stuff is making this hard.
+  rewrite gpu_pts_to_slice (core va) 0 l1 v1 as a |-> v0;
 
   res
 }

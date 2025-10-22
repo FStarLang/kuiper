@@ -73,7 +73,7 @@ fn cp_matrix_vec
     assert pure (row < rows);
     assert pure (col < cols - chunk et + 1);
 
-    gpu_matrix_vec_read src row col local;
+    gpu_matrix_vec_read' src row col local;
 
     let ite : erased int = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);

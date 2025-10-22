@@ -62,6 +62,12 @@ fn cp_matrix
     // Manual unfold and fold necessary.
     //  If unfold was automatic the vi in live_cell would not be rewritten above
     //  because it is under an exists*.
+    rewrite
+      live_cell dst
+        ((tid + ite * nthr) / cols)
+        ((tid + ite * nthr) % cols)
+    as
+      live_cell dst (!i / cols) (!i % cols);
     unfold live_cell dst (!i / cols) (!i % cols);
     gpu_matrix_write_cell dst (!i /^ cols) (!i %^ cols) v;
     fold live_cell dst (!i / cols) (!i % cols);

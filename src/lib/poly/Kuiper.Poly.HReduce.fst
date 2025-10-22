@@ -450,6 +450,6 @@ fn reduce
 {
   gpu_pts_to_ref a; (* recall length, automate *)
   launch_sync (kernel lena a #va #vr);
-  unfold gpu_pts_to_slice_sum;
+  unfold gpu_pts_to_slice_sum a 0 lena va vr;
   ()
 }

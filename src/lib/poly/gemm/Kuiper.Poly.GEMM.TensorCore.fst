@@ -305,7 +305,7 @@ fn epilogue
     (exists* vaccumFrag.
       accumFrag |-> vaccumFrag)
 {
-  unfold live_warp_tile;
+  unfold live_warp_tile #et;
 
   (* Only create a tile in gC and write the accumulator values. In this version the input from gC
      was added by loading the tile into the accumulator before any other computations *)
@@ -322,7 +322,7 @@ fn epilogue
   mma_store accumFrag w_tile;
 
   // rewrite each w_tile as warp_tile (block_tile gC bm bn bid) tm tn tid;
-  fold live_warp_tile;
+  fold live_warp_tile #et;
   ()
 }
 
@@ -397,11 +397,11 @@ fn kf
   let accumFrag = __alloc_fragment et_c FragAcc tm tn tk FragLAcc;
 
   (* get ownership over the thread's gC tile and load it into the accumulator *)
-  unfold live_warp_tile;
+  unfold live_warp_tile #et_c;
   let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (tid / warp_size);
   assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (SZ.v tm) (SZ.v tn) (tid / warp_size)));
   mma_loadAccum accumFrag t_tile;
-  fold live_warp_tile;
+  fold live_warp_tile #et_c;
 
   let mut bkIdx  : sz = 0sz;
   while (SZ.(!bkIdx <^ num_k_tiles))
@@ -455,7 +455,9 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
+  rewrite each (tid / 32) as wid;
   epilogue bm bn tm tn accumFrag gC bid wid;
+  rewrite each v wid as (tid / 32);
 
   with vaFrag. assert aFrag |-> vaFrag; drop_ (aFrag |-> vaFrag);
   with vbFrag. assert bFrag |-> vbFrag; drop_ (bFrag |-> vbFrag);
@@ -464,7 +466,21 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * num_k_tiles) (bm/tm * (bn/tn) * warp_size) tid;
+  rewrite
+    B.barrier_tok (barrier_p sA sB (v bm / v tm * (v bn / v tn) * 32))
+      (barrier_q sA sB (v bm / v tm * (v bn / v tn) * 32))
+      (2 * v !bkIdx)
+      (v tid)
+  as
+    B.barrier_tok (barrier_p (from_array (R.row_major (v bm) (v bk)) sarA)
+          (from_array (R.row_major (v bk) (v bn)) sarB)
+          (v bm / v tm * (v bn / v tn) * 32))
+      (barrier_q (from_array (R.row_major (v bm) (v bk)) sarA)
+          (from_array (R.row_major (v bk) (v bn)) sarB)
+          (v bm / v tm * (v bn / v tn) * 32))
+      (2 * (shared / bk))
+      (v tid);
+  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) (bm/tm * (bn/tn) * warp_size) tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);

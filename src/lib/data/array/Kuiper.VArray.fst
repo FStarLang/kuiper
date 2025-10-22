@@ -927,7 +927,8 @@ fn varray_to_array
   varray_concr va;
   B.gpu_memcpy_device_to_host a (core va) clen;
   varray_abs' vw (core va);
-  rewrite each from_array vw (core va) as va;
-  rewrite each from_seq vw (to_seq vw v) as v;
-  ();
+  rewrite
+    from_array vw (core va) |-> from_seq vw (to_seq vw v) 
+  as
+    va |-> v;
 }
