@@ -12,8 +12,6 @@ open Kuiper.Matrix.Reprs.Type
 module M  = Kuiper.Matrix
 module M4 = Kuiper.Matrix4
 open Kuiper.Matrix4 { mlayout4, clayout4 }
-module R = Kuiper.Matrix.Reprs
-module GT = Kuiper.Ghost.Transpose
 module MC = Kuiper.Matrix.Casts
 
 #set-options "--z3rlimit 20"

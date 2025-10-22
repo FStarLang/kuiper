@@ -167,7 +167,6 @@ fn gpu_matrix_free
 ghost
 fn gpu_matrix_share_n
   (#et:Type0)
-  (#[T.exact (`0)]uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
@@ -177,24 +176,19 @@ fn gpu_matrix_share_n
   requires
     gpu_matrix_pts_to gm #f em
   ensures
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_share_n gm k;
-  ghost
-  fn aux (i:natlt k)
-    requires A.varray_pts_to gm #(f /. k) em
-    ensures  gpu_matrix_pts_to gm #(f /. k) em
-  {
-    fold gpu_matrix_pts_to gm #(f /. k) em;
-  };
-  bigstar_map #0 #uid #0 #k aux;
+  forevery_map
+    (fun (i:natlt k) -> A.varray_pts_to gm #(f /. k) em)
+    (fun (i:natlt k) -> gpu_matrix_pts_to gm #(f /. k) em)
+    fn i { fold gpu_matrix_pts_to gm #(f /. k) em };
 }
 
 ghost
 fn gpu_matrix_gather_n
   (#et:Type0)
-  (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
@@ -202,18 +196,14 @@ fn gpu_matrix_gather_n
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  ghost
-  fn aux (i:natlt k)
-    requires gpu_matrix_pts_to gm #(f /. k) em
-    ensures  A.varray_pts_to gm #(f /. k) em
-  {
-    unfold gpu_matrix_pts_to gm #(f /. k) em;
-  };
-  bigstar_map #uid #0 #0 #k aux;
+  forevery_map
+    (fun (i:natlt k) -> gpu_matrix_pts_to gm #(f /. k) em)
+    (fun (i:natlt k) -> A.varray_pts_to gm #(f /. k) em)
+    fn i { unfold gpu_matrix_pts_to gm #(f /. k) em };
   A.varray_gather_n gm k;
   fold gpu_matrix_pts_to gm #f em;
 }
@@ -398,7 +388,7 @@ fn gpu_matrix_explode
     (fun rc -> A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
     (fun rc -> gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2))
     aux;
-  forevery_unflatten #(natlt rows) #_ #(natlt cols) (fun r c ->
+  forevery_unflatten #(natlt rows) #(natlt cols) (fun r c ->
     gpu_matrix_pts_to_cell gm #f r c (macc em r c));
   ()
 }
@@ -419,7 +409,7 @@ fn gpu_matrix_implode
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  forevery_flatten #(natlt rows) #_ #(natlt cols)
+  forevery_flatten #(natlt rows) #(natlt cols)
     (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
   forevery_ext #(natlt rows & natlt cols)
     (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2))

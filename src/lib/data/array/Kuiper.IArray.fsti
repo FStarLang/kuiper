@@ -293,7 +293,6 @@ ghost
 fn iarray_share_n
   (#et:Type0)
   (#vw : aiview)
-  (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
@@ -301,19 +300,18 @@ fn iarray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 
 ghost
 fn iarray_gather_n
   (#et:Type0)
   (#vw : aiview)
-  (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
   (#v : vw.sch.ait -> GTot et)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
 

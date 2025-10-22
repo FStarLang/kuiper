@@ -20,7 +20,7 @@ fn block_setup ()
   requires block_setup_tok 0 ** emp
   ensures  block_setup_tok 0 ** (forall+ (tid : natlt 0). emp) ** emp
 {
-  forevery_emp_intro (natlt 0) #_;
+  forevery_emp_intro (natlt 0);
 }
 
 ghost
@@ -29,7 +29,7 @@ fn block_teardown ()
   requires (forall+ (tid : natlt 0). emp) ** emp
   ensures  emp
 {
-  forevery_emp_elim (natlt 0) #_;
+  forevery_emp_elim (natlt 0);
 }
 
 inline_for_extraction noextract

@@ -75,6 +75,7 @@ let gpu_pts_to_slice_sum
 
 // Barrier
 
+unfold
 let barrier_matrix
   (#et:Type0) {| scalar et, real_like et |}
   (nth : nat) (r : gpu_array et nth)
@@ -98,13 +99,19 @@ fn mk_barrier_pre
   (it: sz{it < 31})
   requires if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
       (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)
-  ensures bigstar 0 nth (barrier_matrix nth r vv vr it tid)
+  ensures forall+ (i:natlt nth). barrier_matrix nth r vv vr it tid i
 {
   open FStar.SizeT;
   if (tid >=^ spow2 it) {
-    bigstar_if_intro 0 nth (tid - pow2 it) (fun _ ->
+    forevery_if_intro #(natlt nth) (tid - pow2 it) (fun i ->
       if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
         (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr));
+    forevery_ext
+      (fun (i:natlt nth) ->
+        if_ (op_Equality #(natlt (v nth)) i (tid - pow2 it))
+          (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
+            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)))
+      (fun (i:natlt nth) -> barrier_matrix nth r vv vr it tid i);
   } else {
     FStar.Math.Lemmas.modulo_lemma tid (spow2 it);
     FStar.Math.Lemmas.modulo_lemma 0 (spow2 (it +^ 1sz));
@@ -113,7 +120,10 @@ fn mk_barrier_pre
     if_rewrite_bool (op_Negation (div_pow2 (SZ.v it + 1) (SZ.v tid)) && div_pow2 (SZ.v it) (SZ.v tid)) false _;
     if_elim_false _;
 
-    bigstar_emp_intro 0 nth;
+    forevery_emp_intro (natlt nth);
+    forevery_ext
+      (fun (i:natlt nth) -> emp)
+      (fun (i:natlt nth) -> barrier_matrix nth r vv vr it tid i);
   }
 }
 
@@ -144,6 +154,7 @@ let kpost
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s vr) **
     (exists* it. mbarrier_tok lena (barrier_matrix lena a s vr) it tid)
 
+// #push-options "--print_implicits"
 inline_for_extraction
 fn iteration
   (#et:Type0) {| scalar et, real_like et |}
@@ -188,8 +199,17 @@ fn iteration
   let end_ : erased nat = hide (min (tid + 2 * pow2 it) nth);
 
   if (FStar.SizeT.(nextid <^ nth)) {
-    bigstar_if_elim #_ #0
-      #nth (tid + pow2 it)
+    forevery_ext
+      (fun (from: natlt nth) ->
+        if_ (op_Equality #int from (tid + pow2 it))
+          (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)))
+      (fun (from: natlt nth) ->
+        if_ (op_Equality #(natlt nth) from (tid + pow2 it))
+          (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)));
+    forevery_if_elim #(natlt nth)
+      (tid + pow2 it)
       (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
          (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr));
 
@@ -242,13 +262,17 @@ fn iteration
       if_intro_false (gpu_pts_to_slice_sum r tid end_ vv vr);
     }
   } else {
-    bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
-      (fun (from: nat{0 <= from /\ from < nth}) ->
-        if_rewrite_bool (from = tid + pow2 it) false _);
-    bigstar_map #_ #_ #0 #nth #(fun (from:nat { 0 <= from /\ from < nth }) -> _ from)
-      (fun (from: nat{0 <= from /\ from < nth}) ->
-        if_elim_false (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from)) (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)));
-    bigstar_emp_elim #_;
+    forevery_map
+      (fun (from: natlt nth) ->
+        if_ (op_Equality #int from (tid + pow2 it))
+          (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)))
+      (fun from -> emp)
+      fn from {
+        if_rewrite_bool (from = tid + pow2 it) false _;
+        if_elim_false _;
+      };
+    forevery_emp_elim _;
   }
 }
 
@@ -306,12 +330,8 @@ fn factor_array
     forall+ (i1:natlt d1) (i2:natlt d2).
       gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
 {
-  open Kuiper.Enumerable;
   Kuiper.Array.gpu_array_slice_1 a;
-  rewrite each len as cardinal (natlt len) #_;
-  forevery_fromstar #(natlt len) (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
   forevery_factor len d1 d2 _;
-  ();
 }
 
 ghost
@@ -327,10 +347,7 @@ fn unfactor_array
   ensures
     a |-> va
 {
-  open Kuiper.Enumerable;
   forevery_unfactor len d1 d2 (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
-  forevery_tostar #(natlt len) _;
-  rewrite each (cardinal (natlt len) #_) as len;
   Kuiper.Array.gpu_array_unslice_1 a;
 }
 
@@ -351,15 +368,12 @@ fn block_setup
     (forall+ (i : natlt lena). kpre lena a va vr i) **
     emp
 {
-  open Kuiper.Enumerable;
   gpu_array_slice_1 a;
   mk_mbarrier lena (barrier_matrix lena a va vr);
-  bigstar_zip 0 lena
+  forevery_zip
       _
       (RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va vr) 0)
     ;
-  rewrite each (SZ.v lena) as cardinal (natlt lena) #_;
-  forevery_fromstar #(natlt lena) (fun i -> kpre lena a va vr i);
 }
 
 ghost
@@ -377,33 +391,24 @@ fn block_teardown
   ensures
     gpu_pts_to_slice_sum a 0 lena va vr
 {
-  open Kuiper.Enumerable;
-  forevery_tostar #(natlt lena) _;
-  rewrite each
-    (Kuiper.Enumerable.cardinal (natlt (SZ.v lena))
-            #(Kuiper.Enumerable.enumerable_natlt (SZ.v lena)))
-    as lena;
-  ghost
-  fn mapper (j: nat{b2t (0 <= j) /\ b2t (j < SZ.v lena)})
-    norewrite
-    requires
-      if_ (op_Equality #int (Kuiper.Enumerable.of_nat #(natlt lena) j) 0)
+  forevery_map
+    (fun (j:natlt lena) ->
+      if_ (j = 0)
         (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr) **
       (exists* (it: nat).
           RPM.mbarrier_tok (SZ.v lena)
             (barrier_matrix (SZ.v lena) a va vr)
             it
-            (Kuiper.Enumerable.of_nat #(natlt lena) j))
-    ensures
-      if_ (op_Equality #int j 0)
-        (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr)
-  {
-    with a b c d. assert (RPM.mbarrier_tok a b c d);
-    drop_ (RPM.mbarrier_tok a b c d);
-    ();
-  };
-  bigstar_map #_ #_ #0 #lena mapper;
-  bigstar_if_elim #0 #0 #(SZ.v lena) 0 _;
+            j))
+    (fun (j:natlt lena) ->
+      if_ (op_Equality #(natlt lena) j 0)
+        (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
+    fn j {
+      with a b c d. assert (RPM.mbarrier_tok a b c d);
+      drop_ (RPM.mbarrier_tok a b c d);
+    };
+  forevery_if_elim #(natlt lena) 0 (fun (x: natlt lena) ->
+    gpu_pts_to_slice_sum a 0 (v lena) va vr);
 }
 
 inline_for_extraction noextract

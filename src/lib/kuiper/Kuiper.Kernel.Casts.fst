@@ -166,8 +166,8 @@ fn pad_setup
 
   (* Convince Z3 *)
   forevery_ext_2
-    #(natlt (sdivup k.nthr 1024sz)) #_
-    #(natlt (1024sz)) #_
+    #(natlt (sdivup k.nthr 1024sz))
+    #(natlt (1024sz))
     _
     (fun bid tid ->
         pad_kn k k.kpre bid tid);
