@@ -443,7 +443,6 @@ ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
@@ -451,20 +450,19 @@ fn varray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 
 // TODO: remove?
 ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
   (#v : st)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
 

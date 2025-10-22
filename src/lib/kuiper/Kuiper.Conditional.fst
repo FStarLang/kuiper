@@ -220,3 +220,33 @@ fn bigstar_if_intro
   rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
        as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)));
 }
+
+ghost
+fn forevery_if_elim
+  (#a: eqtype)
+  (x : a)
+  (p: a -> slprop)
+  requires forall+ (i:a). if_ (i = x) (p i)
+  ensures  p x
+{
+  forevery_ext
+    (fun (i:a) -> if_ (i = x) (p i))
+    (fun (i:a) -> when_ (i = x) (p i));
+  forevery_refine_pred p (fun i -> i = x);
+  forevery_singleton_elim' #(i:a{i=x}) p x;
+}
+
+ghost
+fn forevery_if_intro
+  (#a: eqtype)
+  (x : a)
+  (p: a -> slprop)
+  requires p x
+  ensures forall+ (i:a). if_ (i = x) (p i)
+{
+  forevery_singleton_intro' #(i:a{i=x}) p x;
+  forevery_unrefine_pred p (fun i -> i = x);
+  forevery_ext
+    (fun (i:a) -> when_ (i = x) (p i))
+    (fun (i:a) -> if_ (i = x) (p i));
+}

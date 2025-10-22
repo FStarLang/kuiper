@@ -29,14 +29,16 @@ fn test (arr : array (ref u32))
 }
 
 
-// #set-options "--debug SMTFail --split_queries always"
-
 ghost
 fn helper (p : natlt 3 -> slprop)
   requires p 0 ** p 1 ** p 2
   ensures  forall+ (i : natlt 3). p i
 {
-  admit();
+  forevery_intro_false p;
+  forevery_insert p 0;
+  forevery_insert p 1;
+  forevery_insert p 2;
+  forevery_unrefine p;
 }
 
 fn use ()
