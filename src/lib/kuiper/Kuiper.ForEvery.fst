@@ -1408,7 +1408,7 @@ fn forevery_extract
 }
 
 // FIXME: Type-class inference fails inside Pulse?!?
-let forevery_extract'_aux #a (z:a) (p: a->slprop) = 
+let forevery_extract'_aux #a (z:a) (p: a->slprop) =
   intro (forall* (p' : a -> slprop).
       p' z ** pure (forall (x:a{x =!= z}). p' x == p x)
         @==> (forall+ (x:a). p' x))

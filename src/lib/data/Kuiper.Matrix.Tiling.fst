@@ -7,7 +7,6 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.Injection
 module SZ = Kuiper.SizeT
-module Enumerable = Kuiper.Enumerable
 
 #push-options "--z3rlimit 10"
 let from_subtiles_id

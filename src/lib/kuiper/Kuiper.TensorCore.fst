@@ -34,7 +34,7 @@ fn array_fragment_extract
 
   forevery_extract_if_eqtype i
     (fun (x : natlt (Seq.length s)) -> (s @! x) |-> (ems @! x));
-  
+
   ghost
   fn f_elim (em' : value_for et knd m n k)
     requires
