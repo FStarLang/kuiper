@@ -26,10 +26,10 @@ let is_comm_semigroup (#a:Type) (e:a) (f : a -> a -> a) : prop =
 let is_monoid (#a:Type) (e : a) (f : a -> a -> a) : prop =
   is_associative f /\ is_neutral_for e f
 
-let no_overlap (f1 : 'a -> 'c) (f2 : 'b -> 'c) : prop =
+let no_overlap (f1 : 'a -> GTot 'c) (f2 : 'b -> GTot 'c) : prop =
   forall (x1 : 'a) (x2 : 'b). f1 x1 =!= f2 x2
 
-let merge_either (f1 : 'a -> 'c) (f2 : 'b -> 'c) (x : either 'a 'b) : 'c =
+let merge_either (f1 : 'a -> GTot 'c) (f2 : 'b -> GTot 'c) (x : either 'a 'b) : GTot 'c =
   match x with
   | Inl x1 -> f1 x1
   | Inr x2 -> f2 x2
@@ -38,5 +38,5 @@ let left  (e : either 'a 'b{Inl? e}) : 'a = let Inl x = e in x
 let right (e : either 'a 'b{Inr? e}) : 'b = let Inr x = e in x
 
 val pigeon (n1:nat) (n2:nat{n2 < n1})
-  (f : natlt n1 -> natlt n2)
+  (f : natlt n1 -> GTot (natlt n2))
   : Lemma (~ (is_inj f))

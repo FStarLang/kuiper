@@ -53,6 +53,51 @@ fn kf
 }
 
 ghost
+fn gpu_array_slice_1_underspec
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a))
+  requires arr |-> Frac f v
+  ensures  forall+ (i: natlt sz). gpu_pts_to_array1 arr #f i
+{
+  gpu_pts_to_ref arr;
+  gpu_array_slice_1 arr;
+  forevery_map
+    (fun (i: natlt sz) ->
+      gpu_pts_to_slice arr #f i (i + 1) seq![Seq.Base.index v i])
+    (fun (i: natlt sz) -> gpu_pts_to_array1 arr #f i)
+    fn i { fold gpu_pts_to_array1 arr #f i };
+}
+
+ghost
+fn gpu_array_unslice_1_underspec
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  requires forall+ (i: natlt sz). gpu_pts_to_array1 arr #f i
+  ensures exists* (v : seq a). arr |-> Frac f v
+{
+  forevery_map
+    (fun (i: natlt sz) -> gpu_pts_to_array1 arr #f i)
+    (fun (i: natlt sz) -> exists* v. gpu_pts_to_slice arr #f i (i + 1) seq![v])
+    fn i {
+      unfold gpu_pts_to_array1 arr #f i; with v. _;
+      gpu_pts_to_slice_ref arr i (i+1);
+      rewrite each v as seq![Seq.index v 0];
+    };
+  let v = forevery_exists (fun (i: natlt sz) v ->
+    gpu_pts_to_slice arr #f i (i + 1) seq![v]);
+  let v' = Seq.init_ghost sz v;
+  forevery_ext
+    (fun (i: natlt sz) -> gpu_pts_to_slice arr #f i (i + 1) seq![v i])
+    (fun (i: natlt sz) -> gpu_pts_to_slice arr #f i (i + 1) seq![Seq.index v' i]);
+  gpu_array_unslice_1 arr;
+}
+
+ghost
 fn block_setup
   (#et:Type) (ga1 ga2 gr : gpu_array et size)
   ()
@@ -69,16 +114,15 @@ fn block_setup
     emp (* frame *)
 {
   // Slicing the arrays
-  (**)gpu_array_slice_1_underspec #1 ga1;
-  (**)gpu_array_slice_1_underspec #2 ga2;
-  (**)gpu_array_slice_1_underspec #3 gr;
+  (**)gpu_array_slice_1_underspec ga1;
+  (**)gpu_array_slice_1_underspec ga2;
+  (**)gpu_array_slice_1_underspec gr;
 
   // Boring combination of resources
-  (**)bigstar_zip #2  #3 #42 0 size _ _;
-  (**)bigstar_zip #1 #42 #0  0 size _ _;
-
-  forevery_fromnat size
-    (fun i -> kpre m_size ga1 ga2 gr i);
+  forevery_zip3 #(natlt (v m_size))
+    (gpu_pts_to_array1 ga1)
+    (gpu_pts_to_array1 ga2)
+    (gpu_pts_to_array1 gr);
 }
 
 ghost
@@ -95,21 +139,12 @@ fn block_teardown
       ga2 |-> s2 **
       gr |-> sr)
 {
-  forevery_tonat size
-    (fun i -> kpost m_size ga1 ga2 gr i);
-
-  (**)bigstar_unzip #1 #42 #0 0 size _ _;
-  (**)bigstar_unzip #2 #3 #42 0 size _ _;
-
-  (* Why is this needed? *)
-  bigstar_uneta () #1 #0 #size #(gpu_pts_to_array1 ga1 #1.0R);
-  bigstar_uneta () #2 #0 #size #(gpu_pts_to_array1 ga2 #1.0R);
-  bigstar_uneta () #3 #0 #size #(gpu_pts_to_array1 gr  #1.0R);
+  forevery_unzip3 _ _ _;
 
   // Unslicing
-  (**)gpu_array_unslice_1_underspec #1 ga1;
-  (**)gpu_array_unslice_1_underspec #2 ga2;
-  (**)gpu_array_unslice_1_underspec #3 gr;
+  (**)gpu_array_unslice_1_underspec ga1;
+  (**)gpu_array_unslice_1_underspec ga2;
+  (**)gpu_array_unslice_1_underspec gr;
 }
 
 

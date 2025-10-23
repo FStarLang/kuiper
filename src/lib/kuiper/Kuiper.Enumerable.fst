@@ -28,7 +28,7 @@ let bijection_implies_equal_cardinal
     __bij_cardinal (cardinal a #_) (cardinal b #_) bij'
 
 let no_inj_to_smaller_nat (n1 n2 : nat{n2 < n1})
-  (f : natlt n1 -> natlt n2)
+  (f : natlt n1 -> GTot (natlt n2))
   : Lemma (exists (x y : natlt n1). x <> y /\ f x == f y)
   = admit()
 
@@ -50,7 +50,7 @@ let injection_equal_cardinal_implies_bijection
   = let contra (y : b)
       : Lemma (requires ~(exists (x : a). inj.f x == y))
               (ensures False)
-      = let f' : a -> (y':b{y' =!= y}) = (fun x -> inj.f x) in
+      = let f' : a -> GTot (y':b{y' =!= y}) = (fun x -> inj.f x) in
         assert (Functions.is_inj f');
         let inj' : injection a (y':b{y' =!= y}) = { f = f'; is_inj = ez } in
         // injection_implies_lte_cardinal a (y':b{y' =!= y}) inj';

@@ -19,7 +19,8 @@ let view_equiv (#et #st : Type)
   : prop
 = vw1.iview.len == vw2.iview.len /\
   vw1.iview.sch.ait == vw2.iview.sch.ait /\
-  F.feq vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  (forall (x: st) (i: vw1.iview.sch.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
   (* probably need more about the mappings in igm *)
   True
 
@@ -254,6 +255,26 @@ fn varray_end
     a' |-> Frac f v
 
 ghost
+fn varray_cell_reindex
+  (#et:Type0) (#st #st':Type0)
+  (#f : perm)
+  (#vw : aview et st)
+  (#vw' : aview et st')
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (a' : varray vw')
+  (i' : vw'.iview.sch.ait)
+  (#v : et)
+  requires
+    pure (len vw == len vw' /\ core a == core a')
+  requires
+    pure (IView.it_to_nat vw.iview i == IView.it_to_nat vw'.iview i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
+
+ghost
 fn varray_abs
   (#et : Type0) (#st : Type0)
   (vw : aview et st { is_full_view vw })
@@ -422,7 +443,6 @@ ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
@@ -430,20 +450,19 @@ fn varray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 
 // TODO: remove?
 ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
   (#v : st)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
 

@@ -74,10 +74,8 @@ let strided_cistep (len : erased nat{SZ.fits len}) (stride : sz) (offset : szlt 
     (raw_ciview_schema len)
     (strided_step len stride offset)
 = {
-  cimap = {
-    f = (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> (i `SZ.mul` stride `SZ.add` offset) <: szlt len);
-    is_inj = ez;
-  };
+  cimap = mk_cinj
+    (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> (i `SZ.mul` stride `SZ.add` offset) <: szlt len);
   compat = ez;
 }
 

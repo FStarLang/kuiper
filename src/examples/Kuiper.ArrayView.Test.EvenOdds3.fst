@@ -53,10 +53,8 @@ instance _cview_strided
     bij  = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj
+      (fun (i : szlt ((len + stride - 1 - offset) / stride)) -> i `SZ.mul` stride `SZ.add` offset <: szlt len);
     compat = ez;
   };
 }
@@ -195,7 +193,7 @@ let split_lemma #et (#len:nat) (s : lseq et len)
             (to_seq (sum_aview (even_view et len) (odd_view et len)) (seq_evens s, seq_odds s))
             s)
 
-#push-options "--z3rlimit 30"
+#push-options "--z3rlimit 40"
 fn test_write (a : gpu_array u32 100)
     (#v0 : erased (lseq u32 100))
     preserves gpu

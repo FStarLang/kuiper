@@ -59,8 +59,8 @@ instance cview_concat
     cimap = (
       assert (SZ.v cw1.clen == vw1.iview.len);
       assert (SZ.v cw2.clen == vw2.iview.len);
-      inj_either cw1.step.cimap cw2.step.cimap
-              `inj_comp` inj_sz_sum (len vw1) (len vw2) cw1.clen
+      cinj_either cw1.step.cimap cw2.step.cimap
+              `cinj_comp` cinj_sz_sum (len vw1) (len vw2) cw1.clen
     );
 
 

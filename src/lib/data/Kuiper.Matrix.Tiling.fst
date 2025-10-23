@@ -7,8 +7,8 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.Injection
 module SZ = Kuiper.SizeT
-module Enumerable = Kuiper.Enumerable
 
+#push-options "--z3rlimit 10"
 let from_subtiles_id
   (#et : _)
   (#rows #cols : _)
@@ -20,6 +20,7 @@ let from_subtiles_id
            em)
 = assert (equal (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)) em);
   ()
+#pop-options
 
 #push-options "--z3rlimit 40 --fuel 0 --ifuel 0 --split_queries always"
 #restart-solver
@@ -398,7 +399,7 @@ fn gpu_matrix_extract_tile
       forall+
         (tr' : natlt (rows / trows))
         (tc' : natlt (cols / tcols)).
-          (if (Enumerable.to_nat tr', Enumerable.to_nat tc') = (Enumerable.to_nat tr, Enumerable.to_nat tc)
+          (if t2b ((tr', tc') == (tr, tc))
            then emp
            else
              // Using |-> below fails
@@ -413,7 +414,7 @@ fn gpu_matrix_extract_tile
         forall+
           (tr' : natlt (rows / trows))
           (tc' : natlt (cols / tcols)).
-            (if (Enumerable.to_nat tr', Enumerable.to_nat tc') = (Enumerable.to_nat tr, Enumerable.to_nat tc)
+            (if t2b ((tr', tc') == (tr, tc))
             then emp
             else
               // Using |-> below fails

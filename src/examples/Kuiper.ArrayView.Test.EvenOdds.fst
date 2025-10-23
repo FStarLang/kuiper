@@ -63,10 +63,7 @@ instance _cview_even #et (len : erased nat) (sz_len : concrete_sz len) : IView.c
     bij  = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
     compat = ez;
   };
 }
@@ -79,10 +76,7 @@ instance _cview_odd #et (len : erased nat) (sz_len : concrete_sz len) : IView.ci
     bij  = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt (len / 2)) -> 1sz +^ i `SZ.mul` 2sz <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj (fun (i : szlt (len / 2)) -> 1sz +^ i `SZ.mul` 2sz <: szlt len);
     compat = ez;
   };
 }

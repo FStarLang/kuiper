@@ -251,14 +251,15 @@ fn bigstar_if_intro
   requires p x
   ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp)
 
-class permutation (a:Type) = {
-   f          : a -> a;
-   g          : a -> a;
+[@@erasable]
+noeq type permutation (a:Type) = {
+   f          : a -> GTot a;
+   g          : a -> GTot a;
    [@@@FStar.Tactics.Typeclasses.no_method]
    proof : (x: a) -> (y: a) -> squash (f x == y <==> g y == x);
 }
 
-instance perm_inv (#a:Type) (p: permutation a) : permutation a = {
+let perm_inv (#a:Type) (p: permutation a) : permutation a = {
   f = p.g;
   g = p.f;
   proof = fun x y -> p.proof y x
@@ -293,6 +294,16 @@ fn bigstar_paste
   (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
   requires bigstar #u1 n1 n3 f ** bigstar #u1 n3 n2 f
   ensures  bigstar #u1 n1 n2 f
+
+ghost
+fn bigstar_shift
+  (#u1 : int)
+  (#n1 : nat)
+  (#n2 : nat{n1 <= n2})
+  (s : int{s + n1 >= 0})
+  (#f: (i: nat{n1 <= i /\ i < n2} -> slprop))
+  requires bigstar #u1 n1 n2 f
+  ensures  bigstar #u1 (n1 + s) (n2 + s) (fun x -> f (x - s))
 
 ghost
 fn bigstar_flatten

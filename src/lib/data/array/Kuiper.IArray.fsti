@@ -208,6 +208,25 @@ fn iarray_end2
     a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 
 ghost
+fn iarray_cell_reindex
+  (#et : Type0)
+  (#f : perm)
+  (#vw #vw' : aiview)
+  (a : iarray et vw)
+  (i : vw.sch.ait)
+  (a' : iarray et vw')
+  (i' : vw'.sch.ait)
+  (#v: et)
+  requires
+    pure (vw.len == vw'.len /\ core a == core a')
+  requires
+    pure (it_to_nat vw i == it_to_nat vw' i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
+
+ghost
 fn iarray_reindex_
   (#et : Type0)
   (#vw : aiview)
@@ -223,6 +242,7 @@ fn iarray_reindex_
     from_array (reindex_view vw bij) (core a) |-> Frac f (v `oo` bij.gg)
 
 inline_for_extraction noextract
+unobservable
 fn iarray_reindex
   (#et : Type0)
   (#vw : aiview)
@@ -273,7 +293,6 @@ ghost
 fn iarray_share_n
   (#et:Type0)
   (#vw : aiview)
-  (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
@@ -281,19 +300,18 @@ fn iarray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 
 ghost
 fn iarray_gather_n
   (#et:Type0)
   (#vw : aiview)
-  (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
   (#v : vw.sch.ait -> GTot et)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
 

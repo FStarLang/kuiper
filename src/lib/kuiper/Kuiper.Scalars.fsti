@@ -127,7 +127,7 @@ instance _ : floating F64.t = {
   exp = F64.exp;
 }
 
-noextract 
+noextract
 instance _ : scalar real = {
   is_sized = { size = 0sz };
   add = (+.);

@@ -36,10 +36,7 @@ instance cview_from_clayout
   };
 
   step = {
-    cimap = {
-      f      = clayout_imap c;
-      is_inj = ez;
-    };
+    cimap = Kuiper.Injection.mk_cinj (clayout_imap c);
     compat = ez;
   };
 }
@@ -175,7 +172,6 @@ fn gpu_matrix_free
 ghost
 fn gpu_matrix_share_n
   (#et:Type0)
-  (#[T.exact (`0)]uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
@@ -185,12 +181,11 @@ fn gpu_matrix_share_n
   requires
     gpu_matrix_pts_to gm #f em
   ensures
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
 
 ghost
 fn gpu_matrix_gather_n
   (#et:Type0)
-  (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
@@ -198,7 +193,7 @@ fn gpu_matrix_gather_n
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
   ensures
     gpu_matrix_pts_to gm #f em
 
