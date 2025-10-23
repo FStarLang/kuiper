@@ -775,7 +775,8 @@ let rec bigstar_except_equiv'
 : Lemma
   (ensures bigstar #u1 m n f == bigstar_except #u1 m n g Set.emptyset)
   (decreases n - m)
-= if m = n then ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if m = n then ()
   else (
     assert (Set.remove m Set.emptyset `Set.equal` Set.emptyset);
     bigstar_except_equiv' #u1 (m+1) n (narrow m n f) g ()
@@ -801,7 +802,8 @@ let rec bigstar_except_equiv_emp
 : Lemma
   (ensures bigstar_except #u1 m n f s == emp)
   (decreases n - m)
-= if m = n then ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if m = n then ()
   else bigstar_except_equiv_emp #u1 (m+1) n f (Set.remove m s)
 
 #push-options "--ifuel 0 --z3rlimit_factor 16 --fuel 2"
@@ -820,7 +822,8 @@ let rec bigstar_except_equiv_split
     star_over_partition f s0 **
     bigstar_except #u1 m n f (Set.union s0 s1))
   (decreases (n - m))
-= let _ : squash (Set.disjoint s0 s1) = () in
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  let _ : squash (Set.disjoint s0 s1) = () in
   if m = n
   then (
     assert (Set.cardinality s0 = 0);
@@ -921,7 +924,8 @@ let union_partitions_aux_step
     union_partitions_aux p from (to + 1) `Set.equal`
    (select p to `Set.union`    union_partitions_aux p from to) /\
     select p to `Set.disjoint` union_partitions_aux p from to)
-= union_partitions_aux_split p from to (to + 1)
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  union_partitions_aux_split p from to (to + 1)
 
 let star_of_part_i #n #k (parts:disjoint_partitions 0 n k) (f:idx 0 n -> slprop) (i:idx 0 k)
 : slprop
@@ -939,7 +943,8 @@ let rec bigstar_partition_equiv_except
     bigstar_except #u1 0 n f (union_partitions_aux parts 0 j) ==
     bigstar_except #u1 j k (star_of_part_i parts f) Set.emptyset)
   (decreases k - j)
-= if j = k
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if j = k
   then (
     bigstar_except_equiv_emp #u1 0 n f (union_partitions_aux parts 0 j)
   )

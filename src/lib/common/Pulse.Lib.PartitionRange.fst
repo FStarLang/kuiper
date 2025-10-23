@@ -1,6 +1,5 @@
 module Pulse.Lib.PartitionRange
 open FStar.FiniteSet.Base
-open FStar.FiniteSet.Ambient
 open Pulse.Lib.Pervasives
 module Set = FStar.FiniteSet.Base
 
@@ -15,7 +14,8 @@ let rec union_partitions_split
       union_partitions_aux p from to `Set.equal`
      (union_partitions_aux p from mid `Set.union` union_partitions_aux p mid to))
     (decreases (mid - from))
-= if mid = from
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if mid = from
   then (
     assert (forall (s:Set.set nat). Set.equal (Set.union Set.emptyset s) s)
   )
@@ -34,7 +34,8 @@ let rec union_partitions_elements
               <==> (exists (j:nat{from <= j /\ j < to}). {:pattern (select p j)}
                        i `Set.mem` select p j)))
   (decreases to - from)
-= if from = to then ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if from = to then ()
   else (
     union_partitions_elements p (from + 1) to;
     assert (union_partitions_aux p from to `Set.equal`
@@ -50,7 +51,8 @@ let rec union_partitions_disjoint
 : Lemma
   (ensures Set.disjoint (union_partitions_aux p from mid) (union_partitions_aux p mid to))
   (decreases mid - from)
-= if mid = from then ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if mid = from then ()
   else (
     union_partitions_disjoint p (from + 1) mid to;
     assert (union_partitions_aux p from mid `Set.equal`
@@ -60,21 +62,23 @@ let rec union_partitions_disjoint
 
 let union_cardinality_fact (#a:eqtype) (s1 s2:set a)
 : Lemma (ensures Set.cardinality (Set.union s1 s2) == Set.cardinality s1 + Set.cardinality s2 - Set.cardinality (Set.intersection s1 s2))
-= ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma()
 
 let disjoint_cardinality_fact (#a:eqtype) (s1 s2:set a)
 : Lemma
   (requires Set.disjoint s1 s2)
   (ensures Set.cardinality (Set.intersection s1 s2) == 0)
-= ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma() 
 
 let star_over_partition_singleton
   (#m:nat) (#n : nat { m <= n })
   (f: (idx m n -> slprop) )
   (x: idx m n)
 : Lemma
-  (ensures star_over_partition f (Set.singleton x) == f x)
-= slprop_equivs()
+  (ensures FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+          star_over_partition f (Set.singleton x) == f x)
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  slprop_equivs()
 
 #push-options "--fuel 2 --ifuel 0 --z3rlimit_factor 16 --split_queries no"
 #restart-solver
@@ -84,10 +88,12 @@ let rec star_over_partition_split
   (s0: idx_set m n)
   (s1: idx_set m n { Set.disjoint s0 s1 })
 : Lemma
-  (ensures star_over_partition f (Set.union s0 s1) ==
-           star_over_partition f s0 ** star_over_partition f s1)
+  (ensures (FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+        star_over_partition f (Set.union s0 s1) ==
+        star_over_partition f s0 ** star_over_partition f s1))
   (decreases (cardinality (Set.union s0 s1)))
-= if Set.cardinality (Set.union s0 s1) = 0
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if Set.cardinality (Set.union s0 s1) = 0
   then slprop_equivs()
   else (
     let x = Set.choose (Set.union s0 s1) in
@@ -150,7 +156,8 @@ let rec star_over_partition_reindex
 : Lemma
   (ensures star_over_partition #m #n f s == star_over_partition #(m+1) #n f (s <: idx_set (m + 1) n))
   (decreases cardinality s)
-= if Set.cardinality s = 0
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if Set.cardinality s = 0
   then ()
   else (
     let x = Set.choose s in

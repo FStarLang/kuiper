@@ -14,7 +14,7 @@ open Pulse.Lib.Trade { trade }
 
 let freeze (p : slprop) : slprop = p
 
-#push-options "--z3rlimit 30"
+#push-options "--z3rlimit 30 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}

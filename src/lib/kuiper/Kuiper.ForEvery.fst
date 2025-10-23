@@ -9,6 +9,13 @@ open Pulse.Lib.Trade
 open FStar.FunctionalExtensionality { (^->) }
 module F = FStar.FunctionalExtensionality
 
+let timeless_emp (v:slprop) 
+: Lemma 
+  (requires v==emp)
+  (ensures timeless v)
+  [SMTPat (timeless v)]
+= let x = timeless_emp in ()
+
 let forallm_tag #a ([@@@mkey] s: a -> prop) ([@@@mkey] p: a -> slprop)
     (f: (x:a { s x }) -> stt_ghost unit emp_inames emp (fun _ -> p x)) : timeless_slprop =
   emp
