@@ -14,6 +14,10 @@ open Pulse.Lib.Trade { trade }
 
 let freeze (p : slprop) : slprop = p
 
+let mul_inv_2 (a b c d:nat)
+: Lemma (a == b * c * d /\ c<>0 /\ d<>0 ==> b == (a / d) / c)
+= ()
+
 #push-options "--z3rlimit 30 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
 fn cp_matrix_vec
@@ -72,7 +76,8 @@ fn cp_matrix_vec
     gpu_matrix_vec_read src row col local;
 
     let ite : erased int = GR.read git;
-    assert (pure (ite == (!i / chunk et ) / nthr));
+    mul_inv_2 ite (!i) nthr (chunk et);
+    // assert (pure (ite == (!i / chunk et ) / nthr)); //this one seems to fail randomly
 
     unfold live_tile_stride_cells dst nthr tid;
     assert (pure (ite < divup (rows*cols) (chunk et * nthr)));

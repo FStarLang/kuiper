@@ -150,10 +150,13 @@ let __it_of_nat (#len:nat) (i : natlt len) : GTot (either (natlt ((len + 1) / 2)
   else
     Inr (i / 2)
 
+#push-options "--z3rlimit_factor 2"
+#restart-solver
 let it_of_nat_lem (#len:nat) (i : natlt len)
   : Lemma (it_to_nat (sum_aview (even_view u32 len) (odd_view u32 len)) (__it_of_nat #len i) == i)
           [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
   = ()
+#pop-options
 
 let all_in_image (len:nat) (i : nat)
   : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)

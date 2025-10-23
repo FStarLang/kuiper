@@ -43,19 +43,14 @@ let bij_unit_natlt1 : bijection unit (natlt 1) = {
 let ( |~> ) (#a #b : Type) (x : a) (bij : a =~ b) : GTot b = bij.ff x
 let ( <~| ) (#a #b : Type) (x : b) (bij : a =~ b) : GTot a = bij.gg x
 
-val galois (#a #b : _) (d : a =~ b) (x:a)
+val bij_inv_fwd (#a #b : _) (d : a =~ b) (x:a)
   : Lemma (x == d.gg (d.ff x))
           [SMTPat (d.ff x)]
 
 
-val galois_gg (#a #b : _) (d : a =~ b) (y:b)
+val bij_inv_bk (#a #b : _) (d : a =~ b) (y:b)
   : Lemma (y == d.ff (d.gg y))
           [SMTPat (d.gg y)]
-// #push-options "--warn_error -288"
-// val galois_forall (#a #b : _) (d : a =~ b)
-//   : Lemma (forall (x:a) (y:b). d.ff x == y <==> x == d.gg y)
-//           [SMTPat (has_type d (a =~ b))] // OK? Useful?
-// #pop-options
 
 let bij_self (a:Type) : (a =~ a) =
 {

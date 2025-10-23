@@ -1155,6 +1155,11 @@ fn forevery_emp_elim
   drop_ (forall+ (_: a). emp)
 }
 
+let singleton_lemma (#a:Type) {| d : enumerable a |} (_:squash (cardinal a #d == 1))
+: Lemma (forall (y:a). of_nat 0 == y)
+= introduce forall (y:a). of_nat 0 == y
+  with assert (d.bij.ff y == 0)
+    
 ghost
 fn forevery_singleton_intro
   (#a:Type0) {| enumerable a |}
@@ -1163,7 +1168,7 @@ fn forevery_singleton_intro
     p (of_nat 0)
   ensures
     forall+ (x:a). p x
-{
+{ singleton_lemma #a ();
   forevery_singleton_intro' p (of_nat 0);
 }
 
@@ -1175,7 +1180,7 @@ fn forevery_singleton_elim
     forall+ (x:a). p x
   ensures
     p (of_nat 0)
-{
+{singleton_lemma #a ();
   forevery_singleton_elim' p (of_nat 0);
 }
 

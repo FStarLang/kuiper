@@ -5,20 +5,20 @@ module Kuiper.Bijection
 open Kuiper.Common
 open Kuiper.Functions
 
-let galois_nopat (#a #b : _) (d : a =~ b) (x:a) (y:b)
+let bij_inv_nopat (#a #b : _) (d : a =~ b) (x:a) (y:b)
   : Lemma (d.ff x == y <==> x == d.gg y)
   = d.ff_gg y;
     d.gg_ff x
 
-let galois (#a #b : _) (d : a =~ b) (x:a)
+let bij_inv_fwd (#a #b : _) (d : a =~ b) (x:a)
   : Lemma (x == d.gg (d.ff x))
           [SMTPat (d.ff x)]
-  = galois_nopat d x (d.ff x)
+  = bij_inv_nopat d x (d.ff x)
 
-let galois_gg (#a #b : _) (d : a =~ b) (y:b)
+let bij_inv_bk (#a #b : _) (d : a =~ b) (y:b)
   : Lemma (y == d.ff (d.gg y))
           [SMTPat (d.gg y)]
-  = galois_nopat d (d.gg y) y
+  = bij_inv_nopat d (d.gg y) y
 
 let __bij_cardinal (n1 n2 : nat) (bij : natlt n1 =~ natlt n2)
   : Lemma (n1 == n2) =
