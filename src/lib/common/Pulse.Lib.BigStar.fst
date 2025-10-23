@@ -741,15 +741,40 @@ fn rec bigstar_flatten
 }
 
 ghost
-fn bigstar_unflatten
+fn rec bigstar_unflatten
   (#u1 #u2 : int)
   (#n1 : nat)
   (#n2 : nat)
   (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
   requires bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
   ensures  bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
+  decreases n1
 {
-  admit(); (* reverse the _flatten *)
+  if (n1 = 0) {
+    rewrite bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2)) as emp;
+    rewrite emp as bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i));
+  }
+  else {
+    rewrite each (n1 * n2) as (n2 + ((n1 - 1) * n2));
+    bigstar_cut #u1 #0 #(n2 + ((n1-1)*n2)) ((n1 - 1) * n2);
+    bigstar_unflatten #u1 #u2 #(n1 - 1) #n2 #(fun x -> f x); //eta expand to retype f
+    rewrite each ((n2 + (n1 - 1) * n2)) as (n1 * n2);
+    bigstar_extensionality #u1 ((n1-1)*n2) (n1*n2)
+      (fun i -> f (i/n2) (i%n2))
+      (fun i -> f (n1-1) (i - (n1-1)*n2))
+      (fun _ -> ());
+    bigstar_shift #u1 #((n1 - 1)*n2) #(n1 * n2) (-((n1 - 1)*n2));
+    rewrite each (((n1 - 1) * n2 + - (n1 - 1) * n2)) as 0;
+    rewrite each (n1 * n2 + - (n1 - 1) * n2) as n2;
+    bigstar_extensionality #u1 0 n2
+      (fun x -> f (n1 - 1) (x - - (n1 - 1) * n2 - (n1 - 1) * n2))
+      (f (n1-1))
+      (fun _ -> ());
+    rewrite bigstar #u1 0 n2 (f (n1 - 1))
+         as bigstar #u2 0 n2 (f (n1 - 1)); //retag
+    rewrite emp as bigstar #u1 (n1 - 1 + 1) n1 (fun i -> bigstar #u2 0 n2 (f i));
+    bigstar_compose #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i)) (n1 - 1);
+  }
 }
 
 module Set = FStar.FiniteSet.Base
