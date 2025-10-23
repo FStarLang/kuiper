@@ -9,6 +9,13 @@ open Pulse.Lib.Trade
 open FStar.FunctionalExtensionality { (^->) }
 module F = FStar.FunctionalExtensionality
 
+let timeless_emp (v:slprop) 
+: Lemma 
+  (requires v==emp)
+  (ensures timeless v)
+  [SMTPat (timeless v)]
+= let x = timeless_emp in ()
+
 let forallm_tag #a ([@@@mkey] s: a -> prop) ([@@@mkey] p: a -> slprop)
     (f: (x:a { s x }) -> stt_ghost unit emp_inames emp (fun _ -> p x)) : timeless_slprop =
   emp
@@ -1148,6 +1155,11 @@ fn forevery_emp_elim
   drop_ (forall+ (_: a). emp)
 }
 
+let singleton_lemma (#a:Type) {| d : enumerable a |} (_:squash (cardinal a #d == 1))
+: Lemma (forall (y:a). of_nat 0 == y)
+= introduce forall (y:a). of_nat 0 == y
+  with assert (d.bij.ff y == 0)
+    
 ghost
 fn forevery_singleton_intro
   (#a:Type0) {| enumerable a |}
@@ -1156,7 +1168,7 @@ fn forevery_singleton_intro
     p (of_nat 0)
   ensures
     forall+ (x:a). p x
-{
+{ singleton_lemma #a ();
   forevery_singleton_intro' p (of_nat 0);
 }
 
@@ -1168,7 +1180,7 @@ fn forevery_singleton_elim
     forall+ (x:a). p x
   ensures
     p (of_nat 0)
-{
+{singleton_lemma #a ();
   forevery_singleton_elim' p (of_nat 0);
 }
 

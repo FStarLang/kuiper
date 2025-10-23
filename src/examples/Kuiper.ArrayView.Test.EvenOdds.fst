@@ -103,7 +103,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   varray_read #_ #_ #_ #(_cview_odd #_ _ solve) a 10sz;
 }
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 40 --fuel 0 --ifuel 0"
 fn test (a : gpu_array u32 100)
   (#v0 : erased (lseq u32 100))
   preserves gpu

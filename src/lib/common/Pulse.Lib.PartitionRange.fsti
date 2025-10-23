@@ -1,7 +1,5 @@
 module Pulse.Lib.PartitionRange
-
 open FStar.FiniteSet.Base
-open FStar.FiniteSet.Ambient
 open Pulse.Lib.Pervasives
 module Set = FStar.FiniteSet.Base
 
@@ -24,7 +22,8 @@ let rec union_partitions_aux #m #n #k
       (to:nat{ from <= to /\ to <= k })
 : Tot (s:idx_set m n { forall (j:nat { from <= j /\ j < to }). select p j `Set.subset` s })
       (decreases to - from)
-= if from = to then Set.emptyset
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if from = to then Set.emptyset
   else Set.union (p from) (union_partitions_aux p (from + 1 <: nat) to)
 
 val union_partitions_split
@@ -45,7 +44,8 @@ let union_partitions #m #n #k (p:partitions m n k) = union_partitions_aux p 0 k
 let rec range (m:nat) (n:nat { m <= n })
 : Tot (s:idx_set m n { forall x. Set.mem x s <==> m <= x /\ x < n })
       (decreases n - m)
-= if m = n then Set.emptyset
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if m = n then Set.emptyset
   else Set.union (Set.singleton m) (range (m + 1) n)
 
 // All sets in parts are pairwise disjoint
@@ -72,7 +72,8 @@ let disjoint_partitions (m:nat) (n:nat) (k:nat) =
 // Iterated star over the elements of part
 let rec star_over_partition (#m:nat) (#n:nat{m<=n}) (f:idx m n -> slprop) (part:idx_set m n)
 : Tot slprop (decreases (cardinality part))
-= if cardinality part = 0
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if cardinality part = 0
   then emp
   else (
     let i = Set.choose part in
@@ -113,7 +114,8 @@ val star_over_partition_singleton
   (f: (idx m n -> slprop) )
   (x: idx m n)
 : Lemma
-  (ensures star_over_partition f (Set.singleton x) == f x)
+  (ensures FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+    star_over_partition f (Set.singleton x) == f x)
 
 val star_over_partition_split
   (#m:nat) (#n : nat { m <= n })
@@ -121,8 +123,10 @@ val star_over_partition_split
   (s0: idx_set m n)
   (s1: idx_set m n { Set.disjoint s0 s1 })
 : Lemma
-  (ensures star_over_partition f (Set.union s0 s1) ==
-           star_over_partition f s0 ** star_over_partition f s1)
+  (ensures 
+    FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+    star_over_partition f (Set.union s0 s1) ==
+    star_over_partition f s0 ** star_over_partition f s1)
 
 val star_over_partition_reindex
       (m:nat)

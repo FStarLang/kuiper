@@ -22,7 +22,8 @@ let from_subtiles_id
   ()
 #pop-options
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 40 --fuel 0 --ifuel 0 --split_queries always"
+#restart-solver
 let tiles_from_subtiles_id
   (#et : _)
   (#rows #cols : _)
@@ -52,6 +53,8 @@ let update_tile_self
           [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
 = assert (equal (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)) em)
 
+
+#push-options "--fuel 0 --ifuel 0 --split_queries always"
 inline_for_extraction noextract
 let strided_row_major_subtile_offset
   (#rows #cols : erased nat)
@@ -67,7 +70,8 @@ let strided_row_major_subtile_offset
     assume (SZ.fits (l.map.f (tr * trows, tc * tcols))); // We actually don't have this right now
     assume (sub.stride > 0); // This one we should be able to prove, but it's needed to know that tr*trows does not overflow!
     sub.offset +^ sub.stride *^ (tr *^ trows) +^ tc *^ tcols
-
+#pop-options
+#push-options "--z3rlimit_factor 4 --fuel 0 --ifuel 0"
 let strided_row_major_subtile_proof
   (#rows #cols : nat)
   (l : mlayout rows cols)
@@ -90,14 +94,14 @@ let strided_row_major_subtile_proof
     l.map.f (tr * trows + i, tc * tcols + j);
     == { sub.pf (tr * trows + i) (tc * tcols + j) }
     sub.offset + sub.stride * (tr * trows + i) + tc * tcols + j;
-    == {}
+    == { FStar.Math.Lemmas.distributivity_add_right sub.stride (tr * trows) i }
     sub.offset + sub.stride * (tr * trows) + sub.stride * i + tc * tcols + j;
     == {}
       sub.offset + sub.stride * (tr * trows) + tc * tcols
         + sub.stride * i + j;
   };
   ()
-
+#pop-options
 inline_for_extraction noextract
 instance strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
@@ -118,6 +122,7 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
   pf = (fun i j -> strided_row_major_subtile_proof #rows #cols l trows tcols tr tc i j);
 }
 
+#push-options "--z3rlimit_factor 4 --fuel 0 --ifuel 0"
 inline_for_extraction noextract
 let strided_col_major_subtile_offset
   (#rows #cols : erased nat)
@@ -156,13 +161,14 @@ let strided_col_major_subtile_proof
     l.map.f (tr * trows + i, tc * tcols + j);
     == { sub.pf (tr * trows + i) (tc * tcols + j) }
     sub.offset + sub.stride * (tc * tcols + j) + tr * trows + i;
-    == {}
+    == { FStar.Math.Lemmas.distributivity_add_right sub.stride (tc * tcols) j }
     sub.offset + sub.stride * (tc * tcols) + sub.stride * j + tr * trows + i;
     == {}
       sub.offset + sub.stride * (tc * tcols) + tr * trows
         + sub.stride * j + i;
   };
   ()
+#pop-options
 
 inline_for_extraction noextract
 instance strided_col_major_subtile (#rows #cols : erased nat)
