@@ -7,19 +7,6 @@ open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.GEMM.TensorCore2D.Inst { spec }
 
-// Dynamic parameter version for shmem size
-let g_gemm_f16_f16_16x16x16_2x2 bm bn bk =
-  admit();
-  spec half half bm bn bk 16sz 16sz 16sz 2sz 2sz
-
-let g_gemm_f16_f16_16x16x16_4x4 bm bn bk =
-  admit();
-  spec half half bm bn bk 16sz 16sz 16sz 4sz 4sz
-
-let g_gemm_f16_f16_16x16x16_8x8 bm bn bk =
-  admit();
-  spec half half bm bn bk 16sz 16sz 16sz 8sz 8sz
-
 let g_gemm_f16_f16_64x64x16_16x16x16_2x2 = spec half half 64sz 64sz 16sz 16sz 16sz 16sz 2sz 2sz
 let g_gemm_f16_f16_64x64x16_16x16x16_2x4 = spec half half 64sz 64sz 16sz 16sz 16sz 16sz 2sz 4sz
 let g_gemm_f16_f16_64x64x16_16x16x16_4x2 = spec half half 64sz 64sz 16sz 16sz 16sz 16sz 4sz 2sz
