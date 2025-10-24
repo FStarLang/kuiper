@@ -30,7 +30,7 @@ let bijection_implies_equal_cardinal
 let no_inj_to_smaller_nat (n1 n2 : nat{n2 < n1})
   (f : natlt n1 -> GTot (natlt n2))
   : Lemma (exists (x y : natlt n1). x <> y /\ f x == f y)
-  = admit()
+  = Kuiper.Functions.pigeon n1 n2 f
 
 let injection_implies_lte_cardinal
   (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}
