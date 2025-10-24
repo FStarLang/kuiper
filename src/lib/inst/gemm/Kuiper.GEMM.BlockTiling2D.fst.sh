@@ -10,13 +10,6 @@ module Kuiper.GEMM.BlockTiling2D
 open Kuiper
 open Kuiper.GEMM.BlockTiling2D.Inst { spec }
 
-// Dynamic parameter version. Only admitted since otherwise we
-// need to repeat all requirements here. We only use this for some
-// quick tuning, so it\'s not a big deal.
-let g_gemm_f32_8x8 bm bn bk =
-  admit();
-  spec bm bn bk 8sz 8sz f32
-
 #set-options "--z3rlimit 20"
 
 EOF
