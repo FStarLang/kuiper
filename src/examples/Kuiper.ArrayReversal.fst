@@ -240,7 +240,7 @@ fn kf
   (size:sz)
   (a:gpu_array ty size)
   (#s:erased (Seq.seq ty) { len s == SZ.v size })
-  (bid : szlt (SZ.v (size `div` 2sz))) (* pretty awful.. *)
+  (bid : szlt (size / 2))
   ()
   norewrite
   requires
