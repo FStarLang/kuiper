@@ -68,7 +68,7 @@ let disjoint_cardinality_fact (#a:eqtype) (s1 s2:set a)
 : Lemma
   (requires Set.disjoint s1 s2)
   (ensures Set.cardinality (Set.intersection s1 s2) == 0)
-= FStar.FiniteSet.Base.all_finite_set_facts_lemma() 
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma()
 
 let star_over_partition_singleton
   (#m:nat) (#n : nat { m <= n })

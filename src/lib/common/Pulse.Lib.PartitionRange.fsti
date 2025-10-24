@@ -123,7 +123,7 @@ val star_over_partition_split
   (s0: idx_set m n)
   (s1: idx_set m n { Set.disjoint s0 s1 })
 : Lemma
-  (ensures 
+  (ensures
     FStar.FiniteSet.Base.all_finite_set_facts_lemma();
     star_over_partition f (Set.union s0 s1) ==
     star_over_partition f s0 ** star_over_partition f s1)
