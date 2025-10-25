@@ -5,18 +5,6 @@
 #include <kuiper.h>
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_8x8(uint32_t bm,
-                                         uint32_t bn,
-                                         uint32_t bk,
-                                         float_t alpha,
-                                         float_t beta,
-                                         uint32_t rows,
-                                         uint32_t shared,
-                                         uint32_t cols,
-                                         float_t * gA,
-                                         float_t * gB, float_t * gC);
-
-void
 Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float_t alpha,
                                                   float_t beta,
                                                   uint32_t rows,
