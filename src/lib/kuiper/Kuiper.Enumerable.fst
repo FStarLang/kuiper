@@ -54,7 +54,7 @@ let distinct_seq_greater_than_cardinal_impossible
   if n = 0 then let _ = to_nat (Seq.index s 0) in ()
   else (
     let s' : Seq.seq (FStar.Fin.under n) = Seq.init_ghost (Seq.length s) (fun i -> to_nat (Seq.index s i)) in
-    let i1, i2 = Kuiper.Functions.pigeonhole_from_fstar_main s' in
+    let i1, i2 = FStar.Fin.pigeonhole s' in
     assert (of_nat #a i1 == of_nat #a i2)
   )
 

@@ -37,12 +37,6 @@ let merge_either (f1 : 'a -> GTot 'c) (f2 : 'b -> GTot 'c) (x : either 'a 'b) : 
 let left  (e : either 'a 'b{Inl? e}) : 'a = let Inl x = e in x
 let right (e : either 'a 'b{Inr? e}) : 'b = let Inr x = e in x
 
-module F = FStar.Fin
-val pigeonhole_from_fstar_main (#n: pos) (s: Seq.seq (F.under n))
-    : Pure (F.in_ s & F.in_ s)
-      (requires Seq.length s > n)
-      (ensures (fun (i1, i2) -> i1 < i2 /\ Seq.index s i1 = Seq.index s i2))
-
 val pigeon (n1:nat) (n2:nat{n2 < n1})
   (f : natlt n1 -> GTot (natlt n2))
   : Lemma (~ (is_inj f))
