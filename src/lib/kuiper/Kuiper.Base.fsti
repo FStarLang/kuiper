@@ -20,6 +20,7 @@ unfold
 let gpu : slprop = mode GPU
 
 (* Token for being in GPU block setup code *)
+[@@no_mkeys]
 val block_setup_tok (nthr : nat) : slprop
 
 (* This should be 2^31-1, or 2^30. We constrain this more than normal due to our
@@ -47,9 +48,11 @@ unfold let warp_size = 32
 and in thread_id, the first argument is always positive
 when this resource is actually live, but not placing that refinement
 here helps with inference in some places. *)
+[@@no_mkeys]
 val block_id (nblk : int) (bid : int) : slprop
 
 (* Token given to a particular thread within a block *)
+[@@no_mkeys]
 val thread_id (nthr : int) (tid : int) : slprop
 
 (* Get a concrete value for the number of blocks (~ gridDim.x) *)

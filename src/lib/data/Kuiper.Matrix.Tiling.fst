@@ -453,7 +453,8 @@ fn gpu_matrix_extract_tile_ro
 {
   gpu_matrix_extract_tile gm trows tcols tr tc;
   Pulse.Lib.Forall.elim_forall (ematrix_subtile em trows tcols tr tc);
-  ()
+  rewrite each (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))
+    as em;
 }
 
 inline_for_extraction noextract

@@ -542,7 +542,21 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  fold barrier_tok slA slB sarA sarB (2 * num_k_tiles) (bm/tm * (bn/tn)) tid;
+  rewrite
+    B.barrier_tok (barrier_p sA sB (bm / tm * (bn / tn)))
+      (barrier_q sA sB (bm / tm * (bn / tn)))
+      (2 * !bkIdx)
+      tid
+  as
+    B.barrier_tok (barrier_p (from_array slA sarA)
+          (from_array slB sarB)
+          (bm / tm * (bn / tn)))
+      (barrier_q (from_array slA sarA)
+          (from_array slB sarB)
+          (bm / tm * (bn / tn)))
+      (2 * (shared / bk))
+      tid;
+  fold barrier_tok slA slB sarA sarB (2 * (shared / bk)) (bm/tm * (bn/tn)) tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);

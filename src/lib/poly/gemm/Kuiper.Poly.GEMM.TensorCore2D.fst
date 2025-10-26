@@ -440,7 +440,7 @@ fn epilogue
     while (SZ.(!j <^ wn))
       invariant live j ** pure (!j <=^ wn)
     {
-      unfold live_warp_tile;
+      unfold live_warp_tile gC bm bn tm tn wm wn bid wid;
 
       // TODO does this create more pointer arithmetic than necessary?
       // tile in gC with all values that are computed by the warp
@@ -474,7 +474,7 @@ fn epilogue
 
       rewrite each tile_for_tc_tiles as warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
         (wm*tm) (wn*tn)(SZ.v wid);
-      fold live_warp_tile;
+      fold live_warp_tile gC bm bn tm tn wm wn bid wid;
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
@@ -646,7 +646,9 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
+  rewrite each (tid / 32) as wid;
   epilogue bm bn bk tm tn tk wm wn accFrags gC bid wid;
+  rewrite each v wid as (tid / 32);
 
   with vaFrags. assert array_fragment_pts_to aFrags vaFrags; drop_ (array_fragment_pts_to aFrags vaFrags);
   with vbFrags. assert array_fragment_pts_to bFrags vbFrags; drop_ (array_fragment_pts_to bFrags vbFrags);
@@ -655,7 +657,21 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * num_k_tiles) nthr tid;
+  rewrite
+    B.barrier_tok (barrier_p sA sB nthr)
+      (barrier_q sA sB nthr)
+      (2 * v !bkIdx)
+      (v tid)
+  as
+    B.barrier_tok (barrier_p (from_array (R.row_major (v bm) (v bk)) sarA)
+          (from_array (R.row_major (v bk) (v bn)) sarB)
+          nthr)
+      (barrier_q (from_array (R.row_major (v bm) (v bk)) sarA)
+          (from_array (R.row_major (v bk) (v bn)) sarB)
+          nthr)
+      (2 * (shared / bk))
+      (v tid);
+  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);

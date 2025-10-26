@@ -165,6 +165,10 @@ ensures
           (Seq.Base.index s ((partition (v size)).gg (i, y))));
     };
   forevery_flatten _;
+  forevery_ext _ (fun (y: natlt (v size / 2) & bool) ->
+    gpu_pts_to_cell arr #f
+      ((partition (v size)).gg y)
+      (Seq.index s ((partition (v size)).gg y)));
   forevery_iso_back (partition (v size)) (fun i ->
     gpu_pts_to_cell arr #f i (Seq.index s i));
 }
@@ -298,7 +302,7 @@ fn teardown
     a |-> reverse_spec s
 {
   forevery_rw_type (natlt (size /^ 2sz)) (natlt (size / 2)) _;
-  partition_cells_inv a;
+  partition_cells_inv a #1.0R #(reverse_spec s);
   implode_cells a
 }
 

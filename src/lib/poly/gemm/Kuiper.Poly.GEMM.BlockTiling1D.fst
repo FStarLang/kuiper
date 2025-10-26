@@ -307,6 +307,7 @@ fn kf
 
   let mrow, mcol = s_divmod mcols bid;
   let bcol = tid;
+  assert rewrites_to bcol tid;
   assert (pure (SZ.v bcol == tid % tile));
   assert (pure (bcol < tile));
 
@@ -366,7 +367,7 @@ fn kf
   (* Write all the accumulated sums. *)
 
   let tileC = gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
-  assert (rewrites_to tileC (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)));
+  rewrite each gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols) as tileC;
 
   let mut row : sz = 0sz;
   Pulse.Lib.Array.pts_to_len sums;
@@ -374,13 +375,12 @@ fn kf
     invariant live row ** live sums
   {
     Pulse.Lib.Array.pts_to_len sums;
-    let vrow = !row;
-    forevery_extract #(natlt tile) (SZ.v vrow) _;
+    forevery_extract #(natlt tile) (!row) _;
 
     (* tedious *)
-    with i0 j0 v0.
-      rewrite gpu_matrix_pts_to_cell tileC i0   j0   v0
-           as gpu_matrix_pts_to_cell tileC vrow bcol v0;
+    with v0.
+      rewrite gpu_matrix_pts_to_cell tileC (!row) tid v0
+           as gpu_matrix_pts_to_cell tileC (!row) bcol v0;
 
     let v0 = M.gpu_matrix_read_cell tileC !row bcol;
     open Pulse.Lib.Array;
@@ -389,9 +389,8 @@ fn kf
     M.gpu_matrix_write_cell tileC !row bcol v';
 
     (* tedious *)
-    with i0 j0 v0.
-      rewrite gpu_matrix_pts_to_cell tileC i0   j0   v0
-           as gpu_matrix_pts_to_cell tileC vrow tid v0;
+    with v0.
+      assert gpu_matrix_pts_to_cell tileC (!row) tid v0;
 
     row := !row +^ 1sz;
     Pulse.Lib.Trade.elim_trade _ _;
@@ -400,10 +399,21 @@ fn kf
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
 
+  rewrite
+    B.barrier_tok (barrier_p sa1 sa2)
+      (barrier_q sa1 sa2)
+      (2 * v !bk)
+      (v tid)
+  as
+    B.barrier_tok (barrier_p (M.from_array slA ar1) (M.from_array slB ar2))
+      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2))
+      (2 * v mshared)
+      (v tid);
   fold barrier_tok tile slA slB ar1 ar2 (2 * mshared) tid;
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
+  rewrite each tileC as gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
   ()
 }
 

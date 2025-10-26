@@ -139,7 +139,10 @@ fn test (a : gpu_array u32 100)
 
   varray_concr va;
 
-  rewrite each core va as a;
+  with v l. rewrite
+    gpu_pts_to_slice (core va) 0 l v
+  as
+    gpu_pts_to_slice a 0 100 v0;
 
   res
 }
@@ -222,13 +225,12 @@ fn test_write (a : gpu_array u32 100)
 
   varray_concr va;
 
-  rewrite each core va as a;
-
-  with v1.
-    assert a |-> v1;
-    // assert (pure (Seq.equal v1 (Seq.upd v0 20 42ul)));
-    assert (pure (Seq.equal v1 (Seq.upd (Seq.upd v0 20 42ul) 41 43ul))); // use extensionality
-
-  ()
+  with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;
+  with vret. assert pure (vret == Seq.upd (Seq.upd v0 20 42ul) 41 43ul);
+  assert pure (v1 `Seq.equal` vret);
+  rewrite
+    gpu_pts_to_slice (core va) 0 l1 v1
+  as
+    a |-> Seq.upd (Seq.upd v0 20 42ul) 41 43ul;
 }
 #pop-options
