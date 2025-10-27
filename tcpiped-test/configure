@@ -1,0 +1,58 @@
+#!/bin/bash
+
+usage () {
+	echo "usage: $0 [<file>]" >&2
+	echo "This script will output source-able commands into the file that you" >&2
+	echo "should use to set up your environment. You still have to pass the" >&2
+	echo "relevant -D flags to nvcc. If no <file> is passed, stdout is used." >&2
+	exit 1
+}
+
+if [ $# -eq 0 ]; then
+  out=/dev/stdout
+  repeat=false
+elif [ $# -eq 1 ]; then
+  out=$1
+  repeat=true
+else
+  usage
+fi
+
+# A really basic configure script.
+
+check_tensor_cores () {
+  # Do we have tensor cores?
+  f=$(mktemp --suffix .cu)
+  cat >$f <<EOF
+  #include <mma.h>
+  using namespace nvcuda;
+  void f() {
+    wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major> f;
+  }
+EOF
+
+  #177: variable "f" was declared but never referenced
+  echo "# Checking for tensor cores in nvcc..."
+  if ! nvcc -diag-suppress 177 -c $f -o /dev/null ; then
+    echo "# Tensor core test file failed to build, assuming no tensor cores."
+    KUIPER_CFG_TENSORCORES=0
+  else
+    echo "# The test built, assuming we have tensor cores."
+    KUIPER_CFG_TENSORCORES=1
+  fi
+  rm -f "$f"
+}
+
+check_tensor_cores
+
+# Export whatever variables are needed.
+vv () {
+  if [ -v "$1" ]; then
+    echo "export ${1}=${!1}" >$out
+    if $repeat; then
+      echo "export ${1}=${!1}"
+    fi
+  fi
+}
+
+vv KUIPER_CFG_TENSORCORES

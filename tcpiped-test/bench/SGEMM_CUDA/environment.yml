@@ -1,0 +1,10 @@
+name: SGEMM_CUDA
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - black
+  - cmake
+  - matplotlib
+  - seaborn
+  - tabulate
