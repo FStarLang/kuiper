@@ -214,6 +214,33 @@ fn gpu_matrix_gather_n
 }
 
 ghost
+fn gpu_matrix_gather_n_underspec
+  (#et:Type0)
+  (#uid: int)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (k : pos)
+  (#f : perm)
+  requires
+    bigstar #uid 0 k (fun _ ->
+      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em)
+  ensures
+    exists* (em : ematrix et rows cols). gpu_matrix_pts_to gm #f em
+{
+  ghost
+  fn aux (i:natlt k)
+    requires exists* (em : ematrix et rows cols). gm |-> Frac (f /. k) em
+    ensures exists* (em : ematrix _ _ _). Kuiper.VArray.varray_pts_to gm #(f /. k) em
+  {
+    with em. assert gpu_matrix_pts_to gm #(f /. k) em;
+    unfold gpu_matrix_pts_to gm #(f /. k) em;
+  };
+  // bigstar_map aux;
+  admit();
+}
+
+ghost
 fn gpu_matrix_share_2
   (#et:Type0)
   (#rows #cols : nat)

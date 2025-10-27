@@ -24,7 +24,7 @@ fn use_wmma_ker
   preserves
     (exists* v. m1 |-> v) **
     (exists* v. m2 |-> v) **
-    (exists* v. m3 |-> v) **
+    (exists* v. pts_to m3 #(1.0R /. 32.0R) v) **
     (exists* v. fa |-> v) **
     (exists* v. fb |-> v) **
     (exists* v. fc |-> v)
@@ -55,10 +55,11 @@ fn test
     m1 |-> 'v1 **
     m2 |-> 'v2
   requires
-    m3 |-> 'v3
+    // m3 |-> 'v3
+   pts_to m3 #(1.0R /. 32.0R) 'v3
   ensures
     (* m3 |-> matmul #half 'v1 'v2 *)
-    live m3
+    live m3 #(1.0R /. 32.0R)
 {
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
@@ -103,6 +104,8 @@ fn test2
     (*         (ematrix_subtile v1 16 16 1 1) *)
     (*         (ematrix_subtile v2 16 16 1 1))) *)
 {
+  (* This is hacky due to the fractional permission on the matrix tiles. *)
+
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
   let fc = __alloc_fragment half FragAcc 16sz 16sz 16sz FragLAcc;
@@ -119,11 +122,25 @@ fn test2
   let t3 = gpu_matrix_subtile m3 16 16 1 1;
   assert (rewrites_to t3 (gpu_matrix_subtile m3 16 16 1 1));
 
+  with vm3. assert gpu_matrix_pts_to t3 vm3;
+  rewrite
+    gpu_matrix_pts_to t3 vm3
+  as
+    gpu_matrix_pts_to t3 #(1.0R /. 32.0R) vm3 ** gpu_matrix_pts_to t3 #(31.0R /. 32.0R) vm3
+  by tadmit();
+
   mma_loadA fa t1;
   mma_loadB fb t2;
   mma_fill fc zero;
   mma_sync' fa fb fc;
   mma_store fc t3;
+
+  with vm3'. assert gpu_matrix_pts_to t3 #(1.0R /. 32.0R) vm3';
+  rewrite
+    gpu_matrix_pts_to t3 #(1.0R /. 32.0R) vm3' ** gpu_matrix_pts_to t3 #(31.0R /. 32.0R) vm3
+  as
+    gpu_matrix_pts_to t3 vm3'
+  by tadmit();
 
   (* lemma_mma_is_matmul_add *)
   (*   (fill_value #half #FragAcc #16 #16 #16 zero) *)

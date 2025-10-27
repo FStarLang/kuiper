@@ -1396,6 +1396,36 @@ fn forevery_map'
 }
 
 ghost
+fn forevery_zip_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (p1 p2 : a -> b -> slprop)
+  requires
+    (forall+ (x:a) (y:b). p1 x y) **
+    (forall+ (x:a) (y:b). p2 x y)
+  ensures
+    forall+ (x:a) (y:b). p1 x y ** p2 x y
+{
+  forevery_zip (fun (x:a) -> forall+ (y:b). p1 x y) _;
+  forevery_map _ _ (fun x -> forevery_zip (fun (y:b) -> p1 x y) _);
+}
+
+ghost
+fn forevery_unzip_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (p1 p2 : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p1 x y ** p2 x y
+  ensures
+    (forall+ (x:a) (y:b). p1 x y) **
+    (forall+ (x:a) (y:b). p2 x y)
+{
+  forevery_map _ _ (fun x -> forevery_unzip (fun (y:b) -> p1 x y) _);
+  forevery_unzip (fun (x:a) -> forall+ (y:b). p1 x y) _;
+}
+
+ghost
 fn forevery_pad
   (n1 : nat)
   (n2 : nat{n1 <= n2})

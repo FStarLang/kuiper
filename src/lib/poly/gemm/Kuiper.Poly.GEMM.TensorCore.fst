@@ -48,7 +48,7 @@ let live_warp_tile
   (wid : natlt (bm/tm * (bn/tn)))
   : slprop
   =
-    live (warp_tile (block_tile gC bm bn bid) tm tn wid)
+    live (warp_tile (block_tile gC bm bn bid) tm tn wid) #(1.0R /. warp_size)
 
 // TODO look again at why we cannot use nats here instead of sizet
 unfold
@@ -279,6 +279,7 @@ fn subproducts_tc
   ()
 }
 
+#set-options "--print_implicits"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}

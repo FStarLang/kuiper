@@ -22,6 +22,7 @@ fn gpu_matrix_vec_read
   preserves gpu
   preserves gm |-> Frac f em
   requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
   ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))
 
 inline_for_extraction noextract
@@ -39,5 +40,6 @@ fn gpu_matrix_vec_read'
   preserves gpu
   preserves gm |-> Frac f em
   requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
   ensures   exists* (s': lseq et (chunk et)). arr |-> s' **
     pure (forall x. Seq.index s' x == macc em i (j + x))

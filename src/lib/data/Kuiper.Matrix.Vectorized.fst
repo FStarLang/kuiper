@@ -26,18 +26,20 @@ fn gpu_matrix_vec_read
   preserves gpu
   preserves gm |-> Frac f em
   requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
   ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))
 {
+  Pulse.Lib.Array.pts_to_len arr;
   // Pretty fake for now
   let p = core gm;
   assume (live p);
   with ps. assert (p |-> ps);
-  assume (pure (Seq.length s >= chunk et));
-  assume pure False;
+  assert (pure (Seq.length s >= chunk et));
   assert (pure (chunk et >= 1));
   strided.pf i j;
   strided.pf i (j + chunk et - 1);
   let offset = strided.offset +^ strided.stride *^ i +^ j;
+  assume pure False;
   gpu_array_vec_cpy_dh arr 0sz p offset;
   drop_ (live p);
   ();
@@ -58,6 +60,7 @@ fn gpu_matrix_vec_read'
   preserves gpu
   preserves gm |-> Frac f em
   requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
   ensures   exists* (s': lseq et (chunk et)). arr |-> s' **
     pure (forall x. Seq.index s' x == macc em i (j + x))
 {

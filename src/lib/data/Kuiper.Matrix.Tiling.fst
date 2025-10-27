@@ -372,6 +372,27 @@ fn gpu_matrix_untile
 }
 
 ghost
+fn gpu_matrix_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : ematrix et trows tcols).
+          gpu_matrix_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    (exists* (em : ematrix et rows cols). gm |-> Frac f em)
+{
+  admit();
+}
+
+ghost
 fn gpu_matrix_extract_tile
   (#et:Type0)
   (#rows #cols : nat)
