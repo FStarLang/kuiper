@@ -17,7 +17,6 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix
 
-module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
@@ -145,7 +144,7 @@ let kpre1
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
   live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
-  
+
 ghost
 fn simplif_rewrite_helper (#n1 #n2 : nat) (p : (natlt n1 & natlt n2) -> slprop) (trc: natlt (n1 * n2))
   requires

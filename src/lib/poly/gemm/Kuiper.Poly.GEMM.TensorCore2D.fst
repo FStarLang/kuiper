@@ -24,7 +24,6 @@ open Kuiper.Matrix.Tiling
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
-module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs

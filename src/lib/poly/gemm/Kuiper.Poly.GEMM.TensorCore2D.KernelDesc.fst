@@ -20,7 +20,6 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix
 
-module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
@@ -139,7 +138,7 @@ ensures
       gpu_matrix_subtile gm trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))
         |-> Frac (f /. warp_size) (ematrix_subtile em trows tcols (trc/(cols/tcols)) (trc%(cols/tcols)))
   {
-    gpu_matrix_share_n _ warp_size; 
+    gpu_matrix_share_n _ warp_size;
   };
   forevery_map _ _ share_within_warp;
   forevery_unfactor' nthr (rows / trows * (cols / tcols)) 32 _;
@@ -202,13 +201,13 @@ fn setup
 {
   gpu_matrix_share_threads gA nblk nthr;
   gpu_matrix_share_threads gB nblk nthr;
-  
+
   gpu_matrix_tile gC bm bn;
   linearize_tile_indices bm bn gC nblk;
 
   forevery_map
     (fun (trc : natlt nblk) ->
-      (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (trc/(cols/bn)) (trc%(cols/bn))) 
+      (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (trc/(cols/bn)) (trc%(cols/bn)))
         // Explicit fraction required, otherwise tactic to resolve it fails?!?!
         |-> Frac 1.0R
       (ematrix_subtile eC bm bn (trc/(cols/bn)) (trc%(cols/bn))))
@@ -220,7 +219,7 @@ fn setup
         (wm*tm)
         (wn*tn)
         nthr);
-     
+
   forevery_zip_2 #(natlt nblk) #_ #(natlt nthr)
     (fun bid -> fun tid -> gB |-> Frac (fB /. (nblk*nthr)) eB)
     (fun bid -> fun tid ->
@@ -352,7 +351,7 @@ fn barrier_p_to_q_transform
   (#_ : squash (chunk et * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et * nthr /?+ (bk * bn)))
   (it : nat)
-requires 
+requires
   forall+ (tid : natlt nthr). barrier_p (from_array l1 sar1) (from_array l2 sar2) nthr it tid
 ensures
   forall+ (tid : natlt nthr). barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr it tid
@@ -419,17 +418,17 @@ ensures
         barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr it tid
     {
       // extra rewrite step reduces time for type checking by ~50%
-      rewrite 
+      rewrite
           (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
           (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
-      as 
+      as
         (if even (it+1) then
           (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
           (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
         else
           live_tile_stride_cells (from_array l1 sar1) nthr tid **
           live_tile_stride_cells (from_array l2 sar2) nthr tid);
-      rewrite 
+      rewrite
         (if even (it+1) then
           (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
           (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
@@ -605,12 +604,12 @@ fn block_teardown
   forevery_unzip #(natlt nthr)
     (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x)))
     _;
-  
+
   forevery_tostar #(natlt nthr)
     (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst sh) #(1.0R /. nthr) x)));
   forevery_tostar #(natlt nthr)
     (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x)));
-  
+
   // rewrite each Kuiper.Enumerable.cardinal (natlt nthr) #_ as SZ.v nthr;
   gpu_slice_gather_underspec (fst sh) 0 (bm*^bk) nthr;
   gpu_slice_gather_underspec (fst (snd sh)) 0 (bk*^bn) nthr;
@@ -622,7 +621,7 @@ fn block_teardown
     live_c_shmem (fst sh) **
     (live_c_shmem (fst (snd sh)) **
      emp)
-    as 
+    as
     live_c_shmems sh;
 
   drop_
@@ -653,7 +652,7 @@ ensures
 {
   admit();
   // forevery_iso #(natlt nthr) (bij_self (natlt (rows/trows * (cols/tcols) * warp_size))) _;
-  // forevery_unflatten_natlt 
+  // forevery_unflatten_natlt
   //   (fun (trc : natlt (rows/trows * (cols/tcols))) -> fun (_lid : natlt warp_size) ->
   //     (exists* (em : ematrix _ _ _).
   //       gpu_matrix_subtile gm trows tcols
@@ -682,7 +681,7 @@ ensures
   //     warp_size;
   // };
   // forevery_map _ _ unshare_within_warp;
-  // forevery_unflatten_natlt 
+  // forevery_unflatten_natlt
   //   (fun (trow : natlt (rows/trows)) -> fun (tcol : natlt (cols/tcols)) ->
   //     (exists* (em : ematrix et trows tcols).
   //       (gpu_matrix_subtile gm trows tcols trow tcol) |-> Frac f em));
@@ -745,8 +744,8 @@ fn teardown
     (exists* eC'. gC |-> eC')
 {
   forevery_unfactor' (rows/bm * (cols/bn) * nthr) nblk nthr _;
-  forevery_unzip _ _; 
-  forevery_unzip _ _; 
+  forevery_unzip _ _;
+  forevery_unzip _ _;
 
   gpu_matrix_gather_n gA (rows/bm * (cols/bn) * nthr);
   gpu_matrix_gather_n gB (rows/bm * (cols/bn) * nthr);
