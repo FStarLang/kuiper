@@ -262,7 +262,7 @@ fn test_write (a : gpu_array u32 100)
   with vret. assert pure (vret == Seq.upd (Seq.upd v0 20 42ul) 41 43ul);
   with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;
   assert pure (Seq.equal v1 vret);
-  rewrite 
+  rewrite
     gpu_pts_to_slice (core va) 0 l1 v1
   as
     a |-> vret;
