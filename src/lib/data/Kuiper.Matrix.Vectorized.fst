@@ -10,7 +10,6 @@ open Kuiper.Array.Vectorized
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-#set-options "--debug SMTFail"
 
 let strided_row_major_contiguous
   (#rows #cols : erased nat)

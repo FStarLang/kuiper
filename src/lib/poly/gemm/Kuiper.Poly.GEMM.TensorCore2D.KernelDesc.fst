@@ -2,8 +2,6 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
 #lang-pulse
 
-
-#push-options "--debug SMTFail"
 // #set-options "--split_queries always"
 #set-options "--z3rlimit 40"
 
