@@ -251,6 +251,9 @@ fn subproducts_tc
       bFrag |-> vbFrag' **
       accumFrag |-> vaccumFrag'
 {
+  gpu_matrix_pts_to_ref gA;
+  gpu_matrix_pts_to_ref gB;
+
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant
@@ -296,6 +299,7 @@ fn epilogue
   (bid : szlt (rows/bm * (cols/bn)))
   (wid : szlt (bm/tm * (bn/tn)))
   requires
+    pure (SZ.fits (rows * cols)) **
     gpu **
     live_warp_tile gC bm bn tm tn bid wid **
     (exists* vaccumFrag.
@@ -348,6 +352,7 @@ fn kf
   (tk : szp{tk /?+ bk})
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn)*warp_size -1)))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn)*warp_size -1)))
+  (#_ : squash (SZ.fits (rows * cols)))
   (#fA #fB : perm)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : szlt (rows/bm * (cols/bn)))
@@ -366,6 +371,8 @@ fn kf
 {
   let (sarA, (sarB, _)) = sh;
 
+  gpu_matrix_pts_to_ref gA;
+  gpu_matrix_pts_to_ref gB;
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
   // This leads to a faillure to resolve the clayout when calling populate_shmem
@@ -726,5 +733,5 @@ let mk_kernel
   kpre      = kpre  gA eA gB eB gC bm bn bk tm tn tk fA fB;
   kpost     = kpost gA eA gB eB gC bm bn bk tm tn fA fB;
 
-  f = kf gA #eA gB #eB gC bm bn bk tm tn tk #() #() #fA #fB;
+  f = kf gA #eA gB #eB gC bm bn bk tm tn tk #() #() #() #fA #fB;
 }

@@ -1,8 +1,7 @@
 module Kuiper.Matrix.Tiling
 #lang-pulse
 
-(* An assumed API for tiling matrices. This will be implemented
-   with array views, eventually. *)
+(* An API for tiling matrices, implemented with array views. *)
 
 open Kuiper
 open Kuiper.EMatrix
@@ -10,6 +9,7 @@ open Kuiper.Injection
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Pulse.Lib.Trade
+module SZ = Kuiper.SizeT
 
 let ematrix_subtile
   (#et : _)
@@ -129,6 +129,7 @@ let subtile_layout
 inline_for_extraction noextract
 instance val strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -144,6 +145,7 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
 inline_for_extraction noextract
 instance val strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})

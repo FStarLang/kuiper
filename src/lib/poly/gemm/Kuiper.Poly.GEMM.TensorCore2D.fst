@@ -71,6 +71,8 @@ fn subproducts_tc_2d
       bFrags |-> emBFrags' **
       accumFrags |-> emAccumFrags'
 {
+  gpu_matrix_pts_to_ref gA;
+  gpu_matrix_pts_to_ref gB;
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant
@@ -231,6 +233,7 @@ fn epilogue
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
   (#emAccumFrags: erased (seq (ematrix et tm tn)))
   (gC : gpu_matrix et (R.row_major rows cols))
+  (#_ : squash (SZ.fits (rows * cols)))
   (bid : szlt (rows/bm * (cols/bn)))
   (wid : szlt (bm/(wm*tm) * (bn/(wn*tn))))
   preserves

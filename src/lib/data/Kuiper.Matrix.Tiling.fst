@@ -59,6 +59,7 @@ inline_for_extraction noextract
 let strided_row_major_subtile_offset
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
   (trows : sz {trows > 0 /\ trows /? rows})
   (tcols : sz {tcols > 0 /\ tcols /? cols})
@@ -67,7 +68,6 @@ let strided_row_major_subtile_offset
   : res : sz { SZ.v res == sub.offset + sub.stride * (tr * trows) + tc * tcols }
   = sub.pf (tr * trows) (tc * tcols);
     assert (l.map.f (tr * trows, tc * tcols) == sub.offset + sub.stride * (tr * trows) + tc * tcols);
-    assume (SZ.fits (l.map.f (tr * trows, tc * tcols))); // We actually don't have this right now
     sub.offset +^ sub.stride *^ (tr *^ trows) +^ tc *^ tcols
 #pop-options
 
@@ -102,9 +102,11 @@ let strided_row_major_subtile_proof
   };
   ()
 #pop-options
+
 inline_for_extraction noextract
 instance strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -127,6 +129,7 @@ inline_for_extraction noextract
 let strided_col_major_subtile_offset
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
   (trows : sz {trows > 0 /\ trows /? rows})
   (tcols : sz {tcols > 0 /\ tcols /? cols})
@@ -135,7 +138,6 @@ let strided_col_major_subtile_offset
   : res : sz { SZ.v res == sub.offset + sub.stride * (tc * tcols) + tr * trows }
   = sub.pf (tr * trows) (tc * tcols);
     assert (l.map.f (tr * trows, tc * tcols) == sub.offset + sub.stride * (tc * tcols) + tr * trows);
-    assume (SZ.fits (l.map.f (tr * trows, tc * tcols))); // We actually don't have this right now
     sub.offset +^ sub.stride *^ (tc *^ tcols) +^ tr *^ trows
 
 let strided_col_major_subtile_proof
@@ -172,6 +174,7 @@ let strided_col_major_subtile_proof
 inline_for_extraction noextract
 instance strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
