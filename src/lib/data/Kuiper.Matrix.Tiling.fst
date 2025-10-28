@@ -68,9 +68,9 @@ let strided_row_major_subtile_offset
   = sub.pf (tr * trows) (tc * tcols);
     assert (l.map.f (tr * trows, tc * tcols) == sub.offset + sub.stride * (tr * trows) + tc * tcols);
     assume (SZ.fits (l.map.f (tr * trows, tc * tcols))); // We actually don't have this right now
-    assume (sub.stride > 0); // This one we should be able to prove, but it's needed to know that tr*trows does not overflow!
     sub.offset +^ sub.stride *^ (tr *^ trows) +^ tc *^ tcols
 #pop-options
+
 #push-options "--z3rlimit_factor 4 --fuel 0 --ifuel 0"
 let strided_row_major_subtile_proof
   (#rows #cols : nat)
@@ -136,7 +136,6 @@ let strided_col_major_subtile_offset
   = sub.pf (tr * trows) (tc * tcols);
     assert (l.map.f (tr * trows, tc * tcols) == sub.offset + sub.stride * (tc * tcols) + tr * trows);
     assume (SZ.fits (l.map.f (tr * trows, tc * tcols))); // We actually don't have this right now
-    assume (sub.stride > 0); // This one we should be able to prove, but it's needed to know that tr*trows does not overflow!
     sub.offset +^ sub.stride *^ (tc *^ tcols) +^ tr *^ trows
 
 let strided_col_major_subtile_proof
