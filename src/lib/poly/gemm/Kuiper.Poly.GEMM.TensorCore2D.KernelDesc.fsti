@@ -145,17 +145,6 @@ let kpre1
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
   live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
 
-ghost
-fn simplif_rewrite_helper (#n1 #n2 : nat) (p : (natlt n1 & natlt n2) -> slprop) (trc: natlt (n1 * n2))
-  requires
-    (let g = (bij_nat_prod #n1 #n2).gg trc in p g)
-  ensures
-    p (Mktuple2 #(natlt n1) #(natlt n2) (trc / n2) (trc % n2))
-{
-  rewrite each (bij_nat_prod #n1 #n2).gg trc
-  as Mktuple2 #(natlt n1) #(natlt n2) (trc / n2) (trc % n2);
-}
-
 unfold
 let kpre
   (#et_ab #et_c : Type0) {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
