@@ -129,6 +129,57 @@ fn gpu_matrix_abs'
   gpu_matrix_abs l p;
 }
 
+(* This version does not require a full_layout. *)
+ghost
+fn gpu_matrix_iconcr
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    g |-> Frac f em
+  ensures
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+{
+  unfold gpu_matrix_pts_to g #f em;
+  A.varray_pts_to_ref g;
+  A.varray_iconcr g;
+
+  forevery_rw_type _ (natlt rows & natlt cols) _;
+  forevery_unflatten' _;
+  forevery_ext_2 _
+    (fun r c -> gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c));
+}
+
+ghost
+fn gpu_matrix_iabs
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+  ensures
+    g |-> Frac f em
+{
+  forevery_flatten _;
+  forevery_rw_type _ ((aview_from_mlayout et l).iview.sch.ait) _;
+  forevery_ext _
+    (fun i -> gpu_pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
+      ((aview_from_mlayout et l).igm.acc em i));
+
+  A.varray_iabs g;
+  fold gpu_matrix_pts_to g #f em;
+}
+
 inline_for_extraction noextract
 fn gpu_matrix_alloc0
   (#et:Type) {| sized et |}

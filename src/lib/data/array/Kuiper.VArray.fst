@@ -439,6 +439,71 @@ fn varray_concr
   rewrite each len vw0 as len vw;
 }
 
+ghost
+fn varray_iconcr
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  ensures
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+{
+  unfold varray_pts_to a #f v;
+  IArray.iarray_pts_to_ref (VA?._0 a);
+  IArray.iarray_explode (VA?._0 a);
+  ghost
+  fn aux (i : vw.iview.sch.ait)
+    requires
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i)
+    ensures
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i)
+  {
+    IArray.iarray_pts_to_cell_def (VA?._0 a) #f i (vw.igm.acc v i);
+    rewrite
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i)
+    as
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i);
+  };
+  forevery_map _ _ aux;
+  ()
+}
+
+ghost
+fn varray_iabs
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+  ensures
+    a |-> Frac f v
+{
+  ghost
+  fn aux (i : vw.iview.sch.ait)
+    requires
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i)
+    ensures
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i)
+  {
+    IArray.iarray_pts_to_cell_def (VA?._0 a) #f i (vw.igm.acc v i);
+    rewrite
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i)
+    as
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i);
+  };
+  forevery_map _ _ aux;
+  IArray.iarray_implode (VA?._0 a);
+  fold varray_pts_to a #f v;
+}
 
 inline_for_extraction noextract
 fn varray_alloc0

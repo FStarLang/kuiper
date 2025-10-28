@@ -51,6 +51,17 @@ let iarray_pts_to_cell
   : slprop
   = gpu_pts_to_cell (core a) #f (it_to_nat vw i) v
 
+let iarray_pts_to_cell_def
+  (#et : Type)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f : perm)
+  (i : vw.sch.ait)
+  (v : et)
+  : Lemma (iarray_pts_to_cell a #f i v ==
+            gpu_pts_to_cell (core a) #f (it_to_nat vw i) v)
+  = ()
+
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
