@@ -413,6 +413,29 @@ fn forevery_map
 }
 
 ghost
+fn forevery_map_extra
+  (#a:Type0)
+  (k : slprop)
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  preserves k
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+{
+  (* Will this work? The fill case seems tricky as it requires a function
+  from emp into p i. We can definitely implement this for enumerable types,
+  though, which is enough for our use cases. *)
+  forevery_intro_false p2;
+  forevery_rec p1 (fun pred -> k ** forall+ (x:a { pred x }). p2 x)
+    fn pred add g { forevery_fill p2 add fn x { admit(); g x; f x } } // problem here
+    fn pred x { f x; forevery_insert p2 x };
+  forevery_refine_ext (fun _ -> True) p2;
+}
+
+
+ghost
 fn forevery_remove'
   (#a: Type0)
   (f: a->prop)

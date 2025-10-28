@@ -63,21 +63,54 @@ fn gpu_matrix_untile_underspec
   admit();
 }
 
+// Move to forevery.fsti and implement.
+ghost
+fn forevery_map_extra
+  (#a:Type0)
+  (k : slprop)
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  requires
+    k ** (forall+ (x:a). p1 x)
+  ensures
+    k ** (forall+ (x:a). p2 x)
+{ admit() }
+
 ghost
 fn gpu_slice_gather_underspec
-  (#uid : int) (#a : Type u#0)
+  (#a : Type u#0)
   (#sz : nat)
   (arr : gpu_array a sz)
   (#f : perm)
   (m n : nat)
   (k : nat { k > 0 })
-  requires bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_slice arr #(f /. k) m n v)
+  requires
+    forall+ (_ : natlt k).
+      exists* v. gpu_pts_to_slice arr #(f /. k) m n v
   ensures
     exists* v.
       gpu_pts_to_slice arr #f m n v
 {
-  // GUIDO: prove this later
-  admit();
+  forevery_remove #(natlt k) _ 0;
+  with vv. assert gpu_pts_to_slice arr #(f /. k) m n vv;
+  ghost
+  fn aux (_ : natlt k)
+    norewrite
+    requires
+      gpu_pts_to_slice arr #(f /. k) m n vv ** (exists* v. gpu_pts_to_slice arr #(f /. k) m n v)
+    ensures
+      gpu_pts_to_slice arr #(f /. k) m n vv ** gpu_pts_to_slice arr #(f /. k) m n vv
+  {
+    gpu_slice_pts_to_eq arr m n (f /. k) #_ #vv;
+  };
+  forevery_map_extra #(x : natlt k{~ (eq2 #(natlt k) x 0)}) (gpu_pts_to_slice arr #(f /. k) m n vv)
+    (fun _ -> exists* v. gpu_pts_to_slice arr #(f /. k) m n v)
+    (fun _ -> gpu_pts_to_slice arr #(f /. k) m n vv)
+  aux;
+  forevery_insert #(natlt k) #(fun x -> ~ (eq2 #(natlt k) x 0))
+    (fun _ -> gpu_pts_to_slice arr #(f /. k) m n vv) 0;
+  forevery_unrefine _;
+  gpu_slice_gather arr m n k;
 }
 
 ghost
@@ -440,8 +473,6 @@ ensures
   }
 }
 
-#set-options "--print_implicits"
-
 let frozen p = p
 
 ghost
@@ -602,11 +633,6 @@ fn block_teardown
   forevery_unzip #(natlt nthr)
     (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x)))
     _;
-
-  forevery_tostar #(natlt nthr)
-    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst sh) #(1.0R /. nthr) x)));
-  forevery_tostar #(natlt nthr)
-    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x)));
 
   // rewrite each Kuiper.Enumerable.cardinal (natlt nthr) #_ as SZ.v nthr;
   gpu_slice_gather_underspec (fst sh) 0 (bm*^bk) nthr;
