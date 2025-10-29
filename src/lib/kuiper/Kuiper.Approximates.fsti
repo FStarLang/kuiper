@@ -58,14 +58,11 @@ let to_real_seq (#a:Type) {| scalar a, real_like a |}
 let real_seq_sum (r : seq Real.real) : Real.real
   = seq_fold_left (+.) 0.0R r
 
-let real_seq_sum_append
+val real_seq_sum_append
   (r1 r2 : seq Real.real)
   : Lemma (real_seq_sum (r1 `Seq.append` r2) == real_seq_sum r1 +. real_seq_sum r2)
-  = admit()
 
-let seq_approximates_append (#a:Type) {| scalar a, real_like a |}
+val seq_approximates_append (#a:Type) {| scalar a, real_like a |}
   (s1 s2 : a) (r1 r2 : seq Real.real)
   : Lemma (requires s1 `approximates` real_seq_sum r1 /\ s2 `approximates` real_seq_sum r2)
           (ensures (s1 `add` s2) `approximates` real_seq_sum (r1 `Seq.append` r2))
-  = a_add s1 s2 (real_seq_sum r1) (real_seq_sum r2);
-    real_seq_sum_append r1 r2
