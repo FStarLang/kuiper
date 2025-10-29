@@ -35,15 +35,16 @@ fn cp_matrix_vec
   preserves
     gpu **
     pure (SZ.fits (rows * cols + nthr - 1)) **
-    pure (chunk et /? cols) **
-    pure (chunk et * nthr /? (rows * cols)) **
+    pure (chunk et /?+ cols) **
+    pure (chunk et * nthr /?+ (rows * cols)) **
     src |-> Frac f esrc **
     live_tile_stride_cells dst nthr tid
 {
   open FStar.SizeT;
   let mlen = rows *^ cols;
+  assume (pure (rows * cols > 0)); // oh...
 
-  assume pure (SZ.fits (tid * chunk et)); // ?
+  assert pure (SZ.fits (tid * chunk et)); // ?
   let offset : sz = tid *^ chunk et;
   let mut i : sz = 0sz;
 
@@ -62,7 +63,8 @@ fn cp_matrix_vec
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
       live_tile_stride_cells dst nthr tid
   {
-    assume pure (!i + offset < mlen); // prove this, it follows from rounding down
+    let vi = !i;
+    assume pure (vi + offset < mlen); // prove this, it follows from rounding down, it works some times
     let mut local = [| zero #et #_; chunk et |];
 
     assume pure (SZ.fits (!i + nthr * chunk et));
@@ -73,7 +75,7 @@ fn cp_matrix_vec
     assert pure (row < rows);
     assert pure (col < cols - chunk et + 1);
 
-    gpu_matrix_vec_read src row col local;
+    gpu_matrix_vec_read' src row col local;
 
     let ite : erased int = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);

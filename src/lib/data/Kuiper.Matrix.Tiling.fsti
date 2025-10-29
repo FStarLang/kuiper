@@ -1,8 +1,7 @@
 module Kuiper.Matrix.Tiling
 #lang-pulse
 
-(* An assumed API for tiling matrices. This will be implemented
-   with array views, eventually. *)
+(* An API for tiling matrices, implemented with array views. *)
 
 open Kuiper
 open Kuiper.EMatrix
@@ -10,6 +9,7 @@ open Kuiper.Injection
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Pulse.Lib.Trade
+module SZ = Kuiper.SizeT
 
 let ematrix_subtile
   (#et : _)
@@ -129,6 +129,7 @@ let subtile_layout
 inline_for_extraction noextract
 instance val strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -144,6 +145,7 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
 inline_for_extraction noextract
 instance val strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -294,6 +296,24 @@ fn gpu_matrix_untile
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
   ensures
     gm |-> Frac f em
+
+ghost
+fn gpu_matrix_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : ematrix et trows tcols).
+          gpu_matrix_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    (exists* (em : ematrix et rows cols). gm |-> Frac f em)
 
 ghost
 fn gpu_matrix_extract_tile

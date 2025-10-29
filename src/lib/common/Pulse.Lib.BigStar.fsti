@@ -76,6 +76,17 @@ fn bigstar_extensionality
   ensures  bigstar #u1 m n g
 
 ghost
+fn bigstar_ext'
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n f
+  requires pure (forall (i: nat{m <= i /\ i < n}). f i == g i)
+  ensures  bigstar #u1 m n g
+
+ghost
 fn bigstar_eta
   ()
   (#u1 : int)

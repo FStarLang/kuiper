@@ -95,8 +95,6 @@ fn kf
 }
 #pop-options
 
-// #set-options "--print_implicits --debug SMTFail --split_queries always --print_bound_var_types"
-
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
@@ -295,8 +293,6 @@ fn host_simple_stencil
 {
   launch_sync (kdesc stencil gIn gOut ());
 }
-
-// #set-options "--debug SMTFail --split_queries always"
 
 inline_for_extraction noextract
 fn specialize_host_simple_stencil

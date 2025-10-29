@@ -44,10 +44,10 @@ let injection_implies_lte_cardinal
 
 
 let distinct_seq_greater_than_cardinal_impossible
-  (#a:Type) 
+  (#a:Type)
   {| d : enumerable a |}
   (s:Seq.seq a {(forall (x y: natlt (Seq.length s)). x <> y ==> Seq.index s x =!= Seq.index s y)})
-: Lemma 
+: Lemma
   (requires cardinal a #_ < Seq.length s)
   (ensures False)
 = let n = cardinal a #_ in
@@ -59,14 +59,13 @@ let distinct_seq_greater_than_cardinal_impossible
   )
 
 let distinct_seq_enumerates_all (#a:Type) {| d : enumerable a |} (s:Seq.seq a {Seq.length s == cardinal a #_}) (n:a)
-: Lemma 
+: Lemma
   (requires forall (x y: natlt (cardinal a #_)). x <> y ==> Seq.index s x =!= Seq.index s y)
   (ensures exists (i:natlt (cardinal a #_)). Seq.index s i == n)
 = introduce (forall (i:natlt (cardinal a #_)). Seq.index s i =!= n) ==> False
   with _ . (
     distinct_seq_greater_than_cardinal_impossible (Seq.snoc s n)
   )
-
 
 let injection_equal_cardinal_implies_bijection
   (a b : Type) {| d1 : enumerable a |} {| d2 : enumerable b |}

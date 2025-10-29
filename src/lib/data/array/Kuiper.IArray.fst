@@ -51,6 +51,17 @@ let iarray_pts_to_cell
   : slprop
   = gpu_pts_to_cell (core a) #f (it_to_nat vw i) v
 
+let iarray_pts_to_cell_def
+  (#et : Type)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f : perm)
+  (i : vw.sch.ait)
+  (v : et)
+  : Lemma (iarray_pts_to_cell a #f i v ==
+            gpu_pts_to_cell (core a) #f (it_to_nat vw i) v)
+  = ()
+
 let iarray_pts_to
   (#et:Type0) (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
@@ -277,10 +288,10 @@ fn iarray_cell_reindex
   ensures
     Cell a' i' |-> Frac f v
 {
-  unfold iarray_pts_to_cell a #f i v;
-  rewrite each it_to_nat vw i as it_to_nat vw' i';
-  rewrite each core a as core a';
-  fold iarray_pts_to_cell a' #f i' v;
+  rewrite
+    Cell a i |-> Frac f v
+  as
+    Cell a' i' |-> Frac f v;
 }
 
 ghost
@@ -457,6 +468,10 @@ fn iarray_write_cell
   with s'. assert (B.gpu_pts_to_slice (core a) ni (ni+1) s');
   Kuiper.Seq.Common.lem_one_elem s' v1;
   rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.step.imap);
+  with i v. rewrite
+    B.gpu_pts_to_slice (core a) i (i+1) v
+  as
+    B.gpu_pts_to_slice (core a) i (i+1) seq![v @! 0];
   fold iarray_pts_to_cell a (ci_to_ai vw ci) v1;
   ();
 }

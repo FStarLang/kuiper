@@ -101,7 +101,12 @@ fn gpu_matrix_abs
     from_array l p |-> Frac f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
+  rewrite
+    p |-> Frac f (to_seq l em)
+  as
+    p |-> Frac f (A.to_seq (aview_from_mlayout et l) em);
+  // FIXME: does not work???
+  //rewrite each to_seq l em as A.to_seq (aview_from_mlayout et l) em;
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
@@ -122,6 +127,57 @@ fn gpu_matrix_abs'
 {
   rewrite each s as to_seq l (from_seq l s);
   gpu_matrix_abs l p;
+}
+
+(* This version does not require a full_layout. *)
+ghost
+fn gpu_matrix_iconcr
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    g |-> Frac f em
+  ensures
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+{
+  unfold gpu_matrix_pts_to g #f em;
+  A.varray_pts_to_ref g;
+  A.varray_iconcr g;
+
+  forevery_rw_type _ (natlt rows & natlt cols) _;
+  forevery_unflatten' _;
+  forevery_ext_2 _
+    (fun r c -> gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c));
+}
+
+ghost
+fn gpu_matrix_iabs
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+  ensures
+    g |-> Frac f em
+{
+  forevery_flatten _;
+  forevery_rw_type _ ((aview_from_mlayout et l).iview.sch.ait) _;
+  forevery_ext _
+    (fun i -> gpu_pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
+      ((aview_from_mlayout et l).igm.acc em i));
+
+  A.varray_iabs g;
+  fold gpu_matrix_pts_to g #f em;
 }
 
 inline_for_extraction noextract
@@ -206,6 +262,33 @@ fn gpu_matrix_gather_n
     fn i { unfold gpu_matrix_pts_to gm #(f /. k) em };
   A.varray_gather_n gm k;
   fold gpu_matrix_pts_to gm #f em;
+}
+
+ghost
+fn gpu_matrix_gather_n_underspec
+  (#et:Type0)
+  (#uid: int)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (k : pos)
+  (#f : perm)
+  requires
+    bigstar #uid 0 k (fun _ ->
+      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em)
+  ensures
+    exists* (em : ematrix et rows cols). gpu_matrix_pts_to gm #f em
+{
+  ghost
+  fn aux (i:natlt k)
+    requires exists* (em : ematrix et rows cols). gm |-> Frac (f /. k) em
+    ensures exists* (em : ematrix _ _ _). Kuiper.VArray.varray_pts_to gm #(f /. k) em
+  {
+    with em. assert gpu_matrix_pts_to gm #(f /. k) em;
+    unfold gpu_matrix_pts_to gm #(f /. k) em;
+  };
+  // bigstar_map aux;
+  admit();
 }
 
 ghost

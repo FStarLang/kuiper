@@ -86,6 +86,7 @@ fn gpu_array_unslice_1_underspec
     fn i {
       unfold gpu_pts_to_array1 arr #f i; with v. _;
       gpu_pts_to_slice_ref arr i (i+1);
+      assert pure (v `Seq.equal` seq![Seq.index v 0]);
       rewrite each v as seq![Seq.index v 0];
     };
   let v = forevery_exists (fun (i: natlt sz) v ->

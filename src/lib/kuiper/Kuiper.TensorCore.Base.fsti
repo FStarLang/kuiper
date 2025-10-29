@@ -264,9 +264,9 @@ fn mma_store
   preserves
     fr |-> f0
   requires
-    gm |-> m0
+    gm |-> Frac (1.0R /. warp_size) m0
   ensures
-    gm |-> f0
+    gm |-> Frac (1.0R /. warp_size) f0
 
 (* We should add checker support for this. *)
 fn with_fragment u#r

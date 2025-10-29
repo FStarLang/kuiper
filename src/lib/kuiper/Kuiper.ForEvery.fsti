@@ -639,6 +639,18 @@ fn forevery_map
     forall+ (x:a). p2 x
 
 ghost
+fn forevery_map_extra
+  (#a:Type0)
+  (k : slprop)
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  preserves k
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+
+ghost
 fn forevery_map_2
   (#a:Type0)
   (#b:Type0)
@@ -660,6 +672,28 @@ fn forevery_map'
     forall+ (x:a). p1 x
   ensures
     forall+ (x:b). p2 x
+
+ghost
+fn forevery_zip_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (p1 p2 : a -> b -> slprop)
+  requires
+    (forall+ (x:a) (y:b). p1 x y) **
+    (forall+ (x:a) (y:b). p2 x y)
+  ensures
+    forall+ (x:a) (y:b). p1 x y ** p2 x y
+
+ghost
+fn forevery_unzip_2
+  (#a:Type0) {| enumerable a |}
+  (#b:Type0) {| enumerable b |}
+  (p1 p2 : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p1 x y ** p2 x y
+  ensures
+    (forall+ (x:a) (y:b). p1 x y) **
+    (forall+ (x:a) (y:b). p2 x y)
 
 unfold
 let pad_f (#n1 : nat) (n2 : nat{n1 <= n2})

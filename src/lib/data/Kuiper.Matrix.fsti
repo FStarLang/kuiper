@@ -142,6 +142,37 @@ fn gpu_matrix_abs'
   ensures
     from_array l p |-> Frac f (from_seq l s)
 
+(* This version does not require a full_layout. *)
+ghost
+fn gpu_matrix_iconcr
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    g |-> Frac f em
+  ensures
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+
+ghost
+fn gpu_matrix_iabs
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+  ensures
+    g |-> Frac f em
+
 inline_for_extraction noextract
 fn gpu_matrix_alloc0
   (#et:Type) {| sized et |}
@@ -196,6 +227,21 @@ fn gpu_matrix_gather_n
     forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
   ensures
     gpu_matrix_pts_to gm #f em
+
+ghost
+fn gpu_matrix_gather_n_underspec
+  (#et:Type0)
+  (#uid: int)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (k : pos)
+  (#f : perm)
+  requires
+    bigstar #uid 0 k (fun _ ->
+      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em)
+  ensures
+    exists* (em : ematrix et rows cols). gpu_matrix_pts_to gm #f em
 
 ghost
 fn gpu_matrix_share_2

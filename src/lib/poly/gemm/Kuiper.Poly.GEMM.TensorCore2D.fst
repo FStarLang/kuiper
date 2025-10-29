@@ -4,20 +4,14 @@ module Kuiper.Poly.GEMM.TensorCore2D
 
 open Kuiper
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 50"
 
+open Pulse.Lib.Array
+open Pulse.Lib.Trade
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix
-
-module MS = Kuiper.Spec.GEMM
-module SZ = Kuiper.SizeT
-module B = Kuiper.Barrier
-
-module R = Kuiper.Matrix.Reprs
-
 open Kuiper.EMatrix { ematrix }
 open Kuiper.VArray {
   varray,
@@ -27,12 +21,14 @@ open Kuiper.VArray {
 open Kuiper.TensorCore
 open Kuiper.Float16
 open Kuiper.Matrix.Tiling
-
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
-open Pulse.Lib.Array
-open Pulse.Lib.Trade
+module SZ = Kuiper.SizeT
+module B = Kuiper.Barrier
+module R = Kuiper.Matrix.Reprs
+
+open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
 inline_for_extraction noextract
 fn subproducts_tc_2d
@@ -63,18 +59,20 @@ fn subproducts_tc_2d
     pure (Seq.length emAFrags == wm) **
     pure (Seq.length emBFrags == wn) **
     pure (Seq.length emAccumFrags == wm * wn) **
-    array_fragment_pts_to aFrags emAFrags **
-    array_fragment_pts_to bFrags emBFrags **
-    array_fragment_pts_to accumFrags emAccumFrags
+    aFrags |-> emAFrags **
+    bFrags |-> emBFrags **
+    accumFrags |-> emAccumFrags
   ensures
     exists* emAFrags' emBFrags' emAccumFrags'.
       pure (Seq.length emAFrags' == wm) **
       pure (Seq.length emBFrags' == wn) **
       pure (Seq.length emAccumFrags' == wm * wn) **
-      array_fragment_pts_to aFrags emAFrags' **
-      array_fragment_pts_to bFrags emBFrags' **
-      array_fragment_pts_to accumFrags emAccumFrags'
+      aFrags |-> emAFrags' **
+      bFrags |-> emBFrags' **
+      accumFrags |-> emAccumFrags'
 {
+  gpu_matrix_pts_to_ref gA;
+  gpu_matrix_pts_to_ref gB;
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant
@@ -87,9 +85,9 @@ fn subproducts_tc_2d
           pure (Seq.length emBFrags == wn) **
           pure (Seq.length emAccumFrags == wm*wn)**
           dotIdx |-> vdotIdx **
-          array_fragment_pts_to aFrags emAFrags **
-          array_fragment_pts_to bFrags emBFrags **
-          array_fragment_pts_to accumFrags emAccumFrags
+          aFrags |-> emAFrags **
+          bFrags |-> emBFrags **
+          accumFrags |-> emAccumFrags
   {
     // TODO are the gpu_matrix_extract creating too many pointers or is everything inlined properly?!
 
@@ -103,7 +101,7 @@ fn subproducts_tc_2d
           (emAFrags : seq (ematrix et_ab tm tk)).
             pure (Seq.length emAFrags == wm) **
             i0 |-> vi **
-            array_fragment_pts_to aFrags emAFrags
+            aFrags |-> emAFrags
     {
       let a_tile = gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
       // Expected are only nats, but later on when the tile is used we need to concretize.
@@ -115,7 +113,7 @@ fn subproducts_tc_2d
           (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0));
 
       // unfortunately, when inferring emAFrags, the solver cannot prove that !i0 is small enough
-      with emAFrags. assert array_fragment_pts_to aFrags emAFrags;
+      with emAFrags. assert aFrags |-> emAFrags;
       array_fragment_extract aFrags emAFrags !i0;
 
       mma_loadA aFrags.(!i0) a_tile;
@@ -140,7 +138,7 @@ fn subproducts_tc_2d
           (emBFrags : seq (ematrix et_ab tk tn)).
             pure (Seq.length emBFrags == wn) **
             i1 |-> vi **
-            array_fragment_pts_to bFrags emBFrags
+            bFrags |-> emBFrags
     {
       let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
       // Expected are only nats, but later on when the tile is used we need to concretize.
@@ -152,7 +150,7 @@ fn subproducts_tc_2d
           (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1)));
 
       // unfortunately, when inferring emBFrags, the solver cannot prove that !i1 is small enough
-      with emBFrags. assert array_fragment_pts_to bFrags emBFrags;
+      with emBFrags. assert bFrags |-> emBFrags;
       array_fragment_extract bFrags emBFrags !i1;
 
       mma_loadB bFrags.(!i1) b_tile;
@@ -175,7 +173,7 @@ fn subproducts_tc_2d
           (emAccumFrags : seq (ematrix et_acc tm tn)).
             pure (Seq.length emAccumFrags == wm*wn) **
             resIdxM |-> vresIdxM **
-            array_fragment_pts_to accumFrags emAccumFrags
+            accumFrags |-> emAccumFrags
     {
       let mut resIdxN = 0sz;
       while (SZ.(!resIdxN <^ wn))
@@ -185,11 +183,11 @@ fn subproducts_tc_2d
             (emAccumFrags : seq (ematrix et_acc tm tn)).
               pure (Seq.length emAccumFrags == wm*wn) **
               resIdxN |-> vresIdxN **
-              array_fragment_pts_to accumFrags emAccumFrags
+              accumFrags |-> emAccumFrags
       {
-        with emAFrags. assert array_fragment_pts_to aFrags emAFrags;
-        with emBFrags. assert array_fragment_pts_to bFrags emBFrags;
-        with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
+        with emAFrags. assert aFrags |-> emAFrags;
+        with emBFrags. assert bFrags |-> emBFrags;
+        with emAccumFrags. assert accumFrags |-> emAccumFrags;
         array_fragment_extract_ro aFrags emAFrags !resIdxM;
         array_fragment_extract_ro bFrags emBFrags !resIdxN;
         array_fragment_extract accumFrags emAccumFrags (!resIdxM * wn + !resIdxN);
@@ -219,189 +217,7 @@ fn subproducts_tc_2d
   }
 }
 
-let live_warp_tile
-  (#et : Type0) {| scalar et |}
-  // Since this is an slprop, I would like to not erase the nat.
-  // Unfortunately, when unfolding live_warp_tile, after passing
-  // a (reveal x) as argument, this leads to (reveal (hide (reveal x)))
-  // which creates problems with type equalities.
-  (#rows : erased nat)
-  (#cols : nat)
-  (#lC : mlayout rows cols)
-  (gC : gpu_matrix et lC)
-  (bm : pos{bm /?+ rows})
-  (bn : pos{bn /?+ cols})
-  (tm : pos{tm /?+ bm})
-  (tn : pos{tn /?+ bn})
-  (wm : pos{wm * tm /?+ bm})
-  (wn : pos{wn * tn /?+ bn})
-  (bid : natlt ((rows/bm) * (cols/bn)))
-  (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
-  : slprop
-  =
-  live (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
-
-unfold
-let kpre1
-  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (fA fB : perm)
-  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : enatlt (rows/bm * (cols/bn)))
-  (tid : enatlt nthr)
-  : slprop
-  =
-  gA |-> Frac (fA /. nthr) eA **
-  gB |-> Frac (fB /. nthr) eB **
-  live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
-
-unfold
-let kpost1
-  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (fA fB : perm)
-  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : enatlt (rows/bm * (cols/bn)))
-  (tid : enatlt nthr)
-  : slprop
-  =
-  gA |-> Frac (fA /. nthr) eA **
-  gB |-> Frac (fB /. nthr) eB **
-  live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
-
-let barrier_p
-  (#et : Type0) {| has_vec_cpy et |}
-  (#bm #bn #bk : szp)
-  (#l1 : mlayout bm bk)
-  (#l2 : mlayout bk bn)
-  (m1 : gpu_matrix et l1)
-  (m2 : gpu_matrix et l2)
-  (nthr : pos)
-  : B.barrier_side nthr =
-  fun it tid ->
-    if even it then
-      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
-      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
-    else
-      live_tile_stride_cells m1 nthr tid **
-      live_tile_stride_cells m2 nthr tid
-
-let barrier_q
-  (#et : Type0) {| has_vec_cpy et |}
-  (#bm #bn #bk : szp)
-  (#l1 : mlayout bm bk)
-  (#l2 : mlayout bk bn)
-  (m1 : gpu_matrix et l1)
-  (m2 : gpu_matrix et l2)
-  (nthr : pos)
-  : B.barrier_side nthr =
-  fun it tid -> barrier_p m1 m2 nthr (it+1) tid (* flip flop *)
-
-let barrier_tok
-  (#et : Type0) {| has_vec_cpy et |}
-  (#bm #bn #bk : szp)
-  (* This is defined over the base shared gpu_arrays, as
-  this spec must make sense before the arrays are viewed as
-  a matrix. *)
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
-  (it : nat)
-  (nthr : pos)
-  (tid : natlt nthr)
-  : slprop
-  =
-  B.barrier_tok (barrier_p (from_array l1 sar1) (from_array l2 sar2) nthr)
-                (barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr)
-                it tid
-
-unfold
-let kpre
-  (#et_ab #et_c : Type0) {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (fA fB : perm)
-  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt nthr)
-  : slprop
-  =
-  kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
-
-unfold
-let kpost
-  (#et_ab #et_c : Type0) {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (fA fB : perm)
-  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt nthr)
-  : slprop
-  =
-  kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2* (shared/bk)) nthr tid
-
+#push-options "--z3rlimit 80"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -417,6 +233,7 @@ fn epilogue
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
   (#emAccumFrags: erased (seq (ematrix et tm tn)))
   (gC : gpu_matrix et (R.row_major rows cols))
+  (#_ : squash (SZ.fits (rows * cols)))
   (bid : szlt (rows/bm * (cols/bn)))
   (wid : szlt (bm/(wm*tm) * (bn/(wn*tn))))
   preserves
@@ -426,6 +243,7 @@ fn epilogue
     pure (SZ.fits (wm * wn)) **
     live_warp_tile gC bm bn tm tn wm wn bid wid **
     array_fragment_pts_to accumFrags emAccumFrags
+
   ensures
     live_warp_tile gC bm bn tm tn wm wn bid wid **
     (exists* emAccumFrags'.
@@ -440,7 +258,7 @@ fn epilogue
     while (SZ.(!j <^ wn))
       invariant live j ** pure (!j <=^ wn)
     {
-      unfold live_warp_tile;
+      unfold live_warp_tile gC bm bn tm tn wm wn bid wid;
 
       // TODO does this create more pointer arithmetic than necessary?
       // tile in gC with all values that are computed by the warp
@@ -454,7 +272,7 @@ fn epilogue
       let tc_tile = gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
       rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
 
-      with emAccumFrags. assert array_fragment_pts_to accumFrags emAccumFrags;
+      with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
       let vi = !i;
       let vj = !j;
       let eidx : erased nat = vi * wn + vj;
@@ -474,7 +292,7 @@ fn epilogue
 
       rewrite each tile_for_tc_tiles as warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
         (wm*tm) (wn*tn)(SZ.v wid);
-      fold live_warp_tile;
+      fold live_warp_tile gC bm bn tm tn wm wn bid wid;
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
@@ -482,6 +300,7 @@ fn epilogue
 
   ()
 }
+#pop-options
 
 inline_for_extraction noextract
 fn kf
@@ -576,9 +395,9 @@ fn kf
       live fi **
       (exists* vaccFrags.
         pure (Seq.length vaccFrags == wm*wn) **
-        array_fragment_pts_to accFrags vaccFrags)
+        accFrags |-> vaccFrags)
   {
-    with vaccFrags. assert (array_fragment_pts_to accFrags vaccFrags);
+    with vaccFrags. assert (accFrags |-> vaccFrags);
     array_fragment_extract accFrags vaccFrags !fi;
     mma_fill accFrags.(!fi) sc.zero;
 
@@ -601,9 +420,9 @@ fn kf
           pure (Seq.length vaFrags == wm) **
           pure (Seq.length vbFrags == wn) **
           pure (Seq.length vaccFrags == wm*wn) **
-          array_fragment_pts_to aFrags vaFrags **
-          array_fragment_pts_to bFrags vbFrags **
-          array_fragment_pts_to accFrags vaccFrags **
+          aFrags |-> vaFrags **
+          bFrags |-> vbFrags **
+          accFrags |-> vaccFrags **
           (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
           (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x) **
           B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid
@@ -646,189 +465,36 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
+  rewrite each (tid / 32) as wid;
   epilogue bm bn bk tm tn tk wm wn accFrags gC bid wid;
+  rewrite each v wid as (tid / 32);
 
-  with vaFrags. assert array_fragment_pts_to aFrags vaFrags; drop_ (array_fragment_pts_to aFrags vaFrags);
-  with vbFrags. assert array_fragment_pts_to bFrags vbFrags; drop_ (array_fragment_pts_to bFrags vbFrags);
-  with vaccumFrags. assert array_fragment_pts_to accFrags vaccumFrags; drop_ (array_fragment_pts_to accFrags vaccumFrags);
+  with vaFrags. assert aFrags |-> vaFrags; drop_ (aFrags |-> vaFrags);
+  with vbFrags. assert bFrags |-> vbFrags; drop_ (bFrags |-> vbFrags);
+  with vaccumFrags. assert accFrags |-> vaccumFrags; drop_ (accFrags |-> vaccumFrags);
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * num_k_tiles) nthr tid;
+  rewrite
+    B.barrier_tok (barrier_p sA sB nthr)
+      (barrier_q sA sB nthr)
+      (2 * v !bkIdx)
+      (v tid)
+  as
+    B.barrier_tok (barrier_p (from_array (R.row_major (v bm) (v bk)) sarA)
+          (from_array (R.row_major (v bk) (v bn)) sarB)
+          nthr)
+      (barrier_q (from_array (R.row_major (v bm) (v bk)) sarA)
+          (from_array (R.row_major (v bk) (v bn)) sarB)
+          nthr)
+      (2 * (shared / bk))
+      (v tid);
+  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
   ()
-}
-
-ghost
-fn setup
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
-  (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (fA fB : perm)
-  ()
-  norewrite
-  requires
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB **
-    gC |-> eC
-  ensures
-    (forall+ (bid : natlt nblk)
-             (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
-    emp (* frame *)
-{
-  admit();
-}
-
-ghost
-fn block_setup
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
-  (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (fA fB : perm)
-  (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt nblk)
-  ()
-  norewrite
-  requires
-    block_setup_tok nthr **
-    live_c_shmems sh **
-    (forall+ (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
-  ensures
-    block_setup_tok nthr **
-    (forall+ (tid : natlt nthr).
-      kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
-    emp (* frame *)
-{
-  admit();
-}
-
-ghost
-fn block_teardown
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
-  (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (fA fB : perm)
-  (sh : c_shmems (shmems_desc et_ab bm bn bk))
-  (bid : natlt nblk)
-  ()
-  norewrite
-  requires
-    (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
-    emp (* frame *)
-  ensures
-    live_c_shmems sh **
-    (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
-{
-  admit();
-}
-
-ghost
-fn teardown
-  (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : gpu_matrix et_ab lA)
-  (eA : ematrix et_ab rows shared)
-  (gB : gpu_matrix et_ab lB)
-  (eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c lC)
-  (eC : ematrix et_c rows cols)
-  (bm bn bk
-   tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (#_ : squash (bm /?+ rows))
-  (#_ : squash (bn /?+ cols))
-  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
-  (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
-  (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
-  (fA fB : perm)
-  ()
-  norewrite
-  requires
-    (forall+ (bid : natlt nblk)
-             (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
-    emp (* frame *)
-  ensures
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB **
-    // underspec not implemented anyway
-    (exists* eC'. gC |-> eC')
-    // (gC |-> MS.mmcomb comb eC eA eB)
-{
-  // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
-  //   (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
-  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
-  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
-  // forevery_tostar #(natlt2 mrows mcols & natlt tile) (fun _tid -> m4_pts_to gA #(1.0R /. mlayout_size lC) eA);
-
-    // (fun (bid, tid) -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
-  admit();
 }
 
 inline_for_extraction noextract

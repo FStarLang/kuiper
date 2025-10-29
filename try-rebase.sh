@@ -10,7 +10,7 @@ for p in FStar karamel pulse; do
 	fi
 
 	if [ $p == pulse ]; then
-		br=main
+		br=gebner_phase1_matcher
 	else
 		br=master
 	fi

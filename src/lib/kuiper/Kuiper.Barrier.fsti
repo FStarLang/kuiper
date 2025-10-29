@@ -37,9 +37,9 @@ type barrier_transform (#n:nat) (p q : barrier_side n) =
 *)
 val barrier_tok
   (#n:nat)
-  (p q : barrier_side n)
+  ([@@@mkey] p [@@@mkey] q : barrier_side n)
   (it : nat)
-  (tid : natlt n)
+  ([@@@mkey] tid : natlt n)
   : slprop
 
 (* Creating a barrier for n threads. Note how this is a

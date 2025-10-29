@@ -310,6 +310,34 @@ fn varray_concr
   ensures
     core a |-> Frac f (to_seq vw v)
 
+ghost
+fn varray_iconcr
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  ensures
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+
+ghost
+fn varray_iabs
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+  ensures
+    a |-> Frac f v
+
 inline_for_extraction noextract
 fn varray_alloc0
   (#et : Type0) {| sized et |} (len : sz) (#st : Type0)

@@ -178,8 +178,13 @@ fn gpu_matrix_abs
     from_array l p |-> Frac f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  rewrite each to_seq l em
-            as A.to_seq (aview_from_mlayout et l) em;
+  // FIXME: rewrite each can't prove equality?
+  // rewrite each to_seq l em
+  //           as A.to_seq (aview_from_mlayout et l) em;
+  rewrite
+    p |-> Frac f (to_seq l em)
+  as
+    p |-> Frac f (A.to_seq (aview_from_mlayout et l) em);
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
