@@ -639,18 +639,6 @@ fn forevery_map
     forall+ (x:a). p2 x
 
 ghost
-fn forevery_map_extra
-  (#a:Type0)
-  (k : slprop)
-  (p1 p2 : a -> slprop)
-  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
-  preserves k
-  requires
-    forall+ (x:a). p1 x
-  ensures
-    forall+ (x:a). p2 x
-
-ghost
 fn forevery_map_2
   (#a:Type0)
   (#b:Type0)
@@ -849,3 +837,15 @@ fn forevery_join_either
     (forall+ (x:b). p (Inr x))
   ensures
     forall+ (x:either a b). p x
+
+ghost
+fn forevery_map_extra
+  (#a:Type0) {| enumerable a |}
+  (k : slprop)
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  preserves k
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x

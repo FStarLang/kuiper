@@ -412,28 +412,6 @@ fn forevery_map
   forevery_refine_ext (fun _ -> True) p2;
 }
 
-ghost
-fn forevery_map_extra
-  (#a:Type0)
-  (k : slprop)
-  (p1 p2 : a -> slprop)
-  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
-  preserves k
-  requires
-    forall+ (x:a). p1 x
-  ensures
-    forall+ (x:a). p2 x
-{
-  (* Will this work? The fill case seems tricky as it requires a function
-  from emp into p i. We can definitely implement this for enumerable types,
-  though, which is enough for our use cases. *)
-  forevery_intro_false p2;
-  forevery_rec p1 (fun pred -> k ** forall+ (x:a { pred x }). p2 x)
-    fn pred add g { forevery_fill p2 add fn x { admit(); g x; f x } } // problem here
-    fn pred x { f x; forevery_insert p2 x };
-  forevery_refine_ext (fun _ -> True) p2;
-}
-
 
 ghost
 fn forevery_remove'
@@ -1758,4 +1736,83 @@ fn forevery_join_either
   forevery_iso_back (bij_either_inr a b) p;
   forevery_refine_join p (fun x -> Inl? x) (fun x -> ~(Inl? x));
   forevery_unrefine p;
+}
+
+ghost
+fn rec __forevery_map_extra_nat
+  (#n : nat)
+  (m : nat{m <= n})
+  (k : slprop)
+  (p1 p2 : natlt n -> slprop)
+  (f : (x:natlt n -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  preserves k
+  requires
+    (forall+ (x : natlt n{x < m}). p1 x) **
+    (forall+ (x : natlt n{x >= m}). p2 x)
+  ensures
+    (forall+ (x : natlt n). p2 x)
+  decreases m
+{
+  if (m = 0) {
+    rewrite each m as 0;
+    forevery_elim_empty #(x: natlt n { x < 0 }) p1;
+    forevery_unrefine _;
+    ()
+  } else {
+    forevery_remove' #(natlt n) (fun x -> x < m) p1 (m-1);
+    f (m-1);
+    forevery_refine_ext #(natlt n)
+      #(fun x -> x < m /\ ~(eq2 #(natlt n) x (m-1)))
+      (fun x -> x < m-1)
+      p1;
+    forevery_insert p2 (m-1);
+    forevery_refine_ext #(natlt n)
+      #(fun x -> x >= m \/ eq2 #(natlt n) (m-1) x)
+      (fun x -> x >= m-1)
+      p2;
+    __forevery_map_extra_nat (m-1) k p1 p2 f;
+  }
+}
+
+ghost
+fn forevery_map_extra_nat
+  (#n : nat)
+  (k : slprop)
+  (p1 p2 : natlt n -> slprop)
+  (f : (x:natlt n -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  preserves k
+  requires
+    forall+ (x : natlt n). p1 x
+  ensures
+    forall+ (x : natlt n). p2 x
+{
+    forevery_refine_ext #(natlt n)
+      (fun x -> x < n)
+      p1;
+  forevery_intro_empty #(x : natlt n{x >= n}) p2;
+  __forevery_map_extra_nat #n n k p1 p2 f;
+}
+
+ghost
+fn forevery_map_extra
+  (#a:Type0) {| d : enumerable a |}
+  (k : slprop)
+  (p1 p2 : a -> slprop)
+  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
+  preserves k
+  requires
+    forall+ (x:a). p1 x
+  ensures
+    forall+ (x:a). p2 x
+{
+  forevery_iso d.bij _;
+  ghost
+  fn f' (x: natlt (cardinal a #_))
+    requires k ** p1 (of_nat x)
+    ensures  k ** p2 (of_nat x)
+  {
+    f (of_nat x)
+  };
+  forevery_map_extra_nat #(cardinal a #_) k _ _ f';
+  forevery_iso_back d.bij _;
 }

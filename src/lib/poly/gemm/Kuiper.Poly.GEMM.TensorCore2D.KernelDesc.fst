@@ -78,10 +78,10 @@ fn gpu_slice_gather_underspec
     exists* v.
       gpu_pts_to_slice arr #f m n v
 {
-  forevery_remove #(natlt k) _ 0;
+  forevery_natlt_pop k _;
   with vv. assert gpu_pts_to_slice arr #(f /. k) m n vv;
   ghost
-  fn aux (_ : natlt k)
+  fn aux (_ : natlt (k-1))
     norewrite
     requires
       gpu_pts_to_slice arr #(f /. k) m n vv ** (exists* v. gpu_pts_to_slice arr #(f /. k) m n v)
@@ -90,13 +90,11 @@ fn gpu_slice_gather_underspec
   {
     gpu_slice_pts_to_eq arr m n (f /. k) #_ #vv;
   };
-  forevery_map_extra #(x : natlt k{~ (eq2 #(natlt k) x 0)}) (gpu_pts_to_slice arr #(f /. k) m n vv)
-    (fun _ -> exists* v. gpu_pts_to_slice arr #(f /. k) m n v)
-    (fun _ -> gpu_pts_to_slice arr #(f /. k) m n vv)
-  aux;
-  forevery_insert #(natlt k) #(fun x -> ~ (eq2 #(natlt k) x 0))
-    (fun _ -> gpu_pts_to_slice arr #(f /. k) m n vv) 0;
-  forevery_unrefine _;
+  forevery_map_extra #(natlt (k-1)) (gpu_pts_to_slice arr #(f /. k) m n vv)
+    (fun (_ : natlt (k-1)) -> exists* v. gpu_pts_to_slice arr #(f /. k) m n v)
+    (fun (_ : natlt (k-1)) -> gpu_pts_to_slice arr #(f /. k) m n vv)
+    aux;
+  forevery_natlt_push k _;
   gpu_slice_gather arr m n k;
 }
 
