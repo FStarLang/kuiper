@@ -233,6 +233,23 @@ let gpu_matrix_subtile
   = from_array (subtile_layout l trows tcols tr tc)
                (core gm)
 
+let gpu_matrix_subtile_base
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr : enatlt (rows / trows))
+  (tc : enatlt (cols / tcols))
+  : Lemma (
+      core (gpu_matrix_subtile gm trows tcols tr tc)
+      ==
+      core gm
+    )
+    [SMTPat (core (gpu_matrix_subtile gm trows tcols tr tc))]
+  = ()
+
 let cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)

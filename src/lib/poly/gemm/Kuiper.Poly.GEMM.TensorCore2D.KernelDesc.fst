@@ -202,6 +202,8 @@ fn setup
   (#_ : squash (bm /? rows))
   (#_ : squash (bn /? cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
@@ -264,9 +266,7 @@ fn setup
       (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
       (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size)))
   ensures
-    gA |-> Frac (fA /. ((rows/bm) * (cols/bn) * nthr)) eA **
-    gB |-> Frac (fB /. ((rows/bm) * (cols/bn) * nthr)) eB **
-    live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
+    kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid
   {
     fold live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size);
   };

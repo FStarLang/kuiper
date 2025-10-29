@@ -31,7 +31,9 @@ instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; }
 
 (* These three operations are essentially the same. We need different
    variants since gpu_array is a different type from array. Sadly the
-   slicing is also different. *)
+   slicing is also different. The "host" variants are a bit of a
+   misnomer, they are meant to be used with registers arrays, and
+   not CPU-side memory arrays. *)
 
 [@@noextract_to "krml"]
 atomic
@@ -56,6 +58,8 @@ fn gpu_array_vec_cpy_dd
   (#_ : squash (Seq.length ss == src_slice_j - src_slice_i))
   preserves gpu
   preserves gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
+  requires  pure (aligned' 16 src_arr src_off)
+  requires  pure (aligned' 16 dst_arr dst_off)
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
   ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))
 
@@ -78,6 +82,7 @@ fn gpu_array_vec_cpy_dh
   (#_ : squash (Seq.length ss == src_slice_j - src_slice_i))
   preserves gpu
   preserves gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
+  requires  pure (aligned' 16 src_arr src_off)
   requires  dst_arr |-> ds
   ensures   dst_arr |-> (seq_blit ds dst_off ss (src_off - src_slice_i) (chunk et))
 
@@ -100,5 +105,6 @@ fn gpu_array_vec_cpy_hd
   (#_ : squash (src_off + chunk et <= Seq.length ss))
   preserves gpu
   preserves src_arr |-> Frac f ss
+  requires  pure (aligned' 16 dst_arr dst_off)
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
   ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss src_off (chunk et))

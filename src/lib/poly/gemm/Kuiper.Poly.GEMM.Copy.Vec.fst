@@ -18,7 +18,7 @@ let mul_inv_2 (a b c d:nat)
 : Lemma (a == b * c * d /\ c<>0 /\ d<>0 ==> b == (a / d) / c)
 = ()
 
-#push-options "--z3rlimit 30 --fuel 0 --ifuel 1"
+#push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -32,12 +32,17 @@ fn cp_matrix_vec
   (dst : gpu_matrix et ldst)
   (nthr : sz)
   (tid : szlt nthr)
+  preserves gpu
   preserves
-    gpu **
+    src |-> Frac f esrc
+  requires
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
-    src |-> Frac f esrc **
+    pure (aligned 16 (core src))
+  requires
+    live_tile_stride_cells dst nthr tid
+  ensures
     live_tile_stride_cells dst nthr tid
 {
   open FStar.SizeT;
@@ -75,7 +80,9 @@ fn cp_matrix_vec
     assert pure (row < rows);
     assert pure (col < cols - chunk et + 1);
 
-    gpu_matrix_vec_read' src row col local;
+    assume pure (16 /?+ (cell_of_pos lsrc row col * size #et));
+
+    gpu_matrix_vec_read src row col local;
 
     let ite : erased int = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);
@@ -107,7 +114,11 @@ fn cp_matrix_vec
       assume (pure ((!i + !k) % cols == !i % cols + !k));
 
       unfold live_cell dst row (col +^ !k);
-      let v = Pulse.Lib.Array.(local.(!k));
+      // FIXME: for some reason, I have to pass s explicitly below,
+      // or we get an error about not being to prove that !k is in
+      // bounds (even if I assert it).
+      with s. assert local |-> s;
+      let v = Pulse.Lib.Array.op_Array_Access local !k #_ #s;
       gpu_matrix_write_cell dst row (col +^ !k) v;
       fold live_cell dst row (col +^ !k);
 

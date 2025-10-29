@@ -13,11 +13,26 @@ open Kuiper.SizeT
 open Kuiper.Seq.Common
 open Kuiper.Common
 open Kuiper.ForEvery
+open Kuiper.Divides { (/?+) }
 
 module SZ = Kuiper.SizeT
 
 new
 val gpu_array (a : Type u#0) (sz : nat) : Type u#0
+
+(* Base address of the GPU array, used to model alignment. This number
+is in units of *bytes*, not array elements. *)
+val base_address (#a : Type u#0) (#sz : nat) (x : gpu_array a sz) : GTot nat
+
+let aligned (n:pos) (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : prop =
+  n /?+ base_address x
+
+(* An offset within the array is aligned. *)
+let aligned' (n:pos)
+  (#a:Type u#0) {| sized a |}
+  (#sz:nat) (x:gpu_array a sz)
+  (off : nat) : prop =
+  n /?+ (base_address x + off * size #a)
 
 (* FIXME: I think having nat here, which forces to use erased nat
    in concrete functions, hurts Pulse inference a lot. Try to make all
@@ -95,6 +110,8 @@ fn gpu_array_alloc
   returns   x : gpu_array a (SZ.v sz)
   ensures
     exists* (s:seq a). x |-> s ** pure (Seq.length s == sz)
+  ensures
+    pure (aligned 128 x)
 
 fn gpu_array_free
   (#a:Type u#0)
@@ -386,7 +403,7 @@ val adjacent
 
 ghost
 fn gpu_array_cut
-  (#a : Type u#0)
+  (#a : Type u#0) {| sized a |}
   (#sz : nat)
   (arr : gpu_array a sz)
   (k : SZ.t{ k <= sz })
@@ -399,6 +416,10 @@ fn gpu_array_cut
     (p._1 |-> Frac 'f (seq_take k s)) **
     (p._2 |-> Frac 'f (seq_drop k s)) **
     adjacent p._1 p._2
+  ensures
+    // Should this below just be the definition of adjacent?
+    pure (base_address p._1 == base_address arr) **
+    pure (base_address p._2 == base_address arr + SZ.v k * size #a)
 
 ghost
 fn gpu_array_paste

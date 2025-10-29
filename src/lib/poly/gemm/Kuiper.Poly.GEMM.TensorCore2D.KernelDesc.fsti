@@ -143,7 +143,9 @@ let kpre1
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
-  live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
+  live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size) **
+  pure (aligned 16 (core gA)) **
+  pure (aligned 16 (core gB))
 
 unfold
 let kpre
@@ -197,6 +199,8 @@ fn setup
   (#_ : squash (bm /? rows))
   (#_ : squash (bn /? cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)

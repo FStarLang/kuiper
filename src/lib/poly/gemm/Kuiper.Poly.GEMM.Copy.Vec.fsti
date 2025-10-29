@@ -74,11 +74,15 @@ fn cp_matrix_vec
   (dst : gpu_matrix et ldst)
   (nthr : sz)
   (tid : szlt nthr)
+  preserves gpu
   preserves
-    gpu **
-    // Where does rows*cols + nthr >= 1 come from?
+    src |-> Frac f esrc
+  requires
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
-    src |-> Frac f esrc **
+    pure (aligned 16 (core src))
+  requires
+    live_tile_stride_cells dst nthr tid
+  ensures
     live_tile_stride_cells dst nthr tid

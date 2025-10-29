@@ -44,6 +44,8 @@ fn spec
   (gA : gpu_matrix et_ab (row_major rows shared))
   (gB : gpu_matrix et_ab (row_major shared cols))
   (gC : gpu_matrix et_c (row_major rows cols))
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
   (#eC : ematrix et_c rows cols)
@@ -64,6 +66,8 @@ fn spec
   gpu_matrix_pts_to_ref gA;
   gpu_matrix_pts_to_ref gB;
   gpu_matrix_pts_to_ref gC;
+
+  // TODO dassert for alignment of A/B
 
   dassert (bm %^ tm = 0sz);
   dassert (bn %^ tn = 0sz);
