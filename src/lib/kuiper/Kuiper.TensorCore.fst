@@ -69,7 +69,6 @@ fn array_fragment_extract
         (natlt (Seq.length ems))
         (natlt (Seq.length ems'))
         (fun (j : natlt (Seq.length ems')) -> (s @! j) |-> (ems' @! j));
-      admit ();
       fold array_fragment_pts_to farr ems';
     };
     intro_trade _ _ _ f_elim2;
