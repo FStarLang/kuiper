@@ -436,8 +436,29 @@ fn iarray_gather_n
   ensures
     a |-> Frac f v
 {
-  (* Boring *)
-  admit();
+  (* Grab one out to get the pure fact about the length. *)
+  forevery_natlt_pop k _;
+  unfold iarray_pts_to a #(f /. Real.of_int k) v;
+  fold   iarray_pts_to a #(f /. Real.of_int k) v;
+  forevery_natlt_push k _;
+  assert pure (SZ.fits (len vw));
+
+  forevery_map #(natlt k)
+    (fun _ -> a |-> Frac (f /. Real.of_int k) v)
+    (fun _ -> forall+ (x:vw.sch.ait).
+      gpu_pts_to_slice (core a) #(f /. Real.of_int k) (it_to_nat vw x) (it_to_nat vw x + 1) seq![v x])
+    fn _ {
+      unfold iarray_pts_to a #(f /. Real.of_int k) v;
+    };
+  forevery_commute _;
+  forevery_map
+    (fun i -> forall+ (_ : natlt k). iarray_pts_to_cell a #(f /. Real.of_int k) i (v i))
+    (fun i -> iarray_pts_to_cell a #f i (v i))
+    fn i {
+      gpu_slice_gather (core a) _ _ k;
+      fold iarray_pts_to_cell a #f i (v i);
+    };
+  fold iarray_pts_to a #f v;
 }
 
 ghost
