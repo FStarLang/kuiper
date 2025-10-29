@@ -39,11 +39,6 @@ let rec seq_fold_right (#a #b : Type) (f: a -> b -> b) (v : seq a) (e : b)
     | SNil -> e
     | SCons hd tl -> f hd (seq_fold_right f tl e)
 
-val lemma_seq_fold_monoid (#a:Type) (e:a) (f: a -> a -> a)
-  (s : seq a)
-  : Lemma (requires is_monoid e f)
-          (ensures seq_fold_left f e s == seq_fold_right f s e)
-
 val lemma_seq_fold_right_sum (#a:Type) (e:a) (f: a -> a -> a)
   (s1 s2 : seq a)
   : Lemma (requires is_monoid e f)
