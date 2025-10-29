@@ -265,6 +265,28 @@ fn gpu_matrix_gather_n
 }
 
 ghost
+fn gpu_matrix_pts_to_eq
+  (#et : Type u#0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (m : gpu_matrix et l)
+  (#f1 f2 : perm)
+  (#em1 #em2 : ematrix et rows cols)
+  requires
+    gpu_matrix_pts_to m #f1 em1 **
+    gpu_matrix_pts_to m #f2 em2
+  ensures
+    gpu_matrix_pts_to m #f1 em2 **
+    gpu_matrix_pts_to m #f2 em2
+{
+  unfold gpu_matrix_pts_to m #f1 em1;
+  unfold gpu_matrix_pts_to m #f2 em2;
+  A.varray_pts_to_eq m f2;
+  fold gpu_matrix_pts_to m #f1 em2;
+  fold gpu_matrix_pts_to m #f2 em2;
+}
+
+ghost
 fn gpu_matrix_gather_n_underspec
   (#et:Type0)
   (#uid: int)
@@ -274,21 +296,29 @@ fn gpu_matrix_gather_n_underspec
   (k : pos)
   (#f : perm)
   requires
-    bigstar #uid 0 k (fun _ ->
-      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_ : natlt k).
+      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em
   ensures
     exists* (em : ematrix et rows cols). gpu_matrix_pts_to gm #f em
 {
+  forevery_natlt_pop k _;
+  with em. assert gpu_matrix_pts_to gm #(f /. k) em;
   ghost
-  fn aux (i:natlt k)
-    requires exists* (em : ematrix et rows cols). gm |-> Frac (f /. k) em
-    ensures exists* (em : ematrix _ _ _). Kuiper.VArray.varray_pts_to gm #(f /. k) em
+  fn aux (_ : natlt (k-1))
+    norewrite
+    requires
+      gpu_matrix_pts_to gm #(f /. k) em ** (exists* v. gpu_matrix_pts_to gm #(f /. k) v)
+    ensures
+      gpu_matrix_pts_to gm #(f /. k) em ** gpu_matrix_pts_to gm #(f /. k) em
   {
-    with em. assert gpu_matrix_pts_to gm #(f /. k) em;
-    unfold gpu_matrix_pts_to gm #(f /. k) em;
+    gpu_matrix_pts_to_eq gm (f /. k) #_ #em;
   };
-  // bigstar_map aux;
-  admit();
+  forevery_map_extra #(natlt (k-1)) (gpu_matrix_pts_to gm #(f /. k) em)
+    (fun (_ : natlt (k-1)) -> exists* v. gpu_matrix_pts_to gm #(f /. k) v)
+    (fun (_ : natlt (k-1)) -> gpu_matrix_pts_to gm #(f /. k) em)
+    aux;
+  forevery_natlt_push k _;
+  gpu_matrix_gather_n gm k;
 }
 
 ghost

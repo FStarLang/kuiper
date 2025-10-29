@@ -440,6 +440,45 @@ fn iarray_gather_n
   admit();
 }
 
+ghost
+fn iarray_pts_to_eq
+  (#et:Type0)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f1 f2 : perm)
+  (#v1 #v2 : vw.sch.ait -> GTot et)
+  requires
+    a |-> Frac f1 v1 **
+    a |-> Frac f2 v2
+  ensures
+    a |-> Frac f1 v2 **
+    a |-> Frac f2 v2
+{
+  unfold iarray_pts_to a #f1 v1;
+  unfold iarray_pts_to a #f2 v2;
+  forevery_zip (fun i -> iarray_pts_to_cell a #f1 i (v1 i))
+               (fun i -> iarray_pts_to_cell a #f2 i (v2 i));
+  ghost
+  fn aux (i : vw.sch.ait)
+    requires
+      iarray_pts_to_cell a #f1 i (v1 i) **
+      iarray_pts_to_cell a #f2 i (v2 i)
+    ensures
+      iarray_pts_to_cell a #f1 i (v2 i) **
+      iarray_pts_to_cell a #f2 i (v2 i)
+  {
+    unfold iarray_pts_to_cell a #f1 i (v1 i);
+    unfold iarray_pts_to_cell a #f2 i (v2 i);
+    gpu_slice_pts_to_eq (core a) (it_to_nat vw i) (it_to_nat vw i + 1) #f1 f2;
+    fold iarray_pts_to_cell a #f1 i (v2 i);
+    fold iarray_pts_to_cell a #f2 i (v2 i);
+  };
+  forevery_map #(vw.sch.ait) _ _ aux;
+  forevery_unzip _ _;
+  fold iarray_pts_to a #f1 v2;
+  fold iarray_pts_to a #f2 v2;
+}
+
 inline_for_extraction noextract
 fn iarray_write_cell
   (#et:Type0)

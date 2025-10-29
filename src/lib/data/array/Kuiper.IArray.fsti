@@ -325,6 +325,20 @@ fn iarray_gather_n
   ensures
     a |-> Frac f v
 
+ghost
+fn iarray_pts_to_eq
+  (#et:Type0)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f1 f2 : perm)
+  (#v1 #v2 : vw.sch.ait -> GTot et)
+  requires
+    a |-> Frac f1 v1 **
+    a |-> Frac f2 v2
+  ensures
+    a |-> Frac f1 v2 **
+    a |-> Frac f2 v2
+
 inline_for_extraction noextract
 fn iarray_write_cell
   (#et:Type0)

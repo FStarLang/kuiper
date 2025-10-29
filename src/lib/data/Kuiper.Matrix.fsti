@@ -229,6 +229,21 @@ fn gpu_matrix_gather_n
     gpu_matrix_pts_to gm #f em
 
 ghost
+fn gpu_matrix_pts_to_eq
+  (#et : Type u#0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (m : gpu_matrix et l)
+  (#f1 f2 : perm)
+  (#em1 #em2 : ematrix et rows cols)
+  requires
+    gpu_matrix_pts_to m #f1 em1 **
+    gpu_matrix_pts_to m #f2 em2
+  ensures
+    gpu_matrix_pts_to m #f1 em2 **
+    gpu_matrix_pts_to m #f2 em2
+
+ghost
 fn gpu_matrix_gather_n_underspec
   (#et:Type0)
   (#uid: int)
@@ -238,8 +253,8 @@ fn gpu_matrix_gather_n_underspec
   (k : pos)
   (#f : perm)
   requires
-    bigstar #uid 0 k (fun _ ->
-      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k).
+      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em
   ensures
     exists* (em : ematrix et rows cols). gpu_matrix_pts_to gm #f em
 

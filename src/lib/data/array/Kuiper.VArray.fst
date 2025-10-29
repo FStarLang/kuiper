@@ -798,6 +798,27 @@ fn varray_gather_n
   fold varray_pts_to a #f v;
 }
 
+ghost
+fn varray_pts_to_eq
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f1 f2 : perm)
+  (#v1 #v2 : st)
+  requires
+    a |-> Frac f1 v1 **
+    a |-> Frac f2 v2
+  ensures
+    a |-> Frac f1 v2 **
+    a |-> Frac f2 v2
+{
+  unfold varray_pts_to a #f1 v1;
+  unfold varray_pts_to a #f2 v2;
+  IArray.iarray_pts_to_eq (VA?._0 a) #f1 f2;
+  fold varray_pts_to a #f1 v2;
+  fold varray_pts_to a #f2 v2;
+}
+
 inline_for_extraction noextract
 fn varray_write_cell
   (#et : Type) (#st : Type)
