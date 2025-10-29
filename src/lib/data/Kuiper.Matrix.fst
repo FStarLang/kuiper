@@ -303,7 +303,13 @@ fn gpu_matrix_share_2
   ensures
     (gm |-> Frac 0.5R em) ** (gm |-> Frac 0.5R em)
 {
-  admit(); // boring
+  unfold gpu_matrix_pts_to gm em;
+  A.varray_share_n gm 2;
+  forevery_natlt_pop 2 _;
+  forevery_natlt_pop 1 _;
+  forevery_elim_empty _;
+  fold gpu_matrix_pts_to gm #0.5R em;
+  fold gpu_matrix_pts_to gm #0.5R em;
 }
 
 ghost
@@ -318,7 +324,13 @@ fn gpu_matrix_gather_2
   ensures
     gm |-> em
 {
-  admit(); // boring
+  unfold gpu_matrix_pts_to gm #0.5R em;
+  unfold gpu_matrix_pts_to gm #0.5R em;
+  forevery_intro_empty #(natlt 0) (fun _ -> A.varray_pts_to gm #(1.0R /. 2) em);
+  forevery_natlt_push 1 _;
+  forevery_natlt_push 2 _;
+  A.varray_gather_n gm 2;
+  fold gpu_matrix_pts_to gm em;
 }
 
 inline_for_extraction noextract
