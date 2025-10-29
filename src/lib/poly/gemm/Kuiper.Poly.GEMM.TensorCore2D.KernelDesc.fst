@@ -63,19 +63,6 @@ fn gpu_matrix_untile_underspec
   admit();
 }
 
-// Move to forevery.fsti and implement.
-ghost
-fn forevery_map_extra
-  (#a:Type0)
-  (k : slprop)
-  (p1 p2 : a -> slprop)
-  (f : (x:a -> stt_ghost unit emp_inames (k ** p1 x) (fun _ -> k ** p2 x)))
-  requires
-    k ** (forall+ (x:a). p1 x)
-  ensures
-    k ** (forall+ (x:a). p2 x)
-{ admit() }
-
 ghost
 fn gpu_slice_gather_underspec
   (#a : Type u#0)
