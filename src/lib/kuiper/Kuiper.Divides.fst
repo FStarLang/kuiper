@@ -82,3 +82,30 @@ let lem_divup_divides (m:nat) (k:pos)
   : Lemma (k /? m ==> divup m k === m / k)
           [SMTPat (divup m k)]
   = ()
+
+let lemma_divides_sum (d : pos) (a b : int)
+  : Lemma (requires d /? a /\ d /? b)
+          (ensures d /? (a + b))
+  = calc (==) {
+      d * (a/d + b/d);
+      == {}
+      d * (a/d) + d * (b/d);
+      == {}
+      a + b;
+  }
+
+let lemma_divides_product_l (d : pos) (a c : int)
+  : Lemma (requires d /? a)
+          (ensures d /? (a * c))
+  = calc (==) {
+      d * ((a/d) * c);
+      == {}
+      (d * (a/d)) * c;
+      == {}
+      a * c;
+  }
+
+let lemma_divides_product_r (d : pos) (a c : int)
+  : Lemma (requires d /? a)
+          (ensures d /? (c * a))
+  = lemma_divides_product_l d a c

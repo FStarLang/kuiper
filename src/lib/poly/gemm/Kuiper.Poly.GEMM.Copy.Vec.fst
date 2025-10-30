@@ -18,18 +18,21 @@ let mul_inv_2 (a b c d:nat)
 : Lemma (a == b * c * d /\ c<>0 /\ d<>0 ==> b == (a / d) / c)
 = ()
 
-#push-options "--retry 5"
+let add_helper
+  (i git nthr chunk_et : int)
+  : Lemma (requires i == git * nthr * chunk_et)
+          (ensures i + nthr * chunk_et == (git + 1) * nthr * chunk_et)
+  = ()
+
 let divides_helper
   (d : pos)
   (a b r c : nat)
   : Lemma (requires d /? a /\ d /? b /\ d /? c)
           (ensures d /? (a + b * r + c))
-  = let a' = get_factor d a in
-    let b' = get_factor d b in
-    let c' = get_factor d c in
-    assert_norm (d * (a' + b' * r + c') == a + b * r + c);
+  = lemma_divides_product_l d b r;
+    lemma_divides_sum d a (b * r);
+    lemma_divides_sum d (a + b * r) c;
     ()
-#pop-options
 
 #push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
@@ -156,12 +159,15 @@ fn cp_matrix_vec
     fold live_tile_stride_cells dst nthr tid;
 
     let vi = !i;
-    assume pure (SZ.fits (nthr * chunk et));
-    assume pure (SZ.fits (vi + nthr * chunk et));
+    let vgit = GR.read git;
+    assert pure (SZ.fits (nthr * chunk et));
+    assert pure (SZ.fits (vi + nthr * chunk et));
     i := vi +^ nthr *^ chunk et;
-    GR.write git (GR.read git + 1);
-    assume pure
-      (vi + nthr == (GR.read git + 1) * nthr * chunk et);
+    GR.write git (vgit  + 1);
+
+    assert pure (SZ.v vi == vgit * nthr * chunk et);
+    add_helper vi vgit nthr (chunk et); // sigh
+    assert pure (SZ.v !i == GR.read git * nthr * chunk et);
   };
 
   drop_ (git |-> _);

@@ -54,3 +54,15 @@ val lem_divup_back (m:nat) (k:pos)
 val lem_divup_divides (m:nat) (k:pos)
   : Lemma (k /? m ==> divup m k === m / k)
           [SMTPat (divup m k)]
+
+val lemma_divides_sum (d : pos) (a b : int)
+  : Lemma (requires d /? a /\ d /? b)
+          (ensures d /? (a + b))
+
+val lemma_divides_product_l (d : pos) (a c : int)
+  : Lemma (requires d /? a)
+          (ensures d /? (a * c))
+
+val lemma_divides_product_r (d : pos) (a c : int)
+  : Lemma (requires d /? a)
+          (ensures d /? (c * a))
