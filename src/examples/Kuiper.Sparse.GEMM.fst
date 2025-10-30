@@ -12,6 +12,127 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Reprs
 
+noextract
+let rec __dprod
+  (#et : Type0) {| scalar et |}
+  (#nnz #shared #cols : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
+  (eB : ematrix et shared cols)
+  (ri re : nat{ri <= re /\ re <= nnz /\ sorted_slice col_ind ri re})
+  (j : natlt cols)
+  (to : nat{ri <= to /\ to <= re})
+  : GTot et
+=
+  if to = ri
+    then zero
+    else (
+      add
+        (__dprod elems col_ind eB ri re j (to - 1))
+        (mul
+          (elems @! (to - 1)) 
+          (macc eB (col_ind @! (to - 1)) j))
+    )
+
+noextract
+let dprod
+  (#et : Type0) {| scalar et |}
+  (#nnz #shared #cols : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
+  (eB : ematrix et shared cols)
+  (ri re : nat{ri <= re /\ re <= nnz /\ sorted_slice col_ind ri re})
+  (j : natlt cols)
+  : GTot et
+=
+  __dprod elems col_ind eB ri re j re 
+
+
+
+
+let rec matmul_all_zeros_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (from to : nat{from <= to /\ to <= shared})
+  : Lemma
+    (requires forall i. from <= i /\ i < to ==> macc m1 row i == zero)
+    (ensures MS.__matmul_single m1 m2 row col from == MS.__matmul_single m1 m2 row col to)
+=
+  if from = to
+    then ()
+    else (
+      MS.matmul_single_lemma m1 m2 row col to;
+      matmul_all_zeros_lemma m1 m2 row col from (to - 1)
+    )
+
+let rec __matmul_dotprod_lemma
+  (#et : Type0) {| scalar et |}
+  (#nnz #rows #shared #cols : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
+  (row_off : lseq nat (rows + 1))
+  (eB : ematrix et shared cols)
+  (i : natlt rows)
+  (j : natlt cols)
+  (to : nat{(row_off @! i) <= to /\ to < (row_off @! (i + 1))})
+  : Lemma
+    (requires valid_smatrix rows shared col_ind row_off)  
+    (ensures
+      __dprod elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j (to + 1) ==
+      MS.__matmul_single (smatrix_unsparse _ _ elems col_ind row_off) eB i j ((col_ind @! to) + 1) 
+    )
+=
+  let eA = smatrix_unsparse rows shared elems col_ind row_off in
+  
+  let ri = row_off @! i in
+  let re = row_off @! (i + 1) in
+
+  if to = ri
+    then (
+      MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
+      matmul_all_zeros_lemma eA eB i j 0 (col_ind @! to) 
+    )
+    else (
+      MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
+      smatrix_all_zeros rows shared elems col_ind row_off i to;
+      matmul_all_zeros_lemma eA eB i j ((col_ind @! to - 1) + 1) (col_ind @! to);
+      __matmul_dotprod_lemma elems col_ind row_off eB i j (to - 1);
+      assert macc eA i (col_ind @! to) == elems @! to
+    )
+
+
+let matmul_dotprod_lemma
+  (#et : Type0) {| scalar et |}
+  (#nnz #rows #shared #cols : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
+  (row_off : lseq nat (rows + 1))
+  (eB : ematrix et shared cols)
+  (i : natlt rows)
+  (j : natlt cols)
+  : Lemma
+    (requires valid_smatrix rows shared col_ind row_off)  
+    (ensures
+      dprod elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j ==
+      MS.matmul_single (smatrix_unsparse rows shared elems col_ind row_off) eB i j 
+    )
+=
+  let eA = smatrix_unsparse rows shared elems col_ind row_off in
+  
+  let ri = row_off @! i in
+  let re = row_off @! (i + 1) in
+
+  if ri = re
+    then matmul_all_zeros_lemma eA eB i j 0 shared
+    else (
+      __matmul_dotprod_lemma elems col_ind row_off eB i j (re - 1);
+      matmul_all_zeros_lemma eA eB i j ((col_ind @! (re - 1)) + 1) shared
+    )
+
 inline_for_extraction noextract
 fn matmul_dotprod
   (#et : Type0) {| scalar et |}
@@ -34,15 +155,17 @@ fn matmul_dotprod
   ensures pure (res == MS.matmul_single eA eB i j)
 {
   unfold smatrix_pts_to gA #fA eA;
+  with v_elems.
+    assert gpu_pts_to_array gA.elems #fA v_elems;
   with v_row_off.
     assert gpu_pts_to_array gA.row_off #fA v_row_off;
   with v_ind.
     assert gpu_pts_to_array gA.col_ind # fA v_ind;
+
+  assert pure (forall k. v_ind @! k < shared);
   
   let ri = gpu_array_read gA.row_off i;
   let re = gpu_array_read gA.row_off (i +^ 1sz);
-
-  let row_cols = hide (slice_row (cast_pos v_row_off) (cast_pos v_ind) i);
 
   let mut dp : et = zero;
 
@@ -50,16 +173,16 @@ fn matmul_dotprod
   
   while ((!k <^ re))
     invariant
-      exists* v_k.
-        k |-> v_k **
-        live dp **
-        pure (ri <= v_k)
+      live dp **
+      live k **
+      pure (
+        ri <= !k /\ !k <= re /\
+        !dp == __dprod v_elems (cast_pos v_ind) eB ri re j !k 
+      )
       
   {
     let x = gpu_array_read gA.elems !k;
     let c = gpu_array_read gA.col_ind !k;
-
-    assert pure (SZ.v c == row_cols @! (!k - ri));
 
     let y = M.gpu_matrix_read gB c j;
 
@@ -70,9 +193,9 @@ fn matmul_dotprod
 
   fold smatrix_pts_to gA;
 
-  assume pure (!dp == MS.matmul_single eA eB i j);
-  !dp;
+  matmul_dotprod_lemma v_elems (cast_pos v_ind) (cast_pos v_row_off) eB i j;
 
+  !dp;
 }
 
 unfold

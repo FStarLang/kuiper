@@ -80,8 +80,18 @@ let in_bounds (l h : nat) (s : seq nat) : prop =
   forall i. l <= s @! i /\ s @! i < h
 
 noextract
+let sorted_slice 
+  (s : seq nat)
+  (a b : nat{a <= b /\ b <= len s})
+  : prop
+=
+  forall i j. a <= i /\ i < j /\ j < b ==> s @! i < s @! j
+
+
+noextract
 let sorted (s : seq nat) : prop =
-  forall i j. i < j ==> s @! i < s @! j
+  //forall i j. i < j ==> s @! i < s @! j
+  sorted_slice s 0 (len s) 
 
 noextract
 let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop =
@@ -285,18 +295,6 @@ type smatrix (et : Type0)
 }
 
 // Medio fea esta
-noextract
-let slice_row
-  #a (#rows #nnz : nat) 
-  (row_off : lseq nat (rows + 1){forall k. row_off @! k <= nnz})
-  (s : lseq a nnz)
-  (i : nat{i < rows /\ row_off @! i <= row_off @! (i + 1)})
-  : GTot (lseq a ((row_off @! (i + 1)) - (row_off @! i)))
-=
-  let ri = row_off @! i in
-  let re = row_off @! (i + 1) in
-  Seq.slice s ri re
-
 let valid_smatrix
   (#nnz rows cols : nat)
   (col_ind : lseq nat nnz)
@@ -308,11 +306,36 @@ let valid_smatrix
   (row_off @! rows == nnz) /\
   (forall i j. i < j ==> row_off @! i <= row_off @! j) /\
   // indices de columna son posiciones validas por cada fila
+  (in_bounds 0 cols col_ind) /\
   (forall (i : natlt rows).
-    let row_cols = slice_row row_off col_ind i in
-    valid_pos cols row_cols 
+    sorted_slice col_ind (row_off @! i) (row_off @! (i + 1))
   )
    
+let rec mem_slice
+  (#et : eqtype)
+  (x : et) (s : seq et)
+  (a b : nat {a <= b /\ b <= len s})
+  : Pure bool (decreases (b - a))
+    (requires true)
+    (ensures fun r -> forall i. a <= i /\ i < b /\ x == s @! i ==> r)
+=
+  if a < b
+    then (s @! a) = x || mem_slice x s (a + 1) b
+    else false
+
+
+let rec index_mem_slice
+  (#et : eqtype)
+  (x : et) (s : seq et)
+  (a b : nat {a <= b /\ b <= len s})
+  : Pure nat
+    (requires (mem_slice x s a b))
+    (ensures (fun i -> a <= i /\ i < b /\ s @! i == x))
+    (decreases (b - a))
+=
+  if (s @! a) = x
+    then a
+    else index_mem_slice x s (a + 1) b
 
 let smatrix_unsparse
   (#et:Type0) {| scalar et |}
@@ -325,9 +348,29 @@ let smatrix_unsparse
     (ensures fun _ -> true) 
 =
   mkM fun i j ->
-    let row_cols = slice_row row_off col_ind i in
-    let row_elems = slice_row row_off elems i in
-    unsparse _ cols row_elems row_cols @! j
+    //let row_cols = slice_row row_off col_ind i in
+    //let row_elems = slice_row row_off elems i in
+    //unsparse _ cols row_elems row_cols @! j
+    let ri = row_off @! i in
+    let re = row_off @! (i + 1) in
+    if mem_slice j col_ind ri re
+      then elems @! index_mem_slice j col_ind ri re
+      else zero
+
+let smatrix_all_zeros
+  (#et:Type0) {| scalar et |}
+  (#nnz rows cols : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz)
+  (row_off : lseq nat (rows + 1)) 
+  (i : natlt rows)
+  (r : nat{(row_off @! i) < r /\ r < (row_off @! (i + 1))})
+  : Lemma
+    (requires valid_smatrix rows cols col_ind row_off)
+    (ensures
+      forall j. (col_ind @! r - 1) < j /\ j < col_ind @! r ==>
+      macc (smatrix_unsparse rows cols elems col_ind row_off) i j == zero)
+= ()
 
 
 unfold
