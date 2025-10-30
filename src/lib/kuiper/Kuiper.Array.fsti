@@ -395,6 +395,21 @@ fn gpu_slice_pts_to_eq
     gpu_pts_to_slice arr #f1 m n v2 **
     gpu_pts_to_slice arr #f2 m n v2
 
+[@@allow_ambiguous]
+ghost
+fn gpu_slice_pts_to_eq'
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#m #n : nat)
+  (#f1 #f2 : perm)
+  (#v1 #v2 : seq a)
+  preserves
+    gpu_pts_to_slice arr #f1 m n v1 **
+    gpu_pts_to_slice arr #f2 m n v2
+  ensures
+    pure (v1 == v2)
+
 val adjacent
   (#a : Type u#0)
   (#s1 #s2 : nat)

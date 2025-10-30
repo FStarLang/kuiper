@@ -86,7 +86,7 @@ fn smatrix_sdmm
     i := !i +^ 1sz;
   };
 
-  fold smatrix_pts_to gA;
+  fold smatrix_pts_to gA a;
 }
 
 let _mmsd_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
