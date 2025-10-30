@@ -13,7 +13,7 @@ open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 
-open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
+open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc { constraints }
 // ^ Only opened here for `constraints`? If so would be nice
 // to factor out.
 
