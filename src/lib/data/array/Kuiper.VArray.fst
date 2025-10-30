@@ -53,6 +53,18 @@ let varray_pts_to_cell
   : slprop
   = Cell (VA?._0 a) i |-> Frac f v
 
+let varray_pts_to_cell_eq
+  (#et:Type)
+  (#st:Type0) (#vw : aview et st)
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (f : perm)
+  (v : et)
+  : Lemma (varray_pts_to_cell a #f i v
+           ==
+           gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
+  = IArray.iarray_pts_to_cell_def #et #vw.iview (VA?._0 a) #f i v
+
 let varray_pts_to
   (#et:Type0) (#st:_) (#vw : aview et st)
   ([@@@mkey] a : varray vw)

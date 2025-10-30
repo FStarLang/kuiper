@@ -216,9 +216,9 @@ val cell_convert_eq
   (f : perm)
   (v : et)
 : Lemma (
-  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
   ==
-  gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+  gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
 )
 
 ghost
@@ -236,9 +236,9 @@ fn subcell_to_cell
   (#f : perm)
   (#v : et)
   requires
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
   ensures
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
 
 ghost
 fn cell_to_subcell
@@ -255,9 +255,9 @@ fn cell_to_subcell
   (#f : perm)
   (#v : et)
   requires
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
   ensures
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
 
 ghost
 fn gpu_matrix_tile

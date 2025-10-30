@@ -264,12 +264,12 @@ let cell_convert_eq
   (f : perm)
   (v : et)
 : Lemma (
-  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
   ==
-  gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+  gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
 )
-=
-  admit() // I think this should be provable once we expose enough
+= gpu_matrix_pts_to_cell_eq (gpu_matrix_subtile gm trows tcols tr tc) i j f v;
+  gpu_matrix_pts_to_cell_eq gm (tr * trows + i) (tc * tcols + j) f v
 
 ghost
 fn subcell_to_cell
@@ -286,15 +286,15 @@ fn subcell_to_cell
   (#f : perm)
   (#v : et)
   requires
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
   ensures
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
 {
   cell_convert_eq gm trows tcols tr tc i j f v;
   rewrite
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
        as
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v;
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v;
 }
 
 ghost
@@ -312,15 +312,15 @@ fn cell_to_subcell
   (#f : perm)
   (#v : et)
   requires
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
   ensures
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
 {
   cell_convert_eq gm trows tcols tr tc i j f v;
   rewrite
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
        as
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v;
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v;
 }
 
 ghost

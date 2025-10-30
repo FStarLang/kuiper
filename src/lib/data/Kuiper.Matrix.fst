@@ -425,6 +425,19 @@ let gpu_matrix_pts_to_cell
   : slprop
   = A.varray_pts_to_cell gm #f (i,j) v
 
+let gpu_matrix_pts_to_cell_eq
+  (#et:Type) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (i : natlt rows)
+  (j : natlt cols)
+  (f : perm)
+  (v : et)
+  : Lemma (gpu_matrix_pts_to_cell gm #f i j v
+           ==
+           gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v)
+  = A.varray_pts_to_cell_eq gm (i,j) f v
+
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)

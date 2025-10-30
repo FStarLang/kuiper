@@ -67,6 +67,17 @@ val varray_pts_to_cell
   (v : et)
   : slprop
 
+val varray_pts_to_cell_eq
+  (#et:Type)
+  (#st:Type0) (#vw : aview et st)
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (f : perm)
+  (v : et)
+  : Lemma (varray_pts_to_cell a #f i v
+           ==
+           gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
+
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#st : Type) (#vw : aview et st)
   : has_pts_to (cell (varray vw) vw.iview.sch.ait) et
