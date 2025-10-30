@@ -44,6 +44,10 @@ fn kf
   (**)unfold gpu_pts_to_array1 ga2 tid;
   (**)unfold gpu_pts_to_array1 r   tid;
 
+  // Needed after API change in gpu_array_read
+  gpu_pts_to_slice_ref ga1 _ _;
+  gpu_pts_to_slice_ref ga2 _ _;
+
   gpu_array_write r tid (gpu_array_read ga1 tid `mul` gpu_array_read ga2 tid);
 
   (**)fold gpu_pts_to_array1 r   tid;
@@ -105,10 +109,7 @@ fn block_setup
   norewrite
   requires
     block_setup_tok m_size **
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      gr |-> sr)
+    (live ga1 ** live ga2 ** live gr)
   ensures
     block_setup_tok m_size **
     (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
@@ -135,10 +136,7 @@ fn block_teardown
     (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
     emp (* frame *)
   ensures
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      gr |-> sr)
+    (live ga1 ** live ga2 ** live gr)
 {
   forevery_unzip3 _ _ _;
 
@@ -152,14 +150,8 @@ fn block_teardown
 inline_for_extraction noextract
 let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   : kernel_desc
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      r |-> sr)
-    (exists* s1 s2 sr.
-      ga1 |-> s1 **
-      ga2 |-> s2 **
-      r |-> sr)
+    (live ga1 ** live ga2 ** live r)
+    (live ga1 ** live ga2 ** live r)
 = {
   f = kf #et ga1 ga2 r;
   nthr = m_size;

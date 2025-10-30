@@ -478,6 +478,11 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
+  (* This seems to help with a particularly flaky query below. *)
+  with vbkIdx. assert bkIdx |-> vbkIdx;
+  assert (pure (vbkIdx == mshared));
+  rewrite each vbkIdx as mshared;
+
   ghost
   fn aux (i: natlt tm)
   norewrite

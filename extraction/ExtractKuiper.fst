@@ -545,7 +545,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Array.gpu_array_free", [ty], [ _sz; a; _v ] ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb a])
 
-  | "Kuiper.Array.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
+  | "Kuiper.Array.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _pf; _s ] ->
     EBufRead (cb a, cb idx)
 
   | "Kuiper.Array.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
