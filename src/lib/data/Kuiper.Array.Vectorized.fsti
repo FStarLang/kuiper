@@ -6,6 +6,10 @@ open FStar.Seq
 
 open Kuiper
 open Kuiper.Seq.Common { seq_blit }
+open Kuiper.Barrier
+
+open Pulse.Lib.Pledge
+open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
 
@@ -36,6 +40,55 @@ instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; _pf = ez; }
    slicing is also different. The "host" variants are a bit of a
    misnomer, they are meant to be used with registers arrays, and
    not CPU-side memory arrays. *)
+
+[@@noextract_to "krml"]
+atomic
+fn gpu_array_vec_cpy_async
+  (#et : Type u#0) {| sized et, has_vec_cpy et |}
+  (#dst_sz : erased nat)
+  (dst_arr : gpu_array et dst_sz)
+  (dst_off : SZ.t)
+  (#dst_slice_i : erased nat)
+  (#dst_slice_j : erased nat)
+  (#src_sz : erased nat)
+  (#src_slice_i : erased nat)
+  (#src_slice_j : erased nat)
+  (src_arr : gpu_array et src_sz)
+  (src_off : SZ.t)
+  (#f : perm)
+  (#ss : erased (seq et))
+  (#ds : erased (seq et))
+  (#_ : squash (dst_slice_i <= dst_off /\ dst_off + chunk et <= dst_slice_j))
+  (#_ : squash (Seq.length ds == dst_slice_j - dst_slice_i))
+  (#_ : squash (src_slice_i <= src_off /\ src_off + chunk et <= src_slice_j))
+  (#_ : squash (Seq.length ss == src_slice_j - src_slice_i))
+  (#e : epoch_t)
+  preserves gpu
+  requires  gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
+  requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
+  returns   e' : epoch_t
+  ensures
+    epoch_live e' **
+    // Keep the resources until synchronized
+    pledge0 (epoch_done e')
+            (gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss **
+             gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))) **
+    pure (e' >= e)
+
+// like sync_device
+fn barrier_arrive_and_wait ()
+  (#e : epoch_t)
+  requires
+    gpu **
+    epoch_live e **
+    (barrier_tok p q it tid) **
+    p it tid // p it tid -- is not be provable for how we want to use it
+  returns e' : epoch_t
+  ensures
+    epoch_done e **
+    epoch_live e' **
+    pure (e' >= e) **
+    (barrier_tok p q it tid) ** p it tid
 
 [@@noextract_to "krml"]
 atomic

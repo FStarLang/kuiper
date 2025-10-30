@@ -11,13 +11,7 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
     half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
 
-    // ALLOCATE AND INITIALIZE IN SHARED MEMORY
-    __shared__ cuda::barrier<cuda::thread_scope::thread_scope_block> __barrier;
-    if (threadIdx.x == 0) {
-    // INITIALIZE WITH NUMBER OF THREADS PER BLOCK
-        init(&__barrier, 64U);
-    }
-    __syncthreads();
+    KPR_INIT_BARRIER(64U);
 
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
@@ -53,11 +47,10 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; i2 < 4096U; i2 += 512U) {
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
-            memcpy_async(
+            vec_memcpy_async(
                 &sA[row * 32U + col],
                 &tileA[shared * (mrow * 128U) + __anf01 * 32U + shared * row + col],
-                cuda::aligned_size_t<sizeof(float4)>(sizeof(float4)),
-                __barrier
+                KPR_BARRIER
             );
         }
         half_t *tileB = gB;
@@ -65,15 +58,14 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         for (; i < 4096U; i += 512U) {
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
-            memcpy_async(
+            vec_memcpy_async(
                 &sB[row * 128U + col],
                 &tileB[cols * (__anf01 * 32U) + mcol * 128U + cols * row + col],
-                cuda::aligned_size_t<sizeof(float4)>(sizeof(float4)),
-                __barrier
+                KPR_BARRIER
             );
         }
         // WAIT FOR COPIES TO FINISH
-        __barrier.arrive_and_wait();
+        KPR_BARRIER.arrive_and_wait();
 
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {

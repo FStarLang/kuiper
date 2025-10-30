@@ -8,6 +8,7 @@
 
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
+#include <cuda/barrier>
 #include "atomics.h"
 #include "vectorops.h"
 #if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
@@ -31,6 +32,14 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 		exit(1);
 	}
 }
+
+#define KPR_BARRIER __barrier
+#define KPR_INIT_BARRIER(nthr) \
+	  __shared__ cuda::barrier<cuda::thread_scope::thread_scope_block> KPR_BARRIER; \
+    if (threadIdx.x == 0) { \
+        init(&__barrier, nthr); \
+    } \
+    __syncthreads(); \
 
 /*
  * All kernel calls extract to this. The shared memory will just

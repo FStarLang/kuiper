@@ -8,6 +8,7 @@ open Kuiper.ForEvery
 open FStar.Tactics.V2
 open Kuiper.Base
 open Kuiper.SizeT
+open Kuiper.Epoch
 
 (* A barrier over nthreads. This is for specification only,
 there is no runtime representation for it, nor a handle-like
@@ -67,3 +68,9 @@ fn barrier_wait
   (#tid : enatlt n)
   requires barrier_tok p q  it    tid ** p it tid
   ensures  barrier_tok p q (it+1) tid ** q it tid
+
+fn barrier_arrive_and_wait ()
+  (#e : epoch_t)
+  requires gpu ** epoch_live e
+  returns e' : epoch_t
+  ensures epoch_done e ** epoch_live e' ** pure (e' >= e)
