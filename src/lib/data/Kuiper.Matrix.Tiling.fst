@@ -406,9 +406,24 @@ fn gpu_matrix_untile_underspec
         (exists* (em : ematrix et trows tcols).
           gpu_matrix_subtile gm trows tcols tr tc |-> Frac f em)
   ensures
-    (exists* (em : ematrix et rows cols). gm |-> Frac f em)
+    exists* (em : ematrix et rows cols). gm |-> Frac f em
 {
-  admit();
+  forevery_flatten _;
+  let cf = forevery_exists #(natlt (rows / trows) & natlt (cols / tcols)) _;
+  let em = ematrix_from_tiles trows tcols (fun x y -> cf (x,y));
+  ghost
+  fn aux (rc : natlt (rows / trows) & natlt (cols / tcols))
+    requires
+      gpu_matrix_subtile gm trows tcols (fst rc) (snd rc) |-> Frac f (cf rc)
+    ensures
+      gpu_matrix_subtile gm trows tcols (fst rc) (snd rc) |-> Frac f (ematrix_subtile em trows tcols (fst rc) (snd rc))
+  {
+    rewrite each cf rc as ematrix_subtile em trows tcols (fst rc) (snd rc);
+  };
+  forevery_map _ _ aux;
+  forevery_unflatten #(natlt (rows / trows)) #(natlt (cols / tcols))
+    (fun r c -> gpu_matrix_subtile gm trows tcols r c |-> Frac f (ematrix_subtile em trows tcols r c));
+  gpu_matrix_untile gm trows tcols;
 }
 
 ghost
