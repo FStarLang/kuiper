@@ -89,6 +89,22 @@ val update_tile_self
            em)
           [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
 
+val subtile_of_update_tile
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (etile : ematrix et trows tcols)
+  (tr' : natlt (rows / trows))
+  (tc' : natlt (cols / tcols))
+  : Lemma (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc'
+           ==
+           (if tr = tr' && tc = tc' then etile else ematrix_subtile em trows tcols tr' tc'))
+          [SMTPat (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc')]
+
 let tile_inj_f
   (#rows #cols : nat)
   (trows : pos {trows /? rows})

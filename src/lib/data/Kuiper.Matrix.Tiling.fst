@@ -53,6 +53,27 @@ let update_tile_self
           [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
 = assert (equal (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)) em)
 
+#push-options "--split_queries always"
+let subtile_of_update_tile
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (etile : ematrix et trows tcols)
+  (tr' : natlt (rows / trows))
+  (tc' : natlt (cols / tcols))
+  : Lemma (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc'
+           ==
+           (if tr = tr' && tc = tc' then etile else ematrix_subtile em trows tcols tr' tc'))
+          [SMTPat (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc')]
+  = if tr' = tr && tc' = tc then
+      assert (equal (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc') etile)
+    else
+      assert (equal (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc') (ematrix_subtile em trows tcols tr' tc'))
+#pop-options
 
 #push-options "--fuel 0 --ifuel 0 --split_queries always"
 inline_for_extraction noextract
@@ -426,6 +447,7 @@ fn gpu_matrix_untile_underspec
   gpu_matrix_untile gm trows tcols;
 }
 
+
 ghost
 fn gpu_matrix_extract_tile
   (#et:Type0)
@@ -447,40 +469,56 @@ fn gpu_matrix_extract_tile
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 {
   gpu_matrix_tile gm trows tcols;
-  forevery_extract_if_2 tr tc _;
+  forevery_flatten _;
+  forevery_remove _ (tr, tc);
   ghost
   fn aux (tm' : ematrix et trows tcols)
     requires
       forall+
-        (tr' : natlt (rows / trows))
-        (tc' : natlt (cols / tcols)).
-          (if t2b ((tr', tc') == (tr, tc))
-           then emp
-           else
-             // Using |-> below fails
-             gpu_matrix_pts_to (gpu_matrix_subtile gm trows tcols tr' tc') #f (ematrix_subtile em trows tcols tr' tc'))
+        (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ).
+          gpu_matrix_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em trows tcols (fst tr'tc') (snd tr'tc'))
     ensures
       gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm')
   {
+    let em' = update_tile em trows tcols tr tc tm';
+    assert pure (forall (tc' : natlt (cols / tcols)) (tr' : natlt (rows / trows)).
+      tc =!= tc' \/ tr =!= tr' ==>
+        (ematrix_subtile em trows tcols tr' tc'
+         ==
+         ematrix_subtile em' trows tcols tr' tc')
+    );
+    forevery_ext
+      (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ) ->
+        gpu_matrix_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em trows tcols (fst tr'tc') (snd tr'tc')))
+      (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ) ->
+        gpu_matrix_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em' trows tcols (fst tr'tc') (snd tr'tc')));
     ghost
     fn aux ()
       requires
         forall+
-          (tr' : natlt (rows / trows))
-          (tc' : natlt (cols / tcols)).
-            (if t2b ((tr', tc') == (tr, tc))
-            then emp
-            else
-              // Using |-> below fails
-              gpu_matrix_pts_to (gpu_matrix_subtile gm trows tcols tr' tc') #f (ematrix_subtile em trows tcols tr' tc'))
+        (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ).
+          gpu_matrix_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em' trows tcols (fst tr'tc') (snd tr'tc'))
       requires
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm'
       ensures
         gm |-> Frac f (update_tile em trows tcols tr tc tm')
     {
-      (* This bit is really boring. *)
-      admit();
+      assert pure (ematrix_subtile em' trows tcols tr tc == tm');
+      rewrite
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm'
+      as
+        gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em' trows tcols tr tc);
+      forevery_insert 
+        #(natlt (rows / trows) & natlt (cols / tcols))
+        #(fun tr'tc' -> tr'tc' =!= (tr, tc))
+        (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols)) ->
+          gpu_matrix_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em' trows tcols (fst tr'tc') (snd tr'tc')))
+        (tr, tc);
+      forevery_unrefine _;
+      forevery_unflatten' _;
+      gpu_matrix_untile gm trows tcols #em';
+      ()
     };
     Pulse.Lib.Trade.intro_trade _ _ _ aux;
   };
