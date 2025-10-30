@@ -2,6 +2,7 @@ module Kuiper.Math.Silly
 
 open FStar.Mul
 open Kuiper.Common
+module M = FStar.Math.Lemmas
 
 let lemma_nonneg_mul (x y : int)
   : Lemma (requires x >= 0 /\ y >= 0)
@@ -36,3 +37,9 @@ let stupid_divides (x:nat) (y:nonzero)
 = ()
 
 let p4_assoc = ez
+
+let mod_prod (a b : int) (k : pos) :
+  Lemma (ensures (a % k) * (b % k) % k == (a * b) % k)
+  = M.lemma_mod_mul_distr_l a b k;
+    M.lemma_mod_mul_distr_r (a % k) b k;
+    ()

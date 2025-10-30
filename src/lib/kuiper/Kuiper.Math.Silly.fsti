@@ -36,3 +36,5 @@ val p4_assoc
   (x y z w : nat)
   : Lemma ((x * y) * (z * w) == x * z * y * w)
 
+val mod_prod (a b : int) (k : pos) :
+  Lemma (ensures (a % k) * (b % k) % k == (a * b) % k)
