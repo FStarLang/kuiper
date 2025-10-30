@@ -18,6 +18,19 @@ let mul_inv_2 (a b c d:nat)
 : Lemma (a == b * c * d /\ c<>0 /\ d<>0 ==> b == (a / d) / c)
 = ()
 
+#push-options "--retry 5"
+let divides_helper
+  (d : pos)
+  (a b r c : nat)
+  : Lemma (requires d /? a /\ d /? b /\ d /? c)
+          (ensures d /? (a + b * r + c))
+  = let a' = get_factor d a in
+    let b' = get_factor d b in
+    let c' = get_factor d c in
+    assert_norm (d * (a' + b' * r + c') == a + b * r + c);
+    ()
+#pop-options
+
 #push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
 fn cp_matrix_vec
@@ -25,7 +38,7 @@ fn cp_matrix_vec
   (rows cols: sz)
   (#lsrc #ldst : mlayout rows cols)
   {| clayout lsrc, clayout ldst |}
-  {| strided_row_major lsrc |}
+  {| src_str : strided_row_major lsrc |}
   (src : gpu_matrix et lsrc)
   (#f : perm)
   (#esrc : ematrix et rows cols)
@@ -39,15 +52,18 @@ fn cp_matrix_vec
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
-    pure (aligned 16 (core src))
+    pure (aligned 16 (core src)) **
+    pure (rows * cols > 0)
   requires
     live_tile_stride_cells dst nthr tid
   ensures
     live_tile_stride_cells dst nthr tid
 {
+  // These should be exposed to the precondition and bubbled up.
+  assume pure (chunk et /?+ src_str.stride);
+  assume pure (chunk et /?+ src_str.offset);
   open FStar.SizeT;
   let mlen = rows *^ cols;
-  assume (pure (rows * cols > 0)); // oh...
 
   assert pure (SZ.fits (tid * chunk et)); // ?
   let offset : sz = tid *^ chunk et;
@@ -66,27 +82,34 @@ fn cp_matrix_vec
     invariant
       live i ** live git **
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
+      pure (GR.read git <= (rows*cols) / (nthr * chunk et)) **
       live_tile_stride_cells dst nthr tid
   {
+    assert pure (GR.read git < (rows*cols) / (chunk et * nthr));
     let vi = !i;
-    assume pure (vi + offset < mlen); // prove this, it follows from rounding down, it works some times
+    assert pure (vi + offset < mlen); // prove this, it follows from rounding down, it works some times
     let mut local = [| zero #et #_; chunk et |];
 
-    assume pure (SZ.fits (!i + nthr * chunk et));
+    assert pure (SZ.fits (!i + nthr * chunk et));
     let row = (!i +^ offset) /^ cols; assert (rewrites_to row ((!i +^ offset) /^ cols));
     let col = (!i +^ offset) %^ cols; assert (rewrites_to col ((!i +^ offset) %^ cols));
-    assume (pure (col + chunk et <= cols)); // ?
+    assert pure (chunk et /?+ cols);
+    assume pure (chunk et /?+ col); // PROVE
+    assert (pure (col + chunk et <= cols));
     assert pure (SZ.v offset == tid * chunk et);
     assert pure (row < rows);
     assert pure (col < cols - chunk et + 1);
 
-    assume pure (16 /?+ (cell_of_pos lsrc row col * size #et));
+    assert pure (chunk et * size #et == 16);
+    src_str.pf row col;
+    divides_helper (chunk et) src_str.offset src_str.stride row col;
+    assert pure (chunk et /? cell_of_pos lsrc row col);
+    assert pure (16 /?+ (cell_of_pos lsrc row col * size #et));
 
     gpu_matrix_vec_read src row col local;
 
     let ite : erased int = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);
-    // assert (pure (ite == (!i / chunk et ) / nthr)); //this one seems to fail randomly
 
     unfold live_tile_stride_cells dst nthr tid;
     assert (pure (ite < divup (rows*cols) (chunk et * nthr)));
@@ -109,8 +132,8 @@ fn cp_matrix_vec
     {
       unfold live_chunk dst row col;
       forevery_extract #(natlt (chunk et)) !k _;
-      assume (pure ((!i + !k) / cols < rows)); // check this
-      assume (pure ((!i + !k) / cols == !i / cols)); // should be provable (chunk et divides cols)
+      assume pure ((!i + !k) / cols < rows); // sometimes works
+      assume pure ((!i + !k) / cols == !i / cols); // should be provable (chunk et divides cols)
       assume (pure ((!i + !k) % cols == !i % cols + !k));
 
       unfold live_cell dst row (col +^ !k);

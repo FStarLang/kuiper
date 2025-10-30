@@ -21,7 +21,7 @@ let live_cell
   = exists* v. gpu_matrix_pts_to_cell gm i j v
 
 let live_chunk
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
   (#lm : mlayout rows cols)
   ([@@@mkey] m : gpu_matrix et lm)
@@ -34,7 +34,7 @@ let live_chunk
     live_cell m i (j + k)
 
 let live_tile_stride_cells
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
   (#lm : mlayout rows cols)
   ([@@@mkey] m : gpu_matrix et lm)
@@ -60,6 +60,8 @@ let live_tile_stride_cells
     then live_chunk m i j
     else emp
 
+// NB: The scalar constraint is only here so we can use 'zero' as an initializer
+// for a local array... would be gone if we had uninitialized local arrays.
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -67,7 +69,7 @@ fn cp_matrix_vec
   // (#_ : squash (chunk et /? cols))
   (#lsrc #ldst : mlayout rows cols)
   {| clayout lsrc, clayout ldst |}
-  {| strided_row_major lsrc |}
+  {| src_str : strided_row_major lsrc |}
   (src : gpu_matrix et lsrc)
   (#f : perm)
   (#esrc : ematrix et rows cols)
@@ -81,7 +83,8 @@ fn cp_matrix_vec
     pure (SZ.fits (rows * cols + nthr - 1)) **
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
-    pure (aligned 16 (core src))
+    pure (aligned 16 (core src)) **
+    pure (rows * cols > 0)
   requires
     live_tile_stride_cells dst nthr tid
   ensures

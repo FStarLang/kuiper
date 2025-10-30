@@ -72,7 +72,7 @@ let live_warp_tile
   live (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid) #(1.0R /. warp_size)
 
 let barrier_p
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
@@ -89,7 +89,7 @@ let barrier_p
       live_tile_stride_cells m2 nthr tid
 
 let barrier_q
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
@@ -100,7 +100,7 @@ let barrier_q
   fun it tid -> barrier_p m1 m2 nthr (it+1) tid (* flip flop *)
 
 let barrier_tok
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
@@ -149,7 +149,7 @@ let kpre1
 
 unfold
 let kpre
-  (#et_ab #et_c : Type0) {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  (#et_ab #et_c : Type0) {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -176,7 +176,7 @@ let kpre
   kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
+  barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
 
 ghost
 fn setup
@@ -288,7 +288,7 @@ let kpost1
 
 unfold
 let kpost
-  (#et_ab #et_c : Type0) {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  (#et_ab #et_c : Type0) {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -316,7 +316,7 @@ let kpost
   kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
   (exists* (x : seq et_ab). (fst sh) |-> Frac (1.0R /. nthr) x) **
   (exists* (x : seq et_ab). (fst (snd sh)) |-> Frac (1.0R /. nthr) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr tid
+  barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr tid
 
 ghost
 fn block_teardown

@@ -253,7 +253,7 @@ fn setup
 
 ghost
 fn lemma_even_barrier_p_to_q
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (l1 : full_mlayout bm bk)
   (l2 : full_mlayout bk bn)
@@ -308,7 +308,7 @@ ensures
 
 ghost
 fn lemma_odd_barrier_p_to_q
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (l1 : full_mlayout bm bk)
   (l2 : full_mlayout bk bn)
@@ -334,7 +334,7 @@ ensures
 
 ghost
 fn barrier_p_to_q_transform
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (l1 : full_mlayout bm bk)
   (l2 : full_mlayout bk bn)
@@ -435,24 +435,6 @@ ensures
     };
     forevery_map _ _ oddaux2;
   }
-}
-
-let frozen p = p
-
-ghost
-fn freeze (p : slprop)
-  requires p
-  ensures  frozen p
-{
-  rewrite p as frozen p;
-}
-
-ghost
-fn thaw (p : slprop)
-  requires frozen p
-  ensures  p
-{
-  rewrite frozen p as p;
 }
 
 ghost

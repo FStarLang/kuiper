@@ -25,8 +25,8 @@ fn copy_tiles_out_of_matrices_vec
   (#slB : mlayout bk bn) {| clayout slB |}
   (sA : gpu_matrix et slA)
   (sB : gpu_matrix et slB)
-  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
-  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
+  (#lA : mlayout rows shared) {| clayout lA, str_A : strided_row_major lA |}
+  (#lB : mlayout shared cols) {| clayout lB, str_B : strided_row_major lB |}
   (gA : gpu_matrix et lA)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)

@@ -178,6 +178,7 @@ fn unget_slice
   admit();
 }
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn gpu_matrix_vec_read
   (#et:Type0) {| sized et, has_vec_cpy et |}
@@ -215,3 +216,4 @@ fn gpu_matrix_vec_read
 
   ();
 }
+#pop-options
