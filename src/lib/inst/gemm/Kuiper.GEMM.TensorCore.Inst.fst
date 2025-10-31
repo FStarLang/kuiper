@@ -58,17 +58,13 @@ fn specialize_gpu
   ensures
     (exists* eC'. gC |-> eC')
 {
+  gpu_matrix_pts_to_ref gA;
+  gpu_matrix_pts_to_ref gB;
+  gpu_matrix_pts_to_ref gC;
+
   let mrows   = rows   /^ bm;
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
-
-
-  // All assumes should be dynamically checked.
-  // odd constraints, required for the implementation of copy
-  // (we stride through a tile with all threads and in the last iteration the iteration variable may go up to (tile_size + nthr-1))
-  assume (pure (SZ.fits (rows * shared)));
-  assume (pure (SZ.fits (shared * cols)));
-  assume (pure (SZ.fits (rows * cols)));
 
   // preconditions checcked at runtime
   // TODO should be checked at runtime but has ghost effect:

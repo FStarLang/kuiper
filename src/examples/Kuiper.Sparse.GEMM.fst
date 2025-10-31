@@ -191,7 +191,7 @@ fn matmul_dotprod
     k := !k +^ 1sz;
   };
 
-  fold smatrix_pts_to gA;
+  fold smatrix_pts_to gA #fA eA;
 
   matmul_dotprod_lemma v_elems (cast_pos v_ind) (cast_pos v_row_off) eB i j;
 
@@ -307,9 +307,7 @@ fn setup
 {
   // Sharing the input matrices (splitting permissions)
   smatrix_share_n gA (rows *^ cols);
-  forevery_fromstar #(natlt2 rows cols) _;
   M.gpu_matrix_share_n gB (rows *^ cols);
-  forevery_fromstar #(natlt2 rows cols) _;
 
   // Sharing the output matrix (splitting each cell)
   M.gpu_matrix_explode gC;
@@ -368,8 +366,6 @@ fn teardown
   forevery_unzip #(natlt (rows * cols)) _ _;
 
   smatrix_gather_n gA (rows * cols) #fA #eA;
-  forevery_tostar #(natlt (rows * cols))
-    (fun i -> gB |-> Frac (fB /. (rows * cols)) eB);
   M.gpu_matrix_gather_n gB _;
 
   forevery_factor (rows * cols) rows cols _;
@@ -399,7 +395,7 @@ fn teardown
   {
     ()
   };
-  forevery_map_2 #(natlt rows) #_ #(natlt cols)
+  forevery_map_2
     (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
     _
     aux;

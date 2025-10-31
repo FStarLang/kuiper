@@ -56,6 +56,16 @@ val iarray_pts_to_cell
   (v : et)
   : slprop
 
+val iarray_pts_to_cell_def
+  (#et : Type)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f : perm)
+  (i : vw.sch.ait)
+  (v : et)
+  : Lemma (iarray_pts_to_cell a #f i v ==
+            gpu_pts_to_cell (core a) #f (it_to_nat vw i) v)
+
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#vw : aiview)
   : has_pts_to (cell (iarray et vw) vw.sch.ait) et
@@ -208,6 +218,25 @@ fn iarray_end2
     a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 
 ghost
+fn iarray_cell_reindex
+  (#et : Type0)
+  (#f : perm)
+  (#vw #vw' : aiview)
+  (a : iarray et vw)
+  (i : vw.sch.ait)
+  (a' : iarray et vw')
+  (i' : vw'.sch.ait)
+  (#v: et)
+  requires
+    pure (vw.len == vw'.len /\ core a == core a')
+  requires
+    pure (it_to_nat vw i == it_to_nat vw' i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
+
+ghost
 fn iarray_reindex_
   (#et : Type0)
   (#vw : aiview)
@@ -223,6 +252,7 @@ fn iarray_reindex_
     from_array (reindex_view vw bij) (core a) |-> Frac f (v `oo` bij.gg)
 
 inline_for_extraction noextract
+unobservable
 fn iarray_reindex
   (#et : Type0)
   (#vw : aiview)
@@ -273,7 +303,6 @@ ghost
 fn iarray_share_n
   (#et:Type0)
   (#vw : aiview)
-  (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
@@ -281,21 +310,34 @@ fn iarray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 
 ghost
 fn iarray_gather_n
   (#et:Type0)
   (#vw : aiview)
-  (#[T.exact (`0)] uid: int)
   (a : iarray et vw)
   (k : pos)
   (#f : perm)
   (#v : vw.sch.ait -> GTot et)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
+
+ghost
+fn iarray_pts_to_eq
+  (#et:Type0)
+  (#vw : aiview)
+  (a : iarray et vw)
+  (#f1 f2 : perm)
+  (#v1 #v2 : vw.sch.ait -> GTot et)
+  requires
+    a |-> Frac f1 v1 **
+    a |-> Frac f2 v2
+  ensures
+    a |-> Frac f1 v2 **
+    a |-> Frac f2 v2
 
 inline_for_extraction noextract
 fn iarray_write_cell

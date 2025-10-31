@@ -40,8 +40,10 @@ let row_major_mirror : mrepr =
 inline_for_extraction noextract
 instance val crepr_row_major_mirror : crepr row_major_mirror
 
+#push-options "--z3rlimit_factor 4"
 inline_for_extraction noextract
 instance strided_row_major_base (#rows #cols : erased nat)
+  (#_ : squash (cols > 0))
   {| d : concrete_sz cols |}
   : strided_row_major (row_major rows cols) =
 {
@@ -52,6 +54,7 @@ instance strided_row_major_base (#rows #cols : erased nat)
 
 inline_for_extraction noextract
 instance strided_col_major_base (#rows #cols : erased nat)
+  (#_ : squash (rows > 0))
   {| d : concrete_sz rows |}
   : strided_col_major (col_major rows cols) =
 {
@@ -59,3 +62,4 @@ instance strided_col_major_base (#rows #cols : erased nat)
   stride = concr' d;
   pf = ez;
 }
+#pop-options

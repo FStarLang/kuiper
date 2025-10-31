@@ -46,6 +46,8 @@ fn spec
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
+    pure (aligned 16 (M.core gA)) **
+    pure (aligned 16 (M.core gB)) **
     pure (rows * cols <= max_blocks) **
     gC |-> eC
   ensures

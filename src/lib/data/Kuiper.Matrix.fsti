@@ -36,10 +36,7 @@ instance cview_from_clayout
   };
 
   step = {
-    cimap = {
-      f      = clayout_imap c;
-      is_inj = ez;
-    };
+    cimap = Kuiper.Injection.mk_cinj (clayout_imap c);
     compat = ez;
   };
 }
@@ -145,6 +142,37 @@ fn gpu_matrix_abs'
   ensures
     from_array l p |-> Frac f (from_seq l s)
 
+(* This version does not require a full_layout. *)
+ghost
+fn gpu_matrix_iconcr
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    g |-> Frac f em
+  ensures
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+
+ghost
+fn gpu_matrix_iabs
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      gpu_pts_to_cell (core g) #f (cell_of_pos l r c) (macc em r c))
+  ensures
+    g |-> Frac f em
+
 inline_for_extraction noextract
 fn gpu_matrix_alloc0
   (#et:Type) {| sized et |}
@@ -175,7 +203,6 @@ fn gpu_matrix_free
 ghost
 fn gpu_matrix_share_n
   (#et:Type0)
-  (#[T.exact (`0)]uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
@@ -185,10 +212,39 @@ fn gpu_matrix_share_n
   requires
     gpu_matrix_pts_to gm #f em
   ensures
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
 
 ghost
 fn gpu_matrix_gather_n
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (k : pos)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  requires
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
+  ensures
+    gpu_matrix_pts_to gm #f em
+
+ghost
+fn gpu_matrix_pts_to_eq
+  (#et : Type u#0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (m : gpu_matrix et l)
+  (#f1 f2 : perm)
+  (#em1 #em2 : ematrix et rows cols)
+  requires
+    gpu_matrix_pts_to m #f1 em1 **
+    gpu_matrix_pts_to m #f2 em2
+  ensures
+    gpu_matrix_pts_to m #f1 em2 **
+    gpu_matrix_pts_to m #f2 em2
+
+ghost
+fn gpu_matrix_gather_n_underspec
   (#et:Type0)
   (#uid: int)
   (#rows #cols : nat)
@@ -196,11 +252,11 @@ fn gpu_matrix_gather_n
   (gm : gpu_matrix et l)
   (k : pos)
   (#f : perm)
-  (#em : ematrix et rows cols)
   requires
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k).
+      exists* (em: ematrix et rows cols). gpu_matrix_pts_to gm #(f /. k) em
   ensures
-    gpu_matrix_pts_to gm #f em
+    exists* (em : ematrix et rows cols). gpu_matrix_pts_to gm #f em
 
 ghost
 fn gpu_matrix_share_2
@@ -272,6 +328,18 @@ val gpu_matrix_pts_to_cell
   ([@@@mkey]j : natlt cols)
   (v : et)
   : slprop
+
+val gpu_matrix_pts_to_cell_eq
+  (#et:Type) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (i : natlt rows)
+  (j : natlt cols)
+  (f : perm)
+  (v : et)
+  : Lemma (gpu_matrix_pts_to_cell gm #f i j v
+           ==
+           gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v)
 
 inline_for_extraction noextract
 fn gpu_matrix_read_cell

@@ -158,6 +158,20 @@ fn bigstar_extensionality
 }
 
 ghost
+fn bigstar_ext'
+  (#u1: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f: (i: nat{m <= i /\ i < n} -> slprop))
+  (g: (i: nat{m <= i /\ i < n} -> slprop))
+  requires bigstar #u1 m n f
+  requires pure (forall (i: nat{m <= i /\ i < n}). f i == g i)
+  ensures  bigstar #u1 m n g
+{
+  bigstar_extensionality #u1 m n f g (fun _ -> ())
+}
+
+ghost
 fn bigstar_eta
   ()
   (#u1: int)
@@ -214,6 +228,7 @@ fn rec bigstar_extract
 {
   bigstar_pop #u1;
   if (m = i) {
+    assert rewrites_to m i;
     rewrite (emp ** f m ** bigstar #u1 (m+1) n (fun (j: nat { (i+1) <= j /\ j < n }) -> f j))
          as (bigstar #u1 m i (fun (j: nat { m <= j /\ j < i }) -> f j) ** f i ** bigstar #u1 (i+1) n (fun (j: nat { (i+1) <= j /\ j < n }) -> f j));
   } else {
@@ -365,7 +380,7 @@ fn rec bigstar_map'
   decreases (n-m)
 {
   if (m = n) {
-    rewrite bigstar #u1 m n f as emp;
+    rewrite bigstar #u1 m n (fun i -> f i) as emp;
     rewrite emp as bigstar #u2 m n g;
   } else {
     bigstar_extract m n (fun (i: nat { m <= i /\ i < n }) -> f i) m;
@@ -475,8 +490,8 @@ fn rec bigstar_zip'
   decreases (n-m)
 {
   if (n = m) {
-    rewrite bigstar #u1 m n f as emp;
-    rewrite bigstar #u2 m n g as emp;
+    rewrite bigstar #u1 m n (fun i -> f i) as emp;
+    rewrite bigstar #u2 m n (fun i -> g i) as emp;
     rewrite emp as bigstar #u3 m n (comb f g);
     ()
   } else {
@@ -726,30 +741,70 @@ fn rec bigstar_flatten
     bigstar_flatten #u1 #u2 #(n1-1) #n2 #(fun x -> f x);
     bigstar_shift #u2 #0 #n2 ((n1-1)*n2)
       #(fun i -> f (n1-1) i);
-    bigstar_ext u2 u2 ((n1-1)*n2) (n1*n2)
-      (fun i -> f (n1-1) (i - (n1-1)*n2))
-      (fun i -> f (i/n2) (i%n2));
     rewrite each (0 + ((n1-1) `op_Multiply` n2)) as ((n1-1)*n2);
     rewrite each (n2 + ((n1-1) `op_Multiply` n2)) as (n1*n2);
-    assert bigstar #u2 ((n1-1)*n2) (n1*n2) (fun i -> f (i/n2) (i%n2));
+    bigstar_ext' ((n1-1)*n2) (n1*n2)
+      (fun i -> f (n1-1) (i - (n1-1)*n2))
+      (fun i -> f (i/n2) (i%n2));
     // retag
     rewrite bigstar #u2 ((n1-1)*n2) (n1*n2) (fun i -> f (i/n2) (i%n2))
          as bigstar #u1 ((n1-1)*n2) (n1*n2) (fun i -> f (i/n2) (i%n2));
     let f' = (fun (ij : nat {0 <= ij /\ ij < n1 * n2}) -> f (ij / n2) (ij % n2));
+    bigstar_ext' 0 ((n1 - 1) * n2) (fun i -> f (i / n2) (i % n2)) f';
     bigstar_paste #u1 #0 #(n1*n2) ((n1-1)*n2) #f';
   }
 }
 
 ghost
-fn bigstar_unflatten
+fn rec bigstar_unflatten
   (#u1 #u2 : int)
   (#n1 : nat)
   (#n2 : nat)
   (#f: (i: nat{0 <= i /\ i < n1} -> j: nat{0 <= j /\ j < n2} -> slprop))
   requires bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2))
   ensures  bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i))
+  decreases n1
 {
-  admit(); (* reverse the _flatten *)
+  if (n1 = 0) {
+    rewrite bigstar #u1 0 (n1 * n2) (fun i -> f (i / n2) (i % n2)) as emp;
+    rewrite emp as bigstar #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i));
+  }
+  else {
+    rewrite each (n1 * n2) as (n2 + ((n1 - 1) * n2));
+    bigstar_cut #u1 #0 #(n2 + ((n1-1)*n2)) ((n1 - 1) * n2);
+    rewrite each ((n2 + (n1 - 1) * n2)) as (n1 * n2);
+    admit();
+    // FIXME: we seem to get an ill-typed VC below, which fails
+    // * Info at /home/guido/r/kuiper/main/src/lib/common/Pulse.Lib.BigStar.fst:776.5-792.73:
+    //   - This query failed:
+    //   - Pulse.Lib.BigStar.bigstar 0 ((n1 - 1) * n2) (fun i -> f (i / n2) (i % n2)) ==
+    //     Pulse.Lib.BigStar.bigstar 0 ((n1 - 1) * n2) (fun i -> f (i / n2) (i % n2))
+
+    // * Info at /home/guido/r/kuiper/main/src/lib/common/Pulse.Lib.BigStar.fst:776.5-792.73:
+    //   - This query failed:
+    //   - (fun i -> f (i / n2) (i % n2)) < n2 + (n1 - 1) * n2
+
+    // * Info at /home/guido/r/kuiper/main/src/lib/common/Pulse.Lib.BigStar.fst:776.5-792.73:
+    //   - This query failed:
+    //   - 0 <= (fun i -> f (i / n2) (i % n2))
+
+    bigstar_unflatten #u1 #u2 #(n1 - 1) #n2 #(fun x -> f x); //eta expand to retype f
+    bigstar_extensionality #u1 ((n1-1)*n2) (n1*n2)
+      (fun i -> f (i/n2) (i%n2))
+      (fun i -> f (n1-1) (i - (n1-1)*n2))
+      (fun _ -> ());
+    bigstar_shift #u1 #((n1 - 1)*n2) #(n1 * n2) (-((n1 - 1)*n2));
+    rewrite each (((n1 - 1) * n2 + - (n1 - 1) * n2)) as 0;
+    rewrite each (n1 * n2 + - (n1 - 1) * n2) as n2;
+    bigstar_extensionality #u1 0 n2
+      (fun x -> f (n1 - 1) (x - - (n1 - 1) * n2 - (n1 - 1) * n2))
+      (f (n1-1))
+      (fun _ -> ());
+    rewrite bigstar #u1 0 n2 (f (n1 - 1))
+         as bigstar #u2 0 n2 (f (n1 - 1)); //retag
+    rewrite emp as bigstar #u1 (n1 - 1 + 1) n1 (fun i -> bigstar #u2 0 n2 (f i));
+    bigstar_compose #u1 0 n1 (fun i -> bigstar #u2 0 n2 (f i)) (n1 - 1);
+  }
 }
 
 module Set = FStar.FiniteSet.Base
@@ -775,7 +830,8 @@ let rec bigstar_except_equiv'
 : Lemma
   (ensures bigstar #u1 m n f == bigstar_except #u1 m n g Set.emptyset)
   (decreases n - m)
-= if m = n then ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if m = n then ()
   else (
     assert (Set.remove m Set.emptyset `Set.equal` Set.emptyset);
     bigstar_except_equiv' #u1 (m+1) n (narrow m n f) g ()
@@ -801,7 +857,8 @@ let rec bigstar_except_equiv_emp
 : Lemma
   (ensures bigstar_except #u1 m n f s == emp)
   (decreases n - m)
-= if m = n then ()
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if m = n then ()
   else bigstar_except_equiv_emp #u1 (m+1) n f (Set.remove m s)
 
 #push-options "--ifuel 0 --z3rlimit_factor 16 --fuel 2"
@@ -820,7 +877,8 @@ let rec bigstar_except_equiv_split
     star_over_partition f s0 **
     bigstar_except #u1 m n f (Set.union s0 s1))
   (decreases (n - m))
-= let _ : squash (Set.disjoint s0 s1) = () in
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  let _ : squash (Set.disjoint s0 s1) = () in
   if m = n
   then (
     assert (Set.cardinality s0 = 0);
@@ -921,7 +979,8 @@ let union_partitions_aux_step
     union_partitions_aux p from (to + 1) `Set.equal`
    (select p to `Set.union`    union_partitions_aux p from to) /\
     select p to `Set.disjoint` union_partitions_aux p from to)
-= union_partitions_aux_split p from to (to + 1)
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  union_partitions_aux_split p from to (to + 1)
 
 let star_of_part_i #n #k (parts:disjoint_partitions 0 n k) (f:idx 0 n -> slprop) (i:idx 0 k)
 : slprop
@@ -939,7 +998,8 @@ let rec bigstar_partition_equiv_except
     bigstar_except #u1 0 n f (union_partitions_aux parts 0 j) ==
     bigstar_except #u1 j k (star_of_part_i parts f) Set.emptyset)
   (decreases k - j)
-= if j = k
+= FStar.FiniteSet.Base.all_finite_set_facts_lemma();
+  if j = k
   then (
     bigstar_except_equiv_emp #u1 0 n f (union_partitions_aux parts 0 j)
   )

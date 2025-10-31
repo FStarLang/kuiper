@@ -95,7 +95,7 @@ type ciview_schema (asch : aiview_schema) = {
 inline_for_extraction noextract
 let raw_ciview_schema (len : erased nat{SZ.fits len}) : ciview_schema (raw_aiview_schema len) = {
   cit = szlt len;
-  bij = natural;
+  bij = fin_size_t_bij _;
 }
 
 (* A step in a concrete indexing view. *)
@@ -110,7 +110,7 @@ class ciview_step
 {
   (* Concrete index translation *)
   [@@@no_method]
-  cimap : csch1.cit @~> csch2.cit;
+  cimap : csch1.cit @~>> csch2.cit;
 
   (* The mappings are compatible. I.e. the following diagram commutes:
 
@@ -125,7 +125,7 @@ class ciview_step
   [@@@no_method]
   compat :
     ai : asch1.ait ->
-      squash (cimap.f (csch1.bij.ff ai) == csch2.bij.ff (step.imap.f ai));
+      squash (cimap.cf (csch1.bij.ff ai) == csch2.bij.ff (step.imap.f ai));
 }
 
 (* What it means for an indexing view to be concretizable, i.e. executable. *)
@@ -147,7 +147,7 @@ instance concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = 
   clen = SZ.uint_to_t len; // weird
   sch  = raw_ciview_schema len;
   step = {
-    cimap  = inj_id;
+    cimap  = cinj_id;
     compat = ez;
   };
 }
@@ -248,7 +248,7 @@ let compose_cstep
   (c2 : ciview_step csch2 csch3 step23)
   : ciview_step csch1 csch3 (compose_astep step12 step23) =
 {
-  cimap = c1.cimap `inj_comp` c2.cimap;
+  cimap = c1.cimap `cinj_comp` c2.cimap;
 
   compat = (fun ai ->
     c1.compat ai;

@@ -19,7 +19,8 @@ let view_equiv (#et #st : Type)
   : prop
 = vw1.iview.len == vw2.iview.len /\
   vw1.iview.sch.ait == vw2.iview.sch.ait /\
-  F.feq vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
+  (forall (x: st) (i: vw1.iview.sch.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
   (* probably need more about the mappings in igm *)
   True
 
@@ -65,6 +66,17 @@ val varray_pts_to_cell
   ([@@@mkey]i : vw.iview.sch.ait)
   (v : et)
   : slprop
+
+val varray_pts_to_cell_eq
+  (#et:Type)
+  (#st:Type0) (#vw : aview et st)
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (f : perm)
+  (v : et)
+  : Lemma (varray_pts_to_cell a #f i v
+           ==
+           gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#st : Type) (#vw : aview et st)
@@ -254,6 +266,26 @@ fn varray_end
     a' |-> Frac f v
 
 ghost
+fn varray_cell_reindex
+  (#et:Type0) (#st #st':Type0)
+  (#f : perm)
+  (#vw : aview et st)
+  (#vw' : aview et st')
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (a' : varray vw')
+  (i' : vw'.iview.sch.ait)
+  (#v : et)
+  requires
+    pure (len vw == len vw' /\ core a == core a')
+  requires
+    pure (IView.it_to_nat vw.iview i == IView.it_to_nat vw'.iview i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
+
+ghost
 fn varray_abs
   (#et : Type0) (#st : Type0)
   (vw : aview et st { is_full_view vw })
@@ -288,6 +320,34 @@ fn varray_concr
     a |-> Frac f v
   ensures
     core a |-> Frac f (to_seq vw v)
+
+ghost
+fn varray_iconcr
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  ensures
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+
+ghost
+fn varray_iabs
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+  ensures
+    a |-> Frac f v
 
 inline_for_extraction noextract
 fn varray_alloc0
@@ -422,7 +482,6 @@ ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
@@ -430,22 +489,35 @@ fn varray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 
 // TODO: remove?
 ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
   (#v : st)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
+
+ghost
+fn varray_pts_to_eq
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f1 f2 : perm)
+  (#v1 #v2 : st)
+  requires
+    a |-> Frac f1 v1 **
+    a |-> Frac f2 v2
+  ensures
+    a |-> Frac f1 v2 **
+    a |-> Frac f2 v2
 
 inline_for_extraction noextract
 fn varray_write_cell

@@ -1,8 +1,7 @@
 module Kuiper.Matrix.Tiling
 #lang-pulse
 
-(* An assumed API for tiling matrices. This will be implemented
-   with array views, eventually. *)
+(* An API for tiling matrices, implemented with array views. *)
 
 open Kuiper
 open Kuiper.EMatrix
@@ -10,6 +9,7 @@ open Kuiper.Injection
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Pulse.Lib.Trade
+module SZ = Kuiper.SizeT
 
 let ematrix_subtile
   (#et : _)
@@ -89,6 +89,22 @@ val update_tile_self
            em)
           [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
 
+val subtile_of_update_tile
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (etile : ematrix et trows tcols)
+  (tr' : natlt (rows / trows))
+  (tc' : natlt (cols / tcols))
+  : Lemma (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc'
+           ==
+           (if tr = tr' && tc = tc' then etile else ematrix_subtile em trows tcols tr' tc'))
+          [SMTPat (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc')]
+
 let tile_inj_f
   (#rows #cols : nat)
   (trows : pos {trows /? rows})
@@ -129,6 +145,7 @@ let subtile_layout
 inline_for_extraction noextract
 instance val strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -144,6 +161,7 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
 inline_for_extraction noextract
 instance val strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
+  (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
   (trows : erased nat {trows > 0 /\ trows /? rows})
   (tcols : erased nat {tcols > 0 /\ tcols /? cols})
@@ -184,6 +202,22 @@ val gpu_matrix_subtile
   (tc : enatlt (cols / tcols))
   : Tot (gpu_matrix et (subtile_layout l trows tcols tr tc))
 
+val gpu_matrix_subtile_base
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr : enatlt (rows / trows))
+  (tc : enatlt (cols / tcols))
+  : Lemma (
+      core (gpu_matrix_subtile gm trows tcols tr tc)
+      ==
+      core gm
+    )
+    [SMTPat (core (gpu_matrix_subtile gm trows tcols tr tc))]
+
 val cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
@@ -198,9 +232,9 @@ val cell_convert_eq
   (f : perm)
   (v : et)
 : Lemma (
-  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+  gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
   ==
-  gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+  gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
 )
 
 ghost
@@ -218,9 +252,9 @@ fn subcell_to_cell
   (#f : perm)
   (#v : et)
   requires
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
   ensures
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
 
 ghost
 fn cell_to_subcell
@@ -237,9 +271,9 @@ fn cell_to_subcell
   (#f : perm)
   (#v : et)
   requires
-    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j v
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) #f i j v
   ensures
-    gpu_matrix_pts_to_cell gm (tr * trows + i) (tc * tcols + j) v
+    gpu_matrix_pts_to_cell gm #f (tr * trows + i) (tc * tcols + j) v
 
 ghost
 fn gpu_matrix_tile
@@ -294,6 +328,24 @@ fn gpu_matrix_untile
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
   ensures
     gm |-> Frac f em
+
+ghost
+fn gpu_matrix_untile_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#f : perm)
+  requires
+    forall+
+      (tr : natlt (rows / trows))
+      (tc : natlt (cols / tcols)).
+        (exists* (em : ematrix et trows tcols).
+          gpu_matrix_subtile gm trows tcols tr tc |-> Frac f em)
+  ensures
+    (exists* (em : ematrix et rows cols). gm |-> Frac f em)
 
 ghost
 fn gpu_matrix_extract_tile

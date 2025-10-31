@@ -94,7 +94,7 @@ instance cnormal_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_sz
     bij      = natural;
   };
   step = {
-    cimap    = inj_id;
+    cimap    = cinj_id;
     compat   = ez;
   };
 }
@@ -107,12 +107,10 @@ instance creverse_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_s
     bij      = natural;
   };
   step = {
-    cimap    = {
+    cimap    =
       // Can't use imap = inj_sz_rev (SZ.uint_to_t len) for stupid reasons,
       // a type inside a refinement does not match exactly.
-      f = (fun (i : szlt len) -> concr' sz_len -^ 1sz -^ i <: szlt len);
-      is_inj = ez;
-    };
+      mk_cinj (fun (i : szlt len) -> concr' sz_len -^ 1sz -^ i <: szlt len);
     compat   = ez;
   };
 }

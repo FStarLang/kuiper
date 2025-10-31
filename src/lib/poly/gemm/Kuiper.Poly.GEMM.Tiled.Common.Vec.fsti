@@ -61,7 +61,14 @@ fn copy_tiles_out_of_matrices_vec
     gpu **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    thread_id nthr tid **
+    thread_id nthr tid
+  requires
+    pure (aligned 16 (core gA)) **
+    pure (aligned 16 (core gB))
+  requires
+    live_tile_stride_cells sA nthr tid **
+    live_tile_stride_cells sB nthr tid
+  ensures
     live_tile_stride_cells sA nthr tid **
     live_tile_stride_cells sB nthr tid
 

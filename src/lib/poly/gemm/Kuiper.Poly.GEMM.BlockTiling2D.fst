@@ -70,7 +70,9 @@ let kpre1
   =
   gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA **
   gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
-  own_thread_tile gC bm bn tm tn bid tid
+  own_thread_tile gC bm bn tm tn bid tid **
+  pure (aligned 16 (core gA)) **
+  pure (aligned 16 (core gB))
 
 unfold
 let kpost1
@@ -100,7 +102,7 @@ let kpost1
   own_thread_tile gC bm bn tm tn bid tid
 
 let barrier_p
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
@@ -117,7 +119,7 @@ let barrier_p
       live_tile_stride_cells m2 nthr tid
 
 let barrier_q
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
@@ -128,7 +130,7 @@ let barrier_q
   fun it tid -> barrier_p m1 m2 nthr (it+1) tid (* flip flop *)
 
 let barrier_tok
-  (#et : Type0) {| has_vec_cpy et |}
+  (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
@@ -148,7 +150,7 @@ let barrier_tok
 
 unfold
 let kpre
-  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#et : Type0) {| scalar et, v : has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -176,11 +178,11 @@ let kpre
   kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
   (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
-  barrier_tok slA slB (fst sh) (fst (snd sh)) 0 (bm/tm * (bn/tn)) tid
+  barrier_tok #_ #_ #v slA slB (fst sh) (fst (snd sh)) 0 (bm/tm * (bn/tn)) tid
 
 unfold
 let kpost
-  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#et : Type0) {| scalar et, v : has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -208,7 +210,7 @@ let kpost
   kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
   (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
-  barrier_tok slA slB (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm * (bn/tn)) tid
+  barrier_tok #_ #_ #v slA slB (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm * (bn/tn)) tid
 
 inline_for_extraction noextract
 fn subproducts2d
@@ -542,7 +544,21 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  fold barrier_tok slA slB sarA sarB (2 * num_k_tiles) (bm/tm * (bn/tn)) tid;
+  rewrite
+    B.barrier_tok (barrier_p sA sB (bm / tm * (bn / tn)))
+      (barrier_q sA sB (bm / tm * (bn / tn)))
+      (2 * !bkIdx)
+      tid
+  as
+    B.barrier_tok (barrier_p (from_array slA sarA)
+          (from_array slB sarB)
+          (bm / tm * (bn / tn)))
+      (barrier_q (from_array slA sarA)
+          (from_array slB sarB)
+          (bm / tm * (bn / tn)))
+      (2 * (shared / bk))
+      tid;
+  fold barrier_tok slA slB sarA sarB (2 * (shared / bk)) (bm/tm * (bn/tn)) tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
@@ -823,6 +839,8 @@ fn mmcomb_gpu
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
+    pure (aligned 16 (core gA)) **
+    pure (aligned 16 (core gB)) **
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
     gC |-> eC

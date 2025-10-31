@@ -187,7 +187,7 @@ let kpost
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 100"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -237,7 +237,7 @@ fn kf
   rewrite each M.from_array slB ar2 as sa2;
 
   let gTile = gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
-  assert (rewrites_to gTile (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)));
+  rewrite each gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols) as gTile;
 
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
@@ -246,9 +246,8 @@ fn kf
   assert (pure (brow < tile));
   assert (pure (bcol < tile));
 
-  with i0 j0 v0.
-    rewrite gpu_matrix_pts_to_cell gTile i0   j0   v0
-         as gpu_matrix_pts_to_cell gTile brow bcol v0;
+  rewrite each (tid / tile) as v brow;
+  rewrite each (tid % tile) as v bcol;
 
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
@@ -367,10 +366,21 @@ fn kf
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
 
+  rewrite
+    B.barrier_tok
+      (barrier_p sa1 sa2)
+      (barrier_q sa1 sa2)
+      (2 * !bk) tid
+  as
+    B.barrier_tok
+      (barrier_p (M.from_array slA ar1) (M.from_array slB ar2))
+      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2))
+      (2 * mshared) tid;
   fold barrier_tok tile slA slB ar1 ar2 (2 * mshared) tid;
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
+  rewrite each gTile as gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
   ()
 }
 #pop-options

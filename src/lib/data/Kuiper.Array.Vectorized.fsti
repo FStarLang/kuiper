@@ -11,27 +11,31 @@ module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 unfold
-class has_vec_cpy (et : Type) = {
+class has_vec_cpy (et : Type) {| sized et |} = {
   [@@@FStar.Tactics.Typeclasses.no_method] _chunk : szp;
+  [@@@FStar.Tactics.Typeclasses.no_method] _pf : squash (_chunk * size #et == 16);
+  (* ^ Vectorized copies are always 16 bytes wide. *)
 }
 
 unfold
 inline_for_extraction noextract
-let chunk (et : Type) {| hvc : has_vec_cpy et |} : szp =
+let chunk (et : Type) {| sized et, hvc : has_vec_cpy et |} : szp =
   match hvc with
-  | Mkhas_vec_cpy chunk -> chunk
+  | Mkhas_vec_cpy chunk _ -> chunk
 
 unfold
 inline_for_extraction noextract
-instance has_vec_cpy_float : has_vec_cpy float = { _chunk = 4sz; }
+instance has_vec_cpy_float : has_vec_cpy float = { _chunk = 4sz; _pf = ez; }
 
 unfold
 inline_for_extraction noextract
-instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; }
+instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; _pf = ez; }
 
 (* These three operations are essentially the same. We need different
    variants since gpu_array is a different type from array. Sadly the
-   slicing is also different. *)
+   slicing is also different. The "host" variants are a bit of a
+   misnomer, they are meant to be used with registers arrays, and
+   not CPU-side memory arrays. *)
 
 [@@noextract_to "krml"]
 atomic
@@ -56,6 +60,8 @@ fn gpu_array_vec_cpy_dd
   (#_ : squash (Seq.length ss == src_slice_j - src_slice_i))
   preserves gpu
   preserves gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
+  requires  pure (aligned' 16 src_arr src_off)
+  requires  pure (aligned' 16 dst_arr dst_off)
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
   ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))
 
@@ -78,6 +84,7 @@ fn gpu_array_vec_cpy_dh
   (#_ : squash (Seq.length ss == src_slice_j - src_slice_i))
   preserves gpu
   preserves gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
+  requires  pure (aligned' 16 src_arr src_off)
   requires  dst_arr |-> ds
   ensures   dst_arr |-> (seq_blit ds dst_off ss (src_off - src_slice_i) (chunk et))
 
@@ -100,5 +107,6 @@ fn gpu_array_vec_cpy_hd
   (#_ : squash (src_off + chunk et <= Seq.length ss))
   preserves gpu
   preserves src_arr |-> Frac f ss
+  requires  pure (aligned' 16 dst_arr dst_off)
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
   ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss src_off (chunk et))

@@ -5,18 +5,34 @@ module Kuiper.Array
 open Pulse.Lib.Vec
 open Pulse.Lib.WithPure
 open Pulse
-open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 open FStar.Seq
 open Kuiper.Base
 open Kuiper.Sized
 open Kuiper.SizeT
 open Kuiper.Seq.Common
+open Kuiper.Common
+open Kuiper.ForEvery
+open Kuiper.Divides { (/?+) }
 
 module SZ = Kuiper.SizeT
 
 new
 val gpu_array (a : Type u#0) (sz : nat) : Type u#0
+
+(* Base address of the GPU array, used to model alignment. This number
+is in units of *bytes*, not array elements. *)
+val base_address (#a : Type u#0) (#sz : nat) (x : gpu_array a sz) : GTot nat
+
+let aligned (n:pos) (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : prop =
+  n /?+ base_address x
+
+(* An offset within the array is aligned. *)
+let aligned' (n:pos)
+  (#a:Type u#0) {| sized a |}
+  (#sz:nat) (x:gpu_array a sz)
+  (off : nat) : prop =
+  n /?+ (base_address x + off * size #a)
 
 (* FIXME: I think having nat here, which forces to use erased nat
    in concrete functions, hurts Pulse inference a lot. Try to make all
@@ -94,6 +110,8 @@ fn gpu_array_alloc
   returns   x : gpu_array a (SZ.v sz)
   ensures
     exists* (s:seq a). x |-> s ** pure (Seq.length s == sz)
+  ensures
+    pure (aligned 128 x)
 
 fn gpu_array_free
   (#a:Type u#0)
@@ -256,7 +274,7 @@ fn gpu_memcpy_device_to_device
     pure (Seq.length gv == reveal sz)
 
 
-(* Not making this unfold as it appears under bigstars. Maybe
+(* Not making this unfold as it appears under forall+. Maybe
 pulse should only do weak unfolding. *)
 let gpu_pts_to_array1
   (#a:Type0)
@@ -265,46 +283,27 @@ let gpu_pts_to_array1
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey]i:nat)
 : slprop =
-  exists* s. gpu_pts_to_slice arr i (i+1) s
+  exists* s. gpu_pts_to_slice arr #f i (i+1) s
 
 ghost
 fn gpu_array_slice_1
-  (#[exact (`0)] uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
   requires pts_to arr #f v
-  ensures  bigstar #uid 0 sz (fun i -> gpu_pts_to_cell arr #f i (v @! i))
+  ensures  forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
 
 ghost
 fn gpu_array_unslice_1
-  (#uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
-  requires bigstar #uid 0 sz (fun i -> gpu_pts_to_cell arr #f i (v @! i))
+  requires forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
   ensures  pts_to arr #f v
-
-ghost
-fn gpu_array_slice_1_underspec
-  (#[exact (`0)] uid: int) (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  (#v : erased (seq a))
-  requires arr |-> Frac f v
-  ensures  bigstar #uid 0 sz (gpu_pts_to_array1 arr #f)
-
-ghost
-fn gpu_array_unslice_1_underspec
-  (#uid: int) (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  requires bigstar #uid 0 sz (gpu_pts_to_array1 arr #f)
-  ensures exists* (v : seq a). arr |-> Frac f v
 
 ghost
 fn gpu_slice_concat
@@ -350,8 +349,16 @@ fn gpu_slice_empty_elim
   ensures  emp
 
 ghost
+fn gpu_slice_empty_intro
+  (#a:Type u#0) (#sz:nat)
+  (arr : gpu_array a sz)
+  (i : nat)
+  requires emp
+  ensures  gpu_pts_to_slice arr #'f i i seq![]
+
+ghost
 fn gpu_slice_share
-  (#uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (m n:nat)
@@ -359,42 +366,49 @@ fn gpu_slice_share
   (#f : perm)
   requires gpu_pts_to_slice arr #f m n 'v
   ensures
-    bigstar #uid 0 k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
+    forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
 
 ghost
 fn gpu_slice_gather
-  (#uid: int) (#a:Type u#0)
+  (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
   (m n:nat)
   (k: nat { k > 0 })
   (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
   requires
-    bigstar #uid 0 k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
+    forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
   ensures gpu_pts_to_slice arr #f m n 'v
 
 ghost
-fn gpu_slice_share_underspec
-  (#uid : int) (#a : Type u#0)
-  (#sz : nat)
+fn gpu_slice_pts_to_eq
+  (#a:Type u#0)
+  (#sz:nat)
   (arr : gpu_array a sz)
-  (m n : nat)
-  (k : nat { k > 0 })
-  requires gpu_pts_to_slice arr #'f m n 'v
-  ensures bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_slice arr #('f /. Real.of_int k) m n v)
-
-ghost
-fn gpu_slice_gather_underspec
-  (#uid : int) (#a : Type u#0)
-  (#sz : nat)
-  (arr : gpu_array a sz)
-  (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
-  (m n : nat)
-  (k : nat { k > 0 })
-  requires bigstar #uid 0 k (fun x -> exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v)
+  (m n:nat)
+  (#f1 f2 : perm)
+  (#v1 #v2 : seq a)
+  requires
+    gpu_pts_to_slice arr #f1 m n v1 **
+    gpu_pts_to_slice arr #f2 m n v2
   ensures
-    exists* v.
-      gpu_pts_to_slice arr #f m n v
+    gpu_pts_to_slice arr #f1 m n v2 **
+    gpu_pts_to_slice arr #f2 m n v2
+
+[@@allow_ambiguous]
+ghost
+fn gpu_slice_pts_to_eq'
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#m #n : nat)
+  (#f1 #f2 : perm)
+  (#v1 #v2 : seq a)
+  preserves
+    gpu_pts_to_slice arr #f1 m n v1 **
+    gpu_pts_to_slice arr #f2 m n v2
+  ensures
+    pure (v1 == v2)
 
 val adjacent
   (#a : Type u#0)
@@ -405,7 +419,7 @@ val adjacent
 
 ghost
 fn gpu_array_cut
-  (#a : Type u#0)
+  (#a : Type u#0) {| sized a |}
   (#sz : nat)
   (arr : gpu_array a sz)
   (k : SZ.t{ k <= sz })
@@ -418,6 +432,10 @@ fn gpu_array_cut
     (p._1 |-> Frac 'f (seq_take k s)) **
     (p._2 |-> Frac 'f (seq_drop k s)) **
     adjacent p._1 p._2
+  ensures
+    // Should this below just be the definition of adjacent?
+    pure (base_address p._1 == base_address arr) **
+    pure (base_address p._2 == base_address arr + SZ.v k * size #a)
 
 ghost
 fn gpu_array_paste

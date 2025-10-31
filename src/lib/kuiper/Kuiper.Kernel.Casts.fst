@@ -166,20 +166,52 @@ fn pad_setup
 
   (* Convince Z3 *)
   forevery_ext_2
-    #(natlt (sdivup k.nthr 1024sz)) #_
-    #(natlt (1024sz)) #_
+    #(natlt (sdivup k.nthr 1024sz))
+    #(natlt (1024sz))
     _
     (fun bid tid ->
         pad_kn k k.kpre bid tid);
+}
+
+ghost
+fn pad_teardown
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  ()
+  norewrite
+  requires
+    (forall+ (bid : natlt (sdivup k.nthr 1024sz)).
+      forall+ (tid : natlt 1024sz).
+        pad_kn k k.kpost bid tid) **
+    k.frame
+  ensures
+    full_post
+{
+  forevery_ext_2
+    #(natlt (sdivup k.nthr 1024sz))
+    #(natlt (1024sz))
+    _
+    (fun bid tid ->
+        pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpost (bid * 1024 + tid));
+  forevery_unfactor
+    ((sdivup k.nthr 1024sz) * 1024)
+    (sdivup k.nthr 1024sz)
+    1024
+    (pad_f ((sdivup k.nthr 1024sz) * 1024) k.kpost);
+
+  forevery_unpad k.nthr ((sdivup k.nthr 1024sz) * 1024) _;
+
+  let teardown = k.teardown;
+  teardown ();
 }
 
 inline_for_extraction noextract
 let kn_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
      : kernel_desc_m_n full_pre full_post
-= let open k <: kernel_desc_n full_pre full_post in
+= //let open k <: kernel_desc_n full_pre full_post in; this causes pad_setup to fail!
   {
-  nblk = sdivup nthr 1024sz;
+  nblk = sdivup k.nthr 1024sz;
   nthr = 1024sz;
 
   frame = k.frame;
@@ -188,8 +220,8 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   block_post  = (fun bid -> forall+ (tid : natlt 1024sz). pad_kn k k.kpost bid tid);
   block_frame = (fun bid -> emp);
 
-  setup    = (fun () -> admit(); pad_setup k ()); // this failure is due to a mismatching hash-consing on a refinement type
-  teardown = magic();
+  setup    = pad_setup k;
+  teardown = pad_teardown k;
 
   kpre  = pad_kn k k.kpre;
   kpost = pad_kn k k.kpost;

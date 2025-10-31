@@ -21,5 +21,7 @@ fn gpu_matrix_vec_read
   (#s : erased (seq et))
   preserves gpu
   preserves gm |-> Frac f em
+  requires  pure (aligned' 16 (core gm) (cell_of_pos l i j))
   requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
   ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))

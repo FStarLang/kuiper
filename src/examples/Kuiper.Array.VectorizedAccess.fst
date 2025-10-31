@@ -26,7 +26,8 @@ let kpre
   (tid : natlt nthr)
   : slprop =
   gpu_pts_to_slice a (global_id bid tid * 4) (global_id bid tid * 4 + 4)
-      (slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4))
+      (slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4)) **
+  pure (aligned 16 a)
 
 noextract
 let scale_seq (v : float) (s : seq float)

@@ -53,6 +53,18 @@ let varray_pts_to_cell
   : slprop
   = Cell (VA?._0 a) i |-> Frac f v
 
+let varray_pts_to_cell_eq
+  (#et:Type)
+  (#st:Type0) (#vw : aview et st)
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (f : perm)
+  (v : et)
+  : Lemma (varray_pts_to_cell a #f i v
+           ==
+           gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
+  = IArray.iarray_pts_to_cell_def #et #vw.iview (VA?._0 a) #f i v
+
 let varray_pts_to
   (#et:Type0) (#st:_) (#vw : aview et st)
   ([@@@mkey] a : varray vw)
@@ -60,7 +72,7 @@ let varray_pts_to
   (v : st)
   : slprop
   =
-    (VA?._0 a) |-> Frac f (fun i -> reveal (vw.igm.acc v i))
+    (VA?._0 a) |-> Frac f (vw.igm.acc v)
 
 ghost
 fn varray_pts_to_ref
@@ -163,7 +175,7 @@ fn varray_reindex_
     (from_array (reindex_view vw bij) (core a))._0;
   IArray.iarray_ext (from_array (reindex_view vw bij) (core a))._0
     _
-    (fun i -> (reindex_view vw bij).igm.acc v i);
+    ((reindex_view vw bij).igm.acc v);
   fold varray_pts_to (from_array (reindex_view vw bij) (core a)) #f v;
   ()
 }
@@ -206,23 +218,23 @@ fn varray_review_
 {
   unfold varray_pts_to a #f v;
   IArray.iarray_ext a._0
-    (fun i -> vw.igm.acc v i)
-    (fun i -> (review_view vw bij).igm.acc (bij.ff v) i);
+    (vw.igm.acc v)
+    ((review_view vw bij).igm.acc (bij.ff v));
 
-  rewrite IArray.iarray_pts_to #et #vw.iview a._0 #f (fun i -> (review_view vw bij).igm.acc (bij.ff v) i)
+  rewrite IArray.iarray_pts_to #et #vw.iview a._0 #f ((review_view vw bij).igm.acc (bij.ff v))
        as IArray.iarray_pts_to #et #vw.iview
             (from_array (review_view vw bij) (core a))._0
             #f
-            (fun i -> (review_view vw bij).igm.acc (bij.ff v) i);
+            ((review_view vw bij).igm.acc (bij.ff v));
   assert pure (vw.iview == (review_view vw bij).iview);
   rewrite IArray.iarray_pts_to #et #vw.iview
             (from_array (review_view vw bij) (core a))._0
             #f
-            (fun i -> (review_view vw bij).igm.acc (bij.ff v) i)
+            ((review_view vw bij).igm.acc (bij.ff v))
        as IArray.iarray_pts_to #et #(review_view vw bij).iview
             (from_array (review_view vw bij) (core a))._0
             #f
-            (fun i -> (review_view vw bij).igm.acc (bij.ff v) i)
+            ((review_view vw bij).igm.acc (bij.ff v))
        by slprop_equiv_norm (); // ugly
   fold varray_pts_to (from_array (review_view vw bij) (core a)) #f (bij.ff v);
   ()
@@ -268,7 +280,7 @@ fn varray_begin_
     (from_array (raw_view #et #len) a)._0;
   IArray.iarray_ext _
     (IArray.g_seq_acc v)
-    (fun i -> (raw_view #et #len).igm.acc v i);
+    ((raw_view #et #len).igm.acc v);
   fold varray_pts_to (from_array (raw_view #et #len) a) #f v;
   ()
 }
@@ -329,6 +341,32 @@ fn varray_end
 }
 
 ghost
+fn varray_cell_reindex
+  (#et:Type0) (#st #st':Type0)
+  (#f : perm)
+  (#vw : aview et st)
+  (#vw' : aview et st')
+  (a : varray vw)
+  (i : vw.iview.sch.ait)
+  (a' : varray vw')
+  (i' : vw'.iview.sch.ait)
+  (#v : et)
+  requires
+    pure (len vw == len vw' /\ core a == core a')
+  requires
+    pure (IView.it_to_nat vw.iview i == IView.it_to_nat vw'.iview i')
+  requires
+    Cell a i |-> Frac f v
+  ensures
+    Cell a' i' |-> Frac f v
+{
+  unfold varray_pts_to_cell a #f i v;
+  IArray.iarray_cell_reindex (VA?._0 a) i (VA?._0 a') i';
+  fold varray_pts_to_cell a' #f i' v;
+}
+
+
+ghost
 fn varray_abs
   (#et : Type0) (#st : Type0)
   (vw : aview et st { is_full_view vw })
@@ -341,9 +379,26 @@ fn varray_abs
     from_array vw a |-> Frac f v
 {
   varray_begin_ a;
-  assert varray_pts_to (from_array raw_view a) #f (to_seq vw v);
-  (* awkward, would be nice to reorganize this module *)
-  admit();
+  let vw0 = raw_view #et #(len vw); rewrite each raw_view #et #(len vw) as vw0;
+  let a0 = from_array vw0 a; rewrite each from_array vw0 a as a0;
+  varray_pts_to_ref a0;
+  assert varray_pts_to a0 #f (to_seq vw v);
+  let bij: (vw0.iview.sch.ait =~ vw.iview.sch.ait) =
+    bij_sym (Kuiper.IView.full_view_bij vw.iview);
+  varray_reindex_ bij a0;
+  let vw1 = reindex_view vw0 bij; rewrite each reindex_view vw0 bij as vw1;
+  let a1 = from_array vw1 (core a0); rewrite each from_array vw1 (core a0) as a1;
+  varray_explode a1;
+  forevery_map'
+    (fun (i: vw1.iview.sch.ait) ->
+      varray_pts_to_cell a1 #f i (vw1.igm.acc (to_seq vw v) i))
+    (fun (i: vw.iview.sch.ait) ->
+      varray_pts_to_cell (from_array vw a) #f i (vw.igm.acc v i))
+    fn i i' {
+      varray_cell_reindex a1 i (from_array vw a) i';
+      rewrite each vw1.igm.acc (to_seq vw v) i as vw.igm.acc v i;
+    };
+  varray_implode (from_array vw a) #f;
 }
 
 ghost
@@ -374,9 +429,93 @@ fn varray_concr
   ensures
     core a |-> Frac f (to_seq vw v)
 {
-  admit();
+  varray_pts_to_ref a;
+  with vw0. assert pure (vw0 == raw_view #et #(len vw));
+  let bij: (vw.iview.sch.ait =~ vw0.iview.sch.ait) = Kuiper.IView.full_view_bij vw.iview;
+  varray_reindex_ bij a;
+  let vw1 = reindex_view vw bij; rewrite each reindex_view vw bij as vw1;
+  let a1 = from_array vw1 (core a); rewrite each from_array vw1 (core a) as a1;
+  varray_explode a1;
+  assert pure (vw0.iview.sch.ait == vw1.iview.sch.ait);
+  let a2 = from_array vw0 (core a);
+  forevery_map'
+    (fun (i: vw1.iview.sch.ait) -> varray_pts_to_cell a1 #f i (vw1.igm.acc v i))
+    (fun (i: vw0.iview.sch.ait) ->
+      varray_pts_to_cell a2 #f i (vw0.igm.acc (to_seq vw v) i))
+    fn i i' {
+      varray_cell_reindex a1 i a2 i';
+    };
+  varray_implode a2 #f;
+  varray_end_ a2;
+  rewrite each core a2 as core a;
+  rewrite each len vw0 as len vw;
 }
 
+ghost
+fn varray_iconcr
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    a |-> Frac f v
+  ensures
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+{
+  unfold varray_pts_to a #f v;
+  IArray.iarray_pts_to_ref (VA?._0 a);
+  IArray.iarray_explode (VA?._0 a);
+  ghost
+  fn aux (i : vw.iview.sch.ait)
+    requires
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i)
+    ensures
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i)
+  {
+    IArray.iarray_pts_to_cell_def (VA?._0 a) #f i (vw.igm.acc v i);
+    rewrite
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i)
+    as
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i);
+  };
+  forevery_map _ _ aux;
+  ()
+}
+
+ghost
+fn varray_iabs
+  (#et : Type0) (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f : perm)
+  (#v : erased st)
+  requires
+    pure (SZ.fits (len vw)) **
+    (forall+ (i : vw.iview.sch.ait).
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+  ensures
+    a |-> Frac f v
+{
+  ghost
+  fn aux (i : vw.iview.sch.ait)
+    requires
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i)
+    ensures
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i)
+  {
+    IArray.iarray_pts_to_cell_def (VA?._0 a) #f i (vw.igm.acc v i);
+    rewrite
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i)
+    as
+      Cell (VA?._0 a) i |-> Frac f (vw.igm.acc v i);
+  };
+  forevery_map _ _ aux;
+  IArray.iarray_implode (VA?._0 a);
+  fold varray_pts_to a #f v;
+}
 
 inline_for_extraction noextract
 fn varray_alloc0
@@ -425,7 +564,16 @@ fn varray_view_equiv_
   ensures
     from_array vw' (core a) |-> Frac f v
 {
-  admit();
+  varray_pts_to_ref a;
+  varray_explode a;
+  forevery_map'
+    (fun (i: vw.iview.sch.ait) -> varray_pts_to_cell a #f i (vw.igm.acc v i))
+    (fun (i: vw'.iview.sch.ait) -> varray_pts_to_cell (from_array vw' (core a)) #f i (vw'.igm.acc v i))
+    fn i i' {
+      varray_cell_reindex a i (from_array vw' (core a)) i';
+      rewrite each vw.igm.acc v i as vw'.igm.acc v i';
+    };
+  varray_implode (from_array vw' (core a));
 }
 
 inline_for_extraction noextract
@@ -471,7 +619,7 @@ fn varray_split2_
   IArray.iarray_ext
     (IArray.from_array vw1.iview (IArray.core a._0))
     (fun i -> (sum_aview vw1 vw2).igm.acc v (Inl i))
-    (fun i -> vw1.igm.acc (fst v) i);
+    (vw1.igm.acc (fst v));
   rewrite each (IArray.from_array vw1.iview (IArray.core a._0))
             as (from_array vw1 (core a))._0;
   fold varray_pts_to (from_array vw1 (core a)) #f (fst v);
@@ -479,7 +627,7 @@ fn varray_split2_
   IArray.iarray_ext
     (IArray.from_array vw2.iview (IArray.core a._0))
     (fun i -> (sum_aview vw1 vw2).igm.acc v (Inr i))
-    (fun i -> vw2.igm.acc (snd v) i);
+    (vw2.igm.acc (snd v));
   rewrite each (IArray.from_array vw2.iview (IArray.core a._0))
             as (from_array vw2 (core a))._0;
   fold varray_pts_to (from_array vw2 (core a)) #f (snd v);
@@ -511,6 +659,25 @@ fn varray_split2
 }
 
 ghost
+fn forevery_join_either'
+  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (p : a -> slprop)
+  (q : b -> slprop)
+  requires
+    forall+ (x:a). p x
+  requires
+    forall+ (x:b). q x
+  ensures
+    forall+ (x:either a b). merge_either p q x
+{
+  forevery_map p (fun x -> merge_either p q (Inl x))
+    fn x { fold merge_either p q (Inl x) };
+  forevery_map q (fun x -> merge_either p q (Inr x))
+    fn x { fold merge_either p q (Inr x) };
+  forevery_join_either (merge_either p q)
+}
+
+ghost
 fn varray_join2_
   (#et : Type0) (#st1 #st2 : Type)
   (#vw1 : aview et st1)
@@ -529,7 +696,41 @@ fn varray_join2_
     (* ARGH AGAIN *)
     from_array (sum_aview vw1 vw2 #()) (core al) |-> Frac f (v1, v2)
 {
-  admit();
+  varray_pts_to_ref al;
+  varray_pts_to_ref ar;
+  varray_explode al;
+  varray_explode ar;
+  forevery_join_either'
+    (fun (i: vw1.iview.sch.ait) -> varray_pts_to_cell al #f i (vw1.igm.acc v1 i))
+    (fun (i: vw2.iview.sch.ait) -> varray_pts_to_cell ar #f i (vw2.igm.acc v2 i));
+  forevery_map
+    (fun (x: either vw1.iview.sch.ait vw2.iview.sch.ait) ->
+      merge_either (fun i -> varray_pts_to_cell al #f i (vw1.igm.acc v1 i))
+        (fun i -> varray_pts_to_cell ar #f i (vw2.igm.acc v2 i))
+        x)
+    (fun (i: (sum_aview vw1 vw2).iview.sch.ait) ->
+      varray_pts_to_cell (from_array (sum_aview vw1 vw2) (core al)) #f
+        i
+        ((sum_aview vw1 vw2).igm.acc (v1, v2) i))
+    fn x {
+      match x {
+        Inl i -> {
+          unfold merge_either
+            (fun i -> varray_pts_to_cell al #f i (vw1.igm.acc v1 i))
+            (fun i -> varray_pts_to_cell ar #f i (vw2.igm.acc v2 i))
+            (Inl i);
+          varray_cell_reindex al i (from_array (sum_aview vw1 vw2) (core al)) x;
+        }
+        Inr i -> {
+          unfold merge_either
+            (fun i -> varray_pts_to_cell al #f i (vw1.igm.acc v1 i))
+            (fun i -> varray_pts_to_cell ar #f i (vw2.igm.acc v2 i))
+            (Inr i);
+          varray_cell_reindex ar i (from_array (sum_aview vw1 vw2) (core al)) x;
+        }
+      }
+    };
+  varray_implode (from_array (sum_aview vw1 vw2) (core al)) #f #(v1, v2);
 }
 
 inline_for_extraction noextract
@@ -562,7 +763,6 @@ ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
@@ -570,19 +770,18 @@ fn varray_share_n
   requires
     a |-> Frac f v
   ensures
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
 {
   unfold varray_pts_to a #f v;
-  IArray.iarray_share_n #_ #_ #uid (VA?._0 a) k;
-  ghost
-  fn aux (i : nat)
-    requires IArray.iarray_pts_to a._0 #(f /. k) (fun i -> vw.igm.acc v i)
-    ensures  varray_pts_to #et a #(f /. k) v
-  {
-    fold varray_pts_to a #(f /. k) v;
-  };
-  bigstar_map #uid #uid aux;
-  ();
+  IArray.iarray_share_n (VA?._0 a) k;
+  forevery_map
+    (fun (i: natlt k) ->
+      IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v))
+    (fun (i: natlt k) ->
+      varray_pts_to #et a #(f /. k) v)
+    fn i {
+      fold varray_pts_to a #(f /. k) v;
+    }
 }
 
 // TODO: remove?
@@ -590,26 +789,46 @@ ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  (#[T.exact (`0)] uid: int)
   (a : varray vw)
   (k : pos)
   (#f : perm)
   (#v : st)
   requires
-    bigstar #uid 0 k (fun _ -> a |-> Frac (f /. k) v)
+    forall+ (_:natlt k). a |-> Frac (f /. k) v
   ensures
     a |-> Frac f v
 {
-  ghost
-  fn aux (i : nat)
-    requires varray_pts_to #et a #(f /. k) v
-    ensures  IArray.iarray_pts_to a._0 #(f /. k) (fun i -> vw.igm.acc v i)
-  {
-    unfold varray_pts_to a #(f /. k) v;
-  };
-  bigstar_map #uid #uid aux;
-  IArray.iarray_gather_n #_ #_ #uid (VA?._0 a) k;
+  forevery_map
+    (fun (i: natlt k) ->
+      varray_pts_to #et a #(f /. k) v)
+    (fun (i: natlt k) ->
+      IArray.iarray_pts_to a._0 #(f /. k) (vw.igm.acc v))
+    fn i {
+      unfold varray_pts_to a #(f /. k) v;
+    };
+  IArray.iarray_gather_n (VA?._0 a) k;
   fold varray_pts_to a #f v;
+}
+
+ghost
+fn varray_pts_to_eq
+  (#et : Type) (#st : Type)
+  (#vw : aview et st)
+  (a : varray vw)
+  (#f1 f2 : perm)
+  (#v1 #v2 : st)
+  requires
+    a |-> Frac f1 v1 **
+    a |-> Frac f2 v2
+  ensures
+    a |-> Frac f1 v2 **
+    a |-> Frac f2 v2
+{
+  unfold varray_pts_to a #f1 v1;
+  unfold varray_pts_to a #f2 v2;
+  IArray.iarray_pts_to_eq (VA?._0 a) #f1 f2;
+  fold varray_pts_to a #f1 v2;
+  fold varray_pts_to a #f2 v2;
 }
 
 inline_for_extraction noextract
@@ -751,7 +970,7 @@ fn varray_write
   vw.igm.l2 (ci_to_ai vw ci) v0 e;
   IArray.iarray_ext a._0
     _
-    (fun i -> vw.igm.acc (vw.igm.upd v0 (ci_to_ai vw ci) e) i);
+    (vw.igm.acc (vw.igm.upd v0 (ci_to_ai vw ci) e));
   fold varray_pts_to a (vw.igm.upd v0 (ci_to_ai vw ci) e);
   ()
 }
@@ -806,7 +1025,8 @@ fn varray_to_array
   varray_concr va;
   B.gpu_memcpy_device_to_host a (core va) clen;
   varray_abs' vw (core va);
-  rewrite each from_array vw (core va) as va;
-  rewrite each from_seq vw (to_seq vw v) as v;
-  ();
+  rewrite
+    from_array vw (core va) |-> from_seq vw (to_seq vw v)
+  as
+    va |-> v;
 }

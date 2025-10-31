@@ -13,13 +13,9 @@ open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 
-type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
-  tm /?+ bm /\
-  tn /?+ bn /\
-  tk /?+ bk /\
-  wm * tm /?+ bm /\
-  wn * tn /?+ bn /\
-  SZ.fits (wm * wn)
+open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc { constraints }
+// ^ Only opened here for `constraints`? If so would be nice
+// to factor out.
 
 inline_for_extraction noextract
 val mk_kernel
@@ -44,6 +40,8 @@ val mk_kernel
   (#_ : squash (chunk et_ab /?+ bn))
   (#_ : squash (chunk et_ab /?+ bk))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
   (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})

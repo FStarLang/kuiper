@@ -34,7 +34,7 @@ fn array_fragment_extract
 
   forevery_extract_if_eqtype i
     (fun (x : natlt (Seq.length s)) -> (s @! x) |-> (ems @! x));
-  
+
   ghost
   fn f_elim (em' : value_for et knd m n k)
     requires
@@ -63,11 +63,12 @@ fn array_fragment_extract
         (fun (j : natlt (Seq.length ems')) ->
           if op_Equality #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems' @! j));
-      forevery_unextract_if_eqtype i _;
+      forevery_unextract_if_eqtype #(natlt (Seq.length ems)) i
+        (fun (j : natlt (Seq.length ems')) -> (s @! j) |-> (ems' @! j));
       forevery_rw_type
         (natlt (Seq.length ems))
         (natlt (Seq.length ems'))
-        _;
+        (fun (j : natlt (Seq.length ems')) -> (s @! j) |-> (ems' @! j));
       fold array_fragment_pts_to farr ems';
     };
     intro_trade _ _ _ f_elim2;
@@ -94,7 +95,8 @@ fn array_fragment_extract_ro
         (farr |-> Frac f s ** (s @! i) |-> Frac f (ems @! i))
         (array_fragment_pts_to farr #f ems)
 {
-  assume (pure (f == 1.0R));
-  array_fragment_extract farr ems i;
+  assume rewrites_to f 1.0R;
+  array_fragment_extract farr ems i; with s. _;
   Pulse.Lib.Forall.elim_forall (ems @! i);
+  rewrite each Seq.Base.upd ems i (Seq.Base.index ems i) as ems;
 }

@@ -49,6 +49,8 @@ fn mmcomb_gpu
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
+    pure (aligned 16 (core gA)) **
+    pure (aligned 16 (core gB)) **
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
     gC |-> eC

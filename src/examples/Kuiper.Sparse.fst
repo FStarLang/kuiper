@@ -3,7 +3,6 @@ module Kuiper.Sparse
 #lang-pulse
 open Kuiper
 module SZ = FStar.SizeT
-open Kuiper.Sparse.Extra
 
 // This is here to force extraction.
 let _ = 1ul
@@ -77,7 +76,7 @@ let my_map_seq_index (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a) (i:nat{i < len s}
 
 noextract
 let in_bounds (l h : nat) (s : seq nat) : prop =
-  forall i. l <= s @! i /\ s @! i < h
+  forall i. {:pattern (s @! i)} l <= s @! i /\ s @! i < h
 
 noextract
 let sorted_slice 
@@ -85,12 +84,11 @@ let sorted_slice
   (a b : nat{a <= b /\ b <= len s})
   : prop
 =
-  forall i j. a <= i /\ i < j /\ j < b ==> s @! i < s @! j
+  forall i j. {:pattern (s @! i); (s @! j)} a <= i /\ i < j /\ j < b ==> s @! i < s @! j
 
 
 noextract
 let sorted (s : seq nat) : prop =
-  //forall i j. i < j ==> s @! i < s @! j
   sorted_slice s 0 (len s) 
 
 noextract
@@ -304,13 +302,13 @@ let valid_smatrix
   // los offsets de fila están ordenados y dentro de rango
   (row_off @! 0 == 0) /\
   (row_off @! rows == nnz) /\
-  (forall i j. i < j ==> row_off @! i <= row_off @! j) /\
+  (forall i j. {:pattern (row_off @! i); (row_off @! j)} i < j ==> row_off @! i <= row_off @! j) /\
   // indices de columna son posiciones validas por cada fila
   (in_bounds 0 cols col_ind) /\
   (forall (i : natlt rows).
     sorted_slice col_ind (row_off @! i) (row_off @! (i + 1))
   )
-   
+
 let rec mem_slice
   (#et : eqtype)
   (x : et) (s : seq et)
@@ -322,7 +320,6 @@ let rec mem_slice
   if a < b
     then (s @! a) = x || mem_slice x s (a + 1) b
     else false
-
 
 let rec index_mem_slice
   (#et : eqtype)
@@ -428,7 +425,8 @@ fn smatrix_share_n
   requires
     smatrix_pts_to m #f em
   ensures
-    bigstar #uid 0 k (fun _ -> smatrix_pts_to m #(f /. k) em)
+    forall+ (_ : natlt k).
+      smatrix_pts_to m #(f /. k) em
 {
   unfold smatrix_pts_to m #f em;
   with v_elems.
@@ -438,14 +436,14 @@ fn smatrix_share_n
   with v_row_off.
     assert gpu_pts_to_array m.row_off #f v_row_off;
 
-  gpu_slice_share #uid m.elems _ _ k;
-  gpu_slice_share #uid m.col_ind _ _ k;
-  gpu_slice_share #uid m.row_off _ _ k;
+  gpu_slice_share m.elems _ _ k;
+  gpu_slice_share m.col_ind _ _ k;
+  gpu_slice_share m.row_off _ _ k;
 
-  bigstar_zip 0 k
+  forevery_zip
     (fun _ -> gpu_pts_to_array m.col_ind #(f /. k) v_col_ind)
     (fun _ -> gpu_pts_to_array m.row_off #(f /. k) v_row_off);
-  bigstar_zip 0 k
+  forevery_zip
     (fun _ -> gpu_pts_to_array m.elems #(f /.k) v_elems) _;
 
   ghost
@@ -459,7 +457,7 @@ fn smatrix_share_n
   {
     fold smatrix_pts_to m #(f /. k) em;
   };
-  bigstar_map #0 #uid #0 #k aux;
+  forevery_map _ _ aux;
 }
 
 ghost
@@ -475,69 +473,42 @@ fn smatrix_gather_n
   ensures
     smatrix_pts_to m #f em
 {
-  forevery_extract_if_eqtype #(natlt k) 0 _;
-  unfold smatrix_pts_to;
+  forevery_natlt_pop k _;
+  unfold smatrix_pts_to m #(f /. k) em;
   with v_elems.   assert gpu_pts_to_array m.elems   #(f /. k) v_elems;
   with v_col_ind. assert gpu_pts_to_array m.col_ind #(f /. k) v_col_ind;
   with v_row_off. assert gpu_pts_to_array m.row_off #(f /. k) v_row_off;
 
   ghost
-  fn aux (x : natlt k)
+  fn aux (_ : natlt (k-1))
     norewrite
     preserves
       gpu_pts_to_array m.elems   #(f /. k) v_elems **
       gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
       gpu_pts_to_array m.row_off #(f /. k) v_row_off
     requires
-      (if op_Equality #(natlt k) x 0 then emp else
-        smatrix_pts_to m #(f /. k) em
-      )
+      smatrix_pts_to m #(f /. k) em
     ensures
-      (if op_Equality #(natlt k) x 0 then emp else
-        gpu_pts_to_array m.elems   #(f /. k) v_elems **
-        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-        gpu_pts_to_array m.row_off #(f /. k) v_row_off
-      )
+      gpu_pts_to_array m.elems   #(f /. k) v_elems **
+      gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
+      gpu_pts_to_array m.row_off #(f /. k) v_row_off
   {
-    if (x = 0) {
-      rewrite each op_Equality #(natlt k) x 0 as true;
-      rewrite emp as
-      (if op_Equality #(natlt k) x 0 then emp else
-        gpu_pts_to_array m.elems   #(f /. k) v_elems **
-        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-        gpu_pts_to_array m.row_off #(f /. k) v_row_off
-      );
-      ();
-    } else {
-      rewrite each op_Equality #(natlt k) x 0 as false;
-      unfold smatrix_pts_to;
+    unfold smatrix_pts_to m #(f /. k) em;
 
-      gpu_array_pts_to_eq m.elems;
-      gpu_array_pts_to_eq m.col_ind;
-      gpu_array_pts_to_eq m.row_off;
-
-      rewrite 
-        gpu_pts_to_array m.elems   #(f /. k) v_elems **
-        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-        gpu_pts_to_array m.row_off #(f /. k) v_row_off
-      as
-      (if op_Equality #(natlt k) x 0 then emp else
-        gpu_pts_to_array m.elems   #(f /. k) v_elems **
-        gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-        gpu_pts_to_array m.row_off #(f /. k) v_row_off
-      );
-    }
+    gpu_slice_pts_to_eq' m.elems;
+    gpu_slice_pts_to_eq' m.col_ind;
+    gpu_slice_pts_to_eq' m.row_off;
   };
 
   forevery_map_extra _ _ _ aux;
-  forevery_unextract_if_eqtype #(natlt k) 0 _;
+  forevery_natlt_push k _;
 
   forevery_unzip #(natlt k) _ _;
   forevery_unzip #(natlt k) _ _;
 
-  gpu_slice_gather' m.elems   _ _ k;
-  gpu_slice_gather' m.col_ind _ _ k;
-  gpu_slice_gather' m.row_off _ _ k;
+  gpu_slice_gather m.elems   _ _ k;
+  gpu_slice_gather m.col_ind _ _ k;
+  gpu_slice_gather m.row_off _ _ k;
 
   fold smatrix_pts_to m #f em;
 }

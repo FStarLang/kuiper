@@ -3,7 +3,7 @@ module Kuiper.Barrier.RPM
 #lang-pulse
 
 open Pulse
-open Pulse.Lib.BigStar
+open Kuiper.ForEvery
 open Kuiper.Base
 open Kuiper.Common
 
@@ -19,14 +19,14 @@ let row
   (it : nat)
   (i : natlt n)
   : slprop =
-  bigstar 0 n (fun j -> p it i j)
+  forall+ (j: natlt n). p it i j
 
 let col
   (#n:nat) (p : rpm_t n)
   (it : nat)
   (j : natlt n)
   : slprop =
-  bigstar 0 n (fun i -> p it i j)
+  forall+ (i: natlt n). p it i j
 
 [@@no_mkeys]
 val mbarrier_tok
@@ -40,8 +40,8 @@ ghost
 fn mk_mbarrier
   (n: nat { 0 < n /\ n <= max_threads })
   (p : rpm_t n)
-  requires block_setup_tok n
-  ensures  block_setup_tok n ** bigstar 0 n (mbarrier_tok n p 0)
+  preserves block_setup_tok n
+  ensures forall+ i. mbarrier_tok n p 0 i
 
 inline_for_extraction noextract
 fn mbarrier_wait

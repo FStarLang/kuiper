@@ -367,7 +367,7 @@ fn subproducts1d
 
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 50"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -530,9 +530,8 @@ fn kf
   {
     forevery_extract #(natlt tm) (SZ.v !resIdx) _;
 
-    with bi0 bj0 i0 j0 v0.
-      rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-          as m4_pts_to_cell gC mrow mcol (threadRow * tm + !resIdx) threadCol v0;
+    with v0.
+      assert m4_pts_to_cell gC mrow mcol (threadRow * tm + !resIdx) threadCol v0;
 
     let v0 = M4.gpu_matrix_read_cell gC mrow mcol (threadRow *^ tm +^ !resIdx) threadCol;
     open Pulse.Lib.Array;
@@ -540,9 +539,8 @@ fn kf
     let v' = comb v0 v1;
     M4.gpu_matrix_write_cell gC mrow mcol (threadRow *^ tm +^ !resIdx) threadCol v';
 
-    with bi0 bj0 i0 j0 v0.
-      rewrite m4_pts_to_cell gC bi0  bj0  i0   j0   v0
-          as m4_pts_to_cell gC mrow mcol (threadRow * tm + !resIdx) threadCol v0;
+    with v0.
+      assert m4_pts_to_cell gC mrow mcol (threadRow * tm + !resIdx) threadCol v0;
 
     resIdx := !resIdx +^ 1sz;
     Pulse.Lib.Trade.elim_trade _ _
@@ -551,6 +549,8 @@ fn kf
   M.gpu_matrix_concr sA; rewrite each M.core sA as sarA;
   M.gpu_matrix_concr sB; rewrite each M.core sB as sarB;
 
+  rewrite each sA as M.from_array slA sarA;
+  rewrite each sB as M.from_array slB sarB;
   fold barrier_tok tm slA slB sarA sarB (2 * mshared) tid;
 
   rewrite each sarA as fst sh;

@@ -63,10 +63,7 @@ instance _cview_even #et (len : erased nat) (sz_len : concrete_sz len) : IView.c
     bij  = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj (fun (i : szlt ((len + 1) / 2)) -> i `SZ.mul` 2sz <: szlt len);
     compat = ez;
   };
 }
@@ -79,10 +76,7 @@ instance _cview_odd #et (len : erased nat) (sz_len : concrete_sz len) : IView.ci
     bij  = natural;
   };
   step = {
-    cimap = {
-      f = (fun (i : szlt (len / 2)) -> 1sz +^ i `SZ.mul` 2sz <: szlt len);
-      is_inj = ez;
-    };
+    cimap = mk_cinj (fun (i : szlt (len / 2)) -> 1sz +^ i `SZ.mul` 2sz <: szlt len);
     compat = ez;
   };
 }
@@ -109,7 +103,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   varray_read #_ #_ #_ #(_cview_odd #_ _ solve) a 10sz;
 }
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 40 --fuel 0 --ifuel 0"
 fn test (a : gpu_array u32 100)
   (#v0 : erased (lseq u32 100))
   preserves gpu
@@ -141,13 +135,9 @@ fn test (a : gpu_array u32 100)
   // assume (pure (is_full_view (sum_aview (even_view u32 100) (odd_view u32 100))));
   varray_concr va;
 
-  assert (pure (core va == a));
-  rewrite each core va as a;
-
-  // All the bijection stuff is making this hard.
-  with v1. assert a |-> v1;
-  // assert (pure (Seq.equal v0 v1));
-  assume (pure (Seq.equal v0 v1));
+  with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;
+  assume (pure (Seq.equal v0 v1)); // All the bijection stuff is making this hard.
+  rewrite gpu_pts_to_slice (core va) 0 l1 v1 as a |-> v0;
 
   res
 }

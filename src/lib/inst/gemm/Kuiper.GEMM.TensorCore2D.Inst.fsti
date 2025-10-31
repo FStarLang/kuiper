@@ -41,6 +41,8 @@ fn spec
   (gA : gpu_matrix et_ab (row_major rows shared))
   (gB : gpu_matrix et_ab (row_major shared cols))
   (gC : gpu_matrix et_c (row_major rows cols))
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
   (#eC : ematrix et_c rows cols)

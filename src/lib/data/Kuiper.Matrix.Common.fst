@@ -25,12 +25,12 @@ instance ematrix_is_ghost_map
   : is_ghost_map (ematrix et rows cols) (natlt rows & natlt cols) et
 = {
     bij = {
-      ff = (fun m -> M?.f (reveal m));
-      gg = (fun f -> hide (M f));
+      ff = (fun m -> M?.f m);
+      gg = (fun f -> M f);
       ff_gg = ez;
       gg_ff = ez;
     };
-    acc = (fun m (i, j) -> hide (macc m i j));
+    acc = (fun m (i, j) -> (macc m i j));
     upd = (fun m (i, j) x -> mupd m i j x);
     l1 = ez;
     l2 = ez;

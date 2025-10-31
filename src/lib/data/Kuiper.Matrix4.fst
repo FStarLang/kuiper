@@ -5,6 +5,7 @@ open Kuiper
 open Kuiper.Bijection
 open Kuiper.GhostMap
 open Kuiper.EMatrix4
+open Kuiper.Injection { mk_cinj }
 module A = Kuiper.VArray
 module T = FStar.Tactics.V2
 open FStar.SizeT { (/^), (%^), (+^), (-^), ( *^ )  }
@@ -78,10 +79,7 @@ instance cview_from_clayout4
   };
 
   step = {
-    cimap = {
-      f = clayout4_imap c;
-      is_inj = (fun idx1 idx2 -> ());
-    };
+    cimap = mk_cinj (clayout4_imap c) #(fun idx1 idx2 -> ());
     compat = ez;
   };
 }
@@ -180,8 +178,13 @@ fn gpu_matrix_abs
     from_array l p |-> Frac f em
 {
   assert (pure (Seq.equal (to_seq l em) (A.to_seq (aview_from_mlayout et l) em)));
-  rewrite each to_seq l em
-            as A.to_seq (aview_from_mlayout et l) em;
+  // FIXME: rewrite each can't prove equality?
+  // rewrite each to_seq l em
+  //           as A.to_seq (aview_from_mlayout et l) em;
+  rewrite
+    p |-> Frac f (to_seq l em)
+  as
+    p |-> Frac f (A.to_seq (aview_from_mlayout et l) em);
   A.varray_abs (aview_from_mlayout et l) p;
   fold gpu_matrix_pts_to (from_array l p) #f em;
 }
@@ -246,7 +249,6 @@ fn gpu_matrix_free
 ghost
 fn gpu_matrix_share_n
   (#et:Type0)
-  (#[T.exact (`0)]uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
@@ -256,24 +258,23 @@ fn gpu_matrix_share_n
   requires
     gpu_matrix_pts_to gm #f em
   ensures
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_share_n gm k;
-  ghost
-  fn aux (i:natlt k)
-    requires A.varray_pts_to gm #(f /. k) em
-    ensures  gpu_matrix_pts_to gm #(f /. k) em
-  {
-    fold gpu_matrix_pts_to gm #(f /. k) em;
-  };
-  bigstar_map #0 #uid #0 #k aux;
+  forevery_map
+    (fun (i:natlt k) ->
+      A.varray_pts_to gm #(f /. k) em)
+    (fun (i:natlt k) ->
+      gpu_matrix_pts_to gm #(f /. k) em)
+    fn i {
+      fold gpu_matrix_pts_to gm #(f /. k) em;
+    };
 }
 
 ghost
 fn gpu_matrix_gather_n
   (#et:Type0)
-  (#uid: int)
   (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (gm : gpu_matrix et l)
@@ -281,18 +282,18 @@ fn gpu_matrix_gather_n
   (#f : perm)
   (#em : _)
   requires
-    bigstar #uid 0 k (fun _ -> gpu_matrix_pts_to gm #(f /. k) em)
+    forall+ (_:natlt k). gpu_matrix_pts_to gm #(f /. k) em
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  ghost
-  fn aux (i:natlt k)
-    requires gpu_matrix_pts_to gm #(f /. k) em
-    ensures  A.varray_pts_to gm #(f /. k) em
-  {
-    unfold gpu_matrix_pts_to gm #(f /. k) em;
-  };
-  bigstar_map #uid #0 #0 #k aux;
+  forevery_map
+    (fun (i:natlt k) ->
+      gpu_matrix_pts_to gm #(f /. k) em)
+    (fun (i:natlt k) ->
+      A.varray_pts_to gm #(f /. k) em)
+    fn i{
+      unfold gpu_matrix_pts_to gm #(f /. k) em;
+    };
   A.varray_gather_n gm k;
   fold gpu_matrix_pts_to gm #f em;
 }
@@ -470,7 +471,7 @@ fn gpu_matrix_explode
       A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
     (fun rc ->
       A.varray_pts_to_cell gm #f (rc._1, rc._2) (EMatrix.macc em rc._1 rc._2));
-  forevery_unflatten #(natlt (mrows * brows)) #_ #(natlt (mcols * bcols))
+  forevery_unflatten #(natlt (mrows * brows)) #(natlt (mcols * bcols))
     (fun r c ->
       A.varray_pts_to_cell gm #f (r, c) (EMatrix.macc em r c));
   forevery_factor (mrows * brows) mrows brows _;

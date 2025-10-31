@@ -21,15 +21,15 @@ let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : (a ^->> b) =
 [@@erasable]
 class is_ghost_map (mt : Type) (it : Type) (et : Type) = {
   [@@@no_method]
-  bij : erased mt =~ (it ^->> et);
+  bij : mt =~ (it ^->> et);
   [@@@no_method]
-  acc : mt -> it -> erased et;
+  acc : mt -> it -> GTot et;
   [@@@no_method]
-  upd : mt -> it -> et -> erased mt;
+  upd : mt -> it -> et -> GTot mt;
 
   [@@@no_method]
   l1 : (i:it -> m:mt ->
-         squash (hide (bij.ff m i) == acc m i));
+         squash (bij.ff m i == acc m i));
   [@@@no_method]
   l2 : (i:it -> m:mt -> e:et ->
          squash (bij.ff (upd m i e) `F.feq_g` oplus (bij.ff m) i e));
@@ -38,15 +38,15 @@ class is_ghost_map (mt : Type) (it : Type) (et : Type) = {
 val ghost_map_acc
   (#mt:Type) (#it:Type) (#et:Type)
   (gm : is_ghost_map mt it et)
-  (i : it) (m : erased mt)
-  : Lemma (hide (gm.bij.ff m i) == gm.acc m i)
+  (i : it) (m : mt)
+  : Lemma (gm.bij.ff m i == gm.acc m i)
           [SMTPatOr [[SMTPat (gm.bij.ff m i)];
                      [SMTPat (gm.acc m i)]]]
 
 val ghost_map_upd
   (#mt:Type) (#it:Type) (#et:Type)
   (gm : is_ghost_map mt it et)
-  (i : it) (m : erased mt) (e : et)
+  (i : it) (m : mt) (e : et)
   : Lemma (gm.bij.ff (gm.upd m i e) == oplus (gm.bij.ff m) i e)
           [SMTPatOr [[SMTPat (gm.bij.ff (gm.upd m i e))];
                      [SMTPat (oplus (gm.bij.ff m) i e)]]]
@@ -75,14 +75,14 @@ val lemma_is_ghost_map_prod_acc
 open FStar.Ghost
 open FStar.Seq
 
-let lseq_to_ghost_map (#et:Type) (#len:nat) : erased (lseq et len) -> (natlt len ^->> et) =
+let lseq_to_ghost_map (#et:Type) (#len:nat) : (lseq et len) -> GTot (natlt len ^->> et) =
   fun v -> F.on_g _ fun (i:natlt len) -> Seq.index (reveal v) i <: et
 
-let lseq_from_ghost_map (#et:Type) (#len:nat) : (natlt len ^->> et) -> erased (lseq et len) =
+let lseq_from_ghost_map (#et:Type) (#len:nat) : (natlt len ^->> et) -> GTot (lseq et len) =
   fun f -> hide (Seq.init_ghost len f)
 
 noextract
-let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (erased (lseq et len)) (natlt len ^->> et) = {
+let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (lseq et len) (natlt len ^->> et) = {
   ff = lseq_to_ghost_map;
   gg = lseq_from_ghost_map;
   ff_gg = (fun f ->
@@ -90,8 +90,7 @@ let bij_lseq_ghost_map (et:Type) (len:nat) : bijection (erased (lseq et len)) (n
     ()
   );
   (* We need to state this, otherwise we get a coercion that messes things up. *)
-  gg_ff = (fun (es : erased (lseq et len)) ->
-    (* ARGH! without stating erased above, we seem to implicly get a reveal coercion that messes things up. *)
+  gg_ff = (fun es ->
     assert (Seq.equal (lseq_from_ghost_map (lseq_to_ghost_map es)) es);
     ()
   );
@@ -108,13 +107,7 @@ instance lseq_is_ghost_map (et:Type) (len:nat) : is_ghost_map (lseq et len) (nat
 
 instance ghost_map_is_ghost_map #a #b : is_ghost_map (a ^->> b) a b =
   {
-    bij =
-      (Mkbijection #(erased (a ^->> b)) #(a ^->> b)
-        reveal
-        hide
-        ez
-        ez
-      );
+    bij = bij_self (a ^->> b);
     acc = (fun m i -> m i);
     upd = (fun m i e -> oplus m i e);
     l1 = ez;

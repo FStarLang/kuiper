@@ -44,15 +44,20 @@ fn spec
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
+    pure (aligned 16 (M.core gA)) **
+    pure (aligned 16 (M.core gB)) **
     pure (rows * cols <= max_blocks) **
     gC |-> eC
   ensures
     gC |-> MS.gemm alpha beta eC eA eB
 {
-  // These didn't seem to be needed before!?
   M.gpu_matrix_pts_to_ref gA;
   M.gpu_matrix_pts_to_ref gB;
   M.gpu_matrix_pts_to_ref gC;
+
+  // TODO: add dynamic assert for this.
+    // pure (aligned 16 (M.core gA)) **
+    // pure (aligned 16 (M.core gB)) **
 
   dassert (bm >^ 0sz);
   dassert (bn >^ 0sz);

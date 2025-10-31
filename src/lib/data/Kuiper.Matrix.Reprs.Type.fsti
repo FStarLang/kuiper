@@ -14,12 +14,15 @@ type mlayout (rows cols : nat) = {
   map : natlt rows & natlt cols @~> natlt len;
 }
 
+let cell_of_pos #rows #cols
+  (l : mlayout rows cols) (i : natlt rows) (j : natlt cols) : GTot nat =
+  l.map.f (i, j)
+
 let is_full_layout (l : mlayout 'rows 'cols) : prop =
   is_surj l.map.f
 
 let full_mlayout (rows cols : nat) =
   l : mlayout rows cols { is_full_layout l }
-
 
 let mlayout_size (#rows #cols : nat) (l : mlayout rows cols) : GTot nat =
   l.len
@@ -74,7 +77,7 @@ class strided_row_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
   [@@@no_method]
   offset : sz;
   [@@@no_method]
-  stride : sz;
+  stride : szp;
   [@@@no_method]
   pf : i:natlt rows -> j:natlt cols ->
          squash (l.map.f (i,j) == offset + stride * i + j);
@@ -85,7 +88,7 @@ class strided_col_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
   [@@@no_method]
   offset : sz;
   [@@@no_method]
-  stride : sz;
+  stride : szp;
   [@@@no_method]
   pf : i:natlt rows -> j:natlt cols ->
          squash (l.map.f (i,j) == offset + stride * j + i);
