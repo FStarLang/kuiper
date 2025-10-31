@@ -85,10 +85,10 @@ fn sarray_scale
 
   with v_elems. assert a.elems |-> v_elems;
   with v_pos. assert a.pos |-> v_pos;
-  
+
   while ((!i <^ a.nnz))
     invariant
-      (exists* i_v v_elems'. 
+      (exists* i_v v_elems'.
         i |-> i_v **
         a.elems |-> v_elems' **
         pure FStar.Seq.(

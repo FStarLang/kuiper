@@ -6,7 +6,6 @@ open Kuiper
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-module MU = Kuiper.Poly.GEMM.Util
 open Kuiper.Sparse
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
@@ -30,7 +29,7 @@ let rec __dprod
       add
         (__dprod elems col_ind eB ri re j (to - 1))
         (mul
-          (elems @! (to - 1)) 
+          (elems @! (to - 1))
           (macc eB (col_ind @! (to - 1)) j))
     )
 
@@ -45,7 +44,7 @@ let dprod
   (j : natlt cols)
   : GTot et
 =
-  __dprod elems col_ind eB ri re j re 
+  __dprod elems col_ind eB ri re j re
 
 
 
@@ -80,21 +79,21 @@ let rec __matmul_dotprod_lemma
   (j : natlt cols)
   (to : nat{(row_off @! i) <= to /\ to < (row_off @! (i + 1))})
   : Lemma
-    (requires valid_smatrix rows shared col_ind row_off)  
+    (requires valid_smatrix rows shared col_ind row_off)
     (ensures
       __dprod elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j (to + 1) ==
-      MS.__matmul_single (smatrix_unsparse _ _ elems col_ind row_off) eB i j ((col_ind @! to) + 1) 
+      MS.__matmul_single (smatrix_unsparse _ _ elems col_ind row_off) eB i j ((col_ind @! to) + 1)
     )
 =
   let eA = smatrix_unsparse rows shared elems col_ind row_off in
-  
+
   let ri = row_off @! i in
   let re = row_off @! (i + 1) in
 
   if to = ri
     then (
       MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
-      matmul_all_zeros_lemma eA eB i j 0 (col_ind @! to) 
+      matmul_all_zeros_lemma eA eB i j 0 (col_ind @! to)
     )
     else (
       MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
@@ -115,14 +114,14 @@ let matmul_dotprod_lemma
   (i : natlt rows)
   (j : natlt cols)
   : Lemma
-    (requires valid_smatrix rows shared col_ind row_off)  
+    (requires valid_smatrix rows shared col_ind row_off)
     (ensures
       dprod elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j ==
-      MS.matmul_single (smatrix_unsparse rows shared elems col_ind row_off) eB i j 
+      MS.matmul_single (smatrix_unsparse rows shared elems col_ind row_off) eB i j
     )
 =
   let eA = smatrix_unsparse rows shared elems col_ind row_off in
-  
+
   let ri = row_off @! i in
   let re = row_off @! (i + 1) in
 
@@ -163,23 +162,23 @@ fn matmul_dotprod
     assert gpu_pts_to_array gA.col_ind # fA v_ind;
 
   assert pure (forall k. v_ind @! k < shared);
-  
+
   let ri = gpu_array_read gA.row_off i;
   let re = gpu_array_read gA.row_off (i +^ 1sz);
 
   let mut dp : et = zero;
 
   let mut k = ri;
-  
+
   while ((!k <^ re))
     invariant
       live dp **
       live k **
       pure (
         ri <= !k /\ !k <= re /\
-        !dp == __dprod v_elems (cast_pos v_ind) eB ri re j !k 
+        !dp == __dprod v_elems (cast_pos v_ind) eB ri re j !k
       )
-      
+
   {
     let x = gpu_array_read gA.elems !k;
     let c = gpu_array_read gA.col_ind !k;

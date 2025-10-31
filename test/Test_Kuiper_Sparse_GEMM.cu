@@ -10,11 +10,10 @@ typedef Kuiper_Sparse_smatrix__uint32_t smatrix_t;
 
 uint32_t *mk_dense_matrix()
 {
-    uint32_t* M = (uint32_t*)malloc (N * N * sizeof M[0]);
+    uint32_t *M = (uint32_t *) malloc(N * N * sizeof M[0]);
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            M[i * N + j] = 
-              rand () % 100 < 90 ? 0 : rand() % 100;
+            M[i * N + j] = rand() % 100 < 90 ? 0 : rand() % 100;
         }
     }
     return M;
@@ -29,9 +28,9 @@ smatrix_t sparsify_matrix(uint32_t *M)
         }
     }
 
-    uint32_t* elems = (uint32_t*)malloc (nnz * sizeof elems[0]);
-    uint32_t* col_ind = (uint32_t*)malloc (nnz * sizeof col_ind[0]);
-    uint32_t* row_off = (uint32_t*)malloc ((N + 1) * sizeof row_off[0]);
+    uint32_t *elems = (uint32_t *) malloc(nnz * sizeof elems[0]);
+    uint32_t *col_ind = (uint32_t *) malloc(nnz * sizeof col_ind[0]);
+    uint32_t *row_off = (uint32_t *) malloc((N + 1) * sizeof row_off[0]);
 
     uint32_t idx = 0;
     row_off[0] = 0;
@@ -45,7 +44,7 @@ smatrix_t sparsify_matrix(uint32_t *M)
         }
         row_off[i + 1] = idx;
     }
-    assert (idx == nnz);
+    assert(idx == nnz);
 
     Kuiper_Sparse_smatrix__uint32_t smat;
     smat.nnz1 = nnz;
@@ -56,7 +55,7 @@ smatrix_t sparsify_matrix(uint32_t *M)
     return smat;
 }
 
-void matmul(uint32_t* A, uint32_t* B, uint32_t* C)
+void matmul(uint32_t *A, uint32_t *B, uint32_t *C)
 {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
@@ -69,14 +68,14 @@ void matmul(uint32_t* A, uint32_t* B, uint32_t* C)
     }
 }
 
-void print_matrix(const char *name, uint32_t* M)
+void print_matrix(const char *name, uint32_t *M)
 {
-    printf ("Matrix %s:\n", name);
+    printf("Matrix %s:\n", name);
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            printf ("%5u ", M[i * N + j]);
+            printf("%5u ", M[i * N + j]);
         }
-        printf ("\n");
+        printf("\n");
     }
 }
 
@@ -85,9 +84,9 @@ int main(int argc, char **argv)
     srand(time(NULL) + getpid());
     uint32_t *AD = mk_dense_matrix();
     smatrix_t A = sparsify_matrix(AD);
-    uint32_t* B = mk_dense_matrix();
-    uint32_t* C = (uint32_t*)calloc (N * N, sizeof C[0]);
-    uint32_t* CD = (uint32_t*)calloc (N * N, sizeof C[0]);
+    uint32_t *B = mk_dense_matrix();
+    uint32_t *C = (uint32_t *) calloc(N * N, sizeof C[0]);
+    uint32_t *CD = (uint32_t *) calloc(N * N, sizeof C[0]);
 
     Kuiper_Sparse_GEMM__gemm_u32_rr(N, N, N, A, B, C);
     matmul(AD, B, CD);
@@ -100,8 +99,8 @@ int main(int argc, char **argv)
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             if (C[i * N + j] != CD[i * N + j]) {
-                printf ("Mismatch at (%d,%d): %u != %u\n",
-                        i, j, C[i * N + j], CD[i * N + j]);
+                printf("Mismatch at (%d,%d): %u != %u\n",
+                       i, j, C[i * N + j], CD[i * N + j]);
                 return 1;
             }
         }

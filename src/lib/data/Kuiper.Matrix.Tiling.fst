@@ -509,7 +509,7 @@ fn gpu_matrix_extract_tile
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm'
       as
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em' trows tcols tr tc);
-      forevery_insert 
+      forevery_insert
         #(natlt (rows / trows) & natlt (cols / tcols))
         #(fun tr'tc' -> tr'tc' =!= (tr, tc))
         (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols)) ->

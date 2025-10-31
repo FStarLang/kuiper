@@ -7,7 +7,7 @@ module SZ = FStar.SizeT
 module KSeq = Kuiper.Seq.Common
 module DP = Kuiper.Poly.DotProduct
 
-let pmul 
+let pmul
   (#et:_) {| scalar et |}
   (#l : nat)
   (s t : lseq et l)
@@ -21,7 +21,7 @@ let sum
   (#l : nat)
   (s : lseq et l)
   : GTot et
-= 
+=
   DP.sum s
 
 let dprod
@@ -56,7 +56,7 @@ let rec sum_all_zeros
   : Lemma
     (requires true)
     (ensures KSeq.seq_fold_left add k (Seq.create #et l zero) == k)
-= 
+=
   let open FStar.Seq in
   if l = 0
     then ()
@@ -83,9 +83,9 @@ let shift_tail
   : Ghost (lseq nat (nnz -1))
     (requires true)
     (ensures valid_pos (l - 1))
-= 
+=
   assert (pos @! 0 >= 0);
-  shift 1 l (Seq.tail pos) 
+  shift 1 l (Seq.tail pos)
 
 
 noextract
@@ -98,7 +98,7 @@ let rec shift_tail_mem
     (ensures Seq.mem (i + 1) (Seq.tail pos) <==> Seq.mem i (shift_tail l pos))
 =
   let open FStar.Seq in
-  
+
   let pos' = tail pos in
   if len pos' = 0
     then ()
@@ -120,7 +120,7 @@ let shift_tail_unsparse
       Seq.tail (unsparse nnz l elems pos) ==
       unsparse (nnz - 1) (l - 1) (Seq.tail elems) (shift_tail l pos)
     )
-= 
+=
   let open FStar.Seq in
 
   let pos' = shift_tail l pos in
@@ -144,7 +144,7 @@ let rec shift_mem
   : Lemma
     (requires in_bounds 1 l pos)
     (ensures Seq.mem (i + 1) pos <==> Seq.mem i (shift 1 l pos))
-= 
+=
   let open FStar.Seq in
 
   if nnz = 1
@@ -165,9 +165,9 @@ let shift_unsparse
     (ensures
       Seq.tail (unsparse nnz l elems pos) ==
       unsparse nnz (l - 1) elems (shift 1 l pos))
-= 
+=
   let open FStar.Seq in
-  
+
   let s1 = tail (unsparse nnz l elems pos) in
   let s2 = unsparse nnz (l - 1) elems (shift 1 l pos) in
   introduce forall i. s1 @! i == s2 @! i
@@ -187,14 +187,14 @@ let rec lemma_sparse_dprod
     (ensures
       KSeq.seq_fold_left add k (elems `pmul` seq_project pos s) ==
       KSeq.seq_fold_left add k (unsparse nnz l elems pos `pmul` s))
-= 
+=
   let open FStar.Seq in
-  
+
   bounded_from_sorted_in_bounds 0 l pos;
 
   let p1 = elems `pmul` seq_project pos s in
   let p2 = unsparse _ _ elems pos `pmul` s in
-  
+
   if l = 0
     then ()
     else (
@@ -270,7 +270,7 @@ fn sarray_product_dense
     i := !i `SZ.add` 1sz;
   };
 
-  lemma_sparse_dprod v_elems pos t zero; 
+  lemma_sparse_dprod v_elems pos t zero;
 
   fold sarray_pts_to' a s;
   fold sarray_pts_to a s;

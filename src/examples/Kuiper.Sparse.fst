@@ -79,7 +79,7 @@ let in_bounds (l h : nat) (s : seq nat) : prop =
   forall i. {:pattern (s @! i)} l <= s @! i /\ s @! i < h
 
 noextract
-let sorted_slice 
+let sorted_slice
   (s : seq nat)
   (a b : nat{a <= b /\ b <= len s})
   : prop
@@ -89,7 +89,7 @@ let sorted_slice
 
 noextract
 let sorted (s : seq nat) : prop =
-  sorted_slice s 0 (len s) 
+  sorted_slice s 0 (len s)
 
 noextract
 let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop =
@@ -137,7 +137,7 @@ let unsparse
   (#et:Type0) {| scalar et |}
   (nnz l : nat)
   (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos}) 
+  (pos   : lseq nat nnz{valid_pos l pos})
   : GTot (lseq et l)
 =
   let open FStar.Seq in
@@ -232,7 +232,7 @@ fn sarray_iterator_get
   preserves gpu ** a |-> s
   requires
     pure (not (sarray_iterator_end i))
-  returns v : sz & et 
+  returns v : sz & et
 {
   unfold sarray_pts_to a s;
   with v_elems v_pos.
@@ -339,10 +339,10 @@ let smatrix_unsparse
   (#nnz rows cols : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (row_off : lseq nat (rows + 1)) 
+  (row_off : lseq nat (rows + 1))
   : Ghost (ematrix et rows cols)
     (requires valid_smatrix rows cols col_ind row_off)
-    (ensures fun _ -> true) 
+    (ensures fun _ -> true)
 =
   mkM fun i j ->
     //let row_cols = slice_row row_off col_ind i in
@@ -359,7 +359,7 @@ let smatrix_all_zeros
   (#nnz rows cols : nat)
   (elems : lseq et nnz)
   (col_ind : lseq nat nnz)
-  (row_off : lseq nat (rows + 1)) 
+  (row_off : lseq nat (rows + 1))
   (i : natlt rows)
   (r : nat{(row_off @! i) < r /\ r < (row_off @! (i + 1))})
   : Lemma
@@ -383,7 +383,7 @@ let pure_smatrix_pt_to
   : prop
 =
   valid_smatrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
-  e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off) 
+  e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
 
 
 let smatrix_pts_to
@@ -525,7 +525,7 @@ fn smatrix_id
   let mut i = 0sz;
   while ((!i <^ m.nnz))
     invariant
-      m |-> e ** live i 
+      m |-> e ** live i
   {
     unfold smatrix_pts_to m e;
 
@@ -539,9 +539,9 @@ fn smatrix_id
     assert pure (Seq.equal v_elems (Seq.upd v_elems i_v v));
 
     i := !i `SZ.add` 1sz;
-    
+
     fold smatrix_pts_to m e;
-    
+
   }
 }
 

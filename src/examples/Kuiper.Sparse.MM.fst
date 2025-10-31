@@ -51,7 +51,7 @@ fn smatrix_sdmm
         assert gA.row_off |-> v_off;
       with v_ind.
         assert gA.col_ind |-> v_ind;
-      
+
       let row_cols = hide (slice_row (cast_pos v_off) (cast_pos v_ind) v_i);
 
       let mut dp : et = zero;
@@ -65,9 +65,9 @@ fn smatrix_sdmm
             live dp **
             pure (
               ri <= v_k /\
-              (v_k < re ==> SZ.v (v_ind @! v_k) == row_cols @! (v_k - ri)) 
+              (v_k < re ==> SZ.v (v_ind @! v_k) == row_cols @! (v_k - ri))
             )
-          
+
       {
         let x = gpu_array_read gA.elems !k;
         let c = gpu_array_read gA.col_ind !k;
