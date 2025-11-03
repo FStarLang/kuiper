@@ -32,32 +32,6 @@ open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
 
 inline_for_extraction noextract
-fn gpu_matrix_extract_tile_ro'
-  (#et:Type0)
-  (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows })
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols })
-  (tr : enatlt (rows / trows))
-  (tc : enatlt (cols / tcols))
-  (#em : ematrix et rows cols)
-  (#f : perm)
-  requires
-    gm |-> Frac f em
-  returns gm' : gpu_matrix et (subtile_layout l trows tcols tr tc)
-  ensures
-    // is this helpful?
-    rewrites_to gm' (gpu_matrix_subtile gm trows tcols tr tc)
-  ensures
-    factored
-      (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
-      (gm |-> Frac f em)
-{
-  gpu_matrix_extract_tile_ro' gm trows tcols tr tc;
-}
-
-inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
   {| scalar et_ab, scalar et_acc |}
@@ -246,32 +220,6 @@ fn subproducts_tc_2d
 
 #push-options "--z3rlimit 80"
 
-
-inline_for_extraction noextract
-fn gpu_matrix_extract_tile_st
-  (#et:Type0)
-  (#rows #cols : erased nat)
-  (#l : mlayout rows cols)
-  (gm : gpu_matrix et l)
-  (trows : erased nat { trows > 0 /\ trows /? rows })
-  (tcols : erased nat { tcols > 0 /\ tcols /? cols })
-  (tr : enatlt (rows / trows))
-  (tc : enatlt (cols / tcols))
-  (#em : ematrix et rows cols)
-  (#f : perm)
-  requires
-    gm |-> Frac f em
-  returns tc_tile : gpu_matrix et (subtile_layout l trows tcols tr tc)
-  ensures
-    tc_tile |-> Frac f (ematrix_subtile em trows tcols tr tc) **
-    (forall* (tm' : ematrix et trows tcols).
-      tc_tile |-> Frac f tm' @==>
-      gm |-> Frac f (update_tile em trows tcols tr tc tm'))
-  ensures pure (tc_tile == gpu_matrix_subtile gm trows tcols tr tc)
-{
-  gpu_matrix_extract_tile gm trows tcols tr tc;
-  gpu_matrix_subtile gm trows tcols tr tc
-}
 
 inline_for_extraction noextract
 fn epilogue
