@@ -113,3 +113,29 @@ instance ghost_map_is_ghost_map #a #b : is_ghost_map (a ^->> b) a b =
     l1 = ez;
     l2 = ez;
   }
+
+instance ghost_map_fun
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  // Does this have to have an internal GTot?
+  : is_ghost_map (idx -> GTot mt) (x:idx & i x) e =
+{
+  bij = magic();
+  acc = (fun (m : idx -> GTot mt) (ix : (x:idx & i x)) ->
+           let (| i,x |) = ix in 
+           (sub i).acc (m i) x);
+  upd = (fun (m : idx -> GTot mt) (ix : (x:idx & i x)) (e:e) ->
+            let (| i,x |) = ix in
+            let m' : idx -> GTot mt =
+              fun i' ->
+                if i = i'
+                then (sub i).upd (m i) x e
+                else m i'
+              in
+            m');
+  l1  = magic();
+  l2  = magic();
+}

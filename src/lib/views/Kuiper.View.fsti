@@ -224,3 +224,21 @@ let sum_aview
   iview = sum_aiview vw1.iview vw2.iview;
   igm   = solve;
 }
+
+let no_overlap_fam
+  (#et : Type0) (#st : Type)
+  (n : nat)
+  (vw : natlt n -> aview et st)
+  : prop
+  = IView.no_overlap_fam n (fun i -> (vw i).iview)
+
+let sum_aview_fam
+  (#et : Type) (#st : Type)
+  (n : pos)
+  (vws : natlt n -> aview et st)
+  (#_ : squash (no_overlap_fam n vws))
+  : aview et (natlt n -> GTot st) =
+{
+  iview = sum_aiview_fam n (fun i -> (vws i).iview);
+  igm   = GhostMap.ghost_map_fun (natlt n) st (fun (i : natlt n) -> (vws i).iview.sch.ait) et;
+}

@@ -390,6 +390,24 @@ fn iarray_split2
 }
 
 ghost
+fn iarray_split_n
+  (#et : Type0)
+  (#n : pos)
+  (vw : natlt n -> aiview { forall i. len (vw i) = len (vw 0) })
+  (#_ : squash (no_overlap_fam n vw))
+  (a : iarray et (sum_aiview_fam n vw #()))
+  (#f : perm)
+  (#v : (i:natlt n & (vw i).sch.ait) -> GTot et)
+  requires
+    a |-> Frac f v
+  ensures
+    forall+ (i : natlt n).
+      from_array (vw i) (core a) |-> Frac f (fun j -> v (| i, j |))
+{
+  admit();
+}
+
+ghost
 fn iarray_share_n
   (#et:Type0)
   (#vw : aiview)

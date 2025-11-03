@@ -438,6 +438,21 @@ fn varray_split2
     pure (core (snd a1a2) == core a)
 
 ghost
+fn varray_split_n
+  (#et : Type0) (#st : Type)
+  (#n : pos)
+  (vw : natlt n -> aview et st { forall i. len (vw i) = len (vw 0) })
+  (#_ : squash (no_overlap_fam n vw))
+  (a : varray (sum_aview_fam n vw #()))
+  (#f : perm)
+  (#v : natlt n -> GTot st)
+  requires
+    a |-> Frac f v
+  ensures
+    forall+ (i : natlt n).
+      from_array (vw i) (core a) |-> Frac f (v i)
+
+ghost
 fn varray_join2_
   (#et : Type0) (#st1 #st2 : Type)
   (#vw1 : aview et st1)

@@ -659,6 +659,26 @@ fn varray_split2
 }
 
 ghost
+fn varray_split_n
+  (#et : Type0) (#st : Type)
+  (#n : pos)
+  (vw : natlt n -> aview et st { forall i. len (vw i) = len (vw 0) })
+  (#_ : squash (no_overlap_fam n vw))
+  (a : varray (sum_aview_fam n vw #()))
+  (#f : perm)
+  (#v : natlt n -> GTot st)
+  requires
+    a |-> Frac f v
+  ensures
+    forall+ (i : natlt n).
+      from_array (vw i) (core a) |-> Frac f (v i)
+{
+  unfold varray_pts_to a #f v;
+  IArray.iarray_split_n (fun i -> (vw i).iview) (VA?._0 a);
+  admit();
+}
+
+ghost
 fn forevery_join_either'
   (#a #b : Type0) {| enumerable a, enumerable b |}
   (p : a -> slprop)

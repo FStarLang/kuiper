@@ -41,6 +41,11 @@ instance enumerable_prod (t1 t2 : Type)
   bij = bij_prod d1.bij d2.bij `bij_comp` bij_nat_prod;
 }
 
+instance enumerable_dprod (t1 : Type) (t2 : t1 -> Type)
+  {| d1 : enumerable t1 |} {| d2 : (x:t1 -> enumerable (t2 x)) |}
+  : enumerable (x:t1 & t2 x)
+= admit()
+
 instance enumerable_sum (t1 t2 : Type)
   {| d1 : enumerable t1 |} {| d2 : enumerable t2 |}
   : enumerable (either t1 t2)
