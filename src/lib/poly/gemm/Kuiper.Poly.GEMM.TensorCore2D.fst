@@ -3,7 +3,7 @@ module Kuiper.Poly.GEMM.TensorCore2D
 #lang-pulse
 
 open Kuiper
-
+#set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #set-options "--z3rlimit 50"
 
 open Pulse.Lib.Array
