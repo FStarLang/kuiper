@@ -178,11 +178,11 @@ let surj_lemma #et (len:nat)
           [SMTPat (it_to_nat (sum_aview (even_view et len) (odd_view et len)))]
   = Classical.forall_intro (surj_lemma' #et #len)
 
+#push-options "--split_queries always"
 let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
-= admit(); // terrible SMT performance here, just admit
-  lem_no_overlap #et len;
+= lem_no_overlap #et len;
   calc (==) {
     it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
     == {}
@@ -196,6 +196,7 @@ let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   assert (it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i);
   assert (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2) == it_of_nat (sum_aview (even_view et len) (odd_view et len)) i);
   ()
+#pop-options
 
 let lem_idx2 #et (#len : nat) (i : natlt len{i % 2 = 1})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
