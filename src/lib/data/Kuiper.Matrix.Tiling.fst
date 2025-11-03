@@ -525,6 +525,33 @@ fn gpu_matrix_extract_tile
   Pulse.Lib.Forall.intro_forall _ aux;
 }
 
+inline_for_extraction noextract
+fn gpu_matrix_extract_tile_st
+  (#et:Type0)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat { trows > 0 /\ trows /? rows })
+  (tcols : erased nat { tcols > 0 /\ tcols /? cols })
+  (tr : enatlt (rows / trows))
+  (tc : enatlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    gm |-> Frac f em
+  returns tc_tile : gpu_matrix et (subtile_layout l trows tcols tr tc)
+  // use rewrites_to?
+  ensures pure (tc_tile == gpu_matrix_subtile gm trows tcols tr tc)
+  ensures
+    tc_tile |-> Frac f (ematrix_subtile em trows tcols tr tc) **
+    (forall* (tm' : ematrix et trows tcols).
+      tc_tile |-> Frac f tm' @==>
+      gm |-> Frac f (update_tile em trows tcols tr tc tm'))
+{
+  gpu_matrix_extract_tile gm trows tcols tr tc;
+  gpu_matrix_subtile gm trows tcols tr tc
+}
+
 ghost
 fn gpu_matrix_extract_tile_ro
   (#et:Type0)
@@ -566,7 +593,7 @@ fn gpu_matrix_extract_tile_ro'
     gm |-> Frac f em
   returns gm' : gpu_matrix et (subtile_layout l trows tcols tr tc)
   ensures
-    pure (gm' == gpu_matrix_subtile gm trows tcols tr tc) **
+    rewrites_to gm' (gpu_matrix_subtile gm trows tcols tr tc) **
     factored
       (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)

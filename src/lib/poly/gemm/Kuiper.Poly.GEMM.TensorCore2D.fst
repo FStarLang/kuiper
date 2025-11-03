@@ -3,7 +3,7 @@ module Kuiper.Poly.GEMM.TensorCore2D
 #lang-pulse
 
 open Kuiper
-
+#set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #set-options "--z3rlimit 60"
 
 open Pulse.Lib.Array
@@ -29,6 +29,7 @@ module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 
 open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
+
 
 inline_for_extraction noextract
 fn subproducts_tc_2d
@@ -107,10 +108,10 @@ fn subproducts_tc_2d
       // Expected are only nats, but later on when the tile is used we need to concretize.
       // In this case wm*tm and 0 must be concretizable which means that either we have to write (SZ.v (wm*^tm)) and (SZ.v 0sz),
       // which is odd, because a nat is expected, or there must be type classes that can resolve this.
-      assert (rewrites_to a_tile (
-        gpu_matrix_subtile (
-          gpu_matrix_subtile gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx))
-          (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0));
+      // assert (rewrites_to a_tile (
+      //   gpu_matrix_subtile (
+      //     gpu_matrix_subtile gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx))
+      //     (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0));
 
       // unfortunately, when inferring emAFrags, the solver cannot prove that !i0 is small enough
       with emAFrags. assert aFrags |-> emAFrags;
@@ -144,10 +145,10 @@ fn subproducts_tc_2d
       // Expected are only nats, but later on when the tile is used we need to concretize.
       // In this case wm*tm and 0 must be concretizable which means that either we have to write (SZ.v (wm*^tm)) and (SZ.v 0sz),
       // which is odd, because a nat is expected, or there must be type classes that can resolve this.
-      assert (rewrites_to b_tile (
-        gpu_matrix_subtile (
-          gpu_matrix_subtile gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol))
-          (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1)));
+      // assert (rewrites_to b_tile (
+      //   gpu_matrix_subtile (
+      //     gpu_matrix_subtile gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol))
+      //     (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1)));
 
       // unfortunately, when inferring emBFrags, the solver cannot prove that !i1 is small enough
       with emBFrags. assert bFrags |-> emBFrags;
@@ -218,6 +219,8 @@ fn subproducts_tc_2d
 }
 
 #push-options "--z3rlimit 80"
+
+
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -263,14 +266,14 @@ fn epilogue
       // TODO does this create more pointer arithmetic than necessary?
       // tile in gC with all values that are computed by the warp
       // will be tiled into tiles for tensor core operations
-      let tile_for_tc_tiles = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-        (wm*tm) (wn*tn) (SZ.v wid);
-      rewrite each (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-      (wm*tm) (wn*tn) (SZ.v wid)) as tile_for_tc_tiles;
+      let tile_for_tc_tiles = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (wm*tm) (wn*tn) (SZ.v wid);
+      rewrite each _ as tile_for_tc_tiles;
 
-      gpu_matrix_extract_tile tile_for_tc_tiles tm tn !i !j;
-      let tc_tile = gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
-      rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
+      // gpu_matrix_extract_tile tile_for_tc_tiles tm tn !i !j;
+      let tc_tile = gpu_matrix_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j); //!i !j;
+    
+      // gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
+      // rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
 
       with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
       let vi = !i;
@@ -290,8 +293,7 @@ fn epilogue
       ambig_trade_elim ();
       ambig_trade_elim ();
 
-      rewrite each tile_for_tc_tiles as warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-        (wm*tm) (wn*tn)(SZ.v wid);
+      rewrite each tile_for_tc_tiles as _;
       fold live_warp_tile gC bm bn tm tn wm wn bid wid;
       j := !j +^ 1sz;
     };
@@ -362,11 +364,11 @@ fn kf
 
   gpu_matrix_abs' (R.row_major bm bk) sarA;
   let sA = from_array (R.row_major bm bk) sarA;
-  rewrite each from_array (R.row_major bm bk) sarA as sA;
+  rewrite each _ as sA; //from_array (R.row_major bm bk) sarA as sA;
 
   gpu_matrix_abs' (R.row_major bk bn) sarB;
   let sB = from_array (R.row_major bk bn) sarB;
-  rewrite each from_array (R.row_major bk bn) sarB as sB;
+  rewrite each _ as sB; //from_array (R.row_major bk bn) sarB as sB;
 
   let num_k_tiles = shared /^ bk;
   let num_n_tiles = cols /^ bn;
@@ -428,7 +430,7 @@ fn kf
           B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid
   {
     (* This assert should not be needed. I don't know what effect it even has. *)
-    assert B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid;
+    // assert B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid;
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
