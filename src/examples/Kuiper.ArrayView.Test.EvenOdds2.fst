@@ -198,10 +198,13 @@ let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   ()
 #pop-options
 
+#push-options "--z3rlimit 20"
 let lem_idx2 #et (#len : nat) (i : natlt len{i % 2 = 1})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
-= admit()
+= assert (it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i);
+  ()
+#pop-options
 
 #push-options "--split_queries always --z3rlimit 10"
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
