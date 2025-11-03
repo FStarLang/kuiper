@@ -1,5 +1,9 @@
 module Kuiper.Poly.Softmax
 
+// This is a very naive implementation of softmax on the GPU,
+// which uses three separate kernels launches (exp, reduce, divide).
+// A fused version is possible.
+
 #lang-pulse
 open Kuiper
 module Array = Kuiper.Array
