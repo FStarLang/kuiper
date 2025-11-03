@@ -2,7 +2,7 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
 #lang-pulse
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 60"
 
 open Kuiper
 
