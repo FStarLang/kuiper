@@ -4,7 +4,7 @@ module Kuiper.Poly.GEMM.TensorCore2D
 
 open Kuiper
 
-#set-options "--z3rlimit 50"
+#set-options "--z3rlimit 60"
 
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
@@ -431,6 +431,8 @@ fn kf
     assert B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid;
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
+    assert pure (even (2 * !bkIdx));
+
     rewrite
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x)

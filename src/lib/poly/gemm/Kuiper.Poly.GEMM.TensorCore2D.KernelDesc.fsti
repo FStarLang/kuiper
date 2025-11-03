@@ -41,6 +41,11 @@ open Pulse.Lib.Trade
 
 open Kuiper.Bijection
 
+// Using 1.0R /. x can lead to many odd SMT failures...
+// work around it. We should investigate why and fix it.
+[@@pulse_unfold]
+let recip (x : pos) : y:Real.real{y >. 0.0R} = 1.0R /. x
+
 type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
   tm /?+ bm /\
   tn /?+ bn /\
@@ -69,7 +74,7 @@ let live_warp_tile
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
   : slprop
   =
-  live (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid) #(1.0R /. warp_size)
+  live (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid) #(recip warp_size)
 
 let barrier_p
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -167,15 +172,14 @@ let kpre
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (#_ : squash (1.0R /. nthr >=. 0.0R)) // to help SMT, this is obvious
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
   : slprop
   =
   kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(1.0R /. nthr) x) **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
+  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(recip nthr) x) **
+  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
   barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
 
 ghost
@@ -314,8 +318,8 @@ let kpost
   : slprop
   =
   kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
-  (exists* (x : seq et_ab). (fst sh) |-> Frac (1.0R /. nthr) x) **
-  (exists* (x : seq et_ab). (fst (snd sh)) |-> Frac (1.0R /. nthr) x) **
+  (exists* (x : seq et_ab). (fst sh) |-> Frac (recip nthr) x) **
+  (exists* (x : seq et_ab). (fst (snd sh)) |-> Frac (recip nthr) x) **
   barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr tid
 
 ghost
