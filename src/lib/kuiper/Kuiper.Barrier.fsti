@@ -52,8 +52,8 @@ fn mk_barrier
   (n: nat { 0 < n /\ n <= max_threads })
   (p q : barrier_side n)
   (pf : barrier_transform p q)
-  requires block_setup_tok n
-  ensures  block_setup_tok n
+  requires can_create_barrier n
+  ensures  consumed_can_create_barrier
   ensures  forall+ (i:natlt n). barrier_tok p q 0 i
 
 (* Wait on the barrier. This function blocks until all threads call it

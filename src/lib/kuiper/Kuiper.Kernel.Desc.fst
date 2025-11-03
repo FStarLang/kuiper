@@ -81,11 +81,11 @@ type kernel_desc (full_pre full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        block_setup_tok nthr **
+        can_create_barrier nthr **
         live_c_shmems sh **
         block_pre bid)
       (ensures fun _ ->
-        block_setup_tok nthr **
+        consumed_can_create_barrier **
         (forall+ (i : natlt nthr). kpre sh bid i) **
         block_frame sh bid)
   );

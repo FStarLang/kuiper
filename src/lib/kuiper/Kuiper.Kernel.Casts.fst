@@ -19,11 +19,11 @@ fn kmn_as_kfull_block_setup
   ()
   norewrite
   requires
-    block_setup_tok k.nthr **
+    can_create_barrier k.nthr **
     live_c_shmems sh **
     k.block_pre bid
   ensures
-    block_setup_tok k.nthr **
+    consumed_can_create_barrier **
     (forall+ (i : natlt k.nthr). k.kpre bid i) **
     (k.block_frame bid **
       live_c_shmems sh)
@@ -205,6 +205,22 @@ fn pad_teardown
   teardown ();
 }
 
+ghost
+fn kn_as_kmn_block_setup (#full_pre #full_post : slprop)
+  (k : kernel_desc_n full_pre full_post)
+  (bid : natlt (sdivup k.nthr 1024sz))
+  norewrite
+  requires
+    can_create_barrier 1024 **
+    (forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid)
+  ensures
+    consumed_can_create_barrier **
+    (forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid) **
+    emp
+{
+  no_mk_barrier ();
+}
+
 inline_for_extraction noextract
 let kn_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
@@ -226,7 +242,7 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   kpre  = pad_kn k k.kpre;
   kpost = pad_kn k k.kpost;
 
-  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
+  block_setup    = kn_as_kmn_block_setup k;
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   f = adapt_kn_as_kmn k #();
@@ -245,13 +261,14 @@ fn km1_as_kmn_block_setup
   (bid: natlt k.nblk)
   norewrite
   requires
-    block_setup_tok 1sz **
+    can_create_barrier 1sz **
     k.kpre bid
   ensures
-    block_setup_tok 1sz **
+    consumed_can_create_barrier **
     (forall+ (i : natlt 1sz). k.kpre bid) **
     emp
 {
+  no_mk_barrier ();
   forevery_singleton_intro #(natlt 1sz) (fun _ -> k.kpre bid);
 }
 
@@ -374,13 +391,14 @@ fn k11_as_k1n_block_setup
   ()
   norewrite
   requires
-    block_setup_tok 1sz **
+    can_create_barrier 1sz **
     full_pre
   ensures
-    block_setup_tok 1sz **
+    consumed_can_create_barrier **
     (forall+ (bid: natlt 1sz). full_pre) **
     emp
 {
+  no_mk_barrier ();
   forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
 }
 

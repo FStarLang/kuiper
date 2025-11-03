@@ -53,10 +53,10 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
     (bid: natlt nblk) ->
     stt_ghost unit emp_inames
       (requires
-        block_setup_tok nthr **
+        can_create_barrier nthr **
         block_pre bid)
       (ensures fun _ ->
-        block_setup_tok nthr **
+        consumed_can_create_barrier **
         (forall+ (i : natlt nthr). kpre bid i) **
         block_frame bid)
   );
@@ -150,10 +150,10 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        block_setup_tok nthr **
+        can_create_barrier nthr **
         full_pre)
       (ensures fun _ ->
-        block_setup_tok nthr **
+        consumed_can_create_barrier **
         (forall+ (tid : natlt nthr). kpre tid) **
         frame)
   );

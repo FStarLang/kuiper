@@ -472,12 +472,12 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok tile **
+    can_create_barrier tile **
     live_c_shmems sh **
     (forall+ (tid : natlt tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
-    block_setup_tok tile **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt tile).
       kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)

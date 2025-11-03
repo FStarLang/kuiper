@@ -190,6 +190,25 @@ fn teardown
   admit();
 }
 
+(* No need to do anything special here, just skip the barrier *)
+ghost
+fn block_setup
+  (nblk : nat)
+  (nthr : nat)
+  (#p : natlt nblk -> slprop)
+  (bid : natlt nblk)
+  norewrite
+  requires
+    can_create_barrier nthr **
+    p bid
+  ensures
+    consumed_can_create_barrier **
+    p bid **
+    emp
+{
+  no_mk_barrier ();
+}
+
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -222,7 +241,7 @@ let mk_kernel
   teardown  = teardown tile comb gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _bid -> emp);
-  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
+  block_setup    = block_setup (mrows *^ mcols) (tile *^ tile);
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   kpre      = kpre  comb tile gA gB gC eA eB eC fA fB;
