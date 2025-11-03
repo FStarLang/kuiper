@@ -125,7 +125,7 @@ instance ghost_map_fun
 {
   bij = magic();
   acc = (fun (m : idx -> GTot mt) (ix : (x:idx & i x)) ->
-           let (| i,x |) = ix in 
+           let (| i,x |) = ix in
            (sub i).acc (m i) x);
   upd = (fun (m : idx -> GTot mt) (ix : (x:idx & i x)) (e:e) ->
             let (| i,x |) = ix in

@@ -5,13 +5,13 @@ open FStar.Seq
 let rec lemma_seq_fold_right_sum
   (#a:Type) (e:a) (f: a -> a -> a)
   (s1 s2 : seq a)
-: Lemma 
+: Lemma
   (requires is_monoid e f)
   (ensures seq_fold_right f (append s1 s2) e
            == seq_fold_right f s1 e `f` seq_fold_right f s2 e)
   (decreases Seq.length s1)
 = match view_seq s1 with
-  | SNil -> 
+  | SNil ->
     assert (seq_fold_right f s1 e == e);
     assert (Seq.equal (append s1 s2) s2);
     ()
@@ -22,23 +22,23 @@ let rec lemma_seq_fold_right_sum
     calc (==) {
       seq_fold_right f (append s1 s2) e;
     (==) {}
-      f hd (seq_fold_right f (append tl s2) e); 
+      f hd (seq_fold_right f (append tl s2) e);
     (==) { lemma_seq_fold_right_sum e f tl s2 }
       f hd (seq_fold_right f tl e `f` seq_fold_right f s2 e);
-    (==) {} 
+    (==) {}
       (f hd (seq_fold_right f tl e)) `f` (seq_fold_right f s2 e);
     (==) {}
       seq_fold_right f s1 e `f` (seq_fold_right f s2 e);
-    }  
+    }
 
 let rec seq_fold_left_append (#a #b:Type) (f: b -> a -> b) (acc:b) (l0 l1:seq a)
-: Lemma 
+: Lemma
   (ensures seq_fold_left f acc (l0 `append` l1)
        == seq_fold_left f (seq_fold_left f acc l0) l1)
   (decreases Seq.length l0)
 = match view_seq l0 with
   | SNil -> assert (Seq.equal (append l0 l1) l1)
-  | SCons hd tl -> 
+  | SCons hd tl ->
     let SCons hd' tl' = view_seq (append l0 l1) in
     assert (hd == hd');
     assert (tl' `Seq.equal` (append tl l1));

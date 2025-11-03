@@ -275,7 +275,7 @@ let rec max_n (#n:pos) (f : natlt n -> GTot nat) : GTot nat =
 
 let rec max_n_lem (#n:pos) (f : natlt n -> GTot nat)
   : Lemma (requires True)
-          (ensures  (forall i. f i <= max_n f) 
+          (ensures  (forall i. f i <= max_n f)
                  /\ (exists i. f i == max_n f))
           [SMTPat (max_n f)]
   = if n = 1 then
