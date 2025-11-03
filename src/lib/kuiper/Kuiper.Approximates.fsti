@@ -24,6 +24,11 @@ let to_real_seq (#a:Type) {| scalar a, real_like a |}
   (s : seq a) : GTot (seq Real.real)
   = Seq.init_ghost (Seq.length s) (fun i -> to_real (s @! i))
 
+val to_real_seq_is_approx (#a:Type) {| scalar a, real_like a |}
+  (s : seq a)
+  : Lemma (seq_approximates s (to_real_seq s))
+          [SMTPat (seq_approximates s (to_real_seq s))]
+
 let real_seq_sum (r : seq Real.real) : Real.real
   = seq_fold_left (+.) 0.0R r
 

@@ -218,7 +218,6 @@ fn softmax_gpu
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
   with va. assert a' |-> va;
-  assume pure (seq_approximates va (to_real_seq va));
   Kuiper.Poly.HReduce.reduce lena a' #va #(to_real_seq va);
   let avg = arr_read_1 zero a';
   gpu_array_free a';
