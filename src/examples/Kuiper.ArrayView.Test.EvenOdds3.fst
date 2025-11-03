@@ -153,18 +153,51 @@ let __it_of_nat (#len:nat) (i : natlt len) : GTot (either (natlt ((len + 1) / 2)
   else
     Inr (i / 2)
 
-#push-options "--z3rlimit_factor 2"
-#restart-solver
+#push-options "--split_queries always --z3rlimit 20"
+let it_of_nat_lem_1 (#len:nat) (i : natlt len) :
+  Lemma (__it_of_nat #len i == it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)
+        [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
+  = let vw = sum_aview (even_view u32 len) (odd_view u32 len) in
+    assert (it_to_nat vw (__it_of_nat #len i) == i);
+    ()
+#pop-options
+
 let it_of_nat_lem (#len:nat) (i : natlt len)
   : Lemma (it_to_nat (sum_aview (even_view u32 len) (odd_view u32 len)) (__it_of_nat #len i) == i)
           [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
-  = ()
-#pop-options
+  = it_of_nat_lem_1 #len i;
+    ()
 
 let all_in_image (len:nat) (i : nat)
   : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
           [SMTPat (in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)]
   = if i < len then (let j = __it_of_nat #len i in it_of_nat_lem #len i)
+
+#push-options "--z3rlimit 20"
+let merge_lemma_aux #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2)) (i : natlt len)
+  : Lemma (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr) @! i
+           ==
+           seq_interleave sl sr @! i)
+= all_in_image len i;
+  assert (in_image (sum_aview (even_view et len) (odd_view et len)).iview.step.imap.f i);
+  let vw = sum_aview (even_view et len) (odd_view et len) in
+  assert (vw.iview.sch.ait == (either (natlt ((len + 1) / 2)) (natlt (len / 2))));
+  if i % 2 = 0 then (
+    FStar.Pure.BreakVC.break_vc ();
+    assert (seq_interleave sl sr @! i == sl @! (i / 2));
+    assert (__it_of_nat #len i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
+    it_of_nat_lem_1 #len i; // Should NOT be needed
+    assert (it_of_nat vw i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
+    ()
+  ) else (
+    FStar.Pure.BreakVC.break_vc ();
+    assert (seq_interleave sl sr @! i == sr @! (i / 2));
+    assert (__it_of_nat #len i == Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
+    it_of_nat_lem_1 #len i; // Should NOT be needed
+    assert (it_of_nat vw i == Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
+    ()
+  )
+#pop-options
 
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))
   : Lemma (
@@ -173,15 +206,7 @@ let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len
             seq_interleave sl sr
   )
   [SMTPat (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr))]
-= let aux (i : natlt len)
-      : Lemma (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr) @! i
-               ==
-               seq_interleave sl sr @! i)
-  = all_in_image len i;
-    admit(); // this proof works but it's brittle
-    if i % 2 = 0 then () else ()
-  in
-  Classical.forall_intro aux;
+= Classical.forall_intro (merge_lemma_aux sl sr);
   assert (Seq.equal
               (to_seq (sum_aview (even_view et len) (odd_view et len)) (sl, sr))
               (seq_interleave sl sr))

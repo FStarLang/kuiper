@@ -68,7 +68,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   if None? x then raise NotSupportedByKrmlExtension;
   match Some?.v x with
   | "Kuiper.Ref.gpu_ref",     [t]      -> TBuf (cb t)
-  | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
+  | "Kuiper.Array.Core.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.Base.fragment", [et; knd; m; n; k; layout] ->
     // Note: it is difficult to try to construct a proper type
@@ -537,26 +537,26 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** ARRAY ********)
 
-  | "Kuiper.Array.gpu_array_alloc", [ty], [ sz; len ] ->
+  | "Kuiper.Array.Core.gpu_array_alloc", [ty], [ sz; len ] ->
     let sz : mlexpr = get_sizet sz in
     ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; cb len ]),
            TBuf (translate_type env ty))
 
-  | "Kuiper.Array.gpu_array_free", [ty], [ _sz; a; _v ] ->
+  | "Kuiper.Array.Core.gpu_array_free", [ty], [ _sz; a; _v ] ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb a])
 
-  | "Kuiper.Array.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
+  | "Kuiper.Array.Core.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
     EBufRead (cb a, cb idx)
 
-  | "Kuiper.Array.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
+  | "Kuiper.Array.Core.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
     EBufWrite (cb a, cb idx, cb v)
 
-  | "Kuiper.Array.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.gpu_memcpy_host_to_device'", [ty],
+  | "Kuiper.Array.Core.gpu_memcpy_host_to_device'", [ty],
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
     let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
@@ -569,12 +569,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
-  | "Kuiper.Array.gpu_memcpy_device_to_host'", [ty],
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_host'", [ty],
         [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
     let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
@@ -587,7 +587,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
-  | "Kuiper.Array.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
     let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])

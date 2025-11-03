@@ -27,6 +27,9 @@ let ( @! ) (#a:Type) (s : seq a) (i : nat { i < Seq.length s }) : a = Seq.index 
 unfold
 let ( @+ ) (#a:Type) (s1 s2 : seq a) : seq a = Seq.append s1 s2
 
+let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
+  Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
+
 let rec seq_fold_left (#a #b : Type) (f: b -> a -> b) (acc: b) (v: seq a)
   : GTot b (decreases length v)
   = match view_seq v with

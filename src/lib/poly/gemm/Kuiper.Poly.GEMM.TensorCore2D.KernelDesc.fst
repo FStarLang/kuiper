@@ -221,7 +221,7 @@ fn setup
     (fun bid -> fun tid -> gB |-> Frac (fB /. (nblk*nthr)) eB)
     (fun bid -> fun tid ->
       (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) (tid/warp_size))
-        |-> Frac (1.0R /. warp_size)
+        |-> Frac (recip warp_size)
       (ematrix_subtile (ematrix_subtile eC bm bn (bid/(cols/bn)) (bid%(cols/bn)))
         (wm*tm) (wn*tn)
         (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
@@ -237,7 +237,7 @@ fn setup
   requires
     gA |-> Frac (fA /. (nblk*nthr)) eA ** gB |-> Frac (fB /. (nblk*nthr)) eB **
     (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) (tid/warp_size))
-      |-> Frac (1.0R /. warp_size)
+      |-> Frac (recip warp_size)
     (ematrix_subtile (ematrix_subtile eC bm bn (bid/(cols/bn)) (bid%(cols/bn)))
       (wm*tm) (wn*tn)
       (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
@@ -266,8 +266,8 @@ fn lemma_even_barrier_p_to_q
   (#_ : squash (chunk et * nthr /?+ (bk * bn)))
 requires
   forall+ (tid : natlt nthr).
-    (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
-    (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
+    (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+    (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
 ensures
   forall+ (tid : natlt nthr).
     live_tile_stride_cells (from_array l1 sar1) nthr tid **
@@ -325,8 +325,8 @@ requires
     live_tile_stride_cells (from_array l2 sar2) nthr tid
 ensures
   forall+ (tid : natlt nthr).
-    (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
-    (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
+    (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+    (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
 {
   (* analogous, but fill it in. *)
   admit();
@@ -407,26 +407,26 @@ ensures
       norewrite
       requires
         // explicit sizes are not helping
-        (exists* (x : ematrix et bm bk). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
-        (exists* (x : ematrix et bk bn). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
+        (exists* (x : ematrix et bm bk). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+        (exists* (x : ematrix et bk bn). (from_array l2 sar2) |-> Frac (recip nthr) x)
       ensures
         barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr it tid
     {
       // extra rewrite step reduces time for type checking by ~50%
       rewrite
-          (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
-          (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
+          (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+          (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
       as
         (if even (it+1) then
-          (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
-          (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
+          (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+          (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
         else
           live_tile_stride_cells (from_array l1 sar1) nthr tid **
           live_tile_stride_cells (from_array l2 sar2) nthr tid);
       rewrite
         (if even (it+1) then
-          (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (1.0R /. nthr) x) **
-          (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (1.0R /. nthr) x)
+          (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+          (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
         else
           live_tile_stride_cells (from_array l1 sar1) nthr tid **
           live_tile_stride_cells (from_array l2 sar2) nthr tid)
@@ -470,12 +470,12 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok nthr **
+    can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
   ensures
-    block_setup_tok nthr **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
       kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
     emp (* frame *)
@@ -492,24 +492,24 @@ fn block_setup
   gpu_slice_share (fst sh) 0 (bm*bk) nthr;
   gpu_slice_share (fst (snd sh)) 0 (bk*bn) nthr;
   with s1.
-    assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst sh) #(1.0R /. nthr) 0 (bm*bk) (reveal s1));
+    assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst sh) #(recip nthr) 0 (bm*bk) (reveal s1));
   with s2.
-    assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst (snd sh)) #(1.0R /. nthr) 0 (bk*bn) s2);
+    assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst (snd sh)) #(recip nthr) 0 (bk*bn) s2);
 
   // introduce exists under forall+
   // :( I do not see another way for introducing the exists
   // gpu_pts_to_array (although unfold) does not work because the array sizes are not matched:
   //  there are bm*^bk and bm*bk in the context. while gpu_pts_to_array uses either bm*^bk or bm*bk
-  // with s. assert (forall+ (x: natlt nthr). gpu_pts_to_array #_ #(bm*^bk) (fst sh) #(1.0R /. nthr) s);
+  // with s. assert (forall+ (x: natlt nthr). gpu_pts_to_array #_ #(bm*^bk) (fst sh) #(recip nthr) s);
   ghost fn aux (#n : nat) (arr : gpu_array et_ab n) (s : erased (seq et_ab)) (tid : natlt nthr)
-    requires gpu_pts_to_slice arr #(1.0R /. nthr) 0 n s
-    ensures exists* (x : seq et_ab). gpu_pts_to_array arr #(1.0R /. nthr) x
+    requires gpu_pts_to_slice arr #(recip nthr) 0 n s
+    ensures exists* (x : seq et_ab). gpu_pts_to_array arr #(recip nthr) x
     {};
   forevery_map #(natlt nthr)
-    (fun _tid -> gpu_pts_to_slice (fst sh) #(1.0R /. nthr) 0 (bm*bk) s1)
+    (fun _tid -> gpu_pts_to_slice (fst sh) #(recip nthr) 0 (bm*bk) s1)
     _ (aux (fst sh) s1);
   forevery_map #(natlt nthr)
-    (fun _tid -> gpu_pts_to_slice (fst (snd sh)) #(1.0R /. nthr) 0 (bk*bn) s2)
+    (fun _tid -> gpu_pts_to_slice (fst (snd sh)) #(recip nthr) 0 (bk*bn) s2)
     _ (aux (fst (snd sh)) s2);
 
   (* create barrier token *)
@@ -520,14 +520,14 @@ fn block_setup
 
   (* consolidate permissions under a single forall+ *)
   forevery_zip
-    (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x)
+    (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)
     (fun tid ->
       barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid)
     ;
   forevery_zip
-    (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst sh) #(1.0R /. nthr) x)
+    (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)
     (fun tid ->
-      (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x) **
+      (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
       barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid);
   forevery_zip #(natlt nthr)
     (fun tid -> kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) _;
@@ -574,10 +574,10 @@ fn block_teardown
     (fun tid -> kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
     _;
   forevery_unzip #(natlt nthr)
-    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst sh) #(1.0R /. nthr) x)))
+    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)))
     _;
   forevery_unzip #(natlt nthr)
-    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(1.0R /. nthr) x)))
+    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)))
     _;
 
   // rewrite each Kuiper.Enumerable.cardinal (natlt nthr) #_ as SZ.v nthr;

@@ -654,12 +654,12 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok (bm /^ tm *^ bn) **
+    can_create_barrier (bm /^ tm *^ bn) **
     live_c_shmems sh **
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpre1 comb tm gA gB gC eA eB fA fB bid tid)
   ensures
-    block_setup_tok (bm/^tm *^ bn) **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpre comb tm slA slB gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)

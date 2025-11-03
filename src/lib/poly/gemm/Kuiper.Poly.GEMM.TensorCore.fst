@@ -569,12 +569,12 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok nthr **
+    can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpre1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid)
   ensures
-    block_setup_tok nthr **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
       kpre (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB sh bid tid) **
     emp (* frame *)

@@ -19,9 +19,20 @@ let cpu : slprop = mode CPU
 unfold
 let gpu : slprop = mode GPU
 
-(* Token for being in GPU block setup code *)
+(* Token allowing to create a barrier for n threads. Only
+   available while in the block_setup of a kernel. *)
 [@@no_mkeys]
-val block_setup_tok (nthr : nat) : slprop
+val can_create_barrier (nthr : nat) : slprop
+
+(* Token marking we have in fact created a barrier, or ditched the token.  This
+makes sure the token is not stashed away somewhere. *)
+[@@no_mkeys]
+val consumed_can_create_barrier : slprop
+
+ghost
+fn no_mk_barrier (#n:nat) ()
+  requires can_create_barrier n
+  ensures  consumed_can_create_barrier
 
 (* This should be 2^31-1, or 2^30. We constrain this more than normal due to our
 hack about interpreting size_t as uint32_t in karamel (see Kuiper.SizeT). When

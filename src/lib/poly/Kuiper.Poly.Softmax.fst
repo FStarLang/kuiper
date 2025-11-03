@@ -1,5 +1,9 @@
 module Kuiper.Poly.Softmax
 
+// This is a very naive implementation of softmax on the GPU,
+// which uses three separate kernels launches (exp, reduce, divide).
+// A fused version is possible.
+
 #lang-pulse
 open Kuiper
 module Array = Kuiper.Array
@@ -28,6 +32,66 @@ fn arr_read_1
   let x = ca.(0sz);
   Pulse.Lib.Vec.free ca;
   x;
+}
+
+ghost
+fn explode_setup
+  (#et : Type0) {| floating et |}
+  (lena : szp { lena < max_blocks })
+  (a : gpu_array et lena)
+  ()
+  norewrite
+  requires
+    live a
+  ensures
+    (forall+ (bid : natlt lena).
+      gpu_pts_to_array1 a bid) **
+    emp
+{
+  gpu_pts_to_ref a;
+  with s. assert a |-> s;
+  gpu_array_slice_1 a;
+  ghost
+  fn aux (bid : natlt lena)
+    requires gpu_pts_to_cell a bid (s @! bid)
+    ensures  gpu_pts_to_array1 a bid
+  {
+    fold gpu_pts_to_array1 a bid;
+    ();
+  };
+  forevery_map _ _ aux;
+  ();
+}
+
+ghost
+fn explode_teardown
+  (#et : Type0) {| floating et |}
+  (lena : szp { lena < max_blocks })
+  (a : gpu_array et lena)
+  ()
+  norewrite
+  requires
+    (forall+ (bid : natlt lena).
+      gpu_pts_to_array1 a bid) **
+    emp
+  ensures
+    live a
+{
+  ghost
+  fn aux (bid : natlt lena)
+    requires gpu_pts_to_array1 a bid
+    ensures  exists* v. gpu_pts_to_cell a bid v
+  {
+    unfold gpu_pts_to_array1 a bid;
+    with s. assert gpu_pts_to_slice a bid (bid+1) s;
+    gpu_pts_to_slice_ref a bid (bid+1);
+    assert pure (Seq.equal s seq![s @! 0]);
+    rewrite each s as seq![s @! 0];
+    ();
+  };
+  forevery_map _ _ aux;
+  gpu_array_unslice_1' a;
+  ();
 }
 
 inline_for_extraction noextract
@@ -70,8 +134,8 @@ let kexp
   nblk = lena;
   f = kf_exp a;
 
-  teardown = magic();
-  setup = magic ();
+  teardown = explode_teardown lena a;
+  setup    = explode_setup lena a;
   kpre =  gpu_pts_to_array1 a #1.0R;
   kpost = gpu_pts_to_array1 a #1.0R;
   frame = emp;
@@ -119,8 +183,8 @@ let kdiv
   nblk = lena;
   f = kf_div a d;
 
-  teardown = magic();
-  setup = magic ();
+  setup    = explode_setup lena a;
+  teardown = explode_teardown lena a;
   kpre =  gpu_pts_to_array1 a #1.0R;
   kpost = gpu_pts_to_array1 a #1.0R;
   frame = emp;
@@ -144,7 +208,6 @@ fn softmax_gpu
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
   with va. assert a' |-> va;
-  assume pure (seq_approximates va (to_real_seq va));
   Kuiper.Poly.HReduce.reduce lena a' #va #(to_real_seq va);
   let avg = arr_read_1 zero a';
   gpu_array_free a';

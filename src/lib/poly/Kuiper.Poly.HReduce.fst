@@ -361,10 +361,10 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok lena **
+    can_create_barrier lena **
     a |-> va
   ensures
-    block_setup_tok lena **
+    consumed_can_create_barrier **
     (forall+ (i : natlt lena). kpre lena a va vr i) **
     emp
 {

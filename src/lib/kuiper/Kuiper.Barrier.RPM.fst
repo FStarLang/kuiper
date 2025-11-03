@@ -25,7 +25,8 @@ ghost
 fn mk_mbarrier
   (n: nat { 0 < n /\ n <= max_threads })
   (p : rpm_t n)
-  preserves block_setup_tok n
+  requires can_create_barrier n
+  ensures  consumed_can_create_barrier
   ensures forall+ i. mbarrier_tok n p 0 i
 {
   B.mk_barrier n (row p) (col p) fn it {

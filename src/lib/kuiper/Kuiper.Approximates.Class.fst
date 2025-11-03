@@ -18,15 +18,16 @@ class real_like (a:Type) {| scalar a |} = {
   a0 : squash (approximates zero 0.0R);
   a1 : squash (approximates one 1.0R);
 
+  // It would be nice if we could directly write SMT patterns on
+  // the lemmas below, but they do not trigger.
+
   a_add : x:a -> y:a -> r:real -> s:real ->
           Lemma (requires approximates x r /\ approximates y s)
-                (ensures approximates (x `add` y) (r +. s))
-                [SMTPat (approximates x r); SMTPat (approximates y s)];
-                // ^ Does not kick in
+                (ensures approximates (x `add` y) (r +. s));
+                // [SMTPat (approximates x r); SMTPat (approximates y s)]
 
   a_mul : x:a -> y:a -> r:real -> s:real ->
           Lemma (requires approximates x r /\ approximates y s)
-                (ensures approximates (x `mul` y) (r *. s))
-                [SMTPat (approximates x r); SMTPat (approximates y s)];
-                // ^ Does not kick in
+                (ensures approximates (x `mul` y) (r *. s));
+                //[SMTPat (approximates x r); SMTPat (approximates y s)];
 }

@@ -128,10 +128,10 @@ fn setup
   (_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   norewrite
   requires
-    block_setup_tok lena **
+    can_create_barrier lena **
     (ga2 |-> s2 ** ga1 |-> s1)
   ensures
-    block_setup_tok lena **
+    consumed_can_create_barrier **
     (forall+ (bid : natlt lena). kpre lena ga1 ga2 s1 s2 vr1 vr2 bid) **
     emp (* frame *)
 {
