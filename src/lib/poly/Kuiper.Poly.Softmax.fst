@@ -60,20 +60,6 @@ fn explode_setup
 }
 
 ghost
-fn gpu_array_unslice_1'
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  requires forall+ (i: natlt sz). exists* v. gpu_pts_to_cell arr #f i v
-  ensures  exists* v. pts_to arr #f v
-{
-  // Move to array module and prove. The array module is getting big,
-  // needs a split into core and derived.
-  admit();
-}
-
-ghost
 fn explode_teardown
   (#et : Type0) {| floating et |}
   (lena : szp { lena < max_blocks })
