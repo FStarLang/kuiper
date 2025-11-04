@@ -666,7 +666,7 @@ fn varray_split_n
   (#_ : squash (no_overlap_fam n vw))
   (a : varray (sum_aview_fam n vw #()))
   (#f : perm)
-  (#v : natlt n -> GTot st)
+  (#v : natlt n ^->> st)
   requires
     a |-> Frac f v
   ensures
@@ -675,7 +675,27 @@ fn varray_split_n
 {
   unfold varray_pts_to a #f v;
   IArray.iarray_split_n (fun i -> (vw i).iview) (VA?._0 a);
-  admit();
+  ghost
+  fn aux (i : natlt n)
+    requires
+      IArray.iarray_pts_to (IArray.from_array (vw i).iview (IArray.core a._0)) #f
+        (fun j -> (sum_aview_fam n vw).igm.acc v (| i, j |))
+    ensures
+      varray_pts_to (from_array (vw i) (core a)) #f (v i)
+  {
+    rewrite each
+      IArray.from_array (vw i).iview (IArray.core a._0)
+    as
+      (from_array (vw i) (core a))._0;
+    IArray.iarray_ext
+      (from_array (vw i) (core a))._0
+      (fun j -> (sum_aview_fam n vw).igm.acc v (| i, j |))
+      ((vw i).igm.acc (v i));
+    fold varray_pts_to (from_array (vw i) (core a)) #f (v i);
+    ()
+  };
+  forevery_map _ _ aux;
+  ();
 }
 
 ghost

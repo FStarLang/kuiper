@@ -184,6 +184,10 @@ let unless (p: prop) (q: slprop) : slprop =
 let when_ (p: prop) (q: slprop) : slprop =
   if t2b p then q else emp
 
+(* Needed for when the rhs is partially defined *)
+let when__ (p: prop) (q: squash p -> slprop) : slprop =
+  if t2b p then q () else emp
+
 ghost
 fn forevery_unrefine_pred
   (#a:Type0)
@@ -193,6 +197,16 @@ fn forevery_unrefine_pred
     forall+ (x:a { f x }). p x
   ensures
     forall+ (x:a). when_ (f x) (p x)
+
+ghost
+fn forevery_unrefine_pred'
+  (#a:Type0)
+  (f: a -> prop)
+  (p: (x:a -> squash (f x) -> slprop))
+  requires
+    forall+ (x:a { f x }). p x ()
+  ensures
+    forall+ (x:a). when__ (f x) (p x)
 
 ghost
 fn forevery_refine_pred
@@ -228,6 +242,16 @@ fn forevery_flatten
     forall+ (xy : a & b). f xy._1 xy._2
 
 ghost
+fn forevery_flatten_dep
+  (#a : Type0)
+  (#b : a -> Type0)
+  (f : (x:a -> b x -> slprop))
+  requires
+    forall+ (x:a) (y:b x). f x y
+  ensures
+    forall+ (xy : (x:a & b x)). f xy._1 xy._2
+
+ghost
 fn forevery_flatten'
   (#a:Type0)
   (#b:Type0)
@@ -256,6 +280,26 @@ fn forevery_unflatten'
     forall+ (xy : a & b). f xy
   ensures
     forall+ (x:a) (y:b). f (x, y)
+
+ghost
+fn forevery_unflatten_dep
+  (#a : Type0)
+  (#b : a -> Type0)
+  (f : (x:a -> b x -> slprop))
+  requires
+    forall+ (xy : (x:a & b x)). f xy._1 xy._2
+  ensures
+    forall+ (x:a) (y:b x). f x y
+
+ghost
+fn forevery_unflatten_dep'
+  (#a : Type0)
+  (#b : a -> Type0)
+  (f : (x:a & b x) -> slprop)
+  requires
+    forall+ (xy : (x:a & b x)). f xy
+  ensures
+    forall+ (x:a) (y:b x). f (|x, y|)
 
 ghost
 fn forevery_commute

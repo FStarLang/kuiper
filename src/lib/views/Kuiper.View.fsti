@@ -237,7 +237,7 @@ let sum_aview_fam
   (n : pos)
   (vws : natlt n -> aview et st)
   (#_ : squash (no_overlap_fam n vws))
-  : aview et (natlt n -> GTot st) =
+  : aview et (natlt n ^->> st) =
 {
   iview = sum_aiview_fam n (fun i -> (vws i).iview);
   igm   = GhostMap.ghost_map_fun (natlt n) st (fun (i : natlt n) -> (vws i).iview.sch.ait) et;

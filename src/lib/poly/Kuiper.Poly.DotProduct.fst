@@ -138,11 +138,11 @@ fn setup
 {
   mk_mbarrier lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2));
   gpu_array_slice_1 ga2;
-  forevery_zip 
+  forevery_zip
     (fun (i: natlt (v lena)) -> gpu_pts_to_slice ga2 i (i + 1) seq![Seq.Base.index s2 i]) _;
   gpu_array_slice_1 ga1;
   forevery_zip (fun (i: natlt (v lena)) -> gpu_pts_to_slice ga1 i (i + 1) seq![Seq.Base.index s1 i]) _;
-  forevery_map 
+  forevery_map
    (fun (i: natlt (v lena)) -> //too bad that you have to write this; inference should find it
       gpu_pts_to_slice ga1 i (i + 1) seq![Seq.Base.index s1 i] **
       gpu_pts_to_slice ga2 i (i + 1) seq![Seq.Base.index s2 i] **
@@ -163,12 +163,12 @@ fn teardown
     (forall+ (tid : natlt lena). kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) **
     emp
   ensures
-    ga2 |-> s2 ** 
-    (exists* (s1' : seq et{Seq.length s1' > 0}). 
+    ga2 |-> s2 **
+    (exists* (s1' : seq et{Seq.length s1' > 0}).
       (ga1 |-> s1') **
       pure ((s1' @! 0) %~ real_seq_sum (rsmul vr1 vr2)))
-{ 
-  // rewrite_by (forall+ (tid : natlt lena). kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) _ 
+{
+  // rewrite_by (forall+ (tid : natlt lena). kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) _
   //            (slprop_equiv_unfold (`%kpost)) ();
   //  rewrite (forall+ (tid : natlt lena). kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) as _ by (norm [delta_only [`kpost]]);
   forevery_map (kpost lena ga1 ga2 s1 s2 vr1 vr2)
@@ -181,7 +181,7 @@ fn teardown
   forevery_unzip _ _;
   gpu_array_unslice_1 ga2;
   forevery_unzip _ _;
-  forevery_extract #(natlt lena) 0 
+  forevery_extract #(natlt lena) 0
     (fun tid -> (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2))));
   if_elim_true _;
   drop_ (Pulse.Lib.Trade.trade _ _);
@@ -255,7 +255,7 @@ fn dotprod
   (* swap space *)
   let ar = V.alloc #et zero 1sz;
   (* inference sucks here, what's going on? *)
-  Kuiper.Array.gpu_memcpy_device_to_host' #_ #_ #1 //the dst_sz cannot be computed by unification; 
+  Kuiper.Array.gpu_memcpy_device_to_host' #_ #_ #1 //the dst_sz cannot be computed by unification;
       ar 0sz //#_
       ga1 0sz 1sz;
 

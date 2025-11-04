@@ -214,7 +214,7 @@ fn epilogue
 
       // gpu_matrix_extract_tile tile_for_tc_tiles tm tn !i !j;
       let tc_tile = gpu_matrix_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j); //!i !j;
-    
+
       // gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
       // rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
 

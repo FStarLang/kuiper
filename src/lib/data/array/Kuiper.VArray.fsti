@@ -445,7 +445,7 @@ fn varray_split_n
   (#_ : squash (no_overlap_fam n vw))
   (a : varray (sum_aview_fam n vw #()))
   (#f : perm)
-  (#v : natlt n -> GTot st)
+  (#v : natlt n ^->> st)
   requires
     a |-> Frac f v
   ensures
