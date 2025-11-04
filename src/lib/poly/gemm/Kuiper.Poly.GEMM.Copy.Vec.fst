@@ -302,7 +302,10 @@ fn cp_matrix_vec
     let row = (!i +^ offset) /^ cols; assert (rewrites_to row ((!i +^ offset) /^ cols));
     let col = (!i +^ offset) %^ cols; assert (rewrites_to col ((!i +^ offset) %^ cols));
     assert pure (chunk et /?+ cols);
-    assume pure (chunk et /?+ col); // PROVE
+    assert pure (chunk et /?+ offset);
+    assert pure (chunk et /?+ !i);
+    lemma_divides_mod_op (chunk et) (!i +^ offset) cols;
+    assert pure (chunk et /?+ col);
     assert (pure (col + chunk et <= cols));
     assert pure (SZ.v offset == tid * chunk et);
     assert pure (row < rows);

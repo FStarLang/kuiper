@@ -70,3 +70,8 @@ val lemma_divides_product_r (d : pos) (a c : int)
 val lemma_divides_chain (a b c : pos)
   : Lemma (requires a /? b /\ b /? c)
           (ensures a /? c)
+
+val lemma_divides_mod_op (d: pos) (a: int) (b: pos)
+  : Lemma (requires d /? a /\
+            d /? b)
+          (ensures d /? (a % b))
