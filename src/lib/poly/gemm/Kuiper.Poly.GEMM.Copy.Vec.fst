@@ -232,9 +232,7 @@ let em_fade
 
 let nop_tactic () : Tactics.Tac unit = ()
 
-#push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
-// NB: The scalar constraint is only here so we can use 'zero' as an initializer
-// for a local array... would be gone if we had uninitialized local arrays.
+#push-options "--z3rlimit 60 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -304,7 +302,19 @@ fn cp_matrix_vec
     assert pure (chunk et /?+ cols);
     assert pure (chunk et /?+ offset);
     assert pure (chunk et /?+ !i);
+    lemma_nat_divides_pos_divides (chunk et) !i;
+    assert pure (chunk et /? !i);
+    lemma_nat_divides_pos_divides (chunk et) offset;
+    assert pure (chunk et /? offset);
+    lemma_divides_sum (chunk et) !i offset;
+    assert (pure (chunk et /? (!i +^ offset)));
+    lemma_nat_divides_pos_divides (chunk et) cols;
+    assert (pure (chunk et /? cols));
+    Kuiper.Math.Silly.lemma_mul_pos_recip rows cols;
+    assert (pure (cols > 0));
     lemma_divides_mod_op (chunk et) (!i +^ offset) cols;
+    assert pure (chunk et /? col);
+    lemma_nat_divides_pos_divides (chunk et) col;
     assert pure (chunk et /?+ col);
     assert (pure (col + chunk et <= cols));
     assert pure (SZ.v offset == tid * chunk et);

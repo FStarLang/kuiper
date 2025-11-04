@@ -43,3 +43,7 @@ let mod_prod (a b : int) (k : pos) :
   = M.lemma_mod_mul_distr_l a b k;
     M.lemma_mod_mul_distr_r (a % k) b k;
     ()
+
+let lemma_mul_pos_recip (a b: nat) :
+  Lemma (requires a * b > 0) (ensures a > 0 /\ b > 0)
+= ()
