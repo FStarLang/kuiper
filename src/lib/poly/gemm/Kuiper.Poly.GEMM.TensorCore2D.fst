@@ -82,6 +82,8 @@ fn subproducts_tc_2d
       invariant live aFrags
     {
       // Guido: why is there a zero here? Can this really be right?
+      // Guido: I see. tile_for_tc_a_tiles is a very rectangular tile with height equal to one tile.
+      //        Zero is the only possible value here. Still seems a bit odd.
       let a_tile = gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
       array_fragment_pts_to_ref aFrags;
       array_fragment_extract aFrags !i0;
@@ -362,8 +364,6 @@ fn kf
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x) **
       B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid
   {
-    (* This assert should not be needed. I don't know what effect it even has. *)
-    // assert B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid;
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
