@@ -228,8 +228,6 @@ fn dotprod
     cpu **
     a1 |-> v1 **
     a2 |-> v2
-  requires
-    pure (is_comm_semigroup #et zero add)
   returns
     dp: et
   ensures
