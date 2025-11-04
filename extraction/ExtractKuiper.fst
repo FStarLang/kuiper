@@ -17,10 +17,6 @@ open FStarC.Class.Show
 open FStarC.Class.PP
 open FStarC.Class.Tagged
 
-(* Really pushing it *)
-let int_lit (i : int) : expr =
-  EQualified ([], show i)
-
 instance _ : tagged mlexpr' = {
   tag_of = (function
     | MLE_Const  .. -> "MLE_Const"
