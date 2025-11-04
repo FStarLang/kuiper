@@ -7,6 +7,23 @@ open Pulse.Lib.Trade
 include Kuiper.TensorCore.Base
 
 ghost
+fn array_fragment_pts_to_ref
+  (#et : Type0)
+  (#knd : fragment_kind)
+  (#m #n #k : nat)
+  (#l : fragment_layout)
+  ([@@@mkey] farr: array (fragment et knd m n k l))
+  (#f : perm)
+  (#ems : seq (value_for et knd m n k))
+  preserves array_fragment_pts_to farr #f ems
+  ensures   pure (Seq.length ems == Pulse.Lib.Array.length farr)
+{
+  unfold array_fragment_pts_to farr #f ems;
+  Pulse.Lib.Array.pts_to_len farr;
+  fold array_fragment_pts_to farr #f ems;
+}
+
+ghost
 fn array_fragment_extract
   (#et:Type0)
   (#knd : fragment_kind)
@@ -14,7 +31,7 @@ fn array_fragment_extract
   (#l : fragment_layout)
   (farr: array (fragment et knd m n k l))
   // (#f : perm) // Assuming 1.0R for now
-  (ems : seq (value_for et knd m n k))
+  (#ems : seq (value_for et knd m n k))
   (i : natlt (Seq.length ems))
   requires
     array_fragment_pts_to farr ems
@@ -84,7 +101,7 @@ fn array_fragment_extract_ro
   (#m #n #k : nat)
   (#l : fragment_layout)
   (farr: array (fragment et knd m n k l))
-  (ems : seq (value_for et knd m n k))
+  (#ems : seq (value_for et knd m n k))
   (#f : perm)
   (i : natlt (Seq.length ems))
   requires
@@ -96,7 +113,7 @@ fn array_fragment_extract_ro
         (array_fragment_pts_to farr #f ems)
 {
   assume rewrites_to f 1.0R;
-  array_fragment_extract farr ems i; with s. _;
+  array_fragment_extract farr i; with s. _;
   Pulse.Lib.Forall.elim_forall (ems @! i);
   rewrite each Seq.Base.upd ems i (Seq.Base.index ems i) as ems;
 }

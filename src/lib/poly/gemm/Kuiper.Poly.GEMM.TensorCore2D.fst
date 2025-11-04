@@ -30,7 +30,6 @@ module R = Kuiper.Matrix.Reprs
 
 open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
-
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -39,9 +38,7 @@ fn subproducts_tc_2d
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (aFrags : array (fragment et_ab FragA tm tn tk FragLRM))
-  (#emAFrags : erased (seq (ematrix et_ab tm tk)))
   (bFrags : array (fragment et_ab FragB tm tn tk FragLRM))
-  (#emBFrags : erased (seq (ematrix et_ab tk tn)))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (#emAccumFrags : erased (seq (ematrix et_acc tm tn)))
   (gA : gpu_matrix et_ab (R.row_major bm bk))
@@ -56,70 +53,41 @@ fn subproducts_tc_2d
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
-    pure (valid_frag_et_comb et_ab et_acc) **
-    pure (Seq.length emAFrags == wm) **
-    pure (Seq.length emBFrags == wn) **
-    pure (Seq.length emAccumFrags == wm * wn) **
-    aFrags |-> emAFrags **
-    bFrags |-> emBFrags **
+    pure (Pulse.Lib.Array.length aFrags == wm) **
+    pure (Pulse.Lib.Array.length bFrags == wn) **
+    pure (Pulse.Lib.Array.length accumFrags == wm*wn) **
+    pure (valid_frag_et_comb et_ab et_acc)
+  preserves
+    // aFrags and bFrags are swap space, we don't specify much about them
+    live aFrags ** live bFrags
+  requires
     accumFrags |-> emAccumFrags
   ensures
-    exists* emAFrags' emBFrags' emAccumFrags'.
-      pure (Seq.length emAFrags' == wm) **
-      pure (Seq.length emBFrags' == wn) **
-      pure (Seq.length emAccumFrags' == wm * wn) **
-      aFrags |-> emAFrags' **
-      bFrags |-> emBFrags' **
-      accumFrags |-> emAccumFrags'
+    (exists* emAccumFrags'.
+      accumFrags |-> emAccumFrags') // Improve with functional spec
 {
   gpu_matrix_pts_to_ref gA;
   gpu_matrix_pts_to_ref gB;
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ (bk/^tk)))
+    invariant live dotIdx ** pure (!dotIdx <= (bk/^tk))
     invariant
-      exists*
-        (vdotIdx : sz{vdotIdx <= bk})
-        (emAFrags : seq (ematrix et_ab tm tk))
-        (emBFrags : seq (ematrix et_ab tk tn))
-        (emAccumFrags : seq (ematrix et_acc tm tn)).
-          pure (Seq.length emAFrags == wm) **
-          pure (Seq.length emBFrags == wn) **
-          pure (Seq.length emAccumFrags == wm*wn)**
-          dotIdx |-> vdotIdx **
-          aFrags |-> emAFrags **
-          bFrags |-> emBFrags **
-          accumFrags |-> emAccumFrags
+      live aFrags ** live bFrags ** live accumFrags
   {
-    // TODO are the gpu_matrix_extract creating too many pointers or is everything inlined properly?!
-
-    // create tile for tensor core tiles that belong to the warp
+    // Load A fragments (wm iterations)
     let tile_for_tc_a_tiles = gpu_matrix_extract_tile_ro' gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
     let mut i0 = 0sz;
-    while (SZ.(!i0 <^ wm))
-      invariant
-        exists*
-          (vi : sz{vi <= wm})
-          (emAFrags : seq (ematrix et_ab tm tk)).
-            pure (Seq.length emAFrags == wm) **
-            i0 |-> vi **
-            aFrags |-> emAFrags
+    while ((!i0 <^ wm))
+      invariant live i0 ** pure (!i0 <= wm)
+      invariant live aFrags
     {
+      // Guido: why is there a zero here? Can this really be right?
       let a_tile = gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
-      // Expected are only nats, but later on when the tile is used we need to concretize.
-      // In this case wm*tm and 0 must be concretizable which means that either we have to write (SZ.v (wm*^tm)) and (SZ.v 0sz),
-      // which is odd, because a nat is expected, or there must be type classes that can resolve this.
-      // assert (rewrites_to a_tile (
-      //   gpu_matrix_subtile (
-      //     gpu_matrix_subtile gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx))
-      //     (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0));
-
-      // unfortunately, when inferring emAFrags, the solver cannot prove that !i0 is small enough
-      with emAFrags. assert aFrags |-> emAFrags;
-      array_fragment_extract aFrags emAFrags !i0;
+      array_fragment_pts_to_ref aFrags;
+      array_fragment_extract aFrags !i0;
 
       mma_loadA aFrags.(!i0) a_tile;
       Pulse.Lib.Forall.elim_forall
-        #(value_for et_ab FragA tm tn tk)
         (ematrix_subtile (ematrix_subtile eA (wm*tm) tk arow !dotIdx) tm tk !i0 0);
 
       ambig_trade_elim ();
@@ -129,34 +97,20 @@ fn subproducts_tc_2d
     };
     ambig_trade_elim ();
 
-    // create tile for tensor core tiles that belong to the warp
+    // Load B fragments (wn iterations)
     let tile_for_tc_b_tiles = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol);
     let mut i1 = 0sz;
-    while (SZ.(!i1 <^ wn))
-      invariant
-        exists*
-          (vi : sz{vi <= wn})
-          (emBFrags : seq (ematrix et_ab tk tn)).
-            pure (Seq.length emBFrags == wn) **
-            i1 |-> vi **
-            bFrags |-> emBFrags
+    while ((!i1 <^ wn))
+      invariant live i1 ** pure (!i1 <= wn)
+      invariant live bFrags
     {
       let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
-      // Expected are only nats, but later on when the tile is used we need to concretize.
-      // In this case wm*tm and 0 must be concretizable which means that either we have to write (SZ.v (wm*^tm)) and (SZ.v 0sz),
-      // which is odd, because a nat is expected, or there must be type classes that can resolve this.
-      // assert (rewrites_to b_tile (
-      //   gpu_matrix_subtile (
-      //     gpu_matrix_subtile gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol))
-      //     (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1)));
 
-      // unfortunately, when inferring emBFrags, the solver cannot prove that !i1 is small enough
-      with emBFrags. assert bFrags |-> emBFrags;
-      array_fragment_extract bFrags emBFrags !i1;
+      array_fragment_pts_to_ref bFrags;
+      array_fragment_extract bFrags !i1;
 
       mma_loadB bFrags.(!i1) b_tile;
       Pulse.Lib.Forall.elim_forall
-        #(value_for et_ab FragB tm tn tk)
         (ematrix_subtile (ematrix_subtile eB tk (wn*tn) !dotIdx bcol) tk tn 0 !i1);
 
       ambig_trade_elim ();
@@ -166,32 +120,24 @@ fn subproducts_tc_2d
     };
     ambig_trade_elim ();
 
+    // Compute the subproducts (wm * wn iterations)
     let mut resIdxM = 0sz;
-    while (SZ.(!resIdxM <^ wm))
-      invariant
-        exists*
-          (vresIdxM : sz{vresIdxM <= wm})
-          (emAccumFrags : seq (ematrix et_acc tm tn)).
-            pure (Seq.length emAccumFrags == wm*wn) **
-            resIdxM |-> vresIdxM **
-            accumFrags |-> emAccumFrags
+    while ((!resIdxM <^ wm))
+      invariant live resIdxM ** pure (!resIdxM <= wm)
+      invariant live accumFrags
     {
       let mut resIdxN = 0sz;
-      while (SZ.(!resIdxN <^ wn))
-        invariant
-          exists*
-            (vresIdxN : sz{vresIdxN <= wn})
-            (emAccumFrags : seq (ematrix et_acc tm tn)).
-              pure (Seq.length emAccumFrags == wm*wn) **
-              resIdxN |-> vresIdxN **
-              accumFrags |-> emAccumFrags
+      while ((!resIdxN <^ wn))
+        invariant live resIdxN ** pure (!resIdxN <= wn)
+        invariant live accumFrags
       {
-        with emAFrags. assert aFrags |-> emAFrags;
-        with emBFrags. assert bFrags |-> emBFrags;
-        with emAccumFrags. assert accumFrags |-> emAccumFrags;
-        array_fragment_extract_ro aFrags emAFrags !resIdxM;
-        array_fragment_extract_ro bFrags emBFrags !resIdxN;
-        array_fragment_extract accumFrags emAccumFrags (!resIdxM * wn + !resIdxN);
+        array_fragment_pts_to_ref aFrags;
+        array_fragment_pts_to_ref bFrags;
+        array_fragment_pts_to_ref accumFrags;
+
+        array_fragment_extract_ro aFrags !resIdxM;
+        array_fragment_extract_ro bFrags !resIdxN;
+        array_fragment_extract accumFrags (!resIdxM * wn + !resIdxN);
 
         let a_frag = aFrags.(!resIdxM);
         let b_frag = bFrags.(!resIdxN);
@@ -202,9 +148,7 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
 
         with v. assert acc_frag `fragment_pts_to` v;
-        Pulse.Lib.Forall.elim_forall
-          #(value_for et_acc FragAcc tm tn tk)
-          v;
+        Pulse.Lib.Forall.elim_forall v;
 
         ambig_trade_elim ();
 
@@ -219,7 +163,6 @@ fn subproducts_tc_2d
 }
 
 #push-options "--z3rlimit 80"
-
 
 inline_for_extraction noextract
 fn epilogue
@@ -242,23 +185,21 @@ fn epilogue
   preserves
     gpu
   requires
-    pure (Seq.length emAccumFrags == wm*wn) **
     pure (SZ.fits (wm * wn)) **
+    pure (length accumFrags == wm * wn) **
     live_warp_tile gC bm bn tm tn wm wn bid wid **
     array_fragment_pts_to accumFrags emAccumFrags
-
   ensures
     live_warp_tile gC bm bn tm tn wm wn bid wid **
     (exists* emAccumFrags'.
-      pure (Seq.length emAccumFrags' == wm*wn) **
       array_fragment_pts_to accumFrags emAccumFrags')
 {
   let mut i = 0sz;
-  while (SZ.(!i <^ wm))
+  while ((!i <^ wm))
     invariant live i ** pure (!i <=^ wm)
   {
     let mut j = 0sz;
-    while (SZ.(!j <^ wn))
+    while ((!j <^ wn))
       invariant live j ** pure (!j <=^ wn)
     {
       unfold live_warp_tile gC bm bn tm tn wm wn bid wid;
@@ -286,7 +227,8 @@ fn epilogue
       assert pure (SZ.fits eidx);
       let idx = !i *^ wn +^ !j;
 
-      array_fragment_extract_ro accumFrags emAccumFrags idx;
+      array_fragment_pts_to_ref accumFrags;
+      array_fragment_extract_ro accumFrags idx;
       mma_store accumFrags.(idx) tc_tile;
 
       Pulse.Lib.Forall.elim_forall (Seq.Base.index emAccumFrags idx);
@@ -395,17 +337,13 @@ fn kf
   while (SZ.(!fi <^ wm*^wn))
     invariant
       live fi **
-      (exists* vaccFrags.
-        pure (Seq.length vaccFrags == wm*wn) **
-        accFrags |-> vaccFrags)
+      live accFrags
   {
-    with vaccFrags. assert (accFrags |-> vaccFrags);
-    array_fragment_extract accFrags vaccFrags !fi;
+    array_fragment_pts_to_ref accFrags;
+    array_fragment_extract accFrags !fi;
     mma_fill accFrags.(!fi) sc.zero;
 
-    Pulse.Lib.Forall.elim_forall
-        #(value_for et_c FragAcc tm tn tk)
-        (fill_value sc.zero);
+    Pulse.Lib.Forall.elim_forall (fill_value sc.zero);
     ambig_trade_elim();
 
     fi := !fi +^ 1sz;
@@ -414,20 +352,15 @@ fn kf
   let mut bkIdx  : sz = 0sz;
   while (SZ.(!bkIdx <^ num_k_tiles))
     invariant
-      exists* (vbkIdx : SZ.t{vbkIdx <= num_k_tiles})
-        (vaFrags : seq (ematrix et_ab tm tk))
-        (vbFrags : seq (ematrix et_ab tk tn))
-        (vaccFrags : seq (ematrix et_c tm tn)).
-          bkIdx |-> vbkIdx **
-          pure (Seq.length vaFrags == wm) **
-          pure (Seq.length vbFrags == wn) **
-          pure (Seq.length vaccFrags == wm*wn) **
-          aFrags |-> vaFrags **
-          bFrags |-> vbFrags **
-          accFrags |-> vaccFrags **
-          (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
-          (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x) **
-          B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid
+      live bkIdx ** pure (!bkIdx <= num_k_tiles)
+    invariant
+      live aFrags **
+      live bFrags **
+      live accFrags
+    invariant
+      (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
+      (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x) **
+      B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid
   {
     (* This assert should not be needed. I don't know what effect it even has. *)
     // assert B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid;
