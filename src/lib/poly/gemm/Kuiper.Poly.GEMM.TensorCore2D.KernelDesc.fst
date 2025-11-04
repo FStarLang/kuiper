@@ -251,63 +251,220 @@ fn setup
   ()
 }
 
+#push-options "--debug SMTFail --split_queries always"
+let bij_tile_stride_cells (et : Type0) {| sized et, hvc : has_vec_cpy et|} (#nthr : nat) (tid : natlt nthr)
+  (bm bk : nat) (#_: squash (chunk et  * nthr /?+ (bm * bk)))
+: (natlt (bm*bk/(chunk et * nthr)) =~ idx:natlt (bm*bk) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx})
+= admit()
+//{
+//  ff = (fun (i : natlt (bm*bk/(chunk et * nthr))) ->
+//    assume (tid = (i * (chunk et * nthr) + tid * chunk et)/(chunk et) % nthr /\ chunk et /?+ (i * (chunk et * nthr) + tid * chunk et));
+//    i * (chunk et * nthr) + tid * chunk et
+//      <: (idx:natlt (bm*bk) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx}));
+//  gg = (fun (i : natlt (bm*bk) {tid = i/(chunk et) % nthr /\ (chunk et #_ #hvc) /?+ i}) ->
+//    assume (i/(chunk et * nthr) < (bm*bk/(chunk et *nthr)));
+//    i/(chunk et * nthr) <: natlt (bm*bk/(chunk et * nthr)));
+//  ff_gg = ez;
+//  gg_ff = ez;
+//}
+ 
 ghost
-fn lemma_even_barrier_p_to_q
+fn single_even_barrier_p_to_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#bm #bn #bk : szp)
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
+  (#rows #cols : szp)
+  (l : full_mlayout rows cols)
+  (sar : gpu_array et (rows * cols))
   (nthr : pos)
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
+  (#_ : squash (chunk et /?+ cols))
+  (#_ : squash (chunk et * nthr /?+ (rows * cols)))
 requires
   forall+ (tid : natlt nthr).
-    (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
-    (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
+    (exists* (x : ematrix _ _ _). (from_array l sar) |-> Frac (1.0R /. nthr) x)
 ensures
   forall+ (tid : natlt nthr).
-    live_tile_stride_cells (from_array l1 sar1) nthr tid **
-    live_tile_stride_cells (from_array l2 sar2) nthr tid
+    live_tile_stride_cells (from_array l sar) nthr tid
 {
-  admit();
-  // gpu_matrix_gather_n_underspec #_ #0 _ _;
-  with em. assert (from_array l1 sar1) |-> em;
+  gpu_matrix_gather_n_underspec (from_array l sar) nthr;
+  with em1. assert (from_array l sar) |-> em1;
   gpu_matrix_explode _;
-  forevery_unfactor' (bm*bk) bm bk _;
-  assert pure (chunk et * nthr /?+ (bm * bk));
-  // FIXME the following assert fails
-  // assert pure (chunk et /?+ (bm * bk));
-  // assert pure (bm * bk / (chunk et) * (chunk et) == bm * bk);
-  admit();
-  forevery_iso_back #_ #_ #(natlt (bm*bk)) (bij_nat_prod #(bm*bk/(chunk et)) #(chunk et))
-    (fun (xy: natlt (bm*bk/(chunk et)) & natlt (chunk et)) ->
-      gpu_matrix_pts_to_cell (from_array l1 sar1)
-        ((xy._1 * (chunk et) + xy._2) / bk)
-        ((xy._1 * (chunk et) + xy._2) % bk)
-        (macc em ((xy._1 * (chunk et) + xy._2) / bk) ((xy._1 * (chunk et) + xy._2) % bk)));
-  admit();
-//
-//  forevery_unflatten (fun i -> fun j ->
-//    gpu_matrix_pts_to_cell (from_array l1 sar1)
-//        (xy / v bk)
-//        (xy % v bk)
-//        (macc em (xy / v bk) (xy % v bk)))
-//  forall+ (it : natlt (divup (rows*cols) (chunk et * nthr))).
-//    if (tid * + it * nthr) * chunk et / cols < rows
-//       && (tid * + it * nthr) * chunk et) % cols < cols - chunk et + 1
-//    then
-//       live_chunk (from_array l1 sar1)
-//         ((tid * + it * nthr) * chunk et / cols)
-//         ((tid * + it * nthr) * chunk et) % cols)
-//    else emp
+  forevery_unfactor' (rows*cols) rows cols _;
+
+  Kuiper.Divides.lemma_divides_product_r (chunk et) cols rows;
+  assert pure (rows * cols / (chunk et) * (chunk et) == rows * cols);
+  forevery_factor (rows*cols) (rows*cols/chunk et) (chunk et) _;
+  forevery_factor (rows*cols/chunk et) nthr (rows*cols/(chunk et * nthr)) _;
+  
+  with em. assert
+    forall+ (tid : natlt nthr).
+      forall+ (i : natlt (rows*cols/(chunk et * nthr))).
+        forall+ (k : natlt (chunk et)).
+          gpu_matrix_pts_to_cell (from_array l sar)
+                  (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+                  (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols)
+                  (macc em
+                      (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+                      (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols));
+  ghost
+  fn aux (tid : natlt nthr)
+  requires
+    forall+ (i : natlt (rows*cols/(chunk et * nthr))).
+      forall+ (k : natlt (chunk et)).
+        gpu_matrix_pts_to_cell (from_array l sar)
+          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols)
+          (macc em
+              (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+              (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols))
+  ensures
+    live_tile_stride_cells (from_array l sar) nthr tid
+  {
+    ghost
+    fn aux2 (i : natlt (rows*cols/(chunk et * nthr)))
+    requires
+      forall+ (k : natlt (chunk et)).
+        gpu_matrix_pts_to_cell (from_array l sar)
+          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols)
+          (macc em
+              (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+              (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols))
+    ensures
+      (if (i%cols < cols - chunk et + 1)
+      then live_chunk (from_array l sar) (i/cols) (i%cols)
+      else emp)
+    {
+      //ghost
+      //fn aux3 (k : natlt (chunk et))
+      //requires
+      //  gpu_matrix_pts_to_cell (from_array l sar)
+      //    (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+      //    (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols)
+      //    (macc em
+      //        (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+      //        (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols))
+      //ensures live_cell (from_array l sar) (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et) / cols) ()
+      admit();
+      fold live_chunk (from_array l sar) (i/cols) (i%cols);
+    };
+    forevery_map _ _ aux2;
+    admit();
+   
+    forevery_iso #(natlt (rows*cols/(chunk et * nthr))) (bij_tile_stride_cells et tid rows cols) _;
+    ()
+  };
+
+  forevery_map _ _ aux;
+  ()
 }
 
 ghost
-fn lemma_odd_barrier_p_to_q
+fn even_barrier_p_to_q
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#bm #bn #bk: szp)
+  (l1 : full_mlayout bm bk)
+  (l2 : full_mlayout bk bn)
+  (sar1 : gpu_array et (bm * bk))
+  (sar2 : gpu_array et (bk * bn))
+  (nthr : pos)
+  (#_ : squash (chunk et /?+ bn))
+  (#_ : squash (chunk et /?+ bk))
+  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
+  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
+requires
+  forall+ (tid : natlt nthr).
+    (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
+    (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
+ensures
+  forall+ (tid : natlt nthr).
+    live_tile_stride_cells (from_array l1 sar1) nthr tid **
+    live_tile_stride_cells (from_array l2 sar2) nthr tid
+{
+  forevery_unzip _ _;
+  single_even_barrier_p_to_q l1 sar1 nthr;
+  single_even_barrier_p_to_q l2 sar2 nthr;
+  forevery_zip (fun (tid: natlt nthr) ->
+      live_tile_stride_cells (from_array l1 sar1) nthr tid) _;
+}
+
+let lemma_divides_prod_divisor (d1 d2 : pos) (a : nat)
+  : Lemma (requires (d1 * d2) /? a)
+          (ensures d1 /? a /\ d2 /? a)
+= admit()
+
+ghost
+fn gpu_matrix_implode_underspec
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l))
+  requires
+    forall+ r c.
+      exists* v. gpu_matrix_pts_to_cell gm #f r c v
+  ensures
+    exists* em. gpu_matrix_pts_to gm #f em
+{
+  admit();
+}
+
+ghost
+fn single_odd_barrier_p_to_q
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : szp)
+  (l : full_mlayout rows cols)
+  (sar : gpu_array et (rows * cols))
+  (nthr : pos)
+  (#_ : squash (chunk et /?+ cols))
+  (#_ : squash (chunk et * nthr /?+ (rows * cols)))
+requires
+  forall+ (tid : natlt nthr). live_tile_stride_cells (from_array l sar) nthr tid
+ensures
+  forall+ (tid : natlt nthr).
+    (exists* (em : ematrix _ _ _). (from_array l sar) |-> Frac (recip nthr) em)
+{
+  ghost
+  fn aux (tid : natlt nthr)
+  requires
+    live_tile_stride_cells (from_array l sar) nthr tid
+  ensures
+    forall+ (i : natlt (rows*cols/(chunk et * nthr))).
+      forall+ (k : natlt (chunk et)).
+        exists* v. gpu_matrix_pts_to_cell (from_array l sar)
+          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
+          (((tid * (rows * rows / (chunk et * nthr)) + i) * chunk et + k) % cols)
+          v
+  {
+    admit();
+  };
+  forevery_map _ _ aux;
+
+  forevery_unfactor' (rows*cols/chunk et) nthr (rows*cols/(chunk et * nthr)) _;
+  Kuiper.Divides.lemma_divides_exact (chunk et) (rows*cols);
+  lemma_divides_prod_divisor (chunk et) nthr (rows*cols);
+  forevery_unfactor' (rows*cols) (rows*cols/chunk et) (chunk et) _;
+
+  forevery_factor (rows*cols) rows cols _;
+  admit();
+  gpu_matrix_implode_underspec _;
+  with em1. assert (from_array l sar) |-> em1;
+  gpu_matrix_gather_n_underspec (from_array l sar) nthr;
+
+//  ((((i1 * cols + i2) / chunk /
+//                (rows * cols / (chunk * nthr)) *
+//                (rows * cols / (chunk * nthr)) +
+//                (i1 * cols + i2) /
+//                chunk %
+//                (rows * cols / (chunk * nthr))) *
+//
+//              chunk +
+//              (i1 * cols + i2) % chunk) /
+//            cols)
+}
+
+ghost
+fn odd_barrier_p_to_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#bm #bn #bk : szp)
   (l1 : full_mlayout bm bk)
@@ -328,8 +485,13 @@ ensures
     (exists* (x : ematrix _ _ _). (from_array l1 sar1) |-> Frac (recip nthr) x) **
     (exists* (x : ematrix _ _ _). (from_array l2 sar2) |-> Frac (recip nthr) x)
 {
-  (* analogous, but fill it in. *)
-  admit();
+  forevery_unzip _ _;
+  single_odd_barrier_p_to_q l1 sar1 nthr;
+  single_odd_barrier_p_to_q l2 sar2 nthr;
+  forevery_zip
+    (fun (tid : natlt nthr) ->
+      exists* (em: ematrix et (v bm) (v bk)).
+        (from_array l1 sar1) |-> Frac (recip nthr) em) _;
 }
 
 ghost
@@ -351,7 +513,7 @@ requires
 ensures
   forall+ (tid : natlt nthr). barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr it tid
 {
-  // requires ANF?
+  // if requires ANF
   let ev = even it;
   if ev {
     ghost
@@ -369,7 +531,7 @@ ensures
     };
     forevery_map _ _ evaux;
 
-    lemma_even_barrier_p_to_q l1 l2 sar1 sar2 nthr;
+    even_barrier_p_to_q l1 l2 sar1 sar2 nthr;
 
     ghost
     fn evaux2 (tid : natlt nthr)
@@ -400,7 +562,7 @@ ensures
     };
 
     forevery_map _ _ oddaux;
-    lemma_odd_barrier_p_to_q l1 l2 sar1 sar2 nthr;
+    odd_barrier_p_to_q l1 l2 sar1 sar2 nthr;
 
     ghost
     fn oddaux2 (tid : natlt nthr)
@@ -511,6 +673,12 @@ fn block_setup
   forevery_map #(natlt nthr)
     (fun _tid -> gpu_pts_to_slice (fst (snd sh)) #(recip nthr) 0 (bk*bn) s2)
     _ (aux (fst (snd sh)) s2);
+  forevery_map
+    (fun _tid -> gpu_pts_to_slice (fst sh) #(1.0R /. nthr) 0 (bm*bk) s1) _
+    (aux (fst sh) s1);
+  forevery_map
+    (fun _tid -> gpu_pts_to_slice (fst (snd sh)) #(1.0R /. nthr) 0 (bk*bn) s2) _
+    (aux (fst (snd sh)) s2);
 
   (* create barrier token *)
   B.mk_barrier nthr _ _
@@ -522,8 +690,7 @@ fn block_setup
   forevery_zip
     (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)
     (fun tid ->
-      barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid)
-    ;
+      barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid);
   forevery_zip
     (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)
     (fun tid ->
