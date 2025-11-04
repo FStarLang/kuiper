@@ -161,7 +161,7 @@ fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
   (r : gpu_array et nth)
   (vv : erased (seq et))
-  (vr : erased (seq Real.real) { reveal vv %~ reveal vr })
+  (vr : erased (seq Real.real) { vv %~ vr })
   (#_: squash (len vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
@@ -282,7 +282,7 @@ fn kf
   (nth : szp { nth <= max_threads })
   (a : gpu_array et nth)
   (#s : erased (seq et))
-  (#vr : erased (seq real){ reveal s %~ reveal vr })
+  (#vr : erased (seq real){ s %~ vr })
   (#_ : squash (Seq.length s == nth))
   (tid : szlt nth)
   ()
@@ -418,8 +418,9 @@ let kernel
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
-  (#va : erased (seq et) { Seq.length va == SZ.v lena })
-  (#vr : erased (seq real) { reveal va %~ reveal vr })
+  (#va : erased (seq et))
+  (#vr : erased (seq real) { va %~ vr })
+  (#_ : squash (Seq.length va == SZ.v lena))
 : kernel_desc_1_n
     (a |-> va)
     (gpu_pts_to_slice_sum a 0 lena va vr)
@@ -440,7 +441,7 @@ fn reduce
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
   (#va : erased (seq et))
-  (#vr : erased (seq real) { reveal va %~ reveal vr })
+  (#vr : erased (seq real) { va %~ vr })
   requires
     cpu **
     (a |-> va)

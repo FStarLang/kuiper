@@ -11,7 +11,7 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |} =
   (lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena) ->
   (#va : erased (seq et)) ->
-  (#vr : erased (seq real){reveal va %~ reveal vr}) ->
+  (#vr : erased (seq real){va %~ vr}) ->
   stt unit
   (requires
     cpu **

@@ -21,6 +21,18 @@ class can_approximate (c m : Type) = {
   approximates : c -> m -> prop;
 }
 
+instance erased_can_approximate_lhs (c m : Type)
+  {| _: can_approximate c m |}
+  : can_approximate (erased c) m = {
+  approximates = (fun (x: erased c) (y: m) -> approximates (reveal x) y);
+}
+
+instance erased_can_approximate_rhs (c m : Type)
+  {| _: can_approximate c m |}
+  : can_approximate c (erased m) = {
+  approximates = (fun (x: c) (y: erased m) -> approximates x (reveal y));
+}
+
 unfold let (%~) #c #m (x:c) (y:m) {| can_approximate c m |}
   : prop = approximates x y
 
