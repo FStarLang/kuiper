@@ -260,3 +260,83 @@ val full_view_bij (avw : aiview { is_full_view avw })
   : Ghost (avw.sch.ait =~ natlt avw.len)
           (requires True)
           (ensures fun b -> forall x. b.ff x == it_to_nat avw x)
+
+let no_overlap_fam
+  (n : nat)
+  (vw : natlt n -> aiview)
+  : prop
+  = forall (i j : natlt n).
+      i <> j ==> no_overlap (vw i).step.imap.f (vw j).step.imap.f
+
+let rec max_n (#n:pos) (f : natlt n -> GTot nat) : GTot nat =
+  if n = 1 then f 0
+  else
+    max (max_n #(n-1) f) (f (n-1))
+
+let rec max_n_lem (#n:pos) (f : natlt n -> GTot nat)
+  : Lemma (requires True)
+          (ensures  (forall i. f i <= max_n f)
+                 /\ (exists i. f i == max_n f))
+          [SMTPat (max_n f)]
+  = if n = 1 then
+      assert (max_n f == f 0)
+    else
+      max_n_lem #(n-1) f
+
+let sum_aiview_fam_len
+  (n : pos)
+  (vws : natlt n -> aiview)
+  : GTot nat
+  = max_n (fun j -> (vws j).len)
+
+type sum_aiview_fam_ait
+  (n : pos)
+  (vws : natlt n -> aiview)
+  = (i : natlt n & (vws i).sch.ait)
+
+let sum_aiview_fam_f
+  (n : pos)
+  (vws : natlt n -> aiview)
+  (#_ : squash (no_overlap_fam n vws))
+  (a : sum_aiview_fam_ait n vws)
+  : GTot (natlt (sum_aiview_fam_len n vws))
+=
+  let (| i, ai |) = a in
+  (vws i).step.imap.f ai
+
+let sum_aiview_fam_is_inj
+  (n : pos)
+  (vws : natlt n -> aiview)
+  (#_ : squash (no_overlap_fam n vws))
+  (x y : sum_aiview_fam_ait n vws)
+  : Lemma (requires sum_aiview_fam_f n vws x == sum_aiview_fam_f n vws y)
+          (ensures  x == y)
+=
+  let (| i1, ai1 |) = x in
+  let (| i2, ai2 |) = y in
+  if i1 = i2 then
+    let vw = vws i1 in
+    vw.step.imap.is_inj ai1 ai2
+  else (
+    assert no_overlap (vws i1).step.imap.f (vws i2).step.imap.f;
+    assert False
+  )
+
+let sum_aiview_fam
+  (n : pos)
+  (vws : natlt n -> aiview)
+  (#_ : squash (no_overlap_fam n vws))
+  : aiview =
+{
+  len = sum_aiview_fam_len n vws;
+  sch = {
+    ait = sum_aiview_fam_ait n vws;
+    ait_enum = solve;
+  };
+  step = {
+    imap = {
+      f = sum_aiview_fam_f n vws #_;
+      is_inj = (fun x y -> Classical.move_requires (sum_aiview_fam_is_inj n vws x) y);
+    };
+  };
+}

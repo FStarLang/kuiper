@@ -24,11 +24,15 @@ let gpu : slprop = mode GPU
 [@@no_mkeys]
 val can_create_barrier (nthr : nat) : slprop
 
-(* Token marking we have in fact created a barrier, or ditched the token.  This
-makes sure the token is not stashed away somewhere. *)
+(* Token marking we have in fact created a barrier, or ditched the
+   token.  This makes sure the token is not stashed away somewhere. *)
 [@@no_mkeys]
 val consumed_can_create_barrier : slprop
 
+(* A function that can be called to consume the token
+   without actually creating a barrier. We could also
+   define consumed_can_create_barrier as a trivial
+   barrier token. *)
 ghost
 fn no_mk_barrier (#n:nat) ()
   requires can_create_barrier n
@@ -48,7 +52,6 @@ let max_blocks_explicit : squash (reveal max_blocks == 2097152 /\ reveal max_blo
 (* Hard CUDA limit *)
 unfold
 let max_threads : erased int = 1024
-
 
 inline_for_extraction noextract
 unfold let warp_sz = 32sz
@@ -72,13 +75,8 @@ fn get_gdim ()
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nblk)
 
+(* Get a concrete value for the number of threads (~ blockDim.x) *)
 fn get_bdim ()
   preserves thread_id 'nthr 'tid
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nthr)
-
-// let thread_index (n: tid_t): GTot (i: nat { i < gdim_x n * bdim_x n }) = (
-//   assert ((bidx_x n + 1) * bdim_x n <= gdim_x n * bdim_x n);
-//   bidx_x n * bdim_x n + tidx_x n
-// )
-// let thread_count (n: tid_t): GTot pos = gdim_x n * bdim_x n
