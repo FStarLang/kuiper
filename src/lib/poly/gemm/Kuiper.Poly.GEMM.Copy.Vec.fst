@@ -116,12 +116,15 @@ fn cp_matrix_vec
 
     unfold live_tile_stride_cells dst nthr tid;
     assert (pure (ite < divup (rows*cols) (chunk et * nthr)));
-    forevery_extract #(natlt (divup (rows*cols) (chunk et * nthr)))
-      (reveal ite) _;
+    assert pure (!i + offset = GR.read git * nthr * chunk et + tid * chunk et);
+    assert pure (!i + offset = (GR.read git * nthr + tid) * chunk et);
+    assert pure ((!i + offset)/chunk et = GR.read git * nthr + tid);
+    FStar.Math.Lemmas.modulo_addition_lemma tid nthr (GR.read git);
+    assert pure ((!i + offset)/chunk et % nthr = tid);
+    forevery_extract #(idx:natlt (rows*cols){SZ.v tid == idx/(chunk et)%nthr /\ chunk et /?+ idx}) (!i + offset) _;
 
     // awful, here to match exactly what's in live_tile_stride_cells
-    rewrite each ((tid * chunk et + ite * nthr * chunk et) / cols < rows
-                  && (tid * chunk et + ite * nthr * chunk et) % cols < cols - chunk et + 1) as true;
+    rewrite each ((!i + offset) % cols < cols - chunk et + 1) as true;
 
     assert (live_chunk dst row col);
 

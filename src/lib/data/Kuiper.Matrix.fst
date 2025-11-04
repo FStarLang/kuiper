@@ -289,7 +289,6 @@ fn gpu_matrix_pts_to_eq
 ghost
 fn gpu_matrix_gather_n_underspec
   (#et:Type0)
-  (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
