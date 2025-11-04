@@ -29,12 +29,13 @@ let rsmul (s1 s2 : seq real{ Seq.length s1 == Seq.length s2 }) : GTot (seq real)
   = Seq.init_ghost (Seq.length s1) (fun i -> (s1 @! i) *. (s2 @! i))
 
 let pmul_approximates_rsmul (#et:Type) {| scalar et, real_like et |}
-  (s1 s2 : seq et{ Seq.length s1 == Seq.length s2 })
-  (vr1 vr2 : seq real{ seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
-  : Lemma (ensures seq_approximates (pmul s1 s2) (rsmul vr1 vr2))
-          [SMTPat (seq_approximates (pmul s1 s2) (rsmul vr1 vr2))]
+  (s1 s2 : seq et)
+  (vr1 vr2 : seq real{ s1 %~ vr1 /\ s2 %~ vr2 })
+  : Lemma (requires Seq.length s1 == Seq.length s2)
+          (ensures pmul s1 s2 %~ rsmul vr1 vr2)
+          [SMTPat (pmul s1 s2 %~ rsmul vr1 vr2)]
 = let aux (i : natlt (Seq.length s1))
-    : Lemma (((s1 @! i) `mul` (s2 @! i)) `approximates` ((vr1 @! i) *. (vr2 @! i)))
+    : Lemma (((s1 @! i) `mul` (s2 @! i)) %~ ((vr1 @! i) *. (vr2 @! i)))
   = a_mul (s1 @! i) (s2 @! i) (vr1 @! i) (vr2 @! i)
   in
   Classical.forall_intro aux
@@ -49,7 +50,7 @@ let kpre
   (lena : nat)
   (ga1 ga2 : gpu_array et lena)
   (s1 s2 : erased (seq et))
-  (vr1 vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  (vr1 vr2 : erased (seq real) { reveal s1 %~ reveal vr1 /\ reveal s2 %~ reveal vr2 })
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
@@ -68,7 +69,7 @@ let kpost
   (lena : nat)
   (ga1 ga2 : gpu_array et lena)
   (s1 s2 : erased (seq et))
-  (vr1 vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  (vr1 vr2 : erased (seq real) { reveal s1 %~ reveal vr1 /\ reveal s2 %~ reveal vr2 })
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : natlt lena)
   : slprop
@@ -83,7 +84,7 @@ fn kf
   (lena : szp{lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : erased (seq et))
-  (#vr1 #vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  (#vr1 #vr2 : erased (seq real) { reveal s1 %~ reveal vr1 /\ reveal s2 %~ reveal vr2 })
   (#_: squash ( len s1 == lena /\ len s2 == lena ))
   (tid : szlt lena)
   ()
@@ -124,7 +125,7 @@ fn setup
   (lena : szp{SZ.v lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : seq et)
-  (#vr1 #vr2 : seq real { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  (#vr1 #vr2 : seq real { s1 %~ vr1 /\ s2 %~ vr2 })
   (_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   norewrite
   requires
@@ -155,7 +156,7 @@ fn teardown
   (lena : szp{SZ.v lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : seq et)
-  (#vr1 #vr2 : seq real { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  (#vr1 #vr2 : seq real { s1 %~ vr1 /\ s2 %~ vr2 })
   (_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   norewrite
   requires
@@ -165,7 +166,7 @@ fn teardown
     ga2 |-> s2 ** 
     (exists* (s1' : seq et{Seq.length s1' > 0}). 
       (ga1 |-> s1') **
-      pure ((s1' @! 0) `approximates` real_seq_sum (rsmul vr1 vr2)))
+      pure ((s1' @! 0) %~ real_seq_sum (rsmul vr1 vr2)))
 { 
   // rewrite_by (forall+ (tid : natlt lena). kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) _ 
   //            (slprop_equiv_unfold (`%kpost)) ();
@@ -194,12 +195,12 @@ let dp_kernel
   (lena : szp{SZ.v lena <= max_threads})
   (ga1 ga2 : gpu_array et lena)
   (#s1 #s2 : erased (seq et))
-  (#vr1 #vr2 : erased (seq real) { seq_approximates s1 vr1 /\ seq_approximates s2 vr2 })
+  (#vr1 #vr2 : erased (seq real) { reveal s1 %~ reveal vr1 /\ reveal s2 %~ reveal vr2 })
   (#_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   : kernel_desc
       (ga2 |-> s2 ** ga1 |-> s1)
       (ga2 |-> s2 ** (exists* (s1' : seq et{Seq.length s1' > 0}). (ga1 |-> s1') **
-                                     pure ((s1' @! 0) `approximates` real_seq_sum (rsmul vr1 vr2))))
+                                     pure ((s1' @! 0) %~ real_seq_sum (rsmul vr1 vr2))))
   = {
     nthr = lena;
     f = kf lena ga1 ga2 #s1 #s2;
@@ -220,7 +221,7 @@ fn dotprod
   (lena : szp{lena <= max_threads})
   (a1 a2: vec et)
   (v1 v2: erased (seq et))
-  (vr1 vr2: erased (seq real) { seq_approximates v1 vr1 /\ seq_approximates v2 vr2 })
+  (vr1 vr2: erased (seq real) { reveal v1 %~ reveal vr1 /\ reveal v2 %~ reveal vr2 })
   (#_: squash (len v1 == lena /\ len v2 == lena))
   norewrite
   preserves
@@ -232,7 +233,7 @@ fn dotprod
   returns
     dp: et
   ensures
-    pure (dp `approximates` sum (pmul vr1 vr2))
+    pure (dp %~ sum (pmul vr1 vr2))
 {
   Pulse.Lib.Vec.pts_to_len a1;
   Pulse.Lib.Vec.pts_to_len a2;
