@@ -45,7 +45,7 @@ type dotprod_ty
     (cpu **
     a1 |-> v1 **
     a2 |-> v2) **
-    pure (dp == sum (pmul v1 v2)))
+    pure (dp `approximates` sum (pmul vr1 vr2)))
 
 inline_for_extraction noextract
 val dotprod
