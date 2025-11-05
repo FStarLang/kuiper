@@ -1,4 +1,5 @@
 module Kuiper.Matrix.Vectorized
+
 #lang-pulse
 
 friend Kuiper.Matrix
@@ -213,6 +214,71 @@ fn gpu_matrix_vec_read
 
   with s. assert pts_to arr s;
   assert pure (Seq.equal s (Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))));
+
+  ();
+}
+
+inline_for_extraction noextract
+fn gpu_matrix_vec_read'
+  (#et:Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols) {| clayout l, strided_row_major l |}
+  (gm : gpu_matrix et l)
+  (i : szlt rows)
+  (j : szlt (cols - chunk et + 1))
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  (arr : array et)
+  (#s : erased (seq et))
+  preserves gpu
+  preserves gm |-> Frac f em
+  requires  arr |-> s
+  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
+  ensures   exists* (s': lseq et (chunk et)). arr |-> s' **
+    pure (forall x. Seq.index s' x == macc em i (j + x))
+{
+  gpu_matrix_vec_read gm i j arr;
+}
+
+inline_for_extraction noextract
+fn gpu_matrix_vec_cp_async
+  (#et:Type0) {| sized et, has_vec_cpy et|}
+  (#rows #cols : erased nat)
+  (#lsrc #ldst : mlayout rows cols)
+  {| clayout lsrc, strided : strided_row_major lsrc |}
+  (src : gpu_matrix et lsrc)
+  (dst : gpu_matrix et ldst)
+  (i : szlt rows)
+  (j : szlt (cols - chunk et + 1))
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  (arr : array et)
+  (#s : erased (lseq et (chunk et)))
+  preserves gpu
+  preserves src |-> Frac f em
+  requires
+    forall+ (k : natlt (chunk et)).
+      gpu_matrix_pts_to_cell dst i (j + k) (s @! k)
+  ensures
+    forall+ (k : natlt (chunk et)).
+      gpu_matrix_pts_to_cell dst i (j + k) (macc em i (j + k))
+{
+  get_slice src i j;
+
+  strided.pf i j;
+  strided.pf i (j + chunk et - 1);
+
+  let offset = strided.offset +^ strided.stride *^ i +^ j;
+
+  // TODO create slice from cells
+
+  gpu_array_vec_cpy_async dst 0sz src 0sz offset;
+  admit();
+
+  //unget_slice gm i j;
+
+  //with s. assert pts_to arr s;
+  //assert pure (Seq.equal s (Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))));
 
   ();
 }
