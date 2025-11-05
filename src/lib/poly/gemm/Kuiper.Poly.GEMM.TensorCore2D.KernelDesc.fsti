@@ -90,8 +90,8 @@ let barrier_p
       (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
       (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
     else
-      live_tile_stride_cells m1 nthr tid **
-      live_tile_stride_cells m2 nthr tid
+      live_strided_chunks m1 nthr tid **
+      live_strided_chunks m2 nthr tid
 
 let barrier_q
   (#et : Type0) {| sized et, has_vec_cpy et |}

@@ -101,7 +101,7 @@ fn gpu_matrix_pts_to_ref
   preserves
     gpu_matrix_pts_to g #f em
   ensures
-    pure (SZ.fits (rows * cols))
+    pure (SZ.fits (mlayout_size l))
 
 ghost
 fn gpu_matrix_concr

@@ -123,8 +123,8 @@ let barrier_p
       (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
       (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
     else
-      live_tile_stride_cells m1 nthr tid **
-      live_tile_stride_cells m2 nthr tid
+      live_strided_chunks m1 nthr tid **
+      live_strided_chunks m2 nthr tid
 
 let barrier_q
   (#et : Type0)
@@ -436,16 +436,16 @@ fn kf
 
     B.barrier_wait ();
     rewrite (barrier_q sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx) tid)
-        as live_tile_stride_cells sA (bm/tm * (bn/tn) * warp_size) tid **
-           live_tile_stride_cells sB (bm/tm * (bn/tn) * warp_size) tid;
+        as live_strided_chunks sA (bm/tm * (bn/tn) * warp_size) tid **
+           live_strided_chunks sB (bm/tm * (bn/tn) * warp_size) tid;
 
     copy_tiles_out_of_matrices bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)*^warp_sz) tid;
 
     assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)) (2 * !bkIdx + 1) tid);
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    rewrite live_tile_stride_cells sA (bm/tm * (bn/tn) * warp_size) tid **
-            live_tile_stride_cells sB (bm/tm * (bn/tn) * warp_size) tid
+    rewrite live_strided_chunks sA (bm/tm * (bn/tn) * warp_size) tid **
+            live_strided_chunks sB (bm/tm * (bn/tn) * warp_size) tid
          as (barrier_p sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx + 1) tid);
 
     B.barrier_wait ();

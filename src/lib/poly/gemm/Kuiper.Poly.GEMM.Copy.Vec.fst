@@ -12,6 +12,125 @@ module SZ = Kuiper.SizeT
 module GR = Pulse.Lib.GhostReference
 open Pulse.Lib.Trade { trade }
 
+let in_chunk_covers_all
+  (chunk : pos)
+  (rows cols : nat)
+  (nthr : pos)
+  (ij : (natlt rows & natlt cols))
+  : Lemma (exists tid. in_chunk chunk rows cols nthr tid ij)
+  = 
+  let flat_idx = ij._1 * cols + ij._2 <: nat in
+  let chunk_idx = flat_idx / chunk in
+  let tid = chunk_idx % nthr in
+  assert (in_chunk chunk rows cols nthr tid ij);
+  ()
+
+let in_chunk_no_overlap
+  (chunk : pos)
+  (rows cols : nat)
+  (nthr : pos)
+  (ij : (natlt rows & natlt cols))
+  (tid1 tid2 : natlt nthr)
+  : Lemma (requires in_chunk chunk rows cols nthr tid1 ij /\
+                    in_chunk chunk rows cols nthr tid2 ij)
+          (ensures tid1 == tid2)
+  = 
+  ()
+
+ghost
+fn split_matrix_into_strided_chunks
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (#em : ematrix et rows cols)
+  (nthr : pos)
+  requires
+    m |-> em
+  ensures
+    pure (SZ.fits (mlayout_size lm))
+  ensures
+    forall+ (tid : natlt nthr).
+      own_strided_chunks m em nthr tid
+{
+  gpu_matrix_pts_to_ref m;
+  gpu_matrix_explode m;
+  forevery_flatten _;
+  Classical.forall_intro (in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
+  forevery_refine_ext #_ #(fun _ -> True)
+    (fun (ij : (natlt rows & natlt cols)) ->
+      exists tid. in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
+    _;
+  Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
+                             (in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
+  forevery_split_or_n nthr _ _;
+  ghost
+  fn aux (tid : natlt nthr)
+    requires
+      forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
+        gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em ij._1 ij._2)
+    ensures
+      own_strided_chunks m em nthr tid
+  {
+    fold own_strided_chunks m em nthr tid;
+  };
+  forevery_map _ _ aux;
+}
+
+ghost
+fn join_matrix_from_strided_chunks
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (#em : ematrix et rows cols)
+  (nthr : pos)
+  requires
+    pure (SZ.fits (mlayout_size lm))
+  requires
+    forall+ (tid : natlt nthr).
+      own_strided_chunks m em nthr tid
+  ensures
+    m |-> em
+{
+  assert pure (SZ.fits (mlayout_size lm));
+  forevery_map
+    (fun tid -> own_strided_chunks m em nthr tid)
+    (fun tid -> forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
+        gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em ij._1 ij._2))
+    fn tid { unfold own_strided_chunks m em nthr tid };
+  forevery_join_or_n nthr (fun (tid : natlt nthr) ij -> in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
+    (fun ij -> gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em ij._1 ij._2));
+  Classical.forall_intro (in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
+  Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
+                             (in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
+  forevery_refine_ext #_
+    #(fun (ij : (natlt rows & natlt cols)) ->
+      exists tid. in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
+    (fun _ -> True)
+    _;
+  forevery_unflatten' _;
+  gpu_matrix_implode m;
+}
+
+ghost
+fn join_matrix_from_strided_chunks_underspec
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (nthr : pos)
+  requires
+    pure (SZ.fits (mlayout_size lm))
+  requires
+    forall+ (tid : natlt nthr).
+      live_strided_chunks m nthr tid
+  ensures
+    live m
+{
+  admit();
+}
+
 let freeze (p : slprop) : slprop = p
 
 let mul_inv_2 (a b c d:nat)
@@ -35,6 +154,8 @@ let divides_helper
     ()
 
 #push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
+// NB: The scalar constraint is only here so we can use 'zero' as an initializer
+// for a local array... would be gone if we had uninitialized local arrays.
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -46,6 +167,7 @@ fn cp_matrix_vec
   (#f : perm)
   (#esrc : ematrix et rows cols)
   (dst : gpu_matrix et ldst)
+  (#edst : ematrix et rows cols)
   (nthr : sz)
   (tid : szlt nthr)
   preserves gpu
@@ -58,9 +180,11 @@ fn cp_matrix_vec
     pure (aligned 16 (core src)) **
     pure (rows * cols > 0)
   requires
-    live_tile_stride_cells dst nthr tid
+    own_strided_chunks dst edst nthr tid
   ensures
-    live_tile_stride_cells dst nthr tid
+    exists* em'. // TODO: functional spec
+      own_strided_chunks dst em' nthr tid
+
 {
   // These should be exposed to the precondition and bubbled up.
   assume pure (chunk et /?+ src_str.stride);
@@ -85,8 +209,10 @@ fn cp_matrix_vec
     invariant
       live i ** live git **
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
-      pure (GR.read git <= (rows*cols) / (nthr * chunk et)) **
-      live_tile_stride_cells dst nthr tid
+      pure (GR.read git <= (rows*cols) / (nthr * chunk et))
+    invariant
+      exists* em'. // TODO: functional spec
+        own_strided_chunks dst em' nthr tid
   {
     assert pure (GR.read git < (rows*cols) / (chunk et * nthr));
     let vi = !i;
@@ -114,57 +240,64 @@ fn cp_matrix_vec
     let ite : erased int = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);
 
-    unfold live_tile_stride_cells dst nthr tid;
-    // assert (pure (ite < divup (rows*cols) (chunk et * nthr)));
-    assert pure (!i + offset = GR.read git * nthr * chunk et + tid * chunk et);
-    assert pure (!i + offset = (GR.read git * nthr + tid) * chunk et);
-    assert pure ((!i + offset)/chunk et = GR.read git * nthr + tid);
-    FStar.Math.Lemmas.modulo_addition_lemma tid nthr (GR.read git);
-    assert pure ((!i + offset)/chunk et % nthr = tid);
-    // forevery_extract #(natlt (divup (rows*cols) (chunk et * nthr)))
-      // (reveal ite) _;
-    forevery_extract #(idx:natlt (rows*cols){SZ.v tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1})
-      (!i + offset) _;
-
-    // awful, here to match exactly what's in live_tile_stride_cells
-    // rewrite each ((tid * chunk et + ite * nthr * chunk et) / cols < rows
-                  // && (tid * chunk et + ite * nthr * chunk et) % cols < cols - chunk et + 1) as true;
-    // rewrite each ((!i + offset) % cols < cols - chunk et + 1) as true;
-
-    assert (live_chunk dst row col);
-
-    // "freeze" the trade we have here to avoid ambiguity inside the loop
-    with p q. assert (trade p q);
-    rewrite trade p q as freeze (trade p q);
-
     let mut k = 0sz;
     while ((!k <^ chunk et))
       invariant live k ** pure (!k <= chunk et)
+      invariant
+        exists* em'. // TODO: functional spec
+          own_strided_chunks dst em' nthr tid
     {
-      unfold live_chunk dst row col;
-      forevery_extract #(natlt (chunk et)) !k _;
-      assume pure ((!i + !k) / cols < rows); // sometimes works
-      assume pure ((!i + !k) / cols == !i / cols); // should be provable (chunk et divides cols)
-      assume (pure ((!i + !k) % cols == !i % cols + !k));
+      with em'. unfold own_strided_chunks dst em' nthr tid;
+      assume pure (col + !k < cols);
+      let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col +^ !k);
+      assume pure (in_chunk (chunk et) rows cols nthr tid ecell);
+      forevery_remove'
+        #(natlt rows & natlt cols)
+        (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
+        _ ecell;
 
-      unfold live_cell dst row (col +^ !k);
-      // FIXME: for some reason, I have to pass s explicitly below,
-      // or we get an error about not being to prove that !k is in
-      // bounds (even if I assert it).
+      assert (gpu_matrix_pts_to_cell dst (reveal ecell)._1 (reveal ecell)._2
+                  (macc em' (reveal ecell)._1 (reveal ecell)._2));
+      rewrite
+        gpu_matrix_pts_to_cell dst (reveal ecell)._1 (reveal ecell)._2
+                  (macc em' (reveal ecell)._1 (reveal ecell)._2)
+      as
+        gpu_matrix_pts_to_cell dst row (col + !k)
+                  (macc em' row (col + !k));
+
       with s. assert local |-> s;
       let v = Pulse.Lib.Array.op_Array_Access local !k #_ #s;
       gpu_matrix_write_cell dst row (col +^ !k) v;
-      fold live_cell dst row (col +^ !k);
 
-      Pulse.Lib.Trade.elim_trade _ _;
-      fold live_chunk dst row col;
+      let em'' : ematrix et rows cols = mupd em' row (col +^ !k) v;
+
+      rewrite
+        gpu_matrix_pts_to_cell dst row (col + !k) v
+      as
+        gpu_matrix_pts_to_cell dst (reveal ecell)._1 (reveal ecell)._2
+                  (macc em'' (reveal ecell)._1 (reveal ecell)._2);
+
+      forevery_ext
+        #(ij : (natlt rows & natlt cols){in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell})
+        (fun ij ->
+          gpu_matrix_pts_to_cell dst ij._1 ij._2 (macc em' ij._1 ij._2))
+        (fun ij ->
+          gpu_matrix_pts_to_cell dst ij._1 ij._2 (macc em'' ij._1 ij._2));
+
+      forevery_insert
+        #(natlt rows & natlt cols)
+        #(fun ij -> in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell)
+        _ ecell;
+      forevery_refine_ext
+        #(natlt rows & natlt cols)
+        #(fun ij -> (in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell) \/ reveal ecell == ij)
+        (fun ij -> in_chunk (chunk et) rows cols nthr tid ij)
+        (fun ij -> gpu_matrix_pts_to_cell dst ij._1 ij._2 (macc em'' ij._1 ij._2));
+
+      fold own_strided_chunks dst em'' nthr tid;
+
       k := !k +^ 1sz;
     };
-
-    unfold freeze;
-
-    Pulse.Lib.Trade.elim_trade _ _;
-    fold live_tile_stride_cells dst nthr tid;
 
     let vi = !i;
     let vgit = GR.read git;

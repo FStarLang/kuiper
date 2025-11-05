@@ -66,11 +66,11 @@ fn copy_tiles_out_of_matrices_vec
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB))
   requires
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
   ensures
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
 
 unfold
 let block_tile_idx_rows

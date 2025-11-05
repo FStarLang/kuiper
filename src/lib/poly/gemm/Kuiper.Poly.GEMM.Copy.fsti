@@ -19,7 +19,7 @@ let live_cell
   : slprop
   = exists* v. gpu_matrix_pts_to_cell gm i j v
 
-let live_tile_stride_cells
+let live_strided_chunks
   (#et : Type0)
   (#rows #cols : nat)
   (#lm : mlayout rows cols)
@@ -54,7 +54,7 @@ fn cp_matrix
     // Where does rows*cols + nthr >= 1 come from?
     pure (SZ.fits (rows * cols + nthr - 1)) **
     src |-> Frac f esrc **
-    live_tile_stride_cells dst nthr tid
+    live_strided_chunks dst nthr tid
 
 inline_for_extraction noextract
 fn cp_matrix_one_cell_per_thread

@@ -53,7 +53,7 @@ fn gpu_matrix_pts_to_ref
   preserves
     gpu_matrix_pts_to g #f em
   ensures
-    pure (SZ.fits (rows * cols))
+    pure (SZ.fits (mlayout_size l))
 {
   unfold gpu_matrix_pts_to g #f em;
   A.varray_pts_to_ref g;

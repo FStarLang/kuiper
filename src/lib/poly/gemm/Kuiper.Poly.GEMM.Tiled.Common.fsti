@@ -56,8 +56,8 @@ fn copy_tiles_out_of_matrices
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
     thread_id nthr tid **
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
 
 inline_for_extraction noextract
 fn copy_tiles_out_of_matrices_one_cell_per_thread

@@ -375,16 +375,16 @@ fn kf
 
     B.barrier_wait ();
     rewrite (barrier_q sA sB nthr (2 * !bkIdx) tid)
-        as live_tile_stride_cells sA nthr tid **
-           live_tile_stride_cells sB nthr tid;
+        as live_strided_chunks sA nthr tid **
+           live_strided_chunks sB nthr tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
 
     assert (B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx + 1) tid);
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    rewrite live_tile_stride_cells sA nthr tid **
-            live_tile_stride_cells sB nthr tid
+    rewrite live_strided_chunks sA nthr tid **
+            live_strided_chunks sB nthr tid
          as (barrier_p sA sB nthr (2 * !bkIdx + 1) tid);
 
     B.barrier_wait ();

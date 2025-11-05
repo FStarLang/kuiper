@@ -50,12 +50,15 @@ fn copy_tiles_out_of_matrices_vec
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB))
   requires
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
   ensures
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
 {
+  unfold live_strided_chunks sA nthr tid;
+  unfold live_strided_chunks sB nthr tid;
+
   let tileA = gpu_matrix_extract_tile_ro' gA
     (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
   // get_bdim() is not specialized, when the block dimensions are specialized
@@ -69,5 +72,8 @@ fn copy_tiles_out_of_matrices_vec
 
   ambig_trade_elim ();
   ambig_trade_elim ();
+
+  fold live_strided_chunks sA nthr tid;
+  fold live_strided_chunks sB nthr tid;
   ();
 }

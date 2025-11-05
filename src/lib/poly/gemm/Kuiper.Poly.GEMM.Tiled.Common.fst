@@ -42,8 +42,8 @@ fn copy_tiles_out_of_matrices
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
     thread_id nthr tid **
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
 {
   let tileA = gpu_matrix_extract_tile_ro' gA
     (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
