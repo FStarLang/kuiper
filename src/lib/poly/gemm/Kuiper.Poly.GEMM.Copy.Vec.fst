@@ -128,6 +128,9 @@ fn join_matrix_from_strided_chunks_underspec
   ensures
     live m
 {
+  (* Can be done, but this function will probably
+  not be needed when we add the functional spec. Hoping
+  to just delete instead of implementing. *)
   admit();
 }
 
