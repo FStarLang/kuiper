@@ -158,6 +158,46 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
   |}
   : strided_row_major (subtile_layout l trows tcols tr tc)
 
+val lemma_subtile_strided_row_major_offset
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_row_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            SZ.v (strided_row_major_subtile l trows tcols tr tc).offset
+            ==
+            sub.offset + sub.stride * (tr * trows) + tc * tcols)
+          [SMTPat (strided_row_major_subtile l trows tcols tr tc).offset]
+
+val lemma_subtile_strided_row_major_stride
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_row_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            (strided_row_major_subtile l trows tcols tr tc).stride
+            ==
+            sub.stride)
+          [SMTPat (strided_row_major_subtile l trows tcols tr tc).stride]
+
 inline_for_extraction noextract
 instance val strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
@@ -173,6 +213,46 @@ instance val strided_col_major_subtile (#rows #cols : erased nat)
      c_tc    : concrete_sz tc,
   |}
   : strided_col_major (subtile_layout l trows tcols tr tc)
+
+val lemma_subtile_strided_col_major_offset
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            SZ.v (strided_col_major_subtile l trows tcols tr tc).offset
+            ==
+            sub.offset + sub.stride * (tc * tcols) + tr * trows)
+          [SMTPat (strided_col_major_subtile l trows tcols tr tc).offset]
+
+val lemma_subtile_strided_col_major_stride
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            (strided_col_major_subtile l trows tcols tr tc).stride
+            ==
+            sub.stride)
+          [SMTPat (strided_col_major_subtile l trows tcols tr tc).stride]
 
 inline_for_extraction noextract
 instance val c_subtile_layout
