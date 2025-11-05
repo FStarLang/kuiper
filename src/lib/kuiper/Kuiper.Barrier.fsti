@@ -8,7 +8,8 @@ open Kuiper.ForEvery
 open FStar.Tactics.V2
 open Kuiper.Base
 open Kuiper.SizeT
-open Kuiper.Epoch
+
+open Pulse.Lib.Pledge
 
 (* A barrier over nthreads. This is for specification only,
 there is no runtime representation for it, nor a handle-like
@@ -69,8 +70,25 @@ fn barrier_wait
   requires barrier_tok p q  it    tid ** p it tid
   ensures  barrier_tok p q (it+1) tid ** q it tid
 
-fn barrier_arrive_and_wait ()
-  (#e : epoch_t)
-  requires gpu ** epoch_live e
-  returns e' : epoch_t
-  ensures epoch_done e ** epoch_live e' ** pure (e' >= e)
+val barrier : Type0
+// FIXME unsound: allows multiple threads to call init on barrier, but init_barrier is not thread-safe
+[@@noextract_to "krml"]
+atomic
+fn init_barrier (b : barrier)
+
+val barrier_done (b : barrier) : slprop
+
+[@@noextract_to "krml"]
+atomic
+fn barrier_arrive_and_wait (b : barrier)
+  (#n : erased nat)
+  (#p #q : barrier_side n)
+  (#k : slprop)
+  (#it : erased nat)
+  (#tid : enatlt n)
+  requires
+    gpu **
+    barrier_tok p q it tid **
+    pledge0 (barrier_done b) (p it tid ** k)
+  ensures barrier_tok p q (it+1) tid
+  ensures q it tid ** k

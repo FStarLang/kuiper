@@ -62,33 +62,16 @@ fn gpu_array_vec_cpy_async
   (#_ : squash (Seq.length ds == dst_slice_j - dst_slice_i))
   (#_ : squash (src_slice_i <= src_off /\ src_off + chunk et <= src_slice_j))
   (#_ : squash (Seq.length ss == src_slice_j - src_slice_i))
-  (#e : epoch_t)
+  (b : barrier)
   preserves gpu
   requires  gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
-  returns   e' : epoch_t
   ensures
-    epoch_live e' **
     // Keep the resources until synchronized
-    pledge0 (epoch_done e')
+    pledge0 (barrier_done b)
             (gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss **
-             gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))) **
-    pure (e' >= e)
-
-// like sync_device
-fn barrier_arrive_and_wait ()
-  (#e : epoch_t)
-  requires
-    gpu **
-    epoch_live e **
-    (barrier_tok p q it tid) **
-    p it tid // p it tid -- is not be provable for how we want to use it
-  returns e' : epoch_t
-  ensures
-    epoch_done e **
-    epoch_live e' **
-    pure (e' >= e) **
-    (barrier_tok p q it tid) ** p it tid
+             gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j
+               (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et)))
 
 [@@noextract_to "krml"]
 atomic
