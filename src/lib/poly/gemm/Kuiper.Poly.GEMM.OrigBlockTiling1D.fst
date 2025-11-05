@@ -51,7 +51,7 @@ let shmems_desc
 
 let constraint_test
   (#bm #bn #bk : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   // because of how the original populates shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
@@ -72,7 +72,7 @@ let kpre1
   (comb : binop et)
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   // because of how the original populates shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
@@ -114,7 +114,7 @@ let kpost1
   (comb : binop et)
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
   (#lC : mlayout4 mrows   mcols   bm bn)
@@ -189,7 +189,7 @@ let barrier_q
 let barrier_tok
   (#et : Type0)
   (#bm #bn #bk : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
@@ -212,7 +212,7 @@ let kpre
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   // because of how the original code loads into shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
@@ -243,7 +243,7 @@ let kpost
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   // because of how the original code loads into shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
@@ -273,7 +273,7 @@ fn populate_shmem
   (#et : Type0) {| scalar et |}
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : erased nat)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   // every thread loads a single element for either matrix,
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (#slA : full_mlayout bm bk) {| clayout slA |}
@@ -314,7 +314,7 @@ inline_for_extraction noextract
 fn subproducts1d
   (#et : Type0) {| scalar et |}
   (#bm #bn #bk: szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (rch1d : array et) (* register cache, 1d *)
   (#resvs : erased (seq et))
   (#l1 : full_mlayout bm bk) {| clayout l1 |}
@@ -374,7 +374,7 @@ fn kf
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
@@ -596,7 +596,7 @@ fn setup
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   // because of how the original code loads into shmem,
   //  the following is required
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
@@ -633,7 +633,7 @@ fn block_setup
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
@@ -673,7 +673,7 @@ fn block_teardown
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
@@ -711,7 +711,7 @@ fn teardown
   (comb : binop et)
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (#lA : mlayout4 mrows   mshared bm bk)
   (#lB : mlayout4 mshared mcols   bk bn)
@@ -753,7 +753,7 @@ let mk_kernel
   (comb : binop et)
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (slA : full_mlayout bm bk)
   (slB : full_mlayout bk bn)
@@ -803,7 +803,7 @@ fn mmcomb_gpu
   (comb : binop et)
   (bm bn bk : szp)
   (#mrows #mshared #mcols : szp)
-  (tm : szp{tm /? bm})
+  (tm : szp{tm /?+ bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (lA : mlayout4 mrows   mshared bm bk)
   (lB : mlayout4 mshared mcols   bk bn)

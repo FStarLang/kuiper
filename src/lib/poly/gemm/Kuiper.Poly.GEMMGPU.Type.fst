@@ -117,7 +117,7 @@ type block_tiled1d_matmulcomb_gpu_ty =
   (#mrows : szp) ->
   (#mshared : szp) ->
   (#mcols : szp) ->
-  (tm : szp{tm /? bm}) ->
+  (tm : szp{tm /?+ bm}) ->
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk)) ->
   (lA : M4.mlayout4 mrows   mshared bm bk) ->
   (lB : M4.mlayout4 mshared mcols   bk bn) ->
