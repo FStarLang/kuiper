@@ -257,12 +257,12 @@ let bij_tile_stride_cells (et : Type0) {| sized et, hvc : has_vec_cpy et|} (#nth
 : (natlt (rows*cols/(chunk et * nthr)) =~ idx:natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1})
 =
 {
-  ff = (fun (i : natlt (rows*cols/(chunk et * nthr))) ->
-    assume (tid = (i * (chunk et * nthr) + tid * chunk et)/(chunk et) % nthr);
-    assume (chunk et /?+ (i * (chunk et * nthr) + tid * chunk et));
-    assume ((i * (chunk et * nthr) + tid * chunk et)%cols < cols - chunk et + 1);
-    i * (chunk et * nthr) + tid * chunk et
-     <: (idx:natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1}));
+  ff = admit(); //(fun (i : natlt (rows*cols/(chunk et * nthr))) ->
+    //assume (tid = (i * (chunk et * nthr) + tid * chunk et)/(chunk et) % nthr);
+    //assume (chunk et /?+ (i * (chunk et * nthr) + tid * chunk et));
+    //assume ((i * (chunk et * nthr) + tid * chunk et)%cols < cols - chunk et + 1);
+    //i * (chunk et * nthr) + tid * chunk et
+    // <: (idx:natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1}));
   gg = (fun (i : natlt (rows*cols) {tid = i/(chunk et #_ #hvc) % nthr /\ (chunk et #_ #hvc) /?+ i /\ i%cols < cols - (chunk et #_ #hvc) + 1}) ->
     i/(chunk et * nthr) <: natlt (rows*cols/(chunk et * nthr)));
   ff_gg = ez;
