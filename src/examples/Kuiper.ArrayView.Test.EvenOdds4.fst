@@ -23,7 +23,6 @@ open Kuiper.View
 
 let strided_schema (len : nat) (stride : nat) (offset : natlt stride) = {
   ait      = natlt ((len + stride - 1 - offset) / stride);
-  ait_enum = solve;
 }
 
 let strided_step (len : nat) (stride : nat) (offset : natlt stride) :

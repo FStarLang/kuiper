@@ -24,7 +24,6 @@ let aview_concat
     len = vw1.iview.len + vw2.iview.len;
     sch = {
       ait      = either vw1.iview.sch.ait vw2.iview.sch.ait;
-      ait_enum = solve;
     };
     step = {
       imap     = inj_either vw1.iview.step.imap vw2.iview.step.imap `inj_comp` inj_nat_sum _ _;

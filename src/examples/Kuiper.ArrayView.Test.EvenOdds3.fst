@@ -24,7 +24,6 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
     len;
     sch = {
       ait = natlt ((len + stride - 1 - offset) / stride);
-      ait_enum = solve;
     };
     step = {
       imap = {
@@ -118,6 +117,7 @@ fn test (a : gpu_array u32 100)
   returns  u32
   ensures  a |-> v0
 {
+  IView.full_iff_cardinal vw.iview #_;
   varray_abs' vw a;
   let va = from_array vw a;
 
@@ -172,6 +172,11 @@ let all_in_image (len:nat) (i : nat)
   : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
           [SMTPat (in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)]
   = if i < len then (let j = __it_of_nat #len i in it_of_nat_lem #len i)
+
+let is_full (et:Type) (len:nat)
+  : Lemma (is_full_view (sum_aview (even_view et len) (odd_view et len)))
+          [SMTPat (is_full_view (sum_aview (even_view et len) (odd_view et len)))]
+  = IView.full_iff_cardinal (sum_aview (even_view et len) (odd_view et len)).iview #(solve <: enumerable _)
 
 #push-options "--z3rlimit 20"
 let merge_lemma_aux #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2)) (i : natlt len)

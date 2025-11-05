@@ -20,7 +20,6 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
     len = len;
     sch = {
       ait = natlt ((len + stride - 1 - offset) / stride);
-      ait_enum = solve;
     };
     step = {
       imap = {

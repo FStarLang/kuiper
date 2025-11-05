@@ -157,7 +157,6 @@ fn varray_reindex_
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.iview.sch.ait =~ ait')
   (a : varray vw)
   (#f : perm)
@@ -185,7 +184,6 @@ fn varray_reindex
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.iview.sch.ait =~ ait')
   (a : varray vw)
   (#f : perm)
@@ -700,7 +698,7 @@ fn varray_split_n
 
 ghost
 fn forevery_join_either'
-  (#a #b : Type0) {| enumerable a, enumerable b |}
+  (#a #b : Type0)
   (p : a -> slprop)
   (q : b -> slprop)
   requires

@@ -110,14 +110,6 @@ fn iarray_ext
   requires a |-> Frac f v1
   ensures  a |-> Frac f v2
 
-(* Note: the functions below use the Enumerable instance for vw.sch.ait
-   that is inside the aview record.
-   We do this since it's
-   not necessary for that enumeration to match the one in the typeclass system.
-   For example, for a matrix view, that enumeration can be anything
-   depending on the layout chosen, but the enumeration we want for the
-   **abstract indices** is just lexicographic. *)
-
 ghost
 fn iarray_explode
   (#et:Type)
@@ -241,7 +233,6 @@ fn iarray_reindex_
   (#et : Type0)
   (#vw : aiview)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.sch.ait =~ ait')
   (a : iarray et vw)
   (#f : perm)
@@ -257,7 +248,6 @@ fn iarray_reindex
   (#et : Type0)
   (#vw : aiview)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.sch.ait =~ ait')
   (a : iarray et vw)
   (#f : perm)

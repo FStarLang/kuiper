@@ -32,12 +32,6 @@ let _helper (et st : Type) (vw : aview et st)
   = ()
 
 unfold
-instance enumerable_view_ait (#et:Type) (#st:Type0)
-  (vw : aview et st)
-  : Enumerable.enumerable vw.iview.sch.ait
-= vw.iview.sch.ait_enum
-
-unfold
 instance is_ghost_map_view_igm (#et:Type) (#st:Type0)
   (vw : aview et st)
   : is_ghost_map st vw.iview.sch.ait et
@@ -94,7 +88,6 @@ let igm_reindex (#mt #it #et : Type) (igm : is_ghost_map mt it et)
 let reindex_view (#et : Type0) (#st : Type0)
   (vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.iview.sch.ait =~ ait')
   : aview et st = {
   iview  = IView.reindex_view vw.iview bij;

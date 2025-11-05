@@ -17,10 +17,6 @@ inline_for_extraction noextract
 type aiview_schema = {
   (* abstract index type *)
   ait      : Type0;
-
-  (* The index type must be enumerable. This is mostly so we can
-     use forall+, the bijection inside here is not used much elsewhere. *)
-  ait_enum : Enumerable.enumerable ait;
 }
 
 [@@erasable]
@@ -33,7 +29,6 @@ type aiview_step (from_ait to_ait : Type0) = {
 
 let raw_aiview_schema (len : nat) : aiview_schema = {
   ait      = natlt len;
-  ait_enum = solve;
 }
 
 [@@erasable]
@@ -50,11 +45,6 @@ instance has_len_aiview : has_len aiview = {
   len = (fun vw -> vw.len);
 }
 
-unfold
-instance enumerable_aiview_ait (vw : aiview)
-  : Enumerable.enumerable vw.sch.ait
-= vw.sch.ait_enum
-
 let is_full_view (avw : aiview) : prop =
   is_surj avw.step.imap.f
 
@@ -64,10 +54,11 @@ let is_full_view_lempat (avw : aiview { is_full_view avw })
           [SMTPat (in_image avw.step.imap.f i)]
   = ()
 
+// Can't really give this an SMT pattern...
 val full_iff_cardinal
   (vw : aiview)
-  : Lemma (is_full_view vw <==> vw.sch.ait_enum._cardinal == vw.len)
-          [SMTPat (is_full_view vw)]
+  {| Enumerable.enumerable vw.sch.ait |}
+  : Lemma (is_full_view vw <==> Enumerable.cardinal vw.sch.ait #_ == vw.len)
 
 (* Nothing fancy here. *)
 inline_for_extraction noextract
@@ -167,13 +158,11 @@ let inj_bij' (#a #b : Type) (bij : a =~ b) : (b @~> a) =
 let reindex_view
   (vw : aiview)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.sch.ait =~ ait')
   : aiview = {
   len = vw.len;
   sch = {
     ait      = ait';
-    ait_enum = solve;
   };
 
   step = {
@@ -219,7 +208,6 @@ let sum_aiview
   len = max vw1.len vw2.len;
   sch = {
     ait      = either vw1.sch.ait vw2.sch.ait;
-    ait_enum = solve;
   };
   step = {
     imap     = {
@@ -316,7 +304,6 @@ let sum_aiview_fam
   len = sum_aiview_fam_len n vws;
   sch = {
     ait = sum_aiview_fam_ait n vws;
-    ait_enum = solve;
   };
   step = {
     imap = {

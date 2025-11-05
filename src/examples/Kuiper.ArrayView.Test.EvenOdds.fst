@@ -21,7 +21,6 @@ let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
     len;
     sch = {
       ait = natlt ((len + 1) / 2);
-      ait_enum = solve;
     };
     step = {
       imap = {
@@ -39,7 +38,6 @@ let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
     len;
     sch = {
       ait = natlt (len / 2);
-      ait_enum = solve;
     };
     step = {
       imap = {
@@ -133,6 +131,7 @@ fn test (a : gpu_array u32 100)
   let va = varray_join2 vl vr;
 
   // assume (pure (is_full_view (sum_aview (even_view u32 100) (odd_view u32 100))));
+  IView.full_iff_cardinal vw.iview #(solve <: enumerable (either (natlt 50) (natlt 50)));
   varray_concr va;
 
   with l1 v1. assert gpu_pts_to_slice (core va) 0 l1 v1;

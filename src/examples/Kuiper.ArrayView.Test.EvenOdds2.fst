@@ -20,7 +20,6 @@ let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
     len;
     sch = {
       ait = natlt ((len + 1) / 2);
-      ait_enum = solve;
     };
     step = {
       imap = {
@@ -38,7 +37,6 @@ let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
     len;
     sch = {
       ait = natlt (len / 2);
-      ait_enum = solve;
     };
     step = {
       imap = {
@@ -134,6 +132,7 @@ fn test_simpler (a : gpu_array u32 100)
   returns u32
   ensures  a |-> v0
 {
+  IView.full_iff_cardinal vw.iview #_;
   varray_abs' vw a;
   let va = from_array vw a;
 
@@ -178,7 +177,13 @@ let surj_lemma #et (len:nat)
           [SMTPat (it_to_nat (sum_aview (even_view et len) (odd_view et len)))]
   = Classical.forall_intro (surj_lemma' #et #len)
 
-#push-options "--split_queries always"
+let is_full (et:Type) (len:nat)
+  : Lemma (is_full_view (sum_aview (even_view et len) (odd_view et len)))
+          [SMTPat (is_full_view (sum_aview (even_view et len) (odd_view et len)))]
+  = IView.full_iff_cardinal (sum_aview (even_view et len) (odd_view et len)).iview #(solve <: enumerable _)
+
+#push-options "" // "--split_queries always"
+#restart-solver
 let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))

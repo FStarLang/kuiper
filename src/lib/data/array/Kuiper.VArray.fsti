@@ -111,15 +111,6 @@ fn varray_pts_to_ref
   ensures
     pure (SZ.fits (len vw))
 
-
-(* Note: the functions below use the Enumerable instance for vw.iview.sch.ait
-   that is inside the aview record.
-   We do this since it's
-   not necessary for that enumeration to match the one in the typeclass system.
-   For example, for a matrix view, that enumeration can be anything
-   depending on the layout chosen, but the enumeration we want for the
-   **abstract indices** is just lexicographic. *)
-
 ghost
 fn varray_explode
   (#et : Type) (#st : Type)
@@ -155,7 +146,6 @@ fn varray_reindex_
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.iview.sch.ait =~ ait')
   (a : varray vw)
   (#f : perm)
@@ -170,7 +160,6 @@ fn varray_reindex
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
   (bij : vw.iview.sch.ait =~ ait')
   (a : varray vw)
   (#f : perm)

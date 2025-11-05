@@ -46,7 +46,6 @@ let open Kuiper.Bijection in
     len = l.len;
     sch = {
       ait = natlt rows & natlt cols;
-      ait_enum = solve;
     };
     step = {
       imap = l.map;
