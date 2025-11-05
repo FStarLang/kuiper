@@ -116,6 +116,34 @@ let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (
     bigstar_defn #u2 m' n' f'
   end
 
+ghost
+fn bigstar_rewrite_ext
+    (#u1 #u2: int) 
+    (m : nat) (n : nat { m <= n }) (k:nat { n <= k }) 
+    (f : (i:nat { m <= i /\ i < k }) -> slprop)
+    (f' : (i:nat { m <= i /\ i < n }) -> slprop)
+    (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m+i))))
+requires bigstar #u1 m n f
+ensures bigstar #u2 m n f'
+{
+  bigstar_congr #u1 #u2 m n m n f f' h;
+  rewrite bigstar #u1 m n f as bigstar #u2 m n f';
+}
+
+ghost
+fn bigstar_rewrite_ext_l
+    (#u1 #u2: int) 
+    (k:nat) (m : nat { k <= m }) (n : nat { m <= n })
+    (f : (i:nat { k <= i /\ i < n }) -> slprop)
+    (f' : (i:nat { m <= i /\ i < n }) -> slprop)
+    (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m+i))))
+requires bigstar #u1 m n f
+ensures bigstar #u2 m n f'
+{
+  bigstar_congr #u1 #u2 m n m n f f' h;
+  rewrite bigstar #u1 m n f as bigstar #u2 m n f';
+}
+
 let bigstar_eq (#u1 #u2: int) (m : nat) (n : nat {m <= n}) (f g : (i:nat { m <= i /\ i < n }) -> slprop)
   : Lemma (requires (forall i. m <= i /\ i < n ==> f i == g i))
           (ensures  bigstar #u1 m n f == bigstar #u2 m n g) = bigstar_congr #u1 #u2 m n m n f g (fun i -> ())
@@ -773,22 +801,15 @@ fn rec bigstar_unflatten
     rewrite each (n1 * n2) as (n2 + ((n1 - 1) * n2));
     bigstar_cut #u1 #0 #(n2 + ((n1-1)*n2)) ((n1 - 1) * n2);
     rewrite each ((n2 + (n1 - 1) * n2)) as (n1 * n2);
-    admit();
-    // FIXME: we seem to get an ill-typed VC below, which fails
-    // * Info at /home/guido/r/kuiper/main/src/lib/common/Pulse.Lib.BigStar.fst:776.5-792.73:
-    //   - This query failed:
-    //   - Pulse.Lib.BigStar.bigstar 0 ((n1 - 1) * n2) (fun i -> f (i / n2) (i % n2)) ==
-    //     Pulse.Lib.BigStar.bigstar 0 ((n1 - 1) * n2) (fun i -> f (i / n2) (i % n2))
-
-    // * Info at /home/guido/r/kuiper/main/src/lib/common/Pulse.Lib.BigStar.fst:776.5-792.73:
-    //   - This query failed:
-    //   - (fun i -> f (i / n2) (i % n2)) < n2 + (n1 - 1) * n2
-
-    // * Info at /home/guido/r/kuiper/main/src/lib/common/Pulse.Lib.BigStar.fst:776.5-792.73:
-    //   - This query failed:
-    //   - 0 <= (fun i -> f (i / n2) (i % n2))
-
-    bigstar_unflatten #u1 #u2 #(n1 - 1) #n2 #(fun x -> f x); //eta expand to retype f
+    bigstar_rewrite_ext #u1 #u1 0 ((n1 - 1) * n2) (n1 * n2) 
+      (fun (i: nat{b2t (0 <= i) /\ b2t (i < n1 * n2)}) -> f (i / n2) (i % n2)) 
+      (fun (i: nat{b2t (0 <= i) /\ b2t (i < (n1 - 1) * n2)}) -> f (i / n2) (i % n2))
+      (fun _ -> ());
+    bigstar_rewrite_ext_l #u1 #u1 0 ((n1 - 1) * n2) (n1 * n2)
+      (fun (i: nat{b2t (0 <= i) /\ b2t (i < n1 * n2)}) -> f (i / n2) (i % n2)) 
+      (fun (i: nat{b2t ((n1 - 1) * n2 <= i) /\ b2t (i < (n1 * n2))}) -> f (i / n2) (i % n2))
+      (fun _ -> ());
+    bigstar_unflatten #u1 #u2 #(n1 - 1) #n2 #(fun i -> f i);
     bigstar_extensionality #u1 ((n1-1)*n2) (n1*n2)
       (fun i -> f (i/n2) (i%n2))
       (fun i -> f (n1-1) (i - (n1-1)*n2))
