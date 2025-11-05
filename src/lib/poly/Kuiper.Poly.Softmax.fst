@@ -52,22 +52,8 @@ fn explode_setup
     (forall+ (bid : natlt lena).
       gpu_pts_to_cell a bid (Seq.index s bid)) **
     emp
-{ admit () }
-//   gpu_pts_to_ref a;
-//   with s. assert a |-> s;
-//   gpu_array_slice_1 a;
-//   ghost
-//   fn aux (bid : natlt lena)
-//     requires gpu_pts_to_cell a bid (s @! bid)
-//     ensures  gpu_pts_to_array1 a bid
-//   {
-//     fold gpu_pts_to_array1 a bid;
-//     ();
-//   };
-//   forevery_map _ _ aux;
-//   ();
-// }
-
+{ gpu_array_slice_1 a; }
+  
 ghost
 fn explode_teardown
   (#et : Type0)
@@ -83,24 +69,13 @@ fn explode_teardown
     emp
   ensures
     (a |-> (Kuiper.Seq.Common.seq_map f s))
-{ admit() }
-//   ghost
-//   fn aux (bid : natlt lena)
-//     requires gpu_pts_to_array1 a bid
-//     ensures  exists* v. gpu_pts_to_cell a bid v
-//   {
-//     unfold gpu_pts_to_array1 a bid;
-//     with s. assert gpu_pts_to_slice a bid (bid+1) s;
-//     gpu_pts_to_slice_ref a bid (bid+1);
-//     assert pure (Seq.equal s seq![s @! 0]);
-//     rewrite each s as seq![s @! 0];
-//     ();
-//   };
-//   forevery_map _ _ aux;
-//   gpu_array_unslice_1' a;
-//   ();
-// }
-
+{ 
+  forevery_map
+    (fun (i:natlt lena) -> gpu_pts_to_cell a i (f (s @! i)))
+    (fun (i:natlt lena) -> gpu_pts_to_cell a i ((KS.seq_map f s)@!i))
+    fn x { () };
+  gpu_array_unslice_1 a #_ #(KS.seq_map f s)
+}
 
 inline_for_extraction noextract
 fn kf_map
@@ -168,22 +143,6 @@ let softmax_spec (#et:Type0) {| floating et |} (s:Seq.seq et) =
   let avg = seq_fold_left add zero exps in
   map_div_avg exps avg
 
-
-// let exp_avg (s:Seq.seq real) : real = 
-//   let open Kuiper.Seq.Common in
-//   seq_fold_left add 0.0R (seq_map rexp s)
-
-// let avg_real (s:Seq.seq real) = 
-//   let open Kuiper.Seq.Common in
-//   let exps = seq_map rexp s in
-//   let avg : real = seq_fold_left (+.) 0.0R exps in
-//   avg
-
-// module KS = Kuiper.Seq.Common
-
-// let sum (#et:Type0) {| scalar et |} (s:seq et) =
-//   KS.seq_fold_left add zero s
-
 let rec sum_non_zero 
     (s:seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc:real)
@@ -196,15 +155,6 @@ let rec sum_non_zero
     let open Kuiper.Seq.Common in
     let SCons hd tl = view_seq s in
     sum_non_zero tl (add acc hd <: real)
-
-// let softmax_real (s:Seq.seq real { Seq.length s > 0 }) = 
-//   let open Kuiper.Seq.Common in
-//   let exps = seq_map rexp s in
-//   let avg : real = sum exps in
-//   sum_non_zero exps zero;
-//   seq_map FStar.Real.(fun x -> x /. avg) exps
-
-
 
 let softmax_approx
     (#et:Type0) {| floating et, real_like et |}
