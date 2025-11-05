@@ -171,7 +171,7 @@ fn gpu_matrix_iabs
     g |-> Frac f em
 {
   forevery_flatten _;
-  forevery_rw_type _ ((aview_from_mlayout et l).iview.sch.ait) _;
+  forevery_rw_type _ ((aview_from_mlayout et l).iview.ait) _;
   forevery_ext _
     (fun i -> gpu_pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
       ((aview_from_mlayout et l).igm.acc em i));
@@ -512,7 +512,7 @@ fn gpu_matrix_explode
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_explode gm;
-  forevery_rw_type (aview_from_mlayout et l).iview.sch.ait (natlt rows & natlt cols) _;
+  forevery_rw_type (aview_from_mlayout et l).iview.ait (natlt rows & natlt cols) _;
   ghost
   fn aux (rc : natlt rows & natlt cols)
     requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc)

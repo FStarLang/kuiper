@@ -44,9 +44,7 @@ let open Kuiper.Bijection in
 {
   iview = {
     len = l.len;
-    sch = {
-      ait = natlt rows & natlt cols;
-    };
+    ait = natlt rows & natlt cols;
     step = {
       imap = l.map;
     };
@@ -67,9 +65,9 @@ let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols {is_full_layout l}
         == {}
         s @! V.it_to_nat vw (i, j);
         == {}
-        (F.on_g vw.iview.sch.ait <| fun i -> s @! V.it_to_nat vw i) (i, j);
+        (F.on_g vw.iview.ait <| fun i -> s @! V.it_to_nat vw i) (i, j);
         == {}
-        macc (vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! V.it_to_nat vw i)) i j;
+        macc (vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! V.it_to_nat vw i)) i j;
         == { _ by (Tactics.compute ()) } // weird
         macc (V.from_seq vw s) i j;
       }

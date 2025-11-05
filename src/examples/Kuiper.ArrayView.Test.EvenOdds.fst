@@ -19,9 +19,7 @@ noextract
 let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
   iview = {
     len;
-    sch = {
-      ait = natlt ((len + 1) / 2);
-    };
+    ait = natlt ((len + 1) / 2);
     step = {
       imap = {
         f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
@@ -36,9 +34,7 @@ noextract
 let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
   iview = {
     len;
-    sch = {
-      ait = natlt (len / 2);
-    };
+    ait = natlt (len / 2);
     step = {
       imap = {
         f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);

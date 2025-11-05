@@ -482,7 +482,7 @@ fn gpu_matrix_explode
   A.varray_pts_to_ref gm;
   A.varray_explode gm;
   forevery_rw_type
-    (aview_from_mlayout et l).iview.sch.ait
+    (aview_from_mlayout et l).iview.ait
     (natlt (mrows * brows) & natlt (mcols * bcols))
     (fun rc ->
       A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));

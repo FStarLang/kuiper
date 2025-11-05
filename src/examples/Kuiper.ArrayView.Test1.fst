@@ -28,9 +28,7 @@ inline_for_extraction noextract
 let base_view (et : Type) (len : nat) : aview et (lseq et len) = {
   iview = {
     len;
-    sch = {
-      ait      = natlt len;
-    };
+    ait = natlt len;
     step = {
       imap     = inj_id;
     };
@@ -42,9 +40,7 @@ inline_for_extraction noextract
 let r_base_view (et : Type) (len : nat) : aview et (lseq et len) = {
   iview = {
     len;
-    sch = {
-      ait      = natlt len;
-    };
+    ait = natlt len;
     step = {
       imap     = inj_nat_rev len;
     };
