@@ -268,21 +268,6 @@ let no_overlap_fam
   = forall (i j : natlt n).
       i <> j ==> no_overlap (vw i).step.imap.f (vw j).step.imap.f
 
-let rec max_n (#n:pos) (f : natlt n -> GTot nat) : GTot nat =
-  if n = 1 then f 0
-  else
-    max (max_n #(n-1) f) (f (n-1))
-
-let rec max_n_lem (#n:pos) (f : natlt n -> GTot nat)
-  : Lemma (requires True)
-          (ensures  (forall i. f i <= max_n f)
-                 /\ (exists i. f i == max_n f))
-          [SMTPat (max_n f)]
-  = if n = 1 then
-      assert (max_n f == f 0)
-    else
-      max_n_lem #(n-1) f
-
 let sum_aiview_fam_len
   (n : pos)
   (vws : natlt n -> aiview)

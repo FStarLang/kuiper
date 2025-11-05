@@ -37,10 +37,9 @@ type dotprod_ty
   (#_: squash (len v1 == SZ.v lena /\ len v2 == SZ.v lena)) ->
   stt et
   (requires
-    (cpu **
+    cpu **
     a1 |-> v1 **
-    a2 |-> v2) **
-    pure (is_comm_semigroup #et zero add))
+    a2 |-> v2)
   (ensures fun (dp : et) ->
     (cpu **
     a1 |-> v1 **

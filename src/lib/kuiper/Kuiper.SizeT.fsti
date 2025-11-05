@@ -43,13 +43,15 @@ unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
 (* Throughout this repo we would like to assume a 64bit machine, and use
    size_t for array indices and whatnot, BUT, size_t has very poor
-   performance on the GPU compared to a 32-bit integer. So, our
-   fork of karamel extracts size_t to uint32_t, which means we should
+   performance on the GPU compared to a 32-bit integer, mostly due
+   to increasing register pressure! So, our fork of karamel extracts
+   size_t to uint32_t, which means we should
    NOT assume that a size_t can fit a u64, lest we could get overflow.
 
    The right thing to do is use FStar.UInt32.t instead of SizeT.t where
    this matters, but this is a pervasive change. *)
 assume SizeTFitsU32 : FStar.SizeT.fits_u32
+
 (* We also assume that those are the ONLY values of size_t that we will
    ever encounter. *)
 val fits_iff_u32 (x:nat)

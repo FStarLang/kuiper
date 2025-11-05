@@ -81,4 +81,12 @@ let ematrix_approximates #et
   (m2 : ematrix real rows cols)
   : prop
   = forall (i:natlt rows) (j:natlt cols).
-      approximates (macc m1 i j) (macc m2 i j)
+      macc m1 i j %~ macc m2 i j
+
+instance ematrix_can_approximate
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  : can_approximate (ematrix et rows cols) (ematrix real rows cols) =
+{
+  approximates = ematrix_approximates;
+}

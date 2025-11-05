@@ -114,28 +114,202 @@ instance ghost_map_is_ghost_map #a #b : is_ghost_map (a ^->> b) a b =
     l2 = ez;
   }
 
+let ghost_map_fun_ff
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  : (idx ^->> mt) -> ((x:idx & i x) ^->> e)
+=
+  fun (f : (idx -> GTot mt)) ->
+    F.on_g _ <|
+    fun (xy : (x:idx & i x)) ->
+      let (| x, y |) = xy in
+      (sub x).bij.ff (f x) y
+
+let ghost_map_fun_gg
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  : ((x:idx & i x) ^->> e) -> (idx ^->> mt)
+=
+  fun (g : (x:idx & i x) ^->> e) ->
+    F.on_g _ <|
+    fun (x : idx) ->
+      (sub x).bij.gg (F.on_g _ <| fun y -> g (| x, y |))
+
+let lemma_ghost_map_fun_ff_gg
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  (g : (x:idx & i x) ^->> e)
+  : Lemma (ghost_map_fun_ff idx mt i e (ghost_map_fun_gg idx mt i e g) == g)
+          [SMTPat (ghost_map_fun_ff idx mt i e (ghost_map_fun_gg idx mt i e g))]
+=
+  let aux (ix : (x:idx & i x))
+    : Lemma (ghost_map_fun_ff idx mt i e (ghost_map_fun_gg idx mt i e g) ix == g ix)
+  =
+    let (| j, x |) = ix in
+    calc (==) {
+      ghost_map_fun_ff idx mt i e (ghost_map_fun_gg idx mt i e g) ix;
+      == {}
+      (sub j).bij.ff (ghost_map_fun_gg idx mt i e g j) x;
+      == {}
+      (sub j).bij.ff ((sub j).bij.gg (F.on_g _ <| fun y -> g (| j, y |))) x;
+      == {}
+      (sub j).bij.ff ((sub j).bij.gg (F.on_g _ <| fun y -> g (| j, y |))) x;
+      == { (sub j).bij.ff_gg (F.on_g _ <| fun y -> g (| j, y |)) }
+      (F.on_g _ <| fun y -> g (| j, y |)) x;
+      == {}
+      g (| j, x |);
+    };
+    ()
+  in
+  Classical.forall_intro aux;
+  assert (ghost_map_fun_ff idx mt i e (ghost_map_fun_gg idx mt i e g) `F.feq_g` g)
+
+let lemma_ghost_map_fun_gg_ff
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  (f : (idx ^->> mt))
+  : Lemma (ghost_map_fun_gg idx mt i e (ghost_map_fun_ff idx mt i e f) == f)
+          [SMTPat (ghost_map_fun_gg idx mt i e (ghost_map_fun_ff idx mt i e f))]
+=
+  let aux (x : idx)
+    : Lemma (ghost_map_fun_gg idx mt i e (ghost_map_fun_ff idx mt i e f) x == f x)
+  =
+    calc (==) {
+      ghost_map_fun_gg idx mt i e (ghost_map_fun_ff idx mt i e f) x;
+      == { _ by (Tactics.compute ()) } // weird
+      (F.on_g _ <| fun (x : idx) ->
+        (sub x).bij.gg (F.on_g _ <| fun y -> ghost_map_fun_ff idx mt i e f (| x, y |))) x;
+      == {}
+      (sub x).bij.gg (F.on_g _ <| fun y -> ghost_map_fun_ff idx mt i e f (| x, y |));
+      == { _ by (Tactics.compute ()) } // weird
+      (sub x).bij.gg (F.on_g _ <| fun y -> (sub x).bij.ff (f x) y);
+      == { assert ((F.on_g _ <| fun y -> (sub x).bij.ff (f x) y) `F.feq_g` (sub x).bij.ff (f x));
+           () }
+      (sub x).bij.gg ((sub x).bij.ff (f x));
+      == { (sub x).bij.gg_ff (f x) }
+      f x;
+    };
+    ()
+  in
+  Classical.forall_intro aux;
+  assert (ghost_map_fun_gg idx mt i e (ghost_map_fun_ff idx mt i e f) `F.feq_g` f)
+
+let ghost_map_fun_bij
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  : ((idx ^->> mt) =~ ((x:idx & i x) ^->> e))
+= {
+    ff = ghost_map_fun_ff idx mt i e;
+    gg = ghost_map_fun_gg idx mt i e;
+    ff_gg = ez;
+    gg_ff = (fun f -> lemma_ghost_map_fun_gg_ff idx mt i e f);
+}
+
+let ghost_map_fun_acc
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  (m : (idx ^->> mt))
+  (ix : (x:idx & i x))
+  : GTot e
+=
+  let (| x, y |) = ix in
+  (sub x).acc (m x) y
+
+let ghost_map_fun_upd
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  (m : (idx ^->> mt))
+  (ix : (x:idx & i x))
+  (ev : e)
+  : GTot (idx ^->> mt)
+=
+  let (| x, y |) = ix in
+  let m' : (idx ^->> mt) =
+    F.on_g _
+    fun x' ->
+      if x = x'
+      then (sub x).upd (m x) y ev
+      else m x'
+  in
+  m'
+
+let lemma_ghost_map_fun_l2
+  (idx : eqtype)
+  (mt : Type)
+  (i : idx -> Type)
+  (e : Type)
+  {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
+  (it : (x:idx & i x))
+  (m : (idx ^->> mt))
+  (ev : e)
+  : squash (
+      (ghost_map_fun_bij idx mt i e).ff (ghost_map_fun_upd idx mt i e m it ev)
+      ==
+      oplus ((ghost_map_fun_bij idx mt i e).ff m) it ev)
+=
+  let (| x0, y0 |) = it in
+  let aux (xy : (x:idx & i x))
+    : Lemma (
+        (ghost_map_fun_bij idx mt i e).ff (ghost_map_fun_upd idx mt i e m it ev) xy
+        ==
+        oplus ((ghost_map_fun_bij idx mt i e).ff m) it ev xy)
+  =
+    let (| x, y |) = xy in
+    (* Trivial if we're in a different component. *)
+    if x <> x0 then
+      ()
+    else
+      calc (==) {
+        (ghost_map_fun_bij idx mt i e).ff (ghost_map_fun_upd idx mt i e m it ev) xy;
+        == {}
+        (ghost_map_fun_bij idx mt i e).ff (F.on_g _ fun x' -> (sub x).upd (m x) y0 ev) xy;
+        == {}
+        ghost_map_fun_ff idx mt i e (F.on_g _ fun x' -> (sub x).upd (m x) y0 ev) xy;
+        == {}
+        (sub x).bij.ff ((sub x).upd (m x) y0 ev) y;
+        == {}
+        oplus ((ghost_map_fun_bij idx mt i e).ff m) it ev xy;
+      };
+      ()
+  in
+  Classical.forall_intro aux;
+  assert (
+    (ghost_map_fun_bij idx mt i e).ff (ghost_map_fun_upd idx mt i e m it ev)
+    `F.feq_g`
+    oplus ((ghost_map_fun_bij idx mt i e).ff m) it ev)
+
 instance ghost_map_fun
   (idx : eqtype)
   (mt : Type)
   (i : idx -> Type)
   (e : Type)
   {| sub : (x:idx -> is_ghost_map mt (i x) e) |}
-  // Does this have to have an internal GTot?
-  : is_ghost_map (idx -> GTot mt) (x:idx & i x) e =
+  : is_ghost_map (idx ^->> mt) (x:idx & i x) e =
 {
-  bij = magic();
-  acc = (fun (m : idx -> GTot mt) (ix : (x:idx & i x)) ->
-           let (| i,x |) = ix in
-           (sub i).acc (m i) x);
-  upd = (fun (m : idx -> GTot mt) (ix : (x:idx & i x)) (e:e) ->
-            let (| i,x |) = ix in
-            let m' : idx -> GTot mt =
-              fun i' ->
-                if i = i'
-                then (sub i).upd (m i) x e
-                else m i'
-              in
-            m');
-  l1  = magic();
-  l2  = magic();
+  bij = ghost_map_fun_bij idx mt i e;
+  acc = ghost_map_fun_acc idx mt i e;
+  upd = ghost_map_fun_upd idx mt i e;
+  l1  = ez;
+  l2  = lemma_ghost_map_fun_l2 idx mt i e;
 }

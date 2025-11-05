@@ -58,3 +58,30 @@ let oo (f : 'b -> GTot 'c) (g : 'a -> GTot 'b) : 'a -> GTot 'c =
 
 let max x y = if x > y then x else y
 let min x y = if x < y then x else y
+
+let rec sum_n (#n:nat) (f : natlt n -> GTot nat) : GTot nat =
+  if n = 0 then 0
+  else
+    f (n-1) + sum_n #(n-1) f
+
+let rec sum_n_pop (#n:nat) (f : natlt (n+1) -> GTot nat)
+  : Lemma (ensures sum_n #(n+1) f == sum_n #n f + f n)
+  = if n = 0 then
+      ()
+    else
+      sum_n_pop #(n-1) f
+
+let rec max_n (#n:pos) (f : natlt n -> GTot nat) : GTot nat =
+  if n = 1 then f 0
+  else
+    max (max_n #(n-1) f) (f (n-1))
+
+let rec max_n_lem (#n:pos) (f : natlt n -> GTot nat)
+  : Lemma (requires True)
+          (ensures  (forall i. f i <= max_n f)
+                 /\ (exists i. f i == max_n f))
+          [SMTPat (max_n f)]
+  = if n = 1 then
+      assert (max_n f == f 0)
+    else
+      max_n_lem #(n-1) f

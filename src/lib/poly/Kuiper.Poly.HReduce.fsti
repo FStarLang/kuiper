@@ -11,7 +11,7 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |} =
   (lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena) ->
   (#va : erased (seq et)) ->
-  (#vr : erased (seq real){seq_approximates va vr}) ->
+  (#vr : erased (seq real){va %~ vr}) ->
   stt unit
   (requires
     cpu **
@@ -20,7 +20,7 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |} =
     cpu **
     exists* (va' : seq et{Seq.length va' > 0}).
       gpu_pts_to_array a va' **
-      pure ((va' @! 0) `approximates` seq_fold_left (+.) 0.0R vr))
+      pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr))
 
 inline_for_extraction noextract
 val reduce (#et:Type0) {| scalar et, real_like et |} :

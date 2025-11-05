@@ -52,7 +52,7 @@ let gpu_pts_to_slice_sum_inner
   (r : gpu_array et sz)
   (i j :nat)
   (v : seq et)
-  (rr : seq Real.real { seq_approximates v rr })
+  (rr : seq Real.real { v %~ rr })
   (s : seq et)
 : slprop
 = gpu_pts_to_slice r i j s
@@ -69,7 +69,7 @@ let gpu_pts_to_slice_sum
   ([@@@mkey] i : nat)
   (j:nat)
   (v: seq et)
-  (rr : seq Real.real { seq_approximates v rr })
+  (rr : seq Real.real { v %~ rr })
 : slprop
 = exists* s. gpu_pts_to_slice_sum_inner r i j v rr s
 
@@ -80,7 +80,7 @@ let barrier_matrix
   (#et:Type0) {| scalar et, real_like et |}
   (nth : nat) (r : gpu_array et nth)
   (v : seq et)
-  (vr : seq Real.real { seq_approximates v vr })
+  (vr : seq Real.real { v %~ vr })
   (it from to : nat)
 : slprop
 =
@@ -94,7 +94,7 @@ fn mk_barrier_pre
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
   (r : gpu_array et nth)
   (vv : seq et)
-  (vr : seq Real.real { seq_approximates vv vr })
+  (vr : seq Real.real { vv %~ vr })
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
   requires if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
@@ -133,8 +133,8 @@ let kpre
   (#et:Type0) {| scalar et, real_like et |}
   (lena : nat)
   (a : gpu_array et lena)
-  (s : erased (seq et))
-  (vr : seq Real.real { seq_approximates s vr })
+  (s : seq et)
+  (vr : seq Real.real { s %~ vr })
   (#_: squash (len s == lena))
   (tid : natlt lena)
   : slprop =
@@ -146,8 +146,8 @@ let kpost
   (#et:Type0) {| scalar et, real_like et |}
   (lena : nat)
   (a : gpu_array et lena)
-  (s : erased (seq et))
-  (vr : seq Real.real { seq_approximates s vr })
+  (s : seq et)
+  (vr : seq Real.real { s %~ vr })
   (#_: squash (len s == lena))
   (tid : natlt lena)
   : slprop =
@@ -161,7 +161,7 @@ fn iteration
   (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
   (r : gpu_array et nth)
   (vv : erased (seq et))
-  (vr : erased (seq Real.real) { seq_approximates vv vr })
+  (vr : erased (seq Real.real) { vv %~ vr })
   (#_: squash (len vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
@@ -282,7 +282,7 @@ fn kf
   (nth : szp { nth <= max_threads })
   (a : gpu_array et nth)
   (#s : erased (seq et))
-  (#vr : erased (seq real){ seq_approximates s vr })
+  (#vr : erased (seq real){ s %~ vr })
   (#_ : squash (Seq.length s == nth))
   (tid : szlt nth)
   ()
@@ -356,8 +356,9 @@ fn block_setup
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
-  (#va : seq et { Seq.length va == SZ.v lena })
-  (#vr : seq real { seq_approximates va vr })
+  (#va : seq et)
+  (#vr : seq real { va %~ vr })
+  (#_ : squash (Seq.length va == SZ.v lena))
   ()
   norewrite
   requires
@@ -381,8 +382,9 @@ fn block_teardown
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
-  (#va : seq et { Seq.length va == SZ.v lena })
-  (#vr : seq real { seq_approximates va vr })
+  (#va : seq et)
+  (#vr : seq real { va %~ vr })
+  (#_ : squash (Seq.length va == SZ.v lena))
   ()
   norewrite
   requires
@@ -416,8 +418,9 @@ let kernel
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
-  (#va : erased (seq et) { Seq.length va == SZ.v lena })
-  (#vr : erased (seq real) { seq_approximates va vr })
+  (#va : erased (seq et))
+  (#vr : erased (seq real) { va %~ vr })
+  (#_ : squash (Seq.length va == SZ.v lena))
 : kernel_desc_1_n
     (a |-> va)
     (gpu_pts_to_slice_sum a 0 lena va vr)
@@ -438,7 +441,7 @@ fn reduce
   (lena : szp { lena < max_threads })
   (a : gpu_array et lena)
   (#va : erased (seq et))
-  (#vr : erased (seq real) { seq_approximates va vr })
+  (#vr : erased (seq real) { va %~ vr })
   requires
     cpu **
     (a |-> va)

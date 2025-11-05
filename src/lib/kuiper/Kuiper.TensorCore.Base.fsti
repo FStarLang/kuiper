@@ -138,12 +138,11 @@ val emma_approx_lemma
   (ra : ematrix real rows shared)
   (rb : ematrix real shared columns)
   : Lemma (requires
-            ematrix_approximates ma ra /\
-            ematrix_approximates mb rb /\
-            ematrix_approximates mc rc)
+            ma %~ ra /\
+            mb %~ rb /\
+            mc %~ rc)
           (ensures
-            ematrix_approximates (emma mc ma mb)
-                                 (matplus rc (matmul ra rb)))
+            emma mc ma mb %~ matplus rc (matmul ra rb))
 
 (* The actual multiplication operation *)
 fn mma_sync'

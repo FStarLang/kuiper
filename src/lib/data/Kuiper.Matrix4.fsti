@@ -343,6 +343,8 @@ fn gpu_matrix_explode
   requires
     gpu_matrix_pts_to gm #f em
   ensures
+    pure (SZ.fits (mlayout_size l))
+  ensures
     forall+ br bc r c.
       gpu_matrix_pts_to_cell gm #f br bc r c (macc em br bc r c)
 
@@ -354,6 +356,8 @@ fn gpu_matrix_implode
   (gm : gpu_matrix et l)
   (#f : perm)
   (#em : _)
+  requires
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+ br bc r c.
       gpu_matrix_pts_to_cell gm #f br bc r c (macc em br bc r c)

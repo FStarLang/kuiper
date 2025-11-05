@@ -393,18 +393,44 @@ ghost
 fn iarray_split_n
   (#et : Type0)
   (#n : pos)
-  (vw : natlt n -> aiview { forall i. len (vw i) = len (vw 0) })
-  (#_ : squash (no_overlap_fam n vw))
-  (a : iarray et (sum_aiview_fam n vw #()))
+  (vws : natlt n -> aiview { forall i. len (vws i) = len (vws 0) })
+  (#_ : squash (no_overlap_fam n vws))
+  (a : iarray et (sum_aiview_fam n vws #()))
   (#f : perm)
-  (#v : (i:natlt n & (vw i).sch.ait) -> GTot et)
+  (#v : (i:natlt n & (vws i).sch.ait) -> GTot et)
   requires
     a |-> Frac f v
   ensures
     forall+ (i : natlt n).
-      from_array (vw i) (core a) |-> Frac f (fun j -> v (| i, j |))
+      from_array (vws i) (core a) |-> Frac f (fun j -> v (| i, j |))
 {
-  admit();
+  unfold iarray_pts_to a #f v;
+  forevery_rw_type (sum_aiview_fam n vws).sch.ait (i : natlt n & (vws i).sch.ait) _;
+  forevery_unflatten_dep' #(natlt n) #(fun i -> (vws i).sch.ait) _;
+  ghost
+  fn aux (i : natlt n)
+    requires
+      forall+ (j : (vws i).sch.ait).
+        iarray_pts_to_cell a #f (| i, j |) (v (| i, j |))
+    ensures
+      from_array (vws i) (core a) |-> Frac f (fun j -> v (| i, j |))
+  {
+    ghost
+    fn aux2 (j : (vws i).sch.ait)
+      requires
+        iarray_pts_to_cell a #f (| i, j |) (v (| i, j |))
+      ensures
+        iarray_pts_to_cell (from_array (vws i) (core a)) #f j (v (| i, j |))
+    {
+      unfold iarray_pts_to_cell a #f (| i, j |) (v (| i, j |));
+      fold iarray_pts_to_cell (from_array (vws i) (core a)) #f j (v (| i, j |))
+    };
+    forevery_map _ _ aux2;
+    fold iarray_pts_to (from_array (vws i) (core a)) #f (fun j -> v (| i, j |));
+    ()
+  };
+  forevery_map _ _ aux;
+  ();
 }
 
 ghost
