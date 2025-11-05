@@ -253,20 +253,21 @@ fn setup
 
 #push-options "--debug SMTFail --split_queries always"
 let bij_tile_stride_cells (et : Type0) {| sized et, hvc : has_vec_cpy et|} (#nthr : nat) (tid : natlt nthr)
-  (bm bk : nat) (#_: squash (chunk et  * nthr /?+ (bm * bk)))
-: (natlt (bm*bk/(chunk et * nthr)) =~ idx:natlt (bm*bk) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx})
-= admit()
-//{
-//  ff = (fun (i : natlt (bm*bk/(chunk et * nthr))) ->
-//    assume (tid = (i * (chunk et * nthr) + tid * chunk et)/(chunk et) % nthr /\ chunk et /?+ (i * (chunk et * nthr) + tid * chunk et));
-//    i * (chunk et * nthr) + tid * chunk et
-//      <: (idx:natlt (bm*bk) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx}));
-//  gg = (fun (i : natlt (bm*bk) {tid = i/(chunk et) % nthr /\ (chunk et #_ #hvc) /?+ i}) ->
-//    assume (i/(chunk et * nthr) < (bm*bk/(chunk et *nthr)));
-//    i/(chunk et * nthr) <: natlt (bm*bk/(chunk et * nthr)));
-//  ff_gg = ez;
-//  gg_ff = ez;
-//}
+  (rows cols : nat) (#_: squash (chunk et  * nthr /?+ (rows * cols))) (#_: squash (chunk et /?+ cols))
+: (natlt (rows*cols/(chunk et * nthr)) =~ idx:natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1})
+=
+{
+  ff = (fun (i : natlt (rows*cols/(chunk et * nthr))) ->
+    assume (tid = (i * (chunk et * nthr) + tid * chunk et)/(chunk et) % nthr);
+    assume (chunk et /?+ (i * (chunk et * nthr) + tid * chunk et));
+    assume ((i * (chunk et * nthr) + tid * chunk et)%cols < cols - chunk et + 1);
+    i * (chunk et * nthr) + tid * chunk et
+     <: (idx:natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1}));
+  gg = (fun (i : natlt (rows*cols) {tid = i/(chunk et #_ #hvc) % nthr /\ (chunk et #_ #hvc) /?+ i /\ i%cols < cols - (chunk et #_ #hvc) + 1}) ->
+    i/(chunk et * nthr) <: natlt (rows*cols/(chunk et * nthr)));
+  ff_gg = ez;
+  gg_ff = ez;
+}
  
 ghost
 fn single_even_barrier_p_to_q
@@ -292,6 +293,59 @@ ensures
   Kuiper.Divides.lemma_divides_product_r (chunk et) cols rows;
   assert pure (rows * cols / (chunk et) * (chunk et) == rows * cols);
   forevery_factor (rows*cols) (rows*cols/chunk et) (chunk et) _;
+  with em'. assert
+    forall+ (i : natlt (rows*cols/chunk et)).
+      forall+ (k : natlt (chunk et)).
+        gpu_matrix_pts_to_cell (from_array l sar)
+          ((i * chunk et + k) / cols)
+          ((i * chunk et + k) % cols)
+          (macc em'
+            ((i * chunk et + k) / cols)
+            ((i * chunk et + k) % cols));
+
+  (*
+  open Pulse.Lib.WithPure;
+  ghost
+  fn aux_cell (i : natlt (rows*cols/chunk et)) (k : natlt (chunk et))
+  requires
+    gpu_matrix_pts_to_cell (from_array l sar)
+      ((i * chunk et + k) / cols) ((i * chunk et + k) % cols)
+      (macc em' ((i * chunk et + k) / cols) ((i * chunk et + k) % cols))
+  ensures
+      with_pure (i * chunk et % cols + k < cols)
+        (fun _ -> live_cell (from_array l sar) (i * chunk et / cols) (i * chunk et % cols + k))
+  {
+    assert pure (chunk et /?+ cols /\ k < chunk et); 
+    assert pure (i * chunk et < rows*cols-chunk et + 1);
+    assert pure (i * chunk et + k < (i+1) * chunk et);
+    // assert pure ((i * chunk et) % cols < cols - chunk et + 1);
+    // assert pure ((i * chunk et + k) % cols = i * chunk et % cols + k);
+    // assert pure (exists j. i * chunk et % cols = i * chunk et / cols + j * chunk et);
+    assume pure (((i * chunk et + k) / cols) = i * chunk et / cols);
+    assume pure (((i * chunk et + k) % cols) = i * chunk et % cols + k);
+    rewrite each ((i * chunk et + k) / cols) as (i * chunk et / cols);
+    rewrite each ((i * chunk et + k) % cols) as (i * chunk et % cols + k);
+    fold live_cell (from_array l sar) (i * chunk et / cols) (i * chunk et % cols +k);
+  };
+  forevery_map_2 _ _ aux_cell;
+  admit();
+
+  ghost
+  fn aux_chunk (i : natlt (rows*cols/chunk et))
+  requires
+    forall+ (k : natlt (chunk et)).
+      with_pure (i * chunk et % cols + k < cols)
+        (fun _ -> live_cell (from_array l sar) (i * chunk et / cols) (i * chunk et % cols + k))
+  ensures
+    with_pure (i * chunk et % cols < cols - chunk et + 1)
+      (fun _ -> live_chunk (from_array l sar) (i * chunk et / cols) (i * chunk et % cols))
+  {
+    admit(); 
+    fold live_chunk (from_array l sar) (i * chunk et / cols) (i * chunk et % cols);
+  };
+  admit();
+  *)
+
   forevery_factor (rows*cols/chunk et) nthr (rows*cols/(chunk et * nthr)) _;
   
   with em. assert
@@ -318,20 +372,20 @@ ensures
   ensures
     live_tile_stride_cells (from_array l sar) nthr tid
   {
+    forevery_iso #(natlt (rows*cols/(chunk et * nthr))) (bij_tile_stride_cells et tid rows cols) _;
+    admit();
     ghost
-    fn aux2 (i : natlt (rows*cols/(chunk et * nthr)))
+    fn aux2 (idx : natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1})
     requires
       forall+ (k : natlt (chunk et)).
         gpu_matrix_pts_to_cell (from_array l sar)
-          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
-          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols)
+          (((tid * (rows * cols / (chunk et * nthr)) + idx) * chunk et + k) / cols)
+          (((tid * (rows * cols / (chunk et * nthr)) + idx) * chunk et + k) % cols)
           (macc em
-              (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
-              (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols))
+              (((tid * (rows * cols / (chunk et * nthr)) + idx) * chunk et + k) / cols)
+              (((tid * (rows * cols / (chunk et * nthr)) + idx) * chunk et + k) % cols))
     ensures
-      (if (i%cols < cols - chunk et + 1)
-      then live_chunk (from_array l sar) (i/cols) (i%cols)
-      else emp)
+      live_chunk (from_array l sar) (idx/cols) (idx%cols)
     {
       //ghost
       //fn aux3 (k : natlt (chunk et))
@@ -344,12 +398,10 @@ ensures
       //        (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) % cols))
       //ensures live_cell (from_array l sar) (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et) / cols) ()
       admit();
-      fold live_chunk (from_array l sar) (i/cols) (i%cols);
+      fold live_chunk (from_array l sar) (idx/cols) (idx%cols);
     };
     forevery_map _ _ aux2;
     admit();
-   
-    forevery_iso #(natlt (rows*cols/(chunk et * nthr))) (bij_tile_stride_cells et tid rows cols) _;
     ()
   };
 
@@ -429,16 +481,18 @@ ensures
   requires
     live_tile_stride_cells (from_array l sar) nthr tid
   ensures
-    forall+ (i : natlt (rows*cols/(chunk et * nthr))).
+    forall+ (idx : natlt (rows*cols) {tid = idx/(chunk et) % nthr /\ chunk et /?+ idx /\ idx%cols < cols - chunk et + 1}).
       forall+ (k : natlt (chunk et)).
-        exists* v. gpu_matrix_pts_to_cell (from_array l sar)
-          (((tid * (rows * cols / (chunk et * nthr)) + i) * chunk et + k) / cols)
-          (((tid * (rows * rows / (chunk et * nthr)) + i) * chunk et + k) % cols)
-          v
+        live_cell (from_array l sar) (idx/cols) (idx%cols + k)
   {
+    unfold live_tile_stride_cells (from_array l sar);
+
+    forevery_iso_back (bij_tile_stride_cells et tid rows cols)
+      (fun i -> live_chunk (from_array l sar) ((i * (chunk et * nthr)) / cols) ((i * (chunk et * nthr)) % cols));
     admit();
   };
   forevery_map _ _ aux;
+  admit();
 
   forevery_unfactor' (rows*cols/chunk et) nthr (rows*cols/(chunk et * nthr)) _;
   Kuiper.Divides.lemma_divides_exact (chunk et) (rows*cols);
