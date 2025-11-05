@@ -196,7 +196,6 @@ fn softmax_gpu
   (* Divide by average *)
   launch_sync (kmap (fun x -> div x avg) lena a);
 
-  with ss. assert (a |-> ss);
   softmax_approx s r;
   ()
 }
