@@ -118,8 +118,8 @@ let rec bigstar_congr (#u1 #u2: int) (m : nat) (n : nat { m <= n }) (m' : nat) (
 
 ghost
 fn bigstar_rewrite_ext
-    (#u1 #u2: int) 
-    (m : nat) (n : nat { m <= n }) (k:nat { n <= k }) 
+    (#u1 #u2: int)
+    (m : nat) (n : nat { m <= n }) (k:nat { n <= k })
     (f : (i:nat { m <= i /\ i < k }) -> slprop)
     (f' : (i:nat { m <= i /\ i < n }) -> slprop)
     (h : ((i:nat{i < n-m}) -> squash (f (m+i) == f' (m+i))))
@@ -132,7 +132,7 @@ ensures bigstar #u2 m n f'
 
 ghost
 fn bigstar_rewrite_ext_l
-    (#u1 #u2: int) 
+    (#u1 #u2: int)
     (k:nat) (m : nat { k <= m }) (n : nat { m <= n })
     (f : (i:nat { k <= i /\ i < n }) -> slprop)
     (f' : (i:nat { m <= i /\ i < n }) -> slprop)
@@ -801,12 +801,12 @@ fn rec bigstar_unflatten
     rewrite each (n1 * n2) as (n2 + ((n1 - 1) * n2));
     bigstar_cut #u1 #0 #(n2 + ((n1-1)*n2)) ((n1 - 1) * n2);
     rewrite each ((n2 + (n1 - 1) * n2)) as (n1 * n2);
-    bigstar_rewrite_ext #u1 #u1 0 ((n1 - 1) * n2) (n1 * n2) 
-      (fun (i: nat{b2t (0 <= i) /\ b2t (i < n1 * n2)}) -> f (i / n2) (i % n2)) 
+    bigstar_rewrite_ext #u1 #u1 0 ((n1 - 1) * n2) (n1 * n2)
+      (fun (i: nat{b2t (0 <= i) /\ b2t (i < n1 * n2)}) -> f (i / n2) (i % n2))
       (fun (i: nat{b2t (0 <= i) /\ b2t (i < (n1 - 1) * n2)}) -> f (i / n2) (i % n2))
       (fun _ -> ());
     bigstar_rewrite_ext_l #u1 #u1 0 ((n1 - 1) * n2) (n1 * n2)
-      (fun (i: nat{b2t (0 <= i) /\ b2t (i < n1 * n2)}) -> f (i / n2) (i % n2)) 
+      (fun (i: nat{b2t (0 <= i) /\ b2t (i < n1 * n2)}) -> f (i / n2) (i % n2))
       (fun (i: nat{b2t ((n1 - 1) * n2 <= i) /\ b2t (i < (n1 * n2))}) -> f (i / n2) (i % n2))
       (fun _ -> ());
     bigstar_unflatten #u1 #u2 #(n1 - 1) #n2 #(fun i -> f i);

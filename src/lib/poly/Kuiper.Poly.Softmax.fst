@@ -53,7 +53,7 @@ fn explode_setup
       gpu_pts_to_cell a bid (Seq.index s bid)) **
     emp
 { gpu_array_slice_1 a; }
-  
+
 ghost
 fn explode_teardown
   (#et : Type0)
@@ -69,7 +69,7 @@ fn explode_teardown
     emp
   ensures
     (a |-> (Kuiper.Seq.Common.seq_map f s))
-{ 
+{
   forevery_map
     (fun (i:natlt lena) -> gpu_pts_to_cell a i (f (s @! i)))
     (fun (i:natlt lena) -> gpu_pts_to_cell a i ((KS.seq_map f s)@!i))
@@ -143,10 +143,10 @@ let softmax_spec (#et:Type0) {| floating et |} (s:Seq.seq et) =
   let avg = seq_fold_left add zero exps in
   map_div_avg exps avg
 
-let rec sum_non_zero 
+let rec sum_non_zero
     (s:seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc:real)
-: Lemma 
+: Lemma
   (requires Seq.length s > 0)
   (ensures Kuiper.Seq.Common.seq_fold_left add acc s >. acc)
   (decreases Seq.length s)
@@ -159,10 +159,10 @@ let rec sum_non_zero
 let softmax_approx
     (#et:Type0) {| floating et, real_like et |}
     (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
-: Lemma 
+: Lemma
   (ensures Kuiper.Seq.Common.(
       forall (avg:et). avg %~ sum (seq_map rexp r0) ==>
-      seq_map (fun x -> div x avg) (seq_map exp s0) %~ softmax_real r0)) 
+      seq_map (fun x -> div x avg) (seq_map exp s0) %~ softmax_real r0))
 = let exps = KS.seq_map rexp r0 in
   sum_non_zero exps 0.0R;
   rexp_approx #et #_ #_;

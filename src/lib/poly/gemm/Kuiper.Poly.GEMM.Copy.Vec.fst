@@ -18,7 +18,7 @@ let in_chunk_covers_all
   (nthr : pos)
   (ij : (natlt rows & natlt cols))
   : Lemma (exists tid. in_chunk chunk rows cols nthr tid ij)
-  = 
+  =
   let flat_idx = ij._1 * cols + ij._2 <: nat in
   let chunk_idx = flat_idx / chunk in
   let tid = chunk_idx % nthr in
@@ -34,7 +34,7 @@ let in_chunk_no_overlap
   : Lemma (requires in_chunk chunk rows cols nthr tid1 ij /\
                     in_chunk chunk rows cols nthr tid2 ij)
           (ensures tid1 == tid2)
-  = 
+  =
   ()
 
 ghost

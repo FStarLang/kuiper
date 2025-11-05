@@ -10,14 +10,14 @@ module Vec = Pulse.Lib.Vec
 let sum (#et:Type0) {| scalar et |} (s:seq et) =
   KS.seq_fold_left add zero s
 
-val sum_non_zero 
+val sum_non_zero
     (s:seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc:real)
-: Lemma 
+: Lemma
   (requires Seq.length s > 0)
   (ensures KS.seq_fold_left add acc s >. acc)
 
-let softmax_real (s:Seq.seq real { Seq.length s > 0 }) = 
+let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
   let open KS in
   let exps = seq_map rexp s in
   let avg : real = sum exps in
@@ -37,7 +37,7 @@ type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
      pure (lena <= max_blocks)))
   (ensures fun _ ->
     cpu **
-     (exists* (v':seq et). gpu_pts_to_array a v' ** 
+     (exists* (v':seq et). gpu_pts_to_array a v' **
         pure (v' %~ softmax_real ra)))
 
 inline_for_extraction noextract
