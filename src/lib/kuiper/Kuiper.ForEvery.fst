@@ -1939,3 +1939,51 @@ fn forevery_map_extra
   forevery_map_extra_nat #(cardinal a #_) k _ _ f';
   forevery_iso_back d.bij _;
 }
+
+let bij_nested_4
+     (#a #b #c #d : Type0)
+  : ((a & b & c & d) =~ (((a & b) & c) & d)) =
+  mk_bijection
+    #(a & b & c & d)
+    #(((a & b) & c) & d)
+    (fun x -> ((((x._1, x._2), x._3), x._4)))
+    (fun y -> (y._1._1._1, y._1._1._2, y._1._2, y._2))
+    ez ez
+
+ghost
+fn forevery_flatten4'
+  (#a #b #c #d : Type0)
+  (f : a & b & c & d -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c) (w:d). f (x, y, z, w)
+  ensures
+    forall+ (xyzw : a & b & c & d). f xyzw
+{
+  forevery_flatten _;
+  forevery_flatten _;
+  forevery_flatten _;
+  forevery_iso (bij_sym <| bij_nested_4 #a #b #c #d) _;
+  forevery_ext
+    _
+    (fun (xyzw: a & b & c & d) -> f xyzw);
+  ();
+}
+
+ghost
+fn forevery_unflatten4'
+  (#a #b #c #d : Type0)
+  (f : a & b & c & d -> slprop)
+  requires
+    forall+ (xyzw : a & b & c & d). f xyzw
+  ensures
+    forall+ (x:a) (y:b) (z:c) (w:d). f (x, y, z, w)
+{
+  forevery_iso (bij_nested_4 #a #b #c #d) _;
+  forevery_ext
+    _
+    (fun (xyzw : (((a & b) & c) & d)) -> f (xyzw._1._1._1, xyzw._1._1._2, xyzw._1._2, xyzw._2));
+  forevery_unflatten' _;
+  forevery_unflatten' _;
+  forevery_unflatten' _;
+  ();
+}

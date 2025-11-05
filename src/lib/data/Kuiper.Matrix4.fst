@@ -443,6 +443,25 @@ fn gpu_matrix_write_cell
   ();
 }
 
+#push-options "--z3rlimit 40 --split_queries always"
+let bij_2_4
+  (#mrows #mcols #brows #bcols : nat)
+  : (natlt (mrows * brows) & natlt (mcols * bcols) =~ natlt mrows & natlt mcols & natlt brows & natlt bcols)
+= mk_bijection
+    #(natlt (mrows * brows) & natlt (mcols * bcols))
+    #(natlt mrows & natlt mcols & natlt brows & natlt bcols)
+    (fun (r,c) ->
+       (r / brows,
+        c / bcols,
+        r % brows,
+        c % bcols))
+    (fun (br, bc, i, j) ->
+       (br * brows + i,
+        bc * bcols + j))
+    ez
+    ez
+#pop-options
+
 ghost
 fn gpu_matrix_explode
   (#et:Type0)
@@ -454,28 +473,25 @@ fn gpu_matrix_explode
   requires
     gpu_matrix_pts_to gm #f em
   ensures
+    pure (SZ.fits (mlayout_size l))
+  ensures
     forall+ bi bj i j.
       gpu_matrix_pts_to_cell gm #f bi bj i j (macc em bi bj i j)
 {
   unfold gpu_matrix_pts_to gm #f em;
+  A.varray_pts_to_ref gm;
   A.varray_explode gm;
-  (* Change the type... convince pulse. *)
   forevery_rw_type
     (aview_from_mlayout et l).iview.sch.ait
     (natlt (mrows * brows) & natlt (mcols * bcols))
     (fun rc ->
       A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));
-  forevery_ext #(natlt (mrows * brows) & natlt (mcols * bcols))
-    (fun rc ->
-      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
-    (fun rc ->
-      A.varray_pts_to_cell gm #f (rc._1, rc._2) (EMatrix.macc em rc._1 rc._2));
-  forevery_unflatten #(natlt (mrows * brows)) #(natlt (mcols * bcols))
-    (fun r c ->
-      A.varray_pts_to_cell gm #f (r, c) (EMatrix.macc em r c));
-  forevery_factor (mrows * brows) mrows brows _;
-  (* tedious... *)
-  admit();
+  forevery_iso bij_2_4 _;
+  forevery_ext
+    _
+    (fun (bi,bj,i,j) ->
+      gpu_matrix_pts_to_cell gm #f bi bj i j (macc em bi bj i j));
+  forevery_unflatten4' _;
 }
 
 ghost
@@ -487,13 +503,22 @@ fn gpu_matrix_implode
   (#f : perm)
   (#em : _)
   requires
+    pure (SZ.fits (mlayout_size l))
+  requires
     forall+ bi bj i j.
       gpu_matrix_pts_to_cell gm #f bi bj i j (macc em bi bj i j)
   ensures
     gpu_matrix_pts_to gm #f em
 {
-  (* same old. *)
-  admit();
+  forevery_flatten4' (fun (bi,bj,i,j) ->
+    gpu_matrix_pts_to_cell gm #f bi bj i j (macc em bi bj i j));
+  forevery_iso (bij_sym bij_2_4) _;
+  forevery_ext
+    _
+    (fun rc ->
+      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));
+  A.varray_implode gm;
+  fold gpu_matrix_pts_to gm #f em;
 }
 
 inline_for_extraction noextract
