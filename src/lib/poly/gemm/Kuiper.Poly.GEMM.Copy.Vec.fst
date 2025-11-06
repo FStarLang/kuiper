@@ -63,7 +63,7 @@ fn split_matrix_into_strided_chunks
     _;
   Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
                              (in_chunk_no_overlap (chunk et #_ #hvc) rows cols nthr ij tid1));
-  forevery_split_or_n nthr _ _;
+  forevery_split_or_n _ _;
   ghost
   fn aux (tid : natlt nthr)
     requires
@@ -99,7 +99,7 @@ fn join_matrix_from_strided_chunks
     (fun tid -> forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
         gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em ij._1 ij._2))
     fn tid { unfold own_strided_chunks m em nthr tid };
-  forevery_join_or_n nthr (fun (tid : natlt nthr) ij -> in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
+  forevery_join_or_n (fun (tid : natlt nthr) ij -> in_chunk (chunk et #_ #hvc) rows cols nthr tid ij)
     (fun ij -> gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em ij._1 ij._2));
   Classical.forall_intro (in_chunk_covers_all (chunk et #_ #hvc) rows cols nthr);
   Classical.forall_intro_3 (fun ij tid1 -> Classical.move_requires
