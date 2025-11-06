@@ -929,31 +929,29 @@ fn forevery_split_or_2
 
 ghost
 fn forevery_split_or_n
-  (#a:Type0)
-  (n : nat)
-  (r : natlt n -> a -> prop)
+  (#a #b:Type0)
+  (r : b -> a -> prop)
   (p : a -> slprop)
   requires
-    pure (forall (i1 i2 : natlt n) x.
+    pure (forall (i1 i2 : b) x.
       r i1 x /\ r i2 x ==> i1 == i2)
   requires
     forall+ (x:a {exists i. r i x}). p x
   ensures
-    forall+ (i : natlt n).
+    forall+ (i : b).
       forall+ (x:a { r i x }).
         p x
 
 ghost
 fn forevery_join_or_n
-  (#a:Type0)
-  (n : nat)
-  (r : natlt n -> a -> prop)
+  (#a #b:Type0)
+  (r : b -> a -> prop)
   (p : a -> slprop)
   requires
-    pure (forall (i1 i2 : natlt n) x.
+    pure (forall (i1 i2 : b) x.
       r i1 x /\ r i2 x ==> i1 == i2)
   requires
-    forall+ (i : natlt n).
+    forall+ (i : b).
       forall+ (x:a { r i x }).
         p x
   ensures
