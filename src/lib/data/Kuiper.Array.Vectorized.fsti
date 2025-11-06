@@ -37,7 +37,6 @@ instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; _pf = ez; }
    misnomer, they are meant to be used with registers arrays, and
    not CPU-side memory arrays. *)
 
-[@@noextract_to "krml"]
 atomic
 fn gpu_array_vec_cpy_dd
   (#et : Type u#0) {| sized et, has_vec_cpy et |}
@@ -65,7 +64,6 @@ fn gpu_array_vec_cpy_dd
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
   ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))
 
-[@@noextract_to "krml"]
 atomic
 fn gpu_array_vec_cpy_dh
   (#et : Type u#0) {| sized et, has_vec_cpy et |}
@@ -88,7 +86,6 @@ fn gpu_array_vec_cpy_dh
   requires  dst_arr |-> ds
   ensures   dst_arr |-> (seq_blit ds dst_off ss (src_off - src_slice_i) (chunk et))
 
-[@@noextract_to "krml"]
 atomic
 fn gpu_array_vec_cpy_hd
   (#et : Type u#0) {| sized et, has_vec_cpy et |}

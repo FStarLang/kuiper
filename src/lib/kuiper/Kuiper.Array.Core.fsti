@@ -112,7 +112,6 @@ fn gpu_array_free
   requires r |-> v
   ensures  emp
 
-[@@noextract_to "krml"]
 fn gpu_array_read
   (#a : Type u#0)
   (#sz : erased nat)
@@ -130,7 +129,6 @@ fn gpu_array_read
                  i <= SZ.v idx /\ SZ.v idx < j /\
                  x == Seq.index s (SZ.v idx - i))
 
-[@@noextract_to "krml"]
 fn gpu_array_write
   (#a:Type u#0)
   (#sz: erased nat)
