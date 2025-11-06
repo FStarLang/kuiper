@@ -217,7 +217,7 @@ fn setup
         (wn*tn)
         nthr);
 
-  forevery_zip_2 #(natlt nblk) #_ #(natlt nthr)
+  forevery_zip_2 #(natlt nblk) #(natlt nthr)
     (fun bid -> fun tid -> gB |-> Frac (fB /. (nblk*nthr)) eB)
     (fun bid -> fun tid ->
       (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) (tid/warp_size))
@@ -227,7 +227,7 @@ fn setup
         (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
         (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))));
 
-  forevery_zip_2 #(natlt nblk) #_ #(natlt nthr)
+  forevery_zip_2 #(natlt nblk) #(natlt nthr)
     (fun bid -> fun tid -> gA |-> Frac (fA /. (nblk*nthr)) eA)
     _;
 
