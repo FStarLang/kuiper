@@ -393,11 +393,8 @@ fn varray_abs
       varray_pts_to_cell (from_array vw a) #f i (vw.igm.acc v i))
     fn i i' {
       varray_cell_reindex a1 i (from_array vw a) i';
-      rewrite
-        varray_pts_to_cell (from_array vw a) #f i' (vw1.igm.acc (to_seq vw v) i)
-      as
-        varray_pts_to_cell (from_array vw a) #f i' (vw.igm.acc v i');
-      ()
+      rewrite each vw1.igm.acc (to_seq vw v) i
+                as vw.igm.acc v i';
     };
   varray_implode (from_array vw a) #f;
 }
