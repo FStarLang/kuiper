@@ -593,7 +593,6 @@ fn block_teardown
     (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)))
     _;
 
-  // rewrite each Kuiper.Enumerable.cardinal (natlt nthr) #_ as SZ.v nthr;
   gpu_slice_gather_underspec (fst sh) 0 (bm*^bk) nthr;
   gpu_slice_gather_underspec (fst (snd sh)) 0 (bk*^bn) nthr;
 
@@ -749,7 +748,7 @@ fn teardown
               bid (tid / 32) tC);
 
   ghost
-  fn aux (bid : natlt nblk) (tid : natlt nthr)
+  fn aux (bid : natlt (rows/bm * (cols/bn))) (tid : natlt nthr)
     norewrite
     requires
       exists* tC. warp_tile_pts_to gC bm bn tm tn wm wn (bid) (tid/warp_size) tC
@@ -767,11 +766,10 @@ fn teardown
           #(1.0R /. warp_size)
           tC
   {
-    with tC. assert warp_tile_pts_to gC bm bn tm tn wm wn (bid) (tid/warp_size) tC;
-    unfold warp_tile_pts_to gC bm bn tm tn wm wn (bid) (tid/warp_size) tC;
+    with tC. assert warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC;
+    unfold warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC;
   };
-  forevery_map_2 #(natlt (rows/bm * (cols/bn))) #(natlt nthr)
-    _ _ aux;
+  forevery_map_2 _ _ aux;
 
   forevery_map
     (fun (bid : natlt ((rows/bm * (cols/bn)))) -> forall+ (tid: natlt nthr).

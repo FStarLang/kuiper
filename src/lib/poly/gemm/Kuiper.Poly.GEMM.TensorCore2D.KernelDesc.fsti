@@ -58,11 +58,7 @@ type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
 
 let warp_tile_pts_to
   (#et : Type0) {| scalar et |}
-  // Since this is an slprop, I would like to not erase the nat.
-  // Unfortunately, when unfolding live_warp_tile, after passing
-  // a (reveal x) as argument, this leads to (reveal (hide (reveal x)))
-  // which creates problems with type equalities.
-  (#rows : erased nat)
+  (#rows : nat)
   (#cols : nat)
   (#lC : mlayout rows cols)
   (gC : gpu_matrix et lC)
@@ -154,8 +150,8 @@ let kpre1
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : enatlt (rows/bm * (cols/bn)))
-  (tid : enatlt nthr)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
   : slprop
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
@@ -319,8 +315,8 @@ let kpost1
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
-  (bid : enatlt (rows/bm * (cols/bn)))
-  (tid : enatlt nthr)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
   : slprop
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
