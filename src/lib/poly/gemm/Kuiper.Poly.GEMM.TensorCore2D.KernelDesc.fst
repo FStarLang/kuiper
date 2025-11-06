@@ -134,7 +134,7 @@ fn setup
   ensures
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
+      kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
     emp (* frame *)
 {
   gpu_matrix_share_threads gA nblk nthr;
@@ -220,7 +220,7 @@ fn setup
       (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
       (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size)))
   ensures
-    kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid
+    kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid
   {
     fold live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size);
   };
@@ -451,6 +451,7 @@ ghost
 fn block_setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -475,6 +476,9 @@ fn block_setup
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
@@ -483,11 +487,11 @@ fn block_setup
     can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
+      kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
   ensures
     consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
-      kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
+      kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
 {
   (* permissions for shared memory *)
@@ -534,7 +538,7 @@ fn block_setup
       (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
       barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid);
   forevery_zip #(natlt nthr)
-    (fun tid -> kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) _;
+    (fun tid -> kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) _;
   ()
 }
 
@@ -542,6 +546,7 @@ ghost
 fn block_teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -561,21 +566,24 @@ fn block_teardown
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
+      kpost (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
+      kpost1 (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
 {
   forevery_unzip #(natlt nthr)
-    (fun tid -> kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
+    (fun tid -> kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
     _;
   forevery_unzip #(natlt nthr)
     (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)))
@@ -714,7 +722,7 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
     emp
   ensures
     gA |-> Frac fA eA **

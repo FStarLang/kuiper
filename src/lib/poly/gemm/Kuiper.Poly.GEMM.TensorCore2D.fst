@@ -252,6 +252,7 @@ inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, sc : scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
   (gA : gpu_matrix et_ab lA)
@@ -260,6 +261,7 @@ fn kf
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c (R.row_major rows cols))
+  (#eC : ematrix et_c rows cols)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -279,6 +281,9 @@ fn kf
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
   (#_ : squash (valid_frag_et_comb et_ab et_c))
   (#fA #fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (nthr : erased nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
@@ -290,12 +295,12 @@ fn kf
   ()
   requires
     gpu **
-    kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid **
+    kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
     block_id (rows/bm * (cols/bn)) bid
   ensures
     gpu **
-    kpost gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid **
+    kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
     block_id (rows/bm * (cols/bn)) bid
 {
@@ -495,18 +500,18 @@ let mk_kernel
   shmems_desc = shmems_desc et_ab bm bn bk;
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid);
+  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
 
   setup      = setup    gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB rA rB rC;
   teardown   = teardown gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB rA rB rC;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;
-  block_teardown = block_teardown gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;
+  block_setup    = block_setup    gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB rA rB rC;
+  block_teardown = block_teardown gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB rA rB rC;
 
-  kpre      = kpre  gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr ;
-  kpost     = kpost gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr ;
+  kpre      = kpre  gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr;
+  kpost     = kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr;
 
-  f = kf gA #eA gB #eB gC bm bn bk tm tn tk wm wn (SZ.v nthr);
+  f = kf gA #eA gB #eB gC #eC bm bn bk tm tn tk wm wn rA rB rC (SZ.v nthr);
 }

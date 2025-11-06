@@ -127,7 +127,9 @@ let barrier_tok
 
 unfold
 let kpre1
-  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
+  (#et_ab #et_c : Type0)
+  {| scalar et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -137,12 +139,16 @@ let kpre1
   (gB : gpu_matrix et_ab lB)
   (eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c lC)
+  (eC : ematrix et_c rows cols)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bn /?+ cols))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : enatlt (rows/bm * (cols/bn)))
   (tid : enatlt nthr)
@@ -151,12 +157,18 @@ let kpre1
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
   live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size) **
+  // ^ Missing functional spec
   pure (aligned 16 (core gA)) **
-  pure (aligned 16 (core gB))
+  pure (aligned 16 (core gB)) **
+  pure (eA %~ rA) **
+  pure (eB %~ rB) **
+  pure (eC %~ rC)
 
 unfold
 let kpre
-  (#et_ab #et_c : Type0) {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
+  (#et_ab #et_c : Type0)
+  {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -166,6 +178,7 @@ let kpre
   (gB : gpu_matrix et_ab lB)
   (eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c lC)
+  (eC : ematrix et_c rows cols)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -173,13 +186,16 @@ let kpre
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
   : slprop
   =
-  kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
+  kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(recip nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
   barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
@@ -223,13 +239,14 @@ fn setup
   ensures
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
+      kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
     emp (* frame *)
 
 ghost
 fn block_setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -254,6 +271,9 @@ fn block_setup
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
@@ -262,16 +282,18 @@ fn block_setup
     can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpre1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
+      kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
   ensures
     consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
-      kpre gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
+      kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
 
 unfold
 let kpost1
-  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
+  (#et_ab #et_c : Type0)
+  {| scalar et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -281,12 +303,16 @@ let kpost1
   (gB : gpu_matrix et_ab lB)
   (eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c lC)
+  (eC : ematrix et_c rows cols)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bn /?+ cols))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : enatlt (rows/bm * (cols/bn)))
   (tid : enatlt nthr)
@@ -295,10 +321,13 @@ let kpost1
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
   live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
+  // ^ Missing functional spec
 
 unfold
 let kpost
-  (#et_ab #et_c : Type0) {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
+  (#et_ab #et_c : Type0)
+  {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -308,6 +337,7 @@ let kpost
   (gB : gpu_matrix et_ab lB)
   (eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c lC)
+  (eC : ematrix et_c rows cols)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn
@@ -317,13 +347,16 @@ let kpost
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
   : slprop
   =
-  kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid **
+  kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   (exists* (x : seq et_ab). (fst sh) |-> Frac (recip nthr) x) **
   (exists* (x : seq et_ab). (fst (snd sh)) |-> Frac (recip nthr) x) **
   barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr tid
@@ -332,6 +365,7 @@ ghost
 fn block_teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -351,18 +385,21 @@ fn block_teardown
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr sh bid tid) **
+      kpost (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid)
+      kpost1 (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
 
 ghost
 fn teardown
@@ -398,7 +435,7 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid) **
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
     emp
   ensures
     gA |-> Frac fA eA **
