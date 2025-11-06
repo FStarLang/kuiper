@@ -222,7 +222,8 @@ fn setup
   ensures
     kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid
   {
-    fold live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size);
+    with tC.
+      fold warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC;
   };
   forevery_map_2 _ _ aux;
   ()
@@ -742,52 +743,51 @@ fn teardown
     (rows/bm * (cols/bn))
     nthr
     (fun (bid : natlt (rows/bm * (cols/bn))) (tid : natlt nthr) ->
-      live_warp_tile #et_c #_ #(hide #nat (v rows)) #(v cols) #lC gC (v bm)
-            (v bn) (v tm) (v tn) (v wm) (v wn)
-            bid (tid / 32));
+      exists* tC.
+        warp_tile_pts_to #et_c #_ #(hide #nat (v rows)) #(v cols) #lC gC (v bm)
+              (v bn) (v tm) (v tn) (v wm) (v wn)
+              bid (tid / 32) tC);
 
   ghost
   fn aux (bid : natlt nblk) (tid : natlt nthr)
-  requires live_warp_tile gC bm bn tm tn wm wn (bid) (tid/warp_size)
-  ensures live (
-        gpu_matrix_subtile
-          (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
-            (block_tile_idx_rows (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid)
-            (block_tile_idx_cols (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid))
-          (wm*tm) (wn*tn)
-          (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
-          (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size)))
-        #(1.0R /. warp_size)
+    norewrite
+    requires
+      exists* tC. warp_tile_pts_to gC bm bn tm tn wm wn (bid) (tid/warp_size) tC
+    ensures
+      exists* tC.
+        gpu_matrix_pts_to
+          (gpu_matrix_subtile
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
+              (block_tile_idx_rows (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid)
+              (block_tile_idx_cols (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid))
+            (wm*tm) (wn*tn)
+            (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
+            (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
+          )
+          #(1.0R /. warp_size)
+          tC
   {
-    rewrite live_warp_tile gC bm bn tm tn wm wn (bid) (tid/warp_size)
-    as
-      live (
-        gpu_matrix_subtile
-          (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
-            (block_tile_idx_rows (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid)
-            (block_tile_idx_cols (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid))
-          (wm*tm) (wn*tn)
-          (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
-          (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size)))
-        #(1.0R /. warp_size);
+    with tC. assert warp_tile_pts_to gC bm bn tm tn wm wn (bid) (tid/warp_size) tC;
+    unfold warp_tile_pts_to gC bm bn tm tn wm wn (bid) (tid/warp_size) tC;
   };
-  forevery_map_2 #(natlt (rows/bm * (cols/bn))) #(natlt nthr) _ _ aux;
+  forevery_map_2 #(natlt (rows/bm * (cols/bn))) #(natlt nthr)
+    _ _ aux;
 
   forevery_map
     (fun (bid : natlt ((rows/bm * (cols/bn)))) -> forall+ (tid: natlt nthr).
-      exists* (em: ematrix et_c (wm * tm) (wn * tn)).
+      exists* (tC: ematrix et_c (wm * tm) (wn * tn)).
         gpu_matrix_subtile
           (gpu_matrix_subtile gC (v bm) (v bn) (bid / (cols/bn)) (bid % (cols/bn)))
               (wm*tm)
               (wn*tn)
               (tid / 32 / (bn / (wn*tn)))
-              (tid / 32 % (bn / (wn*tn))) |-> Frac (1.0R /. warp_size) em)
+              (tid / 32 % (bn / (wn*tn))) |-> Frac (1.0R /. warp_size) tC)
     _
-    (fun (bid : natlt nblk) -> (untile_warp_tiles_shared
+    (fun (bid : natlt nblk) -> untile_warp_tiles_shared
         (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
           (block_tile_idx_rows (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid)
           (block_tile_idx_cols (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn) bid))
-        (wm*tm) (wn*tn) nthr));
+        (wm*tm) (wn*tn) nthr);
 
   forevery_factor' ((rows/bm) * (cols/bn)) (rows/bm) (cols/bn)
     (fun (trow : natlt (rows/bm)) -> fun (tcol : natlt (cols/bn)) ->

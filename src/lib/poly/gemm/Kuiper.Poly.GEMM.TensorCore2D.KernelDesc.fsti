@@ -56,7 +56,7 @@ type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
   wn * tn /?+ bn /\
   SZ.fits (wm * wn)
 
-let live_warp_tile
+let warp_tile_pts_to
   (#et : Type0) {| scalar et |}
   // Since this is an slprop, I would like to not erase the nat.
   // Unfortunately, when unfolding live_warp_tile, after passing
@@ -74,9 +74,13 @@ let live_warp_tile
   (wn : pos{wn * tn /?+ bn})
   (bid : natlt ((rows/bm) * (cols/bn)))
   (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (em : ematrix et (wm * tm) (wn * tn))
   : slprop
   =
-  live (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid) #(recip warp_size)
+  gpu_matrix_pts_to
+    (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
+    #(recip warp_size)
+    em
 
 let barrier_p
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -156,7 +160,8 @@ let kpre1
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
-  live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size) **
+  (exists* tC.
+    warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC) **
   // ^ Missing functional spec
   pure (aligned 16 (core gA)) **
   pure (aligned 16 (core gB)) **
@@ -320,7 +325,8 @@ let kpost1
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
-  live_warp_tile gC bm bn tm tn wm wn bid (tid/warp_size)
+  (exists* tC.
+    warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC)
   // ^ Missing functional spec
 
 unfold

@@ -189,22 +189,31 @@ fn epilogue
   requires
     pure (SZ.fits (wm * wn)) **
     pure (length accumFrags == wm * wn) **
-    live_warp_tile gC bm bn tm tn wm wn bid wid **
+    (exists* tC.
+      warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC) **
     array_fragment_pts_to accumFrags emAccumFrags
   ensures
-    live_warp_tile gC bm bn tm tn wm wn bid wid **
+    (exists* tC.
+      warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC) **
     (exists* emAccumFrags'.
       array_fragment_pts_to accumFrags emAccumFrags')
 {
   let mut i = 0sz;
   while ((!i <^ wm))
     invariant live i ** pure (!i <=^ wm)
+    invariant
+      exists* tC.
+        warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC
   {
     let mut j = 0sz;
     while ((!j <^ wn))
       invariant live j ** pure (!j <=^ wn)
+      invariant
+        exists* tC.
+          warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC
     {
-      unfold live_warp_tile gC bm bn tm tn wm wn bid wid;
+      with tC. assert warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC;
+      unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC;
 
       // TODO does this create more pointer arithmetic than necessary?
       // tile in gC with all values that are computed by the warp
@@ -238,7 +247,7 @@ fn epilogue
       ambig_trade_elim ();
 
       rewrite each tile_for_tc_tiles as _;
-      fold live_warp_tile gC bm bn tm tn wm wn bid wid;
+      with tC'. fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC';
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
