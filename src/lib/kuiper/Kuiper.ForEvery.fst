@@ -2001,8 +2001,24 @@ fn forevery_split_or_2
     (forall+ (x:a { r x }). p x) **
     (forall+ (x:a { s x }). p x)
 {
-  admit();
+  forevery_refine_split (fun (x: a { r x \/ s x }) -> p x) (fun x -> r x);
+  forevery_refine_ext #a #(fun x -> (r x \/ s x) /\ r x) r p;
+  forevery_refine_ext #a #(fun x -> (r x \/ s x) /\ ~(r x)) s p;
 }
+
+let or_n_bij #a n (r: natlt n -> a -> prop)
+      (p : a -> slprop { forall (i1 i2 : natlt n) x. r i1 x /\ r i2 x ==> i1 == i2 }) :
+    (x:a { exists i. r i x } =~ i: natlt n & (x:a { r i x })) =
+  let get_i (x: a { exists i. r i x }) : GTot (i: natlt n { r i x }) =
+    IndefiniteDescription.indefinite_description_ghost (natlt n) (fun i -> r i x) in
+  {
+    ff = (fun x -> (| get_i x, x |))
+      <: (x:a { exists i. r i x } -> GTot (i: natlt n & (x:a { r i x })));
+    gg = (fun (|i, x|) -> x)
+      <: (i: natlt n & (x:a { r i x }) -> x:a { exists i. r i x });
+    ff_gg = (fun _ -> ());
+    gg_ff = (fun _ -> ());
+  }
 
 ghost
 fn forevery_split_or_n
@@ -2020,7 +2036,12 @@ fn forevery_split_or_n
       forall+ (x:a { r i x }).
         p x
 {
-  admit();
+  forevery_iso (or_n_bij n r p) _;
+  forevery_unflatten_dep' _;
+  rewrite
+    forall+ (x: natlt n) (y: a{r x y}). p ((or_n_bij n r p).gg (| x, y |))
+  as
+    forall+ (x: natlt n) (y: a{r x y}). p y;
 }
 
 ghost
@@ -2039,5 +2060,10 @@ fn forevery_join_or_n
   ensures
     forall+ (x:a {exists i. r i x}). p x
 {
-  admit();
+  forevery_flatten_dep _;
+  forevery_iso (bij_sym (or_n_bij n r p)) _;
+  rewrite
+    forall+ (y: a{exists i. r i y}). p ((bij_sym (or_n_bij n r p)).gg y)._2
+  as
+    forall+ (x:a {exists i. r i x}). p x;
 }
