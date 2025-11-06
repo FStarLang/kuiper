@@ -232,7 +232,7 @@ let em_fade
 
 let nop_tactic () : Tactics.Tac unit = ()
 
-#push-options "--z3rlimit 60 --fuel 0 --ifuel 1"
+#push-options "--z3rlimit 75 --fuel 0 --ifuel 1"
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -340,7 +340,9 @@ fn cp_matrix_vec
           own_strided_chunks dst em' nthr tid
     {
       with em'. unfold own_strided_chunks dst em' nthr tid;
-      assume pure (col + !k < cols);
+      with vk . assert (pts_to k vk);
+      Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
+      assert pure (col + !k < cols);
       let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col +^ !k);
       assume pure (in_chunk (chunk et) rows cols nthr tid ecell);
       forevery_remove'

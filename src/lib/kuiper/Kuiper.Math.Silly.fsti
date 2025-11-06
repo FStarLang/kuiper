@@ -41,3 +41,8 @@ val mod_prod (a b : int) (k : pos) :
 
 val lemma_mul_pos_recip (a b: nat) :
   Lemma (requires a * b > 0) (ensures a > 0 /\ b > 0)
+
+val lemma_le_plus_lt (x y z w: int)
+: Lemma (requires (x + z <= w /\
+    y < z))
+    (ensures (x + y < w))
