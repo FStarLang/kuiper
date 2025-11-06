@@ -502,11 +502,6 @@ fn block_setup
   with s2.
     assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst (snd sh)) #(recip nthr) 0 (bk*bn) s2);
 
-  // introduce exists under forall+
-  // :( I do not see another way for introducing the exists
-  // gpu_pts_to_array (although unfold) does not work because the array sizes are not matched:
-  //  there are bm*^bk and bm*bk in the context. while gpu_pts_to_array uses either bm*^bk or bm*bk
-  // with s. assert (forall+ (x: natlt nthr). gpu_pts_to_array #_ #(bm*^bk) (fst sh) #(recip nthr) s);
   ghost fn aux (#n : nat) (arr : gpu_array et_ab n) (s : erased (seq et_ab)) (tid : natlt nthr)
     requires gpu_pts_to_slice arr #(recip nthr) 0 n s
     ensures exists* (x : seq et_ab). gpu_pts_to_array arr #(recip nthr) x
@@ -606,6 +601,23 @@ fn block_teardown
 }
 
 ghost
+fn forevery_factor'
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt d1 -> natlt d2 -> slprop)
+  requires
+    forall+ (i:natlt n). p (i/d2) (i%d2)
+  ensures
+    forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
+{
+  forevery_factor n d1 d2 (fun i -> p (i / d2) (i % d2));
+  forevery_ext_2
+    (fun (i1 : natlt d1) (i2 : natlt d2) -> p ((i1 * d2 + i2) / d2) ((i1 * d2 + i2) % d2))
+    (fun (i1 : natlt d1) (i2 : natlt d2) -> p i1 i2);
+  ();
+}
+
+ghost
 fn untile_warp_tiles_shared
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
@@ -626,7 +638,6 @@ ensures
   (exists* (em : ematrix _ _ _). gm |-> Frac f em)
 {
   forevery_factor nthr (rows/trows * (cols/tcols)) warp_size _;
-
   ghost
   fn unshare_within_warp (wid : natlt (rows/trows * (cols/tcols)))
   requires
@@ -656,41 +667,13 @@ ensures
       warp_size;
   };
   forevery_map _ _ unshare_within_warp;
-  forevery_factor (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols) _;
-  forevery_map_2
-      (fun (i1: natlt (rows / trows)) (i2: natlt (cols / tcols)) ->
-        exists* (em: ematrix et trows tcols).
-          (gpu_matrix_subtile gm
-                trows
-                tcols
-                ((i1 * (cols / tcols) + i2) / (cols / tcols))
-                ((i1 * (cols / tcols) + i2) % (cols / tcols))) |-> Frac f em)
-      (fun (i1: natlt (rows / trows)) (i2: natlt (cols / tcols)) ->
-        exists* (em: ematrix et trows tcols).
-          (gpu_matrix_subtile gm trows tcols i1 i2) |-> Frac f em)
-    fn tr tc {
-      rewrite each ((tr * (cols / tcols) + tc) / (cols / tcols)) as tr;      
-      rewrite each ((tr * (cols / tcols) + tc) % (cols / tcols)) as tc;
-    };
+
+  forevery_factor' (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols)
+    (fun (tr : natlt (rows/trows)) (tc : natlt (cols/tcols)) ->
+      exists* (em: ematrix et trows tcols).
+          (gpu_matrix_subtile gm trows tcols tr tc) |-> Frac f em);
   gpu_matrix_untile_underspec gm trows tcols;
   ()
-}
-
-ghost
-fn forevery_factor'
-  (n : nat)
-  (d1 : nat) (d2 : nat { n == d1 * d2 })
-  (p : natlt d1 -> natlt d2 -> slprop)
-  requires
-    forall+ (i:natlt n). p (i/d2) (i%d2)
-  ensures
-    forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
-{
-  forevery_factor n d1 d2 (fun i -> p (i / d2) (i % d2));
-  forevery_ext_2
-    (fun (i1 : natlt d1) (i2 : natlt d2) -> p ((i1 * d2 + i2) / d2) ((i1 * d2 + i2) % d2))
-    (fun (i1 : natlt d1) (i2 : natlt d2) -> p i1 i2);
-  ();
 }
 
 ghost
