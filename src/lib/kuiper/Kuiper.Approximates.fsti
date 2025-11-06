@@ -15,7 +15,7 @@ open FStar.Real
 open Kuiper.Scalars
 open Kuiper.Seq.Common
 
-(* This class provides some syntactic sugar to use the ~~ operator
+(* This class provides some syntactic sugar to use the %~ operator
    on scalars, sequences, matrices, etc. *)
 class can_approximate (c m : Type) = {
   approximates : c -> m -> prop;
@@ -35,6 +35,13 @@ instance erased_can_approximate_rhs (c m : Type)
 
 unfold let (%~) #c #m (x:c) (y:m) {| can_approximate c m |}
   : prop = approximates x y
+
+(* "Approximated" points-to. Inference does not really work to make this useful,
+but it would be really nice. *)
+let ( |~> ) #pt #rt #mt {| has_pts_to pt rt, can_approximate rt mt |}
+  (p : pt) (#[full_default()] f:perm) (m : mt)
+  : slprop =
+  exists* (v : rt). p |-> v ** pure (v %~ m)
 
 instance real_like_can_approximate (#a:Type) (_ : scalar a) (_ : real_like a)
   : can_approximate a Real.real = {
