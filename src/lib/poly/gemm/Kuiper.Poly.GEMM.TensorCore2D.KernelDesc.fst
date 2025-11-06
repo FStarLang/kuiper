@@ -78,69 +78,6 @@ fn gpu_slice_gather_underspec
 }
 
 ghost
-fn linearize_tile_indices
-  (#et : Type0)
-  (#rows #cols : nat)
-  (trows : nat{trows > 0 /\ trows /? rows})
-  (tcols : nat{tcols > 0 /\ tcols /? cols})
-  (#l : mlayout rows cols)
-  (gm : gpu_matrix et l)
-  (#f : perm)
-  (#em : ematrix et rows cols)
-  (n : nat {n == rows/trows * (cols/tcols)})
-requires
-  forall+ (tr: natlt (rows/trows)) (tc: natlt (cols/tcols)).
-    gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
-ensures
-  forall+ (trc : natlt n).
-    gpu_matrix_subtile gm trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))
-      |-> Frac f (ematrix_subtile em trows tcols (trc/(cols/tcols)) (trc%(cols/tcols)))
-{
-  forevery_unfactor' (n) (rows/trows) (cols/tcols) _;
-}
-
-ghost
-fn create_warp_tiles_shared
-  (#et : Type0) {| scalar et |}
-  (#rows #cols : nat)
-  (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et l)
-  (#f : perm)
-  (#em : ematrix et rows cols)
-  (trows : nat{trows > 0 /\ trows /? rows})
-  (tcols : nat{tcols > 0 /\ tcols /? cols})
-  (nthr : nat{nthr == rows/trows * (cols/tcols) * warp_size})
-requires
-  gm |-> Frac f em
-ensures
-  forall+ (trc : natlt nthr).
-    warp_tile gm trows tcols (trc/warp_size)
-      |-> Frac (f /. warp_size)
-    (ematrix_subtile em trows tcols
-      (warp_tile_idx_rows rows cols trows tcols (trc/warp_size))
-      (warp_tile_idx_cols rows cols trows tcols (trc/warp_size)))
-{
-  gpu_matrix_tile gm trows tcols;
-  linearize_tile_indices trows tcols gm (rows/trows * (cols/tcols));
-
-  ghost
-  fn share_within_warp (trc : natlt (rows/trows * (cols/tcols)))
-  requires
-    gpu_matrix_subtile gm trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))
-      |-> Frac f (ematrix_subtile em trows tcols (trc/(cols/tcols)) (trc%(cols/tcols)))
-  ensures
-    forall+ (_lid: natlt warp_size).
-      gpu_matrix_subtile gm trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))
-        |-> Frac (f /. warp_size) (ematrix_subtile em trows tcols (trc/(cols/tcols)) (trc%(cols/tcols)))
-  {
-    gpu_matrix_share_n _ warp_size;
-  };
-  forevery_map _ _ share_within_warp;
-  forevery_unfactor' nthr (rows / trows * (cols / tcols)) 32 _;
-  ();
-}
-
-ghost
 fn gpu_matrix_share_threads
   (#et : Type)
   (#rows #cols : nat)
@@ -200,8 +137,44 @@ fn setup
   gpu_matrix_share_threads gB nblk nthr;
 
   gpu_matrix_tile gC bm bn;
-  linearize_tile_indices bm bn gC nblk;
+  forevery_unfactor' nblk (rows/bm) (cols/bn) _;
 
+  ghost
+  fn create_warp_tiles_shared
+    (#et : Type0) {| scalar et |}
+    (#rows #cols : nat)
+    (#l : mlayout rows cols)
+    ([@@@mkey] gm : gpu_matrix et l)
+    (#f : perm)
+    (#em : ematrix et rows cols)
+    (trows : nat{trows > 0 /\ trows /? rows})
+    (tcols : nat{tcols > 0 /\ tcols /? cols})
+    (nthr : nat{nthr == rows/trows * (cols/tcols) * warp_size})
+  requires
+    gm |-> Frac f em
+  ensures
+    forall+ (trc : natlt nthr).
+      warp_tile gm trows tcols (trc/warp_size)
+        |-> Frac (f /. warp_size)
+      (ematrix_subtile em trows tcols
+        (warp_tile_idx_rows rows cols trows tcols (trc/warp_size))
+        (warp_tile_idx_cols rows cols trows tcols (trc/warp_size)))
+  {
+    gpu_matrix_tile gm trows tcols;
+    forevery_unfactor' (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols) _;
+
+    forevery_map
+      (fun (trc : natlt (rows/trows * (cols/tcols))) ->
+        gpu_matrix_subtile gm trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))
+          |-> Frac f (ematrix_subtile em trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))))
+      (fun trc ->
+        forall+ (_lid: natlt warp_size).
+          gpu_matrix_subtile gm trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))
+            |-> Frac (f /. warp_size) (ematrix_subtile em trows tcols (trc/(cols/tcols)) (trc%(cols/tcols))))
+      fn trc { gpu_matrix_share_n _ warp_size };
+    forevery_unfactor' nthr (rows / trows * (cols / tcols)) 32 _;
+    ();
+  };
   forevery_map
     (fun (trc : natlt nblk) ->
       (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (trc/(cols/bn)) (trc%(cols/bn)))
@@ -652,42 +625,55 @@ requires
 ensures
   (exists* (em : ematrix _ _ _). gm |-> Frac f em)
 {
-  admit();
-  // forevery_iso #(natlt nthr) (bij_self (natlt (rows/trows * (cols/tcols) * warp_size))) _;
-  // forevery_unflatten_natlt
-  //   (fun (trc : natlt (rows/trows * (cols/tcols))) -> fun (_lid : natlt warp_size) ->
-  //     (exists* (em : ematrix _ _ _).
-  //       gpu_matrix_subtile gm trows tcols
-  //         (warp_tile_idx_rows rows cols trows tcols (trc))
-  //         (warp_tile_idx_cols rows cols trows tcols (trc))
-  //     |-> Frac (f /. warp_size) em));
+  forevery_factor nthr (rows/trows * (cols/tcols)) warp_size _;
 
-  // ghost
-  // fn unshare_within_warp (wid : natlt (rows/trows * (cols/tcols)))
-  // requires
-  //   forall+ (_lid: natlt warp_size). (exists* (em : ematrix _ _ _).
-  //     gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
-  //       |-> Frac (f /. warp_size) em)
-  // ensures
-  //   (exists* (em : ematrix _ _ _).
-  //     gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
-  //       |-> Frac f em)
-  // {
-  //   forevery_tostar (fun (lid : natlt warp_size) ->
-  //    (exists* (em : ematrix _ _ _).
-  //       gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
-  //         |-> Frac (f /. warp_size) em));
-  //   rewrite each Kuiper.Enumerable.cardinal (natlt warp_size) #_ as warp_size;
-  //   gpu_matrix_gather_n_underspec
-  //     (gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols)))
-  //     warp_size;
-  // };
-  // forevery_map _ _ unshare_within_warp;
-  // forevery_unflatten_natlt
-  //   (fun (trow : natlt (rows/trows)) -> fun (tcol : natlt (cols/tcols)) ->
-  //     (exists* (em : ematrix et trows tcols).
-  //       (gpu_matrix_subtile gm trows tcols trow tcol) |-> Frac f em));
-  // gpu_matrix_untile_underspec gm trows tcols;
+  ghost
+  fn unshare_within_warp (wid : natlt (rows/trows * (cols/tcols)))
+  requires
+    forall+ (lid: natlt warp_size). (exists* (em : ematrix _ _ _).
+        gpu_matrix_subtile gm
+              trows
+              tcols
+              ((wid * 32 + lid) / 32 / (cols / tcols))
+              ((wid * 32 + lid) / 32 % (cols / tcols)) |-> Frac (f /. warp_size) em)
+  ensures
+    (exists* (em : ematrix _ _ _).
+      gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
+        |-> Frac f em)
+  {
+    forevery_map
+      (fun (lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
+        (gpu_matrix_subtile gm trows tcols
+              ((wid * 32 + lid) / 32 / (cols / tcols))
+              ((wid * 32 + lid) / 32 % (cols / tcols))) |-> Frac (f /. warp_size) em)
+      (fun (_lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
+        (gpu_matrix_subtile gm trows tcols
+              (wid / (cols / tcols))
+              (wid % (cols / tcols)) |-> Frac (f /. warp_size) em))
+      fn _lid { rewrite each ((wid * 32 + _lid) / 32) as wid };
+    gpu_matrix_gather_n_underspec
+      (gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols)))
+      warp_size;
+  };
+  forevery_map _ _ unshare_within_warp;
+  forevery_factor (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols) _;
+  forevery_map_2
+      (fun (i1: natlt (rows / trows)) (i2: natlt (cols / tcols)) ->
+        exists* (em: ematrix et trows tcols).
+          (gpu_matrix_subtile gm
+                trows
+                tcols
+                ((i1 * (cols / tcols) + i2) / (cols / tcols))
+                ((i1 * (cols / tcols) + i2) % (cols / tcols))) |-> Frac f em)
+      (fun (i1: natlt (rows / trows)) (i2: natlt (cols / tcols)) ->
+        exists* (em: ematrix et trows tcols).
+          (gpu_matrix_subtile gm trows tcols i1 i2) |-> Frac f em)
+    fn tr tc {
+      rewrite each ((tr * (cols / tcols) + tc) / (cols / tcols)) as tr;      
+      rewrite each ((tr * (cols / tcols) + tc) % (cols / tcols)) as tc;
+    };
+  gpu_matrix_untile_underspec gm trows tcols;
+  ()
 }
 
 ghost
@@ -696,7 +682,7 @@ fn forevery_factor'
   (d1 : nat) (d2 : nat { n == d1 * d2 })
   (p : natlt d1 -> natlt d2 -> slprop)
   requires
-    forall+ (i:natlt n). p (i / d2) (i % d2)
+    forall+ (i:natlt n). p (i/d2) (i%d2)
   ensures
     forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
 {
