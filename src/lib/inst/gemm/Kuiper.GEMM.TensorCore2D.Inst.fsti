@@ -7,6 +7,8 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Approximates
+module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
 
@@ -15,6 +17,7 @@ fn spec
   // specialize
   (et_ab et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (bm bn bk : szp)
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab /?+ bn))
@@ -58,4 +61,6 @@ fn spec
   requires
     gC |-> eC
   ensures
-    exists* eC'. gC |-> eC'
+    exists* eC'.
+      gC |-> eC' **
+      pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))

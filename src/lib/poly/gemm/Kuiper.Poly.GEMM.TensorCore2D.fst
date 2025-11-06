@@ -438,6 +438,7 @@ inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
   (gA : gpu_matrix et_ab lA)
@@ -475,10 +476,18 @@ let mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads))
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   ()
   : kernel_desc
-      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
-      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (exists* eC'. gC |-> eC'))
+      (gA |-> Frac fA eA ** pure (eA %~ rA) **
+       gB |-> Frac fB eB ** pure (eB %~ rB) **
+       gC |-> eC ** pure (eC %~ rC))
+      (gA |-> Frac fA eA **
+       gB |-> Frac fB eB **
+       (exists* (eC' : ematrix et_c rows cols).
+         gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))
 = {
   nblk;
   nthr;
@@ -489,8 +498,8 @@ let mk_kernel
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid);
   block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC bm bn bk tm tn tk wm wn fA fB nthr bid tid);
 
-  setup      = setup    gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;
-  teardown   = teardown gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;
+  setup      = setup    gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB rA rB rC;
+  teardown   = teardown gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB rA rB rC;
 
   block_frame    = (fun _ar _bid -> emp);
   block_setup    = block_setup gA eA gB eB gC eC bm bn bk tm tn tk wm wn nblk nthr fA fB;

@@ -9,10 +9,12 @@ open Kuiper
 open Kuiper.Matrix.Reprs
 module R = Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
+open Kuiper.Approximates
 
 module SZ = Kuiper.SizeT
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
+module MS = Kuiper.Spec.GEMM
 
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix
@@ -186,6 +188,7 @@ ghost
 fn setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -208,12 +211,15 @@ fn setup
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   ()
   norewrite
   requires
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB **
-    gC |-> eC
+    gA |-> Frac fA eA ** pure (eA %~ rA) **
+    gB |-> Frac fB eB ** pure (eB %~ rB) **
+    gC |-> eC ** pure (eC %~ rC)
   ensures
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
@@ -362,6 +368,7 @@ ghost
 fn teardown
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
   (#lB : mlayout shared cols)
@@ -383,6 +390,9 @@ fn teardown
   (#_ : squash (chunk et_ab * nthr /?+ (bm * bk)))
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (fA fB : perm)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
   ()
   norewrite
   requires
@@ -393,5 +403,5 @@ fn teardown
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    // underspec not implemented anyway
-    (exists* eC'. gC |-> eC')
+    (exists* (eC' : ematrix et_c rows cols).
+      gC |-> eC' ** pure (eC' %~ MS.matmul rA rB))
