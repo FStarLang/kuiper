@@ -107,7 +107,7 @@ let rec __matmul_single_tile
   (tcol : natlt (columns / tn))
   (to : nat{to <= shared / tk})
   : GTot (ematrix et tm tn) (decreases to)
-  = 
+  =
   if reveal to = 0 then const_matrix zero
   else (
     matplus

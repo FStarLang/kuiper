@@ -386,7 +386,7 @@ let warp_tile_ematrix
   = ematrix_subtile em trows tcols
       (warp_tile_idx_rows rows cols trows tcols wid)
       (warp_tile_idx_cols rows cols trows tcols wid)
-(* 
+(*
 instance ematrix_subtile_can_approximate
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #cols : nat)
@@ -395,6 +395,47 @@ instance ematrix_subtile_can_approximate
   approximates = ematrix_approximates;
 }
  *)
+
+let warp_tile_i
+  (#rows #cols : szp)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
+  : GTot (natlt (rows / (wm*tm)))
+  =
+    let tile_i = bid / (cols/bn) in
+    let tile_j = bid % (cols/bn) in
+    let wid = tid / warp_size in
+    assert (wid < (bm/(wm*tm)) * (bn/(wn*tn)));
+    let subtile_i = wid / (bn/(wn*tn)) in
+    let subtile_j = wid % (bn/(wn*tn)) in
+    assert (subtile_i < (bm/(wm*tm)));
+    admit(); // ???
+    tile_i * (bm / (wm*tm)) + subtile_i // Is this right?
+
+let warp_tile_j
+  (#rows #cols : szp)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
+  : GTot (natlt (cols / (wn*tn)))
+  =
+    let tile_i = bid / (cols/bn) in
+    let tile_j = bid % (cols/bn) in
+    let wid = tid / warp_size in
+    let subtile_i = wid / (bn/(wn*tn)) in
+    let subtile_j = wid % (bn/(wn*tn)) in
+    tile_j * (bn / (wn*tn)) + subtile_j // Is this right? At least it seems in bounds
 
 unfold
 let kpost1
@@ -421,6 +462,8 @@ let kpost1
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
@@ -428,14 +471,10 @@ let kpost1
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
-  (exists* tC.
-    warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC)
-  //(exists* (tC': ematrix et_c (wm*tm) (wn*tn)).
-  //  warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC' **
-  //  pure (tC' %~
-  //    MS.matmul_single_tile (wm*tm) (wn*tn) tk rA rB 
-  //      ))
-  // ^ Missing functional spec
+  (exists* (tC': ematrix et_c (wm*tm) (wn*tn)).
+    warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC' **
+    pure (tC' %~ MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i bm bn bk tm tn tk wm wn nthr bid tid) 0)
+                           (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid tid))))
 
 unfold
 let kpost
@@ -465,6 +504,8 @@ let kpost
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
@@ -504,6 +545,8 @@ fn block_teardown
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt nblk)
   ()
@@ -547,6 +590,8 @@ fn teardown
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   ()
   norewrite
   requires

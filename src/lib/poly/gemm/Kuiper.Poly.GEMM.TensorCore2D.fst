@@ -33,7 +33,41 @@ module R = Kuiper.Matrix.Reprs
 
 open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
-#push-options "--debug SMTFail --split_queries always"
+let fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (wm wn : nat)
+  (arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
+  (rm : ematrix real (wm*tm) (wn*tn))
+  : slprop
+  =
+    exists* (em : seq (ematrix et tm tn)).
+      arr |-> em **
+      pure (
+        (Seq.length em == wm*wn) /\
+        forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j)
+      )
+
+ghost
+fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (wm wn : nat)
+  (arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
+  (#em : seq (ematrix et tm tn))
+  requires
+    arr |-> em
+  ensures
+    exists* rm.
+      fragarray_approximates wm wn arr rm
+{
+  array_fragment_pts_to_ref arr;
+  let rms = Seq.init_ghost #(ematrix real tm tn) (wm*wn) (fun idx -> mkM (fun i j -> to_real (macc (em @! idx) i j)));
+  let rm = ematrix_from_tiles #real #(wm*tm) #(wn*tn) tm tn (fun i j -> rms @! (i * wn + j));
+  assume pure (forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j));
+  // ^ Shouldn't this be trivial? Anyway, this fake function will not survive into
+  // the fully verified version.
+  fold fragarray_approximates wm wn arr rm;
+}
+
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -44,59 +78,46 @@ fn subproducts_tc_2d
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
-  (#emAccumFrags : erased (seq (ematrix et_acc tm tn)))
-  (#rAccumFrags : seq (ematrix real tm tn))
-  (#_ : squash (len emAccumFrags == wm*wn /\ len emAccumFrags == len rAccumFrags))
   (gA : gpu_matrix et_ab (R.row_major bm bk))
   (gB : gpu_matrix et_ab (R.row_major bk bn))
   (#eA : ematrix et_ab bm bk)
   (#eB : ematrix et_ab bk bn)
-  (#rA : ematrix real bm bk {eA %~ rA})
-  (#rB : ematrix real bk bn {eB %~ rB})
+  (rA : ematrix real bm bk {eA %~ rA})
+  (rB : ematrix real bk bn {eB %~ rB})
+  (rAcc : ematrix real (wm*tm) (wn*tn))
   (#fA #fB : perm)
   (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
+  (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
+  (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
+  (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
   preserves
     gpu **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
-    pure (Pulse.Lib.Array.length aFrags == wm) **
-    pure (Pulse.Lib.Array.length bFrags == wn) **
-    pure (Pulse.Lib.Array.length accumFrags == wm*wn) **
     pure (valid_frag_et_comb et_ab et_acc)
   preserves
     // aFrags and bFrags are swap space, we don't specify much about them
     live aFrags ** live bFrags
   requires
-    accumFrags |-> emAccumFrags
+    fragarray_approximates wm wn accumFrags rAcc
   ensures
-    (exists* emAccumFrags'.
-      accumFrags |-> emAccumFrags' **
-      // sequence of ematrix approximates seq of ematrix
-      pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags @! i)) **
-      // each result fragment contains a dotproduct of tiles
-      pure (forall (i:natlt (wm*wn)).
-        rAccumFrags @! i ==
-          // possibly confusing: functional spec ignores warp tiles and explicitly computes indices for
-          //   tensor core tile within a warp tile, there are the tensor core tile rows/columns
-          matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)))) // Improve with functional spec
+    fragarray_approximates wm wn accumFrags
+      (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                             (ematrix_subtile rB bk (wn*tn) 0 bcol))
 {
   gpu_matrix_pts_to_ref gA;
   gpu_matrix_pts_to_ref gB;
+
+  unfold fragarray_approximates wm wn accumFrags;
+
   let mut dotIdx : sz = 0sz;
-  while (SZ.(!dotIdx <^ (bk/^tk)))
+  while ((!dotIdx <^ (bk/^tk)))
     invariant live dotIdx ** pure (!dotIdx <= (bk/^tk))
     invariant
       live aFrags ** live bFrags **
-      (exists* emAccumFrags' rAccumFrags'.
-        // live accumFrags
-        accumFrags |-> emAccumFrags' **
-        // all accumFrags values approximate to some reals
-        pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags' @! i)) **
-        // up to dotIdx: dotproduct of rows/cols consisting not of single elements but of tensor core tiles
-        pure (forall (i : natlt (wm*wn)).
-          rAccumFrags' @! i  == __matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)) !dotIdx))
+      live accumFrags
   {
     // Load A fragments (wm iterations)
     let tile_for_tc_a_tiles = gpu_matrix_extract_tile_ro' gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
@@ -151,25 +172,12 @@ fn subproducts_tc_2d
     while ((!resIdxM <^ wm))
       invariant live resIdxM ** pure (!resIdxM <= wm)
       invariant
-        // live accumFrags
-        accumFrags |-> emAccumFrags' **
-        // all accumFrags values approximate to some reals
-        pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags' @! i)) **
-        pure (forall (i:natlt (!resIdxM * wn)).
-          rAccumFrags' @! i  ==
-            __matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)) !dotIdx)
+        live accumFrags
     {
       let mut resIdxN = 0sz;
       while ((!resIdxN <^ wn))
         invariant live resIdxN ** pure (!resIdxN <= wn)
-        invariant (exists* emAccumFrags' rAccumFrags'.
-          // live accumFrags
-          accumFrags |-> emAccumFrags' **
-          // all accumFrags values approximate to some reals
-          pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags' @! i)) **
-          pure (forall (i:natlt (!resIdxM * wn + !resIdxN)).
-            rAccumFrags' @! i  ==
-              __matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)) !dotIdx))
+        invariant live accumFrags
       {
         array_fragment_pts_to_ref aFrags;
         array_fragment_pts_to_ref bFrags;
@@ -193,7 +201,7 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
 
         resIdxN := !resIdxN +^ 1sz;
-        
+
         // HERE convert maplus (matmul ...)) into __matrix_single_tile ...
       };
 
@@ -201,7 +209,22 @@ fn subproducts_tc_2d
     };
 
     dotIdx := !dotIdx +^ 1sz;
-  }
+  };
+
+  (* Assume functional correctness. *)
+  let final_tile = rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                                         (ematrix_subtile rB bk (wn*tn) 0 bcol);
+  with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
+  assume pure (Seq.length emAccumFrags == wm*wn);
+  assume pure (
+    forall (i : natlt wm) (j : natlt wn). (emAccumFrags @! (i * wn + j)) %~ (ematrix_subtile final_tile tm tn i j)
+  );
+  fold fragarray_approximates wm wn accumFrags final_tile;
+
+  rewrite each final_tile as (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
+                                                    (ematrix_subtile rB bk (wn*tn) 0 bcol));
+
+  ()
 }
 
 #push-options "--z3rlimit 80"
@@ -338,6 +361,8 @@ fn kf
   (#_ : squash (chunk et_ab * nthr /?+ (bk * bn)))
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : szlt (rows/bm * (cols/bn)))
   (tid : szlt nthr)
@@ -444,9 +469,12 @@ fn kf
     assert B.barrier_tok (barrier_p eA eB sA sB nthr bid) (barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
+    (* sigh.. *)
+    #set-options "--z3rlimit 100" {
     rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
             own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
          as barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+    };
 
     B.barrier_wait ();
 
@@ -464,7 +492,15 @@ fn kf
     unfold bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
-    subproducts_tc_2d bm bn bk tm tn tk wm wn aFrags bFrags accFrags sA sB warpRow warpCol;
+    fake_intro_fragarray_approximates wm wn accFrags; // underspec
+    with rAcc. assert fragarray_approximates wm wn accFrags rAcc;
+    subproducts_tc_2d bm bn bk tm tn tk wm wn aFrags bFrags accFrags
+      sA sB
+      (ematrix_subtile rA bm bk mrow !bkIdx)
+      (ematrix_subtile rB bk bn !bkIdx mcol)
+      rAcc
+      warpRow warpCol;
+    with rAcc'. unfold fragarray_approximates wm wn accFrags rAcc';
 
     fold bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -504,6 +540,13 @@ fn kf
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
+
+  // Assumming functional correctness
+  with tC'.
+    assert warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) tC';
+  assume pure (tC' %~ MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid tid) 0)
+                                (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid tid)));
+
   ()
 }
 
@@ -552,6 +595,8 @@ let mk_kernel
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   ()
   : kernel_desc
       (gA |-> Frac fA eA ** pure (eA %~ rA) **

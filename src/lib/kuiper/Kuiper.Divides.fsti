@@ -66,3 +66,7 @@ val lemma_divides_product_l (d : pos) (a c : int)
 val lemma_divides_product_r (d : pos) (a c : int)
   : Lemma (requires d /? a)
           (ensures d /? (c * a))
+
+val lemma_divides_chain (a b c : pos)
+  : Lemma (requires a /? b /\ b /? c)
+          (ensures a /? c)

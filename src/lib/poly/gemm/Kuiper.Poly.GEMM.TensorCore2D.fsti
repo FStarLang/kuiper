@@ -64,6 +64,8 @@ val mk_kernel
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
   (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   ()
   : kernel_desc
       (gA |-> Frac fA eA ** pure (eA %~ rA) **

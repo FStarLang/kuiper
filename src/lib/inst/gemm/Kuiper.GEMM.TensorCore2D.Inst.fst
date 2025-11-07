@@ -83,6 +83,10 @@ fn spec
   dguard (shared %^ bk = 0sz);
   dguard (cols   %^ bn = 0sz);
 
+  // Pretty bad that we have to call this explicitly...
+  lemma_divides_chain (wm * tm) bm rows;
+  lemma_divides_chain (wn * tn) bn cols;
+
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
 

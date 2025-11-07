@@ -43,7 +43,7 @@ let matmul_single
   (col : nat{col < columns})
   : GTot et
   = __matmul_single m1 m2 row col shared
-  
+
 let gemm_single
   (#et:Type) {| scalar et |}
   (comb : binop et)
@@ -131,7 +131,7 @@ val __matmul_single_tile
   (trow : natlt (rows / tm))
   (tcol : natlt (columns / tn))
   (to : nat{to <= shared / tk})
-  : GTot (ematrix et tm tn) 
+  : GTot (ematrix et tm tn)
 
 let matmul_single_tile
   (#et:Type) {| scalar et |}
@@ -143,7 +143,7 @@ let matmul_single_tile
   (m2 : ematrix et shared columns)
   (trow : natlt (rows / tm))
   (tcol : natlt (columns / tn))
-  : GTot (ematrix et tm tn) 
+  : GTot (ematrix et tm tn)
   = __matmul_single_tile tm tn tk m1 m2 trow tcol (shared/tk)
 
 val matmul_single_tile_zero_lemma
