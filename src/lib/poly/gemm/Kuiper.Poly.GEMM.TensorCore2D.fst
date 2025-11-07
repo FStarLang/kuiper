@@ -24,16 +24,20 @@ open Kuiper.Matrix.Tiling
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
+open Kuiper.Approximates
+open Kuiper.Spec.GEMM
+
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 
 open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
+#push-options "--debug SMTFail --split_queries always"
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
-  {| scalar et_ab, scalar et_acc |}
+  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -41,10 +45,14 @@ fn subproducts_tc_2d
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (#emAccumFrags : erased (seq (ematrix et_acc tm tn)))
+  (#rAccumFrags : seq (ematrix real tm tn))
+  (#_ : squash (len emAccumFrags == wm*wn /\ len emAccumFrags == len rAccumFrags))
   (gA : gpu_matrix et_ab (R.row_major bm bk))
   (gB : gpu_matrix et_ab (R.row_major bk bn))
   (#eA : ematrix et_ab bm bk)
   (#eB : ematrix et_ab bk bn)
+  (#rA : ematrix real bm bk {eA %~ rA})
+  (#rB : ematrix real bk bn {eB %~ rB})
   (#fA #fB : perm)
   (arow : szlt (bm/(wm*tm)))
   (bcol : szlt (bn/(wn*tn)))
@@ -64,7 +72,15 @@ fn subproducts_tc_2d
     accumFrags |-> emAccumFrags
   ensures
     (exists* emAccumFrags'.
-      accumFrags |-> emAccumFrags') // Improve with functional spec
+      accumFrags |-> emAccumFrags' **
+      // sequence of ematrix approximates seq of ematrix
+      pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags @! i)) **
+      // each result fragment contains a dotproduct of tiles
+      pure (forall (i:natlt (wm*wn)).
+        rAccumFrags @! i ==
+          // possibly confusing: functional spec ignores warp tiles and explicitly computes indices for
+          //   tensor core tile within a warp tile, there are the tensor core tile rows/columns
+          matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)))) // Improve with functional spec
 {
   gpu_matrix_pts_to_ref gA;
   gpu_matrix_pts_to_ref gB;
@@ -72,7 +88,15 @@ fn subproducts_tc_2d
   while (SZ.(!dotIdx <^ (bk/^tk)))
     invariant live dotIdx ** pure (!dotIdx <= (bk/^tk))
     invariant
-      live aFrags ** live bFrags ** live accumFrags
+      live aFrags ** live bFrags **
+      (exists* emAccumFrags' rAccumFrags'.
+        // live accumFrags
+        accumFrags |-> emAccumFrags' **
+        // all accumFrags values approximate to some reals
+        pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags' @! i)) **
+        // up to dotIdx: dotproduct of rows/cols consisting not of single elements but of tensor core tiles
+        pure (forall (i : natlt (wm*wn)).
+          rAccumFrags' @! i  == __matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)) !dotIdx))
   {
     // Load A fragments (wm iterations)
     let tile_for_tc_a_tiles = gpu_matrix_extract_tile_ro' gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
@@ -126,12 +150,26 @@ fn subproducts_tc_2d
     let mut resIdxM = 0sz;
     while ((!resIdxM <^ wm))
       invariant live resIdxM ** pure (!resIdxM <= wm)
-      invariant live accumFrags
+      invariant
+        // live accumFrags
+        accumFrags |-> emAccumFrags' **
+        // all accumFrags values approximate to some reals
+        pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags' @! i)) **
+        pure (forall (i:natlt (!resIdxM * wn)).
+          rAccumFrags' @! i  ==
+            __matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)) !dotIdx)
     {
       let mut resIdxN = 0sz;
       while ((!resIdxN <^ wn))
         invariant live resIdxN ** pure (!resIdxN <= wn)
-        invariant live accumFrags
+        invariant (exists* emAccumFrags' rAccumFrags'.
+          // live accumFrags
+          accumFrags |-> emAccumFrags' **
+          // all accumFrags values approximate to some reals
+          pure (forall (i:natlt (wm*wn)). (emAccumFrags' @! i) %~ (rAccumFrags' @! i)) **
+          pure (forall (i:natlt (!resIdxM * wn + !resIdxN)).
+            rAccumFrags' @! i  ==
+              __matmul_single_tile tm tn tk rA rB (arow*wm + (i/wn)) (bcol*wn + (i%wn)) !dotIdx))
       {
         array_fragment_pts_to_ref aFrags;
         array_fragment_pts_to_ref bFrags;
@@ -155,6 +193,8 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
 
         resIdxN := !resIdxN +^ 1sz;
+        
+        // HERE convert maplus (matmul ...)) into __matrix_single_tile ...
       };
 
       resIdxM := !resIdxM +^ 1sz;
