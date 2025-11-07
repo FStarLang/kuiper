@@ -26,7 +26,7 @@ fn smatrix_sdmm
   preserves
     gpu ** gA |-> a ** gB |-> b
   ensures
-    // gC |-> matmul a b
+    //gC |-> matmul a b
     live gC
 {
 
@@ -45,29 +45,13 @@ fn smatrix_sdmm
       invariant live j ** pure (!j <= cols)
       invariant live gC
     {
-      with v_i.
-        assert i |-> v_i;
-      with v_off.
-        assert gA.row_off |-> v_off;
-      with v_ind.
-        assert gA.col_ind |-> v_ind;
-
-      let row_cols = hide (slice_row (cast_pos v_off) (cast_pos v_ind) v_i);
-
       let mut dp : et = zero;
 
       let mut k = ri;
 
       while ((!k <^ re))
         invariant
-          exists* v_k.
-            k |-> v_k **
-            live dp **
-            pure (
-              ri <= v_k /\
-              (v_k < re ==> SZ.v (v_ind @! v_k) == row_cols @! (v_k - ri))
-            )
-
+            live dp ** live k 
       {
         let x = gpu_array_read gA.elems !k;
         let c = gpu_array_read gA.col_ind !k;
@@ -79,8 +63,7 @@ fn smatrix_sdmm
         k := !k +^ 1sz;
       };
 
-      with c. assert gpu_matrix_pts_to gC #1.0R c;
-      gpu_matrix_write gC !i !j !dp #c;
+      gpu_matrix_write gC !i !j !dp;
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
