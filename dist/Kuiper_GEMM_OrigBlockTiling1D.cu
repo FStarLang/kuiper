@@ -100,8 +100,8 @@ __hoisted_1(float_t alpha,
         float_t *tC = gC;
         tC[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols + mcol * 64U +
            threadIdx.x % 64U] =
-alpha * tC[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols + mcol * 64U + threadIdx.x % 64U]
-            + beta * cache1d[resIdx];
+beta * tC[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols + mcol * 64U + threadIdx.x % 64U]
+            + alpha * cache1d[resIdx];
     }
 }
 

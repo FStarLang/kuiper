@@ -14,8 +14,9 @@ let lincomb
   (#et:Type) {| scalar et |}
   (alpha beta : et)
   (x y : et)
+  (* x is the old value, y is the new computed value *)
   : et
-  = add (mul alpha x) (mul beta y)
+  = add (mul beta x) (mul alpha y)
 
 // computes
 // sum_{i=0}{to} m1[row][i] * m2[i][col]
@@ -145,4 +146,4 @@ let gemm
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
-= matrix_comb (lincomb beta alpha) m0 (matmul m1 m2)
+= matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)
