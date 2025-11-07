@@ -51,10 +51,7 @@ let raw_function_view (#et:Type) (#len:nat) : aview et (natlt len ^->> et) = {
 
 (* What it means for a view to be concretizable, i.e. executable.
 Note how we say **nothing** about the high-level spec type. All that
-matters at runtime is the indexing structure.
-
-This is typeclass already, there should be no need to mark it as a class here,
-but alas it does not quite work. *)
+matters at runtime is the indexing structure. *)
 inline_for_extraction noextract
 unfold
 let cview (#et : Type0) (#st : Type0)

@@ -527,7 +527,7 @@ inline_for_extraction noextract
 fn varray_write_cell
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (v1 : et)
@@ -542,7 +542,7 @@ inline_for_extraction noextract
 fn varray_write_cell'
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ai : erased vw.iview.ait)
   (ci : cw.sch.cit)
@@ -560,7 +560,7 @@ inline_for_extraction noextract
 fn varray_read_cell
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -579,7 +579,7 @@ inline_for_extraction noextract
 fn varray_read_cell'
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (i : cw.sch.cit)
   (ai : erased vw.iview.ait)
@@ -600,7 +600,7 @@ inline_for_extraction noextract
 fn varray_read
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -617,7 +617,7 @@ inline_for_extraction noextract
 fn varray_write
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (e : et)
