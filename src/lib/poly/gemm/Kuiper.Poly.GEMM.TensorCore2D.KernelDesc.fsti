@@ -414,8 +414,10 @@ let warp_tile_i
     assert (wid < (bm/(wm*tm)) * (bn/(wn*tn)));
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
+    (* Z3 takes some convincing.... *)
     assert (subtile_i < (bm/(wm*tm)));
-    admit(); // ???
+    assert (tile_i < rows/bm);
+    assert (tile_i * (bm / (wm*tm)) < rows/(wm*tm));
     tile_i * (bm / (wm*tm)) + subtile_i // Is this right?
 
 let warp_tile_j
