@@ -32,7 +32,7 @@ instance cview_from_clayout
 
   sch = {
     cit = szlt rows & szlt cols;
-    bij = Bijection.bij_prod (Bijection.fin_size_t_bij _) (Bijection.fin_size_t_bij _);
+    bij = Bijection.natural;
   };
 
   step = {
