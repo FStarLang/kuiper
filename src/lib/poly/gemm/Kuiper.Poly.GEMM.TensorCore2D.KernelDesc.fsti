@@ -78,37 +78,103 @@ let warp_tile_pts_to
     #(recip warp_size)
     em
 
+let bp_sharing
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (m : gpu_matrix et l)
+  (em : ematrix et rows cols)
+  (nthr : pos)
+  : slprop
+  = m |-> Frac (1.0R /. nthr) em
+
+let bp_exclusive
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (m : gpu_matrix et l)
+  (em : ematrix et rows cols)
+  (nthr : pos)
+  (tid : natlt nthr)
+  : slprop
+  = own_strided_chunks m em nthr tid
+
 let barrier_p
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#bm #bn #bk : szp)
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
   : B.barrier_side nthr =
   fun it tid ->
-    if even it then
-      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
-      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
+    let mrow = bid / (cols/bn) in
+    let mcol = bid % (cols/bn) in
+    (* Barrier contract must be infinite, currently, but we will
+       stop after this amount of steps. *)
+    if it >= 2 * shared / bk then
+      emp
+    else if even it then
+      (* On even iterations, we give back shared access over the matrix,
+         pointing to any value, as we don't care about the content which
+         will be overwritten. This is in fact important for the first
+         iteration of the loop which starts from uninitialized shared memory. *)
+      (exists* em1. bp_sharing m1 em1 nthr) **
+      (exists* em2. bp_sharing m2 em2 nthr)
     else
-      live_strided_chunks m1 nthr tid **
-      live_strided_chunks m2 nthr tid
+      (* After populating a bit of this matrix, we will give back
+         exclusive access to the properly filled strided chunks. *)
+      bp_exclusive m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr tid **
+      bp_exclusive m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr tid
 
 let barrier_q
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#bm #bn #bk : szp)
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
   (#l1 : mlayout bm bk)
   (#l2 : mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
   : B.barrier_side nthr =
-  fun it tid -> barrier_p m1 m2 nthr (it+1) tid (* flip flop *)
+  fun it tid ->
+    let mrow = bid / (cols/bn) in
+    let mcol = bid % (cols/bn) in
+    (* Barrier contract must be infinite, currently, but we will
+       stop after this amount of steps. *)
+    if it >= 2 * shared / bk then
+      emp
+    else if even it then
+      (* We get back exclusive, strided acess to the matrix. Over unspecified
+         contents. *)
+      live_strided_chunks m1 nthr tid **
+      live_strided_chunks m2 nthr tid
+    else
+      (* We get back shared, read-only access to the matrix. Over the
+         *proper* contents. *)
+      bp_sharing m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr **
+      bp_sharing m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr
 
 let barrier_tok
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#bm #bn #bk : szp)
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
   (* This is defined over the base shared gpu_arrays, as
   this spec must make sense before the arrays are viewed as
   a matrix. *)
@@ -118,11 +184,12 @@ let barrier_tok
   (sar2 : gpu_array et (bk * bn))
   (it : nat)
   (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
   (tid : natlt nthr)
   : slprop
   =
-  B.barrier_tok (barrier_p (from_array l1 sar1) (from_array l2 sar2) nthr)
-                (barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr)
+  B.barrier_tok (barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
+                (barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
                 it tid
 
 unfold
@@ -144,6 +211,7 @@ let kpre1
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (fA fB : perm)
   (rA : ematrix real rows shared)
@@ -184,6 +252,7 @@ let kpre
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
@@ -199,7 +268,8 @@ let kpre
   kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(recip nthr) x) **
   (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
-  barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr tid
+  barrier_tok #_ #_ #v #rows #shared #cols eA eB #bm #bk #bn
+    (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid
 
 ghost
 fn setup
@@ -221,6 +291,7 @@ fn setup
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /? rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /? cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (#_ : squash (aligned 16 (core gA)))
@@ -263,6 +334,7 @@ fn block_setup
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
@@ -309,6 +381,7 @@ let kpost1
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (fA fB : perm)
   (rA : ematrix real rows shared)
@@ -346,6 +419,7 @@ let kpost
                  /\ 2 * (shared / bk) >= 0 // obvious, but SMT is flaky
                  })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (fA fB : perm)
@@ -361,7 +435,7 @@ let kpost
   kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   (exists* (x : seq et_ab). (fst sh) |-> Frac (recip nthr) x) **
   (exists* (x : seq et_ab). (fst (snd sh)) |-> Frac (recip nthr) x) **
-  barrier_tok #_ #_ #v (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr tid
+  barrier_tok #_ #_ #v eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr bid tid
 
 ghost
 fn block_teardown
@@ -382,6 +456,7 @@ fn block_teardown
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
@@ -422,6 +497,7 @@ fn teardown
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
+  (#_ : squash (bk /?+ shared))
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})

@@ -37,8 +37,8 @@ fn subproducts_tc_2d
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-  (aFrags : array (fragment et_ab FragA tm tn tk FragLRM))
-  (bFrags : array (fragment et_ab FragB tm tn tk FragLRM))
+  (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
+  (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
   (#emAccumFrags : erased (seq (ematrix et_acc tm tn)))
   (gA : gpu_matrix et_ab (R.row_major bm bk))
@@ -318,7 +318,7 @@ fn kf
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
 
-  unfold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB 0 nthr tid;
+  unfold barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB 0 nthr bid tid;
 
   gpu_matrix_abs' (R.row_major bm bk) sarA;
   let sA = from_array (R.row_major bm bk) sarA;
@@ -350,7 +350,7 @@ fn kf
 
   // fill accumulators with 0 for now
   let mut fi : sz = 0sz;
-  while (SZ.(!fi <^ wm*^wn))
+  while ((!fi <^ wm*^wn))
     invariant
       live fi **
       live accFrags
@@ -365,8 +365,15 @@ fn kf
     fi := !fi +^ 1sz;
   };
 
-  let mut bkIdx  : sz = 0sz;
-  while (SZ.(!bkIdx <^ num_k_tiles))
+  rewrite
+    (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
+    (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x)
+  as
+    (exists* em1. bp_sharing sA em1 nthr) **
+    (exists* em2. bp_sharing sB em2 nthr);
+
+  let mut bkIdx : sz = 0sz;
+  while ((!bkIdx <^ num_k_tiles))
     invariant
       live bkIdx ** pure (!bkIdx <= num_k_tiles)
     invariant
@@ -374,47 +381,59 @@ fn kf
       live bFrags **
       live accFrags
     invariant
-      (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
-      (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x) **
-      B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx) tid
+      (exists* em1. bp_sharing sA em1 nthr) **
+      (exists* em2. bp_sharing sB em2 nthr) **
+      B.barrier_tok (barrier_p eA eB sA sB nthr bid) (barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid
   {
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
 
     rewrite
-        (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
-        (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x)
-      as barrier_p sA sB nthr (2 * !bkIdx) tid;
+        (exists* em1. bp_sharing sA em1 nthr) **
+        (exists* em2. bp_sharing sB em2 nthr)
+      as barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid;
 
     B.barrier_wait ();
-    rewrite (barrier_q sA sB nthr (2 * !bkIdx) tid)
+    rewrite (barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid)
         as live_strided_chunks sA nthr tid **
            live_strided_chunks sB nthr tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
 
-    assert (B.barrier_tok (barrier_p sA sB nthr) (barrier_q sA sB nthr) (2 * !bkIdx + 1) tid);
+    assert B.barrier_tok (barrier_p eA eB sA sB nthr bid) (barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    rewrite live_strided_chunks sA nthr tid **
-            live_strided_chunks sB nthr tid
-         as (barrier_p sA sB nthr (2 * !bkIdx + 1) tid);
+    rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
+            own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
+         as barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
     even_2x (!bkIdx + 1);
-    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
-    assert (pure (even (2 * !bkIdx + 2)));
-    rewrite (barrier_q sA sB nthr (2 * !bkIdx + 1) tid)
+    assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
+    assert pure (odd (2 * !bkIdx + 1));
+    assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
+    assert pure (even (2 * !bkIdx + 2));
+    rewrite
+      barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
     as
-      (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
-      (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. nthr) x);
+      bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
+      bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
+
+    unfold bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
+    unfold bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
     subproducts_tc_2d bm bn bk tm tn tk wm wn aFrags bFrags accFrags sA sB warpRow warpCol;
 
+    fold bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
+    fold bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
+
     bkIdx := !bkIdx +^ 1sz;
   };
+
+  with em1. unfold bp_sharing sA em1 nthr;
+  with em2. unfold bp_sharing sB em2 nthr;
 
   rewrite each (tid / 32) as wid;
   epilogue bm bn bk tm tn tk wm wn accFrags gC bid wid;
@@ -428,20 +447,20 @@ fn kf
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
   rewrite
-    B.barrier_tok (barrier_p sA sB nthr)
-      (barrier_q sA sB nthr)
+    B.barrier_tok (barrier_p eA eB sA sB nthr bid)
+      (barrier_q eA eB sA sB nthr bid)
       (2 * v !bkIdx)
       (v tid)
   as
-    B.barrier_tok (barrier_p (from_array (R.row_major (v bm) (v bk)) sarA)
+    B.barrier_tok (barrier_p eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
           (from_array (R.row_major (v bk) (v bn)) sarB)
-          nthr)
-      (barrier_q (from_array (R.row_major (v bm) (v bk)) sarA)
+          nthr bid)
+      (barrier_q eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
           (from_array (R.row_major (v bk) (v bn)) sarB)
-          nthr)
+          nthr bid)
       (2 * (shared / bk))
       (v tid);
-  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr tid;
+  fold barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr bid tid;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);

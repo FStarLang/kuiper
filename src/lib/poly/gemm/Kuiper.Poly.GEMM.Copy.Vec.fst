@@ -128,10 +128,35 @@ fn join_matrix_from_strided_chunks_underspec
   ensures
     live m
 {
-  (* Can be done, but this function will probably
-  not be needed when we add the functional spec. Hoping
-  to just delete instead of implementing. *)
-  admit();
+  forevery_map
+    (fun (tid : natlt nthr) -> live_strided_chunks m nthr tid)
+    (fun (tid : natlt nthr) -> exists* em. own_strided_chunks m em nthr tid)
+    fn tid { unfold live_strided_chunks m nthr tid };
+
+  (* Combine the matrices into a single matrix coincinding for every stride. *)
+  let ff = forevery_exists #(natlt nthr) _;
+  let em' : ematrix et rows cols =
+    (mkM fun i j ->
+       let flat_idx : nat = i * cols + j in
+       let chunk_idx = flat_idx / chunk et in
+       let tid = chunk_idx % nthr in
+       macc (ff tid) i j);
+
+  forevery_map
+    (fun (tid : natlt nthr) -> own_strided_chunks m (ff tid) nthr tid)
+    (fun (tid : natlt nthr) -> own_strided_chunks m em' nthr tid)
+    fn tid {
+      unfold own_strided_chunks m (ff tid) nthr tid;
+      forevery_map
+        #(ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij})
+        (fun ij -> gpu_matrix_pts_to_cell m ij._1 ij._2 (macc (ff tid) ij._1 ij._2))
+        (fun ij -> gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em' ij._1 ij._2))
+        fn ij { () };
+      fold own_strided_chunks m em' nthr tid;
+    };
+
+  join_matrix_from_strided_chunks m nthr;
+  assert m |-> em';
 }
 
 let freeze (p : slprop) : slprop = p
@@ -156,6 +181,24 @@ let divides_helper
     lemma_divides_sum d (a + b * r) c;
     ()
 
+(* A matrix representing em1 "fading into" em2 as we copy chunks. *)
+let em_fade
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#rows #cols : pos)
+  (em1 : ematrix et rows cols)
+  (em2 : ematrix et rows cols)
+  (nthr : pos)
+  (it : nat)
+  : ematrix et rows cols
+  = mkM (fun i j ->
+      let flat_idx = i * cols + j <: nat in
+      let chunk_idx = flat_idx / (chunk et) in
+      if chunk_idx / nthr < it
+      then macc em2 i j
+      else macc em1 i j)
+
+let nop_tactic () : Tactics.Tac unit = ()
+
 #push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
 // NB: The scalar constraint is only here so we can use 'zero' as an initializer
 // for a local array... would be gone if we had uninitialized local arrays.
@@ -171,7 +214,7 @@ fn cp_matrix_vec
   (#esrc : ematrix et rows cols)
   (dst : gpu_matrix et ldst)
   (#edst : ematrix et rows cols)
-  (nthr : sz)
+  (nthr : szp)
   (tid : szlt nthr)
   preserves gpu
   preserves
@@ -185,9 +228,7 @@ fn cp_matrix_vec
   requires
     own_strided_chunks dst edst nthr tid
   ensures
-    exists* em'. // TODO: functional spec
-      own_strided_chunks dst em' nthr tid
-
+    own_strided_chunks dst esrc nthr tid
 {
   // These should be exposed to the precondition and bubbled up.
   assume pure (chunk et /?+ src_str.stride);
@@ -207,15 +248,17 @@ fn cp_matrix_vec
   is NOT unrolled, even if NVCC could see statically that threadIdx.x < 32U, and
   therefore this is always 4 iterations. *)
 
-  let git = Pulse.Lib.GhostReference.alloc 0;
+  assert pure (Kuiper.EMatrix.equal edst (em_fade edst esrc nthr 0));
+  rewrite own_strided_chunks dst edst nthr tid
+       as own_strided_chunks dst (em_fade edst esrc nthr 0) nthr tid;
+
+  let git = Pulse.Lib.GhostReference.alloc #nat 0;
   while ((!i <^ mlen))
     invariant
       live i ** live git **
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
-      pure (GR.read git <= (rows*cols) / (nthr * chunk et))
-    invariant
-      exists* em'. // TODO: functional spec
-        own_strided_chunks dst em' nthr tid
+      pure (GR.read git <= (rows*cols) / (nthr * chunk et)) **
+      own_strided_chunks dst (em_fade edst esrc nthr (GR.read git)) nthr tid
   {
     assert pure (GR.read git < (rows*cols) / (chunk et * nthr));
     let vi = !i;
@@ -240,7 +283,7 @@ fn cp_matrix_vec
 
     gpu_matrix_vec_read src row col local;
 
-    let ite : erased int = GR.read git;
+    let ite : erased nat = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);
 
     let mut k = 0sz;
@@ -312,7 +355,18 @@ fn cp_matrix_vec
     assert pure (SZ.v vi == vgit * nthr * chunk et);
     add_helper vi vgit nthr (chunk et); // sigh
     assert pure (SZ.v !i == GR.read git * nthr * chunk et);
+
+    with em'. assert own_strided_chunks dst em' nthr tid;
+    assume pure (em' == em_fade edst esrc nthr (vgit + 1));
+    rewrite each em' as em_fade edst esrc nthr (vgit + 1) by nop_tactic ();
+    (* ^ FIXME: Without using a tactic, we get a goal where em_fade is
+         unfolded, which then fails... why does it unfold!? *)
+    ()
   };
+
+  assert pure (Kuiper.EMatrix.equal esrc (em_fade edst esrc nthr (GR.read git)));
+  rewrite own_strided_chunks dst (em_fade edst esrc nthr (GR.read git)) nthr tid
+       as own_strided_chunks dst esrc nthr tid;
 
   drop_ (git |-> _);
 

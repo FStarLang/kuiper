@@ -53,8 +53,8 @@ fn copy_tiles_out_of_matrices_vec
     live_strided_chunks sA nthr tid **
     live_strided_chunks sB nthr tid
   ensures
-    live_strided_chunks sA nthr tid **
-    live_strided_chunks sB nthr tid
+    own_strided_chunks sA (ematrix_subtile eA bm bk tile_row tile_shared) nthr tid **
+    own_strided_chunks sB (ematrix_subtile eB bk bn tile_shared tile_col) nthr tid
 {
   unfold live_strided_chunks sA nthr tid;
   unfold live_strided_chunks sB nthr tid;
@@ -73,7 +73,5 @@ fn copy_tiles_out_of_matrices_vec
   ambig_trade_elim ();
   ambig_trade_elim ();
 
-  fold live_strided_chunks sA nthr tid;
-  fold live_strided_chunks sB nthr tid;
   ();
 }

@@ -69,8 +69,8 @@ fn copy_tiles_out_of_matrices_vec
     live_strided_chunks sA nthr tid **
     live_strided_chunks sB nthr tid
   ensures
-    live_strided_chunks sA nthr tid **
-    live_strided_chunks sB nthr tid
+    own_strided_chunks sA (ematrix_subtile eA bm bk tile_row tile_shared) nthr tid **
+    own_strided_chunks sB (ematrix_subtile eB bk bn tile_shared tile_col) nthr tid
 
 unfold
 let block_tile_idx_rows
