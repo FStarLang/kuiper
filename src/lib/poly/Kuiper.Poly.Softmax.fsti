@@ -33,11 +33,11 @@ type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
   stt unit
   (requires
     cpu **
-    (gpu_pts_to_array a va **
+    (a |-> va **
      pure (lena <= max_blocks)))
   (ensures fun _ ->
     cpu **
-     (exists* (v':seq et). gpu_pts_to_array a v' **
+     (exists* (v':seq et). a |-> v' **
         pure (v' %~ softmax_real ra)))
 
 inline_for_extraction noextract
