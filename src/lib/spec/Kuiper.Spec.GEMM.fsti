@@ -5,6 +5,7 @@ any weak modulo-associativity spec. *)
 
 open Kuiper
 open Kuiper.EMatrix
+open Kuiper.Matrix.Tiling
 
 inline_for_extraction noextract
 let comb2 (#et:Type) (x y : et) : et = y
@@ -41,7 +42,7 @@ let matmul_single
   (col : nat{col < columns})
   : GTot et
   = __matmul_single m1 m2 row col shared
-
+  
 let gemm_single
   (#et:Type) {| scalar et |}
   (comb : binop et)
@@ -117,6 +118,68 @@ val lemma_matmul_index
   (j : nat{ j < columns })
 : Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j)
         [SMTPat (matmul_single m1 m2 i j)]
+
+val __matmul_single_tile
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+  (to : nat{to <= shared / tk})
+  : GTot (ematrix et tm tn) 
+
+let matmul_single_tile
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+  : GTot (ematrix et tm tn) 
+  = __matmul_single_tile tm tn tk m1 m2 trow tcol (shared/tk)
+
+val matmul_single_tile_zero_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+: Lemma
+  (ensures (
+    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const_matrix zero
+  ))
+
+val matmul_single_tile_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+  (to : nat{to <= shared / tk})
+: Lemma
+  (requires (0 < to /\ to <= shared))
+  (ensures (
+    __matmul_single_tile tm tn tk m1 m2 trow tcol to ==
+    matplus
+      (__matmul_single_tile tm tn tk m1 m2 trow tcol (to-1))
+      (matmul (ematrix_subtile m1 tm tk trow (to-1))
+              (ematrix_subtile m2 tk tn (to-1) tcol)))
+  )
 
 let mmcomb
   (#et:Type) {| scalar et |}

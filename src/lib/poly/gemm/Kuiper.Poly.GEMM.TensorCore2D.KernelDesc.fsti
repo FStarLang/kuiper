@@ -290,6 +290,40 @@ fn block_setup
       kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
 
+
+let block_tile_ematrix
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (trows : erased nat{trows > 0 /\ trows /? rows})
+  (tcols : erased nat{tcols > 0 /\ tcols /? cols})
+  (bid : enatlt (rows/trows * (cols/tcols)))
+  : ematrix et trows tcols
+  = ematrix_subtile em trows tcols
+      (block_tile_idx_rows rows cols trows tcols bid)
+      (block_tile_idx_cols rows cols trows tcols bid)
+
+let warp_tile_ematrix
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (trows : erased nat{trows > 0 /\ trows /? rows})
+  (tcols : erased nat{tcols > 0 /\ tcols /? cols})
+  (wid : enatlt (rows/trows * (cols/tcols)))
+  : ematrix et trows tcols
+  = ematrix_subtile em trows tcols
+      (warp_tile_idx_rows rows cols trows tcols wid)
+      (warp_tile_idx_cols rows cols trows tcols wid)
+(* 
+instance ematrix_subtile_can_approximate
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  : can_approximate (ematrix et rows cols) (ematrix real rows cols) =
+{
+  approximates = ematrix_approximates;
+}
+ *)
+
 unfold
 let kpost1
   (#et_ab #et_c : Type0)
@@ -323,6 +357,11 @@ let kpost1
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
   (exists* tC.
     warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC)
+  //(exists* (tC': ematrix et_c (wm*tm) (wn*tn)).
+  //  warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC' **
+  //  pure (tC' %~
+  //    MS.matmul_single_tile (wm*tm) (wn*tn) tk rA rB 
+  //      ))
   // ^ Missing functional spec
 
 unfold
