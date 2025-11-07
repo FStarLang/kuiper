@@ -398,14 +398,14 @@ fn varray_split2_
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : varray (sum_aview vw1 vw2))
   (#f : perm)
   (#v : st1 & st2)
   requires
     a |-> Frac f v
   ensures
-    (from_array vw1 (core a) |-> Frac f (fst v)) **
-    (from_array vw2 (core a) |-> Frac f (snd v))
+    from_array vw1 (core a) |-> Frac f (fst v) **
+    from_array vw2 (core a) |-> Frac f (snd v)
 
 inline_for_extraction noextract
 fn varray_split2
@@ -413,7 +413,7 @@ fn varray_split2
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : varray (sum_aview vw1 vw2))
   (#f : perm)
   (#v : erased (st1 & st2))
   requires
@@ -421,8 +421,8 @@ fn varray_split2
   returns
     a1a2 : varray vw1 & varray vw2
   ensures
-    (fst a1a2 |-> Frac f (fst v)) **
-    (snd a1a2 |-> Frac f (snd v)) **
+    fst a1a2 |-> Frac f (fst v) **
+    snd a1a2 |-> Frac f (snd v) **
     pure (core (fst a1a2) == core a) **
     pure (core (snd a1a2) == core a)
 
@@ -432,7 +432,7 @@ fn varray_split_n
   (#n : pos)
   (vw : natlt n -> aview et st { forall i. len (vw i) = len (vw 0) })
   (#_ : squash (no_overlap_fam n vw))
-  (a : varray (sum_aview_fam n vw #()))
+  (a : varray (sum_aview_fam n vw))
   (#f : perm)
   (#v : natlt n ^->> st)
   requires
@@ -476,7 +476,7 @@ fn varray_join2
     al |-> Frac f v1 **
     ar |-> Frac f v2
   returns
-    a : varray (sum_aview vw1 vw2 #())
+    a : varray (sum_aview vw1 vw2)
   ensures
     (a |-> Frac f (reveal v1, reveal v2)) **
     pure (core a == core al)
