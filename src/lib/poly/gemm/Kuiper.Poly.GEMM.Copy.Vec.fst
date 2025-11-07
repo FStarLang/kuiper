@@ -344,7 +344,21 @@ fn cp_matrix_vec
       Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
       assert pure (col + !k < cols);
       let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col +^ !k);
-      assume pure (in_chunk (chunk et) rows cols nthr tid ecell);
+
+      FStar.Math.Lemmas.euclidean_division_definition (!i + offset);
+      assert (pure (!i + offset == row * cols + col));
+      let flat_idx = Ghost.hide ((fst ecell * cols + snd ecell) <: nat);
+      assert pure (flat_idx == !i + offset + !k);
+      let chunk_idx = Ghost.hide (flat_idx / chunk et <: nat);
+      FStar.Math.Lemmas.lemma_div_plus (!i + !k) tid (chunk et);
+      assert pure (chunk_idx == tid + (!i + !k) / chunk et);
+      FStar.Math.Lemmas.lemma_div_plus !k (GR.read git * nthr) (chunk et);
+      assert pure (chunk_idx == tid + GR.read git * nthr + !k / chunk et);
+      FStar.Math.Lemmas.small_div !k (chunk et);
+      assert pure (chunk_idx == tid + GR.read git * nthr);
+      FStar.Math.Lemmas.lemma_mod_plus tid (GR.read git) nthr;
+      assert pure (in_chunk (chunk et) rows cols nthr tid ecell);
+
       forevery_remove'
         #(natlt rows & natlt cols)
         (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
