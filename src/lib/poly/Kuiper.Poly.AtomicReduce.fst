@@ -109,7 +109,7 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#nn: SZ.t)
-  (a : gpu_array et (SZ.v nn))
+  (a : gpu_global_array et (SZ.v nn))
   (#v_a : erased (seq et))
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == SZ.v nn})
@@ -128,9 +128,9 @@ fn kf
   assume (pure (len v_a == SZ.v nn));
   later_credit_buy 1;
   (* Read array at idx *)
-  let v = gpu_array_read a bid;
+  let v = gpu_global_array_read a bid;
   (* Fetch and add into result cell. *)
-  with_invariants i
+  with_inv_stt _ emp_inames i _ _ _ fn
   {
     later_elim _;
     unfold (inv_p (SZ.v nn) a v_a r done);

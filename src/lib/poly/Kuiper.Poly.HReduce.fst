@@ -289,11 +289,11 @@ fn kf
   requires
     gpu **
     kpre nth a s vr tid **
-    thread_id nth tid
+    thread_id nth 0 tid
   ensures
     gpu **
     kpost nth a s vr tid **
-    thread_id nth tid
+    thread_id nth 0 tid
 {
   (* Reduction *)
   let mut n : szlt 32 = 0sz;

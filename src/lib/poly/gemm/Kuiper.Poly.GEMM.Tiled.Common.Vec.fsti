@@ -56,12 +56,13 @@ fn copy_tiles_out_of_matrices_vec
   (#_ : squash (chunk et * nthr /? (bk * bn))) // extra req
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
+  (#bid : erased int)
   (tid : szlt nthr)
   preserves
     gpu **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    thread_id nthr tid
+    thread_id nthr bid tid
   requires
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB))

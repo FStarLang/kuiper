@@ -32,11 +32,11 @@ fn kf
   requires
     gpu **
     kpre size ga1 ga2 r tid **
-    thread_id size tid
+    thread_id size 0 tid
   ensures
     gpu **
     kpost size ga1 ga2 r tid **
-    thread_id size tid
+    thread_id size 0 tid
 {
   (* r[id] = ga1[id] * ga2[id] *)
 

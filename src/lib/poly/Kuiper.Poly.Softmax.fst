@@ -21,7 +21,7 @@ fn arr_read_1
   (#et : Type0) {| sized et |}
   (init : et) // silly
   (#len : erased nat)
-  (a : gpu_global_array et len)
+  (a : gpu_array et len)
   (#f : perm)
   preserves cpu ** (a |-> Frac f 'va)
   requires pure (len > 0)
@@ -83,7 +83,7 @@ fn kf_map
   (#lena : erased nat)
   (#s : erased (Seq.seq et) { Seq.length s == lena })
   (f: et -> et)
-  (a : gpu_global_array et lena)
+  (a : gpu_array et lena)
   (bid : szlt lena)
   ()
   requires
@@ -99,9 +99,9 @@ fn kf_map
   assert (pure (i < lena));
   assert (pure (SZ.v i == bid));
   unfold (gpu_pts_to_cell a i _);
-  let x = gpu_global_array_read a i;
+  let x = gpu_array_read a i;
   let ex = f x;
-  gpu_global_array_write a i ex;
+  gpu_array_write a i ex;
   (* a bit tedious to do this seq rewrite; would be nice to have a way to
      instruct the solver to do an extensional equality on this argument *)
   with ss. assert (gpu_pts_to_slice a (SZ.v i) (SZ.v i + 1) ss);
@@ -116,7 +116,7 @@ let kmap
   (#et : Type0)
   (f: et -> et)
   (lena : szp{ lena < max_blocks })
-  (a : gpu_global_array et lena)
+  (a : gpu_array et lena)
   (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
 : kernel_desc
     (a |-> s)
@@ -172,7 +172,7 @@ inline_for_extraction noextract
 fn softmax_gpu
   (#et : Type0) {| floating et, real_like et |}
   (#lena : szp { 0 < SZ.v lena /\ lena < max_threads })
-  (a : gpu_global_array et lena)
+  (a : gpu_array et lena)
   (#s: erased (Seq.seq et))
   (#r: erased (Seq.seq real)  { Seq.length r == SizeT.v lena /\ (s<:seq et) %~ r /\ lena > 0 })
   preserves cpu

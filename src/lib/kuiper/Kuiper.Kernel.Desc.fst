@@ -22,30 +22,31 @@ type kernel_desc (full_pre full_post : slprop) = {
   shmems_desc : list shmem_desc;
 
   kpre :
-    c_shmems shmems_desc ->
-    natlt nblk ->
+    bid:natlt nblk ->
     natlt nthr ->
+    c_shmems shmems_desc #0 bid -> //why do have I to put #0 here?
     slprop;
+
   kpost :
-    c_shmems shmems_desc ->
-    natlt nblk ->
+    bid:natlt nblk ->
     natlt nthr ->
+    c_shmems shmems_desc bid ->
     slprop;
 
   f : (
-    sh : c_shmems shmems_desc ->
     bid : szlt nblk ->
     tid : szlt nthr ->
+    sh : c_shmems shmems_desc bid ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre sh bid tid **
+         kpre bid tid sh **
          thread_id nthr bid tid **
          block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost sh bid tid **
+         kpost bid tid sh **
          thread_id nthr bid tid **
          block_id nblk bid)
   );
@@ -72,12 +73,13 @@ type kernel_desc (full_pre full_post : slprop) = {
       (ensures  fun _ -> full_post)
   );
   block_frame :
-    c_shmems shmems_desc ->
-    natlt nblk -> slprop;
+    bid:natlt nblk -> 
+    c_shmems shmems_desc bid ->
+    slprop;
 
   block_setup : (
-    (sh : c_shmems shmems_desc) ->
     (bid: natlt nblk) ->
+    (sh : c_shmems shmems_desc bid) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
@@ -86,18 +88,18 @@ type kernel_desc (full_pre full_post : slprop) = {
         block_pre bid)
       (ensures fun _ ->
         consumed_can_create_barrier **
-        (forall+ (i : natlt nthr). kpre sh bid i) **
-        block_frame sh bid)
+        (forall+ (i : natlt nthr). kpre bid i sh) **
+        block_frame bid sh)
   );
 
   block_teardown : (
-    (sh : c_shmems shmems_desc) ->
     (bid: natlt nblk) ->
+    (sh : c_shmems shmems_desc bid) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (i : natlt nthr). kpost sh bid i) **
-        block_frame sh bid)
+        (forall+ (i : natlt nthr). kpost bid i sh) **
+        block_frame bid sh)
       (ensures fun _ ->
         live_c_shmems sh **
         block_post bid)

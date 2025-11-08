@@ -14,8 +14,8 @@ ghost
 fn kmn_as_kfull_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
-  (sh : c_shmems [])
   (bid: natlt k.nblk)
+  (sh : c_shmems [] #0 bid)
   ()
   norewrite
   requires
@@ -36,8 +36,8 @@ ghost
 fn kmn_as_kfull_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
-  (sh : c_shmems [])
   (bid: natlt k.nblk)
+  (sh : c_shmems [] #0 bid)
   ()
   norewrite
   requires
@@ -68,18 +68,18 @@ let kmn_as_kfull
 
   block_pre   = k.block_pre;
   block_post  = k.block_post;
-  block_frame = (fun sh bid -> k.block_frame bid ** live_c_shmems sh);
+  block_frame = (fun bid sh -> k.block_frame bid ** live_c_shmems sh);
 
   setup = k.setup;
   teardown = k.teardown;
 
-  kpre  = (fun _ar -> k.kpre);
-  kpost = (fun _ar -> k.kpost);
+  kpre  = (fun bid tid _ar -> k.kpre bid tid);
+  kpost = (fun bid tid _ar -> k.kpost bid tid);
 
   block_setup = kmn_as_kfull_block_setup k;
   block_teardown = kmn_as_kfull_block_teardown k;
 
-  f = (fun _ear -> f);
+  f = (fun bid tid _ear -> f bid tid);
 }
 
 inline_for_extraction noextract

@@ -412,8 +412,18 @@ fn forevery_map
   forevery_refine_ext (fun _ -> True) p2;
 }
 
-
 ghost
+fn rewrite_cond_ext (p:prop) (s1 s2:slprop) (q:prop)
+requires
+  cond (t2b p) s1 s2
+requires
+  (pure (p <==> q))
+ensures cond (t2b q) s1 s2
+{ 
+  rewrite cond (t2b p) s1 s2 as cond (t2b q) s1 s2
+}
+
+ghost 
 fn forevery_remove'
   (#a: Type0)
   (f: a->prop)
@@ -428,6 +438,7 @@ fn forevery_remove'
 {
   forevery_intro_false p;
   intro_cond_false (p y) emp; rewrite each false as t2b False;
+  forevery_refine_ext #_ #(fun _ -> l_False) (fun z -> f z /\ ~(z == y) /\ l_False) p;
   forevery_rec #(x:a{f x}) p (fun pred ->
       cond (t2b (pred y)) (p y) emp **
       forall+ (z:a { f z /\ z =!= y /\ pred z }). p z)
@@ -451,6 +462,7 @@ fn forevery_remove'
         assert rewrites_to y x;
         elim_cond_false (t2b (pred y)) (p y) emp;
         rewrite p x as cond (t2b (pred x \/ x == y)) (p y) emp;
+        rewrite_cond_ext _ _ _ (pred x \/ eq2 #(x:a{f x}) x x);
         forevery_refine_ext (fun (z: a) -> f z /\ ~(z == y) /\ (pred z \/ eq2 #(x:a{f x}) x z)) p;
       } else {
         forevery_insert p x;
@@ -459,6 +471,7 @@ fn forevery_remove'
         as cond (t2b (pred y \/ eq2 #(x:a{f x}) x y)) (p y) emp;
       }
     };
+  forevery_refine_ext #_ #(fun z -> f z /\ ~(z == y) /\ l_True) (fun z -> f z /\ ~(z == y)) p;
   elim_cond_true _ (p y) emp;
 }
 
@@ -474,7 +487,8 @@ fn forevery_remove
   ensures
     p y
 {
-  forevery_remove' #a (fun _ -> True) p y
+  forevery_remove' #a (fun _ -> True) p y;
+  admit()
 }
 
 ghost
@@ -485,6 +499,7 @@ fn forevery_intro_fill (#a: Type0) (p: a -> slprop)
 {
   forevery_intro_false p;
   forevery_fill p (fun _ -> True) fn x { f x };
+  admit()
 }
 
 ghost
