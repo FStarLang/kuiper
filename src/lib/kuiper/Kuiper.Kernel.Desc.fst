@@ -41,12 +41,12 @@ type kernel_desc (full_pre full_post : slprop) = {
       (requires
          gpu **
          kpre sh bid tid **
-         thread_id nthr tid **
+         thread_id nthr bid tid **
          block_id nblk bid)
       (ensures fun _ ->
          gpu **
          kpost sh bid tid **
-         thread_id nthr tid **
+         thread_id nthr bid tid **
          block_id nblk bid)
   );
 

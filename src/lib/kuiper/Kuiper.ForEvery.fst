@@ -214,7 +214,7 @@ fn forevery_insert
 {
   unfold (forall+ (x:a {f x}). p x); with s. _;
   aux_mono (fun (x:a) -> p x) (fun x -> f x \/ y == x) s
-    (fun x -> ~(eq2 #(x: a{f x \/ eq2 #a y x}) x y));
+    (fun x -> True /\ ~(eq2 #(x: a{f x \/ eq2 #a y x}) x y));
   fold forevery_aux #(x: a{f x \/ eq2 #a y x})
     (fun x -> p x) (Insert s) (fun x -> True);
   fold (forall+ (x:a {f x \/ y == x}). p x);
@@ -236,7 +236,7 @@ fn forevery_fill
 {
   unfold (forall+ (x:a {f x}). p x); with s. _;
   aux_mono (fun (x:a) -> p x) (fun x -> f x \/ pred x) s
-    (fun x -> ~(pred x));
+    (fun x -> True /\ ~(pred x));
   forallm_intro #(x: a{f x \/ pred x}) pred (fun x -> p x) g;
   fold forevery_aux #(x: a{f x \/ pred x})
     (fun x -> p x) (Fill s) (fun x -> True);

@@ -93,12 +93,12 @@ fn adapt_kn_as_kmn
   requires
     gpu **
     pad_f (sdivup k.nthr 1024sz * 1024) k.kpre (1024 * bid + tid) **
-    thread_id 1024sz tid **
+    thread_id 1024sz bid tid **
     block_id (sdivup k.nthr 1024sz) bid
   ensures
     gpu **
     pad_f (sdivup k.nthr 1024sz * 1024) k.kpost (1024 * bid + tid) **
-    thread_id 1024sz tid **
+    thread_id 1024sz bid tid **
     block_id (sdivup k.nthr 1024sz) bid
 {
   open FStar.SizeT;
@@ -323,7 +323,7 @@ let km1_as_kmn (#full_pre #full_post : slprop)
   block_setup = km1_as_kmn_block_setup k;
   block_teardown = km1_as_kmn_block_teardown k;
 
-  f = (fun bid _tid -> frame_2 (thread_id 1sz _tid) (k.f bid));
+  f = (fun bid _tid -> frame_2 (thread_id 1sz bid _tid) (k.f bid));
 }
 
 ghost
@@ -381,7 +381,8 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
   block_setup = (fun _ -> k.block_setup ());
   block_teardown = (fun _ -> k.block_teardown ());
 
-  f = (fun _bid tid () -> Kuiper.Frame.frame_3left _ (f tid));
+  f = (fun _bid tid () -> 
+        Kuiper.Frame.frame_3left (block_id 1 0) (f tid));
 }
 
 ghost
