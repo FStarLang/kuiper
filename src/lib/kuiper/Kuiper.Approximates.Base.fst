@@ -15,8 +15,8 @@ class real_like (a:Type) {| scalar a |} = {
 
   to_real_ok :
     x:a ->
-    Lemma (ensures x `v_approximates` to_real x)
-          [SMTPat (x `v_approximates` to_real x)];
+    Lemma (ensures x `v_approximates` to_real x);
+      //     [SMTPat (x `v_approximates` to_real x)];
 
   (* We assume these two values exist and approximate correctly *)
 

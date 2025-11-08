@@ -42,7 +42,7 @@ let inv_p
   exists* (v_done:
     seq bool {len v_done >= len done /\ len v_done >= len v_a})
     v_r.
-    ((a |-> v_a) ** (r |-> v_r) **
+    ((r |-> v_r) **
     bigstar 0 (len done) (fun i -> (done @! i) |-> Frac 0.5R (v_done @! i))) **
     pure (contributions nn v_done v_a v_r zero)
 
@@ -58,6 +58,7 @@ let kpre
   (tid : natlt nn)
 =
   (done @! tid) |-> Frac 0.5R false **
+  (a |-> v_a) **
   inv i (inv_p nn a v_a r done)
 
 unfold
@@ -72,6 +73,7 @@ let kpost
   (tid : natlt nn)
 =
   (done @! tid) |-> Frac 0.5R true **
+  (a |-> v_a) **
   inv i (inv_p nn a v_a r done)
 
 ghost
@@ -125,26 +127,8 @@ fn kf
 {
   assume (pure (len v_a == SZ.v nn));
   later_credit_buy 1;
-  later_credit_buy 1;
   (* Read array at idx *)
-  let v =
-    with_invariants i
-      returns v : et
-      ensures
-        gpu **
-        block_id (SZ.v nn) bid **
-        (done @! bid) |-> Frac 0.5R false **
-        later (inv_p (SZ.v nn) a v_a r done) **
-        pure (v == v_a @! SZ.v bid) **
-        later_credit 1
-    {
-      later_elim _;
-      unfold (inv_p (SZ.v nn) a v_a r done);
-      let rr = gpu_array_read a bid;
-      fold (inv_p (SZ.v nn) a v_a r done);
-      later_intro (inv_p (SZ.v nn) a v_a r done);
-      rr
-    };
+  let v = gpu_array_read a bid;
   (* Fetch and add into result cell. *)
   with_invariants i
   {

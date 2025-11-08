@@ -109,3 +109,8 @@ let lemma_divides_product_r (d : pos) (a c : int)
   : Lemma (requires d /? a)
           (ensures d /? (c * a))
   = lemma_divides_product_l d a c
+
+let lemma_divides_chain (a b c : pos)
+  : Lemma (requires a /? b /\ b /? c)
+          (ensures a /? c)
+  = ()

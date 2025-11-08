@@ -22,9 +22,7 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
 = {
   iview = {
     len;
-    sch = {
-      ait = natlt ((len + stride - 1 - offset) / stride);
-    };
+    ait = natlt ((len + stride - 1 - offset) / stride);
     step = {
       imap = {
         f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);
@@ -186,7 +184,7 @@ let merge_lemma_aux #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et 
 = all_in_image len i;
   assert (in_image (sum_aview (even_view et len) (odd_view et len)).iview.step.imap.f i);
   let vw = sum_aview (even_view et len) (odd_view et len) in
-  assert (vw.iview.sch.ait == (either (natlt ((len + 1) / 2)) (natlt (len / 2))));
+  assert (vw.iview.ait == (either (natlt ((len + 1) / 2)) (natlt (len / 2))));
   if i % 2 = 0 then (
     FStar.Pure.BreakVC.break_vc ();
     assert (seq_interleave sl sr @! i == sl @! (i / 2));

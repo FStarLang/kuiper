@@ -90,3 +90,17 @@ instance ematrix_can_approximate
 {
   approximates = ematrix_approximates;
 }
+
+let to_real_matrix (#et : Type0)
+  {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (m : ematrix et rows cols)
+  : GTot (ematrix real rows cols)
+  = mkM fun i j -> to_real (macc m i j)
+
+val lemma_to_real_matrix_approximates (#et : Type0)
+  {| scalar et, d : real_like et |}
+  (#rows #cols : nat)
+  (m : ematrix et rows cols)
+  : Lemma (ensures m %~ to_real_matrix m)
+          [SMTPat (to_real_matrix m)]

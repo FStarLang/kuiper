@@ -18,9 +18,7 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
 = {
   iview = {
     len = len;
-    sch = {
-      ait = natlt ((len + stride - 1 - offset) / stride);
-    };
+    ait = natlt ((len + stride - 1 - offset) / stride);
     step = {
       imap = {
         f = (fun (i : natlt ((len + stride - 1 - offset) / stride)) -> i * stride + offset <: natlt len);

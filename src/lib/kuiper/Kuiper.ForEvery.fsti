@@ -448,6 +448,21 @@ fn forevery_exists
     forall+ (x:a). p x (y x)
 
 ghost
+fn forevery_exists_2
+  (#a: Type0) {| enumerable a |}
+  (#b: Type0) {| enumerable b |}
+  (#c: Type0)
+  (p: a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b).
+      exists* (z:c). p x y z
+  returns
+    f:(a->b->GTot c)
+  ensures
+    forall+ (x:a) (y:b).
+       p x y (f x y)
+
+ghost
 fn forevery_emp_intro
   (a : Type0)
   requires
@@ -607,6 +622,16 @@ fn forevery_factor
     forall+ (i1:natlt d1) (i2:natlt d2). p (i1 * d2 + i2)
 
 ghost
+fn forevery_factor'
+  (n : nat)
+  (d1 : nat) (d2 : nat { n == d1 * d2 })
+  (p : natlt d1 -> natlt d2 -> slprop)
+  requires
+    forall+ (i:natlt n). p (i/d2) (i%d2)
+  ensures
+    forall+ (i1:natlt d1) (i2:natlt d2). p i1 i2
+
+ghost
 fn forevery_unfactor
   (n : nat)
   (d1 : nat) (d2 : nat { n == d1 * d2 })
@@ -707,8 +732,8 @@ fn forevery_map'
 
 ghost
 fn forevery_zip_2
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (p1 p2 : a -> b -> slprop)
   requires
     (forall+ (x:a) (y:b). p1 x y) **
@@ -718,8 +743,8 @@ fn forevery_zip_2
 
 ghost
 fn forevery_unzip_2
-  (#a:Type0) {| enumerable a |}
-  (#b:Type0) {| enumerable b |}
+  (#a:Type0)
+  (#b:Type0)
   (p1 p2 : a -> b -> slprop)
   requires
     forall+ (x:a) (y:b). p1 x y ** p2 x y
@@ -929,31 +954,29 @@ fn forevery_split_or_2
 
 ghost
 fn forevery_split_or_n
-  (#a:Type0)
-  (n : nat)
-  (r : natlt n -> a -> prop)
+  (#a #b:Type0)
+  (r : b -> a -> prop)
   (p : a -> slprop)
   requires
-    pure (forall (i1 i2 : natlt n) x.
+    pure (forall (i1 i2 : b) x.
       r i1 x /\ r i2 x ==> i1 == i2)
   requires
     forall+ (x:a {exists i. r i x}). p x
   ensures
-    forall+ (i : natlt n).
+    forall+ (i : b).
       forall+ (x:a { r i x }).
         p x
 
 ghost
 fn forevery_join_or_n
-  (#a:Type0)
-  (n : nat)
-  (r : natlt n -> a -> prop)
+  (#a #b:Type0)
+  (r : b -> a -> prop)
   (p : a -> slprop)
   requires
-    pure (forall (i1 i2 : natlt n) x.
+    pure (forall (i1 i2 : b) x.
       r i1 x /\ r i2 x ==> i1 == i2)
   requires
-    forall+ (i : natlt n).
+    forall+ (i : b).
       forall+ (x:a { r i x }).
         p x
   ensures

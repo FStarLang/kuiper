@@ -22,9 +22,7 @@ let aview_concat
 {
   iview = {
     len = vw1.iview.len + vw2.iview.len;
-    sch = {
-      ait      = either vw1.iview.sch.ait vw2.iview.sch.ait;
-    };
+    ait = either vw1.iview.ait vw2.iview.ait;
     step = {
       imap     = inj_either vw1.iview.step.imap vw2.iview.step.imap `inj_comp` inj_nat_sum _ _;
     };
@@ -65,7 +63,7 @@ instance cview_concat
 
     // Why is the cast needed?
     compat = (fun i ->
-      let i : either vw1.iview.sch.ait vw2.iview.sch.ait = i in
+      let i : either vw1.iview.ait vw2.iview.ait = i in
       match i with
       | Inl x -> cw1.step.compat x
       | Inr y -> cw2.step.compat y);

@@ -516,6 +516,10 @@ fn kf
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)) tid;
 
+    (* underspec... *)
+    fold live_strided_chunks sA (bm/tm * (bn/tn)) tid;
+    fold live_strided_chunks sB (bm/tm * (bn/tn)) tid;
+
     assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn))) (barrier_q sA sB (bm/tm * (bn/tn))) (2 * !bkIdx + 1) tid);
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));

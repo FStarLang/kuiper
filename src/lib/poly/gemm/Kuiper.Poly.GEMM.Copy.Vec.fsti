@@ -123,7 +123,7 @@ fn cp_matrix_vec
   (#esrc : ematrix et rows cols)
   (dst : gpu_matrix et ldst)
   (#edst : ematrix et rows cols)
-  (nthr : sz)
+  (nthr : szp)
   (tid : szlt nthr)
   preserves gpu
   preserves
@@ -137,5 +137,4 @@ fn cp_matrix_vec
   requires
     own_strided_chunks dst edst nthr tid
   ensures
-    exists* em'. // TODO: functional spec
-      own_strided_chunks dst em' nthr tid
+    own_strided_chunks dst esrc nthr tid

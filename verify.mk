@@ -3,7 +3,6 @@ include .common.mk
 
 all: verify-all
 all: extract-all
-all: build-all
 
 minimal: verify-minimal
 minimal: extract-minimal
@@ -16,6 +15,10 @@ minimal: build-minimal
 	./configure $@
 
 include .configure.output
+
+ifeq (1, $(KUIPER_HAVE_NVCC))
+all: build-all
+endif
 
 # I HATE MAKE!
 .SUFFIXES:

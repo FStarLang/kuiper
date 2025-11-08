@@ -18,9 +18,9 @@ let view_equiv (#et #st : Type)
   (vw1 vw2 : aview et st)
   : prop
 = vw1.iview.len == vw2.iview.len /\
-  vw1.iview.sch.ait == vw2.iview.sch.ait /\
+  vw1.iview.ait == vw2.iview.ait /\
   F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
-  (forall (x: st) (i: vw1.iview.sch.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
+  (forall (x: st) (i: vw1.iview.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
   (* probably need more about the mappings in igm *)
   True
 
@@ -63,7 +63,7 @@ val varray_pts_to_cell
   (#st:Type0) (#vw : aview et st)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.iview.sch.ait)
+  ([@@@mkey]i : vw.iview.ait)
   (v : et)
   : slprop
 
@@ -71,7 +71,7 @@ val varray_pts_to_cell_eq
   (#et:Type)
   (#st:Type0) (#vw : aview et st)
   (a : varray vw)
-  (i : vw.iview.sch.ait)
+  (i : vw.iview.ait)
   (f : perm)
   (v : et)
   : Lemma (varray_pts_to_cell a #f i v
@@ -80,7 +80,7 @@ val varray_pts_to_cell_eq
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#st : Type) (#vw : aview et st)
-  : has_pts_to (cell (varray vw) vw.iview.sch.ait) et
+  : has_pts_to (cell (varray vw) vw.iview.ait) et
 = {
   pts_to = (fun (Cell ar i) #f v -> varray_pts_to_cell #et #st #vw ar #f i v);
 }
@@ -121,7 +121,7 @@ fn varray_explode
   requires
     a |-> Frac f v
   ensures
-    forall+ (i : vw.iview.sch.ait).
+    forall+ (i : vw.iview.ait).
       Cell a i |-> Frac f (vw.igm.acc v i)
 
 ghost
@@ -134,7 +134,7 @@ fn varray_implode
   requires
     pure (SZ.fits (len vw))
   requires
-    forall+ (i : vw.iview.sch.ait).
+    forall+ (i : vw.iview.ait).
       Cell a i |-> Frac f (vw.igm.acc v i)
   ensures
     a |-> Frac f v
@@ -146,7 +146,7 @@ fn varray_reindex_
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  (bij : vw.iview.sch.ait =~ ait')
+  (bij : vw.iview.ait =~ ait')
   (a : varray vw)
   (#f : perm)
   (#v : st)
@@ -160,7 +160,7 @@ fn varray_reindex
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  (bij : vw.iview.sch.ait =~ ait')
+  (bij : vw.iview.ait =~ ait')
   (a : varray vw)
   (#f : perm)
   (#v : erased st)
@@ -261,9 +261,9 @@ fn varray_cell_reindex
   (#vw : aview et st)
   (#vw' : aview et st')
   (a : varray vw)
-  (i : vw.iview.sch.ait)
+  (i : vw.iview.ait)
   (a' : varray vw')
-  (i' : vw'.iview.sch.ait)
+  (i' : vw'.iview.ait)
   (#v : et)
   requires
     pure (len vw == len vw' /\ core a == core a')
@@ -321,7 +321,7 @@ fn varray_iconcr
     a |-> Frac f v
   ensures
     pure (SZ.fits (len vw)) **
-    (forall+ (i : vw.iview.sch.ait).
+    (forall+ (i : vw.iview.ait).
       gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
 
 ghost
@@ -333,7 +333,7 @@ fn varray_iabs
   (#v : erased st)
   requires
     pure (SZ.fits (len vw)) **
-    (forall+ (i : vw.iview.sch.ait).
+    (forall+ (i : vw.iview.ait).
       gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
   ensures
     a |-> Frac f v
@@ -398,14 +398,14 @@ fn varray_split2_
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : varray (sum_aview vw1 vw2))
   (#f : perm)
   (#v : st1 & st2)
   requires
     a |-> Frac f v
   ensures
-    (from_array vw1 (core a) |-> Frac f (fst v)) **
-    (from_array vw2 (core a) |-> Frac f (snd v))
+    from_array vw1 (core a) |-> Frac f (fst v) **
+    from_array vw2 (core a) |-> Frac f (snd v)
 
 inline_for_extraction noextract
 fn varray_split2
@@ -413,7 +413,7 @@ fn varray_split2
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : varray (sum_aview vw1 vw2))
   (#f : perm)
   (#v : erased (st1 & st2))
   requires
@@ -421,8 +421,8 @@ fn varray_split2
   returns
     a1a2 : varray vw1 & varray vw2
   ensures
-    (fst a1a2 |-> Frac f (fst v)) **
-    (snd a1a2 |-> Frac f (snd v)) **
+    fst a1a2 |-> Frac f (fst v) **
+    snd a1a2 |-> Frac f (snd v) **
     pure (core (fst a1a2) == core a) **
     pure (core (snd a1a2) == core a)
 
@@ -432,7 +432,7 @@ fn varray_split_n
   (#n : pos)
   (vw : natlt n -> aview et st { forall i. len (vw i) = len (vw 0) })
   (#_ : squash (no_overlap_fam n vw))
-  (a : varray (sum_aview_fam n vw #()))
+  (a : varray (sum_aview_fam n vw))
   (#f : perm)
   (#v : natlt n ^->> st)
   requires
@@ -476,7 +476,7 @@ fn varray_join2
     al |-> Frac f v1 **
     ar |-> Frac f v2
   returns
-    a : varray (sum_aview vw1 vw2 #())
+    a : varray (sum_aview vw1 vw2)
   ensures
     (a |-> Frac f (reveal v1, reveal v2)) **
     pure (core a == core al)
@@ -527,7 +527,7 @@ inline_for_extraction noextract
 fn varray_write_cell
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (v1 : et)
@@ -542,9 +542,9 @@ inline_for_extraction noextract
 fn varray_write_cell'
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
-  (ai : erased vw.iview.sch.ait)
+  (ai : erased vw.iview.ait)
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
@@ -560,7 +560,7 @@ inline_for_extraction noextract
 fn varray_read_cell
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -579,10 +579,10 @@ inline_for_extraction noextract
 fn varray_read_cell'
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (i : cw.sch.cit)
-  (ai : erased vw.iview.sch.ait)
+  (ai : erased vw.iview.ait)
   (#f : perm)
   (#v0 : erased et)
   preserves
@@ -600,7 +600,7 @@ inline_for_extraction noextract
 fn varray_read
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (#f : perm)
@@ -617,7 +617,7 @@ inline_for_extraction noextract
 fn varray_write
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (e : et)

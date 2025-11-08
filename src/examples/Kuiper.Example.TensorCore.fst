@@ -8,6 +8,7 @@ open Kuiper.Matrix.Tiling
 open Kuiper.Matrix.Reprs { row_major, col_major }
 open Kuiper.Spec.GEMM
 open Kuiper.EMatrix
+open Kuiper.Approximates { ( %~ ) }
 
 inline_for_extraction noextract instance c16 : concrete_sz 16 = { x = 16sz; }
 inline_for_extraction noextract instance c1 : concrete_sz 1 = { x = 1sz; }
@@ -37,45 +38,43 @@ fn use_wmma_ker
   ()
 }
 
-let matplus_zero_lem (#et:Type) {| scalar et |}
+let matplus_zero_lem
   (#m #n : nat)
-  (mm : ematrix et m n)
-  : Lemma (requires (forall (x:et). zero `add` x == x))
-          (ensures matplus (const_matrix zero) mm == mm)
-  = assert (equal (matplus (const_matrix zero) mm) mm);
+  (mm : ematrix real m n)
+  : Lemma (ensures matplus (const_matrix 0.0R) mm == mm)
+  = assert (equal (matplus (const_matrix 0.0R) mm) mm);
     ()
 
 [@@CPrologue "inline";
  CPrologue "__device__"]
 fn test
-  (m1 : gpu_matrix half (row_major 16 16))
-  (m2 : gpu_matrix half (row_major 16 16))
-  (m3 : gpu_matrix half (row_major 16 16))
+  (m1 m2 m3 : gpu_matrix half (row_major 16 16))
+  (#v1 #v2 #v3 : ematrix half 16 16)
+  (#r1 #r2 #r3 : ematrix real 16 16)
   preserves
-    m1 |-> 'v1 **
-    m2 |-> 'v2
+    m1 |-> v1 ** pure (v1 %~ r1) **
+    m2 |-> v2 ** pure (v2 %~ r2)
   requires
-    // m3 |-> 'v3
-   pts_to m3 #(1.0R /. 32.0R) 'v3
+    m3 |-> Frac (1.0R /. 32.0R) v3
   ensures
-    (* m3 |-> matmul #half 'v1 'v2 *)
-    live m3 #(1.0R /. 32.0R)
+    (exists* (v3 : ematrix half 16 16).
+      m3 |-> Frac (1.0R /. 32.0R) v3 ** pure (v3 %~ matmul r1 r2))
 {
+  with v1. assert m1 |-> v1;
+  with v2. assert m2 |-> v2;
+  with v3. assert gpu_matrix_pts_to m3 #(1.0R /. 32.0R) v3;
+
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
   let fc = __alloc_fragment half FragAcc 16sz 16sz 16sz FragLAcc;
 
-  // use_wmma_ker m1 m2 m3 fragA fragB fragC;
   mma_loadA fa m1;
   mma_loadB fb m2;
   mma_fill fc zero;
   mma_sync' fa fb fc;
   mma_store fc m3;
 
-  (* lemma_mma_is_matmul_add (fill_value #half #FragAcc #16 #16 #16 zero) 'v1 'v2; *)
-  (* assume (pure (forall (x:half). zero `add` x == x)); *)
-  (* matplus_zero_lem (matmul 'v1 'v2); *)
-  (* assert m3 |-> matmul 'v1 'v2; *)
+  emma_approx_lemma (fill_value #half #FragAcc #16 #16 #16 zero) v1 v2 (Kuiper.EMatrix.const_matrix 0.0R) r1 r2;
 
   with x. assert fa |-> x; drop_ (fa |-> x);
   with x. assert fb |-> x; drop_ (fb |-> x);
@@ -86,26 +85,23 @@ fn test
 [@@CPrologue "inline";
  CPrologue "__device__"]
 fn test2
-  (m1 : gpu_matrix half (row_major 48 48))
-  (m2 : gpu_matrix half (row_major 48 48))
-  (m3 : gpu_matrix half (row_major 48 48))
+  (m1 m2 m3 : gpu_matrix half (row_major 48 48))
   (#v1 #v2 #v3 : ematrix half 48 48)
+  (#r1 #r2 #r3 : ematrix real 48 48)
   preserves
-    m1 |-> v1 **
-    m2 |-> v2
+    m1 |-> v1 ** pure (v1 %~ r1) **
+    m2 |-> v2 ** pure (v2 %~ r2)
   requires
-    m3 |-> v3
+    m3 |-> Frac (1.0R /. 32) v3 ** pure (v3 %~ r3)
   ensures
-    live m3
-    (* m3 |-> *)
-    (*   update_tile #half v3 16 16 1 1 *)
-    (*     (matplus (const_matrix #half #16 #16 zero) *)
-    (*       (matmul #half *)
-    (*         (ematrix_subtile v1 16 16 1 1) *)
-    (*         (ematrix_subtile v2 16 16 1 1))) *)
+    exists* (v3' : ematrix half 48 48).
+      m3 |-> Frac (1.0R /. 32) v3' **
+      pure (v3' %~
+        update_tile #real r3 16 16 1 1
+            (matmul #real
+              (ematrix_subtile r1 16 16 1 1)
+              (ematrix_subtile r2 16 16 1 1)))
 {
-  (* This is hacky due to the fractional permission on the matrix tiles. *)
-
   let fa = __alloc_fragment half FragA 16sz 16sz 16sz FragLRM;
   let fb = __alloc_fragment half FragB 16sz 16sz 16sz FragLRM;
   let fc = __alloc_fragment half FragAcc 16sz 16sz 16sz FragLAcc;
@@ -122,12 +118,7 @@ fn test2
   let t3 = gpu_matrix_subtile m3 16 16 1 1;
   assert (rewrites_to t3 (gpu_matrix_subtile m3 16 16 1 1));
 
-  with vm3. assert gpu_matrix_pts_to t3 vm3;
-  rewrite
-    gpu_matrix_pts_to t3 vm3
-  as
-    gpu_matrix_pts_to t3 #(1.0R /. 32.0R) vm3 ** gpu_matrix_pts_to t3 #(31.0R /. 32.0R) vm3
-  by tadmit();
+  with vm3. assert gpu_matrix_pts_to t3 #(1.0R /. 32) vm3;
 
   mma_loadA fa t1;
   mma_loadB fb t2;
@@ -135,17 +126,12 @@ fn test2
   mma_sync' fa fb fc;
   mma_store fc t3;
 
-  with vm3'. assert gpu_matrix_pts_to t3 #(1.0R /. 32.0R) vm3';
-  rewrite
-    gpu_matrix_pts_to t3 #(1.0R /. 32.0R) vm3' ** gpu_matrix_pts_to t3 #(31.0R /. 32.0R) vm3
-  as
-    gpu_matrix_pts_to t3 vm3'
-  by tadmit();
-
-  (* lemma_mma_is_matmul_add *)
-  (*   (fill_value #half #FragAcc #16 #16 #16 zero) *)
-  (*   (ematrix_subtile v1 16 16 1 1) *)
-  (*   (ematrix_subtile v2 16 16 1 1); *)
+  emma_approx_lemma (fill_value #half #FragAcc #16 #16 #16 zero)
+    (ematrix_subtile v1 16 16 1 1)
+    (ematrix_subtile v2 16 16 1 1)
+    (Kuiper.EMatrix.const_matrix 0.0R)
+    (ematrix_subtile r1 16 16 1 1)
+    (ematrix_subtile r2 16 16 1 1);
 
   with x1.
     assert t1 |-> x1;
@@ -154,12 +140,13 @@ fn test2
     assert t2 |-> x2;
     Pulse.Lib.Trade.elim_trade (t2 |-> x2) (m2 |-> v2);
   with x3.
-    assert t3 |-> x3;
+    assert gpu_matrix_pts_to t3 #(1.0R /. 32) x3;
     Pulse.Lib.Forall.elim_forall x3;
-    Pulse.Lib.Trade.elim_trade (t3 |-> x3) _;
+    Pulse.Lib.Trade.elim_trade (gpu_matrix_pts_to t3 #(1.0R /. 32) x3) _;
 
   with x. assert fa |-> x; drop_ (fa |-> x);
   with x. assert fb |-> x; drop_ (fb |-> x);
   with x. assert fc |-> x; drop_ (fc |-> x);
+
   ()
 }

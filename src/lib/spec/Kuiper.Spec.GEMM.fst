@@ -95,6 +95,74 @@ let lemma_matmul_index
 : Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j)
 = ()
 
+let rec __matmul_single_tile
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+  (to : nat{to <= shared / tk})
+  : GTot (ematrix et tm tn) (decreases to)
+  =
+  if reveal to = 0 then const_matrix zero
+  else (
+    matplus
+      (__matmul_single_tile tm tn tk m1 m2 trow tcol (to-1))
+      (matmul (ematrix_subtile m1 tm tk trow (to-1))
+              (ematrix_subtile m2 tk tn (to-1) tcol)))
+
+let matmul_single_tile_zero_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+: Lemma
+  (ensures (
+    __matmul_single_tile tm tn tk m1 m2 trow tcol 0 == const_matrix zero
+  ))
+  = ()
+
+let matmul_single_tile_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (tm : pos{tm /? rows})
+  (tn : pos{tn /? columns})
+  (tk : pos{tk /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trow : natlt (rows / tm))
+  (tcol : natlt (columns / tn))
+  (to : nat{to <= shared / tk})
+: Lemma
+  (requires (0 < to /\ to <= shared))
+  (ensures (
+    __matmul_single_tile tm tn tk m1 m2 trow tcol to ==
+    matplus
+      (__matmul_single_tile tm tn tk m1 m2 trow tcol (to-1))
+      (matmul (ematrix_subtile m1 tm tk trow (to-1))
+              (ematrix_subtile m2 tk tn (to-1) tcol)))
+  )
+  = ()
+
+let lemma_matmul_tile_index
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (i : nat{ i < rows })
+  (j : nat{ j < columns })
+: Lemma (macc (matmul m1 m2) i j == matmul_single m1 m2 i j)
+= ()
+
 let matmul_is_gemm
   (#et:Type) {| scalar et |}
   (#rows #shared #columns : nat)

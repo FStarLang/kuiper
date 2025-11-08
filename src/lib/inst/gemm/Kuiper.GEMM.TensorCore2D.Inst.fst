@@ -7,6 +7,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Approximates
 
 module SZ = Kuiper.SizeT
 
@@ -18,6 +19,7 @@ fn spec
   // specialize
   (et_ab et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (bm bn bk : szp)
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab /?+ bn))
@@ -61,7 +63,8 @@ fn spec
   requires
     gC |-> eC
   ensures
-    (exists* eC'. gC |-> eC')
+    exists* eC'.
+      gC |-> eC' ** pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))
 {
   gpu_matrix_pts_to_ref gA;
   gpu_matrix_pts_to_ref gB;
@@ -80,14 +83,26 @@ fn spec
   dguard (shared %^ bk = 0sz);
   dguard (cols   %^ bn = 0sz);
 
+  // Pretty bad that we have to call this explicitly...
+  lemma_divides_chain (wm * tm) bm rows;
+  lemma_divides_chain (wn * tn) bn cols;
+
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
 
   dassert ((bm *^ bk) %^ (chunk et_ab *^ nthr) = 0sz);
   dassert ((bk *^ bn) %^ (chunk et_ab *^ nthr) = 0sz);
 
+  (* Instead of threading through approximations, we here pick
+     real matrices that are (trivially) approximated
+     by the input ematrices, and call the function. This is mostly
+     to show that the approximation precondition is not a serious
+     requirement. *)
+  let rA = to_real_matrix eA;
+  let rB = to_real_matrix eB;
+  let rC = to_real_matrix eC;
   launch_sync (
-    mk_kernel gA gB gC bm bn bk tm tn tk wm wn nblk nthr ()
+    mk_kernel gA gB gC bm bn bk tm tn tk wm wn nblk nthr rA rB rC ()
   );
 
   ()

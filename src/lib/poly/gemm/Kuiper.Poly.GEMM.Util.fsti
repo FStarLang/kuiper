@@ -8,14 +8,6 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-open Kuiper.EMatrix4 { ematrix4 }
-open Kuiper.Matrix4 {
-  gpu_matrix as gpu_matrix4,
-  gpu_matrix_pts_to as m4_pts_to,
-  gpu_matrix_pts_to_cell as m4_pts_to_cell,
-  mlayout4,
-  clayout4
-}
 
 inline_for_extraction noextract
 fn matmul_dotprod

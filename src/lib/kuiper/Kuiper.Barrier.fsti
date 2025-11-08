@@ -49,7 +49,7 @@ val barrier_tok
    q's at each iteration. *)
 ghost
 fn mk_barrier
-  (n: nat { 0 < n /\ n <= max_threads })
+  (n: nat)
   (p q : barrier_side n)
   (pf : barrier_transform p q)
   requires can_create_barrier n
