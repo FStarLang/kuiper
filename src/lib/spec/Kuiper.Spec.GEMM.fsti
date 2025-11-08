@@ -44,6 +44,15 @@ let matmul_single
   : GTot et
   = __matmul_single m1 m2 row col shared
 
+let __matmul_up_to
+  (#et : Type) {| scalar et|}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (to : nat{to <= shared})
+: ematrix et rows columns
+= mkM <| fun i j -> __matmul_single m1 m2 i j to
+
 let gemm_single
   (#et:Type) {| scalar et |}
   (comb : binop et)
