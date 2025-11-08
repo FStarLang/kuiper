@@ -1281,6 +1281,31 @@ fn forevery_exists
 }
 
 ghost
+fn forevery_exists_2
+  (#a: Type0) {| enumerable a |}
+  (#b: Type0) {| enumerable b |}
+  (#c: Type0)
+  (p: a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b).
+      exists* (z:c). p x y z
+  returns
+    f:(a->b->GTot c)
+  ensures
+    forall+ (x:a) (y:b).
+       p x y (f x y)
+{
+  forevery_flatten _;
+  let f = forevery_exists #(a & b) (fun xy z -> p xy._1 xy._2 z);
+  let f' = (fun x y -> f (x, y));
+  forevery_unflatten' _;
+  forevery_ext_2
+    (fun x y -> p (x,y)._1 (x,y)._2 (f (x,y)))
+    (fun x y -> p x y (f' x y));
+  f'
+}
+
+ghost
 fn forevery_emp_intro
   (a : Type0)
   ensures

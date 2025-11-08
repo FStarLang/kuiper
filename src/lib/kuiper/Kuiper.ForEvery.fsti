@@ -448,6 +448,21 @@ fn forevery_exists
     forall+ (x:a). p x (y x)
 
 ghost
+fn forevery_exists_2
+  (#a: Type0) {| enumerable a |}
+  (#b: Type0) {| enumerable b |}
+  (#c: Type0)
+  (p: a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b).
+      exists* (z:c). p x y z
+  returns
+    f:(a->b->GTot c)
+  ensures
+    forall+ (x:a) (y:b).
+       p x y (f x y)
+
+ghost
 fn forevery_emp_intro
   (a : Type0)
   requires

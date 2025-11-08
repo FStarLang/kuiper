@@ -78,6 +78,27 @@ let warp_tile_pts_to
     #(recip warp_size)
     em
 
+let warp_tile_approximates
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows : nat)
+  (#cols : nat)
+  (#lC : mlayout rows cols)
+  (gC : gpu_matrix et lC)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (wm : pos{wm * tm /?+ bm})
+  (wn : pos{wn * tn /?+ bn})
+  (bid : natlt ((rows/bm) * (cols/bn)))
+  (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (rm : ematrix real (wm * tm) (wn * tn))
+  : slprop
+  =
+  exists* em.
+    warp_tile_pts_to gC bm bn tm tn wm wn bid wid em **
+    pure (em %~ rm)
+
 let bp_sharing
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat)
@@ -226,7 +247,8 @@ let kpre1
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
   (exists* tC.
     warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC) **
-  // ^ Missing functional spec
+  // ^ Missing functional spec, but not a problem until
+  // we make this an actual GEMM instead of a matmul.
   pure (aligned 16 (core gA)) **
   pure (aligned 16 (core gB)) **
   pure (eA %~ rA) **
@@ -397,7 +419,7 @@ instance ematrix_subtile_can_approximate
  *)
 
 let warp_tile_i
-  (#rows #cols : szp)
+  (#rows #cols : pos)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -405,12 +427,11 @@ let warp_tile_i
   (#_ : squash (bn /?+ cols))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt nthr)
+  (wid : natlt (nthr / warp_size)) // warp ID
   : GTot (natlt (rows / (wm*tm)))
   =
     let tile_i = bid / (cols/bn) in
     let tile_j = bid % (cols/bn) in
-    let wid = tid / warp_size in
     assert (wid < (bm/(wm*tm)) * (bn/(wn*tn)));
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
@@ -421,7 +442,7 @@ let warp_tile_i
     tile_i * (bm / (wm*tm)) + subtile_i // Is this right?
 
 let warp_tile_j
-  (#rows #cols : szp)
+  (#rows #cols : pos)
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
@@ -429,12 +450,11 @@ let warp_tile_j
   (#_ : squash (bn /?+ cols))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
   (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt nthr)
+  (wid : natlt (nthr / warp_size)) // warp ID
   : GTot (natlt (cols / (wn*tn)))
   =
     let tile_i = bid / (cols/bn) in
     let tile_j = bid % (cols/bn) in
-    let wid = tid / warp_size in
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
     tile_j * (bn / (wn*tn)) + subtile_j // Is this right? At least it seems in bounds
@@ -473,10 +493,9 @@ let kpost1
   =
   gA |-> Frac (fA /. (rows/bm * (cols/bn) * nthr)) eA **
   gB |-> Frac (fB /. (rows/bm * (cols/bn) * nthr)) eB **
-  (exists* (tC': ematrix et_c (wm*tm) (wn*tn)).
-    warp_tile_pts_to gC bm bn tm tn wm wn bid (tid/warp_size) tC' **
-    pure (tC' %~ MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i bm bn bk tm tn tk wm wn nthr bid tid) 0)
-                           (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid tid))))
+  warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
+    (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+               (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))
 
 unfold
 let kpost
