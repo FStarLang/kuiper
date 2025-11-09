@@ -182,7 +182,7 @@ fn softmax_gpu
   gpu_pts_to_ref_located a; (* recall length, automate *)
 
   (* Pointwise exponentiation. *)
-  launch_sync (kmap exp lena a);
+  launch_sync (kmap exp lena a #s);
 
   (* Compute average. Need swap space since hreduce trashes the input. *)
   let a' = Array.gpu_array_alloc #et lena;
@@ -194,7 +194,8 @@ fn softmax_gpu
   gpu_array_free a';
 
   (* Divide by average *)
-  launch_sync (kmap (fun x -> div x avg) lena a);
+  with s'. assert on gpu_loc (a |-> s');
+  launch_sync (kmap (fun x -> div x avg) lena a #s');
 
   softmax_approx s r;
   ()

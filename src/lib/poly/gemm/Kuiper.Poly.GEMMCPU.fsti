@@ -108,12 +108,12 @@ type fixed_repr_gemm_gpu_ty
   (#mc0 : ematrix et rows cols) ->
   stt unit
     (requires
-      (cpu ** gA |-> ma ** gB |-> mb) **
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
       (pure (size_req rows shared cols) **
-       gC |-> mc0))
+       on gpu_loc (gC |-> mc0)))
     (ensures fun _ ->
-      (cpu ** gA |-> ma ** gB |-> mb) **
-      (gC |-> MS.gemm alpha beta mc0 ma mb))
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
+      (on gpu_loc (gC |-> MS.gemm alpha beta mc0 ma mb)))
 
 unfold
 inline_for_extraction
@@ -134,12 +134,12 @@ type fixed_repr_mmcomb_gpu_ty
   (#mc0 : ematrix et rows cols) ->
   stt unit
     (requires
-      (cpu ** gA |-> ma ** gB |-> mb) **
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
       (pure (size_req rows shared cols) **
-       gC |-> mc0))
+       on gpu_loc (gC |-> mc0)))
     (ensures fun _ ->
-      (cpu ** gA |-> ma ** gB |-> mb) **
-      (gC |-> MS.matmul ma mb))
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
+      (on gpu_loc (gC |-> MS.matmul ma mb)))
 
 inline_for_extraction noextract
 val specialize_as_gemm_to_type_and_reprs_gpu

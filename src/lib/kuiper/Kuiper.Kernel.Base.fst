@@ -14,6 +14,7 @@ noextract
 fn launch_kernel_full
   (#full_pre : slprop)
   (#full_post : slprop)
+  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   (k : kernel_desc full_pre full_post)
   (#e : epoch_t)
   requires
@@ -30,3 +31,15 @@ fn launch_kernel_full
 {
   admit()
 }
+
+noextract
+fn sync_device () (#e:epoch_t)
+  requires
+    epoch_live e
+  returns
+    e' : epoch_t
+  ensures
+    epoch_done e **
+    epoch_live e' **
+    pure (e' >= e)
+{ admit() }

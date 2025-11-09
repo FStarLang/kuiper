@@ -9,10 +9,173 @@ module SZ = Kuiper.SizeT
 module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
 
+open Pulse.Lib.SendSync
+
+(* this would suffice, as used in the proof below, see is_send_across_forevery_alt *)
+ghost
+fn placeless_forevery 
+    (#a: Type u#0) 
+    (p: a -> slprop)
+    (pa: (x:a -> placeless (p x)))
+    (l0 l1: loc_id)
+  requires
+    on l0 (forall+ (x:a). p x)
+  ensures
+    on l1 (forall+ (x:a). p x)
+{ 
+  admit()
+}
+
+(* alternatively, if we had these, the proof is easier see is_send_across_forevery *)
+ghost
+fn on_forevery_elim (#a: Type u#0) (p: a -> slprop) (l: loc_id) 
+  requires
+    on l (forall+ (x:a). p x)
+  ensures
+    (forall+ (x:a). on l (p x))
+{ admit() }
+
+ghost
+fn on_forevery_intro (#a: Type u#0) (p: a -> slprop) (l: loc_id) 
+  requires
+    (forall+ (x:a). on l (p x))
+  ensures
+    on l (forall+ (x:a). p x)
+{ admit () }
+
+
+ghost
+fn is_send_across_forevery
+  (#a:Type u#0) (#b:Type) (p: a -> slprop) (vis:loc_id -> b) (sa: (x:a -> is_send_across vis (p x)))
+  (l:loc_id) (l':loc_id { vis l == vis l' })
+requires on l (forall+ (x:a). p x)
+ensures on l' (forall+ (x:a). p x)
+{
+  on_forevery_elim p l;
+  forevery_map (fun x -> on l (p x)) (fun x -> on l' (p x)) fn x {
+    sa x l l'
+  };
+  on_forevery_intro p l';
+}
+
+ghost
+fn on_forevery_elim_ok (#a: Type u#0) {| enumerable a |} (p: a -> slprop) (l: loc_id) 
+  requires
+    on l (forall+ (x:a). p x)
+  ensures
+    on l (forall+ (x:a). on l (p x))
+{ 
+  ghost
+  fn aux ()
+    requires loc l ** on l (forall+ (x:a). p x) 
+    ensures loc l ** on l (forall+ (x:a). on l (p x))
+  {
+    on_elim _;
+    forevery_map_extra (loc l) (fun x -> p x) (fun x -> on l (p x)) fn x {
+      on_intro (p x)
+    };
+    on_intro (forall+ (x:a). on l (p x));
+  };
+  ghost_impersonate _ _ _ aux
+}
+
+
+ghost
+fn on_forevery_pull (#a: Type u#0) {| enumerable a |} (p: a -> slprop) (l: loc_id) 
+  requires
+    on l (forall+ (x:a). on l (p x))
+  ensures
+    on l (forall+ (x:a). p x)
+{
+  ghost
+  fn aux ()
+    requires loc l ** on l (forall+ (x:a). on l (p x))
+    ensures loc l ** on l (forall+ (x:a). p x)
+  {
+    on_elim _;
+    forevery_map_extra (loc l) (fun x -> on l (p x)) (fun x -> p x) fn x {
+      on_elim _;
+    };
+    on_intro (forall+ (x:a). p x);
+  };
+  ghost_impersonate _ _ _ aux
+}
+
+ghost
+fn is_send_across_forevery_aux
+  (#a:Type u#0) (#b:Type)  {| enumerable a |} (p: a -> slprop) (vis:loc_id -> b) (sa: (x:a -> is_send_across vis (p x)))
+  (l:loc_id) (l':loc_id { vis l == vis l' })
+requires on l (forall+ (x:a). p x)
+ensures on l (forall+ (x:a). on l' (p x))
+{
+  on_forevery_elim_ok p l;
+  ghost 
+  fn aux ()
+  requires loc l ** on l (forall+ (x:a). on l (p x))
+  ensures loc l ** on l (forall+ (x:a). on l' (p x))
+  {
+    on_elim _;
+    forevery_map (fun x -> on l (p x)) (fun x -> on l' (p x)) fn x {
+      sa x l l'
+    };
+    on_intro (forall+ (x:a). on l' (p x));
+  };
+  ghost_impersonate _ _ _ aux
+}
+
+ghost
+fn move_forevery_placeless (#a: Type u#0) 
+    (p: a -> slprop) (l: loc_id) 
+    (pa: (x:a -> placeless (p x)))
+  requires
+    (forall+ (x:a). p x)
+  ensures
+    on l (forall+ (x:a). p x)
+{
+  ghost
+  fn aux ()
+  requires loc l ** (forall+ (x:a). p x)
+  ensures loc l ** on l (forall+ (x:a). p x)
+  { 
+    on_intro (forall+ (x:a). p x);
+  };
+  let _ : placeless (forall+ (x:a). p x) = placeless_forevery p pa;
+  ghost_impersonate _ _ _ aux;
+}
+
+ghost
+fn is_send_across_forevery_alt
+  (#a:Type u#0) (#b:Type)  {| enumerable a |} (p: a -> slprop) (vis:loc_id -> b) (sa: (x:a -> is_send_across vis (p x)))
+  (l:loc_id) (l':loc_id { vis l == vis l' })
+requires on l (forall+ (x:a). p x)
+ensures on l' (forall+ (x:a). p x)
+{
+  is_send_across_forevery_aux p vis sa l l';
+  ghost
+  fn aux ()
+  requires loc l ** on l (forall+ (x:a). on l' (p x))
+  ensures loc l ** on l (on l' ((forall+ (x:a). p x)))
+  { 
+    on_elim _;
+    move_forevery_placeless (fun x -> on l' (p x)) l' (fun x -> solve);
+    on_forevery_pull (fun x -> p x) l';
+    on_intro (on l' (forall+ (x:a). p x));
+  };
+  ghost_impersonate _ _ _ aux;
+  on_on_eq l l' (forall+ (x:a). p x);
+  rewrite (on l (on l' (forall+ (x:a). p x))) as on l' (forall+ (x:a). p x);
+}
+
+
+
+
 noeq
 inline_for_extraction
 type iarray (et : Type0) (vw : aiview) : Type0 =
   | IA of B.gpu_array et (len vw)
+
+let is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop =
+  let IA a = arr in is_global_array a
 
 inline_for_extraction noextract
 let from_array
@@ -51,6 +214,16 @@ let iarray_pts_to_cell
   : slprop
   = gpu_pts_to_cell (core a) #f (it_to_nat vw i) v
 
+instance is_send_across_iarray_pts_to_cell
+  (#et:Type0)
+  (#vw : aiview)
+  (a : iarray et vw { is_global_iarray a })
+  (#f : perm)
+  (i : vw.ait)
+  (v : et)
+  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  = solve
+
 let iarray_pts_to_cell_def
   (#et : Type)
   (#vw : aiview)
@@ -71,6 +244,15 @@ let iarray_pts_to
   = pure (SZ.fits (len vw)) **
     (forall+ (i : vw.ait).
       iarray_pts_to_cell a #f i (v i))
+
+instance is_send_across_global_iarray
+  (#et:Type0)
+  (#vw : aiview)
+  (x: iarray et vw { is_global_iarray x })
+  (#f : perm)
+  (v : (vw.ait -> GTot et))
+  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to x #f v)
+  = admit() 
 
 ghost
 fn iarray_pts_to_ref

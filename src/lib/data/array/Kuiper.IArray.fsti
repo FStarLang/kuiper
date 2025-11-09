@@ -18,6 +18,8 @@ new
 inline_for_extraction
 val iarray (et : Type0) (vw : aiview) : Type0
 
+val is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop
+
 inline_for_extraction noextract
 val from_array
   (#et : Type0)
@@ -36,14 +38,14 @@ val lem_from_array_core
   (#et : Type0)
   (#vw : aiview)
   (arr : iarray et vw)
-  : Lemma (ensures from_array vw (core arr) == arr)
+  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_iarray arr))
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#et : Type0)
   (vw : aiview)
   (p : gpu_array et (len vw))
-  : Lemma (ensures core (from_array vw p) == p)
+  : Lemma (ensures core (from_array vw p) == p /\ (is_global_iarray (from_array vw p) <==> is_global_array p))
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -79,6 +81,15 @@ val iarray_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (v : (vw.ait -> GTot et))
   : slprop
+
+instance
+val is_send_across_global_iarray
+  (#et:Type0)
+  (#vw : aiview)
+  (x: iarray et vw { is_global_iarray x })
+  (#f : perm)
+  (v : (vw.ait -> GTot et))
+  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to x #f v)
 
 unfold
 instance has_pts_to (#et:Type0) (#vw : aiview)

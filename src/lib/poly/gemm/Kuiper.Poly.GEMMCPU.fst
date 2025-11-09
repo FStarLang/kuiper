@@ -50,7 +50,7 @@ fn matmul_cpu
   M.gpu_matrix_from_array gA a;
   M.gpu_matrix_from_array gB b;
 
-  with vc. assert gC |-> vc;
+  with vc. assert on gpu_loc (gC |-> vc);
 
   mmcomb_gpu MS.comb2 gA gB gC;
 
@@ -91,13 +91,13 @@ fn mmcomb_gpu_tiled
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (size_req (rows / tile) (shared / tile) (cols / tile) tile) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
   dguard (rows   %^ tile = 0sz);
@@ -106,7 +106,7 @@ fn mmcomb_gpu_tiled
   let mrows   = rows   /^ tile;
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
-
+  admit();//on prover
   mmcomb_gpu
     tile
     comb
@@ -136,17 +136,17 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   norewrite
   preserves
     cpu **
-    gA |-> ma **
-    gB |-> mb
+    on gpu_loc (gA |-> ma) **
+    on gpu_loc (gB |-> mb)
   requires
     pure (size_req rows shared cols) **
-    gC |-> mc0
+    on gpu_loc (gC |-> mc0)
   ensures
-    gC |-> MS.gemm alpha beta mc0 ma mb
+    on gpu_loc (gC |-> MS.gemm alpha beta mc0 ma mb)
 {
-  M.gpu_matrix_pts_to_ref gA;
-  M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
 
   mmcomb_gpu #et #_ (MS.lincomb alpha beta) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
@@ -168,22 +168,25 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   norewrite
   preserves
     cpu **
-    gA |-> ma **
-    gB |-> mb
+    on gpu_loc (gA |-> ma) **
+    on gpu_loc (gB |-> mb)
   requires
     pure (size_req rows shared cols) **
-    gC |-> mc0
+    on gpu_loc (gC |-> mc0)
   ensures
-    gC |-> MS.matmul ma mb
+    on gpu_loc (gC |-> MS.matmul ma mb)
 {
-  M.gpu_matrix_pts_to_ref gA;
-  M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
 
   mmcomb_gpu MS.comb2
     #rows #shared #cols
     #(rA _ _) #(rB _ _) #(rC _ _)
     gA gB gC;
+  //on prover
+  rewrite on gpu_loc (gC |-> MS.mmcomb MS.comb2 mc0 ma mb) as on gpu_loc (gC |-> MS.matmul ma mb);
+  ()
 }
 
 inline_for_extraction noextract

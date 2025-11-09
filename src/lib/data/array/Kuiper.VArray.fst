@@ -17,6 +17,13 @@ type varray
   (vw : aview et st)
 = | VA of IArray.iarray et vw.iview
 
+let is_global_varray 
+  (#et:Type0) (#st : Type0)
+  (#vw : aview et st)
+  (arr: varray vw)
+: prop
+= IArray.is_global_iarray (VA?._0 arr)
+
 inline_for_extraction noextract
 let from_array
   (#a : Type0) (#st : Type0)
@@ -73,6 +80,16 @@ let varray_pts_to
   : slprop
   =
     (VA?._0 a) |-> Frac f (vw.igm.acc v)
+
+instance is_send_across_global_varray
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x: varray vw { is_global_varray x })
+  (#f : perm)
+  (v : st)
+  : Pulse.Lib.SendSync.is_send_across gpu_of (varray_pts_to x #f v)
+  = solve
 
 ghost
 fn varray_pts_to_ref

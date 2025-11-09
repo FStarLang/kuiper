@@ -31,6 +31,28 @@ fn gpu_pts_to_ref
   gpu_pts_to_slice_ref x 0 sz;
 }
 
+
+ghost
+fn gpu_pts_to_ref_located
+  (#a:Type u#0)
+  (#sz:nat)
+  (#f : perm)
+  (x:gpu_array a sz)
+  (#v : seq a)
+  (#l : loc_id)
+  preserves on l (x |-> Frac f v)
+  ensures  pure (Seq.length v == sz /\ SZ.fits sz)
+{
+  ghost_impersonate l 
+    (on l (x |-> Frac f v))
+    (on l (x |-> Frac f v) ** pure (Seq.length v == sz /\ SZ.fits sz))
+    fn () {
+      on_elim _;
+      gpu_pts_to_ref x;
+      on_intro (x |-> Frac f v);
+    }
+}
+
 ghost
 fn gpu_slice_split'
   (#a:Type u#0)

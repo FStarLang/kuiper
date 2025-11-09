@@ -80,17 +80,16 @@ fn matmul_dist_gpu
   (#ea : ematrix dist size size)
   (#eb : ematrix dist size size)
   preserves
-    cpu ** a |-> ea
+    cpu ** on gpu_loc (a |-> ea)
   requires
     pure (size * size <= max_blocks) **
-    b |-> eb
+    on gpu_loc (b |-> eb)
   ensures
-    exists* eb'. b |-> eb'
+    exists* eb'. on gpu_loc (b |-> eb')
 {
-  assert a |-> ea;
-  M.gpu_matrix_share_2 a;
-
+  map_loc gpu_loc (fun() -> M.gpu_matrix_share_2 a);
+  on_star_elim _ _;
   P.mmcomb_gpu add' a a b;
-
-  M.gpu_matrix_gather_2 a;
+  on_star_intro (a |-> Frac 0.5R ea) (a |-> Frac 0.5R ea);
+  map_loc gpu_loc (fun () -> M.gpu_matrix_gather_2 a);
 }

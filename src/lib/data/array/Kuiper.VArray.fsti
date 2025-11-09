@@ -28,6 +28,8 @@ new
 inline_for_extraction
 val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
 
+val is_global_varray (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
+
 inline_for_extraction noextract
 val from_array
   (#a : Type0)
@@ -47,14 +49,14 @@ val lem_from_array_core
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (arr : varray vw)
-  : Lemma (ensures from_array vw (core arr) == arr)
+  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_varray arr))
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (p : gpu_array a (len vw))
-  : Lemma (ensures core (from_array vw p) == p)
+  : Lemma (ensures core (from_array vw p) == p /\ (is_global_varray (from_array vw p) <==> is_global_array p))
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -92,6 +94,16 @@ val varray_pts_to
   (v : st)
   : slprop
 
+instance
+val is_send_across_global_varray
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x: varray vw { is_global_varray x })
+  (#f : perm)
+  (v : st)
+  : Pulse.Lib.SendSync.is_send_across gpu_of (varray_pts_to x #f v)
+  
 unfold
 instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)
   : has_pts_to (varray vw) st = {
@@ -350,7 +362,8 @@ fn varray_alloc0
     a : varray vw
   ensures
     exists* v. on gpu_loc (a |-> v)
-
+  ensures pure (is_global_varray a)
+  
 inline_for_extraction noextract
 fn varray_free
   (#et : Type0) (#st : Type0)

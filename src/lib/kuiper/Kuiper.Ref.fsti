@@ -17,6 +17,15 @@ val gpu_pts_to
   (v : a)
 : slprop
 
+(* gpu refs are always in gpu global memory *)
+instance
+val is_send_across_gpu_ref
+  (#a:Type u#0)
+  (#f:perm)
+  (r:gpu_ref a)
+  (v:a)
+: is_send_across gpu_of (gpu_pts_to #a r #f v)
+
 unfold
 instance has_pts_to_gpu_ref (a:Type) : has_pts_to (gpu_ref a) a = {
   pts_to = gpu_pts_to;
@@ -29,7 +38,7 @@ fn gpu_alloc0
   preserves cpu
   requires emp
   returns  x : gpu_ref a
-  ensures  exists* (v:a). x |-> v
+  ensures  exists* (v:a). on gpu_loc (x |-> v)
 
 // fn gpu_alloc
 //   (#a:Type u#0)
@@ -43,7 +52,7 @@ fn gpu_free
   (#a:Type u#0)
   (r : gpu_ref a)
   preserves cpu
-  requires r |-> 'v
+  requires on gpu_loc (r |-> 'v)
   ensures emp
 
 fn gpu_read
@@ -51,7 +60,7 @@ fn gpu_read
   (r : gpu_ref a)
   (#f : perm)
   (#v0 : erased a)
-  preserves gpu ** r |-> Frac f v0
+  preserves r |-> Frac f v0
   requires emp
   returns  v : a
   ensures  pure (v == reveal v0)
@@ -60,7 +69,6 @@ fn gpu_write
   (#a:Type u#0)
   (r : gpu_ref a)
   (v : a)
-  preserves gpu
   requires  r |-> 'v0
   ensures   r |-> v
 
@@ -71,8 +79,8 @@ fn gpu_memcpy_host_to_device
   (src_r  : ref a)
   preserves cpu
   preserves src_r |-> Frac 'f 'v
-  requires  dst_gr |-> 'gv
-  ensures   dst_gr |-> 'v
+  requires  on gpu_loc (dst_gr |-> 'gv)
+  ensures   on gpu_loc (dst_gr |-> 'v)
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
@@ -80,7 +88,7 @@ fn gpu_memcpy_device_to_host
   (dst_r  : ref a)
   (src_gr : gpu_ref a)
   preserves cpu
-  preserves src_gr |-> Frac 'f 'gv
+  preserves on gpu_loc (src_gr |-> Frac 'f 'gv)
   requires dst_r |-> 'v
   ensures  dst_r |-> 'gv
 
@@ -90,6 +98,6 @@ fn gpu_memcpy_device_to_device
   (dst_r  : gpu_ref a)
   (src_gr : gpu_ref a)
   preserves cpu
-  preserves src_gr |-> Frac 'f 'gv
-  requires dst_r |-> 'v
-  ensures  dst_r |-> 'gv
+  preserves on gpu_loc (src_gr |-> Frac 'f 'gv)
+  requires on gpu_loc (dst_r |-> 'v)
+  ensures  on gpu_loc (dst_r |-> 'gv)

@@ -11,6 +11,13 @@ module T = FStar.Tactics.V2
 let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
   A.varray (aview_from_mlayout et #rows #cols l)
 
+let is_global_matrix
+  (#et:Type0) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (arr: gpu_matrix et l)
+: prop
+= A.is_global_varray (arr)
+
 let from_array l p = A.from_array (aview_from_mlayout _ l) p
 let core g = A.core g
 
@@ -41,6 +48,15 @@ let gpu_matrix_pts_to
   : slprop
   = A.varray_pts_to gm #f em
 
+instance is_send_across_global_matrix
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (x: gpu_matrix et l { is_global_matrix x })
+  (#f : perm)
+  (em : ematrix et rows cols)
+: Pulse.Lib.SendSync.is_send_across gpu_of (gpu_matrix_pts_to x #f em)
+= solve
 
 ghost
 fn gpu_matrix_pts_to_ref
@@ -58,6 +74,30 @@ fn gpu_matrix_pts_to_ref
   unfold gpu_matrix_pts_to g #f em;
   A.varray_pts_to_ref g;
   fold gpu_matrix_pts_to g #f em;
+}
+
+ghost
+fn gpu_matrix_pts_to_ref_located
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#loc:_)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  preserves
+    on loc (gpu_matrix_pts_to g #f em)
+  ensures
+    pure (SZ.fits (mlayout_size l))
+{
+  ghost_impersonate loc
+    (on loc (gpu_matrix_pts_to g #f em))
+    (on loc (gpu_matrix_pts_to g #f em) ** pure (SZ.fits (mlayout_size l)))
+    fn () {
+      on_elim _;
+      gpu_matrix_pts_to_ref g;
+      on_intro (gpu_matrix_pts_to g #f em);
+    }
 }
 
 

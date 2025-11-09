@@ -2122,3 +2122,47 @@ fn forevery_join_or_n
   as
     forall+ (x:a {exists i. r i x}). p x;
 }
+
+let dummy = emp
+ghost
+fn on_elim_forevery
+  (#a:Type0)
+  (p : a -> slprop)
+  (l:loc_id)
+  requires
+    loc l ** on l (forall+ (x:a). p x)
+  ensures
+    loc l ** (forall+ (x:a). on l (p x))
+{
+  on_elim _; 
+  forevery_intro_false (fun x -> on l (p x));
+  forevery_rec p
+    (fun ref -> loc l ** (forall+ (x:a{ref x}). on l (p x)))
+    fn pred add f 
+    { 
+      ghost
+      fn aux (x:a{add x}) ()
+      requires loc l ** dummy
+      ensures loc l ** on l (p x)
+      {
+        f x;
+        on_intro (p x);
+        drop_ dummy;
+      };
+      ghost
+      fn g (x:a{add x})
+      requires emp
+      ensures on l (p x)
+      {
+        #set-options "--query_stats --ext query_stats_trace" {
+        fold dummy;
+        ghost_impersonate l dummy (on l (p x)) (aux x)
+      };
+      };
+      forevery_fill (fun x -> on l (p x)) add g;
+    }
+    fn pred z { 
+      on_intro (p z);
+      forevery_insert (fun x -> on l (p x)) z;
+   };
+}

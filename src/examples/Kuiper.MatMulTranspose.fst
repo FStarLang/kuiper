@@ -34,23 +34,25 @@ fn matmul_transpose_gpu
   (#eC : ematrix et cols rows)
   preserves
     cpu **
-    gA |-> eA **
-    gB |-> eB
+    on gpu_loc (gA |-> eA) **
+    on gpu_loc (gB |-> eB)
   requires
     pure (size_req rows shared cols) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> mtranspose (MS.matmul eA eB)
+    on gpu_loc (gC |-> mtranspose (MS.matmul eA eB))
 {
   (* Recall that the lengths fit. We don't get a good error without this,
      but the problem is that we cannot call the crepr instance for gA/gB/gC
      without this fact. *)
-  M.gpu_matrix_pts_to_ref gA;
-  M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
-  GT.ghost_transpose1 gC;
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
+  map_loc gpu_loc (fun () -> GT.ghost_transpose1 gC);
   mmcomb_gpu MS.comb2 gA gB (GT.row2col gC);
-  GT.ghost_transpose1_back gC;
+  map_loc gpu_loc (fun () -> GT.ghost_transpose1_back gC);
+  //on prover
+  with p. rewrite on gpu_loc (gC |-> p) as on gpu_loc (gC |-> mtranspose (MS.matmul eA eB));
   ()
 }
 

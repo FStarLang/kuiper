@@ -9,6 +9,7 @@ open Kuiper.Array
 open Kuiper.Epoch
 open Pulse.Lib.Pledge
 open Kuiper.Kernel.Desc
+open Pulse.Lib.SendSync { is_send_across}
 
 (* This is the single primitive for launching kernels, with the most general
 type and capabilities. There are many simpler versions in the Kuiper.Kernel module,
@@ -17,6 +18,7 @@ noextract
 fn launch_kernel_full
   (#full_pre : slprop)
   (#full_post : slprop)
+  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   (k : kernel_desc full_pre full_post)
   (#e : epoch_t)
   requires

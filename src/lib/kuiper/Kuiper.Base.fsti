@@ -118,3 +118,12 @@ ensures on loc q
     on_intro q;
   }
 }
+
+ghost
+fn reduce_with_steps (p:slprop) (steps:_)
+requires p
+ensures norm steps p
+{
+  norm_spec steps p;
+  rewrite p as (norm steps p);
+}
