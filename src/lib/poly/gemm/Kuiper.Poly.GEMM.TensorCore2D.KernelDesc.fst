@@ -5,41 +5,25 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 #set-options "--z3rlimit 40"
 
 open Kuiper
-
-open Kuiper.Matrix.Reprs
-module R = Kuiper.Matrix.Reprs
-open Kuiper.TensorCore
-
-module SZ = Kuiper.SizeT
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Matrix
-
-module SZ = Kuiper.SizeT
-module B = Kuiper.Barrier
-
-open Kuiper.Matrix.Reprs
-module R = Kuiper.Matrix.Reprs
-
+open Kuiper.Bijection
 open Kuiper.EMatrix
-open Kuiper.VArray {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
-open Kuiper.TensorCore
 open Kuiper.Float16
+open Kuiper.Math { even, odd, even_2x, odd_2x1 }
+open Kuiper.Matrix
+open Kuiper.Matrix.Reprs
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
-
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
-
+open Kuiper.TensorCore
+open Kuiper.VArray { varray, varray_pts_to, varray_pts_to_cell }
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
-open Kuiper.Bijection
+module B = Kuiper.Barrier
+module R = Kuiper.Matrix.Reprs
+module SZ = Kuiper.SizeT
 
 ghost
 fn gpu_slice_gather_underspec
