@@ -144,7 +144,7 @@ fn gpu_array_write
   ensures
     with_pure
       (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\ i <= SZ.v idx /\ SZ.v idx < j)
-      (fun _ -> gpu_pts_to_slice #a #sz r #1.0R i j (Seq.upd s (SZ.v idx - i) v))
+      (fun _ -> exists* s'. gpu_pts_to_slice #a #sz r #1.0R i j s' ** pure (s' == Seq.upd s (SZ.v idx - i) v))
 
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
