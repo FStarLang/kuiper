@@ -130,7 +130,7 @@ ensures
     //assert pure (Seq.length ems' == wm);
     //assert pure (forall (i : natlt wm).
     //    (ems' @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx));
-    ambig_trade_elim (); 
+    ambig_trade_elim ();
 }
 
 inline_for_extraction noextract
@@ -307,9 +307,9 @@ fn fragments_outer_product
 
     resIdxM := !resIdxM +^ 1sz;
   };
-  
+
   // Assume functional correctness
-  let interm_tile = 
+  let interm_tile =
     (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
                                     (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)));
   with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
@@ -365,21 +365,21 @@ fn subproducts_tc_2d
   // gpu_matrix_pts_to_ref gB;
 
   unfold fragarray_approximates wm wn accumFrags;
-  
+
   // Fails even with explicit assumption
   //assume pure (fragarray_approximates wm wn accumFrags rAcc
-  //  == fragarray_approximates wm wn accumFrags 
+  //  == fragarray_approximates wm wn accumFrags
   //        (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
   //                                        (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0));
   //rewrite each fragarray_approximates wm wn accumFrags rAcc
-  //as fragarray_approximates wm wn accumFrags 
+  //as fragarray_approximates wm wn accumFrags
   //        (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
   //                                        (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
-  
+
   let mut dotIdx : sz = 0sz;
   while ((!dotIdx <^ (bk/^tk)))
     invariant live dotIdx
-    invariant live aFrags ** live bFrags 
+    invariant live aFrags ** live bFrags
     invariant live accumFrags
       //(exists* rm. fragarray_approximates wm wn accumFrags rm **
       //  pure (!dotIdx <= (bk/^tk) /\

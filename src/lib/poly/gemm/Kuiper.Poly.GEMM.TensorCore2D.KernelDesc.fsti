@@ -385,15 +385,6 @@ let warp_tile_ematrix
   = ematrix_subtile em trows tcols
       (warp_tile_idx_rows rows cols trows tcols wid)
       (warp_tile_idx_cols rows cols trows tcols wid)
-(*
-instance ematrix_subtile_can_approximate
-  (#et : Type0) {| scalar et, real_like et |}
-  (#rows #cols : nat)
-  : can_approximate (ematrix et rows cols) (ematrix real rows cols) =
-{
-  approximates = ematrix_approximates;
-}
- *)
 
 let warp_tile_i
   (#rows #cols : pos)
@@ -416,7 +407,7 @@ let warp_tile_i
     assert (subtile_i < (bm/(wm*tm)));
     assert (tile_i < rows/bm);
     assert (tile_i * (bm / (wm*tm)) < rows/(wm*tm));
-    tile_i * (bm / (wm*tm)) + subtile_i // Is this right?
+    tile_i * (bm / (wm*tm)) + subtile_i
 
 let warp_tile_j
   (#rows #cols : pos)
@@ -434,7 +425,7 @@ let warp_tile_j
     let tile_j = bid % (cols/bn) in
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
-    tile_j * (bn / (wn*tn)) + subtile_j // Is this right? At least it seems in bounds
+    tile_j * (bn / (wn*tn)) + subtile_j
 
 unfold
 let kpost1
@@ -551,12 +542,12 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
-    emp (* frame *)
+      kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
+    emp
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
 
 ghost
 fn teardown
