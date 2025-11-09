@@ -13,7 +13,7 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore2D
 
-#push-options "--split_queries always --z3rlimit 35" // very slow otherwise?
+#push-options "--split_queries always --z3rlimit 40" // very slow without splitting? flaky nevertheless
 inline_for_extraction noextract
 fn spec
   // specialize
