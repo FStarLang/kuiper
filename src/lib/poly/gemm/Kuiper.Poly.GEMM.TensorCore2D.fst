@@ -67,7 +67,7 @@ fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
   fold fragarray_approximates wm wn arr rm;
 }
 
-
+inline_for_extraction noextract
 fn populate_fragments_a
   (#et : Type0)
   {| scalar et, real_like et |}
@@ -133,6 +133,7 @@ ensures
     ambig_trade_elim (); 
 }
 
+inline_for_extraction noextract
 fn populate_fragments_b
   (#et : Type0)
   {| scalar et, real_like et |}
