@@ -75,8 +75,8 @@ instance scalar_dist : scalar dist = {
 
 fn matmul_dist_gpu
   (#size : szp)
-  (a : M.gpu_matrix dist (R.row_major size size))
-  (b : M.gpu_matrix dist (R.row_major size size))
+  (a : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix a })
+  (b : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix b })
   (#ea : ematrix dist size size)
   (#eb : ematrix dist size size)
   preserves

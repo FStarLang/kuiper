@@ -213,6 +213,8 @@ fn gpu_matrix_alloc0
     gm : gpu_matrix et l
   ensures
     exists* em. on gpu_loc (gm |-> em)
+  ensures
+    pure (is_global_matrix gm)
 
 inline_for_extraction noextract
 fn gpu_matrix_free
