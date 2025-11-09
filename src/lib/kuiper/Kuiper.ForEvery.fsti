@@ -981,3 +981,34 @@ fn forevery_join_or_n
         p x
   ensures
     forall+ (x:a {exists i. r i x}). p x
+
+ghost
+fn forevery_factor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i : natlt m) (j : natlt n). p i j
+  ensures
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+
+ghost
+fn forevery_unfactor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+  ensures
+    forall+ (i : natlt m) (j : natlt n). p i j
+
+ghost
+fn forevery_mid_flip
+  (#a #b #c : Type0)
+  (p : a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c). p x y z
+  ensures
+    forall+ (x:a) (z:c) (y:b). p x y z

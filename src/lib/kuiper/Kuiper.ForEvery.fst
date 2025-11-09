@@ -2107,3 +2107,59 @@ fn forevery_join_or_n
   as
     forall+ (x:a {exists i. r i x}). p x;
 }
+
+
+ghost
+fn forevery_factor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i : natlt m) (j : natlt n). p i j
+  ensures
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+{
+  forevery_map #(natlt m)
+    (fun i -> forall+ (j : natlt n).p i j)
+    (fun i -> forall+ (j1 : natlt n1) (j2 : natlt n2). p i (j1 * n2 + j2))
+    (fun _ -> forevery_factor n n1 n2 _);
+  forevery_factor m m1 m2 _;
+}
+
+ghost
+fn forevery_unfactor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+  ensures
+    forall+ (i : natlt m) (j : natlt n). p i j
+{
+  forevery_unfactor' m m1 m2 _;
+  forevery_map #(natlt m)
+    (fun i -> forall+ (j1 : natlt n1) (j2 : natlt n2). p (i / m2 * m2 + i % m2) (j1 * n2 + j2))
+    (fun i -> forall+ (j : natlt n). p i j)
+    fn i {
+      rewrite each (i / m2 * m2 + i % m2) as i;
+      forevery_unfactor' n n1 n2 _;
+      forevery_ext #(natlt n) _ (fun j -> p i j);
+    };
+}
+
+ghost
+fn forevery_mid_flip
+  (#a #b #c : Type0)
+  (p : a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c). p x y z
+  ensures
+    forall+ (x:a) (z:c) (y:b). p x y z
+{
+  forevery_map #a
+    (fun x -> forall+ (y:b) (z:c). p x y z)
+    (fun x -> forall+ (z:c) (y:b). p x y z)
+    fn x { forevery_commute _ };
+}

@@ -445,7 +445,31 @@ fn gpu_matrix_tile
       (tc : natlt (cols / tcols)).
         gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 {
-  admit ();
+  gpu_matrix_iconcr gm;
+  forevery_factor_2 rows (rows / trows) trows
+    cols (cols / tcols) tcols
+    _;
+  forevery_mid_flip _;
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      forall+ (i : natlt trows) (j : natlt tcols).
+        gpu_pts_to_cell (core gm) #f (cell_of_pos l (tr * trows + i) (tc * tcols + j)) (macc em (tr * trows + i) (tc * tcols + j))
+    ensures
+      gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
+  {
+    forevery_map_2 #(natlt trows) #(natlt tcols)
+      (fun i j -> gpu_pts_to_cell (core gm) #f (cell_of_pos l (tr * trows + i) (tc * tcols + j)) (macc em (tr * trows + i) (tc * tcols + j)))
+      (fun i j -> gpu_pts_to_cell (core (gpu_matrix_subtile gm trows tcols tr tc))
+                                  #f
+                                  (cell_of_pos (subtile_layout l trows tcols tr tc) i j)
+                                  (macc (ematrix_subtile em trows tcols tr tc) i j))
+      fn i j { rewrite each core gm as core (gpu_matrix_subtile gm trows tcols tr tc); };
+    gpu_matrix_iabs (gpu_matrix_subtile gm trows tcols tr tc);
+    ();
+  };
+  forevery_map_2 _ _ aux;
+  ()
 }
 
 ghost
@@ -459,6 +483,8 @@ fn gpu_matrix_untile'
   (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
   (#f : perm)
   requires
+    pure (SZ.fits (mlayout_size l))
+  requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
@@ -466,7 +492,40 @@ fn gpu_matrix_untile'
   ensures
     gm |-> Frac f (ematrix_from_tiles trows tcols tf)
 {
-  admit ();
+  let em = ematrix_from_tiles trows tcols tf;
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (tf tr tc)
+    ensures
+      forall+ (i : natlt trows) (j : natlt tcols).
+        gpu_pts_to_cell (core gm) #f (cell_of_pos l (tr * trows + i) (tc * tcols + j)) (macc em (tr * trows + i) (tc * tcols + j))
+  {
+    gpu_matrix_iconcr (gpu_matrix_subtile gm trows tcols tr tc);
+    forevery_map_2 #(natlt trows) #(natlt tcols)
+      (fun i j -> gpu_pts_to_cell (core (gpu_matrix_subtile gm trows tcols tr tc))
+                                  #f
+                                  (cell_of_pos (subtile_layout l trows tcols tr tc) i j)
+                                  (macc (tf tr tc) i j))
+      (fun i j -> gpu_pts_to_cell (core gm) #f (cell_of_pos l (tr * trows + i) (tc * tcols + j)) (macc em (tr * trows + i) (tc * tcols + j)))
+      fn i j {
+        rewrite each core (gpu_matrix_subtile gm trows tcols tr tc) as core gm;
+        (* Help SMT *)
+        assert pure ((tr * trows + i) / trows == tr);
+        assert pure ((tc * tcols + j) / tcols == tc);
+        assert pure ((tr * trows + i) % trows == i);
+        assert pure ((tc * tcols + j) % tcols == j);
+        assert pure (macc em (tr * trows + i) (tc * tcols + j) == macc (tf tr tc) i j);
+      };
+    ();
+  };
+  forevery_map_2 _ _ aux;
+  forevery_mid_flip _;
+  forevery_unfactor_2 rows (rows / trows) trows
+    cols (cols / tcols) tcols
+    (fun i j -> gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) (macc em i j));
+  gpu_matrix_iabs gm;
+  ()
 }
 
 ghost
@@ -479,6 +538,8 @@ fn gpu_matrix_untile
   (tcols : pos { tcols /? cols })
   (#em : ematrix et rows cols)
   (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+
       (tr : natlt (rows / trows))
@@ -503,6 +564,8 @@ fn gpu_matrix_untile_underspec
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+
       (tr : natlt (rows / trows))
@@ -551,6 +614,7 @@ fn gpu_matrix_extract_tile
       gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 {
+  gpu_matrix_pts_to_ref gm;
   gpu_matrix_tile gm trows tcols;
   forevery_flatten _;
   forevery_remove _ (tr, tc);

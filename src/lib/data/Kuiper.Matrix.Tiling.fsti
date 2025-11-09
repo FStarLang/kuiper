@@ -384,6 +384,8 @@ fn gpu_matrix_untile'
   (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
   (#f : perm)
   requires
+    pure (SZ.fits (mlayout_size l))
+  requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
@@ -402,6 +404,8 @@ fn gpu_matrix_untile
   (#em : ematrix et rows cols)
   (#f : perm)
   requires
+    pure (SZ.fits (mlayout_size l))
+  requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
@@ -418,6 +422,8 @@ fn gpu_matrix_untile_underspec
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+
       (tr : natlt (rows / trows))
