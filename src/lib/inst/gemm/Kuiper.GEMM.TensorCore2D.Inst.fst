@@ -56,8 +56,7 @@ fn spec
   //  partially applied
   preserves
     cpu **
-    // should be checked at runtime
-    pure (rows * cols <= max_blocks) **
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
@@ -89,6 +88,11 @@ fn spec
 
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
+
+  assert pure ((rows/bm) * (cols/bn) == nblk);
+  assert pure ((rows/bm) * (cols/bn) <= max_blocks);
+  dassert (nblk <=^ SZ.uint_to_t 2097152); // Inlining max_blocks.. not great.
+  assert pure (nblk <= max_blocks);
 
   dassert ((bm *^ bk) %^ (chunk et_ab *^ nthr) = 0sz);
   dassert ((bk *^ bn) %^ (chunk et_ab *^ nthr) = 0sz);

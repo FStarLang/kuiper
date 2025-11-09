@@ -54,8 +54,7 @@ fn spec
   //  partially applied
   preserves
     cpu **
-    // should be checked at runtime
-    pure (rows * cols <= max_blocks) **
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
     gA |-> Frac fA eA **
     gB |-> Frac fB eB
   requires
