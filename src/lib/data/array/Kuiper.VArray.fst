@@ -416,6 +416,22 @@ fn varray_abs'
 }
 
 ghost
+fn varray_abs_alt'
+  (#et : Type0) (#st : Type0)
+  (vw : aview et st { is_full_view vw })
+  (sz : nat { sz == len vw })
+  (a : gpu_array et sz)
+  (#f : perm)
+  (#v : lseq et sz)
+  requires
+    a |-> Frac f v
+  ensures
+    from_array vw a |-> Frac f (from_seq vw v)
+{
+  varray_abs' vw a;
+}
+
+ghost
 fn varray_concr
   (#et : Type0) (#st : Type0)
   (#vw : aview et st { is_full_view vw })
@@ -526,10 +542,11 @@ fn varray_alloc0
   returns
     a : varray vw
   ensures
-    exists* v. a |-> v
+    exists* v. on gpu_loc (a |-> v)
 {
   let a = B.gpu_array_alloc #et len;
-  varray_abs' vw a;
+  with s. assert on gpu_loc (a |-> s);
+  map_loc gpu_loc (fun () ->varray_abs_alt' vw _ a #1.0R #s);
   (from_array vw a)
 }
 
@@ -542,10 +559,10 @@ fn varray_free
   preserves
     cpu
   requires
-    a |-> v
+    on gpu_loc (a |-> v)
   ensures emp
 {
-  varray_concr a;
+  map_loc gpu_loc (fun () -> varray_concr a);
   B.gpu_array_free (core a);
 }
 
@@ -878,7 +895,6 @@ fn varray_write_cell
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -899,8 +915,6 @@ fn varray_write_cell'
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -921,8 +935,6 @@ fn varray_read_cell
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     varray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -947,8 +959,6 @@ fn varray_read_cell'
   (ai : erased vw.iview.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -974,7 +984,6 @@ fn varray_read
   (#f : perm)
   (#v : erased st)
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -996,8 +1005,6 @@ fn varray_write
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : erased st)
-  preserves
-    gpu
   requires
     a |-> v0
   ensures
@@ -1027,16 +1034,16 @@ fn varray_from_array
     a |-> s **
     cpu
   requires
-    va |-> v
+    on gpu_loc (va |-> v)
   ensures
     pure (Pulse.Lib.Vec.length a == len vw) **
-    (va |-> from_seq vw s)
+    on gpu_loc (va |-> from_seq vw s) //TODO: consider rebinding
 {
   // let len = cw.clen;
   Pulse.Lib.Vec.pts_to_len a;
-  varray_concr va;
+  map_loc gpu_loc (fun () -> varray_concr va);
   B.gpu_memcpy_host_to_device (core va) a clen;
-  varray_abs' vw (core va);
+  map_loc gpu_loc (fun () -> varray_abs_alt' vw _ (core va));
   rewrite each from_array vw (core va) as va;
   ();
 }
@@ -1051,7 +1058,7 @@ fn varray_to_array
   (#s : erased (seq et){Seq.length s == len vw})
   (#v : erased st)
   preserves
-    va |-> v **
+    on gpu_loc (va |-> v) **
     cpu
   requires
     a |-> s
@@ -1060,11 +1067,11 @@ fn varray_to_array
     (a |-> to_seq vw v)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  varray_concr va;
+  map_loc gpu_loc (fun () -> varray_concr va);
   B.gpu_memcpy_device_to_host a (core va) clen;
-  varray_abs' vw (core va);
-  rewrite
-    from_array vw (core va) |-> from_seq vw (to_seq vw v)
+  map_loc gpu_loc (fun () -> varray_abs' vw (core va));
+  rewrite each
+    (from_array vw (core va) |-> from_seq vw (to_seq vw v))
   as
-    va |-> v;
+    (va |-> v);
 }

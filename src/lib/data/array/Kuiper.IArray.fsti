@@ -352,7 +352,6 @@ fn iarray_write_cell
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -367,8 +366,6 @@ fn iarray_write_cell'
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -383,8 +380,6 @@ fn iarray_read_cell
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     iarray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -402,8 +397,6 @@ fn iarray_read_cell'
   (ai : erased vw.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -422,7 +415,6 @@ fn iarray_read
   (#f : perm)
   (#v : (vw.ait -> GTot et))
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -437,8 +429,6 @@ fn iarray_write
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : (vw.ait -> GTot et))
-  preserves
-    gpu
   requires
     a |-> v0
   ensures

@@ -10,6 +10,7 @@ include Kuiper.Kernel.Desc
 include Kuiper.Kernel.Casts
 open FStar.Tactics.Typeclasses
 open Pulse.Lib.Pledge
+open Pulse.Lib.SendSync { is_send_across}
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync
@@ -17,25 +18,26 @@ fn launch_kernel_full_sync
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
-    full_pre
+    on gpu_loc full_pre
   ensures
     cpu **
-    full_post
+    on gpu_loc full_post
 
 (* A helper for very simple kernels, mostly for unit tests. *)
 inline_for_extraction noextract
 fn launch_kernel_1
   (#pre : slprop)
   (#post : slprop)
+  {| is_send_across gpu_of pre, is_send_across gpu_of post |}
   (k : unit ->
          stt unit (requires gpu ** pre)
                   (ensures fun _ -> gpu ** post))
   requires
     cpu **
-    pre
+    on gpu_loc pre
   ensures
     cpu **
-    post
+    on gpu_loc post
 
 (* NOTE: commented-out is how to define these functions using a typeclass
 of launchable things instead of making the kernel casts coercions. But this
@@ -60,11 +62,11 @@ val launch
   : stt epoch_t
       (cpu **
        epoch_live e **
-       full_pre)
+       on gpu_loc full_pre)
       (fun e' ->
         cpu **
         epoch_live e' **
-        pledge0 (epoch_done e') full_post **
+        pledge0 (epoch_done e') (on gpu_loc full_post) **
         pure (e' >= e))
 
 inline_for_extraction noextract
@@ -75,10 +77,10 @@ val launch_sync
   // (x : t)
   (_ : kernel_desc full_pre full_post)
   : stt unit
-      (cpu ** full_pre)
+      (cpu ** on gpu_loc full_pre)
       (fun _ ->
         cpu **
-        full_post)
+        on gpu_loc full_post)
 
 // inline_for_extraction noextract
 // instance val launchable_self

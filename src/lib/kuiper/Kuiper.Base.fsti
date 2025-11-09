@@ -7,40 +7,45 @@ open Pulse.Lib.Core
 open Pulse.Main
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
+
 val is_thread_loc (l:loc_id) : prop
 let thread_loc = l:loc_id { is_thread_loc l }
 
 val gpu_of: loc_id -> loc_id
 val gpu_of_idem (l:loc_id) : Lemma (gpu_of (gpu_of l) == l)
+val gpu_id_of : loc_id -> GTot int
 
 val block_of : loc_id -> loc_id
 val block_of_idem (l:loc_id) : Lemma (block_of (block_of l) == l)
+val block_id_of : loc_id -> GTot int
 
-val gpu_id_loc (gpu_id:int) : loc_id
+val gpu_id_loc (gpu_id:int) : l:loc_id { gpu_of l == l }
+let gpu_loc = gpu_id_loc 0
 
 val block_id_loc (#[T.exact (`0)]gpu_id:int) (bid:int)
 : l:loc_id { gpu_of l == gpu_id_loc gpu_id }
 
 val thread_id_loc (#[T.exact (`0)]gpu_id:int) (bid tid:int)
 : l:loc_id { block_of l == block_id_loc #gpu_id bid /\ gpu_of l == gpu_id_loc gpu_id } 
+val thread_id_of (l:loc_id) : GTot int
 
 (* Token for being in GPU code *)
 [@@no_mkeys]
 let gpu (#[T.exact (`0)] gpu_id:int) : slprop =
-  exists* (l:loc_id). loc l ** pure (gpu_of l == gpu_id_loc gpu_id)
+  exists* (l:loc_id). loc l ** pure (gpu_of l == gpu_id_loc gpu_id /\ gpu_id_of l == gpu_id)
 
 (* Token given to a particular block within a grid. Both here
 and in thread_id, the first argument is always positive
 when this resource is actually live, but not placing that refinement
 here helps with inference in some places. *)
 [@@no_mkeys]
-let block_id (#[T.exact (`0)]gpu_id:int) (nblk : int) (bid : int) : slprop =
-  exists* (l:loc_id). loc l ** pure (block_of l == block_id_loc #gpu_id bid)
+let block_id (nblk : int) (bid : int) : slprop =
+  exists* (l:loc_id). loc l ** pure (block_of l == block_id_loc bid /\ block_id_of l == bid)
 
 (* Token given to a particular thread within a block *)
 [@@no_mkeys]
-let thread_id (nthr : int) (#[T.exact (`0)]gpu_id:int) (bid tid : int) : slprop =
-  loc (thread_id_loc #gpu_id bid tid)
+let thread_id (nthr : int) (tid : int) : slprop =
+  exists* (l:loc_id). loc l ** pure (thread_id_of l == tid)
 
 val is_cpu_loc (l:loc_id) : prop
 
@@ -98,6 +103,18 @@ fn get_gdim ()
 
 (* Get a concrete value for the number of threads (~ blockDim.x) *)
 fn get_bdim ()
-  preserves thread_id 'nthr 'bid 'tid
+  preserves thread_id 'nthr 'tid
   returns   x : SZ.t
   ensures   pure (SZ.v x == 'nthr)
+
+ghost
+fn map_loc (loc:loc_id) (#p #q:slprop) (f:unit -> stt_ghost unit emp_inames p (fun _ -> q))
+requires on loc p
+ensures on loc q
+{
+  Pulse.Lib.SendSync.ghost_impersonate loc (on loc p) (on loc q) fn () {
+    on_elim p;
+    f();
+    on_intro q;
+  }
+}

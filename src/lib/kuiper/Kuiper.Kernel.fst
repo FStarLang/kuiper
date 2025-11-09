@@ -14,15 +14,15 @@ fn launch_kernel_full_sync
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
-    full_pre
+    on gpu_loc full_pre
   ensures
     cpu **
-    full_post
+    on gpu_loc full_post
 {
   get_epoch ();
   launch_kernel_full k;
   sync_device ();
-  redeem_pledge emp_inames (epoch_done _) full_post;
+  redeem_pledge emp_inames (epoch_done _) (on gpu_loc full_post);
   drop_ (epoch_done _);
   drop_ (epoch_live _);
 }
@@ -87,10 +87,10 @@ fn launch_kernel_1
   (k : unit -> stt unit (gpu ** pre) (fun _ -> gpu ** post))
   requires
     cpu **
-    pre
+    on gpu_loc pre
   ensures
     cpu **
-    post
+    on gpu_loc post
 {
   launch_sync ({ f = k; } <: kernel_desc_1_1 _ _);
 }

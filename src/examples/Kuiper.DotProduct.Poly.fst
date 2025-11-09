@@ -32,11 +32,11 @@ fn kf
   requires
     gpu **
     kpre size ga1 ga2 r tid **
-    thread_id size 0 tid
+    thread_id size tid
   ensures
     gpu **
     kpost size ga1 ga2 r tid **
-    thread_id size 0 tid
+    thread_id size tid
 {
   (* r[id] = ga1[id] * ga2[id] *)
 
@@ -172,6 +172,13 @@ let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   block_teardown = block_teardown #et ga1 ga2 r;
 } <: kernel_desc_1_n _ _
 
+ghost
+fn fuse_on_gpu p q
+requires on gpu_loc p
+requires on gpu_loc q
+ensures on gpu_loc (p ** q)
+{ admit() }
+
 inline_for_extraction noextract
 fn main (#et:Type0) {| scalar et |} (_:unit)
   requires cpu
@@ -205,7 +212,8 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   Kuiper.Array.gpu_memcpy_host_to_device ga2 a2 m_size;
 
   let gr = gpu_array_alloc #et m_size;
-
+  fuse_on_gpu (gpu_pts_to_slice ga2 _ _ _) (gpu_pts_to_slice gr _ _ _);
+  fuse_on_gpu (gpu_pts_to_slice ga1 _ _ _) _;
   launch_sync (kdesc ga1 ga2 gr);
 
   Kuiper.Array.gpu_memcpy_device_to_host ar gr m_size;

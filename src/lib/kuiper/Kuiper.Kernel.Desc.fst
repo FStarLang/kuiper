@@ -22,32 +22,32 @@ type kernel_desc (full_pre full_post : slprop) = {
   shmems_desc : list shmem_desc;
 
   kpre :
-    bid:natlt nblk ->
+    c_shmems shmems_desc ->
+    natlt nblk ->
     natlt nthr ->
-    c_shmems shmems_desc #0 bid -> //why do have I to put #0 here?
     slprop;
 
   kpost :
-    bid:natlt nblk ->
+    c_shmems shmems_desc ->
+    natlt nblk ->
     natlt nthr ->
-    c_shmems shmems_desc bid ->
     slprop;
 
   f : (
+    sh : c_shmems shmems_desc ->
     bid : szlt nblk ->
     tid : szlt nthr ->
-    sh : c_shmems shmems_desc bid ->
     unit ->
     stt unit
       (requires
          gpu **
-         kpre bid tid sh **
-         thread_id nthr bid tid **
+         kpre sh bid tid **
+         thread_id nthr tid **
          block_id nblk bid)
       (ensures fun _ ->
          gpu **
-         kpost bid tid sh **
-         thread_id nthr bid tid **
+         kpost sh bid tid **
+         thread_id nthr tid **
          block_id nblk bid)
   );
 
@@ -73,13 +73,13 @@ type kernel_desc (full_pre full_post : slprop) = {
       (ensures  fun _ -> full_post)
   );
   block_frame :
-    bid:natlt nblk -> 
-    c_shmems shmems_desc bid ->
+    c_shmems shmems_desc ->
+    natlt nblk -> 
     slprop;
 
   block_setup : (
+    (sh : c_shmems shmems_desc) ->
     (bid: natlt nblk) ->
-    (sh : c_shmems shmems_desc bid) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
@@ -88,18 +88,18 @@ type kernel_desc (full_pre full_post : slprop) = {
         block_pre bid)
       (ensures fun _ ->
         consumed_can_create_barrier **
-        (forall+ (i : natlt nthr). kpre bid i sh) **
-        block_frame bid sh)
+        (forall+ (i : natlt nthr). kpre sh bid i) **
+        block_frame sh bid)
   );
 
   block_teardown : (
+    (sh : c_shmems shmems_desc) ->
     (bid: natlt nblk) ->
-    (sh : c_shmems shmems_desc bid) ->
     unit ->
     stt_ghost unit emp_inames
       (requires
-        (forall+ (i : natlt nthr). kpost bid i sh) **
-        block_frame bid sh)
+        (forall+ (i : natlt nthr). kpost sh bid i) **
+        block_frame sh bid)
       (ensures fun _ ->
         live_c_shmems sh **
         block_post bid)

@@ -14,8 +14,8 @@ ghost
 fn kmn_as_kfull_block_setup
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
+  (sh : c_shmems [])
   (bid: natlt k.nblk)
-  (sh : c_shmems [] #0 bid)
   ()
   norewrite
   requires
@@ -36,8 +36,8 @@ ghost
 fn kmn_as_kfull_block_teardown
   (#full_pre #full_post : slprop)
   (k : kernel_desc_m_n full_pre full_post)
+  (sh : c_shmems [])
   (bid: natlt k.nblk)
-  (sh : c_shmems [] #0 bid)
   ()
   norewrite
   requires
@@ -68,18 +68,18 @@ let kmn_as_kfull
 
   block_pre   = k.block_pre;
   block_post  = k.block_post;
-  block_frame = (fun bid sh -> k.block_frame bid ** live_c_shmems sh);
+  block_frame = (fun sh bid -> k.block_frame bid ** live_c_shmems sh);
 
   setup = k.setup;
   teardown = k.teardown;
 
-  kpre  = (fun bid tid _ar -> k.kpre bid tid);
-  kpost = (fun bid tid _ar -> k.kpost bid tid);
+  kpre  = (fun _ar -> k.kpre);
+  kpost = (fun _ar -> k.kpost);
 
   block_setup = kmn_as_kfull_block_setup k;
   block_teardown = kmn_as_kfull_block_teardown k;
 
-  f = (fun bid tid _ear -> f bid tid);
+  f = (fun _ear -> f);
 }
 
 inline_for_extraction noextract
@@ -93,12 +93,12 @@ fn adapt_kn_as_kmn
   requires
     gpu **
     pad_f (sdivup k.nthr 1024sz * 1024) k.kpre (1024 * bid + tid) **
-    thread_id 1024sz bid tid **
+    thread_id 1024sz tid **
     block_id (sdivup k.nthr 1024sz) bid
   ensures
     gpu **
     pad_f (sdivup k.nthr 1024sz * 1024) k.kpost (1024 * bid + tid) **
-    thread_id 1024sz bid tid **
+    thread_id 1024sz tid **
     block_id (sdivup k.nthr 1024sz) bid
 {
   open FStar.SizeT;
@@ -323,7 +323,7 @@ let km1_as_kmn (#full_pre #full_post : slprop)
   block_setup = km1_as_kmn_block_setup k;
   block_teardown = km1_as_kmn_block_teardown k;
 
-  f = (fun bid _tid -> frame_2 (thread_id 1sz bid _tid) (k.f bid));
+  f = (fun bid _tid -> frame_2 (thread_id 1sz _tid) (k.f bid));
 }
 
 ghost

@@ -79,12 +79,12 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
       (requires
          gpu **
          kpre bid tid **
-         thread_id nthr bid tid **
+         thread_id nthr tid **
          block_id nblk bid)
       (ensures fun _ ->
          gpu **
          kpost bid tid **
-         thread_id nthr bid tid **
+         thread_id nthr tid **
          block_id nblk bid)
   );
 }
@@ -175,11 +175,11 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
       (requires
          gpu **
          kpre tid **
-         thread_id nthr 0 tid)
+         thread_id nthr tid)
       (ensures fun _ ->
          gpu **
          kpost tid **
-         thread_id nthr 0 tid)
+         thread_id nthr tid)
   );
 }
 

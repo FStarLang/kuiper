@@ -335,9 +335,9 @@ fn reverse
   preserves
     cpu
   requires
-    a |-> s
+    on gpu_loc (a |-> s)
   ensures
-    a |-> reverse_spec s
+    on gpu_loc (a |-> reverse_spec s)
 {
   launch_sync (kdesc size a #s);
 }

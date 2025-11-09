@@ -192,12 +192,10 @@ fn gpu_matrix_alloc0
   returns
     gm : gpu_matrix et l
   ensures
-    exists* em. gm |-> em
+    exists* em. on gpu_loc (gm |-> em)
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);
-  with s. assert (A.varray_pts_to gm #1.0R s);
-  fold gpu_matrix_pts_to gm s;
   gm;
 }
 
@@ -213,10 +211,9 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures emp
 {
-  unfold gpu_matrix_pts_to gm em;
   A.varray_free gm;
 }
 
@@ -568,16 +565,18 @@ fn gpu_matrix_from_array
     a |-> s **
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
-    (gm |-> from_seq l s)
+    on gpu_loc (gm |-> from_seq l s)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold gpu_matrix_pts_to gm #1.0R em;
   A.varray_from_array (rows *^ cols) gm a;
   from_seq_rel l s;
-  fold gpu_matrix_pts_to gm #1.0R (from_seq l s);
+  with p. assert (on gpu_loc p);
+  map_loc gpu_loc #p #(gpu_matrix_pts_to gm #1.0R (from_seq l s)) fn () {
+    fold gpu_matrix_pts_to gm #1.0R (from_seq l s)
+  };  
 }
 
 inline_for_extraction noextract
@@ -590,7 +589,7 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == rows * cols})
   (#em : ematrix et rows cols)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     a |-> s
@@ -599,8 +598,7 @@ fn gpu_matrix_to_array
     (a |-> to_seq l em)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold gpu_matrix_pts_to gm #1.0R em;
   A.varray_to_array (rows *^ cols) a gm;
   to_seq_rel l em;
-  fold gpu_matrix_pts_to gm #1.0R em;
+  ()
 }

@@ -91,11 +91,11 @@ fn kf
   requires
     gpu **
     kpre lena ga1 ga2 s1 s2 vr1 vr2 tid **
-    thread_id lena 0 tid
+    thread_id lena tid
   ensures
     gpu **
     kpost lena ga1 ga2 s1 s2 vr1 vr2 tid **
-    thread_id lena 0 tid
+    thread_id lena tid
 {
   (**)unfold (kpre lena ga1 ga2 s1 s2 vr1 vr2 tid);
 

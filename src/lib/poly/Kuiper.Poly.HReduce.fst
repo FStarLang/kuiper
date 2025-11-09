@@ -289,11 +289,11 @@ fn kf
   requires
     gpu **
     kpre nth a s vr tid **
-    thread_id nth 0 tid
+    thread_id nth tid
   ensures
     gpu **
     kpost nth a s vr tid **
-    thread_id nth 0 tid
+    thread_id nth tid
 {
   (* Reduction *)
   let mut n : szlt 32 = 0sz;
@@ -434,6 +434,43 @@ let kernel
   kpre =  kpre lena a va vr;
   frame = emp;
 }
+module T = FStar.Tactics
+
+assume
+val rewrite_by_unfolding (p:slprop) (steps:_)
+: stt_ghost unit emp_inames p (fun _ -> norm steps p)
+
+
+ghost fn on_exists_elim u#a #l (#a: Type u#a) (p: a -> slprop)
+  requires on l (exists* x. p x)
+  ensures exists* x. on l (p x)
+{
+  admit()
+  
+  // ghost_impersonate l (on l (exists* x. p x)) (exists* x. on l (p x)) fn _ {
+  //   on_elim (exists* x. p x);
+  //   on_intro (p _);
+  // }
+}
+
+ghost fn on_star_elim #l (p q: slprop)
+  requires on l (p ** q)
+  ensures on l p
+  ensures on l q
+{
+  admit()
+}
+
+
+ghost fn placeless_on_elim (p: slprop) {| placeless p |} l
+  requires on l p
+  ensures p
+  {admit()}
+
+ghost fn on_pure_elim (p:prop) l
+  requires on l (pure p)
+  ensures pure p
+  {admit()}
 
 inline_for_extraction noextract
 fn reduce
@@ -444,15 +481,20 @@ fn reduce
   (#vr : erased (seq real) { va %~ vr })
   requires
     cpu **
-    (a |-> va)
+    on gpu_loc (a |-> va)
   ensures
     cpu **
     (exists* (va' : seq et{Seq.length va' > 0}).
-      gpu_pts_to_array a va' **
+      on gpu_loc (a |-> va') **
       pure ((va' @! 0) `approximates` seq_fold_left (+.) 0.0R vr))
 {
-  gpu_pts_to_ref a; (* recall length, automate *)
+  gpu_pts_to_ref_located a; (* recall length, automate *)
   launch_sync (kernel lena a #va #vr);
-  unfold gpu_pts_to_slice_sum a 0 lena va vr;
+  rewrite_by_unfolding
+    (on gpu_loc (gpu_pts_to_slice_sum a 0 lena va vr))
+    [delta_only [`%gpu_pts_to_slice_sum]];
+  on_exists_elim _;
+  on_star_elim _ _;
+  on_pure_elim _ _;
   ()
 }

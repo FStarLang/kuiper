@@ -185,7 +185,7 @@ fn gpu_matrix_alloc0
   returns
     gm : gpu_matrix et l
   ensures
-    exists* em. gm |-> em
+    exists* em. on gpu_loc (gm |-> em)
 
 inline_for_extraction noextract
 fn gpu_matrix_free
@@ -197,7 +197,7 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures emp
 
 ghost
@@ -419,10 +419,10 @@ fn gpu_matrix_from_array
     a |-> s **
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
-    (gm |-> from_seq l s)
+    on gpu_loc (gm |-> from_seq l s) //TODO: consider rebinding
 
 inline_for_extraction noextract
 fn gpu_matrix_to_array
@@ -434,10 +434,10 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == rows * cols})
   (#em : ematrix et rows cols)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     a |-> s
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
-    (a |-> to_seq l em)
+    (a |-> to_seq l em) //TODO: consider rebinding

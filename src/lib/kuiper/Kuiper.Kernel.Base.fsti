@@ -22,13 +22,13 @@ fn launch_kernel_full
   requires
     cpu **
     epoch_live e **
-    full_pre
+    on gpu_loc full_pre
   returns
     e' : epoch_t
   ensures
     cpu **
     epoch_live e' **
-    pledge0 (epoch_done e') full_post **
+    pledge0 (epoch_done e') (on gpu_loc full_post) **
     pure (e' >= e)
 
 (* Sync the device: wait for all pending kernels. *)

@@ -349,7 +349,7 @@ fn varray_alloc0
   returns
     a : varray vw
   ensures
-    exists* v. a |-> v
+    exists* v. on gpu_loc (a |-> v)
 
 inline_for_extraction noextract
 fn varray_free
@@ -360,7 +360,7 @@ fn varray_free
   preserves
     cpu
   requires
-    a |-> v
+    on gpu_loc (a |-> v)
   ensures emp
 
 ghost
@@ -532,7 +532,6 @@ fn varray_write_cell
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -548,8 +547,6 @@ fn varray_write_cell'
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -565,8 +562,6 @@ fn varray_read_cell
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     varray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -585,8 +580,6 @@ fn varray_read_cell'
   (ai : erased vw.iview.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -606,7 +599,6 @@ fn varray_read
   (#f : perm)
   (#v : erased st)
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -622,12 +614,10 @@ fn varray_write
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : erased st)
-  preserves
-    gpu
   requires
     a |-> v0
   ensures
-    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e
+    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e //TODO: consider rebinding this
 
 inline_for_extraction noextract
 fn varray_from_array
@@ -642,10 +632,10 @@ fn varray_from_array
     a |-> s **
     cpu
   requires
-    va |-> v
+    on gpu_loc (va |-> v)
   ensures
     pure (Pulse.Lib.Vec.length a == len vw) **
-    (va |-> from_seq vw s)
+    on gpu_loc (va |-> from_seq vw s)
 
 inline_for_extraction noextract
 fn varray_to_array
@@ -657,7 +647,7 @@ fn varray_to_array
   (#s : erased (seq et){Seq.length s == len vw})
   (#v : erased st)
   preserves
-    va |-> v **
+    on gpu_loc (va |-> v) **
     cpu
   requires
     a |-> s

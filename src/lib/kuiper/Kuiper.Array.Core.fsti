@@ -18,43 +18,42 @@ open Kuiper.ArrayCoreAssumptions
 module T = FStar.Tactics
 module SZ = Kuiper.SizeT
 
-val gpu_array_core (a : Type u#0) (sz : nat) : Type u#0
-val loc_id_of_array (#a:Type u#0) (#sz:nat) (x:gpu_array_core a sz) : loc_id
-val visibility_of #a #sz (x:gpu_array_core a sz) : visibility
+val gpu_array (a : Type u#0) (sz : nat) : Type u#0
+val loc_id_of_array (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : loc_id
+val visibility_of #a #sz (x:gpu_array a sz) : visibility
 
-let visible_at #a #sz (x:gpu_array_core a sz) (l:loc_id) = 
+let visible_at #a #sz (x:gpu_array a sz) (l:loc_id) = 
   visibility_of x (loc_id_of_array x) == 
   visibility_of x l
 
-let visible_on_gpu #a #sz (x:gpu_array_core a sz) (gpu_id:int) =
+let visible_on_gpu #a #sz (x:gpu_array a sz) (gpu_id:int) =
   gpu_of (loc_id_of_array x) == gpu_id_loc gpu_id
 
-let gpu_array (#[T.exact (`0)]gpu_id:int) a sz 
-  = x:gpu_array_core a sz { 
-      visible_on_gpu x gpu_id /\
-      visibility_of x == gpu_of
-    }
+let is_global_array #a #sz (#[T.exact (`0)]gpu_id:int) (x:gpu_array a sz) : prop =
+  visible_on_gpu x gpu_id /\
+  visibility_of x == gpu_of
 
-let gpu_shmem_array (#[T.exact (`0)]gpu_id:int) (bid:int) a sz
-  = x:gpu_array_core a sz { 
-      visibility_of x == block_of /\
-      block_of (loc_id_of_array x) == block_id_loc #gpu_id bid
-    }
-
-let visible_on_block #a #sz (x:gpu_array_core a sz) (gpu_id:int) (bid:int) =
+let is_shmem_array #a #sz (#[T.exact (`0)]gpu_id:int) (bid:int) (x:gpu_array a sz) : prop =
+  visibility_of x == block_of /\
   block_of (loc_id_of_array x) == block_id_loc #gpu_id bid
+
+let gpu_global_array (#[T.exact (`0)]gpu_id:int) a sz =
+  x:gpu_array a sz { is_global_array #a #sz #gpu_id x }
+
+let gpu_shmem_array (#[T.exact (`0)]gpu_id:int) (bid:int) a sz =
+  x:gpu_array a sz { is_shmem_array #a #sz #gpu_id bid x }
 
 (* Base address of the GPU array, used to model alignment. This number
 is in units of *bytes*, not array elements. *)
-val base_address (#a : Type u#0) (#sz : nat) (x : gpu_array_core a sz) : GTot nat
+val base_address (#a : Type u#0) (#sz : nat) (x : gpu_array a sz) : GTot nat
 
-let aligned (n:pos) (#a:Type u#0) (#sz:nat) (x:gpu_array_core a sz) : prop =
+let aligned (n:pos) (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : prop =
   n /?+ base_address x
 
 (* An offset within the array is aligned. *)
 let aligned' (n:pos)
   (#a:Type u#0) {| sized a |}
-  (#sz:nat) (x:gpu_array_core a sz)
+  (#sz:nat) (x:gpu_array a sz)
   (off : nat) : prop =
   n /?+ (base_address x + off * size #a)
 
@@ -66,29 +65,39 @@ let aligned' (n:pos)
 val gpu_pts_to_slice
   (#a:Type u#0)
   (#sz:nat)
-  ([@@@mkey] x:gpu_array_core a sz)
+  ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
 : slprop
 
-instance
-val placeless_gpu_pts_to_slice 
+
+instance val is_send_gpu_pts_to_slice
   (#a:Type u#0)
   (#sz:nat)
-  ([@@@mkey] x:gpu_array_core a sz)
+  ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
-: placeless (gpu_pts_to_slice #a #sz x #f i j v)
+: is_send_across
+     (visibility_of x)
+     (gpu_pts_to_slice #a #sz x #f i j v)
+
+instance is_send_across_global_array
+  (#et:Type0) (#sz:_) 
+  (a:gpu_array et sz { is_global_array a })
+  (#i #j #f #s:_)
+: is_send_across gpu_of (gpu_pts_to_slice a #f i j s)
+= let i : is_send_across (visibility_of a) (gpu_pts_to_slice a #f i j s) = solve in
+  i
 
 unfold
 let gpu_pts_to_cell
   (#a:Type u#0)
   (#sz:nat)
-  ([@@@mkey] x:gpu_array_core a sz)
+  ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   ([@@@mkey] i : nat)
   (v : a)
@@ -100,7 +109,7 @@ unfold
 let gpu_pts_to_array
   (#a:Type u#0)
   (#sz:nat)
-  ([@@@mkey] x:gpu_array_core a sz)
+  ([@@@mkey] x:gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   (v : seq a)
 : slprop
@@ -109,28 +118,7 @@ let gpu_pts_to_array
 
 unfold
 instance has_pts_to_gpu_arr (a:Type) (sz : _) :
-  has_pts_to (gpu_array_core a sz) (Seq.seq a) =
-{
-  pts_to = gpu_pts_to_array;
-}
-
-// unfold
-// instance has_pts_to_gpu_global_arr_lseq (a:Type) (sz : _) (#gpu_id:_):
-//   has_pts_to (gpu_array #gpu_id a sz) (lseq a sz) =
-// {
-//   pts_to = gpu_pts_to_array;
-// }
-
-unfold
-instance has_pts_to_gpu_global_arr (a:Type) (sz : _) (#gpu_id:_):
-  has_pts_to (gpu_array #gpu_id a sz) (Seq.seq a) =
-{
-  pts_to = gpu_pts_to_array;
-}
-
-unfold
-instance has_pts_to_gpu_shmem_arr #gpu_id #bid (a:Type) (sz : _) :
-  has_pts_to (gpu_shmem_array #gpu_id bid a sz) (Seq.seq a) =
+  has_pts_to (gpu_array a sz) (Seq.seq a) =
 {
   pts_to = gpu_pts_to_array;
 }
@@ -140,7 +128,7 @@ fn gpu_pts_to_slice_ref
   (#a:Type u#0)
   (#sz:nat)
   (#f : perm)
-  (x:gpu_array_core a sz)
+  (x:gpu_array a sz)
   (i:nat) (j:nat)
   (#v : seq a)
   preserves gpu_pts_to_slice x #f i j v
@@ -156,9 +144,13 @@ fn gpu_array_alloc
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures
-    exists* (s:seq a). x |-> s ** pure (Seq.length s == sz)
-  ensures
-    pure (aligned 128 x)
+    exists* (s:seq a). 
+      on gpu_loc (x |-> s) **
+      pure (
+        Seq.length s == sz /\
+        aligned 128 x /\
+        is_global_array x
+      )
 
 fn gpu_array_free
   (#a:Type u#0)
@@ -166,46 +158,8 @@ fn gpu_array_free
   (r : gpu_array a sz)
   (#v : erased (seq a))
   preserves cpu
-  requires r |-> v
+  requires on gpu_loc (r |-> v)
   ensures  emp
-
-[@@noextract_to "krml"]
-fn gpu_array_read_loc
-  (#a : Type u#0)
-  (#sz : erased nat)
-  (#i  : erased nat)
-  (#j  : erased nat)
-  (r : gpu_array_core a sz)
-  (#f : perm)
-  (idx : SZ.t)
-  (#s : erased (seq a))
-  (#l : loc_id)
-  preserves loc l
-  preserves gpu_pts_to_slice #a #sz r #f i j s
-  requires pure (i <= SZ.v idx /\ SZ.v idx < j /\ r `visible_at` l)
-  returns  x:a
-  ensures  pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
-                 i <= SZ.v idx /\ SZ.v idx < j /\
-                 x == Seq.index s (SZ.v idx - i))
-
-[@@noextract_to "krml"]
-fn gpu_array_write_loc
-  (#a:Type u#0)
-  (#sz: erased nat)
-  (#i: erased nat)
-  (#j: erased nat)
-  (r:gpu_array_core a sz)
-  (idx : SZ.t)
-  (v : a)
-  (#s : erased (seq a))
-  (#l : loc_id)
-  preserves loc l
-  requires pure (i <= SZ.v idx /\ SZ.v idx < j /\ r `visible_at` l)
-  requires gpu_pts_to_slice #a #sz r #1.0R i j s
-  ensures
-    with_pure
-      (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\ i <= SZ.v idx /\ SZ.v idx < j)
-      (fun _ -> gpu_pts_to_slice #a #sz r #1.0R i j (Seq.upd s (SZ.v idx - i) v))
 
 [@@noextract_to "krml"]
 fn gpu_array_read
@@ -213,12 +167,10 @@ fn gpu_array_read
   (#sz : erased nat)
   (#i  : erased nat)
   (#j  : erased nat)
-  (#gpu_id : erased int)
-  (r : gpu_array #gpu_id a sz)
+  (r : gpu_array a sz)
   (#f : perm)
   (idx : SZ.t)
   (#s : erased (seq a))
-  preserves gpu #gpu_id
   preserves gpu_pts_to_slice #a #sz r #f i j s
   requires pure (i <= SZ.v idx /\ SZ.v idx < j)
   returns  x:a
@@ -232,65 +184,23 @@ fn gpu_array_write
   (#sz: erased nat)
   (#i: erased nat)
   (#j: erased nat)
-  (#gpu_id : erased int)
-  (r:gpu_array #gpu_id a sz)
+  (r:gpu_array a sz)
   (idx : SZ.t)
   (v : a)
   (#s : erased (seq a))
-  preserves gpu #gpu_id
   requires pure (i <= SZ.v idx /\ SZ.v idx < j)
   requires gpu_pts_to_slice #a #sz r #1.0R i j s
   ensures
     with_pure
       (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\ i <= SZ.v idx /\ SZ.v idx < j)
-      (fun _ -> gpu_pts_to_slice #a #sz r #1.0R i j (Seq.upd s (SZ.v idx - i) v))
-
-[@@noextract_to "krml"]
-fn gpu_shmem_array_read
-  (#a : Type u#0)
-  (#sz : erased nat)
-  (#i  : erased nat)
-  (#j  : erased nat)
-  (#gpu_id #nblk #bid:erased int)
-  (r : gpu_shmem_array #gpu_id bid a sz)
-  (#f : perm)
-  (idx : SZ.t)
-  (#s : erased (seq a))
-  preserves block_id #gpu_id nblk bid
-  preserves gpu_pts_to_slice #a #sz r #f i j s
-  requires pure (i <= SZ.v idx /\ SZ.v idx < j)
-  returns  x:a
-  ensures  pure (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\
-                 i <= SZ.v idx /\ SZ.v idx < j /\
-                 x == Seq.index s (SZ.v idx - i))
-
-[@@noextract_to "krml"]
-fn gpu_shmem_array_write
-  (#a:Type u#0)
-  (#sz: erased nat)
-  (#i: erased nat)
-  (#j: erased nat)
-  (#gpu_id #nblk #bid:erased int)
-  (r:gpu_shmem_array #gpu_id bid a sz)
-  (idx : SZ.t)
-  (v : a)
-  (#s : erased (seq a))
-  preserves block_id #gpu_id nblk bid
-  requires pure (i <= SZ.v idx /\ SZ.v idx < j)
-  requires gpu_pts_to_slice #a #sz r #1.0R i j s
-  ensures
-    with_pure
-      (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\ i <= SZ.v idx /\ SZ.v idx < j)
-      (fun _ -> gpu_pts_to_slice #a #sz r #1.0R i j (Seq.upd s (SZ.v idx - i) v))
-
+      (fun _ -> exists* s'. gpu_pts_to_slice #a #sz r #1.0R i j s' ** pure (s' == Seq.upd s (SZ.v idx - i) v))
 
 (* blit *)
 fn gpu_memcpy_host_to_device'
   (#a:Type u#0)
   {| sized a |}
   (#dst_sz : erased nat)
-  (#gpu_id: erased int)
-  (dst_garr : gpu_array #gpu_id a dst_sz)
+  (dst_garr : gpu_array a dst_sz)
   (dst_off : SZ.t)
   (#src_sz : erased nat)
   (src_arr : vec a)
@@ -307,17 +217,18 @@ fn gpu_memcpy_host_to_device'
     cpu **
     pts_to src_arr #f v
   requires
-    (dst_garr |-> gv)
+    on gpu_loc (dst_garr |-> gv)
   ensures
-    (dst_garr |-> seq_blit gv dst_off v src_off cnt) **
+    exists* s'. on gpu_loc (dst_garr |-> s') 
+               ** pure (s' == seq_blit gv dst_off v src_off cnt)
+  ensures
     pure (Seq.length v == reveal dst_sz)
 
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (#gpu_id: erased int)
-  (dst_garr : gpu_array #gpu_id a sz)
+  (dst_garr : gpu_array a sz)
   (src_arr : vec a)
   (cnt : SZ.t)
   (#f : perm)
@@ -327,10 +238,12 @@ fn gpu_memcpy_host_to_device
     cpu **
     (src_arr |-> Frac f v)
   requires
-    (dst_garr |-> gv) **
-    pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
+    on gpu_loc (dst_garr |-> gv)
+  requires 
+    pure (SZ.v cnt == sz /\
+          (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
-    (dst_garr |-> v) **
+    on gpu_loc (dst_garr |-> v) **
     pure (Seq.length v == reveal sz)
 
 (* blit *)
@@ -341,8 +254,7 @@ fn gpu_memcpy_device_to_host'
   (dst_arr : vec a)
   (dst_off : SZ.t)
   (#src_sz : erased nat)
-  (#gpu_id:erased int)
-  (src_garr : gpu_array #gpu_id a src_sz)
+  (src_garr : gpu_array a src_sz)
   (src_off : SZ.t)
   (cnt : SZ.t {
     dst_off + cnt <= dst_sz /\
@@ -353,30 +265,31 @@ fn gpu_memcpy_device_to_host'
   (#gv : erased (seq a){ Seq.length gv == dst_sz })
   preserves
     cpu **
-    pts_to src_garr #f v
+    on gpu_loc (src_garr |-> Frac f (v<:seq _))
   requires
     (dst_arr |-> gv)
   ensures
-    (dst_arr |-> seq_blit gv dst_off v src_off cnt) **
-    pure (Seq.length v == reveal dst_sz)
+    exists* s'. dst_arr |-> s' **
+    pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length v == reveal dst_sz)
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (#gpu_id:erased int)
   (dst_arr : vec a)
-  (src_garr : gpu_array #gpu_id a sz)
+  (src_garr : gpu_array a sz)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
   (#gv : erased (seq a))
   preserves
     cpu **
-    (src_garr |-> Frac f gv)
+    on gpu_loc (src_garr |-> Frac f gv)
   requires
     (dst_arr |-> v) **
-    pure (SZ.v cnt == sz /\ (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
+    pure (
+      SZ.v cnt == sz /\
+      (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
     (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
@@ -386,21 +299,22 @@ fn gpu_memcpy_device_to_device
   (#a:Type u#0)
   {| sized a |}
   (#sz : erased nat)
-  (#gpu1 #gpu2:erased int)
-  (dst_arr : gpu_array #gpu1 a sz)
-  (src_garr : gpu_array #gpu2 a sz)
+  (dst_arr : gpu_array a sz)
+  (src_garr : gpu_array a sz)
   (cnt : SZ.t)
   (#f : perm)
   (#v : erased (seq a))
   (#gv : erased (seq a))
   preserves
     cpu **
-    (src_garr |-> Frac f gv)
+    on gpu_loc (src_garr |-> Frac f gv)
   requires
-    (dst_arr |-> v) **
-    pure (SZ.v cnt == sz /\ (Seq.length gv == sz \/ Seq.length v == sz))
+    on gpu_loc (dst_arr |-> v) **
+    pure (
+      SZ.v cnt == sz /\ 
+      (Seq.length gv == sz \/ Seq.length v == sz))
   ensures
-    (dst_arr |-> gv) **
+    on gpu_loc (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
 
 
@@ -408,7 +322,7 @@ ghost
 fn gpu_array_slice_1
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
   requires pts_to arr #f v
@@ -418,7 +332,7 @@ ghost
 fn gpu_array_unslice_1
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (#f : perm)
   (#v : erased (seq a) { Seq.length v == sz })
   requires forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
@@ -428,7 +342,7 @@ ghost
 fn gpu_slice_concat
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
@@ -439,7 +353,7 @@ ghost
 fn gpu_slice_split
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (#[exact (`1.0R)] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
@@ -449,7 +363,7 @@ fn gpu_slice_split
 ghost
 fn gpu_slice_empty_elim
   (#a:Type u#0) (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (i : nat)
   requires gpu_pts_to_slice arr #'f i i 'v
   ensures  emp
@@ -457,7 +371,7 @@ fn gpu_slice_empty_elim
 ghost
 fn gpu_slice_empty_intro
   (#a:Type u#0) (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (i : nat)
   requires emp
   ensures  gpu_pts_to_slice arr #'f i i seq![]
@@ -466,7 +380,7 @@ ghost
 fn gpu_slice_share
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (m n:nat)
   (k: nat { k > 0 })
   (#f : perm)
@@ -478,7 +392,7 @@ ghost
 fn gpu_slice_gather
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (m n:nat)
   (k: nat { k > 0 })
   (#f : perm) // FIXME: if we use 'f, it gets type 'real' instead of 'perm'
@@ -490,7 +404,7 @@ ghost
 fn gpu_slice_pts_to_eq
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array_core a sz)
+  (arr : gpu_array a sz)
   (m n:nat)
   (#f1 f2 : perm)
   (#v1 #v2 : seq a)
@@ -504,21 +418,21 @@ fn gpu_slice_pts_to_eq
 // val adjacent
 //   (#a : Type u#0)
 //   (#s1 #s2 : nat)
-//   (arr1 : gpu_array a s1)
-//   (arr2 : gpu_array a s2)
+//   (arr1 : gpu_global_array a s1)
+//   (arr2 : gpu_global_array a s2)
 //   : slprop
 
 // ghost
 // fn gpu_array_cut
 //   (#a : Type u#0) {| sized a |}
 //   (#sz : nat)
-//   (arr : gpu_array a sz)
+//   (arr : gpu_global_array a sz)
 //   (k : SZ.t{ k <= sz })
 //   (#s : lseq a sz)
 //   requires
 //     (arr |-> Frac 'f s)
 //   returns
-//     p : (gpu_array a k & gpu_array a (sz - k))
+//     p : (gpu_global_array a k & gpu_global_array a (sz - k))
 //   ensures
 //     (p._1 |-> Frac 'f (seq_take k s)) **
 //     (p._2 |-> Frac 'f (seq_drop k s)) **
@@ -532,13 +446,13 @@ fn gpu_slice_pts_to_eq
 // fn gpu_array_paste
 //   (#a : Type u#0)
 //   (#sz1 #sz2 : nat)
-//   (arr1 : gpu_array a sz1)
-//   (arr2 : gpu_array a sz2)
+//   (arr1 : gpu_global_array a sz1)
+//   (arr2 : gpu_global_array a sz2)
 //   requires
 //     (arr1 |-> Frac 'f 's1) **
 //     (arr2 |-> Frac 'f 's2) **
 //     adjacent arr1 arr2
 //   returns
-//     arr : gpu_array a (sz1 + sz2)
+//     arr : gpu_global_array a (sz1 + sz2)
 //   ensures
 //     arr |-> Frac 'f ('s1 @+ 's2)
