@@ -5,43 +5,20 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 #set-options "--z3rlimit 60"
 
 open Kuiper
-
-open Kuiper.Matrix.Reprs
-module R = Kuiper.Matrix.Reprs
-open Kuiper.TensorCore
 open Kuiper.Approximates
-
-module SZ = Kuiper.SizeT
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-module MS = Kuiper.Spec.GEMM
-
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Matrix
-
-module SZ = Kuiper.SizeT
-module B = Kuiper.Barrier
-
-open Kuiper.Matrix.Reprs
-module R = Kuiper.Matrix.Reprs
-
 open Kuiper.EMatrix
-open Kuiper.VArray {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
-open Kuiper.TensorCore
-open Kuiper.Float16
+open Kuiper.Math { even, odd }
+open Kuiper.Matrix
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
-
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
-open Pulse.Lib.Array
-open Pulse.Lib.Trade
-
-open Kuiper.Bijection
+module B  = Kuiper.Barrier
+module MS = Kuiper.Spec.GEMM
+module R  = Kuiper.Matrix.Reprs
+module SZ = Kuiper.SizeT
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
