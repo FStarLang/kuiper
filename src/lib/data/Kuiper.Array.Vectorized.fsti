@@ -62,7 +62,10 @@ fn gpu_array_vec_cpy_dd
   requires  pure (aligned' 16 src_arr src_off)
   requires  pure (aligned' 16 dst_arr dst_off)
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
-  ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))
+  ensures   
+    exists* s'.
+      gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j s' **
+      pure (s' == seq_blit ds (dst_off - dst_slice_i) ss (src_off - src_slice_i) (chunk et))
 
 atomic
 fn gpu_array_vec_cpy_dh
@@ -84,7 +87,10 @@ fn gpu_array_vec_cpy_dh
   preserves gpu_pts_to_slice src_arr #f src_slice_i src_slice_j ss
   requires  pure (aligned' 16 src_arr src_off)
   requires  dst_arr |-> ds
-  ensures   dst_arr |-> (seq_blit ds dst_off ss (src_off - src_slice_i) (chunk et))
+  ensures   
+    exists* s'.
+      dst_arr |-> s' **
+      pure (s' == seq_blit ds dst_off ss (src_off - src_slice_i) (chunk et))
 
 atomic
 fn gpu_array_vec_cpy_hd
@@ -106,4 +112,7 @@ fn gpu_array_vec_cpy_hd
   preserves src_arr |-> Frac f ss
   requires  pure (aligned' 16 dst_arr dst_off)
   requires  gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j ds
-  ensures   gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j (seq_blit ds (dst_off - dst_slice_i) ss src_off (chunk et))
+  ensures   
+    exists* s'. 
+      gpu_pts_to_slice dst_arr dst_slice_i dst_slice_j s' **
+      pure (s' == seq_blit ds (dst_off - dst_slice_i) ss src_off (chunk et))
