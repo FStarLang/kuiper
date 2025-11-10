@@ -233,6 +233,96 @@ let em_fade
 let nop_tactic () : Tactics.Tac unit = ()
 
 #push-options "--z3rlimit 75 --fuel 0 --ifuel 1"
+let cp_matrix_vec_chunk_et_divides_col
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: pos)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    tid < nthr /\
+    it <= (rows*cols) / (nthr * chunk et)
+  ))
+: Lemma
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    chunk et /?+ col
+  ))
+=
+    let i = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i + offset) / cols in
+    let col = (i + offset) % cols in
+    assert (chunk et /?+ offset);
+    assert (chunk et /?+ i);
+    lemma_nat_divides_pos_divides (chunk et) i;
+    assert (chunk et /? i);
+    lemma_nat_divides_pos_divides (chunk et) offset;
+    assert (chunk et /? offset);
+    lemma_divides_sum (chunk et) i offset;
+    assert ((chunk et /? (i + offset)));
+    lemma_nat_divides_pos_divides (chunk et) cols;
+    assert ((chunk et /? cols));
+    Kuiper.Math.Silly.lemma_mul_pos_recip rows cols;
+    assert ((cols > 0));
+    lemma_divides_mod_op (chunk et) (i + offset) cols;
+    assert (chunk et /? col);
+    lemma_nat_divides_pos_divides (chunk et) col
+
+let cp_matrix_vec_in_chunk
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: pos)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (k: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    tid < nthr /\
+    it <= (rows*cols) / (nthr * chunk et) /\
+    k < chunk et /\ (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    row < rows /\
+    col + k < cols
+  )))
+: Lemma
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    let ecell : (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col + k) in
+    in_chunk (chunk et) rows cols nthr tid ecell
+  ))
+=
+    let i = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i + offset) / cols in
+    let col = (i + offset) % cols in
+    let ecell : (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col + k) in
+    FStar.Math.Lemmas.euclidean_division_definition (i + offset) cols;
+    assert ((i + offset == row * cols + col));
+    let flat_idx = ((fst ecell * cols + snd ecell) <: nat) in
+    assert (flat_idx == i + offset + k);
+    let chunk_idx = (flat_idx / chunk et <: nat) in
+    FStar.Math.Lemmas.lemma_div_plus (i + k) tid (chunk et);
+    assert (chunk_idx == tid + (i + k) / chunk et);
+    FStar.Math.Lemmas.lemma_div_plus k (it * nthr) (chunk et);
+    assert (chunk_idx == tid + it * nthr + k / chunk et);
+    FStar.Math.Lemmas.small_div k (chunk et);
+    assert (chunk_idx == tid + it * nthr);
+    FStar.Math.Lemmas.lemma_mod_plus tid it nthr
+
+#push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
+// NB: The scalar constraint is only here so we can use 'zero' as an initializer
+// for a local array... would be gone if we had uninitialized local arrays.
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -300,21 +390,7 @@ fn cp_matrix_vec
     let row = (!i +^ offset) /^ cols; assert (rewrites_to row ((!i +^ offset) /^ cols));
     let col = (!i +^ offset) %^ cols; assert (rewrites_to col ((!i +^ offset) %^ cols));
     assert pure (chunk et /?+ cols);
-    assert pure (chunk et /?+ offset);
-    assert pure (chunk et /?+ !i);
-    lemma_nat_divides_pos_divides (chunk et) !i;
-    assert pure (chunk et /? !i);
-    lemma_nat_divides_pos_divides (chunk et) offset;
-    assert pure (chunk et /? offset);
-    lemma_divides_sum (chunk et) !i offset;
-    assert (pure (chunk et /? (!i +^ offset)));
-    lemma_nat_divides_pos_divides (chunk et) cols;
-    assert (pure (chunk et /? cols));
-    Kuiper.Math.Silly.lemma_mul_pos_recip rows cols;
-    assert (pure (cols > 0));
-    lemma_divides_mod_op (chunk et) (!i +^ offset) cols;
-    assert pure (chunk et /? col);
-    lemma_nat_divides_pos_divides (chunk et) col;
+    cp_matrix_vec_chunk_et_divides_col et rows cols nthr tid (GR.read git) ();
     assert pure (chunk et /?+ col);
     assert (pure (col + chunk et <= cols));
     assert pure (SZ.v offset == tid * chunk et);
@@ -344,21 +420,8 @@ fn cp_matrix_vec
       Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
       assert pure (col + !k < cols);
       let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col +^ !k);
-
-      FStar.Math.Lemmas.euclidean_division_definition (!i + offset);
-      assert (pure (!i + offset == row * cols + col));
-      let flat_idx = Ghost.hide ((fst ecell * cols + snd ecell) <: nat);
-      assert pure (flat_idx == !i + offset + !k);
-      let chunk_idx = Ghost.hide (flat_idx / chunk et <: nat);
-      FStar.Math.Lemmas.lemma_div_plus (!i + !k) tid (chunk et);
-      assert pure (chunk_idx == tid + (!i + !k) / chunk et);
-      FStar.Math.Lemmas.lemma_div_plus !k (GR.read git * nthr) (chunk et);
-      assert pure (chunk_idx == tid + GR.read git * nthr + !k / chunk et);
-      FStar.Math.Lemmas.small_div !k (chunk et);
-      assert pure (chunk_idx == tid + GR.read git * nthr);
-      FStar.Math.Lemmas.lemma_mod_plus tid (GR.read git) nthr;
+      cp_matrix_vec_in_chunk et rows cols nthr tid (GR.read git) !k ();
       assert pure (in_chunk (chunk et) rows cols nthr tid ecell);
-
       forevery_remove'
         #(natlt rows & natlt cols)
         (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
