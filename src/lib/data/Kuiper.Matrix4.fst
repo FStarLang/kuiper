@@ -571,7 +571,8 @@ fn gpu_matrix_from_array
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
-  map_loc gpu_loc #_ 
+  map_loc gpu_loc 
+  #(A.varray_pts_to gm (View.from_seq (aview_from_mlayout et l) s))
   #(gpu_matrix_pts_to gm #1.0R (from_seq l s))
   fn () {  fold gpu_matrix_pts_to gm #1.0R (from_seq l s) };
 }

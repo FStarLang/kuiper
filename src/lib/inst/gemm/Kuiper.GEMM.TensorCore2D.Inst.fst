@@ -43,9 +43,9 @@ fn spec
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (row_major rows shared))
-  (gB : gpu_matrix et_ab (row_major shared cols))
-  (gC : gpu_matrix et_c (row_major rows cols))
+  (gA : gpu_matrix et_ab (row_major rows shared) { is_global_matrix gA })
+  (gB : gpu_matrix et_ab (row_major shared cols) { is_global_matrix gB })
+  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#eA : ematrix et_ab rows shared)
@@ -102,7 +102,7 @@ fn spec
   let rB = to_real_matrix eB;
   let rC = to_real_matrix eC;
   launch_sync (
-    mk_kernel gA gB gC bm bn bk tm tn tk wm wn nblk nthr rA rB rC ()
+    mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr rA rB rC ()
   );
 
   ()

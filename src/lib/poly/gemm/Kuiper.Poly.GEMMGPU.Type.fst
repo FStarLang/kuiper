@@ -88,11 +88,11 @@ type tiled_matmulcomb_gpu_ty
   {| clayout lA |} ->
   {| clayout lB |} ->
   {| clayout lC |} ->
-  (gA : M.gpu_matrix et lA) ->
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA }) ->
   (#fA : perm) ->
-  (gB : M.gpu_matrix et lB) ->
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB }) ->
   (#fB : perm) ->
-  (gC : M.gpu_matrix et lC) ->
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC }) ->
   (#eA : ematrix _ _ _) ->
   (#eB : ematrix _ _ _) ->
   (#eC : ematrix _ _ _) ->

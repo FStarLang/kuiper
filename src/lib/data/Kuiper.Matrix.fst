@@ -233,6 +233,7 @@ fn gpu_matrix_alloc0
     gm : gpu_matrix et l
   ensures
     exists* em. on gpu_loc (gm |-> em)
+  ensures   pure (is_global_matrix gm)
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);

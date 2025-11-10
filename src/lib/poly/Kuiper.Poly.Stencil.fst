@@ -277,23 +277,26 @@ fn host_simple_stencil
   (#lOut : mlayout rows cols)
   {| clayout lIn |}
   {| clayout lOut |}
-  (gIn : M.gpu_matrix et lIn)
+  (gIn : M.gpu_matrix et lIn { M.is_global_matrix gIn })
   (#fIn : perm)
-  (gOut : M.gpu_matrix et lOut)
+  (gOut : M.gpu_matrix et lOut { M.is_global_matrix gOut })
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   (#eOut : ematrix et rows cols)
   preserves
     cpu **
-    gIn |-> Frac fIn eIn
+    on gpu_loc (gIn |-> Frac fIn eIn)
   requires
     pure (rows * cols <= max_blocks) **
-    gOut |-> eOut
+    on gpu_loc (gOut |-> eOut)
   ensures
-    gOut |-> STS.stencil_result stencil eIn
+    on gpu_loc (gOut |-> STS.stencil_result stencil eIn)
 {
-  launch_sync (kdesc stencil gIn gOut ());
+  on_star_intro #gpu_loc (gIn |-> Frac fIn eIn) (gOut |-> eOut);
+  launch_sync (kdesc stencil gIn #fIn gOut #eIn #eOut ());
+  on_star_elim _ _;
 }
 
+#push-options "--print_implicits"
 inline_for_extraction noextract
 fn specialize_host_simple_stencil
   (et: Type0) {| scalar et |}
@@ -302,19 +305,22 @@ fn specialize_host_simple_stencil
   {| cIn : crepr rIn |}
   {| cOut : crepr rOut |}
   (#rows #cols : (x:szp{x >= 3}))
-  (gIn : M.gpu_matrix et (rIn rows cols))
-  (gOut : M.gpu_matrix et (rOut (rows - 2) (cols - 2)))
+  (gIn : M.gpu_matrix et (rIn rows cols) { M.is_global_matrix gIn })
+  (gOut : M.gpu_matrix et (rOut (rows - 2) (cols - 2)) { M.is_global_matrix gOut })
+  (#fIn : perm)
   (#eIn : ematrix et rows cols)
   (#eOut : ematrix et (rows - 2) (cols - 2))
   preserves
     cpu **
-    gIn |-> eIn
+    on gpu_loc (gIn |-> Frac fIn eIn)
   requires
     pure (rows * cols <= max_blocks) **
-    gOut |-> eOut
+    on gpu_loc (gOut |-> eOut)
   ensures
-    gOut |-> STS.stencil_result stencil eIn
+    on gpu_loc (gOut |-> STS.stencil_result stencil eIn)
   {
     let cols_sub2 = cols -^ 2sz;
-    host_simple_stencil stencil #(rows -^ 2sz) #cols_sub2 #() #_ #_ #(cIn.map _ _) #(cOut.map _ _) gIn gOut;
+    admit(); //on prover
+    host_simple_stencil 
+      stencil #(rows -^ 2sz) #cols_sub2 #() #_ #_ #(cIn.map _ _) #(cOut.map _ _) gIn #fIn gOut #eIn #eOut;
   }

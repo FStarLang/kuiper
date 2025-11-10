@@ -560,6 +560,8 @@ fn varray_alloc0
     a : varray vw
   ensures
     exists* v. on gpu_loc (a |-> v)
+  ensures
+    pure (is_global_varray a)
 {
   let a = B.gpu_array_alloc #et len;
   with s. assert on gpu_loc (a |-> s);
