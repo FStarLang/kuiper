@@ -668,69 +668,7 @@ fn block_teardown
   ()
 }
 
-// ghost
-// fn untile_warp_tiles_shared
-//   (#et : Type0) {| scalar et |}
-//   (#rows #cols : nat)
-//   (#l : mlayout rows cols)
-//   ([@@@mkey] gm : gpu_matrix et l)
-//   (#f : perm)
-//   (trows : nat{trows > 0 /\ trows /? rows})
-//   (tcols : nat{tcols > 0 /\ tcols /? cols})
-//   (nthr : nat{nthr == rows/trows * (cols/tcols) * warp_size})
-//   (ff : natlt nthr -> ematrix et trows tcols)
-//   requires
-//     forall+ (tid : natlt nthr).
-//       gpu_matrix_subtile gm trows tcols
-//         (warp_tile_idx_rows rows cols trows tcols (tid/warp_size))
-//         (warp_tile_idx_cols rows cols trows tcols (tid/warp_size))
-//       |-> Frac (f /. warp_size) (ff tid)
-//   ensures
-//     gm |-> Frac f (ematrix_from_tiles trows tcols (fun i j -> ff (i * (cols/tcols) + j)))
-// {
-//   admit();
-//   forevery_factor nthr (rows/trows * (cols/tcols)) warp_size _;
-//   ghost
-//   fn unshare_within_warp (wid : natlt (rows/trows * (cols/tcols)))
-//   requires
-//     forall+ (lid: natlt warp_size). (exists* (em : ematrix _ _ _).
-//         gpu_matrix_subtile gm
-//               trows
-//               tcols
-//               ((wid * 32 + lid) / 32 / (cols / tcols))
-//               ((wid * 32 + lid) / 32 % (cols / tcols)) |-> Frac (f /. warp_size) em)
-//   ensures
-//     (exists* (em : ematrix _ _ _).
-//       gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
-//         |-> Frac f em)
-//   {
-//     forevery_map
-//       (fun (lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
-//         (gpu_matrix_subtile gm trows tcols
-//               ((wid * 32 + lid) / 32 / (cols / tcols))
-//               ((wid * 32 + lid) / 32 % (cols / tcols))) |-> Frac (f /. warp_size) em)
-//       (fun (_lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
-//         (gpu_matrix_subtile gm trows tcols
-//               (wid / (cols / tcols))
-//               (wid % (cols / tcols)) |-> Frac (f /. warp_size) em))
-//       fn _lid { rewrite each ((wid * 32 + _lid) / 32) as wid };
-//     gpu_matrix_gather_n_underspec
-//       (gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols)))
-//       warp_size;
-//   };
-//   forevery_map _ _ unshare_within_warp;
-
-//   forevery_factor' (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols)
-//     (fun (tr : natlt (rows/trows)) (tc : natlt (cols/tcols)) ->
-//       exists* (em: ematrix et trows tcols).
-//           (gpu_matrix_subtile gm trows tcols tr tc) |-> Frac f em);
-//   gpu_matrix_untile_underspec gm trows tcols;
-//   ()
-// }
-
-
 #push-options "--z3rlimit 60" // the function below is pretty terribly performant
-#set-options "--debug SMTFail --split_queries always --print_implicits --print_bound_var_types"
 ghost
 fn reconstruct_from_warp_approx
   (#et_ab #et_c : Type0)
