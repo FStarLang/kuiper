@@ -22,7 +22,6 @@ fn main (_:unit)
   returns  _ : u64
   ensures emp
 {
-  Pulse.Lib.Core.on_intro #gpu_loc emp;
   launch_kernel_1 (fun () -> kf ());
   1uL
 }

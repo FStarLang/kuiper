@@ -61,7 +61,8 @@ let clayout4_bij
 // FIXME: The VC for this definition is huge. It's incredible
 // we can actually print it out and solve it. Try to make
 // sense of it and report bug in F*.
-#push-options "--z3rlimit 50 --split_queries always"
+#push-options "--z3rlimit 50 --split_queries always --fuel 0 --ifuel 1"
+#restart-solver
 inline_for_extraction noextract
 instance cview_from_clayout4
   (et : Type)
@@ -569,7 +570,7 @@ fn gpu_matrix_from_array
   assert (pure (SZ.fits (mlayout_size l)));
   // unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
-  A.varray_from_array #_ #_ sz gm a;
+  A.varray_from_Parray #_ #_ sz gm a;
   from_seq_rel l s;
   map_loc gpu_loc 
   #(A.varray_pts_to gm (View.from_seq (aview_from_mlayout et l) s))

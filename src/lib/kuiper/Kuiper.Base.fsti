@@ -127,3 +127,34 @@ ensures norm steps p
   norm_spec steps p;
   rewrite p as (norm steps p);
 }
+
+
+ghost
+fn test_on_l_prover_emp (l:loc_id)
+requires emp
+ensures on l emp
+{}
+
+ghost
+fn test_on_l_prover_pure (l:loc_id) (p:prop)
+requires pure p
+ensures on l (pure p)
+{}
+
+ghost
+fn test_on_l_prover_star (l:loc_id) (p1 p2:slprop)
+requires on l p1 ** on l p2
+ensures on l (p1 ** p2)
+{}
+
+ghost
+fn test_on_l_prover_exists (#a:Type0) (l:loc_id) (p1: a -> slprop)
+requires exists* (x:a). on l (p1 x)
+ensures on l (exists* (x:a). p1 x)
+{}
+
+ghost
+fn test_on_l_prover_exists3 (#a:Type0) (l:loc_id) (p1: a -> a -> a -> slprop)
+requires exists* (x y z:a). on l (p1 x y z)
+ensures on l (exists* (x y z:a). p1 x y z)
+{}

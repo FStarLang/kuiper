@@ -56,11 +56,11 @@ fn spec
     cpu **
     // should be checked at runtime
     pure (rows * cols <= max_blocks) **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
     exists* eC'.
-      gC |-> eC' **
+      on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))

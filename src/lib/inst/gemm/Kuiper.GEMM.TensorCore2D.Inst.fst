@@ -58,17 +58,17 @@ fn spec
     cpu **
     // should be checked at runtime
     pure (rows * cols <= max_blocks) **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
     exists* eC'.
-      gC |-> eC' ** pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))
+      on gpu_loc (gC |-> eC') ** pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))
 {
-  gpu_matrix_pts_to_ref gA;
-  gpu_matrix_pts_to_ref gB;
-  gpu_matrix_pts_to_ref gC;
+  gpu_matrix_pts_to_ref_located gA;
+  gpu_matrix_pts_to_ref_located gB;
+  gpu_matrix_pts_to_ref_located gC;
 
   // TODO dassert for alignment of A/B
 
@@ -101,9 +101,10 @@ fn spec
   let rA = to_real_matrix eA;
   let rB = to_real_matrix eB;
   let rC = to_real_matrix eC;
+  #set-options "--fuel 0 --ifuel 0 --z3refresh" {
   launch_sync (
     mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk wm wn #_ #_ #_ #_ #_ #_ #_ #_ #fA #fB nblk nthr rA rB rC ()
-  );
+  )};
 
   ()
 }
