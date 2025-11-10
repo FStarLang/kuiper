@@ -2163,3 +2163,110 @@ fn forevery_mid_flip
     (fun x -> forall+ (z:c) (y:b). p x y z)
     fn x { forevery_commute _ };
 }
+
+let silly_coerce_helper
+  (n : pos)
+  (q : natlt n -> prop)
+  : Lemma (requires (forall (x : natlt (n-1)). q (natlt_coerce x)) /\
+                    (q (n-1)))
+          (ensures  forall (x : natlt n). q x)
+  = introduce forall (x : natlt n). q x with
+    if x = (n-1) then (
+      ()
+    ) else (
+      assert (natlt_coerce #(n-1) #n x == x);
+      ()
+    )
+
+ghost
+fn rec forevery_extract_pure_natlt
+  (n : nat)
+  (p : natlt n -> slprop)
+  (q : natlt n -> prop)
+  (f : (x:natlt n) -> stt_ghost unit emp_inames (p x) (fun _ -> p x ** pure (q x)))
+  preserves
+    forall+ (x:natlt n). p x
+  ensures
+    pure (forall (x:natlt n). q x)
+  decreases n
+{
+  if (n = 0) {
+    ()
+  } else {
+    assert pure (n > 0);
+    forevery_natlt_pop n _;
+    f (n-1);
+    forevery_extract_pure_natlt (n-1)
+      (fun i -> p (natlt_coerce i))
+      (fun i -> q (natlt_coerce i))
+      (fun i -> f (natlt_coerce i));
+    forevery_natlt_push n _;
+    silly_coerce_helper n q;
+    (); // needed...
+  }
+}
+
+let iso_lemma_prop
+  (#a #b : Type0)
+  (q : a -> prop)
+  (bij : (a =~ b))
+  : Lemma (requires forall (y:b). q (bij.gg y))
+          (ensures  forall (x:a). q x)
+  = introduce forall (x:a). q x with
+    let y = bij.ff x in
+    assert (x == bij.gg y);
+    ()
+
+ghost
+fn forevery_extract_pure
+  (#a : Type0) {| d : enumerable a |}
+  (p : a -> slprop)
+  (q : a -> prop)
+  (f : (x:a) -> stt_ghost unit emp_inames (p x) (fun _ -> p x ** pure (q x)))
+  preserves
+    forall+ (x:a). p x
+  ensures
+    pure (forall (x:a). q x)
+{
+  forevery_iso d.bij _;
+  forevery_extract_pure_natlt (cardinal a #_)
+    (fun i -> p (of_nat i))
+    (fun i -> q (of_nat i))
+    (fun i -> f (of_nat i));
+  forevery_iso_back d.bij _;
+  iso_lemma_prop #a #(natlt (cardinal a #_)) q d.bij;
+  ();
+}
+
+let lemma_flatten_prop
+  (#a #b : Type0)
+  (q : a -> b -> prop)
+  : Lemma (requires forall (xy: a & b). q xy._1 xy._2)
+          (ensures  forall (x:a) (y:b). q x y)
+  = introduce forall (x:a) (y:b). q x y with
+    let p = (x,y) in
+    ()
+
+ghost
+fn forevery_extract_pure_2
+  (#a #b : Type0)
+  {| enumerable a, enumerable b |}
+  (p : a -> b -> slprop)
+  (q : a -> b -> prop)
+  (f : (x:a) -> (y:b) ->
+    stt_ghost unit emp_inames (p x y) (fun _ -> p x y ** pure (q x y)))
+  preserves
+    forall+ (x:a) (y:b). p x y
+  ensures
+    pure (forall (x:a) (y:b). q x y)
+{
+  forevery_flatten _;
+  forevery_extract_pure (fun (xy: a & b) -> p xy._1 xy._2)
+    (fun (xy: a & b) -> q xy._1 xy._2)
+    fn xy { f xy._1 xy._2 };
+  forevery_unflatten _;
+  assert pure (forall (xy:a&b). q xy._1 xy._2);
+  lemma_flatten_prop #a #b q;
+  assert pure (forall (x:a) (y:b). q x y);
+  ();
+}
