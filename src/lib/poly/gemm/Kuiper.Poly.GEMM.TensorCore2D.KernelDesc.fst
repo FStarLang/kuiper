@@ -33,6 +33,129 @@ module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
 
+let bid_of_ij
+  (rows cols : nat)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (i : natlt rows)
+  (j : natlt cols)
+  : natlt (rows/bm * (cols/bn))
+  = (i / bm) * (cols/bn) + (j / bn)
+
+let wid_of_ij
+  (rows cols : nat)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (wm : pos{wm * tm /?+ bm})
+  (wn : pos{wn * tn /?+ bn})
+  (i : natlt rows)
+  (j : natlt cols)
+  : natlt (bm/(wm*tm) * (bn/(wn*tn)))
+  =
+    let i0 : natlt (bm/(wm*tm)) = (i % bm) / (wm*tm) in
+    let j0 : natlt (bn/(wn*tn)) = (j % bn) / (wn*tn) in
+    i0 * (bn/(wn*tn)) + j0
+
+// probably exists already
+let silly_modulo_helper (p : pos)
+  (a : nat) (b : natlt p)
+  : Lemma ((a * p + b) % p == b)
+  = ()
+let silly_div_helper (p : pos)
+  (a : nat) (b : natlt p)
+  : Lemma ((a * p + b) / p == a)
+  = ()
+
+let lem_i
+  (rows shared cols : nat)
+  (bm bn bk
+   tm tn tk
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (i : natlt rows)
+  (j : natlt cols)
+  : Lemma (ensures warp_tile_i #rows #cols bm bn bk tm tn tk wm wn
+                       nthr
+                       (bid_of_ij rows cols bm bn i j)
+                       (wid_of_ij rows cols bm bn tm tn wm wn i j)
+                     * (wm*tm) + ((i % bm) % (wm*tm)) == i)
+  = let bid = bid_of_ij rows cols bm bn i j in
+    let wid = wid_of_ij rows cols bm bn tm tn wm wn i j in
+    assert (j/bn < cols/bn);
+    silly_modulo_helper (cols/bn) (i/bm) (j/bn);
+    assert (bid / (cols/bn) == i / bm);
+    silly_div_helper (bn/(wn*tn)) ((i%bm)/(wm*tm)) ((j%bn)/(wn*tn));
+    assert (wid / (bn/(wn*tn)) == (i % bm) / (wm*tm));
+    calc (==) {
+      warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid * (wm*tm)
+        + ((i % bm) % (wm*tm));
+      == {}
+      ((bid / (cols/bn)) * (bm / (wm*tm)) + wid / (bn/(wn*tn))) * (wm*tm)
+        + ((i % bm) % (wm*tm));
+      == {}
+      ((i/bm) * (bm / (wm*tm)) + wid / (bn/(wn*tn))) * (wm*tm)
+        + ((i % bm) % (wm*tm));
+      == {}
+      ((i/bm) * (bm / (wm*tm)) + (i % bm) / (wm*tm)) * (wm*tm)
+        + ((i % bm) % (wm*tm));
+      == {}
+      (i/bm) * (bm / (wm*tm)) * (wm*tm) + ((i % bm) / (wm*tm)) * (wm*tm)
+        + ((i % bm) % (wm*tm));
+      == { Math.Lemmas.euclidean_division_definition (i % bm) (wm*tm) }
+      (i/bm) * (bm / (wm*tm)) * (wm*tm) + (i % bm);
+      == {}
+      i;
+    };
+    ()
+
+let lem_j
+  (rows shared cols : nat)
+  (bm bn bk
+   tm tn tk
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (i : natlt rows)
+  (j : natlt cols)
+  : Lemma (ensures warp_tile_j #rows #cols bm bn bk tm tn tk wm wn
+                       nthr
+                       (bid_of_ij rows cols bm bn i j)
+                       (wid_of_ij rows cols bm bn tm tn wm wn i j)
+                     * (wn*tn) + ((j % bn) % (wn*tn)) == j)
+  = let bid = bid_of_ij rows cols bm bn i j in
+    let wid = wid_of_ij rows cols bm bn tm tn wm wn i j in
+    assert (j/bn < cols/bn);
+    silly_modulo_helper (cols/bn) (i/bm) (j/bn);
+    assert (bid % (cols/bn) == j / bn);
+    silly_div_helper (bn/(wn*tn)) ((i%bm)/(wm*tm)) ((j%bn)/(wn*tn));
+    assert (wid % (bn/(wn*tn)) == (j % bn) / (wn*tn));
+    calc (==) {
+      warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid * (wn*tn)
+        + ((j % bn) % (wn*tn));
+      == {}
+      ((bid % (cols/bn)) * (bn/(wn*tn)) + wid % (bn/(wn*tn))) * (wn*tn)
+        + ((j % bn) % (wn*tn));
+      == {}
+      ((j/bn) * (bn/(wn*tn)) + wid % (bn/(wn*tn))) * (wn*tn)
+        + ((j % bn) % (wn*tn));
+      == {}
+      ((j/bn) * (bn/(wn*tn)) + (j % bn) / (wn*tn)) * (wn*tn)
+        + ((j % bn) % (wn*tn));
+      == {}
+      (j/bn) * (bn/(wn*tn)) * (wn*tn) + ((j % bn) / (wn*tn)) * (wn*tn)
+        + ((j % bn) % (wn*tn));
+      == { Math.Lemmas.euclidean_division_definition (j % bn) (wn*tn) }
+      (j/bn) * (bn/(wn*tn)) * (wn*tn) + (j % bn);
+      == {}
+      j;
+    };
+    ()
+
 ghost
 fn gpu_slice_gather_underspec
   (#a : Type u#0)
@@ -846,7 +969,6 @@ let silly_helper_natlt_prod
   : Lemma (ensures x * q + y < p * q)
   = ()
 
-#push-options "--split_queries always" //  --debug SMTFail"
 let tiles_approx_lemma
   (#et_c : Type0)
   {| scalar et_c |}
@@ -880,12 +1002,10 @@ let tiles_approx_lemma
 = let aux (i : natlt rows) (j : natlt cols)
     : Lemma (macc eC' i j %~ macc (MS.matmul rA rB) i j)
   =
-    let bid : natlt nblk = (i / bm) * (cols/bn) + (j / bn) in
-    silly_helper_natlt_prod (bm/(wm*tm)) (bn/(wn*tn)) (i % bm / (wm*tm)) (j % bn / (wn*tn));
-    let wid0 : natlt (bm/(wm*tm) * (bn/(wn*tn))) = ((i%bm)/(wm*tm)) * (bn/(wn*tn)) + ((j%bn)/(wn*tn)) in
-    let wid : natlt (nthr / warp_size) = wid0 in
-    let ii : natlt (wm*tm) = (i % bm) % (wm*tm) in
-    let jj : natlt (wn*tn) = (j % bn) % (wn*tn) in
+    let bid : natlt nblk = bid_of_ij rows cols bm bn i j in
+    let wid : natlt (nthr / warp_size) = wid_of_ij rows cols bm bn tm tn wm wn i j in
+    let ii  : natlt (wm*tm) = (i % bm) % (wm*tm) in
+    let jj  : natlt (wn*tn) = (j % bn) % (wn*tn) in
     calc (==) {
       macc eC' i j;
       == {}
@@ -919,22 +1039,28 @@ let tiles_approx_lemma
           (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))
         ii jj);
 
-    assume (
+    calc (==) {
       macc
         (ematrix_subtile
           (MS.matmul rA rB)
           (wm*tm) (wn*tn)
           (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)
           (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))
-        ii jj
-      ==
-      macc (MS.matmul rA rB) i j);
+        ii jj;
+      == {}
+      macc
+        (MS.matmul rA rB)
+        (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid * (wm*tm) + ii)
+        (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid * (wn*tn) + jj);
+      == { lem_i rows shared cols bm bn bk tm tn tk wm wn nthr i j;
+           lem_j rows shared cols bm bn bk tm tn tk wm wn nthr i j }
+      macc (MS.matmul rA rB) i j;
+    };
 
     ()
   in
   Classical.forall_intro_2 aux;
   ()
-#pop-options
 
 #push-options "--z3rlimit 60" // the function below is pretty terribly performant
 ghost

@@ -25,7 +25,7 @@ module SZ = Kuiper.SizeT
 [@@pulse_unfold]
 let recip (x : pos) : y:Real.real{y >. 0.0R} = 1.0R /. x
 
-type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
+type constraints (bm bn bk tm tn tk wm wn : pos) : prop =
   tm /?+ bm /\
   tn /?+ bn /\
   tk /?+ bk /\
@@ -411,7 +411,7 @@ let warp_tile_i
   (#rows #cols : pos)
   (bm bn bk
    tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bn /?+ cols))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
@@ -434,7 +434,7 @@ let warp_tile_j
   (#rows #cols : pos)
   (bm bn bk
    tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bn /?+ cols))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
