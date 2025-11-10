@@ -87,9 +87,7 @@ fn matmul_dist_gpu
   ensures
     exists* eb'. on gpu_loc (b |-> eb')
 {
-  map_loc gpu_loc (fun() -> M.gpu_matrix_share_2 a);
-  on_star_elim _ _;
+  map_loc gpu_loc (fun () -> M.gpu_matrix_share_2 a);
   P.mmcomb_gpu add' a a b;
-  on_star_intro (a |-> Frac 0.5R ea) (a |-> Frac 0.5R ea);
   map_loc gpu_loc (fun () -> M.gpu_matrix_gather_2 a);
 }

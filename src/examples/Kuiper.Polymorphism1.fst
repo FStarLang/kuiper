@@ -44,9 +44,7 @@ fn swap_via_gpu
   let gr2 = gpu_alloc0 #t ();
   Kuiper.Ref.gpu_memcpy_host_to_device gr1 r1;
   Kuiper.Ref.gpu_memcpy_host_to_device gr2 r2;
-  on_star_intro #gpu_loc (gr1 |-> _) (gr2 |-> _);
   launch_sync (kernel #t #'v1 #'v2 gr1 gr2);
-  on_star_elim _ _;
   Kuiper.Ref.gpu_memcpy_device_to_host r1 gr1;
   Kuiper.Ref.gpu_memcpy_device_to_host r2 gr2;
   gpu_free gr1;

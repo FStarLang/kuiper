@@ -32,23 +32,23 @@ fn spec
   (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bk * bn)))
   (alpha beta : et)
   (#rows #shared #cols : szp)
-  (gA : M.gpu_matrix et (rm rows shared))
+  (gA : M.gpu_matrix et (rm rows shared) { M.is_global_matrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et (rm shared cols))
+  (gB : M.gpu_matrix et (rm shared cols) { M.is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et (rm rows cols))
+  (gC : M.gpu_matrix et (rm rows cols) { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (aligned 16 (M.core gA)) **
     pure (aligned 16 (M.core gB)) **
     pure (rows * cols <= max_blocks) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.gemm alpha beta eC eA eB
+    on gpu_loc (gC |-> MS.gemm alpha beta eC eA eB)

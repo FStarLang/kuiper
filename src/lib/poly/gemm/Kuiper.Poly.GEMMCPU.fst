@@ -80,11 +80,11 @@ fn mmcomb_gpu_tiled
   {| cA : clayout lA |}
   {| cB : clayout lB |}
   {| cC : clayout lC |}
-  (gA : M.gpu_matrix et lA)
+  (gA : M.gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -106,7 +106,6 @@ fn mmcomb_gpu_tiled
   let mrows   = rows   /^ tile;
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
-  admit();//on prover
   mmcomb_gpu
     tile
     comb
@@ -184,9 +183,6 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
     #rows #shared #cols
     #(rA _ _) #(rB _ _) #(rC _ _)
     gA gB gC;
-  //on prover
-  rewrite on gpu_loc (gC |-> MS.mmcomb MS.comb2 mc0 ma mb) as on gpu_loc (gC |-> MS.matmul ma mb);
-  ()
 }
 
 inline_for_extraction noextract

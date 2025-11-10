@@ -51,9 +51,6 @@ fn matmul_transpose_gpu
   map_loc gpu_loc (fun () -> GT.ghost_transpose1 gC);
   mmcomb_gpu MS.comb2 gA gB (GT.row2col gC);
   map_loc gpu_loc (fun () -> GT.ghost_transpose1_back gC);
-  //on prover
-  with p. rewrite on gpu_loc (gC |-> p) as on gpu_loc (gC |-> mtranspose (MS.matmul eA eB));
-  ()
 }
 
 let matmul_transpose_gpu_f32_ff #rows #shared #cols =

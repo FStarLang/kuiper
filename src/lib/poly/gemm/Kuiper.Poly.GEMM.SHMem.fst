@@ -13,6 +13,7 @@ open Kuiper.Matrix {
   gpu_matrix,
   gpu_matrix_pts_to,
   gpu_matrix_pts_to_cell,
+  is_global_matrix
 }
 
 module MS = Kuiper.Spec.GEMM
@@ -573,27 +574,27 @@ fn mmcomb_gpu
   (lB : mlayout (mshared * tile) (mcols   * tile))
   (lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols * tile))
   (#eC : ematrix et (mrows * tile) (mcols * tile))
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks /\
           tile * tile <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC ());
+  launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC #fA #fB #eA #eB #eC ());
 }

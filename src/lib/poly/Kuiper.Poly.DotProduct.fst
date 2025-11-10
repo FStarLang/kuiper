@@ -245,8 +245,8 @@ fn dotprod
   (* Why are the implicits needed? *)
   launch_sync (dp_kernel lena ga1 ga2 #v1 #v2 #vr1 #vr2);
 
-  gpu_pts_to_ref ga1;
-  gpu_pts_to_ref ga2;
+  gpu_pts_to_ref_located ga1;
+  gpu_pts_to_ref_located ga2;
 
   assert (pure (Seq.length v1 == lena));
   assert (pure (Seq.length v2 == lena));

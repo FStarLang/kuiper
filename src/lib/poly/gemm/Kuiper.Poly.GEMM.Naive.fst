@@ -304,13 +304,5 @@ fn mmcomb_gpu
   ensures
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
-  on_star_intro #gpu_loc
-    (gB |-> Frac fB eB) 
-    (gC |-> eC);
-  on_star_intro #gpu_loc
-    (gA |-> Frac fA eA)
-    (gB |-> Frac fB eB ** gC |-> eC);
   launch_sync (kdesc comb gA #fA gB #fB gC #eA #eB #eC);
-  on_star_elim _ _;
-  on_star_elim _ _;
 }

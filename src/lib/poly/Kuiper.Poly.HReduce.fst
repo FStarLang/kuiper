@@ -456,8 +456,4 @@ fn reduce
   reduce_with_steps
     (on gpu_loc (gpu_pts_to_slice_sum a 0 lena va vr))
     [delta_only [`%gpu_pts_to_slice_sum]];
-  on_exists_elim _;
-  on_star_elim _ _;
-  on_pure_elim _ _;
-  ()
 }

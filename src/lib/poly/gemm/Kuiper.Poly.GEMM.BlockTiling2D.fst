@@ -759,8 +759,10 @@ let mk_kernel
   {| clayout lA, clayout lB, clayout lC |}
   {| strided_row_major lA, strided_row_major lB |}
   (gA : gpu_matrix et lA)
+  (#fA : perm)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
+  (#fB : perm)
   (#eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
   (#eC : ematrix et rows cols)
@@ -775,7 +777,6 @@ let mk_kernel
   {| clayout slA, clayout slB |}
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
-  (#fA #fB : perm)
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn)})
   (#_ : squash (chunk et * nthr /?+ (bm * bk)))
@@ -821,11 +822,11 @@ fn mmcomb_gpu
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
   {| strided_row_major lA, strided_row_major lB |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#eA : ematrix et rows shared)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#eB : ematrix et shared cols)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
@@ -846,17 +847,17 @@ fn mmcomb_gpu
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB)) **
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel comb gA gB gC bm bn bk slA slB tm tn (rows/^bm *^ (cols/^bn)) (bm/^tm *^ (bn/^tn)) ());
+  launch_sync (mk_kernel comb gA #fA #eA gB #fB #eB gC #eC bm bn bk slA slB tm tn (rows/^bm *^ (cols/^bn)) (bm/^tm *^ (bn/^tn)) ());
 }

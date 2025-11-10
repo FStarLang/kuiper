@@ -75,13 +75,8 @@ fn specialize_gpu
 
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^tm *^ (bn/^tn) *^ warp_sz;
-  on_star_intro #gpu_loc (gB |-> Frac fB eB) (gC |-> eC);
-  on_star_intro #gpu_loc (gA |-> Frac fA eA) _;
   launch_sync (
     mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk #fA #fB nblk nthr ()
   );
-  on_star_elim _ _;
-  on_star_elim _ _;
-  on_exists_elim _;
   ()
 }

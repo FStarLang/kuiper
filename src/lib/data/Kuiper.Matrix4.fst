@@ -570,7 +570,7 @@ fn gpu_matrix_from_array
   assert (pure (SZ.fits (mlayout_size l)));
   // unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
-  A.varray_from_Parray #_ #_ sz gm a;
+  A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
   map_loc gpu_loc 
   #(A.varray_pts_to gm (View.from_seq (aview_from_mlayout et l) s))
@@ -588,7 +588,7 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == mlayout_size l})
   (#em : _)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     (* same *)
@@ -600,9 +600,10 @@ fn gpu_matrix_to_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   open FStar.SizeT;
-  unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_to_array #_ #_ sz a gm;
   to_seq_rel l em;
-  fold gpu_matrix_pts_to gm #1.0R em;
+  with p. assert (on gpu_loc p);
+  map_loc gpu_loc #p #(gpu_matrix_pts_to gm #1.0R em)
+    fn () { fold gpu_matrix_pts_to gm #1.0R em }
 }

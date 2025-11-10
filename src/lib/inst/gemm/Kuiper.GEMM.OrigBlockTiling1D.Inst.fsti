@@ -20,22 +20,22 @@ fn spec
   {| crepr rA , crepr rB , crepr rC |}
   (rows shared cols : szp)
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (gA : M.gpu_matrix et (rA rows shared))
+  (gA : M.gpu_matrix et (rA rows shared) { M.is_global_matrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et (rB shared cols))
+  (gB : M.gpu_matrix et (rB shared cols) { M.is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et (rC rows cols))
+  (gC : M.gpu_matrix et (rC rows cols) { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure ((rows/bm) * (cols/bn) <= max_blocks) **
     pure (bm/tm * bn <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)

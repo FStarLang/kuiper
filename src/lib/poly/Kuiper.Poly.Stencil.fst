@@ -291,12 +291,9 @@ fn host_simple_stencil
   ensures
     on gpu_loc (gOut |-> STS.stencil_result stencil eIn)
 {
-  on_star_intro #gpu_loc (gIn |-> Frac fIn eIn) (gOut |-> eOut);
   launch_sync (kdesc stencil gIn #fIn gOut #eIn #eOut ());
-  on_star_elim _ _;
 }
 
-#push-options "--print_implicits"
 inline_for_extraction noextract
 fn specialize_host_simple_stencil
   (et: Type0) {| scalar et |}
@@ -320,7 +317,6 @@ fn specialize_host_simple_stencil
     on gpu_loc (gOut |-> STS.stencil_result stencil eIn)
   {
     let cols_sub2 = cols -^ 2sz;
-    admit(); //on prover
     host_simple_stencil 
       stencil #(rows -^ 2sz) #cols_sub2 #() #_ #_ #(cIn.map _ _) #(cOut.map _ _) gIn #fIn gOut #eIn #eOut;
   }

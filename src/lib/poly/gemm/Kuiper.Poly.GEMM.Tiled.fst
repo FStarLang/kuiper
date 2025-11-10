@@ -279,10 +279,6 @@ fn mmcomb_gpu
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
-  on_star_intro #gpu_loc (gB |-> Frac fB eB) (gC |-> eC);
-  on_star_intro #gpu_loc (gA |-> Frac fA eA) _;
   launch_sync (mk_kernel tile comb gA #fA gB #fB gC #eA #eB #eC ());
-  on_star_elim _ _;
-  on_star_elim _ _;
   ()
 }

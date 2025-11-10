@@ -98,10 +98,6 @@ fn reduce
 {
   let ga = copy_to_gpu size a;
   launch_kernel_1 (k_reduce_and_set #t #d size ga #v);
-  (* on prover should automate this *)
-  on_exists_elim _;
-  on_star_elim _ _;
-  on_pure_elim _ _;
   gpu_memcpy_device_to_host a ga size;
   gpu_array_free ga;
   with v'. assert (a |-> v');
