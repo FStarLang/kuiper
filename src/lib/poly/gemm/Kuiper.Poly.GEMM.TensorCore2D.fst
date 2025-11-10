@@ -228,6 +228,7 @@ let arrayfragments_fade
     (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j))
   else ematrix_subtile rAcc tm tn i j
 
+#push-options "--z3rlimit 80"
 inline_for_extraction noextract
 fn fragarray_mma
   (#et_ab #et_acc : Type0)
@@ -332,21 +333,6 @@ fn fragarray_mma
                 (eBs @! !resIdxN)));
 
       resIdxN := !resIdxN +^ 1sz;
-
-      // asserting or assuming: in both cases FStar dies on me
-      //assume forall (i : natlt wm) (j : natlt wn).
-      //  (Seq.Base.upd eAccs
-      //      (!resIdxM * wn + !resIdxN)
-      //      (emma (eAccs @! (!resIdxM * wn + !resIdxN))
-      //          (eAs @! !resIdxM)
-      //          (eBs @! !resIdxN))) @! (!resIdxM * wn + !resIdxN)
-      //  %~
-      //  (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc);
-      admit();
-
-      //with eAcct'. assert acc_frag |-> eAcct';
-      //assert pure (forall (i : natlt wm) (j : natlt wn).
-      //  (eAcct' @! (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc));
     };
 
     resIdxM := !resIdxM +^ 1sz;
@@ -373,8 +359,8 @@ fn fragarray_mma
   fold fragarrayB_approximates wn bFrags rB;
   fold fragarrayAcc_approximates wm wn accumFrags (rAcc `matplus` (matmul rA rB));
 }
+#pop-options
 
-#push-options "--print_implicits"
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -436,16 +422,16 @@ fn subproducts_tc_2d
   {
     populate_fragments_a bm bn bk tm tn tk wm wn aFrags gA rA arow !dotIdx;
     populate_fragments_b bm bn bk tm tn tk wm wn bFrags gB rB bcol !dotIdx;
-     
+
     fragarray_mma bm bn bk tm tn tk wm wn aFrags bFrags accumFrags
       (ematrix_subtile rA (wm*tm) tk arow !dotIdx)
       (ematrix_subtile rB tk (wn*tn) !dotIdx bcol)
       (__gmatmul_single rAcc matmul matplus (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol !dotIdx)
       !dotIdx;
-      
+
     unfold fragarrayA_approximates wm aFrags;
     unfold fragarrayB_approximates wn bFrags;
-        
+
     assume pure (
       (matplus (__gmatmul_single rAcc matmul matplus
               (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
@@ -460,7 +446,7 @@ fn subproducts_tc_2d
                 (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
                 arow bcol !dotIdx)
             (matmul (ematrix_subtile rA (wm*tm) tk arow !dotIdx)
-                    (ematrix_subtile rB tk (wn*tn) !dotIdx bcol))) 
+                    (ematrix_subtile rB tk (wn*tn) !dotIdx bcol)))
     as
         (__gmatmul_single rAcc matmul matplus
             (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
