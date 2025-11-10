@@ -119,8 +119,9 @@ fn setup
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    emp (* frame *)
+    pure (SZ.fits (mlayout_size lC)) // frame
 {
+  gpu_matrix_pts_to_ref gC;
   gpu_matrix_share_threads gA nblk nthr;
   gpu_matrix_share_threads gB nblk nthr;
 
@@ -667,67 +668,69 @@ fn block_teardown
   ()
 }
 
-ghost
-fn untile_warp_tiles_shared
-  (#et : Type0) {| scalar et |}
-  (#rows #cols : nat)
-  (#l : mlayout rows cols)
-  ([@@@mkey] gm : gpu_matrix et l)
-  (#f : perm)
-  (trows : nat{trows > 0 /\ trows /? rows})
-  (tcols : nat{tcols > 0 /\ tcols /? cols})
-  (nthr : nat{nthr == rows/trows * (cols/tcols) * warp_size})
-  (ff : natlt nthr -> ematrix et trows tcols)
-  requires
-    forall+ (tid : natlt nthr).
-      gpu_matrix_subtile gm trows tcols
-        (warp_tile_idx_rows rows cols trows tcols (tid/warp_size))
-        (warp_tile_idx_cols rows cols trows tcols (tid/warp_size))
-      |-> Frac (f /. warp_size) (ff tid)
-  ensures
-    gm |-> Frac f (ematrix_from_tiles trows tcols (fun i j -> ff (i * (cols/tcols) + j)))
-{
-  admit();
-  forevery_factor nthr (rows/trows * (cols/tcols)) warp_size _;
-  ghost
-  fn unshare_within_warp (wid : natlt (rows/trows * (cols/tcols)))
-  requires
-    forall+ (lid: natlt warp_size). (exists* (em : ematrix _ _ _).
-        gpu_matrix_subtile gm
-              trows
-              tcols
-              ((wid * 32 + lid) / 32 / (cols / tcols))
-              ((wid * 32 + lid) / 32 % (cols / tcols)) |-> Frac (f /. warp_size) em)
-  ensures
-    (exists* (em : ematrix _ _ _).
-      gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
-        |-> Frac f em)
-  {
-    forevery_map
-      (fun (lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
-        (gpu_matrix_subtile gm trows tcols
-              ((wid * 32 + lid) / 32 / (cols / tcols))
-              ((wid * 32 + lid) / 32 % (cols / tcols))) |-> Frac (f /. warp_size) em)
-      (fun (_lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
-        (gpu_matrix_subtile gm trows tcols
-              (wid / (cols / tcols))
-              (wid % (cols / tcols)) |-> Frac (f /. warp_size) em))
-      fn _lid { rewrite each ((wid * 32 + _lid) / 32) as wid };
-    gpu_matrix_gather_n_underspec
-      (gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols)))
-      warp_size;
-  };
-  forevery_map _ _ unshare_within_warp;
+// ghost
+// fn untile_warp_tiles_shared
+//   (#et : Type0) {| scalar et |}
+//   (#rows #cols : nat)
+//   (#l : mlayout rows cols)
+//   ([@@@mkey] gm : gpu_matrix et l)
+//   (#f : perm)
+//   (trows : nat{trows > 0 /\ trows /? rows})
+//   (tcols : nat{tcols > 0 /\ tcols /? cols})
+//   (nthr : nat{nthr == rows/trows * (cols/tcols) * warp_size})
+//   (ff : natlt nthr -> ematrix et trows tcols)
+//   requires
+//     forall+ (tid : natlt nthr).
+//       gpu_matrix_subtile gm trows tcols
+//         (warp_tile_idx_rows rows cols trows tcols (tid/warp_size))
+//         (warp_tile_idx_cols rows cols trows tcols (tid/warp_size))
+//       |-> Frac (f /. warp_size) (ff tid)
+//   ensures
+//     gm |-> Frac f (ematrix_from_tiles trows tcols (fun i j -> ff (i * (cols/tcols) + j)))
+// {
+//   admit();
+//   forevery_factor nthr (rows/trows * (cols/tcols)) warp_size _;
+//   ghost
+//   fn unshare_within_warp (wid : natlt (rows/trows * (cols/tcols)))
+//   requires
+//     forall+ (lid: natlt warp_size). (exists* (em : ematrix _ _ _).
+//         gpu_matrix_subtile gm
+//               trows
+//               tcols
+//               ((wid * 32 + lid) / 32 / (cols / tcols))
+//               ((wid * 32 + lid) / 32 % (cols / tcols)) |-> Frac (f /. warp_size) em)
+//   ensures
+//     (exists* (em : ematrix _ _ _).
+//       gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols))
+//         |-> Frac f em)
+//   {
+//     forevery_map
+//       (fun (lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
+//         (gpu_matrix_subtile gm trows tcols
+//               ((wid * 32 + lid) / 32 / (cols / tcols))
+//               ((wid * 32 + lid) / 32 % (cols / tcols))) |-> Frac (f /. warp_size) em)
+//       (fun (_lid : natlt warp_size) -> exists* (em: ematrix et trows tcols).
+//         (gpu_matrix_subtile gm trows tcols
+//               (wid / (cols / tcols))
+//               (wid % (cols / tcols)) |-> Frac (f /. warp_size) em))
+//       fn _lid { rewrite each ((wid * 32 + _lid) / 32) as wid };
+//     gpu_matrix_gather_n_underspec
+//       (gpu_matrix_subtile gm trows tcols (wid/(cols/tcols)) (wid%(cols/tcols)))
+//       warp_size;
+//   };
+//   forevery_map _ _ unshare_within_warp;
 
-  forevery_factor' (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols)
-    (fun (tr : natlt (rows/trows)) (tc : natlt (cols/tcols)) ->
-      exists* (em: ematrix et trows tcols).
-          (gpu_matrix_subtile gm trows tcols tr tc) |-> Frac f em);
-  gpu_matrix_untile_underspec gm trows tcols;
-  ()
-}
+//   forevery_factor' (rows/trows * (cols/tcols)) (rows/trows) (cols/tcols)
+//     (fun (tr : natlt (rows/trows)) (tc : natlt (cols/tcols)) ->
+//       exists* (em: ematrix et trows tcols).
+//           (gpu_matrix_subtile gm trows tcols tr tc) |-> Frac f em);
+//   gpu_matrix_untile_underspec gm trows tcols;
+//   ()
+// }
 
 
+#push-options "--z3rlimit 60" // the function below is pretty terribly performant
+#set-options "--debug SMTFail --split_queries always --print_implicits --print_bound_var_types"
 ghost
 fn reconstruct_from_warp_approx
   (#et_ab #et_c : Type0)
@@ -754,6 +757,8 @@ fn reconstruct_from_warp_approx
   (#_ : squash (wn * tn /?+ cols)) // idem
   norewrite
   requires
+    pure (SZ.fits (mlayout_size lC))
+  requires
     forall+ (bid : natlt nblk) (tid : natlt nthr).
       warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
@@ -773,7 +778,7 @@ fn reconstruct_from_warp_approx
         warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) em **
         pure (em %~
           (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                    (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))))
+                     (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))))
     fn bid tid {
       unfold warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
@@ -794,20 +799,173 @@ fn reconstruct_from_warp_approx
       warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf bid tid) **
       pure (emf bid tid %~
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                  (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))))
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))))))
     (fun bid -> forall+ (wid : natlt (nthr / warp_size)).
-      warp_tile_pts_to gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
+      warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
       pure (emf bid (wid * warp_size) %~
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
-                  (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))))
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))))
     fn bid {
-      forevery_factor nthr (nthr / warp_size) warp_size _;
+      // This requires a bit of proof...
       admit();
     };
 
   (* Now reconstruct the full matrix from the big tiles. *)
-  admit();
+
+  (* First, extract all the pure facts at once. *)
+  forevery_extract_pure_2
+    #(natlt nblk) #(natlt (nthr / warp_size))
+    (fun bid wid ->
+      warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
+      pure (emf bid (wid * warp_size) %~
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))))
+    (fun bid wid ->
+      emf bid (wid * warp_size) %~
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))))
+    fn bid wid {
+      ();
+    };
+  assert pure (forall (bid : natlt nblk) (wid : natlt (nthr / warp_size)).
+    emf bid (wid * warp_size) %~
+      (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                 (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))));
+
+  (* Now drop the pures. *)
+  forevery_map_2
+    #(natlt nblk) #(natlt (nthr / warp_size))
+    (fun bid wid ->
+      warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)) **
+      pure (emf bid (wid * warp_size) %~
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))))
+    (fun bid wid ->
+      // warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size)))
+      // gpu_matrix_pts_to
+      //   (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) wid)
+      //   (emf bid (wid * warp_size)))
+      gpu_matrix_pts_to
+        (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+          (wm*tm) (wn*tn)
+          (wid / (bn/(wn*tn))) (wid % (bn/(wn*tn))))
+        (emf bid (wid * warp_size)))
+    fn bid wid {
+      unfold warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf bid (wid * warp_size));
+      rewrite each
+        (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) wid)
+      as
+        gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+          (wm*tm) (wn*tn)
+          (wid / (bn/(wn*tn))) (wid % (bn/(wn*tn)));
+      ();
+    };
+
+  (* First join every block tile *)
+  forevery_map
+    #(natlt nblk)
+    (fun bid -> forall+ (wid : natlt (nthr / warp_size)).
+      gpu_matrix_pts_to
+        (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+          (wm*tm) (wn*tn)
+          (wid / (bn/(wn*tn))) (wid % (bn/(wn*tn))))
+        (emf bid (wid * warp_size)))
+    (fun bid ->
+      gpu_matrix_pts_to (block_tile gC (v bm) (v bn) bid)
+        (ematrix_from_tiles (wm*tm)
+            (wn*tn)
+            (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * 32))))
+    fn bid {
+      forevery_factor (nthr / warp_size) (bm/(wm*tm)) (bn/(wn*tn)) _;
+      forevery_ext_2 #(natlt (bm/(wm*tm))) #(natlt (bn/(wn*tn)))
+        (fun tr tc ->
+          gpu_matrix_pts_to
+            (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+              (wm*tm) (wn*tn)
+              ((tr * (bn/(wn*tn)) + tc) / (bn/(wn*tn))) ((tr * (bn/(wn*tn)) + tc) % (bn/(wn*tn))))
+            (emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
+        (fun tr tc ->
+          gpu_matrix_pts_to
+            (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+              (wm*tm) (wn*tn)
+              tr tc)
+            // (emf bid (tr * (bn/(wn*tn)) + tc)))
+            (emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
+        ;
+      gpu_matrix_untile' (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn)
+        (fun tr tc ->
+          emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size));
+    };
+
+  (* Now that we have each block tile, again shuffle them and join. *)
+  assert (forall+ (bid : natlt nblk).
+      gpu_matrix_pts_to (block_tile gC (v bm) (v bn) bid)
+        (ematrix_from_tiles (wm*tm)
+            (wn*tn)
+            (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * 32))));
+  forevery_factor nblk (rows/bm) (cols/bn) _;
+  forevery_map_2 #(natlt (rows/bm)) #(natlt (cols/bn))
+    (fun br bc ->
+      gpu_matrix_pts_to (block_tile gC (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc))
+        (ematrix_from_tiles (wm*tm) (wn*tn)
+            (fun tr tc -> emf (br * (cols/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * 32))))
+    (fun br bc ->
+      gpu_matrix_pts_to
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc)
+        (ematrix_from_tiles (wm*tm) (wn*tn)
+            (fun tr tc -> emf (br * (cols/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * 32))))
+    fn br bc {
+      rewrite each
+        block_tile gC (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc)
+      as
+        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn)
+          (block_tile_idx_rows rows cols (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc))
+          (block_tile_idx_cols rows cols (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc));
+      assert pure
+        (block_tile_idx_rows rows cols (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc)
+        ==
+        (br * (cols/bn) + bc) / (cols/bn)
+      );
+      assert pure ((br * (cols/bn) + bc) / (cols/bn) == br);
+      rewrite each
+        block_tile_idx_rows rows cols (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc)
+      as
+        br;
+      assert pure (
+        block_tile_idx_cols rows cols (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc)
+        ==
+        (br * (cols/bn) + bc) % (cols/bn)
+      );
+      assert pure ((br * (cols/bn) + bc) % (cols/bn) == bc);
+      rewrite each
+        block_tile_idx_cols rows cols (SZ.v bm) (SZ.v bn) (br * (cols/bn) + bc)
+      as
+        bc;
+
+      // These are needed to change the arguments to the implicit layout of gC...
+      rewrite each ((br * (cols/bn) + bc) / (cols/bn)) as br;
+      rewrite each ((br * (cols/bn) + bc) % (cols/bn)) as bc;
+
+      assert
+        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc |->
+          ematrix_from_tiles (wm*tm) (wn*tn)
+            (fun tr tc -> emf (br * (cols/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size));
+
+      ();
+    };
+
+  gpu_matrix_untile' gC bm bn
+    (fun br bc ->
+      ematrix_from_tiles (wm*tm) (wn*tn)
+        (fun tr tc -> emf (br * (cols/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size)));
+
+  (* We now have full permission of gC. We now need to prove the
+     functional post. *)
+  with eC'. assert gC |-> eC';
+
+  assume pure (eC' %~ MS.matmul rA rB);
 }
+#pop-options
 
 ghost
 fn teardown
@@ -847,7 +1005,7 @@ fn teardown
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    emp
+    pure (SZ.fits (mlayout_size lC)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **

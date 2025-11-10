@@ -786,6 +786,7 @@ let mk_kernel
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c (R.row_major rows cols))
+  // ^ Why does this have a fixed layout?
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm bn bk
@@ -835,7 +836,7 @@ let mk_kernel
 
   shmems_desc = shmems_desc et_ab bm bn bk;
 
-  frame = emp;
+  frame = pure (SZ.fits (mlayout_size (R.row_major rows cols)));
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
   block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
 

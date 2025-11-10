@@ -129,6 +129,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
@@ -264,6 +265,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
@@ -401,6 +403,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
@@ -536,6 +539,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(4096U);
@@ -673,6 +677,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -808,6 +813,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -945,6 +951,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -1080,6 +1087,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -1217,6 +1225,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -1352,6 +1361,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -1489,6 +1499,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -1624,6 +1635,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -1761,6 +1773,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -1896,6 +1909,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -2033,6 +2047,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -2170,6 +2185,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -2305,6 +2321,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -2442,6 +2459,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -2579,6 +2597,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -2714,6 +2733,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -2851,6 +2871,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -2988,6 +3009,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -3123,6 +3145,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -3260,6 +3283,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -3397,6 +3421,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -3532,6 +3557,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -3669,6 +3695,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -3806,6 +3833,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -3941,6 +3969,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 64U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -4076,6 +4105,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -4213,6 +4243,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -4348,6 +4379,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -4485,6 +4517,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -4620,6 +4653,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(6144U);
@@ -4757,6 +4791,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -4892,6 +4927,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -5029,6 +5065,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -5164,6 +5201,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -5301,6 +5339,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -5436,6 +5475,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(12288U);
@@ -5573,6 +5613,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -5708,6 +5749,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -5845,6 +5887,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -5980,6 +6023,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -6117,6 +6161,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -6252,6 +6297,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 128U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(24576U);
@@ -6389,6 +6435,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -6524,6 +6571,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -6661,6 +6709,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -6798,6 +6847,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -6933,6 +6983,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -7070,6 +7121,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -7207,6 +7259,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -7342,6 +7395,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(8192U);
@@ -7479,6 +7533,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -7616,6 +7671,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -7751,6 +7807,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -7888,6 +7945,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -8025,6 +8083,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -8160,6 +8219,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -8297,6 +8357,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -8434,6 +8495,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -8569,6 +8631,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(16384U);
@@ -8706,6 +8769,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -8843,6 +8907,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -8978,6 +9043,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -9115,6 +9181,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -9252,6 +9319,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -9387,6 +9455,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -9524,6 +9593,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x2(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -9661,6 +9731,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x4(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);
@@ -9796,6 +9867,7 @@ Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x8(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 128U == 0U);
     uint32_t nblk = rows / 128U * (cols / 128U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_ASSERT(0U == 0U);
     KPR_ASSERT(0U == 0U);
     KPR_SHMEM_FITS(32768U);

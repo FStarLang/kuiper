@@ -55,6 +55,27 @@ let warp_tile_pts_to
     #(recip warp_size)
     em
 
+let warp_tile_pts_to_full
+  (#et : Type0) {| scalar et |}
+  (#rows : nat)
+  (#cols : nat)
+  (#lC : mlayout rows cols)
+  (gC : gpu_matrix et lC)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (wm : pos{wm * tm /?+ bm})
+  (wn : pos{wn * tn /?+ bn})
+  (bid : natlt ((rows/bm) * (cols/bn)))
+  (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (em : ematrix et (wm * tm) (wn * tn))
+  : slprop
+  =
+  gpu_matrix_pts_to
+    (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
+    em
+
 let warp_tile_approximates
   (#et : Type0) {| scalar et, real_like et |}
   (#rows : nat)
@@ -311,7 +332,7 @@ fn setup
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    emp (* frame *)
+    pure (SZ.fits (mlayout_size lC)) // frame
 
 ghost
 fn block_setup
@@ -587,7 +608,7 @@ fn teardown
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    emp
+    pure (SZ.fits (mlayout_size lC)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
