@@ -33,7 +33,7 @@ module R = Kuiper.Matrix.Reprs
 
 open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
-let fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
+let fragarrayAcc_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm wn : nat)
   (arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
@@ -45,9 +45,37 @@ let fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
       pure (
         (Seq.length em == wm*wn) /\
         forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j))
+ 
+let fragarrayA_approximates (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (wm : nat)
+  (arr : array (fragment et FragA tm tn tk FragLRM) { Pulse.Lib.Array.length arr == wm})
+  (rm : ematrix real (wm*tm) tk)
+  : slprop
+  =
+    exists* (eAs : seq (ematrix et tm tk)).
+      arr |-> eAs **
+      pure (
+        (Seq.length eAs == wm) /\
+        forall (i : natlt wm).
+          (eAs @! i) %~ (ematrix_subtile rm tm tk i 0))
+
+let fragarrayB_approximates (#et:Type0) {| scalar et, real_like et |}
+  (#tm #tn #tk : pos)
+  (wn : nat)
+  (arr : array (fragment et FragB tm tn tk FragLRM) { Pulse.Lib.Array.length arr == wn})
+  (rm : ematrix real tk (wn*tn))
+  : slprop
+  =
+    exists* (eBs : seq (ematrix et tk tn)).
+      arr |-> eBs **
+      pure (
+        (Seq.length eBs == wn) /\
+        forall (i : natlt wn).
+          (eBs @! i) %~ (ematrix_subtile rm tk tn 0 i))
 
 ghost
-fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
+fn fake_intro_fragarrayAcc_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm wn : nat)
   (arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
@@ -56,7 +84,7 @@ fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
     arr |-> em
   ensures
     exists* rm.
-      fragarray_approximates wm wn arr rm
+      fragarrayAcc_approximates wm wn arr rm
 {
   array_fragment_pts_to_ref arr;
   let rms = Seq.init_ghost #(ematrix real tm tn) (wm*wn) (fun idx -> mkM (fun i j -> to_real (macc (em @! idx) i j)));
@@ -64,7 +92,7 @@ fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
   assume pure (forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j));
   // ^ Shouldn't this be trivial? Anyway, this fake function will not survive into
   // the fully verified version.
-  fold fragarray_approximates wm wn arr rm;
+  fold fragarrayAcc_approximates wm wn arr rm;
 }
 
 inline_for_extraction noextract
@@ -88,12 +116,7 @@ preserves
 requires
   live frags
 ensures
-  exists* (ems' : seq (ematrix et tm tk)).
-    frags |-> ems' **
-    pure (
-      (Seq.length ems' == wm) /\
-      forall (i : natlt wm).
-        (ems' @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx))
+  fragarrayA_approximates wm frags (ematrix_subtile rm (wm*tm) tk arow dotIdx)
 {
     gpu_matrix_pts_to_ref gm;
     array_fragment_pts_to_ref frags;
@@ -126,11 +149,9 @@ ensures
 
       i0 := !i0 +^ 1sz;
     };
-    //with ems'. assert frags |-> ems';
-    //assert pure (Seq.length ems' == wm);
-    //assert pure (forall (i : natlt wm).
-    //    (ems' @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx));
     ambig_trade_elim ();
+    fold fragarrayA_approximates wm frags (ematrix_subtile rm (wm*tm) tk arow dotIdx);
+    ()
 }
 
 inline_for_extraction noextract
@@ -154,12 +175,7 @@ preserves
 requires
   live frags
 ensures
-  exists* (ems' : seq (ematrix et tk tn)).
-    frags |-> ems' **
-    pure (
-      (Seq.length ems' == wn) /\
-      forall (i : natlt wn).
-        (ems' @! i) %~ (ematrix_subtile rm tk tn dotIdx (bcol*wn+i)))
+  fragarrayB_approximates wn frags (ematrix_subtile rm tk (wn*tn) dotIdx bcol)
 {
     gpu_matrix_pts_to_ref gm;
     array_fragment_pts_to_ref frags;
@@ -190,9 +206,45 @@ ensures
       i1 := !i1 +^ 1sz;
     };
     ambig_trade_elim ();
+    fold fragarrayB_approximates wn frags (ematrix_subtile rm tk (wn*tn) dotIdx bcol);
+    ()
 }
 
-fn fragments_outer_product
+let arrayfragments_fade
+  (tm tn tk wm wn : szp)
+  (i : natlt wm)
+  (j : natlt wn)
+  (resIdxM : natle wm)
+  (resIdxN : natle wn)
+  (rA : ematrix real (wm*tm) tk)
+  (rB : ematrix real tk (wn*tn))
+  (rAcc : ematrix real (wm*tm) (wn*tn))
+: ematrix real tm tn
+=
+  let flat_idx = i * wn + j in
+  let num_res_computed = resIdxM * wn + resIdxN in 
+  if flat_idx < num_res_computed
+  then ematrix_subtile rAcc tm tn i j `matplus`
+    (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j))
+  else ematrix_subtile rAcc tm tn i j
+
+#push-options "--debug SMTFail --split_queries always"
+let lemma_matmuladd_subtiles
+  (tm tn tk wm wn : pos)
+  (i : natlt wm)
+  (j : natlt wn)
+  (rA : ematrix real (wm*tm) tk)
+  (rB : ematrix real tk (wn*tn))
+  (rAcc : ematrix real (wm*tm) (wn*tn))
+: Lemma (ematrix_subtile rAcc tm tn i j `matplus`
+          (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j))
+        ==
+        ematrix_subtile (rAcc `matplus` (matmul rA rB)) tm tn i j)
+        [SMTPat (ematrix_subtile rAcc tm tn i j `matplus`
+          (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j)))]
+= admit()
+
+fn fragarray_mma
   (#et_ab #et_acc : Type0)
   {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
   (bm bn bk
@@ -201,85 +253,73 @@ fn fragments_outer_product
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
   (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
-  (gA : gpu_matrix et_ab (R.row_major bm bk))
-  (gB : gpu_matrix et_ab (R.row_major bk bn))
-  (#eA : ematrix et_ab bm bk)
-  (#eB : ematrix et_ab bk bn)
-  (rA : ematrix real bm bk {eA %~ rA})
-  (rB : ematrix real bk bn {eB %~ rB})
-  (rC : ematrix real (wm*tm) (wn*tn))
+  //(#eA : ematrix et_ab bm bk)
+  //(#eB : ematrix et_ab bk bn)
+  (#eA : ematrix et_ab (wm*tm) tk)
+  (#eB : ematrix et_ab tk (wn*tn))
+  //(rA : ematrix real bm bk {eA %~ rA})
+  //(rB : ematrix real bk bn {eB %~ rB})
+  (rA : ematrix real (wm*tm) tk {eA %~ rA})
+  (rB : ematrix real tk (wn*tn) {eB %~ rB})
+  (rAcc : ematrix real (wm*tm) (wn*tn))
   (#fA #fB : perm)
-  (arow : szlt (bm/(wm*tm)))
-  (bcol : szlt (bn/(wn*tn)))
   (dotIdx : szlt (bk/tk))
   (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
   (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
   (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
   preserves
-    exists* (eAs' : seq (ematrix et_ab tm tk)).
-      aFrags |-> eAs' **
-      pure (
-        (Seq.length eAs' == wm) /\
-        forall (i : natlt wm).
-          (eAs' @! i) %~ (ematrix_subtile rA tm tk (arow*wm+i) dotIdx))
-  preserves
-    exists* (eBs' : seq (ematrix et_ab tk tn)).
-      bFrags |-> eBs' **
-      pure (
-        (Seq.length eBs' == wn) /\
-        forall (i : natlt wn).
-          (eBs' @! i) %~ (ematrix_subtile rB tk tn dotIdx (bcol*wn+i)))
+    //fragarrayA_approximates wm aFrags (ematrix_subtile rA (wm*tm) tk arow dotIdx) **
+    //fragarrayB_approximates wn bFrags (ematrix_subtile rB tk (wn*tn) dotIdx bcol)
+    fragarrayA_approximates wm aFrags rA **
+    fragarrayB_approximates wn bFrags rB
+
   requires
     pure (valid_frag_et_comb et_ab et_acc)
   requires
-    fragarray_approximates wm wn accumFrags
-      (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-                                    (ematrix_subtile rB bk (wn*tn) 0 bcol) (dotIdx * tk)))
+    fragarrayAcc_approximates wm wn accumFrags rAcc
+    //  (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+    //                                (ematrix_subtile rB bk (wn*tn) 0 bcol) (dotIdx * tk)))
   ensures
     // Result has added one additional tile multiplication per tensor core tile (dotIdx+1)
-    fragarray_approximates wm wn accumFrags
-      (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-                                    (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)))
+    fragarrayAcc_approximates wm wn accumFrags (rAcc `matplus` (matmul rA rB))
+    //  (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+    //                                (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)))
 {
-  unfold fragarray_approximates wm wn accumFrags;
-  //assume pure ((__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                             (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0
-  //              ==
-  //              mkM <| fun i j ->
-  //                __matmul_single (ematrix_subtile rA (wm*tm) bk arow 0) (ematrix_subtile rB bk (wn*tn) 0 bcol) i j 0);
-  //// True: up_to 0 means, by definition, that only 0s are added
-  //assume pure (rAcc == rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                                                    (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
-  //rewrite fragarray_approximates wm wn accumFrags rAcc
-  //as fragarray_approximates wm wn accumFrags
-  //    (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                                    (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
-
-  //let rAcc = (rC `matplus`
-  //              (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                              (ematrix_subtile rB bk (wn*tn) 0 bcol)) (dotIdx * tk));
-  //assert (rewrites_to rAcc (rC `matplus`
-  //              (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                              (ematrix_subtile rB bk (wn*tn) 0 bcol)) (dotIdx * tk)));
+  unfold fragarrayA_approximates wm aFrags;
+  unfold fragarrayB_approximates wn bFrags;
+  unfold fragarrayAcc_approximates wm wn accumFrags;
+  
+  with eAs. assert aFrags |-> eAs;
+  with eBs. assert bFrags |-> eBs;
 
   let mut resIdxM = 0sz;
   while ((!resIdxM <^ wm))
-    invariant live resIdxM ** pure (!resIdxM <= wm)
+    invariant live resIdxM
     invariant
-      live accumFrags
-//      exists* (eAcc : seq (ematrix et_acc tm tn)).
-//        accumFrags |-> eAcc **
-//        pure (
-//          (Seq.length eAcc == wm*wn) /\
-//          forall (i : natlt wm) (j : natlt wn).
-//            (eAcc @! (i * wn + j)) %~ (ematrix_subtile rAcc tm tn i j))
-//
+      // live accumFrags
+      exists* (eAcc : seq (ematrix et_acc tm tn)).
+        accumFrags |-> eAcc **
+        pure (
+          !resIdxM <= wm /\
+          (Seq.length eAcc == wm*wn) /\
+          forall (i : natlt wm) (j : natlt wn).
+            (eAcc @! (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j !resIdxM 0 rA rB rAcc))
   {
     let mut resIdxN = 0sz;
     while ((!resIdxN <^ wn))
-      invariant live resIdxN ** pure (!resIdxN <= wn)
-      invariant live accumFrags
+      invariant live resIdxN
+      // invariant live accumFrags
+      invariant
+        exists* (eAcc : seq (ematrix et_acc tm tn)).
+          accumFrags |-> eAcc **
+          pure (
+            !resIdxN <= wn /\
+            (Seq.length eAcc == wm*wn) /\
+            forall (i : natlt wm) (j : natlt wn).
+              (eAcc @! (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc))
     {
+      with eAccs. assert accumFrags |-> eAccs;
+
       array_fragment_pts_to_ref aFrags;
       array_fragment_pts_to_ref bFrags;
       array_fragment_pts_to_ref accumFrags;
@@ -291,7 +331,20 @@ fn fragments_outer_product
       let a_frag = aFrags.(!resIdxM);
       let b_frag = bFrags.(!resIdxN);
       let acc_frag = accumFrags.(!resIdxM *^ wn +^ !resIdxN);
+
+      with eAt. assert a_frag |-> eAt;
+      with eBt. assert b_frag |-> eBt;
+      with eAcct. assert acc_frag |-> eAcct;
+      assert pure (eAt %~ (ematrix_subtile rA tm tk !resIdxM 0));
+      assert pure (eBt %~ (ematrix_subtile rB tk tn 0 !resIdxN));
+      assert pure (eAcct %~ (ematrix_subtile rAcc tm tn !resIdxM !resIdxN));
+
       mma_sync' a_frag b_frag acc_frag;
+
+      Kuiper.TensorCore.Base.emma_approx_lemma eAcct eAt eBt
+        (ematrix_subtile rAcc tm tn !resIdxM !resIdxN)
+        (ematrix_subtile rA tm tk !resIdxM 0)
+        (ematrix_subtile rB tk tn 0 !resIdxN);
 
       ambig_trade_elim ();
       ambig_trade_elim ();
@@ -300,26 +353,69 @@ fn fragments_outer_product
       Pulse.Lib.Forall.elim_forall v;
 
       ambig_trade_elim ();
+      
+      assert array_fragment_pts_to accumFrags (Seq.Base.upd eAccs
+            (!resIdxM * wn + !resIdxN)
+            (emma (eAccs @! (!resIdxM * wn + !resIdxN))
+                (eAs @! !resIdxM)
+                (eBs @! !resIdxN)));
+            //assert pure (FStar.Seq.Base.upd eAcct (!resIdxM * FStar.SizeT.v wn + !resIdxN)
+      //      (emma (eAcct @! (!resIdxM * FStar.SizeT.v wn + !resIdxN))
+      //          (eAt @! !resIdxM)
+      //          (eBt @! !resIdxN))) @! (!resIdxM * FStar.SizeT.v wn + !resIdxN)
+      //    == (emma (eAcct @! (!resIdxM * FStar.SizeT.v wn + !resIdxN))
+      //          (eAt @! !resIdxM)
+      //          (eBt @! !resIdxN));
+      //  %~ (arrayfragments_fade tm tn tk wm wn i j !resIdxM (!resIdxN + 1) rA rB rAcc)
 
       resIdxN := !resIdxN +^ 1sz;
+      
+      // asserting or assuming: in both cases FStar dies on me
+      //assume forall (i : natlt wm) (j : natlt wn).
+      //  (Seq.Base.upd eAccs
+      //      (!resIdxM * wn + !resIdxN)
+      //      (emma (eAccs @! (!resIdxM * wn + !resIdxN))
+      //          (eAs @! !resIdxM)
+      //          (eBs @! !resIdxN))) @! (!resIdxM * wn + !resIdxN)
+      //  %~
+      //  (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc);
+      admit();
+      
+      //with eAcct'. assert acc_frag |-> eAcct';
+      //assert pure (forall (i : natlt wm) (j : natlt wn).
+      //  (eAcct' @! (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc));
     };
 
     resIdxM := !resIdxM +^ 1sz;
   };
+  
+  (* begin removable assertions *)
+  with eAcc. assert accumFrags |-> eAcc; 
+  assert pure (
+    forall (i : natlt wm) (j : natlt wn).
+              (eAcc @! (i * wn + j)) %~ (arrayfragments_fade tm tn tk wm wn i j wm 0 rA rB rAcc));
+  assert pure (
+    forall (i : natlt wm) (j : natlt wn).
+      (eAcc @! (i * wn + j)) %~
+                ematrix_subtile rAcc tm tn i j `matplus`
+                  (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j)));
+  assert pure (
+    forall (i : natlt wm) (j : natlt wn).
+              (eAcc @! (i * wn + j)) %~ (ematrix_subtile (rAcc `matplus` (matmul rA rB)) tm tn i j));
+  assert pure (Seq.length eAcc == wm*wn);
+  (* end removable assertions *)
 
-  // Assume functional correctness
-  let interm_tile =
-    (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-                                    (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)));
-  with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
-  assume pure (Seq.length emAccumFrags == wm*wn);
-  assume pure (
-    forall (i : natlt wm) (j : natlt wn). (emAccumFrags @! (i * wn + j)) %~ (ematrix_subtile interm_tile tm tn i j));
-  fold fragarray_approximates wm wn accumFrags interm_tile;
-
-  rewrite each interm_tile as (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-                                                            (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)));
+  //fold fragarrayA_approximates wm aFrags (ematrix_subtile rA (wm*tm) tk arow dotIdx);
+  //fold fragarrayB_approximates wn bFrags (ematrix_subtile rB tk (wn*tn) dotIdx bcol);
+  fold fragarrayA_approximates wm aFrags rA;
+  fold fragarrayB_approximates wn bFrags rB;
+  fold fragarrayAcc_approximates wm wn accumFrags (rAcc `matplus` (matmul rA rB));
 }
+
+let lemma_multplus_up_to_zero (#et : Type0) {| scalar et |} (#rows #cols #shared: nat)
+  (m1 : ematrix et rows shared) (m2 : ematrix et shared cols)
+  (m : ematrix et rows cols): Lemma (m == m `matplus` (__matmul_up_to m1 m2 0))
+= admit()
 
 inline_for_extraction noextract
 fn subproducts_tc_2d
@@ -354,82 +450,56 @@ fn subproducts_tc_2d
     // aFrags and bFrags are swap space, we don't specify much about them
     live aFrags ** live bFrags
   requires
-    fragarray_approximates wm wn accumFrags rAcc
+    fragarrayAcc_approximates wm wn accumFrags rAcc
   ensures
-    fragarray_approximates wm wn accumFrags
+    fragarrayAcc_approximates wm wn accumFrags
       (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
                              (ematrix_subtile rB bk (wn*tn) 0 bcol))
 {
   // gpu_matrix_pts_to_ref gA;
   // gpu_matrix_pts_to_ref gB;
 
-  unfold fragarray_approximates wm wn accumFrags;
+  // unfold fragarrayAcc_approximates wm wn accumFrags;
+  (* 
+  assert pure ((__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                               (ematrix_subtile rB bk (wn*tn) 0 bcol) 0) ==
+                (mkM fun i j -> __matmul_single (ematrix_subtile rA (wm*tm) bk arow 0)
+                                                (ematrix_subtile rB bk (wn*tn) 0 bcol) i j 0)); *)
+// const_matrix #real #(wm*tm) #(wn*tn) 0.0R);
 
-  // Fails even with explicit assumption
-  //assume pure (fragarray_approximates wm wn accumFrags rAcc
-  //  == fragarray_approximates wm wn accumFrags
-  //        (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                                        (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0));
-  //rewrite each fragarray_approximates wm wn accumFrags rAcc
-  //as fragarray_approximates wm wn accumFrags
-  //        (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-  //                                        (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
+  lemma_multplus_up_to_zero (ematrix_subtile rA (wm*tm) bk arow 0) (ematrix_subtile rB bk (wn*tn) 0 bcol) rAcc;
+  rewrite each rAcc
+  as (rAcc `matplus`
+    __matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0) (ematrix_subtile rB bk (wn*tn) 0 bcol) (0 * tk));
 
   let mut dotIdx : sz = 0sz;
   while ((!dotIdx <^ (bk/^tk)))
-    invariant live dotIdx
-    invariant live aFrags ** live bFrags
-    invariant live accumFrags
-      //(exists* rm. fragarray_approximates wm wn accumFrags rm **
-      //  pure (!dotIdx <= (bk/^tk) /\
-      //    (rm == (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
-      //                                 (ematrix_subtile rB bk (wn*tn) 0 bcol)) (!dotIdx * tk)))))
+    invariant live aFrags ** live bFrags // ** live accumFrags
+    invariant
+      exists* (vdotIdx : sz { vdotIdx <= (bk/tk) }).
+        dotIdx |-> vdotIdx **
+        fragarrayAcc_approximates wm wn accumFrags //(__gmatmul_up_to rAcc tile_mul tile_add tiled_rA tiled_rB)
+          (rAcc `matplus` __matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                                         (ematrix_subtile rB bk (wn*tn) 0 bcol)
+                                         (vdotIdx * tk))                          
   {
     populate_fragments_a bm bn bk tm tn tk wm wn aFrags gA rA arow !dotIdx;
     populate_fragments_b bm bn bk tm tn tk wm wn bFrags gB rB bcol !dotIdx;
-
-    // Compute the subproducts (wm * wn iterations)
-    let mut resIdxM = 0sz;
-    while ((!resIdxM <^ wm))
-      invariant live resIdxM ** pure (!resIdxM <= wm)
-      invariant
-        live accumFrags
-    {
-      let mut resIdxN = 0sz;
-      while ((!resIdxN <^ wn))
-        invariant live resIdxN ** pure (!resIdxN <= wn)
-        invariant live accumFrags
-      {
-        array_fragment_pts_to_ref aFrags;
-        array_fragment_pts_to_ref bFrags;
-        array_fragment_pts_to_ref accumFrags;
-
-        array_fragment_extract_ro aFrags !resIdxM;
-        array_fragment_extract_ro bFrags !resIdxN;
-        array_fragment_extract accumFrags (!resIdxM * wn + !resIdxN);
-
-        let a_frag = aFrags.(!resIdxM);
-        let b_frag = bFrags.(!resIdxN);
-        let acc_frag = accumFrags.(!resIdxM *^ wn +^ !resIdxN);
-        mma_sync' a_frag b_frag acc_frag;
-
-        ambig_trade_elim ();
-        ambig_trade_elim ();
-
-        with v. assert acc_frag `fragment_pts_to` v;
-        Pulse.Lib.Forall.elim_forall v;
-
-        ambig_trade_elim ();
-
-        resIdxN := !resIdxN +^ 1sz;
-      };
-
-      resIdxM := !resIdxM +^ 1sz;
-    };
-
+     
+    fragarray_mma bm bn bk tm tn tk wm wn aFrags bFrags accumFrags
+      (ematrix_subtile rA (wm*tm) tk arow !dotIdx)
+      (ematrix_subtile rB tk (wn*tn) !dotIdx bcol)
+      (rAcc `matplus`
+        __matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                       (ematrix_subtile rB bk (wn*tn) 0 bcol)
+                       (!dotIdx * tk))
+      !dotIdx;
+    admit();
+        
     dotIdx := !dotIdx +^ 1sz;
   };
 
+  admit();
   (* Assume functional correctness. *)
   let final_tile = rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
                                          (ematrix_subtile rB bk (wn*tn) 0 bcol);
@@ -438,7 +508,7 @@ fn subproducts_tc_2d
   assume pure (
     forall (i : natlt wm) (j : natlt wn). (emAccumFrags @! (i * wn + j)) %~ (ematrix_subtile final_tile tm tn i j)
   );
-  fold fragarray_approximates wm wn accumFrags final_tile;
+  fold fragarrayAcc_approximates wm wn accumFrags final_tile;
 
   rewrite each final_tile as (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
                                                     (ematrix_subtile rB bk (wn*tn) 0 bcol));
@@ -711,15 +781,15 @@ fn kf
     unfold bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
-    fake_intro_fragarray_approximates wm wn accFrags; // underspec
-    with rAcc. assert fragarray_approximates wm wn accFrags rAcc;
+    fake_intro_fragarrayAcc_approximates wm wn accFrags; // underspec
+    with rAcc. assert fragarrayAcc_approximates wm wn accFrags rAcc;
     subproducts_tc_2d bm bn bk tm tn tk wm wn aFrags bFrags accFrags
       sA sB
       (ematrix_subtile rA bm bk mrow !bkIdx)
       (ematrix_subtile rB bk bn !bkIdx mcol)
       rAcc
       warpRow warpCol;
-    with rAcc'. unfold fragarray_approximates wm wn accFrags rAcc';
+    with rAcc'. unfold fragarrayAcc_approximates wm wn accFrags rAcc';
 
     fold bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
