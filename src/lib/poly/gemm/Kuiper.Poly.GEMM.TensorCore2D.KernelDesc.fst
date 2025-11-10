@@ -839,6 +839,103 @@ fn rhs_is_constant_for_warps_approx
   forevery_map _ _ aux;
 }
 
+let silly_helper_natlt_prod
+  (p q : nat)
+  (x : natlt p)
+  (y : natlt q)
+  : Lemma (ensures x * q + y < p * q)
+  = ()
+
+#push-options "--split_queries always" //  --debug SMTFail"
+let tiles_approx_lemma
+  (#et_c : Type0)
+  {| scalar et_c |}
+  {| real_like et_c |}
+  (#rows #shared #cols : pos)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (nblk : pos{nblk == rows/bm * (cols/bn)})
+  (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
+  (eC' : ematrix et_c rows cols)
+  (emf : natlt nblk -> natlt nthr -> ematrix et_c (wm*tm) (wn*tn))
+  : Lemma (requires
+            (eC' ==
+              ematrix_from_tiles bm bn
+                (fun br bc ->
+                  ematrix_from_tiles (wm*tm) (wn*tn)
+                    (fun tr tc -> emf (br * (cols/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size))))
+          /\ (forall (bid : natlt nblk) (wid : natlt (nthr / warp_size)).
+                emf bid (wid * warp_size) %~
+                  (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                            (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))))
+          (ensures eC' %~ MS.matmul rA rB)
+= let aux (i : natlt rows) (j : natlt cols)
+    : Lemma (macc eC' i j %~ macc (MS.matmul rA rB) i j)
+  =
+    let bid : natlt nblk = (i / bm) * (cols/bn) + (j / bn) in
+    silly_helper_natlt_prod (bm/(wm*tm)) (bn/(wn*tn)) (i % bm / (wm*tm)) (j % bn / (wn*tn));
+    let wid0 : natlt (bm/(wm*tm) * (bn/(wn*tn))) = ((i%bm)/(wm*tm)) * (bn/(wn*tn)) + ((j%bn)/(wn*tn)) in
+    let wid : natlt (nthr / warp_size) = wid0 in
+    let ii : natlt (wm*tm) = (i % bm) % (wm*tm) in
+    let jj : natlt (wn*tn) = (j % bn) % (wn*tn) in
+    calc (==) {
+      macc eC' i j;
+      == {}
+      macc (ematrix_from_tiles #_ #rows #cols bm bn
+              (fun br bc ->
+                ematrix_from_tiles (wm*tm) (wn*tn)
+                  (fun tr tc -> emf (br * (cols/bn) + bc) ((tr * (bn/(wn*tn)) + tc) * warp_size))))
+        i j;
+      == {}
+      macc (ematrix_from_tiles #_ #bm #bn (wm*tm) (wn*tn)
+                  (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
+           (i % bm) (j % bn);
+      == {}
+      macc (emf bid (wid * warp_size)) ii jj;
+    };
+    assert (macc eC' i j == macc (emf bid (wid * warp_size)) ii jj);
+    assert (macc eC' i j %~
+      macc
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))
+        ii jj);
+
+    MS.matmul_decompose_lemma rA rB (wm*tm) (wn*tn) (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)
+                                                    (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid);
+    assert (macc eC' i j %~
+      macc
+        (ematrix_subtile
+          (MS.matmul rA rB)
+          (wm*tm) (wn*tn)
+          (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)
+          (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))
+        ii jj);
+
+    assume (
+      macc
+        (ematrix_subtile
+          (MS.matmul rA rB)
+          (wm*tm) (wn*tn)
+          (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)
+          (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))
+        ii jj
+      ==
+      macc (MS.matmul rA rB) i j);
+
+    ()
+  in
+  Classical.forall_intro_2 aux;
+  ()
+#pop-options
+
 #push-options "--z3rlimit 60" // the function below is pretty terribly performant
 ghost
 fn reconstruct_from_warp_approx
@@ -1071,7 +1168,10 @@ fn reconstruct_from_warp_approx
      functional post. *)
   with eC'. assert gC |-> eC';
 
-  assume pure (eC' %~ MS.matmul rA rB);
+  tiles_approx_lemma bm bn bk tm tn tk wm wn nblk nthr rA rB eC' emf;
+
+  assert pure (eC' %~ MS.matmul rA rB);
+  ();
 }
 #pop-options
 
@@ -1127,7 +1227,7 @@ fn teardown
   gpu_matrix_gather_n gA (rows/bm * (cols/bn) * nthr);
   gpu_matrix_gather_n gB (rows/bm * (cols/bn) * nthr);
 
-  (* Done with gA and gB. The trick is getting back gC and
+  (* Done with gA and gB. The tricky bit is getting back gC and
   proving it approximates the matmul. *)
 
   assert forall+ (x : natlt (rows / bm * (cols / bn) * nthr)).
