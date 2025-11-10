@@ -91,10 +91,6 @@ val sizet_does_not_overflow : prop
 
 val overflow_lem () : Lemma (sizet_does_not_overflow ==> (forall n. SZ.fits n))
 
-unfold
-let between (n:int) (lohi: int & int)
-  : prop = lohi._1 <= n /\ n <= lohi._2
-
 inline_for_extraction noextract
 let s_divmod (j:szp) (i:sz) : dm:(sz & szlt j){SZ.fits (dm._1 * j + dm._2)} =
   let open FStar.SizeT in
