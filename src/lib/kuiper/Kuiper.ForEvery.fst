@@ -1152,6 +1152,66 @@ fn forevery_natlt_push
   forevery_unrefine p;
 }
 
+let bij_mirror_n (n:nat) : (natlt n =~ natlt n) =
+  {
+    ff = (fun (i:natlt n) -> n - 1 - i <: natlt n);
+    gg = (fun (i:natlt n) -> n - 1 - i <: natlt n);
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+
+#set-options "--debug SMTFail --split_queries always"
+
+ghost
+fn forevery_natlt_pop_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt n). p i
+  ensures
+    forall+ (i: natlt (n-1)). p (i + 1)
+  ensures
+    p 0
+{
+  forevery_iso (bij_mirror_n n) p;
+  forevery_natlt_pop n _;
+  rewrite p ((bij_mirror_n n).gg (n-1)) as p 0;
+
+  forevery_ext #(natlt (n-1)) _
+    (fun (i: natlt (n-1)) -> p (n - 1 - i));
+
+  forevery_iso (bij_mirror_n (n-1))
+    (fun i -> p (n - 1 - i));
+
+  forevery_ext #(natlt (n-1)) _
+    (fun (i: natlt (n-1)) -> p (i + 1));
+}
+
+ghost
+fn forevery_natlt_push_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt (n-1)). p (i + 1)
+  requires
+    p 0
+  ensures
+    forall+ (i: natlt n). p i
+{
+  forevery_iso (bij_mirror_n (n-1))
+    (fun i -> p (i + 1));
+
+  forevery_ext #(natlt (n-1)) _
+    (fun (i: natlt (n-1)) -> p (n - 1 - i));
+
+  rewrite p 0 as p (n - 1 - (n - 1));
+
+  forevery_natlt_push n (fun i -> p (n - 1 - i));
+
+  forevery_iso_back (bij_mirror_n n) p;
+}
+
 ghost
 fn rec forevery_fromnat
   (n : nat)

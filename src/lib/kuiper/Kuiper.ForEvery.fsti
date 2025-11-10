@@ -400,6 +400,28 @@ fn forevery_natlt_push
     forall+ (i: natlt n). p i
 
 ghost
+fn forevery_natlt_pop_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt n). p i
+  ensures
+    forall+ (i: natlt (n-1)). p (i + 1)
+  ensures
+    p 0
+
+ghost
+fn forevery_natlt_push_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt (n-1)). p (i + 1)
+  requires
+    p 0
+  ensures
+    forall+ (i: natlt n). p i
+
+ghost
 fn forevery_fromnat
   (n : nat)
   (p : natlt n -> slprop)

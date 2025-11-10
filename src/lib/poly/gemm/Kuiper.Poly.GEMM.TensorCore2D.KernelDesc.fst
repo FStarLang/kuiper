@@ -2,6 +2,14 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 
 #lang-pulse
 
+(* This file is really awful in some places, and it shows that
+we didn't structure the pre/post conditions as well as we could have.
+Or, at least, we didn't take advantage of it. We should do a round later
+and try to make these proofs more compositional and uniform.
+
+There is really nothing too fancy going on... but it still takes >1000
+lines. *)
+
 #set-options "--z3rlimit 40"
 
 open Kuiper
@@ -668,6 +676,169 @@ fn block_teardown
   ()
 }
 
+
+ghost
+fn warp_tile_pts_to_eq
+  (#et : Type0) {| scalar et |}
+  (#rows : nat)
+  (#cols : nat)
+  (#lC : mlayout rows cols)
+  (gC : gpu_matrix et lC)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (wm : pos{wm * tm /?+ bm})
+  (wn : pos{wn * tn /?+ bn})
+  (bid : natlt ((rows/bm) * (cols/bn)))
+  (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (em1 em2 : ematrix et (wm * tm) (wn * tn))
+  requires
+    warp_tile_pts_to gC bm bn tm tn wm wn bid wid em1 **
+    warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2
+  ensures
+    warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2 **
+    warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2
+{
+  unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em1;
+  unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
+  gpu_matrix_pts_to_eq
+    (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
+    (recip warp_size)
+    #em1 #em2;
+  fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
+  fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
+}
+
+ghost
+fn warp_tile_pts_to_gatherwarp
+  (#et : Type0) {| scalar et |}
+  (#rows : nat)
+  (#cols : nat)
+  (#lC : mlayout rows cols)
+  (gC : gpu_matrix et lC)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (wm : pos{wm * tm /?+ bm})
+  (wn : pos{wn * tn /?+ bn})
+  (bid : natlt ((rows/bm) * (cols/bn)))
+  (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (em : ematrix et (wm * tm) (wn * tn))
+  requires
+    forall+ (_ : natlt warp_size).
+      warp_tile_pts_to gC bm bn tm tn wm wn bid wid em
+  ensures
+    warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid em
+{
+  forevery_map #(natlt warp_size)
+    (fun _ -> warp_tile_pts_to gC bm bn tm tn wm wn bid wid em)
+    (fun _ ->
+      gpu_matrix_pts_to
+        (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
+        #(recip warp_size)
+        em)
+    fn _ {
+      unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em;
+    };
+  gpu_matrix_gather_n
+    (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
+    warp_size;
+  fold warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid em;
+  ();
+}
+
+ghost
+fn rhs_is_constant_for_warps_approx
+  (#et_ab #et_c : Type0)
+  {| scalar et_c |}
+  {| real_like et_c |}
+  (#rows #shared #cols : pos)
+  (#lC : mlayout rows cols)
+  (gC : gpu_matrix et_c lC)
+  (eA : ematrix et_ab rows shared)
+  (eB : ematrix et_ab shared cols)
+  (eC : ematrix et_c rows cols)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (nblk : pos{nblk == rows/bm * (cols/bn)})
+  (nthr : pos{nthr == bm/(wm*tm) * (bn/(wn*tn)) * warp_size})
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
+  (bid : natlt nblk)
+  (emf : natlt nthr -> ematrix et_c (wm*tm) (wn*tn))
+  norewrite
+  requires
+    forall+ (tid : natlt nthr).
+      warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf tid) **
+      pure (emf tid %~
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)))))
+  ensures
+    forall+ (wid : natlt (nthr / warp_size)).
+      warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf (wid * warp_size)) **
+      pure (emf (wid * warp_size) %~
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))))
+{
+  forevery_factor nthr (nthr / warp_size) warp_size _;
+  ghost
+  fn aux (wid : natlt (nthr / warp_size))
+    requires
+      forall+ (i : natlt warp_size).
+        warp_tile_pts_to gC bm bn tm tn wm wn bid ((wid * warp_size + i) / warp_size) (emf (wid * warp_size + i)) **
+        pure (emf (wid * warp_size + i) %~
+          (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + i) / warp_size)) 0)
+                     (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + i) / warp_size)))))
+    ensures
+      warp_tile_pts_to_full gC bm bn tm tn wm wn bid wid (emf (wid * warp_size)) **
+      pure (emf (wid * warp_size) %~
+        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
+                  (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid))))
+  {
+    forevery_natlt_pop_shift _ _;
+
+    rewrite each (wid * warp_size + 0) as (wid * warp_size);
+    rewrite each ((wid * warp_size) / warp_size) as wid;
+    let em0 = emf (wid * warp_size);
+    assert rewrites_to em0 (emf (wid * warp_size));
+    assert warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0;
+    // ghost
+    // fn aux (tid : natlt
+    // assert pure (em0 %~
+    //   (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + i) / warp_size)) 0)
+    //              (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + i) / warp_size)))));
+    forevery_map_extra
+      #(natlt (warp_size - 1))
+      (warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0)
+      (fun i -> warp_tile_pts_to gC bm bn tm tn wm wn bid ((wid * warp_size + (i+1)) / warp_size) (emf (wid * warp_size + (i+1)))
+        ** pure (emf (wid * warp_size + (i+1)) %~
+          (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + (i+1)) / warp_size)) 0)
+                     (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid ((wid * warp_size + (i+1)) / warp_size))))))
+      (fun i -> warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0)
+      // ^ NB: dropping the pure part above, it doesn't matter as we already have this fact about em0
+      fn i {
+        rewrite each ((wid * warp_size + (i + 1)) / warp_size) as wid;
+        warp_tile_pts_to_eq gC bm bn tm tn wm wn bid wid (emf (wid * warp_size + (i+1))) em0;
+        ()
+      };
+
+    forevery_natlt_push_shift warp_size
+      (fun i -> warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0);
+    warp_tile_pts_to_gatherwarp gC bm bn tm tn wm wn bid wid em0;
+    ();
+  };
+  forevery_map _ _ aux;
+}
+
 #push-options "--z3rlimit 60" // the function below is pretty terribly performant
 ghost
 fn reconstruct_from_warp_approx
@@ -744,8 +915,7 @@ fn reconstruct_from_warp_approx
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid wid) 0)
                    (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid wid)))))
     fn bid {
-      // This requires a bit of proof...
-      admit();
+      rhs_is_constant_for_warps_approx gC eA eB eC bm bn bk tm tn tk wm wn nblk nthr rA rB rC bid (emf bid);
     };
 
   (* Now reconstruct the full matrix from the big tiles. *)

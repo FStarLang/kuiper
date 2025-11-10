@@ -192,7 +192,6 @@ ensures
     ambig_trade_elim ();
 }
 
-#push-options "--debug SMTFail --split_queries always"
 fn fragments_outer_product
   (#et_ab #et_acc : Type0)
   {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
