@@ -53,6 +53,28 @@ val __gmatmul_single
   (to : nat{to <= shared})
   : GTot t3
 
+val __gmatmul_single_congr
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (#rows' #columns' : nat)
+  (m1' : ematrix t1 rows' shared)
+  (m2' : ematrix t2 shared columns')
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (row' : nat{row' < rows'})
+  (col' : nat{col' < columns'})
+  (to : nat{to <= shared})
+  : Lemma (requires (forall k. 0 <= k /\ k < to ==>
+                        macc m1 row k == macc m1' row' k /\
+                        macc m2 k col == macc m2' k col'))
+          (ensures (__gmatmul_single z mul add m1 m2 row col to
+                    == __gmatmul_single z mul add m1' m2' row' col' to))
+
 let gmatmul_single
   (#t1 #t2 #t3 : Type)
   (z : t3)
@@ -277,3 +299,26 @@ let gemm
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
 = matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)
+
+(* If we take a full-width slice of A and a full-height slice of B, then
+   the matmul of those slices is equal to the corresponding tile of the
+   full matmul. *)
+val matmul_decompose_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : pos)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trows : nat {trows /? rows})
+  (tcolumns : nat {tcolumns /? columns})
+  (i : natlt (rows / trows))
+  (j : natlt (columns / tcolumns))
+: Lemma
+  (ensures
+    matmul
+      (ematrix_subtile m1 trows shared i 0)
+      (ematrix_subtile m2 shared tcolumns 0 j)
+    ==
+    ematrix_subtile
+      (matmul m1 m2)
+      trows tcolumns
+      i j)
