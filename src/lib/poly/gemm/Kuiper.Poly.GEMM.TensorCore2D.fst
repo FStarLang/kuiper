@@ -361,6 +361,10 @@ fn fragarray_mma
 }
 #pop-options
 
+// Working around apparent bug below
+inline_for_extraction noextract
+let sz_succ (x:SZ.t{SZ.fits (x+1)}) : SZ.t = x +^ 1sz
+
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
@@ -415,7 +419,7 @@ fn subproducts_tc_2d
       exists* (vdotIdx : sz { vdotIdx <= (bk/tk) }).
         dotIdx |-> vdotIdx **
         fragarrayAcc_approximates wm wn accumFrags
-          (__gmatmul_single rAcc matmul matplus (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol vdotIdx)
+          (__gmatmul_single rAcc matmul matplus (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol !dotIdx)
           //(rAcc `matplus` __matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
           //                               (ematrix_subtile rB bk (wn*tn) 0 bcol)
           //                               (vdotIdx * tk))
@@ -451,10 +455,19 @@ fn subproducts_tc_2d
         (__gmatmul_single rAcc matmul matplus
             (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn))
             arow bcol (!dotIdx +^ 1sz));
-    // rewrite is not enough: I think there are differences in how `reveal` is applied?
-    admit();
 
-    dotIdx := !dotIdx +^ 1sz;
+
+    // Weird issue here. We'd like to just add one and be done but
+    // that doesn't seem to work due to some SZ.v (x+^1sz) vs SZ.v x + 1
+    // issues
+    with vdotIdx. assert dotIdx |-> vdotIdx;
+    dotIdx := sz_succ !dotIdx;// +^ 1sz;S
+    rewrite each
+      (SZ.v vdotIdx + 1)
+    as
+      (SZ.v (sz_succ vdotIdx));
+
+    ()
   };
 
   assert pure (!dotIdx == bk/^tk);
@@ -732,7 +745,7 @@ fn kf
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
     (* sigh.. *)
-    #set-options "--z3rlimit 100" {
+    #set-options "--z3rlimit 100 --retry 3" {
     rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
             own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
          as barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
