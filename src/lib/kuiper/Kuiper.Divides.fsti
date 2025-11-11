@@ -78,3 +78,12 @@ val lemma_divides_mod_op (d: pos) (a: int) (b: pos)
   : Lemma (requires d /? a /\
             d /? b)
           (ensures d /? (a % b))
+
+val lemma_eucl_unique
+  (b: pos)
+  (q r q' r': nat)
+: Lemma (requires q * b + r == q' * b + r' /\
+    r < b /\
+    r' < b
+  )
+  (ensures q == q' /\ r == r')

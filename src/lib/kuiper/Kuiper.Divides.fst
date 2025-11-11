@@ -127,3 +127,13 @@ let lemma_divides_mod_op (d: pos) (a: int) (b: pos)
   lemma_divides_product_r d b ((-1) * (a / b));
   lemma_divides_sum d a (((-1) * (a / b)) * b);
   ()
+
+let lemma_eucl_unique
+  (b: pos)
+  (q r q' r': nat)
+: Lemma (requires q * b + r == q' * b + r' /\
+    r < b /\
+    r' < b
+  )
+  (ensures q == q' /\ r == r')
+= ()
