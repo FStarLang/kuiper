@@ -75,6 +75,20 @@ val __gmatmul_single_congr
           (ensures (__gmatmul_single z mul add m1 m2 row col to
                     == __gmatmul_single z mul add m1' m2' row' col' to))
 
+val __gmatmul_single_zero_lemma
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #cols #shared: nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared cols)
+  (i : natlt rows)
+  (j : natlt cols)
+: Lemma
+  (ensures z == (__gmatmul_single z mul add m1 m2 i j 0))
+  [SMTPat (__gmatmul_single z mul add m1 m2 i j 0)]
+
 let gmatmul_single
   (#t1 #t2 #t3 : Type)
   (z : t3)
@@ -322,3 +336,7 @@ val matmul_decompose_lemma
       (matmul m1 m2)
       trows tcolumns
       i j)
+  [SMTPat (
+    matmul
+      (ematrix_subtile m1 trows shared i 0)
+      (ematrix_subtile m2 shared tcolumns 0 j))]

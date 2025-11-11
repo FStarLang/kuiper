@@ -47,6 +47,19 @@ let rec __gmatmul_single_congr
      __gmatmul_single_congr z mul add m1 m2 m1' m2' row col row' col' (to - 1);
      ()
     )
+let __gmatmul_single_zero_lemma
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #cols #shared: nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared cols)
+  (i : natlt rows)
+  (j : natlt cols)
+: Lemma
+  (ensures z == (__gmatmul_single z mul add m1 m2 i j 0))
+= ()
 
 let matmul_zero_lemma
   (#et:Type) {| scalar et |}

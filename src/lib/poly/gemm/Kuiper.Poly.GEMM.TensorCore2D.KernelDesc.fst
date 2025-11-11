@@ -969,6 +969,7 @@ let silly_helper_natlt_prod
   : Lemma (ensures x * q + y < p * q)
   = ()
 
+#push-options "--split_queries always" // Would be nice to avoid
 let tiles_approx_lemma
   (#et_c : Type0)
   {| scalar et_c |}
@@ -1061,6 +1062,7 @@ let tiles_approx_lemma
   in
   Classical.forall_intro_2 aux;
   ()
+#pop-options
 
 #push-options "--z3rlimit 60" // the function below is pretty terribly performant
 ghost

@@ -83,6 +83,16 @@ class strided_row_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
          squash (l.map.f (i,j) == offset + stride * i + j);
 }
 
+(* Is this strided matrix aligned? I.e. is the starting
+offset and the stride aligned to n? *)
+let aligned_strided_row_major
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (n : pos)
+  (srm : strided_row_major l)
+  : prop =
+  n /?+ srm.stride /\ n /?+ srm.offset
+
 inline_for_extraction noextract
 class strided_col_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
   [@@@no_method]
@@ -93,3 +103,11 @@ class strided_col_major (#rows #cols : erased nat) (l : mlayout rows cols) = {
   pf : i:natlt rows -> j:natlt cols ->
          squash (l.map.f (i,j) == offset + stride * j + i);
 }
+
+let aligned_strided_col_major
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (n : pos)
+  (srm : strided_col_major l)
+  : prop =
+  n /?+ srm.stride /\ n /?+ srm.offset

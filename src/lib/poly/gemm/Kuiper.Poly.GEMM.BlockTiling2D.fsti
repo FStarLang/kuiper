@@ -20,7 +20,10 @@ fn mmcomb_gpu
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
-  {| strided_row_major lA, strided_row_major lB |}
+  {| str_A : strided_row_major lA,
+     str_B : strided_row_major lB |}
+  (#_ : squash (aligned_strided_row_major (chunk et) str_A))
+  (#_ : squash (aligned_strided_row_major (chunk et) str_B))
   (gA : gpu_matrix et lA { is_global_matrix gA })
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB { is_global_matrix gB })

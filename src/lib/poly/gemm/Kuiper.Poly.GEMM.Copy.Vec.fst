@@ -37,6 +37,50 @@ let in_chunk_no_overlap
   =
   ()
 
+let coincide_on_tid
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (nthr : nat)
+  (tid : natlt nthr)
+  (em1 em2 : ematrix et rows cols)
+: Tot prop
+=
+      forall (i : natlt rows) (j : natlt cols).
+        in_chunk (chunk et) rows cols nthr tid (i,j) ==>
+        macc em1 i j == macc em2 i j
+
+let coincide_on_tid_intro
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (nthr : nat)
+  (tid : natlt nthr)
+  (em1 em2 : ematrix et rows cols)
+  (prf:
+    (i: natlt rows) ->
+    (j: natlt cols) ->
+    Lemma
+    (requires in_chunk (chunk et) rows cols nthr tid (i,j))
+    (ensures
+        macc em1 i j == macc em2 i j
+    )
+  )
+: Lemma
+  (coincide_on_tid nthr tid em1 em2)
+= let prf'
+    (i: natlt rows)
+    (j: natlt cols)
+    : Lemma
+    (ensures (in_chunk (chunk et) rows cols nthr tid (i,j) ==>
+        macc em1 i j == macc em2 i j
+    ))
+  =
+    let flat_idx = i * cols + j <: nat in
+    let chunk_idx = flat_idx / chunk et in
+    if chunk_idx % nthr = tid
+    then prf i j
+  in
+  Classical.forall_intro_2 prf'
+
 ghost
 fn own_strided_chunks_rw
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
@@ -47,10 +91,7 @@ fn own_strided_chunks_rw
   (tid : natlt nthr)
   (em1 em2 : ematrix et rows cols)
   requires
-    pure (
-      forall (i : natlt rows) (j : natlt cols).
-        in_chunk (chunk et) rows cols nthr tid (i,j) ==>
-        macc em1 i j == macc em2 i j)
+    pure (coincide_on_tid nthr tid em1 em2)
   requires
     own_strided_chunks m em1 nthr tid
   ensures
@@ -232,6 +273,250 @@ let em_fade
 
 let nop_tactic () : Tactics.Tac unit = ()
 
+#push-options "--z3rlimit 16 --fuel 0 --ifuel 1"
+
+let cp_matrix_vec_chunk_et_divides_col'
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: pos)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    tid < nthr /\
+    it < (rows*cols) / (nthr * chunk et)
+  ))
+: Lemma
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    chunk et /?+ col
+  ))
+=
+    let i = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i + offset) / cols in
+    let col = (i + offset) % cols in
+    assert (chunk et /?+ offset);
+    assert (chunk et /?+ i);
+    lemma_nat_divides_pos_divides (chunk et) i;
+    assert (chunk et /? i);
+    lemma_nat_divides_pos_divides (chunk et) offset;
+    assert (chunk et /? offset);
+    lemma_divides_sum (chunk et) i offset;
+    assert ((chunk et /? (i + offset)));
+    lemma_nat_divides_pos_divides (chunk et) cols;
+    assert ((chunk et /? cols));
+    Kuiper.Math.Silly.lemma_mul_pos_recip rows cols;
+    assert ((cols > 0));
+    lemma_divides_mod_op (chunk et) (i + offset) cols;
+    assert (chunk et /? col);
+    lemma_nat_divides_pos_divides (chunk et) col;
+    assert (chunk et /?+ col)
+
+#pop-options
+
+let cp_matrix_vec_chunk_et_divides_col
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: pos)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    tid < nthr /\
+    it < (rows*cols) / (nthr * chunk et)
+  ))
+: Lemma
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    chunk et /?+ col /\
+    col + chunk et <= cols /\
+    offset == tid * chunk et /\
+    row < rows /\
+    col < cols - chunk et + 1
+  ))
+=
+    let i = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i + offset) / cols in
+    let col = (i + offset) % cols in
+    cp_matrix_vec_chunk_et_divides_col' et rows cols nthr tid it ();
+    assert ((col + chunk et <= cols));
+    assert (offset == tid * chunk et);
+    assert (row < rows);
+    assert (col < cols - chunk et + 1)
+
+let cp_matrix_vec_in_chunk
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: pos)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (k: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    tid < nthr /\
+    it < (rows*cols) / (nthr * chunk et) /\
+    k < chunk et /\ (
+    True
+  )))
+: Lemma
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    row < rows /\
+    col + k < cols /\ (
+    let ecell : (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col + k) in
+    in_chunk (chunk et) rows cols nthr tid ecell
+  )))
+=
+    let i = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i + offset) / cols in
+    let col = (i + offset) % cols in
+    cp_matrix_vec_chunk_et_divides_col et rows cols nthr tid it ();
+    assert (chunk et /?+ col);
+    let ecell : (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col + k) in
+    FStar.Math.Lemmas.euclidean_division_definition (i + offset) cols;
+    assert ((i + offset == row * cols + col));
+    let flat_idx = ((fst ecell * cols + snd ecell) <: nat) in
+    assert (flat_idx == i + offset + k);
+    let chunk_idx = (flat_idx / chunk et <: nat) in
+    FStar.Math.Lemmas.lemma_div_plus (i + k) tid (chunk et);
+    assert (chunk_idx == tid + (i + k) / chunk et);
+    FStar.Math.Lemmas.lemma_div_plus k (it * nthr) (chunk et);
+    assert (chunk_idx == tid + it * nthr + k / chunk et);
+    FStar.Math.Lemmas.small_div k (chunk et);
+    assert (chunk_idx == tid + it * nthr);
+    FStar.Math.Lemmas.lemma_mod_plus tid it nthr
+
+let em_fade'
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#rows #cols : pos)
+  (em1 : ematrix et rows cols)
+  (em2 : ematrix et rows cols)
+  (nthr : pos)
+  (it: nat)
+  (row : nat)
+  (col: nat)
+  (k: nat)
+  : ematrix et rows cols
+= mkM (fun i j ->
+              let flat_idx = i * cols + j <: nat in
+              let chunk_idx = flat_idx / (chunk et) in
+              if (chunk_idx / nthr < it || (i = row && (col <= j && j < col + k)))
+              then macc em2 i j
+              else macc em1 i j)
+
+let em_fade'_fade_aux
+  (et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols: pos)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    chunk et * nthr /?+ (rows * cols) /\
+    tid < nthr /\
+    it < (rows*cols) / (nthr * chunk et)
+  ))
+  (i j: nat)
+: Lemma
+  (requires (
+    let flat_idx = i * cols + j <: nat in
+    let chunk_idx = flat_idx / (chunk et) in
+    i < rows /\ j < cols /\
+    chunk_idx / nthr = it /\
+    chunk_idx % nthr == tid
+  ))
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    let flat_idx = i * cols + j <: nat in
+    let chunk_idx = flat_idx / (chunk et) in
+    (
+      (i = row && (col <= j && j < col + chunk et))
+    )
+  ))
+= if (i < rows && j < cols)
+  then begin
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+
+    let flat_idx = i * cols + j <: nat in
+    let chunk_idx = flat_idx / (chunk et) in
+    if chunk_idx / nthr = it && chunk_idx % nthr = tid
+    then begin
+      assert (chunk_idx == it * nthr + tid);
+      let flat_idx_rem = flat_idx % chunk et in
+      assert (flat_idx == it * nthr * chunk et + tid * chunk et + flat_idx_rem);
+      cp_matrix_vec_chunk_et_divides_col et rows cols nthr tid it ();
+      cp_matrix_vec_in_chunk et rows cols nthr tid it flat_idx_rem ();
+      FStar.Math.Lemmas.euclidean_division_definition (i0 + offset) cols;
+      lemma_eucl_unique cols row (col + flat_idx_rem) i j;
+      assert (i == row);
+      assert (j == col + flat_idx_rem)
+    end
+  end
+
+let em_fade'_fade
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#rows #cols: pos)
+  (esrc : ematrix et rows cols)
+  (edst : ematrix et rows cols)
+  (nthr : pos)
+  (tid: nat)
+  (it: nat)
+  (sq: squash (
+    chunk et /?+ cols /\
+    tid < nthr /\
+    chunk et * nthr /?+ (rows * cols) /\
+    it < (rows*cols) / (nthr * chunk et)
+  ))
+: Lemma
+  (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    coincide_on_tid nthr tid (em_fade edst esrc nthr (it + 1))
+      (em_fade' edst esrc nthr it row col (chunk et))
+  ))
+= let i0 = it * nthr * chunk et in
+  let offset = tid * chunk et in
+  let row = (i0 + offset) / cols in
+  let col = (i0 + offset) % cols in
+  coincide_on_tid_intro nthr tid (em_fade edst esrc nthr (it + 1))
+      (em_fade' edst esrc nthr it row col (chunk et))
+      (fun i j ->
+        let flat_idx = i * cols + j <: nat in
+        let chunk_idx = flat_idx / chunk et in
+        if chunk_idx / nthr < it
+        then ()
+        else if chunk_idx / nthr = it
+        then em_fade'_fade_aux et rows cols nthr tid it () i j
+        else if i = row && (col <= j && j < col + (chunk et))
+        then ()
+        else begin
+          assert (chunk_idx / nthr > it);
+          assert (macc (em_fade edst esrc nthr (it + 1)) i j == macc edst i j);
+          assert (macc (em_fade' edst esrc nthr it row col (chunk et)) i j == macc edst i j);
+          ()
+        end
+      )
+
 #push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
 // NB: The scalar constraint is only here so we can use 'zero' as an initializer
 // for a local array... would be gone if we had uninitialized local arrays.
@@ -257,15 +542,13 @@ fn cp_matrix_vec
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
     pure (aligned 16 (core src)) **
-    pure (rows * cols > 0)
+    pure (rows * cols > 0) **
+    pure (aligned_strided_row_major (chunk et) src_str)
   requires
     own_strided_chunks dst edst nthr tid
   ensures
     own_strided_chunks dst esrc nthr tid
 {
-  // These should be exposed to the precondition and bubbled up.
-  assume pure (chunk et /?+ src_str.stride);
-  assume pure (chunk et /?+ src_str.offset);
   open FStar.SizeT;
   let mlen = rows *^ cols;
 
@@ -302,7 +585,8 @@ fn cp_matrix_vec
     let row = (!i +^ offset) /^ cols; assert (rewrites_to row ((!i +^ offset) /^ cols));
     let col = (!i +^ offset) %^ cols; assert (rewrites_to col ((!i +^ offset) %^ cols));
     assert pure (chunk et /?+ cols);
-    assume pure (chunk et /?+ col); // PROVE
+    cp_matrix_vec_chunk_et_divides_col et rows cols nthr tid (GR.read git) ();
+    assert pure (chunk et /?+ col);
     assert (pure (col + chunk et <= cols));
     assert pure (SZ.v offset == tid * chunk et);
     assert pure (row < rows);
@@ -323,13 +607,19 @@ fn cp_matrix_vec
     while ((!k <^ chunk et))
       invariant live k ** pure (!k <= chunk et)
       invariant
-        exists* em'. // TODO: functional spec
-          own_strided_chunks dst em' nthr tid
+        exists* em'.
+          own_strided_chunks dst em' nthr tid **
+          pure (Kuiper.EMatrix.equal em'
+            (em_fade' edst esrc nthr ite row col !k)
+          )
     {
       with em'. unfold own_strided_chunks dst em' nthr tid;
-      assume pure (col + !k < cols);
+      with vk . assert (pts_to k vk);
+      Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
+      assert pure (col + !k < cols);
       let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) row (col +^ !k);
-      assume pure (in_chunk (chunk et) rows cols nthr tid ecell);
+      cp_matrix_vec_in_chunk et rows cols nthr tid (GR.read git) !k ();
+      assert pure (in_chunk (chunk et) rows cols nthr tid ecell);
       forevery_remove'
         #(natlt rows & natlt cols)
         (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
@@ -389,11 +679,8 @@ fn cp_matrix_vec
     add_helper vi vgit nthr (chunk et); // sigh
     assert pure (SZ.v !i == GR.read git * nthr * chunk et);
 
-    with em'. assert own_strided_chunks dst em' nthr tid;
-    assume pure (em' == em_fade edst esrc nthr (vgit + 1));
-    rewrite each em' as em_fade edst esrc nthr (vgit + 1) by nop_tactic ();
-    (* ^ FIXME: Without using a tactic, we get a goal where em_fade is
-         unfolded, which then fails... why does it unfold!? *)
+    em_fade'_fade esrc edst nthr tid vgit ();
+    own_strided_chunks_rw _ nthr tid _ (em_fade edst esrc nthr (vgit + 1));
     ()
   };
 
