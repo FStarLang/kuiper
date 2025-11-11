@@ -10,8 +10,9 @@ open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module P = Kuiper.Poly.GEMM.BlockTiling2D
+module SZ = Kuiper.SizeT
 
-#set-options "--z3rlimit 30"
+#set-options "--z3rlimit 60"
 
 inline_for_extraction noextract
 fn spec
@@ -71,6 +72,16 @@ fn spec
   let mrows   = rows   /^ bm;
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
+
+  lemma_divides_trans (chunk et) bk shared;
+  assert pure (chunk et /?+ shared);
+  assert pure (aligned_strided_row_major (chunk et)
+                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v rows) #(SZ.v shared)));
+
+  lemma_divides_trans (chunk et) bn cols;
+  assert pure (chunk et /?+ cols);
+  assert pure (aligned_strided_row_major (chunk et)
+                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
 
   P.mmcomb_gpu
     (fun o n -> mul beta o `add` mul alpha n)

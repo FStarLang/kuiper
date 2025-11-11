@@ -133,7 +133,8 @@ fn cp_matrix_vec
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
     pure (aligned 16 (core src)) **
-    pure (rows * cols > 0)
+    pure (rows * cols > 0) **
+    pure (aligned_strided_row_major (chunk et) src_str)
   requires
     own_strided_chunks dst edst nthr tid
   ensures

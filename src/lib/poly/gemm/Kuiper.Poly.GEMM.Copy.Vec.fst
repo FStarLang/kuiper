@@ -542,15 +542,13 @@ fn cp_matrix_vec
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
     pure (aligned 16 (core src)) **
-    pure (rows * cols > 0)
+    pure (rows * cols > 0) **
+    pure (aligned_strided_row_major (chunk et) src_str)
   requires
     own_strided_chunks dst edst nthr tid
   ensures
     own_strided_chunks dst esrc nthr tid
 {
-  // These should be exposed to the precondition and bubbled up.
-  assume pure (chunk et /?+ src_str.stride);
-  assume pure (chunk et /?+ src_str.offset);
   open FStar.SizeT;
   let mlen = rows *^ cols;
 

@@ -14,6 +14,7 @@ module SZ = Kuiper.SizeT
 open Kuiper.Poly.GEMM.TensorCore2D
 
 #push-options "--split_queries always --z3rlimit 40" // very slow without splitting? flaky nevertheless
+
 inline_for_extraction noextract
 fn spec
   // specialize
@@ -96,6 +97,16 @@ fn spec
 
   dassert ((bm *^ bk) %^ (chunk et_ab *^ nthr) = 0sz);
   dassert ((bk *^ bn) %^ (chunk et_ab *^ nthr) = 0sz);
+
+  lemma_divides_trans (chunk et_ab) bk shared;
+  assert pure (chunk et_ab /?+ shared);
+  assert pure (aligned_strided_row_major (chunk et_ab)
+                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v rows) #(SZ.v shared)));
+
+  lemma_divides_trans (chunk et_ab) bn cols;
+  assert pure (chunk et_ab /?+ cols);
+  assert pure (aligned_strided_row_major (chunk et_ab)
+                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
 
   (* Instead of threading through approximations, we here pick
      real matrices that are (trivially) approximated

@@ -109,10 +109,10 @@ let lemma_divides_product_l (d : pos) (a c : int)
       a * c;
   }
 
-let lemma_divides_product_r (d : pos) (a c : int)
-  : Lemma (requires d /? a)
-          (ensures d /? (c * a))
-  = lemma_divides_product_l d a c
+let lemma_divides_product_r (d : pos) (a b : int)
+  : Lemma (requires d /? b)
+          (ensures d /? (a * b))
+  = lemma_divides_product_l d b a
 
 let lemma_divides_chain (a b c : pos)
   : Lemma (requires a /? b /\ b /? c)
@@ -124,7 +124,7 @@ let lemma_divides_mod_op (d: pos) (a: int) (b: pos)
             d /? b)
           (ensures d /? (a % b))
 = assert ((a % b) == a + ((-1) * (a / b)) * b);
-  lemma_divides_product_r d b ((-1) * (a / b));
+  lemma_divides_product_r d ((-1) * (a / b)) b;
   lemma_divides_sum d a (((-1) * (a / b)) * b);
   ()
 

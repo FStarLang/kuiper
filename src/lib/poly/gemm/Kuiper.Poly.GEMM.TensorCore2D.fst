@@ -545,10 +545,14 @@ fn kf
   {| scalar et_ab, has_vec_cpy et_ab, sc : scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
+  (#lA : mlayout rows shared) {| clayout lA |}
   (gA : gpu_matrix et_ab lA)
   (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
+  (#lB : mlayout shared cols) {| clayout lB |}
+  {| str_A : strided_row_major lA,
+     str_B : strided_row_major lB |}
+  (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
+  (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c (R.row_major rows cols))
@@ -778,10 +782,14 @@ let mk_kernel
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
+  (#lA : mlayout rows shared) {| clayout lA |}
   (gA : gpu_matrix et_ab lA)
   (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
+  (#lB : mlayout shared cols) {| clayout lB |}
+  {| str_A : strided_row_major lA,
+     str_B : strided_row_major lB |}
+  (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
+  (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c (R.row_major rows cols))

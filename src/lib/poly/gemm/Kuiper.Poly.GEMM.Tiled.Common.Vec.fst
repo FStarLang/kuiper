@@ -8,10 +8,23 @@ open Kuiper.Matrix.Reprs
 open Kuiper.Matrix.Tiling
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+module Trade = Pulse.Lib.Trade
 
 open Kuiper.EMatrix
 
 module SZ = Kuiper.SizeT
+
+// Sad...
+let divides_helper
+  (d : pos)
+  (a b r c : int)
+  : Lemma (requires d /? a /\ d /? b /\ d /? c)
+          (ensures d /? (a + b * r + c))
+  = lemma_divides_product_l d b r;
+    lemma_divides_sum d a (b * r);
+    lemma_divides_sum d (a + b * r) c;
+    ()
+
 inline_for_extraction noextract
 fn copy_tiles_out_of_matrices_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -35,9 +48,9 @@ fn copy_tiles_out_of_matrices_vec
   (tile_row : szlt (rows/bm))
   (tile_shared : szlt (shared/bk))
   (tile_col : szlt (cols/bn))
-  (nthr : sz)
-  (#_ : squash (chunk et * nthr /? (bm * bk))) // extra req
-  (#_ : squash (chunk et * nthr /? (bk * bn))) // extra req
+  (nthr : szp)
+  (#_ : squash (chunk et * nthr /?+ (bm * bk))) // extra req
+  (#_ : squash (chunk et * nthr /?+ (bk * bn))) // extra req
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (tid : szlt nthr)
@@ -48,7 +61,9 @@ fn copy_tiles_out_of_matrices_vec
     thread_id nthr tid
   requires
     pure (aligned 16 (core gA)) **
-    pure (aligned 16 (core gB))
+    pure (aligned 16 (core gB)) **
+    pure (aligned_strided_row_major (chunk et) str_A) **
+    pure (aligned_strided_row_major (chunk et) str_B)
   requires
     live_strided_chunks sA nthr tid **
     live_strided_chunks sB nthr tid
@@ -56,22 +71,38 @@ fn copy_tiles_out_of_matrices_vec
     own_strided_chunks sA (ematrix_subtile eA bm bk tile_row tile_shared) nthr tid **
     own_strided_chunks sB (ematrix_subtile eB bk bn tile_shared tile_col) nthr tid
 {
-  unfold live_strided_chunks sA nthr tid;
-  unfold live_strided_chunks sB nthr tid;
+  {
+    unfold live_strided_chunks sA nthr tid;
+    let tileA = gpu_matrix_extract_tile_ro' gA
+      (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
+    // get_bdim() is not specialized, when the block dimensions are specialized
+    // cp_matrix bm bk tileA sA (get_bdim()) tid;
 
-  let tileA = gpu_matrix_extract_tile_ro' gA
-    (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
-  // get_bdim() is not specialized, when the block dimensions are specialized
-  // cp_matrix bm bk tileA sA (get_bdim()) tid;
-  cp_matrix_vec bm bk tileA sA nthr tid;
+    // Z3 needs some convicing.
+    Kuiper.Divides.lemma_divides_product_l (chunk et) str_A.stride (tile_row * bm);
+    Kuiper.Divides.lemma_divides_product_r (chunk et) tile_shared bk;
+    divides_helper (chunk et) str_A.offset str_A.stride (tile_row * bm) (tile_shared * bk);
+    assert pure (chunk et /?+ (str_A.offset + str_A.stride * (tile_row * bm) + (tile_shared * bk)));
 
-  let tileB = gpu_matrix_extract_tile_ro' gB
-    (SZ.v bk) (SZ.v bn) (SZ.v tile_shared) (SZ.v tile_col);
-  // cp_matrix bk bn tileB sB (get_bdim()) tid;
-  cp_matrix_vec bk bn tileB sB nthr tid;
+    cp_matrix_vec bm bk tileA sA nthr tid;
 
-  ambig_trade_elim ();
-  ambig_trade_elim ();
+    Trade.elim_trade _ _;
+  };
+
+  {
+    unfold live_strided_chunks sB nthr tid;
+    let tileB = gpu_matrix_extract_tile_ro' gB
+      (SZ.v bk) (SZ.v bn) (SZ.v tile_shared) (SZ.v tile_col);
+
+    Kuiper.Divides.lemma_divides_product_l (chunk et) str_B.stride (tile_shared * bk);
+    Kuiper.Divides.lemma_divides_product_r (chunk et) tile_col bn;
+    divides_helper (chunk et) str_B.offset str_B.stride (tile_shared * bk) (tile_col * bn);
+    assert pure (chunk et /?+ (str_B.offset + str_B.stride * (tile_shared * bk) + (tile_col * bn)));
+
+    cp_matrix_vec bk bn tileB sB nthr tid;
+
+    Trade.elim_trade _ _;
+  };
 
   ();
 }
