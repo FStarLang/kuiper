@@ -1174,7 +1174,7 @@ let bij_mirror_n (n:nat) : (natlt n =~ natlt n) =
   }
 
 
-#set-options "--debug SMTFail --split_queries always"
+#set-options "--debug SMTFail"
 
 ghost
 fn forevery_natlt_pop_shift

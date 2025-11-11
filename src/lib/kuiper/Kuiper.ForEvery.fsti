@@ -1024,6 +1024,8 @@ instance placeless_forevery
   (#a:Type u#0) (p: a -> slprop) {| sa: (x:a -> placeless (p x)) |} :
   placeless (forall+ x. p x)
   = is_send_across_forevery p _ #sa
+
+ghost  
 fn forevery_factor_2
   (m : nat) (m1 m2 : nat { m == m1 * m2 })
   (n : nat) (n1 n2 : nat { n == n1 * n2 })
