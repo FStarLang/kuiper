@@ -89,6 +89,25 @@ val __gmatmul_single_zero_lemma
   (ensures z == (__gmatmul_single z mul add m1 m2 i j 0))
   [SMTPat (__gmatmul_single z mul add m1 m2 i j 0)]
 
+val __gmatmul_single_lemma
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (to : pos{to <= shared})
+: Lemma
+  (ensures
+    __gmatmul_single z mul add m1 m2 row col to ==
+    add
+      (__gmatmul_single z mul add m1 m2 row col (to - 1))
+      (mul (macc m1 row (to - 1))
+           (macc m2 (to - 1) col)))
+
 let gmatmul_single
   (#t1 #t2 #t3 : Type)
   (z : t3)
@@ -101,18 +120,6 @@ let gmatmul_single
   (col : nat{col < columns})
   : GTot t3
   = __gmatmul_single z mul add m1 m2 row col shared
-
-let __gmatmul_up_to
-  (#t1 #t2 #t3 : Type)
-  (z : t3)
-  (mul : t1 -> t2 -> t3)
-  (add : t3 -> t3 -> t3)
-  (#rows #shared #columns : nat)
-  (m1 : ematrix t1 rows shared)
-  (m2 : ematrix t2 shared columns)
-  (to : nat{to <= shared})
-: ematrix t3 rows columns
-= mkM fun i j -> __gmatmul_single z mul add m1 m2 i j to
 
 (* For scalars, we specialize the above functions, using
 the canonical multiplication and addition. *)
@@ -340,3 +347,34 @@ val matmul_decompose_lemma
     matmul
       (ematrix_subtile m1 trows shared i 0)
       (ematrix_subtile m2 shared tcolumns 0 j))]
+
+(* Tiling full-width and full-height slices of A and B and computing a
+   matmul and add on the tiles is equal to computing a matmul and add on
+   the slices withou tiling. *)
+val matmul_tiles_lemma
+  (#et : Type) {| scalar et |}
+  (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
+  (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity
+  (pf3 : (x:et -> y:et -> z:et -> squash (add x (add y z) == add (add x y) z)))  // add is associative
+  (#rows #columns : nat)
+  (#shared : pos)
+  (trows : pos{trows /? rows})
+  (tcols : pos{tcols /? columns})
+  (tshared : pos{tshared /? shared})
+  (z : ematrix et trows tcols)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (i : nat{i < rows/trows})
+  (j : nat{j < columns/tcols})
+: Lemma
+  (ensures
+    gmatmul_single z matmul matplus
+      (ematrix_tiled m1 trows tshared)
+      (ematrix_tiled m2 tshared tcols)
+      i j
+    ==
+    matplus z (
+      matmul
+        (ematrix_subtile m1 trows shared i 0)
+        (ematrix_subtile m2 shared tcols 0 j)
+    ))
