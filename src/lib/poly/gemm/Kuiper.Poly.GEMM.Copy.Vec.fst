@@ -59,7 +59,7 @@ let coincide_on_tid_intro
     (i: natlt rows) ->
     (j: natlt cols) ->
     Lemma
-    (requires in_chunk (chunk et) rows cols nthr tid (i,j)) 
+    (requires in_chunk (chunk et) rows cols nthr tid (i,j))
     (ensures
         macc em1 i j == macc em2 i j
     )
