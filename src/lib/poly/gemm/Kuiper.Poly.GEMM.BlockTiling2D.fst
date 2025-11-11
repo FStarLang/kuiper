@@ -751,6 +751,7 @@ fn teardown
   admit();
 }
 
+
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -764,13 +765,13 @@ let mk_kernel
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
   (#eA : ematrix et rows shared)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
   (#eB : ematrix et shared cols)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
@@ -816,6 +817,11 @@ let mk_kernel
   kpost     = kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB;
 
   f = kf comb gA #eA gB #eB gC bm bn bk slA slB tm tn #() #() #() #() #fA #fB;
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic()
 }
 
 inline_for_extraction noextract

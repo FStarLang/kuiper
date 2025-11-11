@@ -695,6 +695,8 @@ fn teardown
   admit();
 }
 
+#push-options "--fuel 0 --ifuel 0 --split_queries no --z3rlimit_factor 10"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et |}
@@ -710,11 +712,11 @@ let mk_kernel
   (#lB : mlayout (mshared * bk) (mcols   * bn))
   (#lC : mlayout (mrows   * bm) (mcols   * bn))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows   * bm) (mshared * bk))
   (#eB : ematrix et (mshared * bk) (mcols   * bn))
   (#eC : ematrix et (mrows   * bm) (mcols   * bn))
@@ -743,7 +745,13 @@ let mk_kernel
   kpost     = kpost comb tm slA slB gA gB gC eA eB eC fA fB;
 
   f = kf comb tm slA slB gA gB gC #fA #fB #eA #eB;
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic()
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu

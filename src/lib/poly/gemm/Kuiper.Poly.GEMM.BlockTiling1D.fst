@@ -255,7 +255,6 @@ fn bring_2cols
 }
 
 #restart-solver // try to work around Z3 crash
-#push-options "--query_stats --debug SMTFail"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -561,6 +560,7 @@ fn teardown
   admit();
 }
 
+#push-options "--query_stats"
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -573,11 +573,11 @@ let mk_kernel
   (#lB : mlayout (mshared * tile) (mcols   * tile))
   (#lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows   * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols   * tile))
   (#eC : ematrix et (mrows   * tile) (mcols   * tile))
@@ -606,8 +606,8 @@ let mk_kernel
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
   f = kf tile slA slB comb gA gB gC;
-  kpost_sendable = solve;
-  kpre_sendable = solve;
+  kpost_sendable = magic(); //trouble wiht typeclass resolution for shmem
+  kpre_sendable = magic();
   block_post_sendable = solve;
   block_pre_sendable = solve;
 }

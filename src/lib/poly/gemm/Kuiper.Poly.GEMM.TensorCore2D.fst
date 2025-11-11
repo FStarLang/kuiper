@@ -828,6 +828,8 @@ fn kf
   ()
 }
 
+#push-options "--fuel 0 --ifuel 0 --split_queries no --z3rlimit_factor 10"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
@@ -835,16 +837,16 @@ let mk_kernel
   {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA)
+  (gA : gpu_matrix et_ab lA  { is_global_matrix gA })
   (#eA : ematrix et_ab rows shared)
   (#lB : mlayout shared cols) {| clayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
+  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
   // ^ Why does this have a fixed layout?
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
@@ -910,4 +912,10 @@ let mk_kernel
   kpost     = kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr;
 
   f = kf gA #eA gB #eB gC #eC bm bn bk tm tn tk wm wn rA rB rC (SZ.v nthr);
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic();
 }
+#pop-options

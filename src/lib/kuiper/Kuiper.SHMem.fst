@@ -23,7 +23,9 @@ type shmem_desc =
 let is_block_array #ty #len (g:gpu_array ty len) 
   = visibility_of g == block_of
 
-instance is_send_across_block_array
+//don't mark this an instance, to avoid clashing with other instances
+//for visibility_of, gpu_of
+let is_send_across_block_array
   (#et:Type0) (#sz:_) 
   (a:gpu_array et sz { is_block_array a })
   (#i #j #f #s:_)
@@ -90,7 +92,7 @@ instance is_send_across_live_c_shmem #d (c:c_shmem d) (_:squash (c_shmem_inv c))
 = match d with
   | SHArray ty len ->
     let ff (v:_) : is_send_across block_of  (gpu_pts_to_array #ty #len c #1.0R v) =
-      FStar.Tactics.Typeclasses.solve
+      is_send_across_block_array c
     in
     let ff : is_send_across block_of (exists* v. gpu_pts_to_array #ty #len c #1.0R v) =
       is_send_across_exists _ #ff

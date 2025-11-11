@@ -518,6 +518,8 @@ fn teardown
   admit();
 }
 
+#push-options "--query_stats --z3rlimit_factor 10 --fuel 0 --ifuel 0 --split_queries no"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -530,9 +532,9 @@ let mk_kernel
   (#lB : mlayout (mshared * tile) (mcols   * tile))
   (#lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
-  (gB : gpu_matrix et lB)
-  (gC : gpu_matrix et lC)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#fA #fB : perm)
   (#eA : ematrix et (mrows * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols * tile))
@@ -562,7 +564,13 @@ let mk_kernel
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
   f = kf tile slA slB comb gA gB gC;
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic();
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu
@@ -596,5 +604,5 @@ fn mmcomb_gpu
 {
   dassert (tile >^ 0sz);
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC #fA #fB #eA #eB #eC ());
+  launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC ());
 }

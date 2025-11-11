@@ -83,8 +83,8 @@ let kmn_as_kfull
 
   block_pre_sendable;
   block_post_sendable;
-  kpre_sendable=(fun _ -> k.kpre_sendable);
-  kpost_sendable=(fun _ -> k.kpost_sendable);
+  kpre_sendable=(fun _ _ -> k.kpre_sendable);
+  kpost_sendable=(fun _ _ -> k.kpost_sendable);
 }
 
 inline_for_extraction noextract
