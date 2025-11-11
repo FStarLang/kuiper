@@ -166,9 +166,29 @@ let kpre
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. tile) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. tile) x) **
+  live_c_shmems sh #(1.0R /. tile) **
   barrier_tok tile slA slB (fst sh) (fst (snd sh)) 0 tid
+
+let kpre_block_sendable
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile) // shmem layouts
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (fA fB : perm)
+  (sh : c_shmems (shmems_desc et tile))
+  (_:squash (c_shmems_inv sh))
+  (i:natlt (mrows * mcols))
+  (j:natlt tile)
+: is_send_across block_of (kpre comb tile slA slB gA gB gC eA eB fA fB sh i j)
+= solve
 
 unfold
 let kpost
@@ -191,9 +211,30 @@ let kpost
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. tile) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. tile) x) **
+  live_c_shmems sh #(1.0R /. tile) **
   barrier_tok tile slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
+
+let kpost_block_sendable
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile) // shmem layouts
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (fA fB : perm)
+  (sh : c_shmems (shmems_desc et tile))
+  (_:squash (c_shmems_inv sh))
+  (i:natlt (mrows * mcols))
+  (j:natlt tile)
+: is_send_across block_of (kpost comb tile slA slB gA gB gC eA eB fA fB sh i j)
+= solve
+
 
 inline_for_extraction noextract
 fn bring_2cols
@@ -255,6 +296,7 @@ fn bring_2cols
 }
 
 #restart-solver // try to work around Z3 crash
+
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -289,7 +331,10 @@ fn kf
     thread_id tile tid **
     block_id (mrows * mcols) bid
 {
+  unfold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
   let (ar1, (ar2, _)) = sh;
+
+
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
@@ -414,6 +459,7 @@ fn kf
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
   rewrite each tileC as gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
+  fold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
   ()
 }
 
@@ -606,8 +652,8 @@ let mk_kernel
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
   f = kf tile slA slB comb gA gB gC;
-  kpost_sendable = magic(); //trouble wiht typeclass resolution for shmem
-  kpre_sendable = magic();
+  kpost_sendable = kpost_block_sendable comb tile slA slB gA gB gC eA eB fA fB;
+  kpre_sendable = kpre_block_sendable comb tile slA slB gA gB gC eA eB fA fB;
   block_post_sendable = solve;
   block_pre_sendable = solve;
 }

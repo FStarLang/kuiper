@@ -59,70 +59,66 @@ let rec c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
     c_shmem_inv #d (fst c) /\
     c_shmems_inv #ds (snd c)
 
-
-// inline_for_extraction
-// let first_ty (d:list shmem_desc { not (Nil? d) }) : Type0 =
-//   match d with
-//   | SHArray ty len::_ -> ty
-
-// instance first_ty_sized (d:list shmem_desc) (_:squash(not (Nil? d))) 
-// : Kuiper.Sized.sized (first_ty d)
-// = match d with
-//   | SHArray ty #sized len::_ -> sized
-
-// inline_for_extraction
-// let first_len (d:list shmem_desc { not (Nil? d) }) : SZ.t =
-//   match d with
-//   | SHArray ty len::_ -> len
-
-// let first (#d:list shmem_desc { not (Nil? d) }) (c:c_shmems d)
-// : gpu_array (first_ty d) (first_len d)
-//  = match d with
-//   | d::ds -> 
-//     let c : c_shmem d & c_shmems ds = c in
-//     fst c
-
-let live_c_shmem #d (c : c_shmem d) : slprop =
+let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
   match d with
   | SHArray ty len -> 
-    exists* v. gpu_pts_to_array #ty #len c #1.0R v
+    exists* v. gpu_pts_to_array #ty #len c #f v
 
-instance is_send_across_live_c_shmem #d (c:c_shmem d) (_:squash (c_shmem_inv c))
-: is_send_across block_of (live_c_shmem #d c)
+instance is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv c))
+: is_send_across block_of (live_c_shmem #d c #f)
 = match d with
   | SHArray ty len ->
-    let ff (v:_) : is_send_across block_of  (gpu_pts_to_array #ty #len c #1.0R v) =
+    let ff (v:_) : is_send_across block_of  (gpu_pts_to_array #ty #len c #f v) =
       is_send_across_block_array c
     in
-    let ff : is_send_across block_of (exists* v. gpu_pts_to_array #ty #len c #1.0R v) =
+    let ff : is_send_across block_of (exists* v. gpu_pts_to_array #ty #len c #f v) =
       is_send_across_exists _ #ff
     in 
-    let ff : is_send_across block_of (live_c_shmem #(SHArray ty len) c)
+    let ff : is_send_across block_of (live_c_shmem #(SHArray ty len) c #f)
       = ff
     in
     ff
 
-let rec live_c_shmems #ds (c : c_shmems ds) : slprop =
+let rec live_c_shmems #ds (c : c_shmems ds) (#[T.exact (`1.0R)]f:_) : slprop =
   match ds with
   | [] -> emp
   | d :: ds ->
     let c : c_shmem d & c_shmems ds = c in (* coerce *)
-    live_c_shmem #d (fst c) ** live_c_shmems #ds (snd c)
+    live_c_shmem #d (fst c) #f ** live_c_shmems #ds (snd c) #f
 
-let rec is_send_across_live_c_shmems_ #ds (c:c_shmems ds) (pf:squash (c_shmems_inv c))
-: is_send_across block_of (live_c_shmems #ds c)
+let rec is_send_across_live_c_shmems_ #ds (c:c_shmems ds) #f (pf:squash (c_shmems_inv c))
+: is_send_across block_of (live_c_shmems #ds c #f)
 = let open FStar.Tactics.Typeclasses in
   match ds with
   | [] -> solve #(is_send_across block_of emp)
   | d::ds ->
     let c : c_shmem d & c_shmems ds = c in (* coerce *)
-    let s = is_send_across_live_c_shmems_ #ds (snd c) () in
-    let f : is_send_across block_of (live_c_shmem #d (fst c)) = solve in
+    let s = is_send_across_live_c_shmems_ #ds (snd c) #f () in
+    let f : is_send_across block_of (live_c_shmem #d (fst c) #f) = solve in
     is_send_across_star _ _ #f #s
 
-instance is_send_across_live_c_shmems #ds (c:c_shmems ds) (pf:squash (c_shmems_inv c))
-: is_send_across block_of (live_c_shmems #ds c)
-= is_send_across_live_c_shmems_ #ds c pf
+instance is_send_across_live_c_shmems #ds (c:c_shmems ds) #f (pf:squash (c_shmems_inv c))
+: is_send_across block_of (live_c_shmems #ds c #f)
+= is_send_across_live_c_shmems_ #ds c #f pf
+
+ghost
+fn unfold_c_shmems (#ds:_) (c:c_shmems ds) (#f:_) (desc:_)
+requires live_c_shmems c #f
+ensures FStar.Pervasives.norm [zeta; iota; delta_only [`%live_c_shmems; `%live_c_shmem; desc]] (live_c_shmems c #f)
+{
+  reduce_with_steps (live_c_shmems c #f) [zeta; iota; delta_only [`%live_c_shmems; `%live_c_shmem; desc]];
+}
+
+
+ghost
+fn fold_c_shmems (#ds:_) (c:c_shmems ds) (#f:_) (desc:_)
+requires FStar.Pervasives.norm [zeta; iota; delta_only [`%live_c_shmems; `%live_c_shmem; desc]] (live_c_shmems c #f)
+ensures live_c_shmems c #f
+{
+  norm_spec [zeta; iota; delta_only [`%live_c_shmems; `%live_c_shmem; desc]] (live_c_shmems c #f);
+  rewrite (FStar.Pervasives.norm [zeta; iota; delta_only [`%live_c_shmems; `%live_c_shmem; desc]] (live_c_shmems c #f))
+  as (live_c_shmems c #f);
+}
 
 (* 1xn, shared memory *)
 

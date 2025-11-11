@@ -754,10 +754,12 @@ fn kf
     B.barrier_wait ();
 
     even_2x (!bkIdx + 1);
-    assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
-    assert pure (odd (2 * !bkIdx + 1));
-    assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
-    assert pure (even (2 * !bkIdx + 2));
+    #set-options "--z3refresh --z3rlimit_factor 2 --fuel 0 --ifuel 0" {
+      assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
+      assert pure (odd (2 * !bkIdx + 1));
+      assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
+      assert pure (even (2 * !bkIdx + 2))
+    };
     rewrite
       barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
     as

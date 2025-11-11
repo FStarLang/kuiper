@@ -286,8 +286,7 @@ let kpre
   : slprop
   =
   kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst sh)       #(recip nthr) x) **
-  (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
+  live_c_shmems sh #(recip nthr) **
   barrier_tok #_ #_ #v #rows #shared #cols eA eB #bm #bk #bn
     (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid
 

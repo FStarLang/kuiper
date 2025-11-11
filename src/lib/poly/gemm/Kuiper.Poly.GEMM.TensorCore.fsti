@@ -17,12 +17,12 @@ val mk_kernel
   {| scalar et_ab, scalar et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
   (#eA : ematrix et_ab rows shared)
   (#lB : mlayout shared cols) {| clayout lB |}
-  (gB : gpu_matrix et_ab lB)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (row_major rows cols))
+  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm : szp{bm /? rows})
