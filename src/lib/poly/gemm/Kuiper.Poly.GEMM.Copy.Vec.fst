@@ -38,6 +38,39 @@ let in_chunk_no_overlap
   ()
 
 ghost
+fn own_strided_chunks_rw
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (nthr : nat)
+  (tid : natlt nthr)
+  (em1 em2 : ematrix et rows cols)
+  requires
+    pure (
+      forall (i : natlt rows) (j : natlt cols).
+        in_chunk (chunk et) rows cols nthr tid (i,j) ==>
+        macc em1 i j == macc em2 i j)
+  requires
+    own_strided_chunks m em1 nthr tid
+  ensures
+    own_strided_chunks m em2 nthr tid
+{
+  unfold own_strided_chunks m em1 nthr tid;
+  forevery_map #(ij : (natlt rows & natlt cols){in_chunk (chunk et) rows cols nthr tid ij})
+    (fun ij -> gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em1 ij._1 ij._2))
+    (fun ij -> gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em2 ij._1 ij._2))
+    fn ij {
+      assert pure (in_chunk (chunk et) rows cols nthr tid ij);
+      rewrite
+        gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em1 ij._1 ij._2)
+      as
+        gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em2 ij._1 ij._2);
+    };
+  fold own_strided_chunks m em2 nthr tid;
+}
+
+ghost
 fn split_matrix_into_strided_chunks
   (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
   (#rows #cols : nat)
