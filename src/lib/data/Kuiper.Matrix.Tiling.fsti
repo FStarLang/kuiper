@@ -24,6 +24,18 @@ let ematrix_subtile
   mkM fun i j ->
     macc em (tr * trows + i) (tc * tcols + j)
 
+let ematrix_tiled
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  : ematrix (ematrix et trows tcols) (rows/trows) (cols/tcols)
+=
+  mkM fun i j ->
+    mkM fun i' j' ->
+      macc em (i * trows + i') (j * tcols + j')
+
 let ematrix_from_tiles
   (#et : _)
   (#rows #cols : nat)
