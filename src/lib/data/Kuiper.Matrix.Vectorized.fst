@@ -153,6 +153,72 @@ fn get_slice
 }
 
 ghost
+fn __unget_slice_step
+  (#et:Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#l : mlayout rows cols) {| clayout l, strided : strided_row_major l |}
+  (gm : gpu_matrix et l)
+  (i : nat {i < rows})
+  (j : nat {j < cols - chunk et + 1}) // using natlt gives terrible issues below, see https://github.com/FStarLang/pulse/issues/495
+  (k : nat {k < chunk et})
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  requires get_slice_inv gm i j f em (k + 1)
+  ensures  get_slice_inv gm i j f em k
+{
+  unfold get_slice_inv gm i j f em (k + 1);
+  assert pure (Seq.equal
+      (Seq.init_ghost k (fun x -> macc em i (j + x)) `Seq.append` seq![macc em i (j + k)])
+      (Seq.init_ghost (k + 1) (fun x -> macc em i (j + x))));
+  gpu_slice_split (core gm) #f #(Seq.init_ghost k (fun x -> macc em i (j + x))) #(seq![macc em i (j + k)]) _ (cell_of_pos l i j + k) _;
+  strided_row_major_contiguous l i j (j + k);
+  assert pure (j + k < cols);
+  assert pure (cell_of_pos l i (j + k) == cell_of_pos l i j + k);
+  rewrite
+    gpu_pts_to_cell (core gm) #f (cell_of_pos l i j + k) (macc em i (j + k))
+  as
+    gpu_pts_to_cell (core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
+  assert gpu_pts_to_cell (core gm) #f (cell_of_pos l i (j + k)) (macc em i (j + k));
+  forevery_insert #(natlt cols)
+    (fun x -> gpu_pts_to_cell (core gm) #f (cell_of_pos l i x) (macc em i x))
+    (j + k);
+
+  forevery_refine_ext
+    (fun (x : natlt cols) -> all_but_window cols j k x)
+    (fun (x : natlt cols) -> gpu_pts_to_cell (core gm) #f (cell_of_pos l i x) (macc em i x));
+
+  fold get_slice_inv gm i j f em k;
+
+
+  ();
+}
+
+ghost
+fn rec __unget_slice
+  (#et:Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols) {| clayout l, strided : strided_row_major l |}
+  (gm : gpu_matrix et l)
+  (i : natlt rows)
+  (j : natlt (cols - chunk et + 1))
+  (k : nat {k <= chunk et})
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  requires get_slice_inv gm i j f em (chunk et)
+  ensures  get_slice_inv gm i j f em k
+  decreases (chunk et - k)
+{
+  let eq = k = chunk et;
+  if (eq) {
+    rewrite each (chunk et <: nat) as k;
+    ();
+  } else {
+    __unget_slice gm i j (k + 1);
+    __unget_slice_step gm i j k;
+  }
+}
+
+ghost
 fn unget_slice
   (#et:Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : erased nat)
@@ -174,8 +240,63 @@ fn unget_slice
       gpu_pts_to_cell (core gm) #f (cell_of_pos l r c) (macc em r c))
   ensures  gm |-> Frac f em
 {
-  (* the way back of the above... every step is invertible, this should work out fine. *)
-  admit();
+  (* the way back of the above... every step is invertible, this works out fine
+     apart from some higher-order unification requiring some manual steps. *)
+  fold get_slice_inv gm i j f em (chunk et);
+  __unget_slice gm i j 0;
+  unfold get_slice_inv gm i j f em 0;
+  forevery_unrefine #(natlt cols) _;
+  assert gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0)
+    (Seq.init_ghost 0 (fun x -> macc em i (j + x)));
+  assert pure (seq![] `Seq.equal` Seq.init_ghost 0 (fun x -> macc em i (j + x)));
+  gpu_slice_empty_elim (core gm) (cell_of_pos l i j) #f;
+  let r0 : natlt rows = v i;
+  rewrite each (v i) as r0;
+  let phi = (fun (r: natlt rows) (c: natlt (reveal #nat cols)) ->
+            gpu_pts_to_slice #et
+              #(mlayout_size #(reveal #nat rows) #(reveal #nat cols) l)
+              (core #et #rows #cols #l gm)
+              #f
+              (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c)
+              (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c + 1)
+              (cons #et
+                  (macc #et #(reveal #nat rows) #(reveal #nat cols) em r c)
+                  (empty #et)));
+  let p = (fun (r: natlt rows) ->
+          forall+ (c: natlt (reveal #nat cols)). phi r c);
+  forevery_ext
+    #(natlt cols)
+    _
+    (phi r0);
+  rewrite
+    forall+ (x: natlt (reveal #nat cols)).
+      phi r0 x
+    as p r0;
+  forevery_ext_2
+    #(r:
+      natlt (reveal #nat rows) {~(eq2 #(natlt (reveal #nat rows)) r r0)})
+    _
+    phi;
+  forevery_ext
+    #(r:
+      natlt (reveal #nat rows) {~(eq2 #(natlt (reveal #nat rows)) r r0)})
+    _
+    (fun (r:
+      natlt (reveal #nat rows) {~(eq2 #(natlt (reveal #nat rows)) r r0)}) -> p r);
+  forevery_insert p _;
+  forevery_unrefine _;
+  forevery_ext _ (fun x -> forall+ y . phi x y);
+  forevery_ext_2 _ (fun r c ->
+            gpu_pts_to_slice #et
+              #(mlayout_size #(reveal #nat rows) #(reveal #nat cols) l)
+              (core #et #rows #cols #l gm)
+              #f
+              (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c)
+              (cell_of_pos #(reveal #nat rows) #(reveal #nat cols) l r c + 1)
+              (cons #et
+                  (macc #et #(reveal #nat rows) #(reveal #nat cols) em r c)
+                  (empty #et)));
+  gpu_matrix_iabs _;
 }
 
 #push-options "--z3rlimit 20"
