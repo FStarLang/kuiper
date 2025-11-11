@@ -32,6 +32,7 @@ open Pulse.Lib.Trade
 module B = Kuiper.Barrier
 module R = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
+module FB = Kuiper.Poly.GEMM.FlipFlopBarrier
 
 let bid_of_ij
   (rows cols : nat)
@@ -346,290 +347,6 @@ fn setup
 }
 
 ghost
-fn bp_sharing_to_bp_exclusive
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : pos)
-  (l : full_mlayout rows cols)
-  (sar : gpu_array et (rows * cols))
-  (em : ematrix et rows cols)
-  (nthr : pos)
-  (#_ : squash (chunk et /?+ cols))
-  (#_ : squash (chunk et * nthr /?+ (rows * cols)))
-  requires
-    forall+ (_tid : natlt nthr).
-      bp_sharing (from_array l sar) em nthr
-  ensures
-    forall+ (tid : natlt nthr).
-      bp_exclusive (from_array l sar) em nthr tid
-{
-  gpu_matrix_gather_n (from_array l sar) nthr;
-  split_matrix_into_strided_chunks (from_array l sar) nthr;
-  forevery_map
-    (fun tid -> own_strided_chunks (from_array l sar) em nthr tid)
-    (fun tid -> bp_exclusive (from_array l sar) em nthr tid)
-    fn tid { fold bp_exclusive (from_array l sar) em nthr tid; };
-}
-
-ghost
-fn bp_exclusive_to_bp_sharing
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : pos)
-  (l : full_mlayout rows cols)
-  (sar : gpu_array et (rows * cols))
-  (em : ematrix et rows cols)
-  (nthr : pos)
-  (#_ : squash (SZ.fits (mlayout_size l)))
-  requires
-    forall+ (tid : natlt nthr).
-      bp_exclusive (from_array l sar) em nthr tid
-  ensures
-    forall+ (_tid : natlt nthr).
-      bp_sharing (from_array l sar) em nthr
-{
-  join_matrix_from_strided_chunks (from_array l sar) nthr;
-  gpu_matrix_share_n (from_array l sar) nthr;
-}
-
-ghost
-fn bp_sharing_to_bp_exclusive_underspec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : pos)
-  (l : full_mlayout rows cols)
-  (sar : gpu_array et (rows * cols))
-  (nthr : pos)
-  (#_ : squash (chunk et /?+ cols))
-  (#_ : squash (chunk et * nthr /?+ (rows * cols)))
-  requires
-    forall+ (_tid : natlt nthr).
-      exists* em.
-        bp_sharing (from_array l sar) em nthr
-  ensures
-    forall+ (tid : natlt nthr).
-      exists* em.
-        bp_exclusive (from_array l sar) em nthr tid
-{
-  gpu_matrix_gather_n_underspec (from_array l sar) nthr;
-  with em. assert from_array l sar |-> em;
-  split_matrix_into_strided_chunks (from_array l sar) nthr;
-  forevery_map
-    (fun tid -> own_strided_chunks (from_array l sar) em nthr tid)
-    (fun tid -> exists* em. bp_exclusive (from_array l sar) em nthr tid)
-    fn tid { fold bp_exclusive (from_array l sar) em nthr tid; };
-}
-
-ghost
-fn bp_exclusive_to_bp_sharing_underspec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : pos)
-  (l : full_mlayout rows cols)
-  (sar : gpu_array et (rows * cols))
-  (nthr : pos)
-  (#_ : squash (SZ.fits (mlayout_size l)))
-  requires
-    forall+ (tid : natlt nthr).
-      exists* em.
-        bp_exclusive (from_array l sar) em nthr tid
-  ensures
-    forall+ (_tid : natlt nthr).
-      exists* em.
-        bp_sharing (from_array l sar) em nthr
-{
-  join_matrix_from_strided_chunks_underspec (from_array l sar) nthr;
-  with em. assert from_array l sar |-> em;
-  gpu_matrix_share_n (from_array l sar) nthr;
-  forevery_map
-    (fun (tid : natlt nthr) -> from_array l sar |-> Frac (1.0R /. nthr) em)
-    (fun (tid : natlt nthr) -> exists* em. bp_sharing (from_array l sar) em nthr)
-    fn tid { fold bp_sharing (from_array l sar) em nthr; };
-}
-
-ghost
-fn even_barrier_p_to_q
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (#bm : pos{bm /?+ rows})
-  (#bk : pos{bk /?+ shared})
-  (#bn : pos{bn /?+ cols})
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
-  (nthr : pos)
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
-  requires
-    forall+ (tid : natlt nthr).
-      (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
-      (exists* em2. bp_sharing (from_array l2 sar2) em2 nthr)
-  ensures
-    forall+ (tid : natlt nthr).
-      live_strided_chunks (from_array l1 sar1) nthr tid **
-      live_strided_chunks (from_array l2 sar2) nthr tid
-{
-  forevery_unzip _ _;
-  bp_sharing_to_bp_exclusive_underspec l1 sar1 nthr;
-  bp_sharing_to_bp_exclusive_underspec l2 sar2 nthr;
-  forevery_zip (fun (tid: natlt nthr) ->
-      live_strided_chunks (from_array l1 sar1) nthr tid) _;
-}
-
-ghost
-fn odd_barrier_p_to_q
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (#bm : pos{bm /?+ rows})
-  (#bk : pos{bk /?+ shared})
-  (#bn : pos{bn /?+ cols})
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
-  (nthr : pos)
-  (bid : natlt (rows/bm * (cols/bn)))
-  (it : natlt (2 * (shared / bk)))
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
-  (#_ : squash (SZ.fits (mlayout_size l1)))
-  (#_ : squash (SZ.fits (mlayout_size l2)))
-  requires
-    forall+ (tid : natlt nthr).
-      bp_exclusive (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
-      bp_exclusive (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid
-  ensures
-    forall+ (tid : natlt nthr).
-      bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
-      bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
-{
-  forevery_unzip _ _;
-  bp_exclusive_to_bp_sharing l1 sar1 _ nthr;
-  bp_exclusive_to_bp_sharing l2 sar2 _ nthr;
-  forevery_zip
-    (fun (tid : natlt nthr) ->
-      bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr)
-      _;
-}
-
-ghost
-fn barrier_p_to_q_transform
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #shared #cols : pos)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (#bm : pos{bm /?+ rows})
-  (#bk : pos{bk /?+ shared})
-  (#bn : pos{bn /?+ cols})
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
-  (nthr : pos)
-  (bid : natlt (rows/bm * (cols/bn)))
-  (#_ : squash (chunk et /?+ bn))
-  (#_ : squash (chunk et /?+ bk))
-  (#_ : squash (chunk et * nthr /?+ (bm * bk)))
-  (#_ : squash (chunk et * nthr /?+ (bk * bn)))
-  (#_ : squash (SZ.fits (mlayout_size l1)))
-  (#_ : squash (SZ.fits (mlayout_size l2)))
-  (it : nat)
-  requires
-    forall+ (tid : natlt nthr).
-      barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-  ensures
-    forall+ (tid : natlt nthr).
-      barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-{
-  if (it >= 2 * (shared / bk)) {
-    forevery_map
-      (fun (tid : natlt nthr) ->
-        barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
-      (fun (tid : natlt nthr) ->
-        barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
-      fn tid {
-        rewrite barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid as emp;
-        rewrite emp as barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid;
-      };
-  } else {
-    // if requires ANF
-    let ev = even it;
-    if ev {
-      assert pure (it < 2 * (shared / bk));
-      assert pure (even it);
-      forevery_map
-        (fun (tid : natlt nthr) ->
-          barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
-        (fun (tid : natlt nthr) ->
-          (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
-          (exists* em2. bp_sharing (from_array l2 sar2) em2 nthr)
-        )
-        fn tid {
-          rewrite barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-              as (exists* em1. bp_sharing (from_array l1 sar1) em1 nthr) **
-                  (exists* em2. bp_sharing (from_array l2 sar2) em2 nthr);
-        };
-
-      even_barrier_p_to_q eA eB l1 l2 sar1 sar2 nthr;
-
-      forevery_map
-        (fun (tid : natlt nthr) ->
-          live_strided_chunks (from_array l1 sar1) nthr tid **
-          live_strided_chunks (from_array l2 sar2) nthr tid)
-        (fun (tid : natlt nthr) ->
-          barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-        )
-        fn tid {
-          rewrite
-            live_strided_chunks (from_array l1 sar1) nthr tid **
-            live_strided_chunks (from_array l2 sar2) nthr tid
-          as
-            barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid;
-        };
-    } else {
-      assert pure (it < 2 * (shared / bk));
-      assert pure (odd it);
-      forevery_map
-        (fun (tid : natlt nthr) ->
-          barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid)
-        (fun (tid : natlt nthr) ->
-          bp_exclusive (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
-          bp_exclusive (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid
-        )
-        fn tid {
-          rewrite
-            barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-          as
-            bp_exclusive (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr tid **
-            bp_exclusive (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr tid;
-        };
-
-      odd_barrier_p_to_q eA eB l1 l2 sar1 sar2 nthr bid it;
-
-      forevery_map
-        (fun (tid : natlt nthr) ->
-          bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
-          bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr)
-        (fun (tid : natlt nthr) ->
-          barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
-        )
-        fn tid {
-          rewrite
-            bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
-            bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
-          as
-            barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid;
-        };
-    }
-  }
-}
-
-ghost
 fn block_setup
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
@@ -706,7 +423,7 @@ fn block_setup
 
   (* create barrier token *)
   B.mk_barrier nthr _ _
-    (barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid);
+    (FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid);
   let sar1 = fst sh;
   let sar2 = fst (snd sh);
 
@@ -714,12 +431,12 @@ fn block_setup
   forevery_zip
     (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)
     (fun tid ->
-      barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
+      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
   forevery_zip
     (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)
     (fun tid ->
       (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
-      barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
+      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
   forevery_zip #(natlt nthr)
     (fun tid -> kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) _;
   ()
@@ -795,7 +512,7 @@ fn block_teardown
   (* Drop barrier token. *)
   drop_
     (forall+ (x: natlt nthr).
-      barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr bid x);
+      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr bid x);
   ()
 }
 
