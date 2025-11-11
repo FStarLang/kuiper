@@ -353,6 +353,9 @@ val matmul_decompose_lemma
    the slices withou tiling. *)
 val matmul_tiles_lemma
   (#et : Type) {| scalar et |}
+  (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
+  (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity
+  (pf3 : (x:et -> y:et -> z:et -> squash (add x (add y z) == add (add x y) z)))  // add is associative
   (#rows #columns : nat)
   (#shared : pos)
   (trows : pos{trows /? rows})

@@ -331,8 +331,108 @@ let matmul_decompose_lemma
       trows tcolumns
       i j)
 
+let rec __matmul_tiles_lemma
+  (#et : Type) {| scalar et |}
+  (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
+  (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity
+  (pf3 : (x:et -> y:et -> z:et -> squash (add x (add y z) == add (add x y) z)))  // add is associative
+  (#rows #columns : nat)
+  (#shared : pos)
+  (trows : pos{trows /? rows})
+  (tcols : pos{tcols /? columns})
+  (tshared : pos{tshared /? shared})
+  (acc : ematrix et trows tcols)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (i : nat{i < rows/trows})
+  (j : nat{j < columns/tcols})
+  (i' : natlt trows)
+  (j' : natlt tcols)
+  (to : natle (shared / tshared))
+  : Lemma (
+      macc (__gmatmul_single acc matmul matplus
+            (ematrix_tiled m1 trows tshared)
+            (ematrix_tiled m2 tshared tcols)
+            i j to)
+           i' j'
+      ==
+      macc acc i' j'
+      `add` __matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' (to * tshared)
+  )
+  = if to = 0 then (
+      calc (==) {
+        macc (__gmatmul_single acc matmul matplus
+              (ematrix_tiled m1 trows tshared)
+              (ematrix_tiled m2 tshared tcols)
+              i j 0)
+             i' j';
+        == {}
+        macc acc i' j';
+        == { pf2 (macc acc i' j') }
+        macc acc i' j'
+        `add` zero;
+      }
+    ) else (
+      calc (==) {
+        macc (__gmatmul_single acc matmul matplus
+              (ematrix_tiled m1 trows tshared)
+              (ematrix_tiled m2 tshared tcols)
+              i j to)
+             i' j';
+        == { matmul_single_tile_lemma trows tcols tshared m1 m2 i j to }
+        macc (matplus
+               (__gmatmul_single acc matmul matplus
+                 (ematrix_tiled m1 trows tshared)
+                 (ematrix_tiled m2 tshared tcols)
+                 i j (to - 1))
+               (matmul
+                 (macc (ematrix_tiled m1 trows tshared) i (to - 1))
+                 (macc (ematrix_tiled m2 tshared tcols) (to - 1) j)))
+             i' j';
+        == { (* distr macc *) }
+        macc (__gmatmul_single acc matmul matplus
+              (ematrix_tiled m1 trows tshared)
+              (ematrix_tiled m2 tshared tcols)
+              i j (to - 1))
+             i' j'
+        `add`
+        macc (matmul
+               (macc (ematrix_tiled m1 trows tshared) i (to - 1))
+               (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
+             i' j';
+        == { __matmul_tiles_lemma pf1 pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (to - 1) }
+        (macc acc i' j'
+         `add` __matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' ((to - 1) * tshared))
+        `add`
+        macc (matmul
+               (macc (ematrix_tiled m1 trows tshared) i (to - 1))
+               (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
+             i' j';
+        == { pf3 (macc acc i' j')
+                 (__matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' ((to - 1) * tshared))
+                 (macc (matmul
+                         (macc (ematrix_tiled m1 trows tshared) i (to - 1))
+                         (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
+                       i' j') }
+        macc acc i' j'
+        `add`
+         (__matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' ((to - 1) * tshared)
+          `add`
+          macc (matmul
+                (macc (ematrix_tiled m1 trows tshared) i (to - 1))
+                (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
+              i' j');
+        == { admit() }
+        macc acc i' j'
+        `add` __matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' (to * tshared);
+      }
+    )
+
 let matmul_tiles_lemma
   (#et : Type) {| scalar et |}
+  (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
+  (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity
+  (pf3 : (x:et -> y:et -> z:et -> squash (add x (add y z) == add (add x y) z)))  // add is associative
   (#rows #columns : nat)
   (#shared : pos)
   (trows : pos{trows /? rows})
@@ -355,4 +455,51 @@ let matmul_tiles_lemma
         (ematrix_subtile m1 trows shared i 0)
         (ematrix_subtile m2 shared tcols 0 j)
     ))
-= admit()
+= let aux (i' : natlt trows) (j' : natlt tcols)
+    : Lemma (
+      ensures
+        macc
+          (gmatmul_single acc matmul matplus
+            (ematrix_tiled m1 trows tshared)
+            (ematrix_tiled m2 tshared tcols)
+            i j)
+          i' j'
+        ==
+        macc
+          (matplus acc (
+            matmul
+              (ematrix_subtile m1 trows shared i 0)
+              (ematrix_subtile m2 shared tcols 0 j)))
+          i' j'
+    )
+  =
+    calc (==) {
+      macc (gmatmul_single acc matmul matplus
+            (ematrix_tiled m1 trows tshared)
+            (ematrix_tiled m2 tshared tcols)
+            i j)
+           i' j';
+      == { __matmul_tiles_lemma pf1 pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (shared / tshared) }
+      macc acc i' j'
+      `add` matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j';
+      == { }
+      macc (matplus acc (
+            matmul
+              (ematrix_subtile m1 trows shared i 0)
+              (ematrix_subtile m2 shared tcols 0 j)))
+           i' j';
+    }
+
+  in
+  Classical.forall_intro_2 aux;
+  assert (
+    gmatmul_single acc matmul matplus
+      (ematrix_tiled m1 trows tshared)
+      (ematrix_tiled m2 tshared tcols)
+      i j
+    `equal`
+    matplus acc (
+      matmul
+        (ematrix_subtile m1 trows shared i 0)
+        (ematrix_subtile m2 shared tcols 0 j)
+    ))
