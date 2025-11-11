@@ -47,6 +47,7 @@ let rec __gmatmul_single_congr
      __gmatmul_single_congr z mul add m1 m2 m1' m2' row col row' col' (to - 1);
      ()
     )
+
 let __gmatmul_single_zero_lemma
   (#t1 #t2 #t3 : Type)
   (z : t3)
@@ -59,6 +60,26 @@ let __gmatmul_single_zero_lemma
   (j : natlt cols)
 : Lemma
   (ensures z == (__gmatmul_single z mul add m1 m2 i j 0))
+= ()
+
+let __gmatmul_single_lemma
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (to : pos{to <= shared})
+: Lemma
+  (ensures
+    __gmatmul_single z mul add m1 m2 row col to ==
+    add
+      (__gmatmul_single z mul add m1 m2 row col (to - 1))
+      (mul (macc m1 row (to - 1))
+           (macc m2 (to - 1) col)))
 = ()
 
 let matmul_zero_lemma
@@ -309,3 +330,29 @@ let matmul_decompose_lemma
       (matmul m1 m2)
       trows tcolumns
       i j)
+
+let matmul_tiles_lemma
+  (#et : Type) {| scalar et |}
+  (#rows #columns : nat)
+  (#shared : pos)
+  (trows : pos{trows /? rows})
+  (tcols : pos{tcols /? columns})
+  (tshared : pos{tshared /? shared})
+  (acc : ematrix et trows tcols)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (i : nat{i < rows/trows})
+  (j : nat{j < columns/tcols})
+: Lemma
+  (ensures
+    gmatmul_single acc matmul matplus
+      (ematrix_tiled m1 trows tshared)
+      (ematrix_tiled m2 tshared tcols)
+      i j
+    ==
+    matplus acc (
+      matmul
+        (ematrix_subtile m1 trows shared i 0)
+        (ematrix_subtile m2 shared tcols 0 j)
+    ))
+= admit()
