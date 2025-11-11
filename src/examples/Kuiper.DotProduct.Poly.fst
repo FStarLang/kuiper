@@ -152,7 +152,11 @@ fn block_teardown
 
 
 inline_for_extraction noextract
-let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
+let kdesc (#et:Type) {| scalar et |} 
+    (ga1:gpu_array et size{ is_global_array ga1 })
+    (ga2:gpu_array et size{ is_global_array ga2 })
+    (r : gpu_array et size{ is_global_array r })
+  
   : kernel_desc
     (exists* s1 s2 sr.
       ga1 |-> s1 **
@@ -170,6 +174,10 @@ let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   kpost = kpost #et size ga1 ga2 r;
   block_setup = block_setup #et ga1 ga2 r;
   block_teardown = block_teardown #et ga1 ga2 r;
+  kpost_sendable=solve;
+  kpre_sendable=solve;
+  full_post_sendable=solve;
+  full_pre_sendable=solve;
 } <: kernel_desc_1_n _ _
 
 inline_for_extraction noextract

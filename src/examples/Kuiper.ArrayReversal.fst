@@ -311,7 +311,7 @@ inline_for_extraction noextract
 let kdesc
   (#ty:Type0)
   (size:sz { size > 0sz /\ size %^ 2sz == 0sz /\ SZ.v size < reveal max_blocks })
-  (a:gpu_array ty size)
+  (a:gpu_array ty size { is_global_array a })
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   : kernel_desc_m_1
       (a |-> s)
@@ -324,6 +324,8 @@ let kdesc
       kpre     = kpre size a s;
       kpost    = kpost size a s;
       frame    = emp;
+      kpost_sendable = solve;
+      kpre_sendable = solve;
   }
 
 inline_for_extraction noextract

@@ -369,6 +369,24 @@ val gpu_matrix_pts_to_cell_eq
            ==
            gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v)
 
+instance is_send_across_global_matrix_pts_to_cell
+  (#et:Type) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l { is_global_matrix gm })
+  (#f : perm)
+  (i : natlt rows)
+  (j : natlt cols)
+  (v : et)
+: Pulse.Lib.SendSync.is_send_across gpu_of 
+    (gpu_matrix_pts_to_cell gm #f i j v)
+= gpu_matrix_pts_to_cell_eq gm i j f v;
+  let x = 
+    solve 
+      #(Pulse.Lib.SendSync.is_send_across gpu_of       
+        (gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v))
+  in
+  coerce_eq () x
+
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)

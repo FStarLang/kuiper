@@ -15,7 +15,6 @@ open Pulse.Lib.SendSync { is_send_across}
 inline_for_extraction noextract
 fn launch_kernel_full_sync
   (#full_pre #full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
@@ -56,7 +55,6 @@ inline_for_extraction noextract
 val launch
   // (#t:Type)
   (#full_pre #full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   // {| d : launchable t full_pre full_post |}
   // (x : t)
   (k : kernel_desc full_pre full_post)
@@ -75,7 +73,6 @@ inline_for_extraction noextract
 val launch_sync
   // (#t:Type)
   (#full_pre #full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   // {| d : launchable t full_pre full_post |}
   // (x : t)
   (_ : kernel_desc full_pre full_post)

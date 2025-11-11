@@ -255,7 +255,7 @@ fn bring_2cols
 }
 
 #restart-solver // try to work around Z3 crash
-
+#push-options "--query_stats --debug SMTFail"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -606,6 +606,10 @@ let mk_kernel
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
   f = kf tile slA slB comb gA gB gC;
+  kpost_sendable = solve;
+  kpre_sendable = solve;
+  block_post_sendable = solve;
+  block_pre_sendable = solve;
 }
 
 inline_for_extraction noextract

@@ -11,7 +11,6 @@ inline_for_extraction noextract
 fn launch_kernel_full_sync
   (#full_pre : slprop)
   (#full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
@@ -32,7 +31,6 @@ inline_for_extraction noextract
 let launch
   // (#t:Type)
   (#full_pre #full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   // {| d : launchable t full_pre full_post |}
   // (x : t)
   (k : kernel_desc full_pre full_post)
@@ -45,7 +43,6 @@ inline_for_extraction noextract
 let launch_sync
   // (#t:Type)
   (#full_pre #full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   // {| d : launchable t full_pre full_post |}
   // (x : t)
   (k : kernel_desc full_pre full_post)
@@ -96,5 +93,5 @@ fn launch_kernel_1
     cpu **
     on gpu_loc post
 {
-  launch_sync ({ f = k; } <: kernel_desc_1_1 _ _);
+  launch_sync ({ f = k; full_pre_sendable=solve; full_post_sendable=solve } <: kernel_desc_1_1 _ _);
 }

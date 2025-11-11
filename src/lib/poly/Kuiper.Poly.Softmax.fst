@@ -116,7 +116,7 @@ let kmap
   (#et : Type0)
   (f: et -> et)
   (lena : szp{ lena < max_blocks })
-  (a : gpu_array et lena)
+  (a : gpu_array et lena { is_global_array a })
   (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
 : kernel_desc
     (a |-> s)
@@ -130,6 +130,8 @@ let kmap
   kpre =  (fun (i:natlt lena) -> gpu_pts_to_cell a i (s@!i));
   kpost = (fun (i:natlt lena) -> gpu_pts_to_cell a i (f (s@!i)));
   frame = emp;
+  kpost_sendable=solve;
+  kpre_sendable=solve;
 } <: kernel_desc_m_1 _ _
 
 let map_div_avg (#et:Type0) {| floating et |} (s:Seq.seq et) (avg:et) =

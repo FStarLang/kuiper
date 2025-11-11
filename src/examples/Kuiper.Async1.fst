@@ -21,7 +21,10 @@ fn kernel_f (r : gpu_ref u64) (#v : erased u64)
 inline_for_extraction noextract
 let kernel (r : gpu_ref u64) (#v : erased u64)
   : kernel_desc _ _
-  = { f = kernel_f r #v } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
+  = { f = kernel_f r #v;
+      full_post_sendable = solve;
+      full_pre_sendable = solve
+    } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
 
 fn galloc (x : u64)
   preserves cpu

@@ -244,9 +244,9 @@ let kdesc
   (#lOut : mlayout rows cols)
   {| clayout lIn |}
   {| clayout lOut |}
-  (gIn : M.gpu_matrix et lIn)
+  (gIn : M.gpu_matrix et lIn { M.is_global_matrix gIn})
   (#fIn : perm)
-  (gOut : M.gpu_matrix et lOut)
+  (gOut : M.gpu_matrix et lOut { M.is_global_matrix gOut })
   (#eIn : ematrix et (rows +^ 2sz) (cols +^ 2sz))
   (#eOut : ematrix et rows cols)
   (_ : squash (rows * cols <= max_blocks))
@@ -265,6 +265,8 @@ let kdesc
   kpost = kpost stencil gIn fIn gOut eIn;
 
   f = kf stencil gIn gOut;
+  kpost_sendable=solve;
+  kpre_sendable=solve;
 }
 
 inline_for_extraction noextract

@@ -208,7 +208,8 @@ fn block_setup
 {
   no_mk_barrier ();
 }
-
+#push-options "--query_stats --fuel 0 --ifuel 0 --z3rlimit_factor 10 --debug SMTFail --split_queries no"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -219,11 +220,11 @@ let mk_kernel
   (#lB : mlayout (mshared * tile) (mcols   * tile))
   (#lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA #eB #eC : ematrix _ _ _)
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
@@ -248,7 +249,13 @@ let mk_kernel
   kpost     = kpost comb tile gA gB gC eA eB eC fA fB;
 
   f = kf #et #_ comb #mrows #mshared #mcols tile gA gB gC eA eB eC fA fB;
+
+  kpre_sendable=solve;
+  kpost_sendable=solve;
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu
@@ -279,6 +286,5 @@ fn mmcomb_gpu
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
-  launch_sync (mk_kernel tile comb gA #fA gB #fB gC #eA #eB #eC ());
-  ()
+  launch_sync (mk_kernel tile comb gA gB gC ());
 }

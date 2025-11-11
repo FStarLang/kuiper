@@ -80,6 +80,11 @@ let kmn_as_kfull
   block_teardown = kmn_as_kfull_block_teardown k;
 
   f = (fun _ear -> f);
+
+  block_pre_sendable;
+  block_post_sendable;
+  kpre_sendable=(fun _ -> k.kpre_sendable);
+  kpost_sendable=(fun _ -> k.kpost_sendable);
 }
 
 inline_for_extraction noextract
@@ -127,6 +132,20 @@ fn adapt_kn_as_kmn
     ()
   }
 }
+
+instance pad_f_sendable 
+  #a
+  (n1 n2:nat{n1 <= n2}) 
+  (f: (_: natlt n1 -> slprop)) 
+  (vis:loc_id -> a)
+  (sf:(i:_ -> is_send_across vis (f i)))
+  (i: natlt n2)
+: is_send_across vis (pad_f #n1 n2 f i)
+= fun (l0 l1:loc_id{vis l0 == vis l1}) ->
+    if i < n1 
+    then sf i l0 l1
+    else let f : is_send_across vis emp = solve in
+         f l0 l1
 
 let pad_kn
   (#full_pre #full_post : slprop)
@@ -221,11 +240,14 @@ fn kn_as_kmn_block_setup (#full_pre #full_post : slprop)
   no_mk_barrier ();
 }
 
+
 inline_for_extraction noextract
 let kn_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
      : kernel_desc_m_n full_pre full_post
 = //let open k <: kernel_desc_n full_pre full_post in; this causes pad_setup to fail!
+  let kpre_sendable : (i:natlt k.nthr -> is_send_across gpu_of (k.kpre i)) = k.kpre_sendable in
+  let kpost_sendable : (i:natlt k.nthr -> is_send_across gpu_of (k.kpost i)) = k.kpost_sendable in
   {
   nblk = sdivup k.nthr 1024sz;
   nthr = 1024sz;
@@ -246,6 +268,11 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   f = adapt_kn_as_kmn k #();
+  block_pre_sendable = solve;
+  block_post_sendable = solve;
+  kpre_sendable = solve;
+  kpost_sendable = solve;
+
 }
 
 inline_for_extraction noextract
@@ -303,7 +330,9 @@ inline_for_extraction noextract
 let km1_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_m_1 full_pre full_post)
      : kernel_desc_m_n full_pre full_post
-= let open k <: kernel_desc_m_1 full_pre full_post in
+= let kpre_sendable : (i:natlt k.nblk -> is_send_across gpu_of (k.kpre i)) = k.kpre_sendable in
+  let kpost_sendable : (i:natlt k.nblk -> is_send_across gpu_of (k.kpost i)) = k.kpost_sendable in
+  let open k <: kernel_desc_m_1 full_pre full_post in
   {
   nblk=k.nblk;
   nthr = 1sz;
@@ -324,6 +353,10 @@ let km1_as_kmn (#full_pre #full_post : slprop)
   block_teardown = km1_as_kmn_block_teardown k;
 
   f = (fun bid _tid -> frame_2 (thread_id 1sz _tid) (k.f bid));
+  block_pre_sendable = solve;
+  block_post_sendable = solve;
+  kpre_sendable = solve;
+  kpost_sendable = solve;
 }
 
 ghost
@@ -362,6 +395,8 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_1_n full_pre full_post)
      : kernel_desc_m_n full_pre full_post
 = let open k <: kernel_desc_1_n full_pre full_post in
+  let kpre_sendable : (i:natlt k.nthr -> is_send_across block_of (k.kpre i)) = k.kpre_sendable in
+  let kpost_sendable : (i:natlt k.nthr -> is_send_across block_of (k.kpost i)) = k.kpost_sendable in
   {
   nblk = 1sz;
   nthr = k.nthr;
@@ -383,6 +418,10 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
 
   f = (fun _bid tid () -> 
         Kuiper.Frame.frame_3left (block_id 1 0) (f tid));
+  block_pre_sendable = (fun _ -> k.full_pre_sendable);
+  block_post_sendable = (fun _ -> k.full_post_sendable);
+  kpre_sendable = solve;
+  kpost_sendable = solve;
 }
 
 ghost
@@ -423,6 +462,8 @@ let k11_as_k1n (#full_pre #full_post : slprop)
   (k : kernel_desc_1_1 full_pre full_post)
      : kernel_desc_1_n full_pre full_post
 = let open k <: kernel_desc_1_1 full_pre full_post in
+  let _ : is_send_across gpu_of full_pre = k.full_pre_sendable in
+  let _ : is_send_across gpu_of full_post = k.full_post_sendable in
   {
   nthr = 1sz;
 
@@ -435,6 +476,11 @@ let k11_as_k1n (#full_pre #full_post : slprop)
   kpost = (fun _tid -> full_post);
 
   f = (fun _tid () -> Kuiper.Frame.frame_2left _ f);
+
+  kpre_sendable=solve;
+  kpost_sendable=solve;
+  full_pre_sendable=solve;
+  full_post_sendable=solve;
 }
 
 [@@coercion]

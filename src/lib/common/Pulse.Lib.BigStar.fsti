@@ -14,6 +14,15 @@ val bigstar
   (f : (i:nat { m <= i /\ i < n } -> slprop))
 : Tot slprop
 
+instance val bigstar_sendable
+  (uid: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
+  (vis: loc_id -> 'a)
+  (sa : (i:_ -> is_send_across vis (f i)))
+: is_send_across vis (bigstar #uid m n f)
+
 val bigstar_split
   (#u1: int)
   (m : nat)

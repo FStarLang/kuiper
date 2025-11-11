@@ -252,6 +252,8 @@ let kdesc
   kpre  = kpre  n a v_a r done i;
   kpost = kpost n a v_a r done i;
   frame = emp;
+  kpre_sendable=solve;
+  kpost_sendable=solve;
 } <: kernel_desc_m_1 _ _
 
 inline_for_extraction noextract

@@ -5,6 +5,7 @@ module Kuiper.Base
 open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Main
+open Pulse.Lib.SendSync
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
@@ -28,6 +29,23 @@ val block_id_loc (#[T.exact (`0)]gpu_id:int) (bid:int)
 val thread_id_loc (#[T.exact (`0)]gpu_id:int) (bid tid:int)
 : l:loc_id { block_of l == block_id_loc #gpu_id bid /\ gpu_of l == gpu_id_loc gpu_id } 
 val thread_id_of (l:loc_id) : GTot int
+
+//locations that agree on their blocks are on the same gpu
+val block_of_same_gpu (l0 l1:_{block_of l0 == block_of l1})
+: Lemma (gpu_of l0 == gpu_of l1)
+
+instance send_across_if_send_across_gpu (p:slprop) (sp:is_send_across gpu_of p)
+: is_send_across block_of p
+= fun l0 l1 -> 
+    block_of_same_gpu l0 l1;
+    sp l0 l1
+
+instance cond_sendable (b:bool) (p q:slprop)
+      (vis:loc_id -> 'a)
+      (f:is_send_across vis p)
+      (g:is_send_across vis q)
+: is_send_across vis (Pulse.Lib.Primitives.cond b p q)
+= fun l0 l1 -> if b then f l0 l1 else g l0 l1
 
 (* Token for being in GPU code *)
 [@@no_mkeys]

@@ -18,7 +18,6 @@ noextract
 fn launch_kernel_full
   (#full_pre : slprop)
   (#full_post : slprop)
-  {| is_send_across gpu_of full_pre, is_send_across gpu_of full_post |}
   (k : kernel_desc full_pre full_post)
   (#e : epoch_t)
   requires

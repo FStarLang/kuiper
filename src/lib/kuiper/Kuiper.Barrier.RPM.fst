@@ -21,6 +21,15 @@ let mbarrier_tok
     (col p)
     it tid
 
+
+instance mbarrier_tok_sendable 
+  (n:nat)
+  (p : rpm_t n)
+  (it : nat)
+  (tid : natlt n)
+: is_send_across block_of (mbarrier_tok n p it tid)
+= solve
+
 ghost
 fn mk_mbarrier
   (n: nat { 0 < n /\ n <= max_threads })
