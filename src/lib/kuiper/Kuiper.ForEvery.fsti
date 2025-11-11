@@ -400,6 +400,28 @@ fn forevery_natlt_push
     forall+ (i: natlt n). p i
 
 ghost
+fn forevery_natlt_pop_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt n). p i
+  ensures
+    forall+ (i: natlt (n-1)). p (i + 1)
+  ensures
+    p 0
+
+ghost
+fn forevery_natlt_push_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt (n-1)). p (i + 1)
+  requires
+    p 0
+  ensures
+    forall+ (i: natlt n). p i
+
+ghost
 fn forevery_fromnat
   (n : nat)
   (p : natlt n -> slprop)
@@ -1002,3 +1024,56 @@ instance placeless_forevery
   (#a:Type u#0) (p: a -> slprop) {| sa: (x:a -> placeless (p x)) |} :
   placeless (forall+ x. p x)
   = is_send_across_forevery p _ #sa
+fn forevery_factor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i : natlt m) (j : natlt n). p i j
+  ensures
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+
+ghost
+fn forevery_unfactor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+  ensures
+    forall+ (i : natlt m) (j : natlt n). p i j
+
+ghost
+fn forevery_mid_flip
+  (#a #b #c : Type0)
+  (p : a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c). p x y z
+  ensures
+    forall+ (x:a) (z:c) (y:b). p x y z
+
+ghost
+fn forevery_extract_pure
+  (#a:Type0) {| enumerable a |}
+  (p : a -> slprop)
+  (q : a -> prop)
+  (f : (x:a) -> stt_ghost unit emp_inames (p x) (fun _ -> p x ** pure (q x)))
+  preserves
+    forall+ (x:a). p x
+  ensures
+    pure (forall (x:a). q x)
+
+ghost
+fn forevery_extract_pure_2
+  (#a #b : Type0)
+  {| enumerable a, enumerable b |}
+  (p : a -> b -> slprop)
+  (q : a -> b -> prop)
+  (f : (x:a) -> (y:b) ->
+    stt_ghost unit emp_inames (p x y) (fun _ -> p x y ** pure (q x y)))
+  preserves
+    forall+ (x:a) (y:b). p x y
+  ensures
+    pure (forall (x:a) (y:b). q x y)

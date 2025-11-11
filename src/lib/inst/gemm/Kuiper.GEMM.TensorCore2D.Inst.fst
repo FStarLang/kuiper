@@ -13,7 +13,7 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Poly.GEMM.TensorCore2D
 
-#push-options "--split_queries always --z3rlimit 35" // very slow otherwise?
+#push-options "--split_queries always --z3rlimit 40" // very slow without splitting? flaky nevertheless
 inline_for_extraction noextract
 fn spec
   // specialize
@@ -56,8 +56,7 @@ fn spec
   //  partially applied
   preserves
     cpu **
-    // should be checked at runtime
-    pure (rows * cols <= max_blocks) **
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
     on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
@@ -89,6 +88,11 @@ fn spec
 
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
+
+  assert pure ((rows/bm) * (cols/bn) == nblk);
+  assert pure ((rows/bm) * (cols/bn) <= max_blocks);
+  dassert (nblk <=^ SZ.uint_to_t 2097152); // Inlining max_blocks.. not great.
+  assert pure (nblk <= max_blocks);
 
   dassert ((bm *^ bk) %^ (chunk et_ab *^ nthr) = 0sz);
   dassert ((bk *^ bn) %^ (chunk et_ab *^ nthr) = 0sz);

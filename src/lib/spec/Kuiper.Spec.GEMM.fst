@@ -1,22 +1,52 @@
 module Kuiper.Spec.GEMM
 
-let rec __matmul_single
-  (#et:Type) {| scalar et |}
+let rec __gmatmul_single
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
   (#rows #shared #columns : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared columns)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
   (row : nat{row < rows})
   (col : nat{col < columns})
   (to : nat{to <= shared})
-  : GTot et (decreases to)
+  : GTot t3 (decreases to)
   =
-  if reveal to = 0 then zero
+  if reveal to = 0 then z
   else (
     add
-      (__matmul_single m1 m2 row col (to - 1))
+      (__gmatmul_single z mul add m1 m2 row col (to - 1))
       (mul (macc m1 row (to - 1))
            (macc m2 (to - 1) col))
   )
+
+let rec __gmatmul_single_congr
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (#rows' #columns' : nat)
+  (m1' : ematrix t1 rows' shared)
+  (m2' : ematrix t2 shared columns')
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (row' : nat{row' < rows'})
+  (col' : nat{col' < columns'})
+  (to : nat{to <= shared})
+  : Lemma (requires (forall k. 0 <= k /\ k < to ==>
+                        macc m1 row k == macc m1' row' k /\
+                        macc m2 k col == macc m2' k col'))
+          (ensures (__gmatmul_single z mul add m1 m2 row col to
+                    == __gmatmul_single z mul add m1' m2' row' col' to))
+  = if reveal to = 0 then ()
+    else (
+     __gmatmul_single_congr z mul add m1 m2 m1' m2' row col row' col' (to - 1);
+     ()
+    )
 
 let matmul_zero_lemma
   (#et:Type) {| scalar et |}
@@ -172,3 +202,97 @@ let matmul_is_gemm
   : Lemma (mmcomb comb2 m0 m1 m2 == matmul m1 m2)
           [SMTPat (mmcomb comb2 m0 m1 m2)]
   = ematrix_ext (mmcomb comb2 m0 m1 m2) (matmul m1 m2)
+
+(* If we take a full-width slice of A and a full-width slice of B, then
+   the matmul of those slices is equal to the corresponding slice of the
+   full matmul. *)
+let __matmul_decompose_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : pos)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trows : nat {trows /? rows})
+  (tcolumns : nat {tcolumns /? columns})
+  (i1 : natlt (rows / trows))
+  (j1 : natlt (columns / tcolumns))
+  (i2 : natlt trows)
+  (j2 : natlt tcolumns)
+  : Lemma
+    (ensures
+      macc
+        (matmul
+          (ematrix_subtile m1 trows shared i1 0)
+          (ematrix_subtile m2 shared tcolumns 0 j1))
+        i2 j2
+      ==
+      macc
+        (ematrix_subtile
+          (matmul m1 m2)
+          trows tcolumns
+          i1 j1)
+        i2 j2)
+  = calc (==) {
+      macc (matmul (ematrix_subtile m1 trows shared i1 0)
+                      (ematrix_subtile m2 shared tcolumns 0 j1))
+           i2 j2;
+      == {}
+      matmul_single (ematrix_subtile m1 trows shared i1 0)
+                    (ematrix_subtile m2 shared tcolumns 0 j1)
+                    i2 j2;
+      == {}
+      __matmul_single
+        (ematrix_subtile m1 trows shared i1 0)
+        (ematrix_subtile m2 shared tcolumns 0 j1)
+        i2 j2
+        shared;
+      == { __gmatmul_single_congr
+            zero mul add
+            (ematrix_subtile m1 trows shared i1 0)
+            (ematrix_subtile m2 shared tcolumns 0 j1)
+            m1 m2
+            i2 j2
+            (i1 * trows + i2) (j1 * tcolumns + j2) shared }
+      __matmul_single
+        m1
+        m2
+        (i1 * trows + i2)
+        (j1 * tcolumns + j2)
+        shared;
+      == {}
+      macc (matmul m1 m2)
+           (i1 * trows + i2)
+           (j1 * tcolumns + j2);
+      == {}
+      macc (ematrix_subtile (matmul m1 m2) trows tcolumns i1 j1)
+           i2 j2;
+  }
+
+let matmul_decompose_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : pos)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trows : nat {trows /? rows})
+  (tcolumns : nat {tcolumns /? columns})
+  (i : natlt (rows / trows))
+  (j : natlt (columns / tcolumns))
+: Lemma
+  (ensures
+    matmul
+      (ematrix_subtile m1 trows shared i 0)
+      (ematrix_subtile m2 shared tcolumns 0 j)
+    ==
+    ematrix_subtile
+      (matmul m1 m2)
+      trows tcolumns
+      i j)
+= Classical.forall_intro_2 (__matmul_decompose_lemma m1 m2 trows tcolumns i j);
+  assert (
+    matmul
+      (ematrix_subtile m1 trows shared i 0)
+      (ematrix_subtile m2 shared tcolumns 0 j)
+    `equal`
+    ematrix_subtile
+      (matmul m1 m2)
+      trows tcolumns
+      i j)

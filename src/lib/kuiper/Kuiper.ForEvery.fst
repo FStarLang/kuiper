@@ -1165,6 +1165,66 @@ fn forevery_natlt_push
   forevery_unrefine p;
 }
 
+let bij_mirror_n (n:nat) : (natlt n =~ natlt n) =
+  {
+    ff = (fun (i:natlt n) -> n - 1 - i <: natlt n);
+    gg = (fun (i:natlt n) -> n - 1 - i <: natlt n);
+    ff_gg = ez;
+    gg_ff = ez;
+  }
+
+
+#set-options "--debug SMTFail --split_queries always"
+
+ghost
+fn forevery_natlt_pop_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt n). p i
+  ensures
+    forall+ (i: natlt (n-1)). p (i + 1)
+  ensures
+    p 0
+{
+  forevery_iso (bij_mirror_n n) p;
+  forevery_natlt_pop n _;
+  rewrite p ((bij_mirror_n n).gg (n-1)) as p 0;
+
+  forevery_ext #(natlt (n-1)) _
+    (fun (i: natlt (n-1)) -> p (n - 1 - i));
+
+  forevery_iso (bij_mirror_n (n-1))
+    (fun i -> p (n - 1 - i));
+
+  forevery_ext #(natlt (n-1)) _
+    (fun (i: natlt (n-1)) -> p (i + 1));
+}
+
+ghost
+fn forevery_natlt_push_shift
+  (n: nat { n > 0 })
+  (p: natlt n -> slprop)
+  requires
+    forall+ (i: natlt (n-1)). p (i + 1)
+  requires
+    p 0
+  ensures
+    forall+ (i: natlt n). p i
+{
+  forevery_iso (bij_mirror_n (n-1))
+    (fun i -> p (i + 1));
+
+  forevery_ext #(natlt (n-1)) _
+    (fun (i: natlt (n-1)) -> p (n - 1 - i));
+
+  rewrite p 0 as p (n - 1 - (n - 1));
+
+  forevery_natlt_push n (fun i -> p (n - 1 - i));
+
+  forevery_iso_back (bij_mirror_n n) p;
+}
+
 ghost
 fn rec forevery_fromnat
   (n : nat)
@@ -2198,4 +2258,166 @@ fn is_send_across_forevery
         }
       };
   }
+}
+
+ghost
+fn forevery_factor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i : natlt m) (j : natlt n). p i j
+  ensures
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+{
+  forevery_map #(natlt m)
+    (fun i -> forall+ (j : natlt n).p i j)
+    (fun i -> forall+ (j1 : natlt n1) (j2 : natlt n2). p i (j1 * n2 + j2))
+    (fun _ -> forevery_factor n n1 n2 _);
+  forevery_factor m m1 m2 _;
+}
+
+ghost
+fn forevery_unfactor_2
+  (m : nat) (m1 m2 : nat { m == m1 * m2 })
+  (n : nat) (n1 n2 : nat { n == n1 * n2 })
+  (p : natlt m -> natlt n -> slprop)
+  requires
+    forall+ (i1 : natlt m1) (i2 : natlt m2) (j1 : natlt n1) (j2 : natlt n2).
+      p (i1 * m2 + i2) (j1 * n2 + j2)
+  ensures
+    forall+ (i : natlt m) (j : natlt n). p i j
+{
+  forevery_unfactor' m m1 m2 _;
+  forevery_map #(natlt m)
+    (fun i -> forall+ (j1 : natlt n1) (j2 : natlt n2). p (i / m2 * m2 + i % m2) (j1 * n2 + j2))
+    (fun i -> forall+ (j : natlt n). p i j)
+    fn i {
+      rewrite each (i / m2 * m2 + i % m2) as i;
+      forevery_unfactor' n n1 n2 _;
+      forevery_ext #(natlt n) _ (fun j -> p i j);
+    };
+}
+
+ghost
+fn forevery_mid_flip
+  (#a #b #c : Type0)
+  (p : a -> b -> c -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c). p x y z
+  ensures
+    forall+ (x:a) (z:c) (y:b). p x y z
+{
+  forevery_map #a
+    (fun x -> forall+ (y:b) (z:c). p x y z)
+    (fun x -> forall+ (z:c) (y:b). p x y z)
+    fn x { forevery_commute _ };
+}
+
+let silly_coerce_helper
+  (n : pos)
+  (q : natlt n -> prop)
+  : Lemma (requires (forall (x : natlt (n-1)). q (natlt_coerce x)) /\
+                    (q (n-1)))
+          (ensures  forall (x : natlt n). q x)
+  = introduce forall (x : natlt n). q x with
+    if x = (n-1) then (
+      ()
+    ) else (
+      assert (natlt_coerce #(n-1) #n x == x);
+      ()
+    )
+
+ghost
+fn rec forevery_extract_pure_natlt
+  (n : nat)
+  (p : natlt n -> slprop)
+  (q : natlt n -> prop)
+  (f : (x:natlt n) -> stt_ghost unit emp_inames (p x) (fun _ -> p x ** pure (q x)))
+  preserves
+    forall+ (x:natlt n). p x
+  ensures
+    pure (forall (x:natlt n). q x)
+  decreases n
+{
+  if (n = 0) {
+    ()
+  } else {
+    assert pure (n > 0);
+    forevery_natlt_pop n _;
+    f (n-1);
+    forevery_extract_pure_natlt (n-1)
+      (fun i -> p (natlt_coerce i))
+      (fun i -> q (natlt_coerce i))
+      (fun i -> f (natlt_coerce i));
+    forevery_natlt_push n _;
+    silly_coerce_helper n q;
+    (); // needed...
+  }
+}
+
+let iso_lemma_prop
+  (#a #b : Type0)
+  (q : a -> prop)
+  (bij : (a =~ b))
+  : Lemma (requires forall (y:b). q (bij.gg y))
+          (ensures  forall (x:a). q x)
+  = introduce forall (x:a). q x with
+    let y = bij.ff x in
+    assert (x == bij.gg y);
+    ()
+
+ghost
+fn forevery_extract_pure
+  (#a : Type0) {| d : enumerable a |}
+  (p : a -> slprop)
+  (q : a -> prop)
+  (f : (x:a) -> stt_ghost unit emp_inames (p x) (fun _ -> p x ** pure (q x)))
+  preserves
+    forall+ (x:a). p x
+  ensures
+    pure (forall (x:a). q x)
+{
+  forevery_iso d.bij _;
+  forevery_extract_pure_natlt (cardinal a #_)
+    (fun i -> p (of_nat i))
+    (fun i -> q (of_nat i))
+    (fun i -> f (of_nat i));
+  forevery_iso_back d.bij _;
+  iso_lemma_prop #a #(natlt (cardinal a #_)) q d.bij;
+  ();
+}
+
+let lemma_flatten_prop
+  (#a #b : Type0)
+  (q : a -> b -> prop)
+  : Lemma (requires forall (xy: a & b). q xy._1 xy._2)
+          (ensures  forall (x:a) (y:b). q x y)
+  = introduce forall (x:a) (y:b). q x y with
+    let p = (x,y) in
+    ()
+
+ghost
+fn forevery_extract_pure_2
+  (#a #b : Type0)
+  {| enumerable a, enumerable b |}
+  (p : a -> b -> slprop)
+  (q : a -> b -> prop)
+  (f : (x:a) -> (y:b) ->
+    stt_ghost unit emp_inames (p x y) (fun _ -> p x y ** pure (q x y)))
+  preserves
+    forall+ (x:a) (y:b). p x y
+  ensures
+    pure (forall (x:a) (y:b). q x y)
+{
+  forevery_flatten _;
+  forevery_extract_pure (fun (xy: a & b) -> p xy._1 xy._2)
+    (fun (xy: a & b) -> q xy._1 xy._2)
+    fn xy { f xy._1 xy._2 };
+  forevery_unflatten _;
+  assert pure (forall (xy:a&b). q xy._1 xy._2);
+  lemma_flatten_prop #a #b q;
+  assert pure (forall (x:a) (y:b). q x y);
+  ();
 }

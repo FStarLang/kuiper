@@ -44,8 +44,7 @@ let fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
       arr |-> em **
       pure (
         (Seq.length em == wm*wn) /\
-        forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j)
-      )
+        forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j))
 
 ghost
 fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
@@ -66,6 +65,260 @@ fn fake_intro_fragarray_approximates (#et:Type0) {| scalar et, real_like et |}
   // ^ Shouldn't this be trivial? Anyway, this fake function will not survive into
   // the fully verified version.
   fold fragarray_approximates wm wn arr rm;
+}
+
+inline_for_extraction noextract
+fn populate_fragments_a
+  (#et : Type0)
+  {| scalar et, real_like et |}
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (frags : array (fragment et FragA tm tn tk FragLRM))
+  (gm : gpu_matrix et (R.row_major bm bk))
+  (#em : ematrix et bm bk)
+  (rm : ematrix real bm bk {em %~ rm})
+  (#f : perm)
+  (arow : szlt (bm/(wm*tm)))
+  (dotIdx : szlt (bk/tk))
+  (#_ : squash (Pulse.Lib.Array.length frags == wm))
+preserves
+  gpu **
+  gm |-> Frac f em
+requires
+  live frags
+ensures
+  exists* (ems' : seq (ematrix et tm tk)).
+    frags |-> ems' **
+    pure (
+      (Seq.length ems' == wm) /\
+      forall (i : natlt wm).
+        (ems' @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx))
+{
+    gpu_matrix_pts_to_ref gm;
+    array_fragment_pts_to_ref frags;
+
+    let tile_for_tc_a_tiles =
+      gpu_matrix_extract_tile_ro' gm (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v dotIdx);
+    let mut i0 = 0sz;
+    while ((!i0 <^ wm))
+      invariant live i0
+      invariant
+        (exists* ems.
+          frags |-> ems **
+          pure (Seq.length ems == wm /\ !i0 <= wm /\
+            forall (i : natlt !i0).
+              (ems @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx)))
+    {
+      // Guido: why is there a zero here? Can this really be right?
+      // Guido: I see. tile_for_tc_a_tiles is a very rectangular tile with height equal to one tile.
+      //        Zero is the only possible value here. Still seems a bit odd.
+      let a_tile =
+        gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
+      array_fragment_extract frags !i0;
+
+      mma_loadA frags.(!i0) a_tile;
+      Pulse.Lib.Forall.elim_forall
+        (ematrix_subtile (ematrix_subtile em (wm*tm) tk arow dotIdx) tm tk !i0 0);
+
+      ambig_trade_elim ();
+      ambig_trade_elim ();
+
+      i0 := !i0 +^ 1sz;
+    };
+    //with ems'. assert frags |-> ems';
+    //assert pure (Seq.length ems' == wm);
+    //assert pure (forall (i : natlt wm).
+    //    (ems' @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx));
+    ambig_trade_elim ();
+}
+
+inline_for_extraction noextract
+fn populate_fragments_b
+  (#et : Type0)
+  {| scalar et, real_like et |}
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (frags : array (fragment et FragB tm tn tk FragLRM))
+  (gm : gpu_matrix et (R.row_major bk bn))
+  (#em : ematrix et bk bn)
+  (rm : ematrix real bk bn {em %~ rm})
+  (#f : perm)
+  (bcol : szlt (bn/(wn*tn)))
+  (dotIdx : szlt (bk/tk))
+  (#_ : squash (Pulse.Lib.Array.length frags == wn))
+preserves
+  gpu **
+  gm |-> Frac f em
+requires
+  live frags
+ensures
+  exists* (ems' : seq (ematrix et tk tn)).
+    frags |-> ems' **
+    pure (
+      (Seq.length ems' == wn) /\
+      forall (i : natlt wn).
+        (ems' @! i) %~ (ematrix_subtile rm tk tn dotIdx (bcol*wn+i)))
+{
+    gpu_matrix_pts_to_ref gm;
+    array_fragment_pts_to_ref frags;
+
+    let tile_for_tc_b_tiles = gpu_matrix_extract_tile_ro' gm (SZ.v tk) (wn*tn) (SZ.v dotIdx) (SZ.v bcol);
+    let mut i1 = 0sz;
+    while ((!i1 <^ wn))
+      invariant live i1
+      invariant
+        (exists* ems.
+          frags |-> ems **
+          pure (Seq.length ems == wn /\ !i1 <= wn /\
+            forall (i : natlt !i1).
+              (ems @! i) %~ (ematrix_subtile rm tk tn dotIdx (bcol*wn+i))))
+    {
+      let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
+
+      array_fragment_pts_to_ref frags;
+      array_fragment_extract frags !i1;
+
+      mma_loadB frags.(!i1) b_tile;
+      Pulse.Lib.Forall.elim_forall
+        (ematrix_subtile (ematrix_subtile em tk (wn*tn) dotIdx bcol) tk tn 0 !i1);
+
+      ambig_trade_elim ();
+      ambig_trade_elim ();
+
+      i1 := !i1 +^ 1sz;
+    };
+    ambig_trade_elim ();
+}
+
+fn fragments_outer_product
+  (#et_ab #et_acc : Type0)
+  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
+  (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))
+  (accumFrags : array (fragment et_acc FragAcc tm tn tk FragLAcc))
+  (gA : gpu_matrix et_ab (R.row_major bm bk))
+  (gB : gpu_matrix et_ab (R.row_major bk bn))
+  (#eA : ematrix et_ab bm bk)
+  (#eB : ematrix et_ab bk bn)
+  (rA : ematrix real bm bk {eA %~ rA})
+  (rB : ematrix real bk bn {eB %~ rB})
+  (rC : ematrix real (wm*tm) (wn*tn))
+  (#fA #fB : perm)
+  (arow : szlt (bm/(wm*tm)))
+  (bcol : szlt (bn/(wn*tn)))
+  (dotIdx : szlt (bk/tk))
+  (#_ : squash (Pulse.Lib.Array.length aFrags == wm))
+  (#_ : squash (Pulse.Lib.Array.length bFrags == wn))
+  (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
+  preserves
+    exists* (eAs' : seq (ematrix et_ab tm tk)).
+      aFrags |-> eAs' **
+      pure (
+        (Seq.length eAs' == wm) /\
+        forall (i : natlt wm).
+          (eAs' @! i) %~ (ematrix_subtile rA tm tk (arow*wm+i) dotIdx))
+  preserves
+    exists* (eBs' : seq (ematrix et_ab tk tn)).
+      bFrags |-> eBs' **
+      pure (
+        (Seq.length eBs' == wn) /\
+        forall (i : natlt wn).
+          (eBs' @! i) %~ (ematrix_subtile rB tk tn dotIdx (bcol*wn+i)))
+  requires
+    pure (valid_frag_et_comb et_ab et_acc)
+  requires
+    fragarray_approximates wm wn accumFrags
+      (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                                    (ematrix_subtile rB bk (wn*tn) 0 bcol) (dotIdx * tk)))
+  ensures
+    // Result has added one additional tile multiplication per tensor core tile (dotIdx+1)
+    fragarray_approximates wm wn accumFrags
+      (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                                    (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)))
+{
+  unfold fragarray_approximates wm wn accumFrags;
+  //assume pure ((__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                             (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0
+  //              ==
+  //              mkM <| fun i j ->
+  //                __matmul_single (ematrix_subtile rA (wm*tm) bk arow 0) (ematrix_subtile rB bk (wn*tn) 0 bcol) i j 0);
+  //// True: up_to 0 means, by definition, that only 0s are added
+  //assume pure (rAcc == rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                                                    (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
+  //rewrite fragarray_approximates wm wn accumFrags rAcc
+  //as fragarray_approximates wm wn accumFrags
+  //    (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                                    (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
+
+  //let rAcc = (rC `matplus`
+  //              (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                              (ematrix_subtile rB bk (wn*tn) 0 bcol)) (dotIdx * tk));
+  //assert (rewrites_to rAcc (rC `matplus`
+  //              (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                              (ematrix_subtile rB bk (wn*tn) 0 bcol)) (dotIdx * tk)));
+
+  let mut resIdxM = 0sz;
+  while ((!resIdxM <^ wm))
+    invariant live resIdxM ** pure (!resIdxM <= wm)
+    invariant
+      live accumFrags
+//      exists* (eAcc : seq (ematrix et_acc tm tn)).
+//        accumFrags |-> eAcc **
+//        pure (
+//          (Seq.length eAcc == wm*wn) /\
+//          forall (i : natlt wm) (j : natlt wn).
+//            (eAcc @! (i * wn + j)) %~ (ematrix_subtile rAcc tm tn i j))
+//
+  {
+    let mut resIdxN = 0sz;
+    while ((!resIdxN <^ wn))
+      invariant live resIdxN ** pure (!resIdxN <= wn)
+      invariant live accumFrags
+    {
+      array_fragment_pts_to_ref aFrags;
+      array_fragment_pts_to_ref bFrags;
+      array_fragment_pts_to_ref accumFrags;
+
+      array_fragment_extract_ro aFrags !resIdxM;
+      array_fragment_extract_ro bFrags !resIdxN;
+      array_fragment_extract accumFrags (!resIdxM * wn + !resIdxN);
+
+      let a_frag = aFrags.(!resIdxM);
+      let b_frag = bFrags.(!resIdxN);
+      let acc_frag = accumFrags.(!resIdxM *^ wn +^ !resIdxN);
+      mma_sync' a_frag b_frag acc_frag;
+
+      ambig_trade_elim ();
+      ambig_trade_elim ();
+
+      with v. assert acc_frag `fragment_pts_to` v;
+      Pulse.Lib.Forall.elim_forall v;
+
+      ambig_trade_elim ();
+
+      resIdxN := !resIdxN +^ 1sz;
+    };
+
+    resIdxM := !resIdxM +^ 1sz;
+  };
+
+  // Assume functional correctness
+  let interm_tile =
+    (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                                    (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)));
+  with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
+  assume pure (Seq.length emAccumFrags == wm*wn);
+  assume pure (
+    forall (i : natlt wm) (j : natlt wn). (emAccumFrags @! (i * wn + j)) %~ (ematrix_subtile interm_tile tm tn i j));
+  fold fragarray_approximates wm wn accumFrags interm_tile;
+
+  rewrite each interm_tile as (rC `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+                                                            (ematrix_subtile rB bk (wn*tn) 0 bcol) ((dotIdx+1) * tk)));
 }
 
 inline_for_extraction noextract
@@ -107,65 +360,33 @@ fn subproducts_tc_2d
       (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
                              (ematrix_subtile rB bk (wn*tn) 0 bcol))
 {
-  gpu_matrix_pts_to_ref gA;
-  gpu_matrix_pts_to_ref gB;
+  // gpu_matrix_pts_to_ref gA;
+  // gpu_matrix_pts_to_ref gB;
 
   unfold fragarray_approximates wm wn accumFrags;
 
+  // Fails even with explicit assumption
+  //assume pure (fragarray_approximates wm wn accumFrags rAcc
+  //  == fragarray_approximates wm wn accumFrags
+  //        (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                                        (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0));
+  //rewrite each fragarray_approximates wm wn accumFrags rAcc
+  //as fragarray_approximates wm wn accumFrags
+  //        (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+  //                                        (ematrix_subtile rB bk (wn*tn) 0 bcol)) 0);
+
   let mut dotIdx : sz = 0sz;
   while ((!dotIdx <^ (bk/^tk)))
-    invariant live dotIdx ** pure (!dotIdx <= (bk/^tk))
-    invariant
-      live aFrags ** live bFrags **
-      live accumFrags
+    invariant live dotIdx
+    invariant live aFrags ** live bFrags
+    invariant live accumFrags
+      //(exists* rm. fragarray_approximates wm wn accumFrags rm **
+      //  pure (!dotIdx <= (bk/^tk) /\
+      //    (rm == (rAcc `matplus` (__matmul_up_to (ematrix_subtile rA (wm*tm) bk arow 0)
+      //                                 (ematrix_subtile rB bk (wn*tn) 0 bcol)) (!dotIdx * tk)))))
   {
-    // Load A fragments (wm iterations)
-    let tile_for_tc_a_tiles = gpu_matrix_extract_tile_ro' gA (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
-    let mut i0 = 0sz;
-    while ((!i0 <^ wm))
-      invariant live i0 ** pure (!i0 <= wm)
-      invariant live aFrags
-    {
-      // Guido: why is there a zero here? Can this really be right?
-      // Guido: I see. tile_for_tc_a_tiles is a very rectangular tile with height equal to one tile.
-      //        Zero is the only possible value here. Still seems a bit odd.
-      let a_tile = gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
-      array_fragment_pts_to_ref aFrags;
-      array_fragment_extract aFrags !i0;
-
-      mma_loadA aFrags.(!i0) a_tile;
-      Pulse.Lib.Forall.elim_forall
-        (ematrix_subtile (ematrix_subtile eA (wm*tm) tk arow !dotIdx) tm tk !i0 0);
-
-      ambig_trade_elim ();
-      ambig_trade_elim ();
-
-      i0 := !i0 +^ 1sz;
-    };
-    ambig_trade_elim ();
-
-    // Load B fragments (wn iterations)
-    let tile_for_tc_b_tiles = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (wn*tn) (SZ.v !dotIdx) (SZ.v bcol);
-    let mut i1 = 0sz;
-    while ((!i1 <^ wn))
-      invariant live i1 ** pure (!i1 <= wn)
-      invariant live bFrags
-    {
-      let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
-
-      array_fragment_pts_to_ref bFrags;
-      array_fragment_extract bFrags !i1;
-
-      mma_loadB bFrags.(!i1) b_tile;
-      Pulse.Lib.Forall.elim_forall
-        (ematrix_subtile (ematrix_subtile eB tk (wn*tn) !dotIdx bcol) tk tn 0 !i1);
-
-      ambig_trade_elim ();
-      ambig_trade_elim ();
-
-      i1 := !i1 +^ 1sz;
-    };
-    ambig_trade_elim ();
+    populate_fragments_a bm bn bk tm tn tk wm wn aFrags gA rA arow !dotIdx;
+    populate_fragments_b bm bn bk tm tn tk wm wn bFrags gB rB bcol !dotIdx;
 
     // Compute the subproducts (wm * wn iterations)
     let mut resIdxM = 0sz;
@@ -201,8 +422,6 @@ fn subproducts_tc_2d
         ambig_trade_elim ();
 
         resIdxN := !resIdxN +^ 1sz;
-
-        // HERE convert maplus (matmul ...)) into __matrix_single_tile ...
       };
 
       resIdxM := !resIdxM +^ 1sz;
@@ -566,6 +785,7 @@ let mk_kernel
   (gB : gpu_matrix et_ab lB)
   (#eB : ematrix et_ab shared cols)
   (gC : gpu_matrix et_c (R.row_major rows cols))
+  // ^ Why does this have a fixed layout?
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm bn bk
@@ -615,7 +835,7 @@ let mk_kernel
 
   shmems_desc = shmems_desc et_ab bm bn bk;
 
-  frame = emp;
+  frame = pure (SZ.fits (mlayout_size (R.row_major rows cols)));
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
   block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);
 

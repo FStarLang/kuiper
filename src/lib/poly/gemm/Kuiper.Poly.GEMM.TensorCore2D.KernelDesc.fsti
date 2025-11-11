@@ -5,50 +5,27 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 #set-options "--z3rlimit 60"
 
 open Kuiper
-
-open Kuiper.Matrix.Reprs
-module R = Kuiper.Matrix.Reprs
-open Kuiper.TensorCore
 open Kuiper.Approximates
-
-module SZ = Kuiper.SizeT
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-module MS = Kuiper.Spec.GEMM
-
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Matrix
-
-module SZ = Kuiper.SizeT
-module B = Kuiper.Barrier
-
-open Kuiper.Matrix.Reprs
-module R = Kuiper.Matrix.Reprs
-
 open Kuiper.EMatrix
-open Kuiper.VArray {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
-open Kuiper.TensorCore
-open Kuiper.Float16
+open Kuiper.Math { even, odd }
+open Kuiper.Matrix
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
-
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
-open Pulse.Lib.Array
-open Pulse.Lib.Trade
-
-open Kuiper.Bijection
+module B  = Kuiper.Barrier
+module MS = Kuiper.Spec.GEMM
+module R  = Kuiper.Matrix.Reprs
+module SZ = Kuiper.SizeT
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
 [@@pulse_unfold]
 let recip (x : pos) : y:Real.real{y >. 0.0R} = 1.0R /. x
 
-type constraints (bm bn bk tm tn tk wm wn : szp) : prop =
+type constraints (bm bn bk tm tn tk wm wn : pos) : prop =
   tm /?+ bm /\
   tn /?+ bn /\
   tk /?+ bk /\
@@ -76,6 +53,27 @@ let warp_tile_pts_to
   gpu_matrix_pts_to
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
     #(recip warp_size)
+    em
+
+let warp_tile_pts_to_full
+  (#et : Type0) {| scalar et |}
+  (#rows : nat)
+  (#cols : nat)
+  (#lC : mlayout rows cols)
+  (gC : gpu_matrix et lC)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (wm : pos{wm * tm /?+ bm})
+  (wn : pos{wn * tn /?+ bn})
+  (bid : natlt ((rows/bm) * (cols/bn)))
+  (wid : natlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (em : ematrix et (wm * tm) (wn * tn))
+  : slprop
+  =
+  gpu_matrix_pts_to
+    (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
     em
 
 let warp_tile_approximates
@@ -334,7 +332,7 @@ fn setup
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    emp (* frame *)
+    pure (SZ.fits (mlayout_size lC)) // frame
 
 ghost
 fn block_setup
@@ -408,21 +406,12 @@ let warp_tile_ematrix
   = ematrix_subtile em trows tcols
       (warp_tile_idx_rows rows cols trows tcols wid)
       (warp_tile_idx_cols rows cols trows tcols wid)
-(*
-instance ematrix_subtile_can_approximate
-  (#et : Type0) {| scalar et, real_like et |}
-  (#rows #cols : nat)
-  : can_approximate (ematrix et rows cols) (ematrix real rows cols) =
-{
-  approximates = ematrix_approximates;
-}
- *)
 
 let warp_tile_i
   (#rows #cols : pos)
   (bm bn bk
    tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bn /?+ cols))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
@@ -439,13 +428,13 @@ let warp_tile_i
     assert (subtile_i < (bm/(wm*tm)));
     assert (tile_i < rows/bm);
     assert (tile_i * (bm / (wm*tm)) < rows/(wm*tm));
-    tile_i * (bm / (wm*tm)) + subtile_i // Is this right?
+    tile_i * (bm / (wm*tm)) + subtile_i
 
 let warp_tile_j
   (#rows #cols : pos)
   (bm bn bk
    tm tn tk
-   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+   wm wn : pos { constraints bm bn bk tm tn tk wm wn })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bn /?+ cols))
   (nthr : nat {nthr == bm/(wm*tm)*(bn/(wn*tn))*warp_size})
@@ -457,7 +446,7 @@ let warp_tile_j
     let tile_j = bid % (cols/bn) in
     let subtile_i = wid / (bn/(wn*tn)) in
     let subtile_j = wid % (bn/(wn*tn)) in
-    tile_j * (bn / (wn*tn)) + subtile_j // Is this right? At least it seems in bounds
+    tile_j * (bn / (wn*tn)) + subtile_j
 
 unfold
 let kpost1
@@ -574,12 +563,12 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
-    emp (* frame *)
+      kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
+    emp
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 (* comb *) gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
+      kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
 
 ghost
 fn teardown
@@ -619,7 +608,7 @@ fn teardown
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
       kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
-    emp
+    pure (SZ.fits (mlayout_size lC)) // frame
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **

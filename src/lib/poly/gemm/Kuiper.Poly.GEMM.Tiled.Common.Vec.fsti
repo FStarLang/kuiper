@@ -124,7 +124,8 @@ let block_tile
             (block_tile_idx_cols rows cols bm bn bid)))
   =
     gpu_matrix_subtile gC bm bn
-      (block_tile_idx_rows rows cols bm bn bid) (block_tile_idx_cols rows cols bm bn bid)
+      (block_tile_idx_rows rows cols bm bn bid)
+      (block_tile_idx_cols rows cols bm bn bid)
 
 inline_for_extraction noextract
 let thread_tile

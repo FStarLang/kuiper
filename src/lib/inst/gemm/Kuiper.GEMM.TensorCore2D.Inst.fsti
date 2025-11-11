@@ -54,8 +54,7 @@ fn spec
   //  partially applied
   preserves
     cpu **
-    // should be checked at runtime
-    pure (rows * cols <= max_blocks) **
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
     on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires

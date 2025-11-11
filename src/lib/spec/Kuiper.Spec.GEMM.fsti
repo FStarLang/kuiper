@@ -1,7 +1,7 @@
 module Kuiper.Spec.GEMM
 
-(* NOTE: this is for an "exact" matmul, it does not provide
-any weak modulo-associativity spec. *)
+(* NOTE: this is for an "exact" matmul at the mathematical level. It does not
+provide any weak approximate spec. *)
 
 open Kuiper
 open Kuiper.EMatrix
@@ -19,13 +19,92 @@ let lincomb
   : et
   = add (mul beta x) (mul alpha y)
 
+(* These functions defined a matmul over potentially
+different types, which is useful to state a matmul
+over a big matrix being a matmul over individual tiles.
+
+In that case, we are multiplying something like
+  ematrix (ematrix et tm tk) (rows/tm) (shared/tk)
+with
+  ematrix (ematrix et tk tn) (shared/tk) (cols/tn)
+to get
+  ematrix (ematrix et tm tn) (rows/tm) (cols/tn
+
+Notably, the inner elements (ematrix et tm tk) and (ematrix et tk tn)
+are not scalars. We therefore require a function to multiply them
+into some other type (ematrix et tm tn), and a function to add
+two such elements. *)
+
 // computes
 // sum_{i=0}{to} m1[row][i] * m2[i][col]
 // when to=shared, it computes the (row,col) cell of m1*m2
 // the sum  is associated to the left, i.e.
 // ((zero + m1[row][0] * m2[0][col]) + m1[row][1] * m2[1][col]) + ...
-val __matmul_single
-  (#et:Type) {| scalar et |}
+val __gmatmul_single
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (to : nat{to <= shared})
+  : GTot t3
+
+val __gmatmul_single_congr
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (#rows' #columns' : nat)
+  (m1' : ematrix t1 rows' shared)
+  (m2' : ematrix t2 shared columns')
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  (row' : nat{row' < rows'})
+  (col' : nat{col' < columns'})
+  (to : nat{to <= shared})
+  : Lemma (requires (forall k. 0 <= k /\ k < to ==>
+                        macc m1 row k == macc m1' row' k /\
+                        macc m2 k col == macc m2' k col'))
+          (ensures (__gmatmul_single z mul add m1 m2 row col to
+                    == __gmatmul_single z mul add m1' m2' row' col' to))
+
+let gmatmul_single
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (row : nat{row < rows})
+  (col : nat{col < columns})
+  : GTot t3
+  = __gmatmul_single z mul add m1 m2 row col shared
+
+let __gmatmul_up_to
+  (#t1 #t2 #t3 : Type)
+  (z : t3)
+  (mul : t1 -> t2 -> t3)
+  (add : t3 -> t3 -> t3)
+  (#rows #shared #columns : nat)
+  (m1 : ematrix t1 rows shared)
+  (m2 : ematrix t2 shared columns)
+  (to : nat{to <= shared})
+: ematrix t3 rows columns
+= mkM fun i j -> __gmatmul_single z mul add m1 m2 i j to
+
+(* For scalars, we specialize the above functions, using
+the canonical multiplication and addition. *)
+
+let __matmul_single
+  (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
@@ -33,9 +112,10 @@ val __matmul_single
   (col : nat{col < columns})
   (to : nat{to <= shared})
   : GTot et
+  = __gmatmul_single zero mul add m1 m2 row col to
 
 let matmul_single
-  (#et:Type) {| scalar et |}
+  (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
   (m1 : ematrix et rows shared)
   (m2 : ematrix et shared columns)
@@ -43,6 +123,15 @@ let matmul_single
   (col : nat{col < columns})
   : GTot et
   = __matmul_single m1 m2 row col shared
+
+let __matmul_up_to
+  (#et : Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (to : nat{to <= shared})
+: ematrix et rows columns
+= mkM fun i j -> __matmul_single m1 m2 i j to
 
 let gemm_single
   (#et:Type) {| scalar et |}
@@ -210,3 +299,26 @@ let gemm
   (m2 : ematrix et shared columns)
 : ematrix et rows columns
 = matrix_comb (lincomb alpha beta) m0 (matmul m1 m2)
+
+(* If we take a full-width slice of A and a full-height slice of B, then
+   the matmul of those slices is equal to the corresponding tile of the
+   full matmul. *)
+val matmul_decompose_lemma
+  (#et:Type) {| scalar et |}
+  (#rows #shared #columns : pos)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (trows : nat {trows /? rows})
+  (tcolumns : nat {tcolumns /? columns})
+  (i : natlt (rows / trows))
+  (j : natlt (columns / tcolumns))
+: Lemma
+  (ensures
+    matmul
+      (ematrix_subtile m1 trows shared i 0)
+      (ematrix_subtile m2 shared tcolumns 0 j)
+    ==
+    ematrix_subtile
+      (matmul m1 m2)
+      trows tcolumns
+      i j)
