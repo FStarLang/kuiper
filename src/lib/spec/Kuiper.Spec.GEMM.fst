@@ -425,7 +425,6 @@ let __matmul_single_subtile_lemma
 
 let rec __matmul_tiles_lemma
   (#et : Type) {| scalar et |}
-  (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
   (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity
   (pf3 : (x:et -> y:et -> z:et -> squash (add x (add y z) == add (add x y) z)))  // add is associative
   (#rows #columns : nat)
@@ -492,7 +491,7 @@ let rec __matmul_tiles_lemma
                (macc (ematrix_tiled m1 trows tshared) i (to - 1))
                (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
              i' j';
-        == { __matmul_tiles_lemma pf1 pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (to - 1) }
+        == { __matmul_tiles_lemma pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (to - 1) }
         (macc acc i' j'
          `add` __matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' ((to - 1) * tshared))
         `add`
@@ -522,7 +521,6 @@ let rec __matmul_tiles_lemma
 
 let matmul_tiles_lemma
   (#et : Type) {| scalar et |}
-  (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
   (pf2 : (x:et -> squash (add x zero == x /\ add zero x == x)))  // zero is additive identity
   (pf3 : (x:et -> y:et -> z:et -> squash (add x (add y z) == add (add x y) z)))  // add is associative
   (#rows #columns : nat)
@@ -571,7 +569,7 @@ let matmul_tiles_lemma
             (ematrix_tiled m2 tshared tcols)
             i j)
            i' j';
-      == { __matmul_tiles_lemma pf1 pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (shared / tshared) }
+      == { __matmul_tiles_lemma pf2 pf3 trows tcols tshared acc m1 m2 i j i' j' (shared / tshared) }
       macc acc i' j'
       `add` matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j';
       == { }

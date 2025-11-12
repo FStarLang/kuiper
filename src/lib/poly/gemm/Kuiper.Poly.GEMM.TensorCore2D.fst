@@ -469,7 +469,7 @@ fn subproducts_tc_2d
           bcol
           (bk/^tk)));
 
-  matmul_tiles_lemma (fun _ _ -> ()) (fun _ -> ()) (fun _ _ _ -> ()) (wm*tm) (wn*tn) tk rAcc rA rB arow bcol;
+  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ()) (wm*tm) (wn*tn) tk rAcc rA rB arow bcol;
   rewrite each (
     __gmatmul_single rAcc matmul matplus
       (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol (bk/^tk))
