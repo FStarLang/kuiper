@@ -38,6 +38,7 @@ inline_for_extraction noextract instance _ : concrete_sz 16 = { x = 16sz; }
 inline_for_extraction noextract instance _ : concrete_sz 32 = { x = 32sz; }
 inline_for_extraction noextract instance _ : concrete_sz 64 = { x = 64sz; }
 inline_for_extraction noextract instance _ : concrete_sz 128 = { x = 128sz; }
+inline_for_extraction noextract instance _ : concrete_sz 256 = { x = 256sz; }
 
 inline_for_extraction noextract
 instance concrete_sz_sz (x : SZ.t) : concrete_sz (SZ.v x) = { x; }

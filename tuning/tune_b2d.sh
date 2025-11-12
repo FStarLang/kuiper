@@ -2,7 +2,7 @@
 
 set -eu
 
-make -f verify.mk obj/Kuiper_GEMM_BlockTiling2D.o
+make -f verify.mk obj/Kuiper_GEMM_BlockTiling2D.o ADMIT=1
 
 funcs=$(grep -Eo 'Kuiper_GEMM_BlockTiling2D_g_gemm_[^() ]*' obj/Kuiper_GEMM_BlockTiling2D.cu)
 

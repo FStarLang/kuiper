@@ -16,29 +16,29 @@ open Kuiper.GEMM.BlockTiling2D.Inst { spec }
 EOF
 
 # Tweak these lists to control which instances are generated
-all_bm="32 64 128"
-all_bn="32 64 128"
-all_bk="32 64"
-all_tm="8 16"
-all_tn="8 16"
+all_bm="16 32 64"
+all_bn="16 32 64"
+all_bk="16 32 64"
+all_tm="8 16 32"
+all_tn="8 16 32"
 
 chunk=4 # 4 floats = 16 bytes
 
-for la in r c; do
-  for lb in r c; do
-    for bm in $all_bm; do
-      for bn in $all_bn; do
-        if [ $((bn % chunk)) -ne 0 ]; then continue; fi
-        for bk in $all_bk; do
-          if [ $((bk % chunk)) -ne 0 ]; then continue; fi
-          if [ $(((4 * bm * bk) + (4 * bk * bn))) -gt 101376 ]; then continue; fi
-          for tm in $all_tm; do
-            if [ $((bm % tm)) -ne 0 ]; then continue; fi
-            for tn in $all_tn; do
-              if [ $(((bm * bk) % (chunk * (bm/tm) * (bn/tn)))) -ne 0 ]; then continue; fi # copy fullness
-              if [ $(((bk * bn) % (chunk * (bm/tm) * (bn/tn)))) -ne 0 ]; then continue; fi # copy fullness
-              if [ $((bn % tn)) -ne 0 ]; then continue; fi
-              if [ $(((bm / tm) * (bn / tn))) -gt 1024 ]; then continue; fi
+for bm in $all_bm; do
+  for bn in $all_bn; do
+    if [ $((bn % chunk)) -ne 0 ]; then continue; fi
+    for bk in $all_bk; do
+      if [ $((bk % chunk)) -ne 0 ]; then continue; fi
+      if [ $(((4 * bm * bk) + (4 * bk * bn))) -gt 101376 ]; then continue; fi
+      for tm in $all_tm; do
+        if [ $((bm % tm)) -ne 0 ]; then continue; fi
+        for tn in $all_tn; do
+          if [ $((bn % tn)) -ne 0 ]; then continue; fi
+          if [ $(((bm * bk) % (chunk * (bm/tm) * (bn/tn)))) -ne 0 ]; then continue; fi # copy fullness
+          if [ $(((bk * bn) % (chunk * (bm/tm) * (bn/tn)))) -ne 0 ]; then continue; fi # copy fullness
+          if [ $(((bm / tm) * (bn / tn))) -gt 1024 ]; then continue; fi
+          for la in r c; do
+            for lb in r c; do
               echo "let g_gemm_f32_${la}${lb}_${bm}x${bn}x${bk}_${tm}x${tn} = spec ${bm}sz ${bn}sz ${bk}sz (${la}m _ _) (${lb}m _ _) ${tm}sz ${tn}sz f32"
             done
           done
