@@ -160,7 +160,7 @@ fn gpu_array_alloc_vis
   {
     unfold dummy;
     let default_value : a = sized_types_inhabited;
-    let x = alloc_array_with_vis default_value sz l vis;
+    let x = mask_alloc_with_vis default_value sz vis;
     A.mask_mext x (mask_of 0 (SZ.v sz));
     fold (gpu_pts_to_slice #a #(SZ.v sz) x 0 (SZ.v sz) (Seq.create (SZ.v sz) default_value));
     fold (gpu_pts_to_array _ _);

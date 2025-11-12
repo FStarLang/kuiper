@@ -8,15 +8,16 @@ open Pulse.Main
 open Pulse.Lib.SendSync
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
+open Pulse.Lib.Array.Core { visibility }
 
 val is_thread_loc (l:loc_id) : prop
 let thread_loc = l:loc_id { is_thread_loc l }
 
-val gpu_of: loc_id -> loc_id
+val gpu_of: visibility
 val gpu_of_idem (l:loc_id) : Lemma (gpu_of (gpu_of l) == l)
 val gpu_id_of : loc_id -> GTot int
 
-val block_of : loc_id -> loc_id
+val block_of : visibility
 val block_of_idem (l:loc_id) : Lemma (block_of (block_of l) == l)
 val block_id_of : loc_id -> GTot int
 
