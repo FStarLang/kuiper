@@ -294,7 +294,7 @@ fn gpu_memcpy_host_to_device'
       pure (s' == seq_blit gv dst_off v src_off cnt)
   ensures
     pure (Seq.length v == reveal dst_sz)
-{ admit () }
+{ admit () } //this is a CUDA primitive
 
 
 fn gpu_memcpy_host_to_device
@@ -353,7 +353,7 @@ fn gpu_memcpy_device_to_host'
   ensures
     exists* s'. dst_arr |-> s' **
     pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length v == reveal dst_sz)
-{ admit() } 
+{ admit() }  //this is a CUDA primitive
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
@@ -405,9 +405,7 @@ fn gpu_memcpy_device_to_device
   ensures
     on gpu_loc (dst_arr |-> gv) **
     pure (Seq.length gv == reveal sz)
-{
-  admit()
-}
+{ admit() } //this is a CUDA primitive
 
 ghost
 fn gpu_array_slice_1
@@ -502,6 +500,25 @@ fn gpu_slice_share
 }
 
 ghost
+fn gpu_slice_share_underspec
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (m n:nat)
+  (k: nat { k > 0 })
+  (#f : perm)
+  requires gpu_pts_to_slice arr #f m n 'v
+  ensures
+    forall+ (_:natlt k). exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v
+{ 
+  gpu_slice_share arr m n k; 
+  forevery_map #(natlt k)
+    (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
+    (fun _ -> exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v)
+    fn _ { () }
+}
+
+ghost
 fn gpu_slice_gather
   (#a:Type u#0)
   (#sz:nat)
@@ -533,6 +550,43 @@ fn gpu_slice_pts_to_eq
 {
   admit()
 }
+
+ghost
+fn gpu_slice_gather_underspec
+  (#a : Type u#0)
+  (#sz : nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (m n : nat)
+  (k : nat { k > 0 })
+  requires
+    forall+ (_ : natlt k).
+      exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v
+  ensures
+    exists* v.
+      gpu_pts_to_slice arr #f m n v
+{
+  forevery_natlt_pop k _;
+  with vv. assert gpu_pts_to_slice arr #(f /. Real.of_int k) m n vv;
+  ghost
+  fn aux (_ : natlt (k-1))
+    norewrite
+    requires
+      gpu_pts_to_slice arr #(f /. Real.of_int k) m n vv ** (exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v)
+    ensures
+      gpu_pts_to_slice arr #(f /. Real.of_int k) m n vv ** gpu_pts_to_slice arr #(f /. Real.of_int k) m n vv
+  {
+    gpu_slice_pts_to_eq arr m n (f /. Real.of_int k) #_ #vv;
+  };
+  forevery_map_extra #(natlt (k-1)) (gpu_pts_to_slice arr #(f /. Real.of_int k) m n vv)
+    (fun (_ : natlt (k-1)) -> exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v)
+    (fun (_ : natlt (k-1)) -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n vv)
+    aux;
+  forevery_natlt_push k _;
+  gpu_slice_gather arr m n k;
+}
+
+
 
 // val adjacent
 //   (#a : Type u#0)

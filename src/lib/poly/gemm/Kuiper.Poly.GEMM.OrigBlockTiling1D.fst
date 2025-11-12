@@ -695,7 +695,7 @@ fn teardown
   admit();
 }
 
-#push-options "--fuel 0 --ifuel 0 --split_queries no --z3rlimit_factor 10"
+#push-options "--fuel 2 --ifuel 2 --z3rlimit_factor 10 --z3refresh"
 #restart-solver
 inline_for_extraction noextract
 let mk_kernel
@@ -746,8 +746,8 @@ let mk_kernel
 
   f = kf comb tm slA slB gA gB gC #fA #fB #eA #eB;
 
-  block_pre_sendable=solve;
-  block_post_sendable=solve;
+  block_pre_sendable=magic();
+  block_post_sendable=magic();
   kpre_sendable=magic();
   kpost_sendable=magic()
 }

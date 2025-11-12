@@ -668,6 +668,7 @@ fn kf
     thread_id nthr tid **
     block_id (rows/bm * (cols/bn)) bid
 {
+  unfold_c_shmems sh (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
 
   gpu_pts_to_ref sarA;
@@ -843,11 +844,11 @@ fn kf
   fold warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))));
-
+  fold_c_shmems sh (`%shmems_desc);
   ()
 }
 
-#push-options "--fuel 0 --ifuel 0 --split_queries no --z3rlimit_factor 10"
+#push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
 #restart-solver
 inline_for_extraction noextract
 let mk_kernel
@@ -934,7 +935,7 @@ let mk_kernel
 
   block_pre_sendable=solve;
   block_post_sendable=solve;
-  kpre_sendable=magic();
-  kpost_sendable=magic();
+  kpre_sendable=solve;
+  kpost_sendable=solve;
 }
 #pop-options

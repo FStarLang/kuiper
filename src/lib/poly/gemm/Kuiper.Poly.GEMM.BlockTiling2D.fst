@@ -177,9 +177,39 @@ let kpre
   : slprop
   =
   kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
+  live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
   barrier_tok #_ #_ #v slA slB (fst sh) (fst (snd sh)) 0 (bm/tm * (bn/tn)) tid
+
+instance kpre_block_sendable
+  (#et : Type0) (_:scalar et) (v : has_vec_cpy et)
+  (comb : binop et)
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (eA : ematrix et rows shared)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (eB : ematrix et shared cols)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (fA fB : perm)
+  (nblk: SZ.t { SZ.v nblk == rows/bm * (cols/bn) })
+  (nthr: SZ.t { SZ.v nthr == bm/tm * (bn/tn) })
+  (sh : c_shmems (shmems_desc et bm bn bk))
+  (pf : c_shmems_inv sh)
+  (i : natlt nblk)
+  (j : natlt nthr)
+: is_send_across block_of 
+  (kpre comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB sh i j)
+= solve
 
 unfold
 let kpost
@@ -209,9 +239,39 @@ let kpost
   : slprop
   =
   kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * (bn/tn))) x) **
+  live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
   barrier_tok #_ #_ #v slA slB (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm * (bn/tn)) tid
+
+instance kpost_block_sendable
+  (#et : Type0) (_:scalar et) (v : has_vec_cpy et)
+  (comb : binop et)
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (eA : ematrix et rows shared)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (eB : ematrix et shared cols)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (fA fB : perm)
+  (nblk: SZ.t { SZ.v nblk == rows/bm * (cols/bn) })
+  (nthr: SZ.t { SZ.v nthr == bm/tm * (bn/tn) })
+  (sh : c_shmems (shmems_desc et bm bn bk))
+  (pf : c_shmems_inv sh)
+  (i : natlt nblk)
+  (j : natlt nthr)
+: is_send_across block_of 
+  (kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB sh i j)
+= solve
 
 inline_for_extraction noextract
 fn subproducts2d
@@ -457,6 +517,7 @@ fn kf
     thread_id (bm/tm * (bn/tn)) tid **
     block_id (rows/bm * (cols/bn)) bid
 {
+  unfold_c_shmems sh (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
 
   gpu_pts_to_ref sarA;
@@ -575,6 +636,7 @@ fn kf
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
+  fold_c_shmems sh (`%shmems_desc);
   ()
 }
 
@@ -751,7 +813,8 @@ fn teardown
   admit();
 }
 
-
+#push-options "--z3rlimit_factor 4 --split_queries no --fuel 1 --ifuel 1"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -820,9 +883,10 @@ let mk_kernel
 
   block_pre_sendable=solve;
   block_post_sendable=solve;
-  kpre_sendable=magic();
-  kpost_sendable=magic()
+  kpre_sendable=solve;
+  kpost_sendable=solve;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu
@@ -874,5 +938,5 @@ fn mmcomb_gpu
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel comb gA #fA #eA gB #fB #eB gC #eC bm bn bk slA slB tm tn (rows/^bm *^ (cols/^bn)) (bm/^tm *^ (bn/^tn)) ());
+  launch_sync (mk_kernel comb gA gB gC bm bn bk slA slB tm tn (rows/^bm *^ (cols/^bn)) (bm/^tm *^ (bn/^tn)) ());
 }

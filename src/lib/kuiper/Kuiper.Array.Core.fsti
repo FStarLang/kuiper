@@ -389,6 +389,18 @@ fn gpu_slice_share
     forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
 
 ghost
+fn gpu_slice_share_underspec
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (m n:nat)
+  (k: nat { k > 0 })
+  (#f : perm)
+  requires gpu_pts_to_slice arr #f m n 'v
+  ensures
+    forall+ (_:natlt k). exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v
+
+ghost
 fn gpu_slice_gather
   (#a:Type u#0)
   (#sz:nat)
@@ -399,6 +411,21 @@ fn gpu_slice_gather
   requires
     forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
   ensures gpu_pts_to_slice arr #f m n 'v
+
+ghost
+fn gpu_slice_gather_underspec
+  (#a : Type u#0)
+  (#sz : nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (m n : nat)
+  (k : nat { k > 0 })
+  requires
+    forall+ (_ : natlt k).
+      exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v
+  ensures
+    exists* v.
+      gpu_pts_to_slice arr #f m n v
 
 ghost
 fn gpu_slice_pts_to_eq
