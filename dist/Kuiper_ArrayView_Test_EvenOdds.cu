@@ -11,10 +11,7 @@ uint32_t Kuiper_ArrayView_Test_EvenOdds_foo_odd(uint32_t *a)
     return a[21U];
 }
 
-uint32_t Kuiper_ArrayView_Test_EvenOdds_test(uint32_t *a)
+void Kuiper_ArrayView_Test_EvenOdds_foo_odd_modify(uint32_t *a)
 {
-    uint32_t *va3 = a;
-    uint32_t *vr = va3;
-    uint32_t x = Kuiper_ArrayView_Test_EvenOdds_foo_even(va3);
-    return x + Kuiper_ArrayView_Test_EvenOdds_foo_odd(vr);
+    a[21U] = 42U;
 }
