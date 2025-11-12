@@ -206,7 +206,6 @@ let parse_shmem_desc (e : mlexpr) : option (mlexpr & mlexpr) =
     None
 
 let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
-  let kdesc = collapse_record_matches kdesc in
   let open FStarC.Class.Monad in
   let assoc' k v =
     match List.assoc k v with
@@ -308,7 +307,6 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       let kf = apply_lam kf ml_unit in
       let kf = collapse_tuple_proj kf in
       let kf = collapse_tuple_matches kf in
-      let kf = collapse_record_matches kf in
       let kf = hoist env kf in
       let hd, rest_args = head_and_args kf in
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
