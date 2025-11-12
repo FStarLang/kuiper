@@ -13,6 +13,7 @@ open Kuiper.Matrix {
   gpu_matrix,
   gpu_matrix_pts_to,
   gpu_matrix_pts_to_cell,
+  is_global_matrix
 }
 
 module MS = Kuiper.Spec.GEMM
@@ -517,6 +518,8 @@ fn teardown
   admit();
 }
 
+#push-options "--query_stats --z3rlimit_factor 10 --fuel 0 --ifuel 0 --split_queries no"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -529,9 +532,9 @@ let mk_kernel
   (#lB : mlayout (mshared * tile) (mcols   * tile))
   (#lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
-  (gB : gpu_matrix et lB)
-  (gC : gpu_matrix et lC)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#fA #fB : perm)
   (#eA : ematrix et (mrows * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols * tile))
@@ -561,7 +564,13 @@ let mk_kernel
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
   f = kf tile slA slB comb gA gB gC;
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic();
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu
@@ -573,25 +582,25 @@ fn mmcomb_gpu
   (lB : mlayout (mshared * tile) (mcols   * tile))
   (lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols * tile))
   (#eC : ematrix et (mrows * tile) (mcols * tile))
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks /\
           tile * tile <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)

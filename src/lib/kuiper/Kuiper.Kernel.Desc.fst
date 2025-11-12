@@ -3,6 +3,7 @@ module Kuiper.Kernel.Desc
 
 open FStar.Ghost
 open Pulse.Lib.Core
+open Pulse.Lib.SendSync
 open Kuiper.Common
 open Kuiper.ForEvery
 open Kuiper.Array
@@ -26,6 +27,7 @@ type kernel_desc (full_pre full_post : slprop) = {
     natlt nblk ->
     natlt nthr ->
     slprop;
+
   kpost :
     c_shmems shmems_desc ->
     natlt nblk ->
@@ -73,7 +75,8 @@ type kernel_desc (full_pre full_post : slprop) = {
   );
   block_frame :
     c_shmems shmems_desc ->
-    natlt nblk -> slprop;
+    natlt nblk -> 
+    slprop;
 
   block_setup : (
     (sh : c_shmems shmems_desc) ->
@@ -102,4 +105,32 @@ type kernel_desc (full_pre full_post : slprop) = {
         live_c_shmems sh **
         block_post bid)
   );
+
+  (* 
+    setup: consumes full_post and produces on gpu_loc (forall+ i. block_pre i))
+     
+    Then, at location (block_id_loc i), 
+    we consume (block_pre i) (which can be send to block_id_loc i)
+    and run block_setup to produce
+    on (block_id_loc i) (forall+ j. kpre i j)
+     
+    Finally, we run a thread at (thread_id_loc i j) 
+    and (kpre i j) to (thread_id_loc i j) and obtain
+    (kpost i j) at (thread_id_loc i j)
+
+    We can send (kpost i j) to block (block_id_loc i)
+    and use block_teardown to (block_post i)
+    and then send that to gpu_loc to run teardown
+    and obtain full_post
+  *)
+  block_pre_sendable: (i:natlt nblk -> is_send_across gpu_of (block_pre i));
+
+  block_post_sendable: (i:natlt nblk -> is_send_across gpu_of (block_post i));
+  
+  kpre_sendable: (sh:c_shmems shmems_desc ->
+                  _:squash (c_shmems_inv sh) ->
+                 i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpre sh i j));
+  
+  kpost_sendable: (sh:c_shmems shmems_desc ->
+                  _:squash (c_shmems_inv sh) -> i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpost sh i j));  
 }

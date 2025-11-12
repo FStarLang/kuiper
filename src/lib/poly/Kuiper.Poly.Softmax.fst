@@ -23,12 +23,12 @@ fn arr_read_1
   (#len : erased nat)
   (a : gpu_array et len)
   (#f : perm)
-  preserves cpu ** (a |-> Frac f 'va)
-  requires pure (len > 0)
+  preserves cpu ** on gpu_loc (a |-> Frac f 'va)
+  requires pure (len > 0 /\ is_global_array a)
   returns  x : et
   ensures  pure (Seq.length 'va > 0 /\ x == Seq.head 'va)
 {
-  gpu_pts_to_ref a; (* automate *)
+  gpu_pts_to_ref_located a; (* automate *)
   let ca = Pulse.Lib.Vec.alloc init 1sz;
   (* FIXME: Need to give lenght of ca?!? *)
   gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz a 0sz 1sz;
@@ -116,7 +116,7 @@ let kmap
   (#et : Type0)
   (f: et -> et)
   (lena : szp{ lena < max_blocks })
-  (a : gpu_array et lena)
+  (a : gpu_array et lena { is_global_array a })
   (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
 : kernel_desc
     (a |-> s)
@@ -130,6 +130,8 @@ let kmap
   kpre =  (fun (i:natlt lena) -> gpu_pts_to_cell a i (s@!i));
   kpost = (fun (i:natlt lena) -> gpu_pts_to_cell a i (f (s@!i)));
   frame = emp;
+  kpost_sendable=solve;
+  kpre_sendable=solve;
 } <: kernel_desc_m_1 _ _
 
 let map_div_avg (#et:Type0) {| floating et |} (s:Seq.seq et) (avg:et) =
@@ -172,17 +174,17 @@ inline_for_extraction noextract
 fn softmax_gpu
   (#et : Type0) {| floating et, real_like et |}
   (#lena : szp { 0 < SZ.v lena /\ lena < max_threads })
-  (a : gpu_array et lena)
+  (a : gpu_array et lena { is_global_array a })
   (#s: erased (Seq.seq et))
   (#r: erased (Seq.seq real)  { Seq.length r == SizeT.v lena /\ (s<:seq et) %~ r /\ lena > 0 })
   preserves cpu
-  requires (a |-> s) ** pure (lena <= max_blocks)
-  ensures  (exists* s'. a |-> s' ** pure (s' %~ softmax_real r))
+  requires on gpu_loc (a |-> s) ** pure (lena <= max_blocks)
+  ensures  (exists* s'. on gpu_loc (a |-> s') ** pure (s' %~ softmax_real r))
 {
-  gpu_pts_to_ref a; (* recall length, automate *)
+  gpu_pts_to_ref_located a; (* recall length, automate *)
 
   (* Pointwise exponentiation. *)
-  launch_sync (kmap exp lena a);
+  launch_sync (kmap exp lena a #s);
 
   (* Compute average. Need swap space since hreduce trashes the input. *)
   let a' = Array.gpu_array_alloc #et lena;
@@ -194,7 +196,8 @@ fn softmax_gpu
   gpu_array_free a';
 
   (* Divide by average *)
-  launch_sync (kmap (fun x -> div x avg) lena a);
+  with s'. assert on gpu_loc (a |-> s');
+  launch_sync (kmap (fun x -> div x avg) lena a #s');
 
   softmax_approx s r;
   ()

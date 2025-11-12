@@ -42,6 +42,13 @@ val barrier_tok
   ([@@@mkey] tid : natlt n)
   : slprop
 
+instance val barrier_tok_sendable 
+  (n:nat)
+  (p q : barrier_side n)
+  (it : nat)
+  (tid : natlt n)
+: is_send_across block_of (barrier_tok #n p q it tid)
+
 (* Creating a barrier for n threads. Note how this is a
    ghost function!. The 'pf' argument is a proof, once and
    for all, that the resource passing in each barrier_wait is

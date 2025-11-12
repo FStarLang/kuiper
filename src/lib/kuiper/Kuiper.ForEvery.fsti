@@ -1005,6 +1005,27 @@ fn forevery_join_or_n
     forall+ (x:a {exists i. r i x}). p x
 
 ghost
+fn on_forevery_elim (#a: Type0) (p: a -> slprop) (l: loc_id) 
+  requires
+    on l (forall+ (x:a). p x)
+  ensures
+    forall+ (x:a). on l (p x)
+
+instance val is_send_across_forevery
+  (#a:Type u#0) (#b:Type) (p: a -> slprop) (vis:loc_id -> b) {| (x:a -> is_send_across vis (p x)) |} :
+  is_send_across vis (forall+ x. p x)
+
+instance is_send_forevery
+  (#a:Type u#0) (p: a -> slprop) {| sa: (x:a -> is_send (p x)) |} :
+  is_send (forall+ x. p x)
+  = is_send_across_forevery p _ #sa
+
+instance placeless_forevery
+  (#a:Type u#0) (p: a -> slprop) {| sa: (x:a -> placeless (p x)) |} :
+  placeless (forall+ x. p x)
+  = is_send_across_forevery p _ #sa
+
+ghost  
 fn forevery_factor_2
   (m : nat) (m1 m2 : nat { m == m1 * m2 })
   (n : nat) (n1 n2 : nat { n == n1 * n2 })

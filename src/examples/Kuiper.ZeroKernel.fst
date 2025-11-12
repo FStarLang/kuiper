@@ -48,6 +48,10 @@ let kdesc :
   frame = emp;
   block_setup    = block_setup;
   block_teardown = block_teardown;
+  kpost_sendable = solve;
+  kpre_sendable = solve;
+  full_post_sendable = solve;
+  full_pre_sendable = solve;
 }
 
 fn test ()

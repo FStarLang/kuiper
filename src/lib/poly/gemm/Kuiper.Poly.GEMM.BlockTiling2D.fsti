@@ -24,11 +24,11 @@ fn mmcomb_gpu
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#eA : ematrix et rows shared)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#eB : ematrix et shared cols)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
@@ -49,13 +49,13 @@ fn mmcomb_gpu
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (aligned 16 (core gA)) **
     pure (aligned 16 (core gB)) **
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)

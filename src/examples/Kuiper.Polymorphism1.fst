@@ -30,7 +30,10 @@ let kernel
       (r1 |-> v1 ** r2 |-> v2)
       (r1 |-> v2 ** r2 |-> v1)
   =
-  { f = (fun () -> kswap r1 r2); } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
+  { f = (fun () -> kswap r1 r2);
+    full_pre_sendable = solve;
+    full_post_sendable = solve   
+  } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
 
 inline_for_extraction noextract
 fn swap_via_gpu

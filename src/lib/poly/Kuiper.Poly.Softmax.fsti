@@ -27,17 +27,17 @@ let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
 unfold
 type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
   (#lena : szp { lena < max_threads }) ->
-  (a : gpu_array et lena) ->
+  (a : gpu_array et lena { is_global_array a }) ->
   (#va : erased (seq et)) ->
   (#ra : erased (seq real) { Seq.length ra == SizeT.v lena /\ va %~ ra /\ lena > 0 }) ->
   stt unit
   (requires
     cpu **
-    (a |-> va **
+    (on gpu_loc (a |-> va) **
      pure (lena <= max_blocks)))
   (ensures fun _ ->
     cpu **
-     (exists* (v':seq et). a |-> v' **
+     (exists* (v':seq et). on gpu_loc (a |-> v') **
         pure (v' %~ softmax_real ra)))
 
 inline_for_extraction noextract

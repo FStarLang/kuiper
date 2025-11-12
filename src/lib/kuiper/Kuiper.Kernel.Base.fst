@@ -9,11 +9,7 @@ open Kuiper.Array
 open Kuiper.Epoch
 open Pulse.Lib.Pledge
 open Kuiper.Kernel.Desc
-open Pulse.Lib.SendSync { is_send_across}
 
-(* This is the single primitive for launching kernels, with the most general
-type and capabilities. There are many simpler versions in the Kuiper.Kernel module,
-all implemented using this one and without any extra assumptions. *)
 noextract
 fn launch_kernel_full
   (#full_pre : slprop)
@@ -31,8 +27,10 @@ fn launch_kernel_full
     epoch_live e' **
     pledge0 (epoch_done e') (on gpu_loc full_post) **
     pure (e' >= e)
+{
+  admit()
+}
 
-(* Sync the device: wait for all pending kernels. *)
 noextract
 fn sync_device () (#e:epoch_t)
   requires
@@ -43,3 +41,4 @@ fn sync_device () (#e:epoch_t)
     epoch_done e **
     epoch_live e' **
     pure (e' >= e)
+{ admit() }

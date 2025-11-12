@@ -193,7 +193,7 @@ inline_for_extraction noextract
 let dp_kernel
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp{SZ.v lena <= max_threads})
-  (ga1 ga2 : gpu_array et lena)
+  (ga1 ga2 : gpu_array et lena {is_global_array ga1 /\ is_global_array ga2})
   (#s1 #s2 : erased (seq et))
   (#vr1 #vr2 : erased (seq real) { s1 %~ vr1 /\ s2 %~ vr2 })
   (#_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
@@ -212,6 +212,11 @@ let dp_kernel
     kpost = kpost lena ga1 ga2 s1 s2 vr1 vr2;
 
     frame = emp;
+
+    kpost_sendable=solve;
+    kpre_sendable=solve;
+    full_post_sendable=solve;
+    full_pre_sendable=solve;
   } <: kernel_desc_1_n _ _
 
 
@@ -245,8 +250,8 @@ fn dotprod
   (* Why are the implicits needed? *)
   launch_sync (dp_kernel lena ga1 ga2 #v1 #v2 #vr1 #vr2);
 
-  gpu_pts_to_ref ga1;
-  gpu_pts_to_ref ga2;
+  gpu_pts_to_ref_located ga1;
+  gpu_pts_to_ref_located ga2;
 
   assert (pure (Seq.length v1 == lena));
   assert (pure (Seq.length v2 == lena));

@@ -11,7 +11,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-open Kuiper.Matrix { gpu_matrix }
+open Kuiper.Matrix
 include Kuiper.Poly.GEMMGPU.Type { size_req_t }
 
 (* Fully polymorphic. No need to play tricks at this stage. *)
@@ -100,20 +100,20 @@ type fixed_repr_gemm_gpu_ty
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
   (#cols : szp) ->
-  (gA : gpu_matrix et (rA rows shared)) ->
-  (gB : gpu_matrix et (rB shared cols)) ->
-  (gC : gpu_matrix et (rC rows cols)) ->
+  (gA : gpu_matrix et (rA rows shared) { is_global_matrix gA}) ->
+  (gB : gpu_matrix et (rB shared cols) { is_global_matrix gB}) ->
+  (gC : gpu_matrix et (rC rows cols) { is_global_matrix gC}) ->
   (#ma : ematrix et rows shared) ->
   (#mb : ematrix et shared cols) ->
   (#mc0 : ematrix et rows cols) ->
   stt unit
     (requires
-      (cpu ** gA |-> ma ** gB |-> mb) **
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
       (pure (size_req rows shared cols) **
-       gC |-> mc0))
+       on gpu_loc (gC |-> mc0)))
     (ensures fun _ ->
-      (cpu ** gA |-> ma ** gB |-> mb) **
-      (gC |-> MS.gemm alpha beta mc0 ma mb))
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
+      (on gpu_loc (gC |-> MS.gemm alpha beta mc0 ma mb)))
 
 unfold
 inline_for_extraction
@@ -126,20 +126,20 @@ type fixed_repr_mmcomb_gpu_ty
   (#rows : szp) ->
   (#shared : szp) -> (* concrete args *)
   (#cols : szp) ->
-  (gA : gpu_matrix et (rA rows shared)) ->
-  (gB : gpu_matrix et (rB shared cols)) ->
-  (gC : gpu_matrix et (rC rows cols)) ->
+  (gA : gpu_matrix et (rA rows shared) { is_global_matrix gA }) ->
+  (gB : gpu_matrix et (rB shared cols) { is_global_matrix gB }) ->
+  (gC : gpu_matrix et (rC rows cols) { is_global_matrix gC }) ->
   (#ma : ematrix et rows shared) ->
   (#mb : ematrix et shared cols) ->
   (#mc0 : ematrix et rows cols) ->
   stt unit
     (requires
-      (cpu ** gA |-> ma ** gB |-> mb) **
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
       (pure (size_req rows shared cols) **
-       gC |-> mc0))
+       on gpu_loc (gC |-> mc0)))
     (ensures fun _ ->
-      (cpu ** gA |-> ma ** gB |-> mb) **
-      (gC |-> MS.matmul ma mb))
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
+      (on gpu_loc (gC |-> MS.matmul ma mb)))
 
 inline_for_extraction noextract
 val specialize_as_gemm_to_type_and_reprs_gpu

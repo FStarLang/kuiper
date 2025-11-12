@@ -44,6 +44,8 @@ instance cview_from_clayout
 inline_for_extraction noextract
 val gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0
 
+val is_global_matrix (#et:Type0) (#rows #cols : nat) (#l : mlayout rows cols) (g:gpu_matrix et l) : prop
+
 inline_for_extraction noextract
 val from_array
   (#a : Type0)
@@ -65,7 +67,7 @@ val lem_core_from_array
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (g : gpu_matrix et l)
-  : Lemma (ensures from_array l (core g) == g)
+  : Lemma (ensures from_array l (core g) == g /\ (is_global_array (core g) <==> is_global_matrix g))
           [SMTPat (core g)]
 
 val lem_from_array_core
@@ -73,7 +75,7 @@ val lem_from_array_core
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (p : gpu_array et (mlayout_size l))
-  : Lemma (ensures core (from_array l p) == p)
+  : Lemma (ensures core (from_array l p) == p /\ (is_global_matrix (from_array l p) <==> is_global_array p))
           [SMTPat (from_array l p)]
 
 val gpu_matrix_pts_to
@@ -82,6 +84,16 @@ val gpu_matrix_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix et rows cols)
   : slprop
+
+instance
+val is_send_across_global_matrix
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (x: gpu_matrix et l { is_global_matrix x })
+  (#f : perm)
+  (em : ematrix et rows cols)
+  : Pulse.Lib.SendSync.is_send_across gpu_of (gpu_matrix_pts_to x #f em)
 
 (* erased is important for the lens! *)
 unfold
@@ -100,6 +112,21 @@ fn gpu_matrix_pts_to_ref
   (#em : ematrix et rows cols)
   preserves
     gpu_matrix_pts_to g #f em
+  ensures
+    pure (SZ.fits (mlayout_size l))
+
+
+ghost
+fn gpu_matrix_pts_to_ref_located
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#loc:_)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  preserves
+    on loc (gpu_matrix_pts_to g #f em)
   ensures
     pure (SZ.fits (mlayout_size l))
 
@@ -185,7 +212,9 @@ fn gpu_matrix_alloc0
   returns
     gm : gpu_matrix et l
   ensures
-    exists* em. gm |-> em
+    exists* em. on gpu_loc (gm |-> em)
+  ensures
+    pure (is_global_matrix gm)
 
 inline_for_extraction noextract
 fn gpu_matrix_free
@@ -197,7 +226,7 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures emp
 
 ghost
@@ -340,6 +369,24 @@ val gpu_matrix_pts_to_cell_eq
            ==
            gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v)
 
+instance is_send_across_global_matrix_pts_to_cell
+  (#et:Type) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l { is_global_matrix gm })
+  (#f : perm)
+  (i : natlt rows)
+  (j : natlt cols)
+  (v : et)
+: Pulse.Lib.SendSync.is_send_across gpu_of 
+    (gpu_matrix_pts_to_cell gm #f i j v)
+= gpu_matrix_pts_to_cell_eq gm i j f v;
+  let x = 
+    solve 
+      #(Pulse.Lib.SendSync.is_send_across gpu_of       
+        (gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v))
+  in
+  coerce_eq () x
+
 inline_for_extraction noextract
 fn gpu_matrix_read_cell
   (#et:Type0)
@@ -419,10 +466,10 @@ fn gpu_matrix_from_array
     a |-> s **
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
-    (gm |-> from_seq l s)
+    on gpu_loc (gm |-> from_seq l s) //TODO: consider rebinding
 
 inline_for_extraction noextract
 fn gpu_matrix_to_array
@@ -434,10 +481,10 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == rows * cols})
   (#em : ematrix et rows cols)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     a |-> s
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
-    (a |-> to_seq l em)
+    (a |-> to_seq l em) //TODO: consider rebinding

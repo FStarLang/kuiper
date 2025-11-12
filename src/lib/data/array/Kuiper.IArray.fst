@@ -9,10 +9,25 @@ module SZ = Kuiper.SizeT
 module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
 
+ghost
+fn move_forevery_placeless (#a: Type u#0) 
+    (p: a -> slprop) (l: loc_id) 
+    {| pa: (x:a -> placeless (p x)) |}
+  requires
+    (forall+ (x:a). p x)
+  ensures
+    on l (forall+ (x:a). p x)
+{
+  placeless_on_intro (forall+ x. p x) l
+}
+
 noeq
 inline_for_extraction
 type iarray (et : Type0) (vw : aiview) : Type0 =
   | IA of B.gpu_array et (len vw)
+
+let is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop =
+  let IA a = arr in is_global_array a
 
 inline_for_extraction noextract
 let from_array
@@ -51,6 +66,16 @@ let iarray_pts_to_cell
   : slprop
   = gpu_pts_to_cell (core a) #f (it_to_nat vw i) v
 
+instance is_send_across_iarray_pts_to_cell
+  (#et:Type0)
+  (#vw : aiview)
+  (a : iarray et vw { is_global_iarray a })
+  (#f : perm)
+  (i : vw.ait)
+  (v : et)
+  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  = solve
+
 let iarray_pts_to_cell_def
   (#et : Type)
   (#vw : aiview)
@@ -71,6 +96,15 @@ let iarray_pts_to
   = pure (SZ.fits (len vw)) **
     (forall+ (i : vw.ait).
       iarray_pts_to_cell a #f i (v i))
+
+instance is_send_across_global_iarray
+  (#et:Type0)
+  (#vw : aiview)
+  (x: iarray et vw { is_global_iarray x })
+  (#f : perm)
+  (v : (vw.ait -> GTot et))
+  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to x #f v)
+  = Tactics.Typeclasses.solve
 
 ghost
 fn iarray_pts_to_ref
@@ -542,7 +576,6 @@ fn iarray_write_cell
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -579,8 +612,6 @@ fn iarray_write_cell'
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -601,8 +632,6 @@ fn iarray_read_cell
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     iarray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -638,8 +667,6 @@ fn iarray_read_cell'
   (ai : erased vw.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -664,7 +691,6 @@ fn iarray_read
   (#f : perm)
   (#v : (vw.ait -> GTot et))
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -687,8 +713,6 @@ fn iarray_write
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : (vw.ait -> GTot et))
-  preserves
-    gpu
   requires
     a |-> v0
   ensures

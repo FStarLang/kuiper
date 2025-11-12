@@ -677,12 +677,12 @@ let mk_kernel
   {| scalar et_ab, scalar et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
   (#eA : ematrix et_ab rows shared)
   (#lB : mlayout shared cols) {| clayout lB |}
-  (gB : gpu_matrix et_ab lB)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
+  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm : szp{bm /?+ rows})
@@ -734,4 +734,9 @@ let mk_kernel
   kpost     = kpost gA eA gB eB gC bm bn bk tm tn fA fB;
 
   f = kf gA #eA gB #eB gC bm bn bk tm tn tk #() #() #() #fA #fB;
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic()
 }

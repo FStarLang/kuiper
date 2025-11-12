@@ -37,9 +37,9 @@ fn specialize_gpu
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (rA rows shared))
-  (gB : gpu_matrix et_ab (rB shared cols))
-  (gC : gpu_matrix et_c (row_major rows cols))
+  (gA : gpu_matrix et_ab (rA rows shared) { is_global_matrix gA })
+  (gB : gpu_matrix et_ab (rB shared cols) { is_global_matrix gB })
+  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
   (#eC : ematrix et_c rows cols)
@@ -50,9 +50,9 @@ fn specialize_gpu
     cpu **
     // should be checked at runtime
     pure (rows * cols <= max_blocks) **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    exists* eC'. gC |-> eC'
+    (exists* eC'. on gpu_loc (gC |-> eC'))

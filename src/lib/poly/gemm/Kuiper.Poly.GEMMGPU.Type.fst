@@ -35,23 +35,23 @@ type matmulcomb_gpu_fixed_ty
   {| clayout lA |} ->
   {| clayout lB |} ->
   {| clayout lC |} ->
-  (gA : M.gpu_matrix et lA) ->
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA }) ->
   (#fA : perm) ->
-  (gB : M.gpu_matrix et lB) ->
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB }) ->
   (#fB : perm) ->
-  (gC : M.gpu_matrix et lC) ->
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC }) ->
   (#eA : ematrix et rows shared) ->
   (#eB : ematrix et shared cols) ->
   (#eC : ematrix et rows cols) ->
   (* This has a preserves. *)
   stt unit
     (requires
-      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
+      (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
       (pure size_req **
-       gC |-> eC))
+       on gpu_loc (gC |-> eC)))
     (ensures fun _ ->
-      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
-      (gC |-> MS.mmcomb comb eC eA eB))
+      (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
+      (on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)))
 
 unfold
 inline_for_extraction
@@ -88,19 +88,19 @@ type tiled_matmulcomb_gpu_ty
   {| clayout lA |} ->
   {| clayout lB |} ->
   {| clayout lC |} ->
-  (gA : M.gpu_matrix et lA) ->
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA }) ->
   (#fA : perm) ->
-  (gB : M.gpu_matrix et lB) ->
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB }) ->
   (#fB : perm) ->
-  (gC : M.gpu_matrix et lC) ->
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC }) ->
   (#eA : ematrix _ _ _) ->
   (#eB : ematrix _ _ _) ->
   (#eC : ematrix _ _ _) ->
   stt unit
     (requires
-      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
+      (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
       (pure (size_req mrows mshared mcols tile) **
-       gC |-> eC))
+       on gpu_loc (gC |-> eC)))
     (ensures fun _ ->
-      (cpu ** gA |-> Frac fA eA ** gB |-> Frac fB eB) **
-      (gC |-> MS.mmcomb comb eC eA eB))
+      (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
+      (on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)))

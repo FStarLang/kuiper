@@ -38,9 +38,9 @@ fn specialize_gpu
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (rA rows shared))
-  (gB : gpu_matrix et_ab (rB shared cols))
-  (gC : gpu_matrix et_c (row_major rows cols))
+  (gA : gpu_matrix et_ab (rA rows shared) { is_global_matrix gA })
+  (gB : gpu_matrix et_ab (rB shared cols) { is_global_matrix gB })
+  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
   (#eC : ematrix et_c rows cols)
@@ -51,16 +51,16 @@ fn specialize_gpu
     cpu **
     // should be checked at runtime
     pure (rows * cols <= max_blocks) **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    (exists* eC'. gC |-> eC')
+    (exists* eC'. on gpu_loc (gC |-> eC'))
 {
-  gpu_matrix_pts_to_ref gA;
-  gpu_matrix_pts_to_ref gB;
-  gpu_matrix_pts_to_ref gC;
+  gpu_matrix_pts_to_ref_located gA;
+  gpu_matrix_pts_to_ref_located gB;
+  gpu_matrix_pts_to_ref_located gC;
 
   let mrows   = rows   /^ bm;
   let mshared = shared /^ bk;
@@ -76,8 +76,7 @@ fn specialize_gpu
   let nblk = rows/^bm *^ (cols/^bn);
   let nthr = bm/^tm *^ (bn/^tn) *^ warp_sz;
   launch_sync (
-    mk_kernel gA gB gC bm bn bk tm tn tk nblk nthr ()
+    mk_kernel gA #eA gB #eB gC #_ #eC bm bn bk tm tn tk #fA #fB nblk nthr ()
   );
-
   ()
 }

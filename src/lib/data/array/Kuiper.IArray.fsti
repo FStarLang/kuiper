@@ -18,6 +18,8 @@ new
 inline_for_extraction
 val iarray (et : Type0) (vw : aiview) : Type0
 
+val is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop
+
 inline_for_extraction noextract
 val from_array
   (#et : Type0)
@@ -36,14 +38,14 @@ val lem_from_array_core
   (#et : Type0)
   (#vw : aiview)
   (arr : iarray et vw)
-  : Lemma (ensures from_array vw (core arr) == arr)
+  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_iarray arr))
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#et : Type0)
   (vw : aiview)
   (p : gpu_array et (len vw))
-  : Lemma (ensures core (from_array vw p) == p)
+  : Lemma (ensures core (from_array vw p) == p /\ (is_global_iarray (from_array vw p) <==> is_global_array p))
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -79,6 +81,15 @@ val iarray_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (v : (vw.ait -> GTot et))
   : slprop
+
+instance
+val is_send_across_global_iarray
+  (#et:Type0)
+  (#vw : aiview)
+  (x: iarray et vw { is_global_iarray x })
+  (#f : perm)
+  (v : (vw.ait -> GTot et))
+  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to x #f v)
 
 unfold
 instance has_pts_to (#et:Type0) (#vw : aiview)
@@ -352,7 +363,6 @@ fn iarray_write_cell
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -367,8 +377,6 @@ fn iarray_write_cell'
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -383,8 +391,6 @@ fn iarray_read_cell
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     iarray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -402,8 +408,6 @@ fn iarray_read_cell'
   (ai : erased vw.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -422,7 +426,6 @@ fn iarray_read
   (#f : perm)
   (#v : (vw.ait -> GTot et))
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -437,8 +440,6 @@ fn iarray_write
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : (vw.ait -> GTot et))
-  preserves
-    gpu
   requires
     a |-> v0
   ensures

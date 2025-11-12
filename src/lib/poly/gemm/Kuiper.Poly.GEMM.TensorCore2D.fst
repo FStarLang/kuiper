@@ -669,6 +669,7 @@ fn kf
     thread_id nthr tid **
     block_id (rows/bm * (cols/bn)) bid
 {
+  unfold_c_shmems sh (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
 
   gpu_pts_to_ref sarA;
@@ -769,10 +770,12 @@ fn kf
     B.barrier_wait ();
 
     even_2x (!bkIdx + 1);
-    assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
-    assert pure (odd (2 * !bkIdx + 1));
-    assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
-    assert pure (even (2 * !bkIdx + 2));
+    #set-options "--z3refresh --z3rlimit_factor 2 --fuel 0 --ifuel 0" {
+      assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
+      assert pure (odd (2 * !bkIdx + 1));
+      assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
+      assert pure (even (2 * !bkIdx + 2))
+    };
     rewrite
       FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
     as
@@ -842,10 +845,12 @@ fn kf
   fold warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
         (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
                   (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))));
-
+  fold_c_shmems sh (`%shmems_desc);
   ()
 }
 
+#push-options "--fuel 1 --ifuel 1 --split_queries no --z3rlimit_factor 10"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
@@ -853,16 +858,16 @@ let mk_kernel
   {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA)
+  (gA : gpu_matrix et_ab lA  { is_global_matrix gA })
   (#eA : ematrix et_ab rows shared)
   (#lB : mlayout shared cols) {| clayout lB |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
-  (gB : gpu_matrix et_ab lB)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
+  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
   // ^ Why does this have a fixed layout?
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
@@ -928,4 +933,10 @@ let mk_kernel
   kpost     = kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr;
 
   f = kf gA #eA gB #eB gC #eC bm bn bk tm tn tk wm wn rA rB rC (SZ.v nthr);
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=solve;
+  kpost_sendable=solve;
 }
+#pop-options

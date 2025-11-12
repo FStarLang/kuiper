@@ -26,32 +26,31 @@ fn matmul_transpose_gpu
   (#rows : szp)
   (#shared : szp)
   (#cols : szp)
-  (gA : M.gpu_matrix et (R.row_major rows shared))
-  (gB : M.gpu_matrix et (R.row_major shared cols))
-  (gC : M.gpu_matrix et (R.row_major cols rows))
+  (gA : M.gpu_matrix et (R.row_major rows shared) { M.is_global_matrix gA })
+  (gB : M.gpu_matrix et (R.row_major shared cols) { M.is_global_matrix gB })
+  (gC : M.gpu_matrix et (R.row_major cols rows) { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et cols rows)
   preserves
     cpu **
-    gA |-> eA **
-    gB |-> eB
+    on gpu_loc (gA |-> eA) **
+    on gpu_loc (gB |-> eB)
   requires
     pure (size_req rows shared cols) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> mtranspose (MS.matmul eA eB)
+    on gpu_loc (gC |-> mtranspose (MS.matmul eA eB))
 {
   (* Recall that the lengths fit. We don't get a good error without this,
      but the problem is that we cannot call the crepr instance for gA/gB/gC
      without this fact. *)
-  M.gpu_matrix_pts_to_ref gA;
-  M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
-  GT.ghost_transpose1 gC;
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
+  map_loc gpu_loc (fun () -> GT.ghost_transpose1 gC);
   mmcomb_gpu MS.comb2 gA gB (GT.row2col gC);
-  GT.ghost_transpose1_back gC;
-  ()
+  map_loc gpu_loc (fun () -> GT.ghost_transpose1_back gC);
 }
 
 let matmul_transpose_gpu_f32_ff #rows #shared #cols =

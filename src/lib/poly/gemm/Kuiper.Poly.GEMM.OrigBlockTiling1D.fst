@@ -695,6 +695,8 @@ fn teardown
   admit();
 }
 
+#push-options "--fuel 2 --ifuel 2 --z3rlimit_factor 10 --z3refresh"
+#restart-solver
 inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et |}
@@ -710,11 +712,11 @@ let mk_kernel
   (#lB : mlayout (mshared * bk) (mcols   * bn))
   (#lC : mlayout (mrows   * bm) (mcols   * bn))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows   * bm) (mshared * bk))
   (#eB : ematrix et (mshared * bk) (mcols   * bn))
   (#eC : ematrix et (mrows   * bm) (mcols   * bn))
@@ -743,7 +745,13 @@ let mk_kernel
   kpost     = kpost comb tm slA slB gA gB gC eA eB eC fA fB;
 
   f = kf comb tm slA slB gA gB gC #fA #fB #eA #eB;
+
+  block_pre_sendable=magic();
+  block_post_sendable=magic();
+  kpre_sendable=magic();
+  kpost_sendable=magic()
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu
@@ -757,26 +765,26 @@ fn mmcomb_gpu
   (#lB : mlayout (mshared * bk) (mcols   * bn))
   (#lC : mlayout (mrows   * bm) (mcols   * bn))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows   * bm) (mshared * bk))
   (#eB : ematrix et (mshared * bk) (mcols   * bn))
   (#eC : ematrix et (mrows   * bm) (mcols   * bn))
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks) **
     pure (bm/tm * bn <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel comb tm (R.row_major _ _) (R.row_major _ _) gA gB gC ());
+  launch_sync (mk_kernel comb tm (R.row_major _ _) (R.row_major _ _) gA #fA gB #fB gC #eA #eB #eC ());
 }

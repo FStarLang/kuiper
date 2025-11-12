@@ -21,6 +21,32 @@ let rec bigstar
 : Tot slprop (decreases n - m) =
   if m = n then emp else f m ** bigstar #uid (m+1) n (narrow m n f) //(fun (i: nat { (m+1) <= i /\ i < n }) -> f i)
 
+
+let rec bigstar_sendable_
+  (uid: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
+  (vis: loc_id -> 'a)
+  (sa : (i:_ -> is_send_across vis (f i)))
+: Tot (is_send_across vis (bigstar #uid m n f)) (decreases (n - m))
+= if m = n 
+  then FStar.Tactics.Typeclasses.solve #(is_send_across vis emp) 
+  else let _ = bigstar_sendable_ uid (m + 1) n (narrow m n f) vis sa in 
+      FStar.Tactics.Typeclasses.solve
+        #(is_send_across vis 
+           (f m ** bigstar #uid (m+1) n (narrow m n f)))
+
+instance bigstar_sendable
+  (uid: int)
+  (m : nat)
+  (n : nat {m <= n})
+  (f : (i:nat { m <= i /\ i < n } -> slprop))
+  (vis: loc_id -> 'a)
+  (sa : (i:_ -> is_send_across vis (f i)))
+: is_send_across vis (bigstar #uid m n f)
+= bigstar_sendable_ uid m n f vis sa
+
 let bigstar_defn (#uid : int) (m : nat) (n : nat {m <= n}) (f : (i:nat { m <= i /\ i < n } -> slprop)) :
   Lemma (ensures bigstar #uid m n f == (if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))
   = assert (bigstar #uid m n f == (if m = n then emp else f m ** bigstar #uid (m+1) n (fun (i: nat { (m+1) <= i /\ i < n }) -> f i)))

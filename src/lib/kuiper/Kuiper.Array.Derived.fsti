@@ -29,6 +29,17 @@ fn gpu_pts_to_ref
   preserves x |-> Frac f v
   ensures  pure (Seq.length v == sz /\ SZ.fits sz)
 
+ghost
+fn gpu_pts_to_ref_located
+  (#a:Type u#0)
+  (#sz:nat)
+  (#f : perm)
+  (x:gpu_array a sz)
+  (#v : seq a)
+  (#l : loc_id)
+  preserves on l (x |-> Frac f v)
+  ensures  pure (Seq.length v == sz /\ SZ.fits sz)
+
 (* Not making this unfold as it appears under forall+. Maybe
 pulse should only do weak unfolding. *)
 let gpu_pts_to_array1

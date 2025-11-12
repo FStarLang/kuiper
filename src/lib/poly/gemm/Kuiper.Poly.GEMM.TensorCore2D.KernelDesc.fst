@@ -396,31 +396,8 @@ fn block_setup
 {
   (* permissions for shared memory *)
   // shmem for A tile
-  // rewrite each shmems_desc et_ab bm bn bk as [SHArray et_ab (bm *^ bk); SHArray et_ab (bk *^ bn);];
-  rewrite live_c_shmems sh as
-    live_c_shmem (fst sh) **
-    (live_c_shmem (fst (snd sh)) **
-     emp);
-  rewrite live_c_shmem (fst sh) as (exists* v. gpu_pts_to_array (fst sh) v);
-  rewrite live_c_shmem (fst (snd sh)) as (exists* v. gpu_pts_to_array (fst (snd sh)) v);
-  gpu_slice_share (fst sh) 0 (bm*bk) nthr;
-  gpu_slice_share (fst (snd sh)) 0 (bk*bn) nthr;
-  with s1.
-    assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst sh) #(recip nthr) 0 (bm*bk) (reveal s1));
-  with s2.
-    assert (forall+ (x: natlt nthr). gpu_pts_to_slice (fst (snd sh)) #(recip nthr) 0 (bk*bn) s2);
-
-  ghost fn aux (#n : nat) (arr : gpu_array et_ab n) (s : erased (seq et_ab)) (tid : natlt nthr)
-    requires gpu_pts_to_slice arr #(recip nthr) 0 n s
-    ensures exists* (x : seq et_ab). gpu_pts_to_array arr #(recip nthr) x
-    {};
-  forevery_map #(natlt nthr)
-    (fun _tid -> gpu_pts_to_slice (fst sh) #(recip nthr) 0 (bm*bk) s1)
-    _ (aux (fst sh) s1);
-  forevery_map #(natlt nthr)
-    (fun _tid -> gpu_pts_to_slice (fst (snd sh)) #(recip nthr) 0 (bk*bn) s2)
-    _ (aux (fst (snd sh)) s2);
-
+  gpu_live_c_shmems_share_underspec sh #(1.0R) #nthr;
+ 
   (* create barrier token *)
   B.mk_barrier nthr _ _
     (FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid);
@@ -429,13 +406,8 @@ fn block_setup
 
   (* consolidate permissions under a single forall+ *)
   forevery_zip
-    (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)
+    (fun tid -> live_c_shmems sh #(recip nthr))
     (fun tid ->
-      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
-  forevery_zip
-    (fun tid -> exists* (x : seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)
-    (fun tid ->
-      (exists* (x : seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x) **
       FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
   forevery_zip #(natlt nthr)
     (fun tid -> kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) _;
@@ -489,25 +461,11 @@ fn block_teardown
     (fun tid -> kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
     _;
   forevery_unzip #(natlt nthr)
-    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst sh) #(recip nthr) x)))
-    _;
-  forevery_unzip #(natlt nthr)
-    (fun _tid -> ((exists* (x: seq et_ab). gpu_pts_to_array (fst (snd sh)) #(recip nthr) x)))
+    (fun _tid -> live_c_shmems sh #(recip nthr))
     _;
 
   (* Restore and give back ownership of shared memory arrays. *)
-  gpu_slice_gather_underspec (fst sh) 0 (bm*^bk) nthr;
-  gpu_slice_gather_underspec (fst (snd sh)) 0 (bk*^bn) nthr;
-
-  assert (exists* v. gpu_pts_to_array (fst sh) v);
-  rewrite (exists* v. gpu_pts_to_array (fst sh) v) as live_c_shmem (fst sh);
-  rewrite (exists* v. gpu_pts_to_array (fst (snd sh)) v) as live_c_shmem (fst (snd sh));
-  rewrite
-    live_c_shmem (fst sh) **
-    (live_c_shmem (fst (snd sh)) **
-     emp)
-    as
-    live_c_shmems sh;
+  gpu_live_c_shmems_gather_underspec sh #(1.0R) #nthr;
 
   (* Drop barrier token. *)
   drop_

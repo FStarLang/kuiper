@@ -413,11 +413,12 @@ fn block_teardown
     gpu_pts_to_slice_sum a 0 (v lena) va vr);
 }
 
+
 inline_for_extraction noextract
 let kernel
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp { lena < max_threads })
-  (a : gpu_array et lena)
+  (a : gpu_array et lena { is_global_array a })
   (#va : erased (seq et))
   (#vr : erased (seq real) { va %~ vr })
   (#_ : squash (Seq.length va == SZ.v lena))
@@ -433,26 +434,31 @@ let kernel
   kpost = kpost lena a va vr;
   kpre =  kpre lena a va vr;
   frame = emp;
+  kpre_sendable=solve;
+  kpost_sendable=solve;
+  full_post_sendable=solve;
+  full_pre_sendable=solve
 }
 
 inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp { lena < max_threads })
-  (a : gpu_array et lena)
+  (a : gpu_array et lena { is_global_array a })
   (#va : erased (seq et))
   (#vr : erased (seq real) { va %~ vr })
   requires
     cpu **
-    (a |-> va)
+    on gpu_loc (a |-> va)
   ensures
     cpu **
     (exists* (va' : seq et{Seq.length va' > 0}).
-      gpu_pts_to_array a va' **
+      on gpu_loc (a |-> va') **
       pure ((va' @! 0) `approximates` seq_fold_left (+.) 0.0R vr))
 {
-  gpu_pts_to_ref a; (* recall length, automate *)
+  gpu_pts_to_ref_located a; (* recall length, automate *)
   launch_sync (kernel lena a #va #vr);
-  unfold gpu_pts_to_slice_sum a 0 lena va vr;
-  ()
+  reduce_with_steps
+    (on gpu_loc (gpu_pts_to_slice_sum a 0 lena va vr))
+    [delta_only [`%gpu_pts_to_slice_sum]];
 }

@@ -61,7 +61,8 @@ let clayout4_bij
 // FIXME: The VC for this definition is huge. It's incredible
 // we can actually print it out and solve it. Try to make
 // sense of it and report bug in F*.
-#push-options "--z3rlimit 50 --split_queries always"
+#push-options "--z3rlimit 50 --split_queries always --fuel 0 --ifuel 1"
+#restart-solver
 inline_for_extraction noextract
 instance cview_from_clayout4
   (et : Type)
@@ -93,6 +94,14 @@ let gpu_matrix
   : Type0
   = A.varray (aview_from_mlayout et l)
 
+let is_global_matrix 
+  (#et : Type0)
+  (#mrows #mcols #brows #bcols : nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (gm : gpu_matrix et l)
+: prop
+= A.is_global_varray gm
+
 let from_array l p = A.from_array (aview_from_mlayout _ l) p
 let core g = A.core g
 
@@ -122,6 +131,16 @@ let gpu_matrix_pts_to
   (em : _)
   : slprop
   = A.varray_pts_to gm #f em
+
+
+instance is_send_across_gpu_matrix_pts_to
+  (#et:Type) (#mrows #mcols #brows #bcols : nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (#gm : gpu_matrix et l { is_global_matrix gm })
+  (#[T.exact (`1.0R)] f : perm)
+  (#em : ematrix4 et mrows mcols brows bcols)
+: is_send_across gpu_of (gpu_matrix_pts_to gm #f em)
+= solve
 
 ghost
 fn gpu_matrix_pts_to_ref
@@ -220,12 +239,18 @@ fn gpu_matrix_alloc0
   returns
     gm : gpu_matrix et l
   ensures
-    exists* em. gm |-> em
+    exists* em. on gpu_loc (gm |-> em)
+  ensures
+    pure (is_global_matrix gm)
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (mrows *^ brows *^ mcols *^ bcols) (aview_from_mlayout et l);
-  with s. assert (A.varray_pts_to gm #1.0R s);
-  fold gpu_matrix_pts_to gm s;
+  with s. assert (on gpu_loc (A.varray_pts_to gm #1.0R s));
+  map_loc gpu_loc 
+  #(A.varray_pts_to gm #1.0R s)
+  #(gpu_matrix_pts_to gm s)
+  fn () { fold gpu_matrix_pts_to gm s };
+  assume_ (pure (is_global_matrix gm));
   gm;
 }
 
@@ -239,10 +264,9 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em) 
   ensures emp
 {
-  unfold gpu_matrix_pts_to gm em;
   A.varray_free gm;
 }
 
@@ -537,18 +561,21 @@ fn gpu_matrix_from_array
     (* silly, but this shows that the multiplication below does not overflow.
     If we had a mul_underspec, we would not need this, I think. *)
     pure (mlayout_size l > 0) **
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
-    (gm |-> from_seq l s)
+    on gpu_loc (gm |-> from_seq l s)
 {
   Pulse.Lib.Vec.pts_to_len a;
   assert (pure (SZ.fits (mlayout_size l)));
-  unfold gpu_matrix_pts_to gm #1.0R em;
+  // unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
-  fold gpu_matrix_pts_to gm #1.0R (from_seq l s);
+  map_loc gpu_loc 
+  #(A.varray_pts_to gm (View.from_seq (aview_from_mlayout et l) s))
+  #(gpu_matrix_pts_to gm #1.0R (from_seq l s))
+  fn () {  fold gpu_matrix_pts_to gm #1.0R (from_seq l s) };
 }
 
 inline_for_extraction noextract
@@ -561,7 +588,7 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == mlayout_size l})
   (#em : _)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     (* same *)
@@ -573,9 +600,10 @@ fn gpu_matrix_to_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   open FStar.SizeT;
-  unfold gpu_matrix_pts_to gm #1.0R em;
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_to_array #_ #_ sz a gm;
   to_seq_rel l em;
-  fold gpu_matrix_pts_to gm #1.0R em;
+  with p. assert (on gpu_loc p);
+  map_loc gpu_loc #p #(gpu_matrix_pts_to gm #1.0R em)
+    fn () { fold gpu_matrix_pts_to gm #1.0R em }
 }

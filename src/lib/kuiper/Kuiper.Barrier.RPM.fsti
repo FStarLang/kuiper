@@ -36,6 +36,13 @@ val mbarrier_tok
   (tid : natlt n)
   : slprop
 
+instance val mbarrier_tok_sendable 
+  (n:nat)
+  (p : rpm_t n)
+  (it : nat)
+  (tid : natlt n)
+: is_send_across block_of (mbarrier_tok n p it tid)
+
 ghost
 fn mk_mbarrier
   (n: nat { 0 < n /\ n <= max_threads })

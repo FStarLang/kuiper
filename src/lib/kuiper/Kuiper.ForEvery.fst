@@ -214,7 +214,7 @@ fn forevery_insert
 {
   unfold (forall+ (x:a {f x}). p x); with s. _;
   aux_mono (fun (x:a) -> p x) (fun x -> f x \/ y == x) s
-    (fun x -> ~(eq2 #(x: a{f x \/ eq2 #a y x}) x y));
+    (fun x -> True /\ ~(eq2 #(x: a{f x \/ eq2 #a y x}) x y));
   fold forevery_aux #(x: a{f x \/ eq2 #a y x})
     (fun x -> p x) (Insert s) (fun x -> True);
   fold (forall+ (x:a {f x \/ y == x}). p x);
@@ -236,7 +236,7 @@ fn forevery_fill
 {
   unfold (forall+ (x:a {f x}). p x); with s. _;
   aux_mono (fun (x:a) -> p x) (fun x -> f x \/ pred x) s
-    (fun x -> ~(pred x));
+    (fun x -> True /\ ~(pred x));
   forallm_intro #(x: a{f x \/ pred x}) pred (fun x -> p x) g;
   fold forevery_aux #(x: a{f x \/ pred x})
     (fun x -> p x) (Fill s) (fun x -> True);
@@ -412,8 +412,18 @@ fn forevery_map
   forevery_refine_ext (fun _ -> True) p2;
 }
 
-
 ghost
+fn rewrite_cond_ext (p:prop) (s1 s2:slprop) (q:prop)
+requires
+  cond (t2b p) s1 s2
+requires
+  (pure (p <==> q))
+ensures cond (t2b q) s1 s2
+{ 
+  rewrite cond (t2b p) s1 s2 as cond (t2b q) s1 s2
+}
+
+ghost 
 fn forevery_remove'
   (#a: Type0)
   (f: a->prop)
@@ -428,6 +438,7 @@ fn forevery_remove'
 {
   forevery_intro_false p;
   intro_cond_false (p y) emp; rewrite each false as t2b False;
+  forevery_refine_ext #_ #(fun _ -> l_False) (fun z -> f z /\ ~(z == y) /\ l_False) p;
   forevery_rec #(x:a{f x}) p (fun pred ->
       cond (t2b (pred y)) (p y) emp **
       forall+ (z:a { f z /\ z =!= y /\ pred z }). p z)
@@ -451,6 +462,7 @@ fn forevery_remove'
         assert rewrites_to y x;
         elim_cond_false (t2b (pred y)) (p y) emp;
         rewrite p x as cond (t2b (pred x \/ x == y)) (p y) emp;
+        rewrite_cond_ext _ _ _ (pred x \/ eq2 #(x:a{f x}) x x);
         forevery_refine_ext (fun (z: a) -> f z /\ ~(z == y) /\ (pred z \/ eq2 #(x:a{f x}) x z)) p;
       } else {
         forevery_insert p x;
@@ -459,6 +471,7 @@ fn forevery_remove'
         as cond (t2b (pred y \/ eq2 #(x:a{f x}) x y)) (p y) emp;
       }
     };
+  forevery_refine_ext #_ #(fun z -> f z /\ ~(z == y) /\ l_True) (fun z -> f z /\ ~(z == y)) p;
   elim_cond_true _ (p y) emp;
 }
 
@@ -484,7 +497,7 @@ fn forevery_intro_fill (#a: Type0) (p: a -> slprop)
     forall+ x. p x
 {
   forevery_intro_false p;
-  forevery_fill p (fun _ -> True) fn x { f x };
+  forevery_fill p (fun _ -> True) fn x { f x }
 }
 
 ghost
@@ -2166,6 +2179,84 @@ fn forevery_join_or_n
     forall+ (x:a {exists i. r i x}). p x;
 }
 
+ghost
+fn on_forevery_elim (#a: Type0) (p: a -> slprop) (l: loc_id) 
+  requires
+    on l (forall+ (x:a). p x)
+  ensures
+    forall+ (x:a). on l (p x)
+{
+  loc_get (); with l0. assert loc l0;
+  ghost_impersonate l (on l (forall+ x. p x)) (on l0 (forall+ x. on l (p x))) fn _ {
+    on_elim _;
+    ghost_impersonate l0 emp (on l0 (forall+ (x: a {False}). on l (p x))) fn _ {
+      forevery_intro_false (fun x -> on l (p x));
+      on_intro (forall+ (x:a{False}). on l (p x));
+    };
+    forevery_rec p
+      (fun ref -> loc l ** on l0 (forall+ (x:a{ref x}). on l (p x)))
+      fn pred add f {
+        ghost_impersonate l0 (on l0 (forall+ (x:a{pred x}). on l (p x)))
+            (on l0 (forall+ (x:a{pred x \/ add x}). on l (p x))) fn _ {
+          on_elim _;
+          forevery_fill (fun x -> on l (p x)) add fn x {
+            ghost_impersonate l emp (on l (p x)) fn _ {
+              f x;
+              on_intro (p x)
+            }
+          };
+          on_intro (forall+ (x:a{pred x \/ add x}). on l (p x));
+        }
+      }
+      fn pred z {
+        on_intro (p z);
+        ghost_impersonate l0
+          (on l (p z) ** on l0 (forall+ (x: a{pred x}). on l (p x)))
+          (on l0 (forall+ (x: a{pred x \/ z == x}). on l (p x)))
+          fn _ {
+            on_elim (forall+ (x:a{pred x}). on l (p x));
+            forevery_insert (fun x -> on l (p x)) z;
+            on_intro (forall+ (x:a{pred x \/ z == x}). on l (p x));
+          };
+      };
+  };
+  on_elim _;
+  drop_ (loc l0)
+}
+
+ghost
+fn is_send_across_forevery
+  (#a:Type u#0) (#b:Type) (p: a -> slprop) (vis:loc_id -> b) {| sa: (x:a -> is_send_across vis (p x)) |} :
+  is_send_across vis (forall+ x. p x) = l1 l2
+{
+  ghost_impersonate l1 (on l1 (forall+ x. p x)) (on l2 (forall+ x. p x)) fn _ {
+    on_elim _;
+    ghost_impersonate l2 emp (on l2 (forall+ (x: a {False}). p x)) fn _ {
+      forevery_intro_false (fun x -> p x);
+      on_intro (forall+ (x:a{False}). p x);
+    };
+    forevery_rec p (fun ref -> loc l1 ** on l2 (forall+ (x: a { ref x }). p x))
+      fn pred add f {
+        ghost_impersonate l2 (on l2 (forall+ (x: a { pred x }). p x))
+            (on l2 (forall+ (x: a { pred x \/ add x }). p x)) fn _ {
+          on_elim (forall+ (x: a { pred x }). p x);
+          forevery_fill p add fn z { f z };
+          on_intro (forall+ (x: a { pred x \/ add x }). p x);
+        }
+      }
+      fn pred z {
+        on_intro (p z);
+        sa z l1 l2;
+        ghost_impersonate l2 (on l2 (p z) ** on l2 (forall+ (x: a { pred x }). p x))
+            (on l2 (forall+ (x: a { pred x \/ z == x }). p x)) fn _ {
+          on_elim (p z);
+          on_elim (forall+ (x: a { pred x }). p x);
+          forevery_insert p z;
+          on_intro (forall+ (x: a { pred x \/ z == x }). p x);
+        }
+      };
+  }
+}
 
 ghost
 fn forevery_factor_2

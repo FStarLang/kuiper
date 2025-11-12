@@ -28,6 +28,8 @@ new
 inline_for_extraction
 val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
 
+val is_global_varray (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
+
 inline_for_extraction noextract
 val from_array
   (#a : Type0)
@@ -47,14 +49,14 @@ val lem_from_array_core
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (arr : varray vw)
-  : Lemma (ensures from_array vw (core arr) == arr)
+  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_varray arr))
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (p : gpu_array a (len vw))
-  : Lemma (ensures core (from_array vw p) == p)
+  : Lemma (ensures core (from_array vw p) == p /\ (is_global_varray (from_array vw p) <==> is_global_array p))
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -92,6 +94,16 @@ val varray_pts_to
   (v : st)
   : slprop
 
+instance
+val is_send_across_global_varray
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x: varray vw { is_global_varray x })
+  (#f : perm)
+  (v : st)
+  : Pulse.Lib.SendSync.is_send_across gpu_of (varray_pts_to x #f v)
+  
 unfold
 instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)
   : has_pts_to (varray vw) st = {
@@ -349,8 +361,9 @@ fn varray_alloc0
   returns
     a : varray vw
   ensures
-    exists* v. a |-> v
-
+    exists* v. on gpu_loc (a |-> v)
+  ensures pure (is_global_varray a)
+  
 inline_for_extraction noextract
 fn varray_free
   (#et : Type0) (#st : Type0)
@@ -360,7 +373,7 @@ fn varray_free
   preserves
     cpu
   requires
-    a |-> v
+    on gpu_loc (a |-> v)
   ensures emp
 
 ghost
@@ -532,7 +545,6 @@ fn varray_write_cell
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -548,8 +560,6 @@ fn varray_write_cell'
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -565,8 +575,6 @@ fn varray_read_cell
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     varray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -585,8 +593,6 @@ fn varray_read_cell'
   (ai : erased vw.iview.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -606,7 +612,6 @@ fn varray_read
   (#f : perm)
   (#v : erased st)
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -622,12 +627,10 @@ fn varray_write
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : erased st)
-  preserves
-    gpu
   requires
     a |-> v0
   ensures
-    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e
+    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e //TODO: consider rebinding this
 
 inline_for_extraction noextract
 fn varray_from_array
@@ -642,10 +645,10 @@ fn varray_from_array
     a |-> s **
     cpu
   requires
-    va |-> v
+    on gpu_loc (va |-> v)
   ensures
     pure (Pulse.Lib.Vec.length a == len vw) **
-    (va |-> from_seq vw s)
+    on gpu_loc (va |-> from_seq vw s)
 
 inline_for_extraction noextract
 fn varray_to_array
@@ -657,7 +660,7 @@ fn varray_to_array
   (#s : erased (seq et){Seq.length s == len vw})
   (#v : erased st)
   preserves
-    va |-> v **
+    on gpu_loc (va |-> v) **
     cpu
   requires
     a |-> s

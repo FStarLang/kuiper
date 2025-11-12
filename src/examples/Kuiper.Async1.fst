@@ -21,12 +21,15 @@ fn kernel_f (r : gpu_ref u64) (#v : erased u64)
 inline_for_extraction noextract
 let kernel (r : gpu_ref u64) (#v : erased u64)
   : kernel_desc _ _
-  = { f = kernel_f r #v } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
+  = { f = kernel_f r #v;
+      full_post_sendable = solve;
+      full_pre_sendable = solve
+    } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
 
 fn galloc (x : u64)
-  requires cpu
+  preserves cpu
   returns  r : gpu_ref u64
-  ensures  cpu ** r |-> x
+  ensures  on gpu_loc (r |-> x)
 {
   let mut r = x;
   let gr = gpu_alloc0 #u64 ();
@@ -35,9 +38,10 @@ fn galloc (x : u64)
 }
 
 fn gread (gr : gpu_ref u64) (#v0 : erased u64)
-  requires cpu ** gr |-> v0
+  preserves cpu 
+  requires on gpu_loc (gr |-> v0)
   returns  v : u64
-  ensures  cpu ** gr |-> v ** pure (v == v0)
+  ensures  on gpu_loc (gr |-> v) ** pure (v == v0)
 {
   let mut r = 0uL;
   Kuiper.Ref.gpu_memcpy_device_to_host r gr;
@@ -73,12 +77,12 @@ fn main (_:unit)
   let r6 = galloc 6uL;
 
   let _ = get_epoch ();
-  launch (kernel r1);
-  launch (kernel r2);
-  launch (kernel r3);
-  launch (kernel r4);
-  launch (kernel r5);
-  launch (kernel r6);
+  launch (kernel r1 #1uL); //typeclass resolution doesn't resolve the implicit
+  launch (kernel r2 #2uL);
+  launch (kernel r3 #3uL);
+  launch (kernel r4 #4uL);
+  launch (kernel r5 #5uL);
+  launch (kernel r6 #6uL);
 
   sync_device ();
 
