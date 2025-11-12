@@ -16,11 +16,9 @@ let sz_fits (x:int) = 0 <= x /\ x < 4294967296
 inline_for_extraction noextract
 fn spec
   (bm bn bk : szp)
-  // These are fixed, by this function, to column-major and row-major
-  // respectively, which is the more efficient thing to do.
-  // (slA : full_mlayout bm bk)
-  // (slB : full_mlayout bk bn)
-  // {| clayout slA, clayout slB |}
+  (slA : full_mlayout bm bk)
+  (slB : full_mlayout bk bn)
+  {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
   (#_ : squash (sz_fits (bm*bk + (bm/tm * (bn/tn)))))

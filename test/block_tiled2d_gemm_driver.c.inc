@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     cudaMemcpy(m2, m2_cpu, shared * cols * sizeof(et), cudaMemcpyHostToDevice);
     cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
 
-#define F TOKENPASTE5(stem, et_lbl, tile_sizes, regch_sizes, layouts)
+#define F TOKENPASTE5(stem, et_lbl, layouts, tile_sizes, regch_sizes)
 #define STR(x) #x
 #define XSTR(x) STR(x)
 
