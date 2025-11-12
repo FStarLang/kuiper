@@ -478,10 +478,40 @@ fn subproducts_tc_2d
   ()
 }
 
-#push-options "--z3rlimit 80"
+let em_fade_tiles
+  (tm tn wm wn : pos)
+  (idxI : natle wm)
+  (idxJ : natle wn)
+  (rm1 rm2 : ematrix real (wm*tm) (wn*tn))
+: ematrix real (wm*tm) (wn*tn)
+=
+  ematrix_from_tiles tm tn (fun i j ->
+    let flat_idx = i * wn + j in
+    let num_copied = idxI * wn + idxJ in
+    if flat_idx < num_copied
+    then ematrix_subtile rm2 tm tn i j
+    else ematrix_subtile rm1 tm tn i j)
+
+let lemma_update_tile_fade_approximates
+  (#et : Type0) {| scalar et, real_like et|}
+  (tm tn wm wn : pos)
+  (idxI : natlt wm)
+  (idxJ : natlt wn)
+  (em : ematrix et (wm*tm) (wn*tn))
+  (etile : ematrix et tm tn)
+  (rm1 rm2 : ematrix real (wm*tm) (wn*tn))
+: Lemma
+  (requires
+    (em %~ (em_fade_tiles tm tn wm wn idxI idxJ rm1 rm2)) /\
+    (etile %~ (ematrix_subtile rm2 tm tn idxI idxJ)))
+  (ensures (update_tile em tm tn idxI idxJ etile) %~ (em_fade_tiles tm tn wm wn idxI (idxJ + 1) rm1 rm2))
+=
+  admit()
+
+#push-options "--debug SMTFail --split_queries always --z3rlimit 80"
 inline_for_extraction noextract
 fn epilogue
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, real_like et |}
   (#rows : erased nat)
   // cols is concretized so using size is more succinct
   (#cols : sz)
@@ -492,55 +522,58 @@ fn epilogue
   (#_ : squash (bn /?+ cols))
   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
   (accumFrags : array (fragment et FragAcc tm tn tk FragLAcc))
-  (#emAccumFrags: erased (seq (ematrix et tm tn)))
+  (rAcc : ematrix real (wm*tm) (wn*tn))
   (gC : gpu_matrix et (R.row_major rows cols))
+  // (#eC : ematrix et rows cols)
+  (rC : ematrix real rows cols)
   (#_ : squash (SZ.fits (rows * cols)))
   (bid : szlt (rows/bm * (cols/bn)))
   (wid : szlt (bm/(wm*tm) * (bn/(wn*tn))))
+  (#_ : squash (Pulse.Lib.Array.length accumFrags == wm*wn))
   preserves
-    gpu
+    gpu **
+    fragarrayAcc_approximates wm wn accumFrags rAcc
   requires
     pure (SZ.fits (wm * wn)) **
-    pure (length accumFrags == wm * wn) **
-    (exists* tC.
-      warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC) **
-    array_fragment_pts_to accumFrags emAccumFrags
+    (exists* eWarpTile. warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile)
   ensures
-    (exists* tC.
-      warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC) **
-    (exists* emAccumFrags'.
-      array_fragment_pts_to accumFrags emAccumFrags')
+    warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc
 {
+  with (eWarpTile : ematrix _ _ _). assert warp_tile_pts_to gC (v bm) (v bn) (v tm) (v tn) (v wm) (v wn) (v bid) (v wid) eWarpTile;
+  let rWarpTile = to_real_matrix eWarpTile;
+
+  lemma_to_real_matrix_approximates eWarpTile;
+  assert pure (eWarpTile %~ rWarpTile);
+  assert pure (eWarpTile %~ ematrix_from_tiles tm tn (ematrix_subtile rWarpTile tm tn));
+  assert pure (eWarpTile %~ em_fade_tiles tm tn wm wn 0 0 rWarpTile rAcc);
+
   let mut i = 0sz;
   while ((!i <^ wm))
-    invariant live i ** pure (!i <=^ wm)
     invariant
-      exists* tC.
-        warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC
+      live i
+    invariant
+      exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
+        warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
+          pure (!i <= wm /\
+            eWarpTile %~ (em_fade_tiles tm tn wm wn !i 0 rWarpTile rAcc))
   {
     let mut j = 0sz;
     while ((!j <^ wn))
-      invariant live j ** pure (!j <=^ wn)
+      invariant live j
       invariant
-        exists* tC.
-          warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC
+        exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
+          warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
+            pure (!i <= wm /\ !j <= wn /\
+              eWarpTile %~ (em_fade_tiles tm tn wm wn !i !j rWarpTile rAcc))
     {
-      with tC. assert warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC;
-      unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC;
+      with eWarpTile. assert warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile;
+      unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile;
 
-      // TODO does this create more pointer arithmetic than necessary?
-      // tile in gC with all values that are computed by the warp
-      // will be tiled into tiles for tensor core operations
       let tile_for_tc_tiles = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (wm*tm) (wn*tn) (SZ.v wid);
       rewrite each _ as tile_for_tc_tiles;
 
-      // gpu_matrix_extract_tile tile_for_tc_tiles tm tn !i !j;
-      let tc_tile = gpu_matrix_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j); //!i !j;
+      let tc_tile = gpu_matrix_extract_tile_st tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
 
-      // gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j);
-      // rewrite each (gpu_matrix_subtile tile_for_tc_tiles (SZ.v tm) (SZ.v tn) (SZ.v !i) (SZ.v !j)) as tc_tile;
-
-      with emAccumFrags. assert accumFrags `array_fragment_pts_to` emAccumFrags;
       let vi = !i;
       let vj = !j;
       let eidx : erased nat = vi * wn + vj;
@@ -551,21 +584,35 @@ fn epilogue
       assert pure (SZ.fits eidx);
       let idx = !i *^ wn +^ !j;
 
+      unfold fragarrayAcc_approximates wm wn accumFrags rAcc;
+      with eAccumFrags. assert accumFrags `array_fragment_pts_to` eAccumFrags;
+
       array_fragment_pts_to_ref accumFrags;
       array_fragment_extract_ro accumFrags idx;
       mma_store accumFrags.(idx) tc_tile;
 
-      Pulse.Lib.Forall.elim_forall (Seq.Base.index emAccumFrags idx);
+      Pulse.Lib.Forall.elim_forall (Seq.Base.index eAccumFrags idx);
       ambig_trade_elim ();
       ambig_trade_elim ();
+      fold fragarrayAcc_approximates wm wn accumFrags rAcc;
 
       rewrite each tile_for_tc_tiles as _;
-      with tC'. fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid tC';
+      with eWarpTile'. fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile';
+
+      lemma_update_tile_fade_approximates tm tn wm wn !i !j eWarpTile (eAccumFrags @! idx) rWarpTile rAcc;
+
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
   };
 
+  with eWarpTile'.
+    assert (warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile');
+  assert pure (eWarpTile' %~ (em_fade_tiles tm tn wm wn wm wn rWarpTile rAcc));
+  assert pure (eWarpTile' %~ (ematrix_from_tiles tm tn (ematrix_subtile rAcc tm tn)));
+  assert pure (eWarpTile' %~ rAcc);
+
+  fold warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc;
   ()
 }
 #pop-options
