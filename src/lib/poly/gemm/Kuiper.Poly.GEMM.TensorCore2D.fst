@@ -527,7 +527,6 @@ fn epilogue
   (rAcc : ematrix real (wm*tm) (wn*tn))
   (gC : gpu_matrix et (R.row_major rows cols))
   // (#eC : ematrix et rows cols)
-  (rC : ematrix real rows cols)
   (#_ : squash (SZ.fits (rows * cols)))
   (bid : szlt (rows/bm * (cols/bn)))
   (wid : szlt (bm/(wm*tm) * (bn/(wn*tn))))
@@ -853,47 +852,59 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
+  let rAcc : ematrix real (wm*tm) (wn*tn) =
+    MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+              (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
+  with em. assert accFrags |-> em;
+  array_fragment_pts_to_ref accFrags;
+  assert pure (Seq.length em == wm*wn);
+  assume pure (forall (i : natlt wm) (j : natlt wn).
+                (em @! (i * wn + j)) %~ (ematrix_subtile rAcc tm tn i j));
+  fold fragarrayAcc_approximates wm wn accFrags rAcc;
+
   with em1. unfold FB.bp_sharing sA em1 nthr;
   with em2. unfold FB.bp_sharing sB em2 nthr;
 
   rewrite each (tid / 32) as wid;
-  epilogue bm bn bk tm tn tk wm wn accFrags gC bid wid;
+  epilogue bm bn bk tm tn tk wm wn accFrags rAcc gC bid wid;
   rewrite each v wid as (tid / 32);
 
   with vaFrags. assert aFrags |-> vaFrags; drop_ (aFrags |-> vaFrags);
   with vbFrags. assert bFrags |-> vbFrags; drop_ (bFrags |-> vbFrags);
+  unfold fragarrayAcc_approximates wm wn accFrags rAcc;
   with vaccumFrags. assert accFrags |-> vaccumFrags; drop_ (accFrags |-> vaccumFrags);
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  rewrite
-    B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid)
-      (FB.barrier_q eA eB sA sB nthr bid)
-      (2 * v !bkIdx)
-      (v tid)
-  as
-    B.barrier_tok (FB.barrier_p eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
-          (from_array (R.row_major (v bk) (v bn)) sarB)
-          nthr bid)
-      (FB.barrier_q eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
-          (from_array (R.row_major (v bk) (v bn)) sarB)
-          nthr bid)
-      (2 * (shared / bk))
-      (v tid);
-  fold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr bid tid;
+  #set-options "--z3rlimit 100 --retry 3" {
+    rewrite
+      B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid)
+        (FB.barrier_q eA eB sA sB nthr bid)
+        (2 * v !bkIdx)
+        (v tid)
+    as
+      B.barrier_tok (FB.barrier_p eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
+            (from_array (R.row_major (v bk) (v bn)) sarB)
+            nthr bid)
+        (FB.barrier_q eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
+            (from_array (R.row_major (v bk) (v bn)) sarB)
+            nthr bid)
+        (2 * (shared / bk))
+        (v tid);
+    fold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr bid tid;
+  };
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
 
-  // Assumming functional correctness
-  with tC'.
-    assert warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) tC';
-  assume pure (tC' %~ MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                                (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))));
-  fold warp_tile_approximates gC bm bn tm tn wm wn bid (tid / warp_size)
-        (MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
-                  (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size))));
+  // Silly.
+  rewrite each rAcc
+    as MS.matmul (ematrix_subtile rA (wm*tm) shared
+            (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
+          (ematrix_subtile rB shared (wn*tn)
+            0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
+
   fold_c_shmems sh (`%shmems_desc);
   ()
 }
