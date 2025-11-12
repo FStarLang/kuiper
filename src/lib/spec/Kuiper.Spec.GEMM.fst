@@ -331,6 +331,98 @@ let matmul_decompose_lemma
       trows tcolumns
       i j)
 
+let rec __matmul_single_subtile_lemma'
+  (#et : Type) {| scalar et |}
+  (pf2 : (x: et -> squash (add x zero == x /\ add zero x == x)))
+  (pf3 : (x: et -> y: et -> z: et -> squash (add x (add y z) == add (add x y) z)))
+  (#rows : nat)
+  (#columns : nat)
+  (#shared : pos)
+  (trows : pos{trows /? rows})
+  (tcols : pos{tcols /? columns})
+  (tshared : pos{tshared /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (i : nat{i < rows / trows})
+  (j : nat{j < columns / tcols})
+  (i' : natlt trows)
+  (j' : natlt tcols)
+  (to : natle (shared / tshared) { 0 < to })
+  (k: natle tshared)
+: Lemma
+      (
+          add (__matmul_single (ematrix_subtile m1 trows shared i 0)
+              (ematrix_subtile m2 shared tcols 0 j)
+              i'
+              j'
+              ((to - 1) * tshared))
+          (__matmul_single
+            (ematrix_subtile m1 trows tshared i (to - 1))
+            (ematrix_subtile m2 tshared tcols (to - 1) j)
+            i'
+            j'
+            k) ==
+      __matmul_single (ematrix_subtile m1 trows shared i 0)
+          (ematrix_subtile m2 shared tcols 0 j)
+          i'
+          j'
+          ((to - 1) * tshared + k)
+      )
+= let m1' = (ematrix_subtile m1 trows tshared i (to - 1)) in
+  let m2' = (ematrix_subtile m2 tshared tcols (to - 1) j) in
+  let m10 = (ematrix_subtile m1 trows shared i 0) in
+  let m20 = (ematrix_subtile m2 shared tcols 0 j) in
+  let x = __matmul_single m10 m20 i' j' ((to - 1) * tshared) in
+  if k = 0
+  then begin
+    matmul_zero_lemma m1' m2' i' j';
+    pf2 x
+  end
+  else begin
+    matmul_single_lemma m1' m2' i' j' k;
+    matmul_single_lemma m10 m20 i' j' ((to - 1) * tshared + k);
+    pf3 x (__matmul_single m1' m2' i' j' (k - 1)) (mul (macc m1' i' (k-1)) (macc m2' (k-1) j'));
+    __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to (k - 1)
+  end
+
+let __matmul_single_subtile_lemma
+  (#et : Type) {| scalar et |}
+  (pf2 : (x: et -> squash (add x zero == x /\ add zero x == x)))
+  (pf3 : (x: et -> y: et -> z: et -> squash (add x (add y z) == add (add x y) z)))
+  (#rows : nat)
+  (#columns : nat)
+  (#shared : pos)
+  (trows : pos{trows /? rows})
+  (tcols : pos{tcols /? columns})
+  (tshared : pos{tshared /? shared})
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (i : nat{i < rows / trows})
+  (j : nat{j < columns / tcols})
+  (i' : natlt trows)
+  (j' : natlt tcols)
+  (to : natle (shared / tshared) { 0 < to })
+: Lemma
+      (
+          add (__matmul_single (ematrix_subtile m1 trows shared i 0)
+              (ematrix_subtile m2 shared tcols 0 j)
+              i'
+              j'
+              ((to - 1) * tshared))
+          (macc (matmul (macc (ematrix_tiled m1 trows tshared) i (to - 1))
+                  (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
+              i'
+              j') ==
+      __matmul_single (ematrix_subtile m1 trows shared i 0)
+          (ematrix_subtile m2 shared tcols 0 j)
+          i'
+          j'
+          (to * tshared)
+      )
+= __matmul_single_subtile_lemma' pf2 pf3 trows tcols tshared m1 m2 i j i' j' to tshared
+
+#restart-solver
+
 let rec __matmul_tiles_lemma
   (#et : Type) {| scalar et |}
   (pf1 : (x:et -> y:et -> squash (add x y == add y x)))  // add is commutative
@@ -422,7 +514,7 @@ let rec __matmul_tiles_lemma
                 (macc (ematrix_tiled m1 trows tshared) i (to - 1))
                 (macc (ematrix_tiled m2 tshared tcols) (to - 1) j))
               i' j');
-        == { admit() }
+        == { __matmul_single_subtile_lemma pf2 pf3 trows tcols tshared m1 m2 i j i' j' to }
         macc acc i' j'
         `add` __matmul_single (ematrix_subtile m1 trows shared i 0) (ematrix_subtile m2 shared tcols 0 j) i' j' (to * tshared);
       }
