@@ -1,4 +1,5 @@
 #include "Kuiper_AtomicReduce.h"
+#include "kuiper.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>

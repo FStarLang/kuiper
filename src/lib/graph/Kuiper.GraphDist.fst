@@ -73,6 +73,7 @@ instance scalar_dist : scalar dist = {
 
 // let mult_dist = P.mmcomb_gpu #dist #scalar_dist
 
+noextract // Disabled, extraction seems to diverge
 fn matmul_dist_gpu
   (#size : szp)
   (a : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix a })
