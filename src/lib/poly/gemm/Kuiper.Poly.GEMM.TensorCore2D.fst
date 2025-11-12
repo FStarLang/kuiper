@@ -492,6 +492,7 @@ let em_fade_tiles
     then ematrix_subtile rm2 tm tn i j
     else ematrix_subtile rm1 tm tn i j)
 
+#push-options "--z3rlimit 80 --split_queries always"
 let lemma_update_tile_fade_approximates
   (#et : Type0) {| scalar et, real_like et|}
   (tm tn wm wn : pos)
@@ -506,7 +507,8 @@ let lemma_update_tile_fade_approximates
     (etile %~ (ematrix_subtile rm2 tm tn idxI idxJ)))
   (ensures (update_tile em tm tn idxI idxJ etile) %~ (em_fade_tiles tm tn wm wn idxI (idxJ + 1) rm1 rm2))
 =
-  admit()
+  () // would be nice to spell it out probably
+#pop-options
 
 #push-options "--debug SMTFail --split_queries always --z3rlimit 80"
 inline_for_extraction noextract
