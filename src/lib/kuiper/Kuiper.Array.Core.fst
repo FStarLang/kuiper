@@ -17,7 +17,6 @@ open Kuiper.Divides { (/?+) }
 open Kuiper.ArrayCoreAssumptions
 module A = Pulse.Lib.Array
 module SZ = Kuiper.SizeT
-module SendSync = Pulse.Lib.SendSync
 
 assume
 val sized_types_inhabited (#a:Type) {| sized a |} : a
@@ -27,20 +26,6 @@ is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
 = is_send_across_pts_to_mask x f s mask
 
-
-//a trusted primitive to model gpu alloc, memcpy, shared memory allocation etc.
-//these are commands that can be run from the CPU but has effect at the gpu location
-fn __primitive__exec_on_gpu_loc
-  (#a:Type0) (#pre:slprop) (#post:a -> slprop)
-  {| placeless pre |} 
-  (placeless_post: (x:a -> placeless (post x)))
-  (l:loc_id)
-  (f: unit -> stt a (loc l ** pre) (fun x -> loc l ** post x))
-preserves cpu 
-requires pre
-returns x:a
-ensures post x
-{ admit() }
 
 let gpu_array (a : Type u#0) (sz : nat) : Type u#0 = A.larray a sz
 let loc_id_of_array #a #sz x = loc_id_of_array x
@@ -126,8 +111,6 @@ fn gpu_pts_to_slice_ref_anywhere
     }
 }
 
-let dummy = emp 
-
 noextract
 fn gpu_array_alloc_vis
   (#a : Type u#0)
@@ -148,17 +131,13 @@ fn gpu_array_alloc_vis
       loc_id_of_array x == l
     )
 {
-  fn aux ()
-  requires loc l ** dummy
-  returns  x : gpu_array a (SZ.v sz)
-  ensures loc l
-  ensures exists* (s:seq a). 
-    on l (gpu_pts_to_array x s) **
-    pure (Seq.length s == sz /\
-          visibility_of_array x == vis /\
-          loc_id_of_array x == l)
-  {
-    unfold dummy;
+  impersonate _ l emp (fun (x: gpu_array a (SZ.v sz)) ->
+    exists* (s:seq a). 
+      on l (gpu_pts_to_array x s) **
+      pure (Seq.length s == sz /\
+            visibility_of_array x == vis /\
+            loc_id_of_array x == l)) 
+  fn _ {
     let default_value : a = sized_types_inhabited;
     let x = mask_alloc_with_vis default_value sz vis;
     A.mask_mext x (mask_of 0 (SZ.v sz));
@@ -166,9 +145,7 @@ fn gpu_array_alloc_vis
     fold (gpu_pts_to_array _ _);
     on_intro #l (gpu_pts_to_array _ _);
     x
-  };
-  fold dummy;
-  __primitive__exec_on_gpu_loc (fun _ -> solve) l aux;
+  }
 }
 
 
@@ -202,21 +179,13 @@ fn gpu_array_free
   requires on gpu_loc (r |-> v)
   ensures  emp
 {
-  fn aux ()
-  requires loc gpu_loc
-  requires on gpu_loc (r |-> v)
-  ensures  loc gpu_loc
-  ensures dummy
-  {
+  impersonate unit gpu_loc (on gpu_loc (r |-> v)) (fun _ -> emp) fn _ {
     on_elim _;
     unfold gpu_pts_to_array;
     unfold gpu_pts_to_slice;
     A.mask_mext r (fun _ -> True);
     A.mask_free r;
-    fold dummy;
   };
-  __primitive__exec_on_gpu_loc (fun _ -> solve) gpu_loc aux;
-  unfold dummy;
 }
 
 [@@noextract_to "krml"]

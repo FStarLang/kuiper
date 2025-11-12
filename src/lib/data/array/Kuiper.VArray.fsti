@@ -102,7 +102,7 @@ val is_send_across_global_varray
   (x: varray vw { is_global_varray x })
   (#f : perm)
   (v : st)
-  : Pulse.Lib.SendSync.is_send_across gpu_of (varray_pts_to x #f v)
+  : is_send_across gpu_of (varray_pts_to x #f v)
   
 unfold
 instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)

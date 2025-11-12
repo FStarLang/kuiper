@@ -4,7 +4,6 @@ module Kuiper.SHMem
 
 open Pulse.Lib.Core
 open Pulse.Lib.Pervasives
-open Pulse.Lib.SendSync
 open Kuiper.Base
 open Kuiper.Array
 open FStar.Tactics.V2

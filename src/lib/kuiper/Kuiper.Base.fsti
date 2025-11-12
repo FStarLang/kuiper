@@ -4,8 +4,8 @@ module Kuiper.Base
 
 open FStar.Ghost
 open Pulse.Lib.Core
+include Pulse.Lib.Send
 open Pulse.Main
-open Pulse.Lib.SendSync
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 open Pulse.Lib.Array.Core { visibility }
@@ -131,7 +131,7 @@ fn map_loc (loc:loc_id) (#p #q:slprop) (f:unit -> stt_ghost unit emp_inames p (f
 requires on loc p
 ensures on loc q
 {
-  Pulse.Lib.SendSync.ghost_impersonate loc (on loc p) (on loc q) fn () {
+  ghost_impersonate loc (on loc p) (on loc q) fn () {
     on_elim p;
     f();
     on_intro q;

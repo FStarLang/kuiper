@@ -93,7 +93,7 @@ val is_send_across_global_matrix
   (x: gpu_matrix et l { is_global_matrix x })
   (#f : perm)
   (em : ematrix et rows cols)
-  : Pulse.Lib.SendSync.is_send_across gpu_of (gpu_matrix_pts_to x #f em)
+  : is_send_across gpu_of (gpu_matrix_pts_to x #f em)
 
 (* erased is important for the lens! *)
 unfold
@@ -377,12 +377,12 @@ instance is_send_across_global_matrix_pts_to_cell
   (i : natlt rows)
   (j : natlt cols)
   (v : et)
-: Pulse.Lib.SendSync.is_send_across gpu_of 
+: is_send_across gpu_of 
     (gpu_matrix_pts_to_cell gm #f i j v)
 = gpu_matrix_pts_to_cell_eq gm i j f v;
   let x = 
     solve 
-      #(Pulse.Lib.SendSync.is_send_across gpu_of       
+      #(is_send_across gpu_of       
         (gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v))
   in
   coerce_eq () x

@@ -55,7 +55,7 @@ instance is_send_across_global_matrix
   (x: gpu_matrix et l { is_global_matrix x })
   (#f : perm)
   (em : ematrix et rows cols)
-: Pulse.Lib.SendSync.is_send_across gpu_of (gpu_matrix_pts_to x #f em)
+: is_send_across gpu_of (gpu_matrix_pts_to x #f em)
 = solve
 
 ghost
