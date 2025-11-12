@@ -208,7 +208,7 @@ fn block_setup
 {
   no_mk_barrier ();
 }
-#push-options "--query_stats --fuel 0 --ifuel 0 --z3rlimit_factor 10 --debug SMTFail --split_queries no"
+#push-options "--query_stats --fuel 0 --ifuel 0"
 #restart-solver
 inline_for_extraction noextract
 let mk_kernel
