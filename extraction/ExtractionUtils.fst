@@ -16,6 +16,11 @@ open FStarC.Pprint
 open FStarC.Class.Show
 open FStarC.Class.PP
 
+instance showable_mlpattern : showable mlpattern = {
+  show = mlpattern_to_string;
+}
+instance pp_mlpattern : pretty mlpattern = pretty_from_showable
+
 let rec unmagic (e : mlexpr) : mlexpr =
   match e.expr with
   | MLE_Coerce (e, _, _) -> unmagic e
@@ -175,6 +180,9 @@ let collapse_tuple_proj (e : mlexpr) : mlexpr =
 let collapse_tuple_matches (e : mlexpr) : mlexpr =
   let rec subst1 (e0 : mlexpr) : mlexpr =
     match e0.expr with
+    (* let v = def in match v with ... 
+       ~>
+        match def with ... *)
     | MLE_Let ((NonRec, [{ mllb_name = v; mllb_def = def; }]), body) -> (
       let is_var v e =
         match (unmagic e).expr with
@@ -200,6 +208,69 @@ let collapse_tuple_matches (e : mlexpr) : mlexpr =
           let e' = ml_subst body v x in
           let e' = with_ty e0.mlty (MLE_Match (y, [p, None, e'])) in
           subst1 e'
+        | _ -> e0
+      )
+      | _ -> e0
+    )
+    | _ -> e0
+  in
+  ml_visit id subst1 e
+
+let dassert (b : bool) : unit =
+  if not b then
+    failwith "Assertion failed in ExtractionUtils.dassert"
+  else
+    ()
+
+(* As above, but for records. Somehow we now get record matches too
+after the location change. *)
+let collapse_record_matches (e : mlexpr) : mlexpr =
+  let rec subst1 (e0 : mlexpr) : mlexpr =
+    match e0.expr with
+    (* let v = def in match v with ... 
+       ~>
+        match def with ... *)
+    | MLE_Let ((NonRec, [{ mllb_name = v; mllb_def = def; }]), body) -> (
+      let is_var v e =
+        match (unmagic e).expr with
+        | MLE_Var v' -> v = v'
+        | _ -> false
+      in
+      match body.expr with
+      | MLE_Match (sc, _) when is_var v sc ->
+        subst1 <| ml_subst body v def
+      | _ -> e0
+    )
+
+    | MLE_Match (sc, [b]) -> (
+      let sc = unmagic sc in
+      // Format.print1 "Match on %s\n" (mlexpr_to_string sc);
+      // Format.print1 "branch = %s\n" (show b);
+      match sc.expr with
+      | MLE_Record (path, ty, flds) -> (
+        match b with
+        | MLP_Record (path', fld_pats), None, body ->
+          // Format.print1 "Collapsing record match on %s\n" (mlexpr_to_string sc);
+          dassert (path = path');
+          let rbody = alloc body in
+          List.iter2 (fun (fld_name, p) (fld_name', e) ->
+            dassert (fld_name = fld_name');
+            match p with
+            | MLP_Var v ->
+              let e' = ml_subst !rbody v e in
+              rbody := e'
+            | _ -> ()
+          ) fld_pats flds;
+          !rbody
+        
+        // [MLP_Var v1; MLP_Var v2], None, body ->
+        //   let e' = ml_subst body v1 x in
+        //   let e' = ml_subst e' v2 y in
+        //   e'
+        // | MLP_Record [MLP_Var v; p], None, body ->
+        //   let e' = ml_subst body v x in
+        //   let e' = with_ty e0.mlty (MLE_Match (y, [p, None, e'])) in
+        //   subst1 e'
         | _ -> e0
       )
       | _ -> e0
