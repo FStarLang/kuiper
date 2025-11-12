@@ -246,8 +246,8 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
      : kernel_desc_m_n full_pre full_post
 = //let open k <: kernel_desc_n full_pre full_post in; this causes pad_setup to fail!
-  let kpre_sendable : (i:natlt k.nthr -> is_send_across gpu_of (k.kpre i)) = k.kpre_sendable in
-  let kpost_sendable : (i:natlt k.nthr -> is_send_across gpu_of (k.kpost i)) = k.kpost_sendable in
+  [@@inline_let] let kpre_sendable : (i:natlt k.nthr -> is_send_across gpu_of (k.kpre i)) = k.kpre_sendable in
+  [@@inline_let] let kpost_sendable : (i:natlt k.nthr -> is_send_across gpu_of (k.kpost i)) = k.kpost_sendable in
   {
   nblk = sdivup k.nthr 1024sz;
   nthr = 1024sz;
@@ -330,8 +330,8 @@ inline_for_extraction noextract
 let km1_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_m_1 full_pre full_post)
      : kernel_desc_m_n full_pre full_post
-= let kpre_sendable : (i:natlt k.nblk -> is_send_across gpu_of (k.kpre i)) = k.kpre_sendable in
-  let kpost_sendable : (i:natlt k.nblk -> is_send_across gpu_of (k.kpost i)) = k.kpost_sendable in
+= [@@inline_let] let kpre_sendable : (i:natlt k.nblk -> is_send_across gpu_of (k.kpre i)) = k.kpre_sendable in
+  [@@inline_let] let kpost_sendable : (i:natlt k.nblk -> is_send_across gpu_of (k.kpost i)) = k.kpost_sendable in
   let open k <: kernel_desc_m_1 full_pre full_post in
   {
   nblk=k.nblk;
@@ -395,8 +395,8 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_1_n full_pre full_post)
      : kernel_desc_m_n full_pre full_post
 = let open k <: kernel_desc_1_n full_pre full_post in
-  let kpre_sendable : (i:natlt k.nthr -> is_send_across block_of (k.kpre i)) = k.kpre_sendable in
-  let kpost_sendable : (i:natlt k.nthr -> is_send_across block_of (k.kpost i)) = k.kpost_sendable in
+  [@@inline_let] let kpre_sendable : (i:natlt k.nthr -> is_send_across block_of (k.kpre i)) = k.kpre_sendable in
+  [@@inline_let] let kpost_sendable : (i:natlt k.nthr -> is_send_across block_of (k.kpost i)) = k.kpost_sendable in
   {
   nblk = 1sz;
   nthr = k.nthr;
@@ -462,8 +462,8 @@ let k11_as_k1n (#full_pre #full_post : slprop)
   (k : kernel_desc_1_1 full_pre full_post)
      : kernel_desc_1_n full_pre full_post
 = let open k <: kernel_desc_1_1 full_pre full_post in
-  let _ : is_send_across gpu_of full_pre = k.full_pre_sendable in
-  let _ : is_send_across gpu_of full_post = k.full_post_sendable in
+  [@@inline_let] let _ : is_send_across gpu_of full_pre = k.full_pre_sendable in
+  [@@inline_let] let _ : is_send_across gpu_of full_post = k.full_post_sendable in
   {
   nthr = 1sz;
 
