@@ -518,7 +518,7 @@ fn teardown
   admit();
 }
 
-#push-options "--query_stats --z3rlimit_factor 10 --fuel 0 --ifuel 0 --split_queries no"
+#push-options "--z3rlimit_factor 10 --fuel 0 --ifuel 0 --split_queries no"
 #restart-solver
 inline_for_extraction noextract
 let mk_kernel
