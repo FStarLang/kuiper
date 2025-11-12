@@ -25,19 +25,19 @@ fn array_fragment_extract
   (#m #n #k : nat)
   (#l : fragment_layout)
   (farr: array (fragment et knd m n k l))
-  // (#f : perm) // Assuming 1.0R for now
+  (#f : perm)
   (#ems : seq (value_for et knd m n k))
   (i : natlt (Seq.length ems))
   requires
-    array_fragment_pts_to farr ems
+    array_fragment_pts_to farr #f ems
   ensures
     exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
-      farr |-> s **
+      farr |-> Frac f s **
       (s @! i) |-> (ems @! i) **
       (forall* (em' : value_for et knd m n k).
-        (farr |-> s **
+        (farr |-> Frac f s **
          (s @! i) |-> em') @==>
-          array_fragment_pts_to farr (Seq.upd ems i em'))
+          array_fragment_pts_to farr #f (Seq.upd ems i em'))
 
 ghost
 fn array_fragment_extract_ro
