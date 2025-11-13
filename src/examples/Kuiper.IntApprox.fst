@@ -28,13 +28,13 @@ let lem' (z x y : u32)
 (* Strenghten the spec of a reduction *)
 
 fn reduce (#et:Type0) {| scalar et, real_like et |}
-  (len:nat) (a : larray u32 len) (#s : seq u32)
+  (len : erased nat) (a : larray u32 len) (#s : seq u32)
   (#r : erased (seq real))
   preserves a |-> s ** pure (s %~ r)
   returns   res : u32
   ensures   pure (res %~ seq_fold_left (+.) 0.0R r)
 {
-  admit(); // Intentional, to not importa HReduce here.
+  admit(); // Intentional, to not import HReduce here.
 }
 
 let get_int_from_real_approx (x:u32) (r:real)
@@ -81,14 +81,12 @@ let rec lem_seq_approx (s : seq u32) (i : int)
         U32.v (hd `add` seq_fold_left add zero tl);
         == { lemma_seq_fold_left_sum #u32 zero add seq![hd] tl }
         U32.v (seq_fold_left add zero s);
-        == { Math.Lemmas.small_mod (U32.v (seq_fold_left add zero s)) (pow2 32) }
-        U32.v (seq_fold_left add zero s) % pow2 32;
       };
       ()
 #pop-options
 
 (* A stronger exact spec for reduce on u32s, proven from the approximate spec. *)
-fn reduce_u32 (len:nat) (a : larray u32 len) (#s : seq u32)
+fn reduce_u32 (len : erased nat) (a : larray u32 len) (#s : seq u32)
   preserves a |-> s 
   returns   res : u32
   ensures   pure (U32.v res == seq_fold_left add zero s)
