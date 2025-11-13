@@ -64,7 +64,7 @@ let mult (x y : dist) : dist =
 
 inline_for_extraction noextract
 instance scalar_dist : scalar dist = {
-  is_sized = { size = 2sz };
+  is_sized = { size = 2sz; default = D 0us };
   zero = D 0us;
   one = D 1us;
   add = add';

@@ -18,9 +18,6 @@ open Kuiper.ArrayCoreAssumptions
 module A = Pulse.Lib.Array
 module SZ = Kuiper.SizeT
 
-assume
-val sized_types_inhabited (#a:Type) {| sized a |} : a
-
 instance 
 is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq a) (mask:nat -> prop)
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
@@ -138,10 +135,9 @@ fn gpu_array_alloc_vis
             visibility_of_array x == vis /\
             loc_id_of_array x == l)) 
   fn _ {
-    let default_value : a = sized_types_inhabited;
-    let x = mask_alloc_with_vis default_value sz vis;
+    let x = mask_alloc_with_vis (default <: a) sz vis;
     A.mask_mext x (mask_of 0 (SZ.v sz));
-    fold (gpu_pts_to_slice #a #(SZ.v sz) x 0 (SZ.v sz) (Seq.create (SZ.v sz) default_value));
+    fold (gpu_pts_to_slice #a #(SZ.v sz) x 0 (SZ.v sz) (Seq.create (SZ.v sz) default));
     fold (gpu_pts_to_array _ _);
     on_intro #l (gpu_pts_to_array _ _);
     x
