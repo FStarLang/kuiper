@@ -73,7 +73,7 @@ instance is_send_across_iarray_pts_to_cell
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
   = solve
 
 let iarray_pts_to_cell_def
@@ -103,7 +103,7 @@ instance is_send_across_global_iarray
   (x: iarray et vw { is_global_iarray x })
   (#f : perm)
   (v : (vw.ait -> GTot et))
-  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to x #f v)
+  : is_send_across gpu_of (iarray_pts_to x #f v)
   = Tactics.Typeclasses.solve
 
 ghost

@@ -250,7 +250,6 @@ fn gpu_matrix_alloc0
   #(A.varray_pts_to gm #1.0R s)
   #(gpu_matrix_pts_to gm s)
   fn () { fold gpu_matrix_pts_to gm s };
-  assume_ (pure (is_global_matrix gm));
   gm;
 }
 

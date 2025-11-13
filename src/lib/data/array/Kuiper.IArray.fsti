@@ -89,7 +89,7 @@ val is_send_across_global_iarray
   (x: iarray et vw { is_global_iarray x })
   (#f : perm)
   (v : (vw.ait -> GTot et))
-  : Pulse.Lib.SendSync.is_send_across gpu_of (iarray_pts_to x #f v)
+  : is_send_across gpu_of (iarray_pts_to x #f v)
 
 unfold
 instance has_pts_to (#et:Type0) (#vw : aiview)

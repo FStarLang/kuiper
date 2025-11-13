@@ -10,7 +10,6 @@ include Kuiper.Kernel.Desc
 include Kuiper.Kernel.Casts
 open FStar.Tactics.Typeclasses
 open Pulse.Lib.Pledge
-open Pulse.Lib.SendSync { is_send_across}
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync

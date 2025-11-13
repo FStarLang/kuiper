@@ -3,7 +3,6 @@ module Kuiper.Kernel.Desc
 
 open FStar.Ghost
 open Pulse.Lib.Core
-open Pulse.Lib.SendSync
 open Kuiper.Common
 open Kuiper.ForEvery
 open Kuiper.Array

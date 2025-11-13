@@ -9,7 +9,6 @@ open Kuiper.Array
 open Kuiper.Epoch
 open Pulse.Lib.Pledge
 open Kuiper.Kernel.Desc
-open Pulse.Lib.SendSync { is_send_across}
 
 (* This is the single primitive for launching kernels, with the most general
 type and capabilities. There are many simpler versions in the Kuiper.Kernel module,
