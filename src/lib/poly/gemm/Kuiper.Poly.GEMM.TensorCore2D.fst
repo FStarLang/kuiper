@@ -836,10 +836,19 @@ fn kf
         (rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol));
 
+    // Does this help?
+    __gmatmul_single_lemma rAcc0 matmul matplus
+      (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
+      mrow mcol (!bkIdx + 1);
+
+    assert pure (rAcc ==
+          (__gmatmul_single rAcc0 matmul matplus
+            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx));
+
     assume pure (
         rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)
-      ==
+      `Kuiper.EMatrix.equal`
         __gmatmul_single rAcc0 matmul matplus
           (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol (!bkIdx +^ 1sz));
 
