@@ -457,8 +457,7 @@ fn gpu_matrix_write_cell
     each i_low
       as A.ci_to_ai (aview_from_mlayout et l) (bi, bj, i, j);
   A.varray_write_cell gm (bi, bj, i, j) v1;
-  // admit(); // This function is very flaky and sometimes its verification loops.
-  // Seems to be working now... but admit if this fails again.
+  // This function is very flaky and sometimes its verification loops.
   with i1 lv1.
     assert (A.varray_pts_to_cell gm i1 lv1);
   rewrite A.varray_pts_to_cell gm i1 lv1

@@ -190,8 +190,6 @@ fn softmax_gpu
   (* Compute average. Need swap space since hreduce trashes the input. *)
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
-  // with va. assert a' |-> va;
-  // rexp_approx #et #_ #_;
 
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
 
