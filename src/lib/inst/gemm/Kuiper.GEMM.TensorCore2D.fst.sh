@@ -13,14 +13,14 @@ open Kuiper.GEMM.TensorCore2D.Inst { spec }
 EOF
 
 # Tweak these lists to control which instances are generated
-all_tm="16"
-all_tn="16"
-all_tk="16"
-all_bm="64 128"
-all_bn="64 128"
+all_tm="8 16 32"
+all_tn="8 16 32"
+all_tk="16" # always 16
+all_bm="32 64 128 256"
+all_bn="32 64 128 256"
 all_bk="16 32 64"
-all_wm="2 4 8 16"
-all_wn="2 4 8 16"
+all_wm="2 4 8 16 32"
+all_wn="2 4 8 16 32"
 
 chunk=8 # 8 halfs = 16 bytes
 

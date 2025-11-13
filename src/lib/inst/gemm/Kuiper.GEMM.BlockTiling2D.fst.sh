@@ -16,11 +16,17 @@ open Kuiper.GEMM.BlockTiling2D.Inst { spec }
 EOF
 
 # Tweak these lists to control which instances are generated
-all_bm="16 32 64"
-all_bn="16 32 64"
-all_bk="16 32 64"
-all_tm="8 16 32"
-all_tn="8 16 32"
+# all_bm="16 32 64"
+# all_bn="16 32 64"
+# all_bk="16 32 64"
+# all_tm="8 16 32"
+# all_tn="8 16 32"
+all_bm="32 64 128"
+all_bn="32 64 128"
+all_bk="32 64"
+all_tm="8 16"
+all_tn="8 16"
+
 
 chunk=4 # 4 floats = 16 bytes
 
