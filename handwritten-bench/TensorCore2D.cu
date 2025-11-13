@@ -14,15 +14,15 @@ using namespace nvcuda;
 // BN divides cols
 #define BN 128
 // BK divides shared
-#define BK 64
+#define BK 16
 // TM divides BM
-#define TM 16
+#define TM 8
 // TN divides BN
-#define TN 16
+#define TN 32
 // TK divides BK
 #define TK 16
 // WM*TM divides BM
-#define WM 2
+#define WM 16
 // WN*TN divides BN
 #define WN 2
 //// END TUNING PARAMS
