@@ -21,15 +21,15 @@ val block_of : visibility
 val block_of_idem (l:loc_id) : Lemma (block_of (block_of l) == l)
 val block_id_of : loc_id -> GTot int
 
-val gpu_id_loc (gpu_id:int) : l:loc_id { gpu_of l == l }
+val gpu_id_loc (gpu_id:int) : l:loc_id { gpu_of l == l /\ gpu_id_of l == gpu_id }
 let gpu_loc = gpu_id_loc 0
 
 val block_id_loc (#[T.exact (`0)]gpu_id:int) (bid:int)
-: l:loc_id { gpu_of l == gpu_id_loc gpu_id }
+: l:loc_id { gpu_of l == gpu_id_loc gpu_id /\ block_id_of l == bid /\ block_of l == l }
 
-val thread_id_loc (#[T.exact (`0)]gpu_id:int) (bid tid:int)
-: l:loc_id { block_of l == block_id_loc #gpu_id bid /\ gpu_of l == gpu_id_loc gpu_id } 
 val thread_id_of (l:loc_id) : GTot int
+val thread_id_loc (#[T.exact (`0)]gpu_id:int) (bid tid:int)
+: l:loc_id { thread_id_of l == tid /\ block_id_of l == bid /\ gpu_id_of l == gpu_id /\ block_of l == block_id_loc #gpu_id bid /\ gpu_of l == gpu_id_loc gpu_id } 
 
 //locations that agree on their blocks are on the same gpu
 val block_of_same_gpu (l0 l1:_{block_of l0 == block_of l1})
