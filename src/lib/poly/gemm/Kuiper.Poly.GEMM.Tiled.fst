@@ -208,7 +208,7 @@ fn block_setup
 {
   no_mk_barrier ();
 }
-#push-options "--query_stats --fuel 0 --ifuel 0"
+#push-options "--query_stats --fuel 0 --ifuel 0 --z3rlimit 10"
 #restart-solver
 inline_for_extraction noextract
 let mk_kernel
