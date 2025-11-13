@@ -635,7 +635,130 @@ ensures
   ()
 }
 
-#set-options "--debug SMTFail --split_queries always"
+let loop_invariant_lemma
+  (rows shared cols : nat)
+  (bm bn bk
+   tm tn tk
+   wm wn : szp { constraints bm bn bk tm tn tk wm wn })
+  (#_ : squash (bm /?+ rows))
+  (#_ : squash (bn /?+ cols))
+  (#_ : squash (bk /?+ shared))
+  (mrow : natlt (rows / bm))
+  (mcol : natlt (cols / bn))
+  (warpRow : natlt (bm/(wm*tm)))
+  (warpCol : natlt (bn/(wn*tn)))
+  (gwRow : natlt (rows/(wm*tm)) { gwRow == mrow * (bm/(wm*tm)) + warpRow })
+  (gwCol : natlt (cols/(wn*tn)) { gwCol == mcol * (bn/(wn*tn)) + warpCol })
+  (vk : natlt (shared / bk))
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rAcc0 : ematrix real (wm*tm) (wn*tn) { rAcc0 == const_matrix 0.0R })
+  (rAcc  : ematrix real (wm*tm) (wn*tn))
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
+  (#_ : squash (rAcc  ==
+          (__gmatmul_single rAcc0 matmul matplus
+            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
+              gwRow
+              gwCol
+              vk)))
+  (rA_sub : ematrix real bm bk { rA_sub == ematrix_subtile rA bm bk mrow vk })
+  (rB_sub : ematrix real bk bn { rB_sub == ematrix_subtile rB bk bn vk mcol })
+: Lemma (
+        rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                               (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)
+        ==
+        __gmatmul_single rAcc0 matmul matplus
+          (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1)
+    )
+= let lhs : ematrix real (wm*tm) (wn*tn) = rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                                   (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol) in
+  let rhs : ematrix real (wm*tm) (wn*tn) =
+        __gmatmul_single rAcc0 matmul matplus
+          (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1)
+  in
+  let aux3 () : Lemma ((wm * tm) * gwRow == bm * mrow + warpRow * (wm*tm)) =
+    calc (==) {
+      (wm*tm) * gwRow;
+      == {}
+      (wm * tm) * (mrow * (bm/(wm*tm)) + warpRow);
+      == { Math.Lemmas.distributivity_add_right (wm*tm) (mrow * (bm/(wm*tm))) warpRow }
+      (wm * tm) * (mrow * (bm/(wm*tm))) + (wm*tm)*warpRow;
+      == {}
+      mrow * ((wm * tm) * (bm/(wm*tm))) + (wm*tm)*warpRow;
+      == { Math.Lemmas.lemma_div_exact bm (wm*tm) }
+      mrow * bm + (wm*tm)*warpRow;
+      == {}
+      bm * mrow + warpRow * (wm*tm);
+    }
+  in
+  let aux4 () : Lemma ((wn * tn) * gwCol == bn * mcol + warpCol * (wn*tn)) =
+    calc (==) {
+      (wn*tn) * gwCol;
+      == {}
+      (wn * tn) * (mcol * (bn/(wn*tn)) + warpCol);
+      == { Math.Lemmas.distributivity_add_right (wn*tn) (mcol * (bn/(wn*tn))) warpCol }
+      (wn * tn) * (mcol * (bn/(wn*tn))) + (wn*tn)*warpCol;
+      == {}
+      mcol * ((wn * tn) * (bn/(wn*tn))) + (wn*tn)*warpCol;
+      == { Math.Lemmas.lemma_div_exact bn (wn*tn) }
+      mcol * bn + (wn*tn)*warpCol;
+      == {}
+      bn * mcol + warpCol * (wn*tn);
+    }
+  in
+  aux3();
+  aux4();
+  let aux1 () : Lemma (
+                  ematrix_subtile rA_sub (wm*tm) bk warpRow 0
+                  ==
+                  macc (ematrix_tiled rA (wm*tm) bk) gwRow vk
+                )
+  = assert (ematrix_subtile rA_sub (wm*tm) bk warpRow 0
+            `equal` macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
+  in
+  let aux2 () : Lemma (
+                  ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
+                  ==
+                  macc (ematrix_tiled rB bk (wn*tn)) vk gwCol
+                )
+  = assert (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol
+            `equal` macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)
+  in
+  aux1 ();
+  aux2 ();
+
+  let aux (i : natlt (wm*tm)) (j : natlt (wn*tn))
+    : Lemma (macc lhs i j == macc rhs i j)
+    = calc (==) {
+        macc lhs i j;
+        == {}
+        macc (__gmatmul_single rAcc0 matmul matplus
+               (ematrix_tiled rA (wm*tm) bk)
+               (ematrix_tiled rB bk (wn*tn)) gwRow gwCol vk
+              `matplus`
+                 matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                        (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)) i j;
+        == {}
+        macc (__gmatmul_single rAcc0 matmul matplus
+               (ematrix_tiled rA (wm*tm) bk)
+               (ematrix_tiled rB bk (wn*tn)) gwRow gwCol vk
+              `matplus`
+                 matmul (macc (ematrix_tiled rA (wm*tm) bk) gwRow vk)
+                        (macc (ematrix_tiled rB bk (wn*tn)) vk gwCol)) i j;
+        == { __gmatmul_single_lemma rAcc0 matmul matplus
+               (ematrix_tiled rA (wm*tm) bk)
+               (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk + 1) }
+        macc (__gmatmul_single rAcc0 matmul matplus
+               (ematrix_tiled rA (wm*tm) bk)
+               (ematrix_tiled rB bk (wn*tn)) gwRow gwCol (vk+1)) i j;
+        == {}
+        macc rhs i j;
+      }
+  in
+  Classical.forall_intro_2 aux;
+  assert (Kuiper.EMatrix.equal lhs rhs);
+  ()
 
 inline_for_extraction noextract
 fn kf
@@ -718,11 +841,13 @@ fn kf
   let num_k_tiles = shared /^ bk;
   let num_n_tiles = cols /^ bn;
   let mrow = bid /^ num_n_tiles;
+  assert pure (mrow < rows / bm);
   let mcol = bid %^ num_n_tiles;
+  assert pure (mcol < cols / bn);
 
   let wid = tid /^ warp_sz;
-  let warpRow = wid /^ (bn/^(wn*^tn));
-  let warpCol = wid %^ (bn/^(wn*^tn));
+  let warpRow : szlt (bm / (wm*tm)) = wid /^ (bn/^(wn*^tn));
+  let warpCol : szlt (bn / (wn*tn)) = wid %^ (bn/^(wn*^tn));
 
   (* tensor core fragments *)
   let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLRM wm;
@@ -758,6 +883,16 @@ fn kf
     (exists* em1. FB.bp_sharing sA em1 nthr) **
     (exists* em2. FB.bp_sharing sB em2 nthr);
 
+  // assert pure (mrow < rows / bm);
+  // assert pure (mrow <= rows / bm - 1);
+  // assert pure (mrow * bm/(wm*tm) <= (rows / bm - 1) * bm/(wm*tm));
+  // assert pure (mrow * bm/(wm*tm) <= (rows / bm) * bm/(wm*tm) - bm/(wm*tm));
+  // assert pure (mrow * bm/(wm*tm) <= (rows / wm*tm) - bm/(wm*tm));
+  // assert pure (mrow * bm/(wm*tm) + warpRow <= (rows / wm*tm) - 1);
+  // assert pure (mrow * bm/(wm*tm) + warpRow < (rows / wm*tm));
+  let gwRow : enatlt (rows/(wm*tm)) = mrow * (bm/(wm*tm)) + warpRow;
+  let gwCol : enatlt (cols/(wn*tn)) = mcol * (bn/(wn*tn)) + warpCol;
+
   let mut bkIdx : sz = 0sz;
   while ((!bkIdx <^ num_k_tiles))
     invariant
@@ -765,7 +900,10 @@ fn kf
         bkIdx |-> vbkIdx **
         fragarrayAcc_approximates wm wn accFrags
           (__gmatmul_single rAcc0 matmul matplus
-            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx)
+            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
+              gwRow // (mrow * bm/(wm*tm) + warpRow)
+              gwCol // (mcol * bn/(wn*tn) + warpCol)
+              !bkIdx)
     invariant
       live aFrags **
       live bFrags
@@ -836,21 +974,16 @@ fn kf
         (rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
                                (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol));
 
-    // Does this help?
-    __gmatmul_single_lemma rAcc0 matmul matplus
-      (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
-      mrow mcol (!bkIdx + 1);
-
-    assert pure (rAcc ==
-          (__gmatmul_single rAcc0 matmul matplus
-            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx));
-
-    assume pure (
-        rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
-                               (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)
-      `Kuiper.EMatrix.equal`
-        __gmatmul_single rAcc0 matmul matplus
-          (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol (!bkIdx +^ 1sz));
+    loop_invariant_lemma
+      rows shared cols
+      bm bn bk tm tn tk wm wn
+      mrow mcol
+      warpRow warpCol
+      gwRow gwCol
+      !bkIdx
+      rA rB
+      rAcc0 rAcc
+      rA_sub rB_sub;
 
     fold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -858,32 +991,58 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
+  assert
+        fragarrayAcc_approximates wm wn accFrags
+          (__gmatmul_single rAcc0 matmul matplus
+            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
+              gwRow // (mrow * bm/(wm*tm) + warpRow)
+              gwCol // (mcol * bn/(wn*tn) + warpCol)
+              (shared / bk));
   // array_fragment_pts_to_ref accFrags;
+  assert pure (gwRow == warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
+  assert pure (gwCol == warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
+
+  matmul_tiles_lemma (fun _ -> ()) (fun _ _ _ -> ())
+    (wm*tm) (wn*tn) bk
+    rAcc0 rA rB
+    gwRow gwCol;
 
   let rAcc' : ematrix real (wm*tm) (wn*tn) =
+    gmatmul_single rAcc0 matmul matplus
+     (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn))
+       gwRow gwCol;
+
+  assert pure (
+      (__gmatmul_single rAcc0 matmul matplus
+        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol !bkIdx)
+      == rAcc');
+
+  let rAcc'' : ematrix real (wm*tm) (wn*tn) =
     MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
               (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
-  assume pure (
-      (__gmatmul_single rAcc0 matmul matplus
-        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx)
-      == rAcc');
+
+  assert pure (matplus (const_matrix 0.0R) rAcc'' `equal` rAcc'');
+  // ^ This is needed so we can use the result of the matmul_tiles_lemma
+  // above...  very boring.
+
+  assert pure (rAcc' == rAcc'');
   rewrite
     fragarrayAcc_approximates wm wn accFrags
       (__gmatmul_single rAcc0 matmul matplus
-        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx)
+        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) gwRow gwCol !bkIdx)
   as
-    fragarrayAcc_approximates wm wn accFrags rAcc';
+    fragarrayAcc_approximates wm wn accFrags rAcc'';
 
   with em1. unfold FB.bp_sharing sA em1 nthr;
   with em2. unfold FB.bp_sharing sB em2 nthr;
 
   rewrite each (tid / 32) as wid;
-  epilogue bm bn bk tm tn tk wm wn accFrags rAcc' gC bid wid;
+  epilogue bm bn bk tm tn tk wm wn accFrags rAcc'' gC bid wid;
   rewrite each v wid as (tid / 32);
 
   with vaFrags. assert aFrags |-> vaFrags; drop_ (aFrags |-> vaFrags);
   with vbFrags. assert bFrags |-> vbFrags; drop_ (bFrags |-> vbFrags);
-  unfold fragarrayAcc_approximates wm wn accFrags rAcc';
+  unfold fragarrayAcc_approximates wm wn accFrags rAcc'';
   with vaccumFrags. assert accFrags |-> vaccumFrags; drop_ (accFrags |-> vaccumFrags);
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
@@ -911,7 +1070,7 @@ fn kf
   rewrite each sarB as fst (snd sh);
 
   // Silly.
-  rewrite each rAcc'
+  rewrite each rAcc''
     as MS.matmul (ematrix_subtile rA (wm*tm) shared
             (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
           (ematrix_subtile rB shared (wn*tn)
