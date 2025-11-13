@@ -106,6 +106,7 @@ ensures
     let send_pre = k.kpre_sendable sh () bid tid;
     let send_post = k.kpost_sendable sh () bid tid;
     let tloc = thread_id_loc bid tid;
+    thread_id_loc_lemma bid tid;
     unfold (block_id k.nblk bid);
     loc_dup _;
     fold (block_id k.nblk bid);
@@ -184,6 +185,7 @@ ensures
     let send_pre = k.block_pre_sendable bid;
     let send_post = k.block_post_sendable bid;
     let bloc = block_id_loc bid;
+    block_id_loc_lemma bid;
     unfold gpu;
     loc_dup _;
     fold gpu;
@@ -219,6 +221,7 @@ fn launch_kernel_full_sync
     cpu **
     on gpu_loc full_post
 {
+  gpu_id_loc_lemma 0;
   impersonate
     unit
     gpu_loc
