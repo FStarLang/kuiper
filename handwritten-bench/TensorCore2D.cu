@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <cstdint>
 #include <cuda_fp16.h>
 
@@ -27,7 +28,7 @@ using namespace nvcuda;
 //// END TUNING PARAMS
 
 #define WARP_SIZE 32
-#define GRID_DIM (rows, cols) ((rows)/BM * ((cols)/BN))
+#define GRID_DIM(rows, cols) ((rows)/BM * ((cols)/BN))
 #define BLOCK_DIM (BM/(WM*TM) * (BN/(WN*TN) * WARP_SIZE))
 
 __global__
@@ -132,4 +133,32 @@ void tensorcore2d(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC)
                 wmma::mem_row_major);
         }
     }
+}
+
+void check_error(cudaError_t err, const char *file, int line)
+{
+	if (err != cudaSuccess) {
+        std::cerr << "ERROR -- " << file << ":" << "line" << std::endl;
+        std::cerr << "Reason: " << cudaGetErrorString(err);
+		exit(1);
+	}
+}
+#define ERROR(err) check_error(err, __FILE__, __LINE__)
+
+void
+tensorcore2d_host(
+    uint32_t rows,
+    uint32_t shared,
+    uint32_t cols,
+    half *gA,
+    half *gB,
+    half *gC
+) {
+    uint32_t nblk = GRID_DIM(rows, cols);
+    uint32_t nthr = BLOCK_DIM;
+    ERROR(cudaFuncSetAttribute(tensorcore2d,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              (BM*BK + BK*BN) * sizeof(half)));
+    tensorcore2d<<<nblk, nthr, (BM*BK + BK*BN) * sizeof(half)>>>(shared, cols, gA, gB, gC);
+    ERROR(cudaDeviceSynchronize());
 }

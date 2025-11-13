@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <cstdint>
 // #include <cuda_runtime.h>
 
@@ -15,18 +16,22 @@
 #define TN 8
 //// END TUNING PARAMS
 
-#define GRID_DIM (rows, cols) ((rows)/BM * ((cols)/BN))
+#define GRID_DIM(rows, cols) ((rows)/BM * ((cols)/BN))
 // COMMENT: I would usually use blockDim.x,
 //          but this may be helping the compiler more
 #define BLOCK_DIM (BM/TM * (BN/TN))
 
 
 __global__
-void blocktiling2d(float_t alpha,
-              float_t beta,
-              uint32_t shared,
-              uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
-{
+void blocktiling2d(
+    float_t alpha,
+    float_t beta,
+    uint32_t shared,
+    uint32_t cols,
+    float_t *gA,
+    float_t *gB,
+    float_t *gC
+) {
     // shared memory cache
     // many hand written implementations would use:
     //  __shared__ float_t sA[BM*BK];
@@ -109,4 +114,34 @@ void blocktiling2d(float_t alpha,
             outElem[0] = beta * outElem[0] + alpha * rchProd[resIdxM][resIdxN];
         }
     }
+}
+
+void check_error(cudaError_t err, const char *file, int line)
+{
+	if (err != cudaSuccess) {
+        std::cerr << "ERROR -- " << file << ":" << "line" << std::endl;
+        std::cerr << "Reason: " << cudaGetErrorString(err);
+		exit(1);
+	}
+}
+#define ERROR(err) check_error(err, __FILE__, __LINE__)
+
+void
+blocktiling2d_host(
+    float_t alpha,
+    float_t beta,
+    uint32_t rows,
+    uint32_t shared,
+    uint32_t cols,
+    float_t *gA,
+    float_t *gB,
+    float_t *gC
+) {
+    uint32_t nblk = GRID_DIM(rows, cols);
+    uint32_t nthr = BLOCK_DIM;
+    ERROR(cudaFuncSetAttribute(blocktiling2d,
+                              cudaFuncAttributeMaxDynamicSharedMemorySize,
+                              (BM*BK + BK*BN) * sizeof(float_t)));
+    blocktiling2d<<<nblk, nthr, (BM*BK + BK*BN) * sizeof(float_t)>>>(alpha, beta, shared, cols, gA, gB, gC);
+    ERROR(cudaDeviceSynchronize());
 }
