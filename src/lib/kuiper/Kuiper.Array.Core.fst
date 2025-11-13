@@ -115,7 +115,6 @@ fn gpu_array_alloc_vis
   (sz : SZ.t)
   (l:loc_id)
   (vis:visibility)
-  preserves cpu
   returns  x : gpu_array a (SZ.v sz)
   ensures
     exists* (s:seq a). 
@@ -166,6 +165,25 @@ fn gpu_array_alloc
   x
 }
 
+fn gpu_array_free_gen // needed for Kuiper.Kernel.Sync.free_c_shmems (to model launch_kernel_full_sync), to model allocation and liberation of per-block shared memory by the GPU runtime.
+  (#a:Type u#0)
+  (#sz:erased nat)
+  (r : gpu_array a sz)
+  (#v : erased (seq a))
+  (l: loc_id)
+  requires on l (r |-> v)
+  ensures  emp
+{
+  impersonate unit l (on l (r |-> v)) (fun _ -> emp) fn _ {
+    on_elim _;
+    unfold gpu_pts_to_array;
+    unfold gpu_pts_to_slice;
+    A.mask_mext r (fun _ -> True);
+    A.mask_free r;
+  };
+}
+
+
 fn gpu_array_free
   (#a:Type u#0)
   (#sz:erased nat)
@@ -175,13 +193,7 @@ fn gpu_array_free
   requires on gpu_loc (r |-> v)
   ensures  emp
 {
-  impersonate unit gpu_loc (on gpu_loc (r |-> v)) (fun _ -> emp) fn _ {
-    on_elim _;
-    unfold gpu_pts_to_array;
-    unfold gpu_pts_to_slice;
-    A.mask_mext r (fun _ -> True);
-    A.mask_free r;
-  };
+  gpu_array_free_gen r gpu_loc
 }
 
 [@@noextract_to "krml"]
