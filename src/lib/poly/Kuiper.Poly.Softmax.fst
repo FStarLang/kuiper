@@ -12,7 +12,7 @@ module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
 module KS = Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
-open Kuiper.RealExpDiv
+open Kuiper.Real
 open Kuiper.Approximates
 
 (* From the CPU, read one element from a gpu array. *)
@@ -159,7 +159,7 @@ let rec sum_non_zero
     sum_non_zero tl (add acc hd <: real)
 
 let softmax_approx
-    (#et:Type0) {| floating et, real_like et |}
+    (#et:Type0) {| floating et, real_like et, floating_real_like et |}
     (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
 : Lemma
   (ensures Kuiper.Seq.Common.(
@@ -167,12 +167,13 @@ let softmax_approx
       seq_map (fun x -> div x avg) (seq_map exp s0) %~ softmax_real r0))
 = let exps = KS.seq_map rexp r0 in
   sum_non_zero exps 0.0R;
-  rexp_approx #et #_ #_;
-  div_approx #et #_ #_
+  Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
+  Classical.forall_intro_4 (fun (x y : et) (r : real) -> Classical.move_requires (div_approx #et x y r));
+  ()
 
 inline_for_extraction noextract
 fn softmax_gpu
-  (#et : Type0) {| floating et, real_like et |}
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#lena : szp { 0 < SZ.v lena /\ lena < max_threads })
   (a : gpu_array et lena { is_global_array a })
   (#s: erased (Seq.seq et))
@@ -190,7 +191,10 @@ fn softmax_gpu
   let a' = Array.gpu_array_alloc #et lena;
   gpu_memcpy_device_to_device a' a lena;
   // with va. assert a' |-> va;
-  rexp_approx #et #_ #_;
+  // rexp_approx #et #_ #_;
+
+  Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
+
   Kuiper.Poly.HReduce.reduce lena a' #(KS.seq_map exp s) #(KS.seq_map rexp r);
   let avg = arr_read_1 zero a';
   gpu_array_free a';
@@ -205,7 +209,7 @@ fn softmax_gpu
 
 inline_for_extraction noextract
 fn softmax
-  (#et : Type0) {| floating et, real_like et |}
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (#lena : szp { lena < max_threads })
   (a : Vec.lvec et lena)
   (#s : erased (Seq.seq et))

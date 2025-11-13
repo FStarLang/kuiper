@@ -3,7 +3,7 @@ module Kuiper.Poly.Softmax
 #lang-pulse
 open Kuiper
 open Kuiper.Approximates
-open Kuiper.RealExpDiv
+open Kuiper.Real { rexp }
 module KS = Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 
@@ -25,7 +25,7 @@ let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
   seq_map FStar.Real.(fun x -> x /. avg) exps
 
 unfold
-type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
+type softmax_gpu_ty (et : Type0) {| floating et, real_like et, floating_real_like et |} =
   (#lena : szp { lena < max_threads }) ->
   (a : gpu_array et lena { is_global_array a }) ->
   (#va : erased (seq et)) ->
@@ -41,7 +41,7 @@ type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
         pure (v' %~ softmax_real ra)))
 
 inline_for_extraction noextract
-val softmax_gpu (#et:Type0) {| floating et, real_like et |}
+val softmax_gpu (#et:Type0) {| floating et, real_like et, floating_real_like et |}
   : softmax_gpu_ty et
 
 unfold
@@ -61,5 +61,5 @@ type softmax_ty (et : Type0) {| floating et, real_like et |} =
         pure (v' %~ softmax_real ra)))
 
 inline_for_extraction noextract
-val softmax (#et : Type0) {| floating et, real_like et |}
+val softmax (#et : Type0) {| floating et, real_like et, floating_real_like et |}
 : softmax_ty et

@@ -2,6 +2,7 @@ module Kuiper.Approximates.Base
 
 open Kuiper
 open Kuiper.Scalars
+open Kuiper.Real
 
 (* This class is meant for scalar types that can "approximate" or
 "model" real numbers. *)
@@ -35,4 +36,14 @@ class real_like (a:Type) {| scalar a |} = {
           Lemma (requires v_approximates x r /\ v_approximates y s)
                 (ensures v_approximates (x `mul` y) (r *. s));
                 //[SMTPat (v_approximates x r); SMTPat (v_approximates y s)];
+}
+
+class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
+  exp_approx : x:a -> r:real ->
+                Lemma (requires v_approximates x r)
+                      (ensures v_approximates (exp x) (rexp r));
+
+  div_approx : x:a -> y:a -> r:real -> s:real{s =!= 0.0R} ->
+                Lemma (requires v_approximates x r /\ v_approximates y s)
+                      (ensures v_approximates (div x y) (r /. s));
 }

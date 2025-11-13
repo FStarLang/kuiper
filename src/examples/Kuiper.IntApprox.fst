@@ -27,8 +27,9 @@ let lem' (z x y : u32)
 
 (* Strenghten the spec of a reduction *)
 
+noextract
 fn reduce (#et:Type0) {| scalar et, real_like et |}
-  (len : erased nat) (a : larray u32 len) (#s : seq u32)
+  (len : erased nat) (a : larray u32 len) (#s : erased (seq u32))
   (#r : erased (seq real))
   preserves a |-> s ** pure (s %~ r)
   returns   res : u32
@@ -86,13 +87,13 @@ let rec lem_seq_approx (s : seq u32) (i : int)
 #pop-options
 
 (* A stronger exact spec for reduce on u32s, proven from the approximate spec. *)
-fn reduce_u32 (len : erased nat) (a : larray u32 len) (#s : seq u32)
+noextract
+fn reduce_u32 (len : erased nat) (a : larray u32 len) (#s : erased (seq u32))
   preserves a |-> s 
   returns   res : u32
   ensures   pure (U32.v res == seq_fold_left add zero s)
 {
   let res = reduce #u32 len a #s #(seq_map to_real s);
-  ();
   let rr = seq_fold_left (+.) 0.0R (seq_map to_real s);
   assert pure (res %~ rr);
   assert pure (exists (i:int). rr == Real.of_int i /\ i % pow2 32 == U32.v res);
