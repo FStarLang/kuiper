@@ -49,3 +49,13 @@ unfold let en2r (i:erased nat) : real = Real.of_int i
 
 [@@coercion; pulse_unfold]
 unfold let sz2r (i:sz) : real = Real.of_int i
+
+(* Just an alias *)
+inline_for_extraction noextract
+unfold let launch #pre #post (k : kernel_desc pre post) #e =
+  launch_kernel_full #pre #post k #e
+
+(* Just an alias *)
+inline_for_extraction noextract
+unfold let launch_sync #pre #post (k : kernel_desc pre post) =
+  launch_kernel_full_sync #pre #post k

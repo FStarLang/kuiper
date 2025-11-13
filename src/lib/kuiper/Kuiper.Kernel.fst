@@ -27,29 +27,6 @@ fn launch_kernel_full_sync
   drop_ (epoch_live _);
 }
 
-inline_for_extraction noextract
-let launch
-  // (#t:Type)
-  (#full_pre #full_post : slprop)
-  // {| d : launchable t full_pre full_post |}
-  // (x : t)
-  (k : kernel_desc full_pre full_post)
-  (#e : epoch_t)
-   =
-  // launch_kernel_full (d.cast x) #e
-  launch_kernel_full k #e
-
-inline_for_extraction noextract
-let launch_sync
-  // (#t:Type)
-  (#full_pre #full_post : slprop)
-  // {| d : launchable t full_pre full_post |}
-  // (x : t)
-  (k : kernel_desc full_pre full_post)
-  =
-  launch_kernel_full_sync k
-  // launch_kernel_full_sync (d.cast x)
-
 // inline_for_extraction noextract
 // instance launchable_self
 //   (#full_pre #full_post : slprop)
@@ -93,5 +70,5 @@ fn launch_kernel_1
     cpu **
     on gpu_loc post
 {
-  launch_sync ({ f = k; full_pre_sendable=solve; full_post_sendable=solve } <: kernel_desc_1_1 _ _);
+  launch_kernel_full_sync ({ f = k; full_pre_sendable=solve; full_post_sendable=solve } <: kernel_desc_1_1 _ _);
 }

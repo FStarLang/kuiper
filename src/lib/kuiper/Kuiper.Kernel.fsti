@@ -50,37 +50,6 @@ there is no reason to), and will then fail to find an instance. *)
 //   [@@@no_method] cast : t -> kernel_desc full_pre full_post;
 // }
 
-inline_for_extraction noextract
-val launch
-  // (#t:Type)
-  (#full_pre #full_post : slprop)
-  // {| d : launchable t full_pre full_post |}
-  // (x : t)
-  (k : kernel_desc full_pre full_post)
-  (#e : epoch_t)
-  : stt epoch_t
-      (cpu **
-       epoch_live e **
-       on gpu_loc full_pre)
-      (fun e' ->
-        cpu **
-        epoch_live e' **
-        pledge0 (epoch_done e') (on gpu_loc full_post) **
-        pure (e' >= e))
-
-inline_for_extraction noextract
-val launch_sync
-  // (#t:Type)
-  (#full_pre #full_post : slprop)
-  // {| d : launchable t full_pre full_post |}
-  // (x : t)
-  (_ : kernel_desc full_pre full_post)
-  : stt unit
-      (cpu ** on gpu_loc full_pre)
-      (fun _ ->
-        cpu **
-        on gpu_loc full_post)
-
 // inline_for_extraction noextract
 // instance val launchable_self
 //   (#full_pre #full_post : slprop)
