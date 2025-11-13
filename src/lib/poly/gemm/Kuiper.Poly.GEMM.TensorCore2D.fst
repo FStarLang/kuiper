@@ -37,7 +37,7 @@ open Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 let fragarrayAcc_approximates (#et:Type0) {| scalar et, real_like et |}
   (#tm #tn #tk : pos)
   (wm wn : nat)
-  (arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
+  ([@@@mkey] arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
   (rm : ematrix real (wm*tm) (wn*tn))
   : slprop
   =
@@ -74,27 +74,6 @@ let fragarrayB_approximates (#et:Type0) {| scalar et, real_like et |}
         (Seq.length eBs == wn) /\
         forall (i : natlt wn).
           (eBs @! i) %~ (ematrix_subtile rm tk tn 0 i))
-
-ghost
-fn fake_intro_fragarrayAcc_approximates (#et:Type0) {| scalar et, real_like et |}
-  (#tm #tn #tk : pos)
-  (wm wn : nat)
-  (arr : array (fragment et FragAcc tm tn tk FragLAcc) { Pulse.Lib.Array.length arr == wm*wn})
-  (#em : seq (ematrix et tm tn))
-  requires
-    arr |-> em
-  ensures
-    exists* rm.
-      fragarrayAcc_approximates wm wn arr rm
-{
-  array_fragment_pts_to_ref arr;
-  let rms = Seq.init_ghost #(ematrix real tm tn) (wm*wn) (fun idx -> mkM (fun i j -> to_real (macc (em @! idx) i j)));
-  let rm = ematrix_from_tiles #real #(wm*tm) #(wn*tn) tm tn (fun i j -> rms @! (i * wn + j));
-  assume pure (forall (i : natlt wm) (j : natlt wn). (em @! (i * wn + j)) %~ (ematrix_subtile rm tm tn i j));
-  // ^ Shouldn't this be trivial? Anyway, this fake function will not survive into
-  // the fully verified version.
-  fold fragarrayAcc_approximates wm wn arr rm;
-}
 
 inline_for_extraction noextract
 fn populate_fragments_a
@@ -230,6 +209,7 @@ let arrayfragments_fade
   else ematrix_subtile rAcc tm tn i j
 
 #push-options "--z3rlimit 80"
+#restart-solver // Trying to avoid infinite loop in batch mode!?
 inline_for_extraction noextract
 fn fragarray_mma
   (#et_ab #et_acc : Type0)
@@ -655,6 +635,8 @@ ensures
   ()
 }
 
+#set-options "--debug SMTFail --split_queries always"
+
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
@@ -755,14 +737,19 @@ fn kf
 
   // fill accumulators with 0 for now
   populate_acc_with_zero tm tn tk wm wn accFrags;
-  let rAcc : ematrix real (wm*tm) (wn*tn) = const_matrix 0.0R;
-  assert (rewrites_to rAcc (const_matrix 0.0R));
+  let rAcc0 : ematrix real (wm*tm) (wn*tn) = const_matrix 0.0R;
+  assert (rewrites_to rAcc0 (const_matrix 0.0R));
 
   //rewrite each rAcc
   //as __gmatmul_single rAcc matmul matplus
   //    (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) mrow mcol 0;
 
-  unfold fragarrayAcc_approximates wm wn accFrags rAcc;
+  // unfold fragarrayAcc_approximates wm wn accFrags rAcc;
+
+  rewrite fragarrayAcc_approximates wm wn accFrags rAcc0
+       as fragarrayAcc_approximates wm wn accFrags
+            (__gmatmul_single rAcc0 matmul matplus
+              (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol 0);
 
   rewrite
     (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. nthr) x) **
@@ -774,29 +761,29 @@ fn kf
   let mut bkIdx : sz = 0sz;
   while ((!bkIdx <^ num_k_tiles))
     invariant
-      live bkIdx ** pure (!bkIdx <= num_k_tiles)
+      exists* (vbkIdx : sz { vbkIdx <= num_k_tiles }).
+        bkIdx |-> vbkIdx **
+        fragarrayAcc_approximates wm wn accFrags
+          (__gmatmul_single rAcc0 matmul matplus
+            (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx)
     invariant
       live aFrags **
-      live bFrags **
-      live accFrags
+      live bFrags
     invariant
       (exists* em1. FB.bp_sharing sA em1 nthr) **
       (exists* em2. FB.bp_sharing sB em2 nthr) **
       B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid) (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid //**
-      //(exists* (vbkIdx : sz { vbkIdx <= (shared/bk) }).
-      //  bkIdx |-> vbkIdx **
-      //  fragarrayAcc_approximates wm wn accFrags
-      //    (__gmatmul_single rAcc matmul matplus
-      //      (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx))
   {
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
 
+    #set-options "--z3rlimit 100 --retry 3" {
     rewrite
         (exists* em1. FB.bp_sharing sA em1 nthr) **
         (exists* em2. FB.bp_sharing sB em2 nthr)
       as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid;
+    };
 
     B.barrier_wait ();
     rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid
@@ -833,18 +820,28 @@ fn kf
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
-    fake_intro_fragarrayAcc_approximates wm wn accFrags; // underspec
+    let rA_sub = ematrix_subtile rA bm bk mrow !bkIdx;
+    let rB_sub = ematrix_subtile rB bk bn !bkIdx mcol;
     with rAcc. assert fragarrayAcc_approximates wm wn accFrags rAcc;
     subproducts_tc_2d bm bn bk tm tn tk wm wn aFrags bFrags accFrags
       sA sB
-      (ematrix_subtile rA bm bk mrow !bkIdx)
-      (ematrix_subtile rB bk bn !bkIdx mcol)
+      rA_sub rB_sub
+      // (ematrix_subtile rA bm bk mrow !bkIdx)
+      // (ematrix_subtile rB bk bn !bkIdx mcol)
       rAcc
       warpRow warpCol;
-    with rAcc'. unfold fragarrayAcc_approximates wm wn accFrags rAcc';
-    (* fragarrayAcc_approximates wm wn accumFrags
-      (rAcc `matplus` matmul (ematrix_subtile rA (wm*tm) bk arow 0)
-                             (ematrix_subtile rB bk (wn*tn) 0 bcol)) *)
+    // with rAcc'. unfold fragarrayAcc_approximates wm wn accFrags rAcc';
+    assert
+      fragarrayAcc_approximates wm wn accFrags
+        (rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                               (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol));
+
+    assume pure (
+        rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
+                               (ematrix_subtile rB_sub bk (wn*tn) 0 warpCol)
+      ==
+        __gmatmul_single rAcc0 matmul matplus
+          (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol (!bkIdx +^ 1sz));
 
     fold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -852,26 +849,32 @@ fn kf
     bkIdx := !bkIdx +^ 1sz;
   };
 
-  let rAcc : ematrix real (wm*tm) (wn*tn) =
+  // array_fragment_pts_to_ref accFrags;
+
+  let rAcc' : ematrix real (wm*tm) (wn*tn) =
     MS.matmul (ematrix_subtile rA (wm*tm) shared (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
               (ematrix_subtile rB shared  (wn*tn) 0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
-  with em. assert accFrags |-> em;
-  array_fragment_pts_to_ref accFrags;
-  assert pure (Seq.length em == wm*wn);
-  assume pure (forall (i : natlt wm) (j : natlt wn).
-                (em @! (i * wn + j)) %~ (ematrix_subtile rAcc tm tn i j));
-  fold fragarrayAcc_approximates wm wn accFrags rAcc;
+  assume pure (
+      (__gmatmul_single rAcc0 matmul matplus
+        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx)
+      == rAcc');
+  rewrite
+    fragarrayAcc_approximates wm wn accFrags
+      (__gmatmul_single rAcc0 matmul matplus
+        (ematrix_tiled rA (wm*tm) bk) (ematrix_tiled rB bk (wn*tn)) mrow mcol !bkIdx)
+  as
+    fragarrayAcc_approximates wm wn accFrags rAcc';
 
   with em1. unfold FB.bp_sharing sA em1 nthr;
   with em2. unfold FB.bp_sharing sB em2 nthr;
 
   rewrite each (tid / 32) as wid;
-  epilogue bm bn bk tm tn tk wm wn accFrags rAcc gC bid wid;
+  epilogue bm bn bk tm tn tk wm wn accFrags rAcc' gC bid wid;
   rewrite each v wid as (tid / 32);
 
   with vaFrags. assert aFrags |-> vaFrags; drop_ (aFrags |-> vaFrags);
   with vbFrags. assert bFrags |-> vbFrags; drop_ (bFrags |-> vbFrags);
-  unfold fragarrayAcc_approximates wm wn accFrags rAcc;
+  unfold fragarrayAcc_approximates wm wn accFrags rAcc';
   with vaccumFrags. assert accFrags |-> vaccumFrags; drop_ (accFrags |-> vaccumFrags);
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
@@ -899,7 +902,7 @@ fn kf
   rewrite each sarB as fst (snd sh);
 
   // Silly.
-  rewrite each rAcc
+  rewrite each rAcc'
     as MS.matmul (ematrix_subtile rA (wm*tm) shared
             (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
           (ematrix_subtile rB shared (wn*tn)
