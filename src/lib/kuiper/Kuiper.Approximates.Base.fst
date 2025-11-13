@@ -20,7 +20,6 @@ class real_like (a:Type) {| scalar a |} = {
       //     [SMTPat (x `v_approximates` to_real x)];
 
   (* We assume these two values exist and approximate correctly *)
-
   a0 : squash (v_approximates zero 0.0R);
   a1 : squash (v_approximates one 1.0R);
 
@@ -38,6 +37,7 @@ class real_like (a:Type) {| scalar a |} = {
                 //[SMTPat (v_approximates x r); SMTPat (v_approximates y s)];
 }
 
+(* Extra rules for types supporting division and exponentiation. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
   exp_approx : x:a -> r:real ->
                 Lemma (requires v_approximates x r)
