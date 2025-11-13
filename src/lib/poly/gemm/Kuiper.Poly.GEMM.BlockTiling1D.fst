@@ -606,7 +606,6 @@ fn teardown
   admit();
 }
 
-#push-options "--query_stats"
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)

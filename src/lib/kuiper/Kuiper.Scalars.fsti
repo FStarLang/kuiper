@@ -129,7 +129,7 @@ instance _ : floating F64.t = {
 
 noextract
 instance _ : scalar real = {
-  is_sized = { size = 0sz };
+  is_sized = { size = 0sz; default = 0.0R };
   add = (+.);
   mul = ( *. );
   zero = 0.0R;
