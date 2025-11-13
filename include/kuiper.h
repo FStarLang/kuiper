@@ -41,7 +41,9 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 		auto _nblk = (nblk);							\
 		auto _nthr = (nthr);							\
 		if (_nblk > 0 && _nthr > 0) {						\
-			foo<<<_nblk, _nthr, (e_size)>>>(__VA_ARGS__);			\
+			cudaStream_t fresh;						\
+			cudaStreamCreate(&fresh);					\
+			foo<<<_nblk, _nthr, (e_size), fresh>>>(__VA_ARGS__);		\
 			__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);\
 		}									\
 	} while (0)
