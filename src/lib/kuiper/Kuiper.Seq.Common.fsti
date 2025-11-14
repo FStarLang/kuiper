@@ -74,11 +74,13 @@ let seq_replace
   (lo : nat)
   (hi : nat { lo <= hi /\ hi <= length s1 })
   (s2 : seq a { Seq.length s2 == hi - lo })
-  : seq a
+  : Pure (seq a)
+         (requires True)
+         (ensures fun s1' -> Seq.length s1' == Seq.length s1)
 =
-  let s1 = slice s1 0 lo in
-  let s3 = slice s1 lo (Seq.length s1) in
-  s1 ++ s2 ++ s3
+  let left  = slice s1 0 lo in
+  let right = slice s1 hi (Seq.length s1) in
+  left ++ s2 ++ right
 
 let seq_blit
   (#a:Type)

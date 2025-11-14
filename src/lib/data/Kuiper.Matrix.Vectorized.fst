@@ -316,7 +316,7 @@ fn gpu_matrix_vec_read
   preserves gm |-> Frac f em
   requires  pure (aligned' 16 (core gm) (cell_of_pos l i j))
   requires  arr |-> s
-  requires  pure (Pulse.Lib.Array.length arr >= chunk et)
+  requires  pure (Pulse.Lib.Array.length arr == chunk et)
   ensures   arr |-> Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))
 {
   Pulse.Lib.Array.pts_to_len arr;
@@ -328,12 +328,15 @@ fn gpu_matrix_vec_read
 
   let offset = strided.offset +^ strided.stride *^ i +^ j;
 
+  with s0.
+    assert gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + chunk et) s0;
   gpu_array_vec_cpy_dh arr 0sz (core gm) offset;
+
+  with ds1. assert pts_to arr ds1;
 
   unget_slice gm i j;
 
-  with s. assert pts_to arr s;
-  assert pure (Seq.equal s (Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))));
+  assert pure (Seq.equal ds1 (Seq.init_ghost (chunk et) (fun x -> macc em i (j + x))));
 
   ();
 }
