@@ -670,7 +670,7 @@ fn setup
       kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
 {
-  admit();
+  admit(); // Incomplete as mentioned in paper
 }
 
 ghost
@@ -715,7 +715,7 @@ fn block_setup
       kpre comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh bid tid) **
     emp (* frame *)
 {
-  admit();
+  admit(); // Incomplete as mentioned in paper
 }
 
 ghost
@@ -758,7 +758,7 @@ fn block_teardown
     (forall+ (tid : natlt nthr).
       kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid)
 {
-  admit();
+  admit(); // Incomplete as mentioned in paper
 }
 
 ghost
@@ -796,14 +796,7 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
-  //   (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
-  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
-  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
-  // forevery_tostar #(natlt2 mrows mcols & natlt tile) (fun _tid -> m4_pts_to gA #(1.0R /. mlayout_size lC) eA);
-
-    // (fun (bid, tid) -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
-  admit();
+  admit(); // Incomplete as mentioned in paper
 }
 
 #push-options "--z3rlimit_factor 4 --split_queries no --fuel 1 --ifuel 1"
