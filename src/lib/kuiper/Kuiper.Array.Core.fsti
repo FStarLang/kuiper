@@ -220,9 +220,7 @@ fn gpu_memcpy_host_to_device'
     on gpu_loc (dst_garr |-> gv)
   ensures
     exists* s'. on gpu_loc (dst_garr |-> s') 
-               ** pure (s' == seq_blit gv dst_off v src_off cnt)
-  ensures
-    pure (Seq.length v == reveal dst_sz)
+               ** pure (s' == seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
 
 fn gpu_memcpy_host_to_device
   (#a:Type u#0)
@@ -270,7 +268,7 @@ fn gpu_memcpy_device_to_host'
     (dst_arr |-> gv)
   ensures
     exists* s'. dst_arr |-> s' **
-    pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length v == reveal dst_sz)
+    pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
 
 fn gpu_memcpy_device_to_host
   (#a:Type u#0)
