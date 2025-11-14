@@ -63,7 +63,7 @@ fn gpu_slice_split'
   (i n : nat)
   (#_ : squash (0 <= n-i /\ n-i < length s))
   (m:nat)
-  requires gpu_pts_to_slice arr #f i m s
+  requires gpu_pts_to_slice arr #f i m s ** pure (n <= m)
   ensures  gpu_pts_to_slice arr #f i n (seq_take (n-i) s) ** gpu_pts_to_slice arr #f n m (seq_drop (n-i) s)
 {
   assert pure (Seq.equal s (seq_take (n - i) s @+ seq_drop (n - i) s));

@@ -65,7 +65,7 @@ inline_for_extraction noextract
 fn copy_to_gpu
   (#t:Type0)
   {| d : sized t |}
-  (sz : sz)
+  (sz : sz { sz > 0 })
   (a : vec t)
   (#v : erased (seq t){len v == SZ.v sz})
   preserves cpu ** a |-> v

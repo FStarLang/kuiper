@@ -140,7 +140,7 @@ noextract
 fn gpu_array_alloc
   (#a : Type u#0)
   {| sized a |}
-  (sz : SZ.t)
+  (sz : SZ.t { sz > 0 })
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures
@@ -357,24 +357,8 @@ fn gpu_slice_split
   (#[exact (`1.0R)] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
-  requires gpu_pts_to_slice arr #f i m (s1 @+ s2)
+  requires gpu_pts_to_slice arr #f i m (s1 @+ s2) ** pure (i <= n /\ n <= m /\ (i + Seq.length s1 == n \/ n + Seq.length s2 == m))
   ensures  gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
-
-ghost
-fn gpu_slice_empty_elim
-  (#a:Type u#0) (#sz:nat)
-  (arr : gpu_array a sz)
-  (i : nat)
-  requires gpu_pts_to_slice arr #'f i i 'v
-  ensures  emp
-
-ghost
-fn gpu_slice_empty_intro
-  (#a:Type u#0) (#sz:nat)
-  (arr : gpu_array a sz)
-  (i : nat)
-  requires emp
-  ensures  gpu_pts_to_slice arr #'f i i seq![]
 
 ghost
 fn gpu_slice_share
