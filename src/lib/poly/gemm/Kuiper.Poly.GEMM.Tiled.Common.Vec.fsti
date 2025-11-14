@@ -113,7 +113,7 @@ let thread_tile_idx_cols
 
 inline_for_extraction noextract
 let block_tile
-  (#et : Type0) {| scalar et |}
+  (#et : Type0)
   (#rows #cols : erased nat)
   (#lC : mlayout rows cols)
   (gC : gpu_matrix et lC)
@@ -131,7 +131,7 @@ let block_tile
 
 inline_for_extraction noextract
 let thread_tile
-  (#et : Type0) {| scalar et |}
+  (#et : Type0)
   (#bm #bn : erased nat)
   (#lC_bt : mlayout bm bn)
   (gC_bt : gpu_matrix et lC_bt)

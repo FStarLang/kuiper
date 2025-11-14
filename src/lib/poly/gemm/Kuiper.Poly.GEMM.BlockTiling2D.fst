@@ -20,9 +20,9 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module FB = Kuiper.Poly.GEMM.FlipFlopBarrier
 
-let own_thread_tile
-  (#et : Type0) {| scalar et |}
-  (#rows : erased nat)
+let ttile
+  (#et : Type0)
+  (#rows : nat)
   (#cols : nat)
   (#lC : mlayout rows cols)
   (gC : gpu_matrix et lC)
@@ -32,11 +32,22 @@ let own_thread_tile
   (tn : nat{tn > 0 /\ tn /?+ bn})
   (bid : natlt ((rows/bm) * (cols/bn)))
   (tid : natlt (bm/tm * (bn/tn)))
-  : slprop
-  =
-    (exists* em.
-      gpu_matrix_pts_to
-        (thread_tile (block_tile gC bm bn bid) tm tn tid) em)
+  : gpu_matrix et _
+  = thread_tile (block_tile gC bm bn bid) tm tn tid
+
+let ettile
+  (#et : Type0)
+  (#rows : nat)
+  (#cols : nat)
+  (em : ematrix et rows cols)
+  (bm : nat{bm > 0 /\ bm /?+ rows})
+  (bn : nat{bn > 0 /\ bn /?+ cols})
+  (tm : nat{tm > 0 /\ tm /?+ bm})
+  (tn : nat{tn > 0 /\ tn /?+ bn})
+  (bid : natlt ((rows/bm) * (cols/bn)))
+  (tid : natlt (bm/tm * (bn/tn)))
+  : ematrix et tm tn
+  = ematrix_subtile (ematrix_subtile em bm bn (bid/(cols/bn)) (bid%(cols/bn))) tm tn (tid/(bn/tn)) (tid%(bn/tn))
 
 unfold
 let kpre1
@@ -51,6 +62,7 @@ let kpre1
   (gB : gpu_matrix et lB)
   (eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
+  (eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -63,7 +75,7 @@ let kpre1
   =
   gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA **
   gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
-  own_thread_tile gC bm bn tm tn bid tid **
+  ttile gC bm bn tm tn bid tid |-> ettile eC bm bn tm tn bid tid **
   pure (SZ.fits (rows * cols)) **
   pure (aligned 16 (core gA)) **
   pure (aligned 16 (core gB))
@@ -81,6 +93,7 @@ let kpost1
   (gB : gpu_matrix et lB)
   (eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
+  (eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -93,7 +106,7 @@ let kpost1
   =
   gA |-> Frac (fA /. (rows/tm * (cols/tn))) eA **
   gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
-  own_thread_tile gC bm bn tm tn bid tid
+  ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid
 
 let barrier_tok
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -130,6 +143,7 @@ let kpre
   (gB : gpu_matrix et lB)
   (eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
+  (eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -145,7 +159,7 @@ let kpre
   (tid : natlt (bm/tm * (bn/tn)))
   : slprop
   =
-  kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
+  kpre1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid **
   live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
   barrier_tok #_ #_ #v eA eB slA slB (fst sh) (fst (snd sh)) 0 nthr bid tid
 
@@ -161,6 +175,7 @@ instance kpre_block_sendable
   (gB : gpu_matrix et lB { is_global_matrix gB })
   (eB : ematrix et shared cols)
   (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -177,7 +192,7 @@ instance kpre_block_sendable
   (i : natlt nblk)
   (j : natlt nthr)
 : is_send_across block_of 
-  (kpre comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh i j)
+  (kpre comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
 
 unfold
@@ -193,6 +208,7 @@ let kpost
   (gB : gpu_matrix et lB)
   (eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
+  (eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -208,7 +224,7 @@ let kpost
   (tid : natlt (bm/tm * (bn/tn)))
   : slprop
   =
-  kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid **
+  kpost1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid **
   live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
   barrier_tok #_ #_ #v eA eB slA slB (fst sh) (fst (snd sh)) (2 * (shared / bk)) nthr bid tid
 
@@ -224,6 +240,7 @@ instance kpost_block_sendable
   (gB : gpu_matrix et lB { is_global_matrix gB })
   (eB : ematrix et shared cols)
   (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -240,7 +257,7 @@ instance kpost_block_sendable
   (i : natlt nblk)
   (j : natlt nthr)
 : is_send_across block_of 
-  (kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh i j)
+  (kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
 
 inline_for_extraction noextract
@@ -365,6 +382,7 @@ fn epilogue
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #cols : sz)
+  (#shared : sz)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (tm : szp{tm /?+ bm})
@@ -373,23 +391,26 @@ fn epilogue
   (#lC : mlayout rows cols)
   {| clayout lC |}
   (gC : gpu_matrix et lC)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (eC : ematrix et rows cols)
   // (#_ : squash (SZ.fits (bm/tm * (bn/tn))))
   (bid : szlt (rows/bm * (cols/bn)))
   (tid : szlt (bm/tm * (bn/tn)))
   requires
     gpu **
-    own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid) **
+    ttile gC bm bn tm tn bid tid |-> 'init **
     (exists* vrchProd.
       pure (Seq.length vrchProd == tm * tn) **
       rchProd |-> vrchProd)
   ensures
     gpu **
-    own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid) **
+    ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid **
     (exists* vrchProd'.
       pure (Seq.length vrchProd' == tm * tn) **
       (rchProd |-> vrchProd'))
 {
-  unfold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
+  // unfold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
   let t_tile = thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
     (SZ.v tm) (SZ.v tn)  (SZ.v tid);
   assert (rewrites_to t_tile (thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
@@ -432,12 +453,13 @@ fn epilogue
     resIdxM := !resIdxM +^ 1sz;
   };
 
+  with m. assert gpu_matrix_pts_to t_tile m;
+  assume pure (m == ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid);
+
   // rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
-  fold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
+  // fold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
   ()
 }
-
-#set-options "--print_implicits"
 
 inline_for_extraction noextract
 fn kf
@@ -457,6 +479,7 @@ fn kf
   (gB : gpu_matrix et lB)
   (#eB : ematrix et shared cols)
   (gC : gpu_matrix et lC)
+  (#eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
   (bk : szp{bk /?+ shared})
@@ -481,12 +504,12 @@ fn kf
   norewrite
   requires
     gpu **
-    kpre comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh bid tid **
+    kpre comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn)) tid **
     block_id (rows/bm * (cols/bn)) bid
   ensures
     gpu **
-    kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh bid tid **
+    kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn)) tid **
     block_id (rows/bm * (cols/bn)) bid
 {
@@ -605,7 +628,7 @@ fn kf
   assert pure (not (vbkIdx < num_k_tiles));
   assert pure (vbkIdx == num_k_tiles); // Somehow this is flaky.
 
-  epilogue comb bm bn tm tn rchProd gC bid tid;
+  epilogue comb bm bn tm tn rchProd gC eA eB eC bid tid;
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
@@ -667,7 +690,7 @@ fn setup
   ensures
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
+      kpre1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
 {
   admit(); // Incomplete as mentioned in paper
@@ -708,11 +731,11 @@ fn block_setup
     can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpre1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid)
+      kpre1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid)
   ensures
     consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
-      kpre comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh bid tid) **
+      kpre comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid) **
     emp (* frame *)
 {
   admit(); // Incomplete as mentioned in paper
@@ -751,12 +774,12 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB nthr sh bid tid) **
+      kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
-      kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid)
+      kpost1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid)
 {
   admit(); // Incomplete as mentioned in paper
 }
@@ -789,7 +812,7 @@ fn teardown
   requires
     (forall+ (bid : natlt nblk)
              (tid : natlt nthr).
-      kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid) **
+      kpost1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **
@@ -852,8 +875,8 @@ let mk_kernel
   shmems_desc = shmems_desc et bm bn bk;
 
   frame = emp;
-  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 comb gA eA gB eB gC bm bn bk tm tn fA fB bid tid);
+  block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt nthr). kpost1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid);
 
   setup      = setup    comb gA eA gB eB gC eC bm bn bk tm tn nblk nthr fA fB;
   teardown   = teardown comb gA eA gB eB gC eC bm bn bk tm tn nblk nthr fA fB;
@@ -862,8 +885,8 @@ let mk_kernel
   block_setup    = block_setup comb gA eA gB eB gC eC bm bn bk slA slB tm tn nblk nthr fA fB;
   block_teardown = block_teardown comb gA eA gB eB gC eC bm bn bk slA slB tm tn nblk nthr fA fB ;
 
-  kpre      = kpre  comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB (SZ.v nthr);
-  kpost     = kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB (SZ.v nthr);
+  kpre      = kpre  comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB (SZ.v nthr);
+  kpost     = kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB (SZ.v nthr);
 
   f = kf comb gA #eA gB #eB gC bm bn bk slA slB tm tn #() #() #() #() #fA #fB (SZ.v nthr);
 
