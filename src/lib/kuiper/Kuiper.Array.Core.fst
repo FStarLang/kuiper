@@ -422,7 +422,11 @@ fn gpu_slice_concat
   requires gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
   ensures  gpu_pts_to_slice arr #f i m (s1 @+ s2)
 {
-  admit()
+  unfold (gpu_pts_to_slice arr #f i n s1);
+  unfold (gpu_pts_to_slice arr #f n m s2);
+  A.join_mask arr;
+  A.mask_mext arr (mask_of i m);
+  fold (gpu_pts_to_slice arr #f i m (s1 @+ s2));
 }
 
 ghost
@@ -433,10 +437,19 @@ fn gpu_slice_split
   (#[exact (`1.0R)] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
-  requires gpu_pts_to_slice arr #f i m (s1 @+ s2)
+  requires gpu_pts_to_slice arr #f i m (s1 @+ s2) ** pure (i <= n /\ n <= m /\ (i + Seq.length s1 == n \/ n + Seq.length s2 == m))
   ensures  gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
 {
-  admit()
+  gpu_pts_to_slice_ref arr _ _;
+  unfold gpu_pts_to_slice;
+  with s . assert (A.pts_to_mask arr #f s (mask_of i m));
+  A.split_mask arr (fun j -> j < n);
+  A.mask_mext arr #_ #_ #(A.mask_diff _ _) (mask_of n m);
+  Seq.slice_slice s i m (Seq.length s1) (Seq.length s1 + Seq.length s2);
+  fold (gpu_pts_to_slice arr #f n m s2);
+  A.mask_mext arr (mask_of i n);
+  Seq.slice_slice s i m 0 (Seq.length s1);
+  fold (gpu_pts_to_slice arr #f i n s1);
 }
 
 ghost

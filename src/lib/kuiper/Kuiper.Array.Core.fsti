@@ -357,7 +357,7 @@ fn gpu_slice_split
   (#[exact (`1.0R)] f : perm)
   (#s1 #s2: erased (seq a))
   (i n m:nat)
-  requires gpu_pts_to_slice arr #f i m (s1 @+ s2)
+  requires gpu_pts_to_slice arr #f i m (s1 @+ s2) ** pure (i <= n /\ n <= m /\ (i + Seq.length s1 == n \/ n + Seq.length s2 == m))
   ensures  gpu_pts_to_slice arr #f i n s1 ** gpu_pts_to_slice arr #f n m s2
 
 ghost
