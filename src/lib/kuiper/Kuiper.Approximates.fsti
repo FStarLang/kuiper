@@ -78,3 +78,12 @@ val seq_approximates_append (#a:Type) {| scalar a, real_like a |}
   (s1 s2 : a) (r1 r2 : seq real)
   : Lemma (requires s1 %~ real_seq_sum r1 /\ s2 %~ real_seq_sum r2)
           (ensures (s1 `add` s2) %~ real_seq_sum (r1 `Seq.append` r2))
+
+val sum_is_approx' #a {| scalar a, real_like a |}
+      (s: seq a) (s': seq real) (acc: a) (acc': real) :
+    Lemma (requires s %~ s' /\ acc %~ acc')
+          (ensures seq_fold_left add acc s %~ seq_fold_left (+.) acc' s')
+
+val sum_is_approx #a {| scalar a, real_like a |} (s: seq a) (s': seq real) :
+    Lemma (requires s %~ s')
+          (ensures seq_fold_left add zero s %~ seq_fold_left (+.) 0.0R s')

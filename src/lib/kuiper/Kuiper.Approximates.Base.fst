@@ -37,6 +37,19 @@ class real_like (a:Type) {| scalar a |} = {
                 //[SMTPat (v_approximates x r); SMTPat (v_approximates y s)];
 }
 
+[@@FStar.Tactics.Typeclasses.fundeps [1]]
+class precise_real_like (a:Type) {| scalar a, real_like a |} = {
+  v_approximates_inj : (x: a -> y: a -> r: real ->
+    Lemma (requires v_approximates x r /\ v_approximates y r)
+          (ensures x == y));
+}
+
+let approx_to_real #a {| scalar a, real_like a, precise_real_like a |} (x y: a) :
+    Lemma (requires v_approximates x (to_real y))
+          (ensures x == y) =
+  to_real_ok y;
+  v_approximates_inj x y (to_real y)
+
 (* Extra rules for types supporting division and exponentiation. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
   exp_approx : x:a -> r:real ->

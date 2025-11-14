@@ -45,3 +45,7 @@ instance real_like_u16 : real_like u16 = {
     ()
   );
 }
+
+instance precise_real_like_u16 : precise_real_like u16 = {
+  v_approximates_inj = (fun x y r -> ());
+}
