@@ -19,7 +19,7 @@ type shmem_desc =
   | SHArray :
     (ty : Type0) ->
     {| sized : Kuiper.Sized.sized ty |} ->
-    len    : SZ.t ->
+    len    : SZ.t { len > 0 } ->
     shmem_desc
 
 let is_block_array #ty #len (g:gpu_array ty len) 

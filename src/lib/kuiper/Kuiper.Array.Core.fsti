@@ -140,7 +140,7 @@ noextract
 fn gpu_array_alloc
   (#a : Type u#0)
   {| sized a |}
-  (sz : SZ.t)
+  (sz : SZ.t { sz > 0 })
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures

@@ -550,7 +550,7 @@ fn varray_iabs
 
 inline_for_extraction noextract
 fn varray_alloc0
-  (#et : Type0) {| sized et |} (len : sz) (#st : Type0)
+  (#et : Type0) {| sized et |} (len : sz { len > 0 }) (#st : Type0)
   (vw : aview et st { is_full_view vw /\ Len.len vw == len})
   preserves
     cpu

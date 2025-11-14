@@ -24,7 +24,7 @@ is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq
 = is_send_across_pts_to_mask x f s mask
 
 
-let gpu_array (a : Type u#0) (sz : nat) : Type u#0 = A.larray a sz
+let gpu_array (a : Type u#0) (sz : nat) : Type u#0 = (x: A.larray a sz { sz > 0 })
 let loc_id_of_array #a #sz x = loc_id_of_array x
 let visibility_of #a #sz x = visibility_of_array x
 
@@ -112,7 +112,7 @@ noextract
 fn gpu_array_alloc_vis
   (#a : Type u#0)
   {| sized a |}
-  (sz : SZ.t)
+  (sz : SZ.t { sz > 0 })
   (l:loc_id)
   (vis:visibility)
   returns  x : gpu_array a (SZ.v sz)
@@ -148,7 +148,7 @@ noextract
 fn gpu_array_alloc
   (#a : Type u#0)
   {| d: sized a |}
-  (sz : SZ.t)
+  (sz : SZ.t { sz > 0 })
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures
@@ -385,33 +385,6 @@ fn gpu_memcpy_device_to_device
 { admit() } //this is a CUDA primitive
 
 ghost
-fn gpu_array_slice_1
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  (#v : erased (seq a) { Seq.length v == sz })
-  requires pts_to arr #f v
-  ensures  forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
-{
-  admit()
-}
-
-ghost
-fn gpu_array_unslice_1
-  (#a:Type u#0)
-  (#sz:nat)
-  (arr : gpu_array a sz)
-  (#f : perm)
-  (#v : erased (seq a) { Seq.length v == sz })
-  requires forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
-  ensures  pts_to arr #f v
-{
-  admit()
-}
-
-
-ghost
 fn gpu_slice_concat
   (#a:Type u#0)
   (#sz:nat)
@@ -450,6 +423,108 @@ fn gpu_slice_split
   A.mask_mext arr (mask_of i n);
   Seq.slice_slice s i m 0 (Seq.length s1);
   fold (gpu_pts_to_slice arr #f i n s1);
+}
+
+ghost
+fn rec gpu_forall_slice_to_cell
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (i0: nat)
+  (#f : perm)
+  (#v : erased (seq a))
+  (j: nat { 0 < j /\ j <= Seq.length v })
+  requires gpu_pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j)
+  ensures forall+ (i: natlt (Seq.length v) { i < j }). gpu_pts_to_cell arr #f (i0 + i) (v @! i)
+  decreases j
+{
+  if (j = 1) {
+    assert pure (Seq.equal (slice v 0 j) seq![index v 0]);
+    rewrite gpu_pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j)
+      as gpu_pts_to_cell arr #f (i0 + 0) (v @! 0);
+    forevery_intro_false #(natlt (Seq.length v)) (fun i -> gpu_pts_to_cell arr #f (i0 + i) (v @! i));
+    forevery_insert #(natlt (Seq.length v)) (fun i -> gpu_pts_to_cell arr #f (i0 + i) (v @! i)) 0;
+    forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < j) (fun i -> gpu_pts_to_cell arr #f (i0 + i) (v @! i));
+  } else {
+    Seq.lemma_split (Seq.slice v 0 j) (j - 1);
+    gpu_slice_split arr #f #(Seq.slice v 0 (j - 1)) #(Seq.slice v (j - 1) j) i0 (i0 + (j - 1)) (i0 + j) ;
+    gpu_forall_slice_to_cell arr i0 (j - 1);
+    assert pure (Seq.equal (Seq.slice v (j - 1) j) seq![index v (j - 1)]);
+    rewrite gpu_pts_to_slice arr #f (i0 + (j - 1)) (i0 + j) (Seq.slice v (j - 1) j)
+      as gpu_pts_to_cell arr #f (i0 + (j - 1)) (v @! (j - 1));
+    forevery_insert #(natlt (Seq.length v)) (fun i -> gpu_pts_to_cell arr #f (i0 + i) (v @! i)) (j - 1);
+    forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < j) (fun i -> gpu_pts_to_cell arr #f (i0 + i) (v @! i));
+    ()
+  }
+}
+
+ghost
+fn gpu_array_slice_1
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a) { Seq.length v == sz })
+  requires pts_to arr #f v
+  ensures  forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
+{
+  rewrite pts_to arr #f v
+    as gpu_pts_to_slice arr #f 0 (0 + sz) (Seq.slice v 0 sz);
+  gpu_forall_slice_to_cell arr 0 sz;
+  forevery_unrefine _;
+  rewrite each (Seq.length v) as sz;
+  forevery_ext #(natlt sz) _ (fun i -> gpu_pts_to_cell arr #f i (v @! i));
+  ()
+}
+
+ghost
+fn rec gpu_forall_cell_to_slice
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (i0: nat)
+  (#f : perm)
+  (#v : erased (seq a))
+  (j: nat { 0 < j /\ j <= Seq.length v })
+  requires forall+ (i: natlt (Seq.length v) { i < j }). gpu_pts_to_cell arr #f (i0 + i) (v @! i)
+  ensures gpu_pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j)
+  decreases j
+{
+  let j' : natlt (Seq.length v) = j - 1;
+  if (j' = 0) {
+    forevery_singleton_elim' #(i: natlt (Seq.length v) { i < j }) _ j';
+    assert pure (Seq.equal seq![index v j'] (Seq.slice v 0 j));
+    rewrite gpu_pts_to_slice arr #f (i0 + j') (i0 + j' + 1) seq![index v j']
+      as gpu_pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j);
+    ()
+  } else {
+    forevery_remove' #(natlt (Seq.length v)) (fun (i: natlt (Seq.length v)) -> i < j) (fun (i: natlt (Seq.length v)) -> gpu_pts_to_cell arr #f (i0 + i) (v @! i)) j';
+    forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < j') (fun (i: natlt (Seq.length v)) -> gpu_pts_to_cell arr #f (i0 + i) (v @! i));
+    gpu_forall_cell_to_slice arr i0 j';
+    gpu_slice_concat arr #f i0 _ _;
+    assert pure (Seq.equal (append (slice v 0 j') seq![index v j']) (Seq.slice v 0 j));
+    rewrite gpu_pts_to_slice arr #f i0 (i0 + j' + 1) (append (slice v 0 j') seq![index v j'])
+      as gpu_pts_to_slice arr #f i0 (i0 + j) (Seq.slice v 0 j);
+  }
+}
+
+ghost
+fn gpu_array_unslice_1
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : erased (seq a) { Seq.length v == sz })
+  requires forall+ (i: natlt sz). gpu_pts_to_cell arr #f i (v @! i)
+  ensures  pts_to arr #f v
+{
+  rewrite each (sz) as Seq.length v;
+  forevery_ext #(natlt (Seq.length v)) _ (fun i -> gpu_pts_to_cell arr #f (0 + i) (v @! i));
+  forevery_refine_split #(natlt (Seq.length v)) _ (fun i -> i < sz);
+  forevery_refine_join #(natlt (Seq.length v)) _ (fun i -> i < sz) _;
+  forevery_refine_ext #(natlt (Seq.length v)) (fun i -> i < sz) _;
+  gpu_forall_cell_to_slice arr 0 sz;
+  ()
 }
 
 ghost
