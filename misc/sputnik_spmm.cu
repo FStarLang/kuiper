@@ -111,6 +111,8 @@ void spmm_kernel(int rows,
 
     // tile 2D de gB
     __align__(16) scalar dense_fragment[blockItemsK * threadItemsX];
+    // Guido: ^ hay que inicializar a cero? Capaz no, porque se filtar todo
+    // por el predicado.
 
     // tile 1D de gC
     // acá sputnik usa float para acumular los resultados
@@ -176,26 +178,34 @@ void spmm_kernel(int rows,
 #pragma unroll
             for (int x = 0; x < threadItemsX; x++) {
                 if (GetBit(predicates, x)) {
+                    // Guido: gB es densa
                     dense_fragment[dense_fragment_offset] =
                         gB[dense_it];
                     dense_it += blockWidth;
                     dense_fragment_offset++;
+
+                    // Alternativa:
+                    // dense_fragment[dense_fragment_offset + x] =
+                    //     gB[dense_it + blockWidth * x];
                 }
             }
         }
 
         // calculamos el producto
-        dense_fragment_offset = 0;
 #pragma unroll
-        for (int k = 0; k < blockItemsK; k++) {
+        for (int k = 0, dense_fragment_offset=0; k < blockItemsK; k++, dense_fragment_offset++) {
 #pragma unroll
-            for (int x = 0; x < threadItemsX; x++) {
+            for (int x = 0; x < threadItemsX; x++, dense_fragment_offset++) {
                 output_fragment[x] += elems_tile[k] * dense_fragment[dense_fragment_offset];
-                dense_fragment_offset++;
+                // dense_fragment_offset++;
             }
         }
         
     }
+
+    // output_fragment tiene productos parciales para este hilo
+    // Nos faltan procesar algunos de la fila de a, porque fuimos
+    // en pasos de blockItemsK, que no necesariamente divide nnz.
 
     // calculamos valores residuales
 
