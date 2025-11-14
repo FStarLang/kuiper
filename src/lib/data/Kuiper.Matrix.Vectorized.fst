@@ -138,10 +138,24 @@ fn get_slice
   // Extract permission to the row we're interested in
   forevery_remove #(natlt rows) _ i;
 
-  gpu_slice_empty_intro (core gm) (cell_of_pos l i j) #f;
+  // Extract an empty slice
+  forevery_remove #(natlt cols) _ j;
+  gpu_slice_split' (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0) (cell_of_pos l i j + 1);
   assert pure (seq![] `Seq.equal` Seq.init_ghost 0 (fun x -> macc em i (j + x)));
   assert gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0)
-    (Seq.init_ghost 0 (fun x -> macc em i (j + x)));
+    (Seq.init_ghost 0 (fun x -> macc em i (j + x)))
+    ;
+  assert pure (Seq.equal (Kuiper.Seq.Common.seq_drop (cell_of_pos l i j + 0 - cell_of_pos l i j)
+          seq![macc em i j]) seq![macc em i j]);
+  assert gpu_pts_to_slice (core gm) #f (cell_of_pos l i j + 0) (cell_of_pos l i j + 1)
+    seq![macc em i j];
+  rewrite gpu_pts_to_slice (core gm) #f (cell_of_pos l i j + 0) (cell_of_pos l i j + 1)
+    seq![macc em i j]
+    as gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1)
+    seq![macc em i j];
+  forevery_insert #(natlt cols) _ j;
+  forevery_unrefine #(natlt cols) _;
+
   forevery_refine_ext
     (fun (x : natlt cols) -> all_but_window cols j 0 x)
     _;
@@ -246,10 +260,21 @@ fn unget_slice
   __unget_slice gm i j 0;
   unfold get_slice_inv gm i j f em 0;
   forevery_unrefine #(natlt cols) _;
-  assert gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 0)
-    (Seq.init_ghost 0 (fun x -> macc em i (j + x)));
-  assert pure (seq![] `Seq.equal` Seq.init_ghost 0 (fun x -> macc em i (j + x)));
-  gpu_slice_empty_elim (core gm) (cell_of_pos l i j) #f;
+  with s0 . assert  gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j) s0;
+
+  // Merge the empty slice back into j
+  forevery_remove #(natlt cols) _ j;
+  gpu_slice_concat (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j) _;
+  with s1 . assert (gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1) s1);
+  assert pure (Seq.equal s1 seq![macc em (v i) (v j)]);
+  assert (gpu_pts_to_slice (core gm) #f (cell_of_pos l i j) (cell_of_pos l i j + 1) seq![macc em (v i) (v j)]);
+  forevery_insert #(natlt cols) #(fun x -> ~(eq2 #(natlt cols) x j)) (fun x ->
+        gpu_pts_to_slice (core gm) #f
+        (cell_of_pos l (v i) x)
+        (cell_of_pos l (v i) x + 1)
+        seq![macc em (v i) x] ) j;
+  forevery_unrefine #(natlt cols) _;
+
   let r0 : natlt rows = v i;
   rewrite each (v i) as r0;
   let phi = (fun (r: natlt rows) (c: natlt (reveal #nat cols)) ->

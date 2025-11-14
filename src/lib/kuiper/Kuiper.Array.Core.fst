@@ -440,28 +440,6 @@ fn gpu_slice_split
 }
 
 ghost
-fn gpu_slice_empty_elim
-  (#a:Type u#0) (#sz:nat)
-  (arr : gpu_array a sz)
-  (i : nat)
-  requires gpu_pts_to_slice arr #'f i i 'v
-  ensures  emp
-{
-  admit()
-}
-
-ghost
-fn gpu_slice_empty_intro
-  (#a:Type u#0) (#sz:nat)
-  (arr : gpu_array a sz)
-  (i : nat)
-  requires emp
-  ensures  gpu_pts_to_slice arr #'f i i seq![]
-{
-  admit()
-}
-
-ghost
 fn gpu_slice_share
   (#a:Type u#0)
   (#sz:nat)
