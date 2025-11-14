@@ -528,7 +528,7 @@ fn gpu_array_unslice_1
 }
 
 ghost
-fn gpu_slice_share
+fn rec gpu_slice_share
   (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
@@ -538,8 +538,26 @@ fn gpu_slice_share
   requires gpu_pts_to_slice arr #f m n 'v
   ensures
     forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
+  decreases k
 {
-  admit()
+  if (k = 1) {
+    rewrite gpu_pts_to_slice arr #f m n 'v
+      as gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v;
+    forevery_intro_false #(natlt k) (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v);
+    forevery_insert #(natlt k) (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v) 0;
+    forevery_unrefine #(natlt k) (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v);
+  } else {
+    with v . assert (gpu_pts_to_slice arr #f m n v);
+    unfold (gpu_pts_to_slice arr #f m n v);
+    with s . assert (A.pts_to_mask arr #f s (mask_of m n));
+    let f' = f -. (f /. Real.of_int k);
+    mask_share_gen arr #s #f (f /. Real.of_int k) f';
+    fold (gpu_pts_to_slice arr #(f /. Real.of_int k) m n v);
+    fold (gpu_pts_to_slice arr #f' m n v);
+    gpu_slice_share arr m n (k - 1) #f';
+    forevery_ext #(natlt (k - 1)) _ (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n v);
+    forevery_natlt_push k (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n v);
+  }
 }
 
 ghost
@@ -562,7 +580,7 @@ fn gpu_slice_share_underspec
 }
 
 ghost
-fn gpu_slice_gather
+fn rec gpu_slice_gather
   (#a:Type u#0)
   (#sz:nat)
   (arr : gpu_array a sz)
@@ -572,8 +590,23 @@ fn gpu_slice_gather
   requires
     forall+ (_:natlt k). gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v
   ensures gpu_pts_to_slice arr #f m n 'v
+  decreases k
 {
-  admit()
+  if (k = 1) {
+    forevery_singleton_elim' #(natlt k) _ 0;
+  } else {
+    forevery_natlt_pop k _;
+    let f' = f -. (f /. Real.of_int k);
+    forevery_ext #(natlt (k - 1)) _ (fun _ -> gpu_pts_to_slice arr #(f' /. Real.of_int (k - 1)) m n 'v);
+    gpu_slice_gather arr m n (k - 1);
+    with v1 . assert gpu_pts_to_slice arr #(f /. Real.of_int k) m n v1;
+    with v2 . assert gpu_pts_to_slice arr #f' m n v2;
+    unfold gpu_pts_to_slice arr #(f /. Real.of_int k) m n v1;
+    unfold gpu_pts_to_slice arr #f' m n v2;
+    mask_gather arr;
+    fold gpu_pts_to_slice arr #f m n v1;
+    ()
+  }
 }
 
 ghost
@@ -591,7 +624,12 @@ fn gpu_slice_pts_to_eq
     gpu_pts_to_slice arr #f1 m n v2 **
     gpu_pts_to_slice arr #f2 m n v2
 {
-  admit()
+  unfold gpu_pts_to_slice arr #f1 m n v1;
+  unfold gpu_pts_to_slice arr #f2 m n v2;
+  mask_gather arr;
+  mask_share_gen arr f1 f2;
+  fold gpu_pts_to_slice arr #f1 m n v2;
+  fold gpu_pts_to_slice arr #f2 m n v2;
 }
 
 ghost
