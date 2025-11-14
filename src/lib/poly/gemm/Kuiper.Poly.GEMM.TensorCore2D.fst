@@ -849,27 +849,15 @@ fn kf
   let warpRow : szlt (bm / (wm*tm)) = wid /^ (bn/^(wn*^tn));
   let warpCol : szlt (bn / (wn*tn)) = wid %^ (bn/^(wn*^tn));
 
-  (* tensor core fragments *)
+  (* Tensor core fragments *)
   let aFrags = __alloc_array_fragment et_ab FragA tm tn tk FragLRM wm;
   let bFrags = __alloc_array_fragment et_ab FragB tm tn tk FragLRM wn;
   let accFrags = __alloc_array_fragment et_c FragAcc tm tn tk FragLAcc (wm *^ wn);
 
-  (* get ownership over the thread's gC tile and load it into the accumulator *)
-  // unfold live_warp_tile;
-  // let t_tile = warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (wm*tm) (wn*tn) (SZ.v wid);
-  // assert (rewrites_to t_tile (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid)) (wm*tm) (wn*tn) (SZ.v wid)));
-  // fold live_warp_tile;
-
-  // fill accumulators with 0 for now
+  // Fill accumulators with 0 
   populate_acc_with_zero tm tn tk wm wn accFrags;
   let rAcc0 : ematrix real (wm*tm) (wn*tn) = const_matrix 0.0R;
   assert (rewrites_to rAcc0 (const_matrix 0.0R));
-
-  //rewrite each rAcc
-  //as __gmatmul_single rAcc matmul matplus
-  //    (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) mrow mcol 0;
-
-  // unfold fragarrayAcc_approximates wm wn accFrags rAcc;
 
   rewrite fragarrayAcc_approximates wm wn accFrags rAcc0
        as fragarrayAcc_approximates wm wn accFrags
@@ -883,13 +871,6 @@ fn kf
     (exists* em1. FB.bp_sharing sA em1 nthr) **
     (exists* em2. FB.bp_sharing sB em2 nthr);
 
-  // assert pure (mrow < rows / bm);
-  // assert pure (mrow <= rows / bm - 1);
-  // assert pure (mrow * bm/(wm*tm) <= (rows / bm - 1) * bm/(wm*tm));
-  // assert pure (mrow * bm/(wm*tm) <= (rows / bm) * bm/(wm*tm) - bm/(wm*tm));
-  // assert pure (mrow * bm/(wm*tm) <= (rows / wm*tm) - bm/(wm*tm));
-  // assert pure (mrow * bm/(wm*tm) + warpRow <= (rows / wm*tm) - 1);
-  // assert pure (mrow * bm/(wm*tm) + warpRow < (rows / wm*tm));
   let gwRow : enatlt (rows/(wm*tm)) = mrow * (bm/(wm*tm)) + warpRow;
   let gwCol : enatlt (cols/(wn*tn)) = mcol * (bn/(wn*tn)) + warpCol;
 
@@ -964,11 +945,8 @@ fn kf
     subproducts_tc_2d bm bn bk tm tn tk wm wn aFrags bFrags accFrags
       sA sB
       rA_sub rB_sub
-      // (ematrix_subtile rA bm bk mrow !bkIdx)
-      // (ematrix_subtile rB bk bn !bkIdx mcol)
       rAcc
       warpRow warpCol;
-    // with rAcc'. unfold fragarrayAcc_approximates wm wn accFrags rAcc';
     assert
       fragarrayAcc_approximates wm wn accFrags
         (rAcc `matplus` matmul (ematrix_subtile rA_sub (wm*tm) bk warpRow 0)
@@ -998,7 +976,7 @@ fn kf
               gwRow // (mrow * bm/(wm*tm) + warpRow)
               gwCol // (mcol * bn/(wn*tn) + warpCol)
               (shared / bk));
-  // array_fragment_pts_to_ref accFrags;
+
   assert pure (gwRow == warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
   assert pure (gwCol == warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size));
 
@@ -1069,7 +1047,7 @@ fn kf
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
 
-  // Silly.
+  // Silly rewrite.
   rewrite each rAcc''
     as MS.matmul (ematrix_subtile rA (wm*tm) shared
             (warp_tile_i #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)) 0)
