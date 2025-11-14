@@ -11,8 +11,9 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 
 open Kuiper.Matrix
+open Kuiper.Approximates
+open Kuiper.Spec.GEMM
 
-module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
@@ -273,112 +274,183 @@ instance kpost_block_sendable
   (kpost comb gA eA gB eB gC bm bn bk slA slB tm tn fA fB sh i j)
 = solve
 
+
+let registerCacheTile_approximates (#et : Type0) {| scalar et, real_like et |}
+  (tm tn : nat)
+  (arr : array et { Pulse.Lib.Array.length arr == tm*tn })
+  (rm : ematrix real tm tn)
+  : slprop
+= 
+  exists* (em : seq et).
+    arr |-> em **
+    pure (
+      (Seq.length em == tm*tn) /\
+      forall (i : natlt tm) (j : natlt tn). (em @! (i * tn + j)) %~ (macc rm i j))
+
+let registerCacheA_approximates (#et : Type0) {| scalar et, real_like et |}
+  (tm : nat)
+  (arr : array et { Pulse.Lib.Array.length arr == tm })
+  (rm : ematrix real tm 1)
+  : slprop
+= 
+  exists* (sm : seq et).
+    arr |-> sm **
+    pure (
+      (Seq.length sm == tm) /\
+        forall (i : natlt tm). (sm @! i) %~ (macc rm i 0))
+
+let registerCacheB_approximates (#et : Type0) {| scalar et, real_like et |}
+  (tn : nat)
+  (arr : array et { Pulse.Lib.Array.length arr == tn })
+  (rm : ematrix real 1 tn)
+  : slprop
+= 
+  exists* (sm : seq et).
+    arr |-> sm **
+    pure (
+      (Seq.length sm == tn) /\
+        forall (i : natlt tn). (sm @! i) %~ (macc rm 0 i))
+
+//let cached_fade
+//  (tm tn : pos)
+//  (i : natlt tm)
+//  (j : natlt tn)
+//  (resIdxM : natle tm)
+//  (resIdxJ : natle tn)
+//  (rA : ematrix real tm tk)
+//: real
+//=
+//  let flat_idx = i * tn + j in
+//  let num_results_computed = resIdxM * tn + resIdxN in
+//  if flat_idx < num_res_computed
+//  then (macc chProd i j) +. ((macc rA (arow * tm + i) dotIdx) *. (macc rB dotIdx (bcol * tn + j)))
+//  else macc chPRod i j
+
+// #push-options "--debug SMTFail --split_queries always"
 inline_for_extraction noextract
 fn subproducts2d
-  (#et : Type0) {| scalar et |}
+  (#et : Type0) {| scalar et, real_like et |}
   (bm bn bk: szp)
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
-  (rAcol rBrow rchProd: array et)
-  (#vrAcol #vrBrow #vrchProd : erased (seq et))
+  (cAcol cBrow chProd: array et)
   (#l1 : mlayout bm bk) {| clayout l1 |}
   (#l2 : mlayout bk bn) {| clayout l2 |}
   (gA : gpu_matrix et l1)
   (gB : gpu_matrix et l2)
   (#eA : ematrix et bm bk)
   (#eB : ematrix et bk bn)
+  (rA : ematrix real bm bk {eA %~ rA})
+  (rB : ematrix real bk bn {eB %~ rB})
+  (rchProd : ematrix real tm tn)
   (#f : perm)
   (arow: szlt (bm/tm))
   (bcol : szlt (bn/tn))
+  (#_ : squash (Pulse.Lib.Array.length cAcol == tm))
+  (#_ : squash (Pulse.Lib.Array.length cBrow == tn))
+  (#_ : squash (Pulse.Lib.Array.length chProd == tm * tn))
   preserves
     gpu **
     gA |-> Frac f eA **
-    gB |-> Frac f eB
+    gB |-> Frac f eB **
+    live cAcol ** live cBrow
   requires
-    pure (Seq.length vrAcol == tm) **
-    pure (Seq.length vrBrow == tn) **
-    pure (Seq.length vrchProd == tm * tn) **
-    // I think this should be implied through the clayouts and the facts that
-    //  tm and tn divide the matrix dimensions.
     pure (SZ.fits (tm * tn)) **
-    rAcol |-> vrAcol **
-    rBrow |-> vrBrow **
-    rchProd |-> vrchProd
+    registerCacheTile_approximates tm tn chProd rchProd
   ensures
-    exists* vrAcol' vrBrow' vrchProd'.
-      pure (Seq.length vrAcol' == tm /\
-            Seq.length vrBrow' == tn /\
-            Seq.length vrchProd' == tm * tn) **
-      rAcol |-> vrAcol' **
-      rBrow |-> vrBrow' **
-      rchProd |-> vrchProd'
+    registerCacheTile_approximates tm tn chProd
+      (rchProd `matplus` matmul (ematrix_subtile rA tm bk arow 0)
+                                (ematrix_subtile rB bk tn 0 bcol))
 {
+  rewrite each rchProd
+  as __gmatmul_single rchProd matmul matplus
+        (ematrix_tiled rA tm 1) (ematrix_tiled rB 1 tn) arow bcol 0;
+        
   let mut dotIdx : sz = 0sz;
   while (SZ.(!dotIdx <^ bk))
+    invariant live cAcol ** live cBrow
     invariant
-      exists* (vdotIdx : sz{vdotIdx <= bk}) (vrAcol : erased (lseq et tm))
-        (vrBrow : erased (lseq et tn)) (vrchProd : erased (lseq et (tm*tn))).
+      exists* (vdotIdx : sz{ vdotIdx <= bk }).
         dotIdx |-> vdotIdx **
-        rAcol |-> vrAcol **
-        rBrow |-> vrBrow **
-        rchProd |-> vrchProd
+        registerCacheTile_approximates tm tn chProd
+          (__gmatmul_single rchProd matmul matplus
+            (ematrix_tiled rA tm 1) (ematrix_tiled rB 1 tn) arow bcol !dotIdx)
   {
     open Pulse.Lib.Array;
 
-    let mut i0 = 0sz;
+    with vdotIdx. assert dotIdx |-> vdotIdx;
+    pts_to_len cAcol;
+    pts_to_len cBrow;
+
+    let mut i0 : sz = 0sz;
     while (SZ.(!i0 <^ tm))
+      // invariant live i0
       invariant
-        exists* (vi : sz{vi <= tm}) (vrAcol : erased (lseq et tm)).
+        exists* s (vi : sz { vi <= tm }).
           i0 |-> vi **
-          rAcol |-> vrAcol
+          cAcol |-> s **
+          pure (Seq.length s == tm /\ vi <= tm /\
+            forall (i : natlt tm).
+              if i < vi then
+                (s @! i) %~ (macc (ematrix_subtile rA tm 1 arow vdotIdx) i 0)
+              else True)
     {
       (* get rid of a few non-linear arithmetic expressions *)
       let a_tile = gpu_matrix_extract_tile_ro' gA
         (SZ.v tm) 1 (SZ.v arow) (SZ.v !dotIdx);
       let va = gpu_matrix_read a_tile !i0 0sz;
       ambig_trade_elim ();
-      rAcol.(!i0) <- va;
+      cAcol.(!i0) <- va;
 
       i0 := !i0 +^ 1sz;
     };
 
-    let mut i1 = 0sz;
+    let mut i1 : sz = 0sz;
     while (SZ.(!i1 <^ tn))
       invariant
-        exists* (vi : sz{vi <= tn}) (vrBrow : erased (lseq et tn)).
+        exists* s (vi : sz{vi <= tn}).
           i1 |-> vi **
-          rBrow |-> vrBrow
+          cBrow |-> s **
+          pure (Seq.length s == tn /\ vi <= tn /\
+            forall (i : natlt tn).
+              if i < vi then
+                (s @! i) %~ (macc (ematrix_subtile rB 1 tn vdotIdx bcol) 0 i)
+              else True)
     {
       let b_tile = gpu_matrix_extract_tile_ro' gB
         1 (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
       let vb = gpu_matrix_read b_tile 0sz !i1;
       ambig_trade_elim ();
-      rBrow.(!i1) <- vb;
+      cBrow.(!i1) <- vb;
 
       i1 := !i1 +^ 1sz;
     };
+    admit();
 
     let mut resIdxM = 0sz;
     while (SZ.(!resIdxM <^ tm))
       invariant
-        exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : erased (lseq et (tm*tn))).
+        exists* (vresIdxM : sz{vresIdxM <= tm}) (vchProd : erased (lseq et (tm*tn))).
           resIdxM |-> vresIdxM **
-          rchProd |-> vrchProd
+          chProd |-> vchProd
+          //pure (vresIdxM <= tm /\
+          //  forall (i : natlt tm) (j : natlt tn).
+          //    (vchProd @! (i * tn + j)) %~ (__matmul_single rA rB (arow * tm + i) (bcol * tn + j)))
     {
       let mut resIdxN = 0sz;
       while (SZ.(!resIdxN <^ tn))
         invariant
-          exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : erased (lseq et (tm*tn))).
+          exists* (vresIdxN : sz{vresIdxN <= tn}) (vchProd : erased (lseq et (tm*tn))).
             resIdxN |-> vresIdxN **
-            rchProd |-> vrchProd
+            chProd |-> vchProd
       {
         (* works on arrays and therefore does not have the nice matrix abstraction *)
-        let ra = rAcol.(!resIdxM);
-        let rb = rBrow.(!resIdxN);
+        let ra = cAcol.(!resIdxM);
+        let rb = cBrow.(!resIdxN);
         assert(pure(SZ.fits(!resIdxM *^ tn +^ !resIdxN)));
-        let old = rchProd.(!resIdxM *^ tn +^ !resIdxN);
+        let old = chProd.(!resIdxM *^ tn +^ !resIdxN);
         let mad = old `add` (ra `mul` rb);
-        rchProd.(!resIdxM *^ tn +^ !resIdxN) <- mad;
+        chProd.(!resIdxM *^ tn +^ !resIdxN) <- mad;
 
         resIdxN := !resIdxN +^ 1sz;
       };
@@ -387,7 +459,9 @@ fn subproducts2d
     };
 
     dotIdx := !dotIdx +^ 1sz;
-  }
+  };
+  
+  ()
 }
 
 inline_for_extraction noextract
