@@ -25,3 +25,19 @@ let seq_approximates_append (#a:Type) {| scalar a, real_like a |}
           (ensures (s1 `add` s2) `approximates` real_seq_sum (r1 `Seq.append` r2))
   = a_add s1 s2 (real_seq_sum r1) (real_seq_sum r2);
     real_seq_sum_append r1 r2
+
+let rec sum_is_approx' #a {| scalar a, real_like a |}
+      (s: seq a) (s': seq real) (acc: a) (acc': real) :
+    Lemma (requires s %~ s' /\ acc %~ acc')
+          (ensures seq_fold_left add acc s %~ seq_fold_left (+.) acc' s')
+          (decreases Seq.length s) =
+  match view_seq s, view_seq s' with
+  | SNil, SNil -> ()
+  | SCons hd tl, SCons hd' tl' ->
+    a_add acc hd acc' hd';
+    sum_is_approx' #a tl tl' (add acc hd) (acc' +. hd')
+
+let sum_is_approx #a {| scalar a, real_like a |} (s: seq a) (s': seq real) :
+    Lemma (requires s %~ s')
+          (ensures seq_fold_left add zero s %~ seq_fold_left (+.) 0.0R s') =
+  sum_is_approx' s s' zero 0.0R
