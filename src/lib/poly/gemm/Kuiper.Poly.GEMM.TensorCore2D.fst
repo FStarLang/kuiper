@@ -490,7 +490,6 @@ let lemma_update_tile_fade_approximates
   () // would be nice to spell it out probably
 #pop-options
 
-#push-options "--debug SMTFail --split_queries always --z3rlimit 80"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et, real_like et |}
@@ -596,7 +595,6 @@ fn epilogue
   fold warp_tile_approximates gC bm bn tm tn wm wn bid wid rAcc;
   ()
 }
-#pop-options
 
 inline_for_extraction noextract
 fn populate_acc_with_zero
