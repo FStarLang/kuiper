@@ -36,3 +36,6 @@ fn reduce_u32 (len : erased nat) (a : larray u32 len) (#s : erased (seq u32))
   v_approximates_inj res (seq_fold_left add zero s) rr;
   res
 }
+
+(* Force extraction of something *)
+let x = 1ul
