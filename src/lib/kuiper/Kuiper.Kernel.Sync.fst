@@ -138,7 +138,7 @@ ensures
 }
 
 noextract
-fn rec run_block 
+fn rec run_block
   (#full_pre : slprop)
   (#full_post : slprop)
   (k : kernel_desc full_pre full_post)

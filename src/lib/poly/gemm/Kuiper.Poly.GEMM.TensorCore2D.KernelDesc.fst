@@ -397,7 +397,7 @@ fn block_setup
   (* permissions for shared memory *)
   // shmem for A tile
   gpu_live_c_shmems_share_underspec sh #(1.0R) #nthr;
- 
+
   (* create barrier token *)
   B.mk_barrier nthr _ _
     (FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid);

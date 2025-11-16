@@ -377,12 +377,12 @@ instance is_send_across_global_matrix_pts_to_cell
   (i : natlt rows)
   (j : natlt cols)
   (v : et)
-: is_send_across gpu_of 
+: is_send_across gpu_of
     (gpu_matrix_pts_to_cell gm #f i j v)
 = gpu_matrix_pts_to_cell_eq gm i j f v;
-  let x = 
-    solve 
-      #(is_send_across gpu_of       
+  let x =
+    solve
+      #(is_send_across gpu_of
         (gpu_pts_to_cell (core gm) #f (cell_of_pos l i j) v))
   in
   coerce_eq () x

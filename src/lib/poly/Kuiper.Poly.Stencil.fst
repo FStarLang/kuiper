@@ -319,6 +319,6 @@ fn specialize_host_simple_stencil
     on gpu_loc (gOut |-> STS.stencil_result stencil eIn)
   {
     let cols_sub2 = cols -^ 2sz;
-    host_simple_stencil 
+    host_simple_stencil
       stencil #(rows -^ 2sz) #cols_sub2 #() #_ #_ #(cIn.map _ _) #(cOut.map _ _) gIn #fIn gOut #eIn #eOut;
   }

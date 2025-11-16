@@ -32,7 +32,7 @@ let kernel
   =
   { f = (fun () -> kswap r1 r2);
     full_pre_sendable = solve;
-    full_post_sendable = solve   
+    full_post_sendable = solve
   } |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
 
 inline_for_extraction noextract

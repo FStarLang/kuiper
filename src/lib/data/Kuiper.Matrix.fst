@@ -617,7 +617,7 @@ fn gpu_matrix_from_array
   with p. assert (on gpu_loc p);
   map_loc gpu_loc #p #(gpu_matrix_pts_to gm #1.0R (from_seq l s)) fn () {
     fold gpu_matrix_pts_to gm #1.0R (from_seq l s)
-  };  
+  };
 }
 
 inline_for_extraction noextract

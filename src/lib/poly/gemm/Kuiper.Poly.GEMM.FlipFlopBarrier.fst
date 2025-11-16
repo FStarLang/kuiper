@@ -11,7 +11,6 @@ open Kuiper.EMatrix
 open Kuiper.Poly.GEMM.Copy.Vec { own_strided_chunks, live_strided_chunks }
 open Kuiper.Math { even, odd }
 open Kuiper.Matrix.Tiling
-module B = Kuiper.Barrier
 
 open Kuiper.Poly.GEMM.Copy.Vec
 

@@ -24,7 +24,7 @@ val block_id_of : loc_id -> GTot int
 val gpu_id_loc (gpu_id:int) : l:loc_id { gpu_of l == l }
 val gpu_id_loc_lemma (gpu_id:int) : Lemma
   (let l = gpu_id_loc gpu_id in
-    gpu_id_of l == gpu_id 
+    gpu_id_of l == gpu_id
   )
 let gpu_loc = gpu_id_loc 0
 
@@ -36,7 +36,7 @@ val block_id_loc_lemma (#[T.exact (`0)]gpu_id:int) (bid:int) : Lemma
   )
 
 val thread_id_loc (#[T.exact (`0)]gpu_id:int) (bid tid:int)
-: l:loc_id { block_of l == block_id_loc #gpu_id bid /\ gpu_of l == gpu_id_loc gpu_id } 
+: l:loc_id { block_of l == block_id_loc #gpu_id bid /\ gpu_of l == gpu_id_loc gpu_id }
 val thread_id_of (l:loc_id) : GTot int
 val thread_id_loc_lemma (#[T.exact (`0)]gpu_id:int) (bid tid:int) : Lemma
   (let l = thread_id_loc #gpu_id bid tid in
@@ -49,7 +49,7 @@ val block_of_same_gpu (l0 l1:_{block_of l0 == block_of l1})
 
 instance send_across_if_send_across_gpu (p:slprop) (sp:is_send_across gpu_of p)
 : is_send_across block_of p
-= fun l0 l1 -> 
+= fun l0 l1 ->
     block_of_same_gpu l0 l1;
     sp l0 l1
 
@@ -80,7 +80,7 @@ let thread_id (nthr : int) (tid : int) : slprop =
 
 val is_cpu_loc (l:loc_id) : prop
 
-val is_cpu_loc_single_process (l0 l1:loc_id) 
+val is_cpu_loc_single_process (l0 l1:loc_id)
 : Lemma (is_cpu_loc l0 /\ is_cpu_loc l1 ==> process_of l0 == process_of l1)
 
 (* Token for being in CPU code *)

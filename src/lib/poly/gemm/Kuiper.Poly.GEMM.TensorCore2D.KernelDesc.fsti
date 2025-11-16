@@ -492,7 +492,7 @@ let kpost
 // : is_send_across block_of
 //   (kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC (SZ.v nthr) sh i j)
 // = solve //this takes forever! not sure  it helps to prove it here, rather than letting it be proven in place at the kernel desc
-// #pop-options 
+// #pop-options
 
 ghost
 fn block_teardown

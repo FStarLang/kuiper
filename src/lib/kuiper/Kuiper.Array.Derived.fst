@@ -43,7 +43,7 @@ fn gpu_pts_to_ref_located
   preserves on l (x |-> Frac f v)
   ensures  pure (Seq.length v == sz /\ SZ.fits sz)
 {
-  ghost_impersonate l 
+  ghost_impersonate l
     (on l (x |-> Frac f v))
     (on l (x |-> Frac f v) ** pure (Seq.length v == sz /\ SZ.fits sz))
     fn () {

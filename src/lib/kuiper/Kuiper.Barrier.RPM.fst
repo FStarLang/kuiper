@@ -22,7 +22,7 @@ let mbarrier_tok
     it tid
 
 
-instance mbarrier_tok_sendable 
+instance mbarrier_tok_sendable
   (n:nat)
   (p : rpm_t n)
   (it : nat)

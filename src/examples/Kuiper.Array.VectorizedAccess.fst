@@ -7,7 +7,6 @@ open FStar.Seq.Base
 
 module SZ = Kuiper.SizeT
 module V = Pulse.Lib.Vec
-module T = FStar.Tactics.V2
 open Kuiper.Array.Vectorized
 
 noextract
@@ -25,7 +24,7 @@ let kpre
   (bid : natlt nblk)
   (tid : natlt nthr)
   : slprop =
-  gpu_pts_to_slice a 
+  gpu_pts_to_slice a
       (global_id bid tid * 4) (global_id bid tid * 4 + 4)
       (slice s (global_id bid tid * 4) (global_id bid tid * 4 + 4))
 
@@ -73,7 +72,7 @@ ensures
   let mut local = [| zero #float #_; 4sz |];
 
   gpu_array_vec_cpy_dh local 0sz a global_idx;
-  
+
   with s1. assert (local |-> s1);
   assert (pure (Seq.equal #float s0 s1));
 

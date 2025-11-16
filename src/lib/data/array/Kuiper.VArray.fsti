@@ -103,7 +103,7 @@ val is_send_across_global_varray
   (#f : perm)
   (v : st)
   : is_send_across gpu_of (varray_pts_to x #f v)
-  
+
 unfold
 instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)
   : has_pts_to (varray vw) st = {
@@ -363,7 +363,7 @@ fn varray_alloc0
   ensures
     exists* v. on gpu_loc (a |-> v)
   ensures pure (is_global_varray a)
-  
+
 inline_for_extraction noextract
 fn varray_free
   (#et : Type0) (#st : Type0)

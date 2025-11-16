@@ -10,8 +10,8 @@ module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
 
 ghost
-fn move_forevery_placeless (#a: Type u#0) 
-    (p: a -> slprop) (l: loc_id) 
+fn move_forevery_placeless (#a: Type u#0)
+    (p: a -> slprop) (l: loc_id)
     {| pa: (x:a -> placeless (p x)) |}
   requires
     (forall+ (x:a). p x)

@@ -74,7 +74,7 @@ type kernel_desc (full_pre full_post : slprop) = {
   );
   block_frame :
     c_shmems shmems_desc ->
-    natlt nblk -> 
+    natlt nblk ->
     slprop;
 
   block_setup : (
@@ -105,15 +105,15 @@ type kernel_desc (full_pre full_post : slprop) = {
         block_post bid)
   );
 
-  (* 
+  (*
     setup: consumes full_post and produces on gpu_loc (forall+ i. block_pre i))
-     
-    Then, at location (block_id_loc i), 
+
+    Then, at location (block_id_loc i),
     we consume (block_pre i) (which can be send to block_id_loc i)
     and run block_setup to produce
     on (block_id_loc i) (forall+ j. kpre i j)
-     
-    Finally, we run a thread at (thread_id_loc i j) 
+
+    Finally, we run a thread at (thread_id_loc i j)
     and (kpre i j) to (thread_id_loc i j) and obtain
     (kpost i j) at (thread_id_loc i j)
 
@@ -125,11 +125,11 @@ type kernel_desc (full_pre full_post : slprop) = {
   block_pre_sendable: (i:natlt nblk -> is_send_across gpu_of (block_pre i));
 
   block_post_sendable: (i:natlt nblk -> is_send_across gpu_of (block_post i));
-  
+
   kpre_sendable: (sh:c_shmems shmems_desc ->
                   _:squash (c_shmems_inv sh) ->
                  i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpre sh i j));
-  
+
   kpost_sendable: (sh:c_shmems shmems_desc ->
-                  _:squash (c_shmems_inv sh) -> i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpost sh i j));  
+                  _:squash (c_shmems_inv sh) -> i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpost sh i j));
 }

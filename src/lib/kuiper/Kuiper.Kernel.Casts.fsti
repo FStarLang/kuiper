@@ -91,10 +91,10 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
   block_pre_sendable: (i:natlt nblk -> is_send_across gpu_of (block_pre i));
 
   block_post_sendable: (i:natlt nblk -> is_send_across gpu_of (block_post i));
-  
+
   kpre_sendable: (i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpre i j));
-  
-  kpost_sendable: (i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpost i j));  
+
+  kpost_sendable: (i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpost i j));
 
 }
 
@@ -142,8 +142,8 @@ type kernel_desc_n (full_pre : slprop) (full_post : slprop) = {
          kpost tid)
   );
 
-  kpre_sendable: (j:natlt nthr -> is_send_across gpu_of (kpre j));  
-  kpost_sendable: (j:natlt nthr -> is_send_across gpu_of (kpost j));  
+  kpre_sendable: (j:natlt nthr -> is_send_across gpu_of (kpre j));
+  kpost_sendable: (j:natlt nthr -> is_send_across gpu_of (kpost j));
 
 }
 
@@ -195,10 +195,10 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
          thread_id nthr tid)
   );
 
-  full_pre_sendable: is_send_across gpu_of full_pre;  
-  full_post_sendable: is_send_across gpu_of full_post;  
-  kpre_sendable: (j:natlt nthr -> is_send_across block_of (kpre j));  
-  kpost_sendable: (j:natlt nthr -> is_send_across block_of (kpost j));  
+  full_pre_sendable: is_send_across gpu_of full_pre;
+  full_post_sendable: is_send_across gpu_of full_post;
+  kpre_sendable: (j:natlt nthr -> is_send_across block_of (kpre j));
+  kpost_sendable: (j:natlt nthr -> is_send_across block_of (kpost j));
 }
 
 (* Mx1, no shared memory *)
@@ -246,8 +246,8 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
          block_id nblk bid)
   );
 
-  kpre_sendable: (j:natlt nblk -> is_send_across gpu_of (kpre j));  
-  kpost_sendable: (j:natlt nblk -> is_send_across gpu_of (kpost j));  
+  kpre_sendable: (j:natlt nblk -> is_send_across gpu_of (kpre j));
+  kpost_sendable: (j:natlt nblk -> is_send_across gpu_of (kpost j));
 }
 
 (* 1x1, no shared memory *)

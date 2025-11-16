@@ -22,13 +22,13 @@ type shmem_desc =
     len    : SZ.t { len > 0 } ->
     shmem_desc
 
-let is_block_array #ty #len (g:gpu_array ty len) 
+let is_block_array #ty #len (g:gpu_array ty len)
   = visibility_of g == block_of
 
 //don't mark this an instance, to avoid clashing with other instances
 //for visibility_of, gpu_of
 let is_send_across_block_array
-  (#et:Type0) (#sz:_) 
+  (#et:Type0) (#sz:_)
   (a:gpu_array et sz { is_block_array a })
   (#i #j #f #s:_)
 : is_send_across block_of (gpu_pts_to_slice a #f i j s)
@@ -39,7 +39,7 @@ let is_send_across_block_array
 inline_for_extraction unfold
 let c_shmem (d : shmem_desc) : Type0 =
   match d with
-  | SHArray ty len -> gpu_array ty len 
+  | SHArray ty len -> gpu_array ty len
    //would be nice to just add as is_block_array refinement here, but it messes with typeclass resolution
 
 inline_for_extraction
@@ -51,19 +51,19 @@ let rec c_shmems (d : list shmem_desc) : Type0 =
 
 let c_shmem_inv (#d : shmem_desc) (c:c_shmem d) : prop =
   match d with
-  | SHArray ty len -> is_block_array #ty #len c 
+  | SHArray ty len -> is_block_array #ty #len c
 
 let rec c_shmems_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
   match ds with
   | [] -> True
-  | d :: ds -> 
+  | d :: ds ->
     let c : c_shmem d & c_shmems ds = c in (* coerce *)
     c_shmem_inv #d (fst c) /\
     c_shmems_inv #ds (snd c)
 
 let live_c_shmem #d (c : c_shmem d) (#[T.exact (`1.0R)]f:_) : slprop =
   match d with
-  | SHArray ty len -> 
+  | SHArray ty len ->
     exists* v. gpu_pts_to_array #ty #len c #f v
 
 instance is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv c))
@@ -75,7 +75,7 @@ instance is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv 
     in
     let ff : is_send_across block_of (exists* v. gpu_pts_to_array #ty #len c #f v) =
       is_send_across_exists _ #ff
-    in 
+    in
     let ff : is_send_across block_of (live_c_shmem #(SHArray ty len) c #f)
       = ff
     in
@@ -167,7 +167,7 @@ requires live_c_shmem c #f
 ensures exists* (s:Seq.seq (d_ty d)). gpu_pts_to_array #(d_ty d) #(d_len d) c #f s
 {
    rewrite each d as (SHArray (d_ty d) #(d_ty_sized d) (d_len d));
-  reduce_with_steps (live_c_shmem #((SHArray (d_ty d) #(d_ty_sized d) (d_len d))) c #f) 
+  reduce_with_steps (live_c_shmem #((SHArray (d_ty d) #(d_ty_sized d) (d_len d))) c #f)
                     [delta_only [`%live_c_shmem]; iota]
 }
 
@@ -186,7 +186,7 @@ fn gpu_live_c_shmem_share_underspec
     (#d:_) (c:c_shmem d) (#f:_) (#k:nat { k > 0 })
 requires
   live_c_shmem c #f
-ensures 
+ensures
   forall+ (_ : natlt k). live_c_shmem c #(f /. Real.of_int k)
 {
   unfold_live_c_shmem c #f;
@@ -203,7 +203,7 @@ fn rec gpu_live_c_shmems_share_underspec
     (#ds:_) (c:c_shmems ds) (#f:_) (#k:nat { k > 0 })
 requires
   live_c_shmems c #f
-ensures 
+ensures
   forall+ (_ : natlt k). live_c_shmems c #(f /. Real.of_int k)
 decreases ds
 {
@@ -211,7 +211,7 @@ decreases ds
     [] -> {
       unfold_live_c_shmems_nil c #f;
       forevery_emp_intro (natlt k);
-      forevery_map 
+      forevery_map
         (fun _ -> emp)
         (fun _ -> live_c_shmems c #(f /. Real.of_int k))
       (fun _ -> fold_live_c_shmems_nil c #(f/. Real.of_int k))
@@ -228,13 +228,13 @@ decreases ds
         (fun _ ->
           live_c_shmem (fst c) #(f /. Real.of_int k) **
           live_c_shmems (snd c) #(f /. Real.of_int k))
-        (fun _ -> 
+        (fun _ ->
            live_c_shmems c #(f /. Real.of_int k))
       (fun _ ->
-        fold_live_c_shmems_cons #d #ds' c  #(f /. Real.of_int k));        
+        fold_live_c_shmems_cons #d #ds' c  #(f /. Real.of_int k));
     }
   }
-} 
+}
 
 ghost
 fn gpu_live_c_shmem_gather_underspec
@@ -243,7 +243,7 @@ requires
   forall+ (_ : natlt k). live_c_shmem c #(f /. Real.of_int k)
 ensures
   live_c_shmem c #f
-{ 
+{
   forevery_map #(natlt k)
     (fun _ -> live_c_shmem c #(f /. Real.of_int k))
     (fun _ -> exists* v. gpu_pts_to_slice #(d_ty d) #(d_len d) c #(f /. Real.of_int k) 0 (d_len d) v)
@@ -273,8 +273,8 @@ decreases ds
         (fun _ -> live_c_shmems #(d::ds') c #(f /. Real.of_int k))
         (fun _ -> live_c_shmem #d (fst (c<: c_shmem d & c_shmems ds')) #(f /. Real.of_int k) **
                   live_c_shmems #ds' (snd (c<: c_shmem d & c_shmems ds')) #(f /. Real.of_int k))
-        fn x { 
-          unfold_live_c_shmems_cons #d #ds' c #(f /. Real.of_int k);  
+        fn x {
+          unfold_live_c_shmems_cons #d #ds' c #(f /. Real.of_int k);
         };
       forevery_unzip _ _;
       gpu_live_c_shmems_gather_underspec #ds' (snd c) #f #k;
@@ -283,4 +283,4 @@ decreases ds
       rewrite each (d::ds') as ds;
     }
   }
-} 
+}

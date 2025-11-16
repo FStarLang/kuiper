@@ -419,11 +419,11 @@ requires
 requires
   (pure (p <==> q))
 ensures cond (t2b q) s1 s2
-{ 
+{
   rewrite cond (t2b p) s1 s2 as cond (t2b q) s1 s2
 }
 
-ghost 
+ghost
 fn forevery_remove'
   (#a: Type0)
   (f: a->prop)
@@ -2180,7 +2180,7 @@ fn forevery_join_or_n
 }
 
 ghost
-fn on_forevery_elim (#a: Type0) (p: a -> slprop) (l: loc_id) 
+fn on_forevery_elim (#a: Type0) (p: a -> slprop) (l: loc_id)
   requires
     on l (forall+ (x:a). p x)
   ensures

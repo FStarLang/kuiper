@@ -133,16 +133,16 @@ fn adapt_kn_as_kmn
   }
 }
 
-instance pad_f_sendable 
+instance pad_f_sendable
   #a
-  (n1 n2:nat{n1 <= n2}) 
-  (f: (_: natlt n1 -> slprop)) 
+  (n1 n2:nat{n1 <= n2})
+  (f: (_: natlt n1 -> slprop))
   (vis:loc_id -> a)
   (sf:(i:_ -> is_send_across vis (f i)))
   (i: natlt n2)
 : is_send_across vis (pad_f #n1 n2 f i)
 = fun (l0 l1:loc_id{vis l0 == vis l1}) ->
-    if i < n1 
+    if i < n1
     then sf i l0 l1
     else let f : is_send_across vis emp = solve in
          f l0 l1
@@ -416,7 +416,7 @@ let k1n_as_kmn (#full_pre #full_post : slprop)
   block_setup = (fun _ -> k.block_setup ());
   block_teardown = (fun _ -> k.block_teardown ());
 
-  f = (fun _bid tid () -> 
+  f = (fun _bid tid () ->
         Kuiper.Frame.frame_3left (block_id 1 0) (f tid));
   block_pre_sendable = (fun _ -> k.full_pre_sendable);
   block_post_sendable = (fun _ -> k.full_post_sendable);

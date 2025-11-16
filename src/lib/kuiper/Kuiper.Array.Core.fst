@@ -18,7 +18,7 @@ open Kuiper.ArrayCoreAssumptions
 module A = Pulse.Lib.Array
 module SZ = Kuiper.SizeT
 
-instance 
+instance
 is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq a) (mask:nat -> prop)
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
 = is_send_across_pts_to_mask x f s mask
@@ -45,7 +45,7 @@ let gpu_pts_to_slice
   ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
-= exists* (s:erased (Seq.seq a)). 
+= exists* (s:erased (Seq.seq a)).
     A.pts_to_mask x #f s (mask_of i j) **
     pure (i <= j /\
           j <= Seq.length s /\
@@ -117,7 +117,7 @@ fn gpu_array_alloc_vis
   (vis:visibility)
   returns  x : gpu_array a (SZ.v sz)
   ensures
-    exists* (s:seq a). 
+    exists* (s:seq a).
       on l (x |-> s) **
       pure (Seq.length s == sz)
   ensures
@@ -128,11 +128,11 @@ fn gpu_array_alloc_vis
     )
 {
   impersonate _ l emp (fun (x: gpu_array a (SZ.v sz)) ->
-    exists* (s:seq a). 
+    exists* (s:seq a).
       on l (gpu_pts_to_array x s) **
       pure (Seq.length s == sz /\
             visibility_of_array x == vis /\
-            loc_id_of_array x == l)) 
+            loc_id_of_array x == l))
   fn _ {
     let x = mask_alloc_with_vis (default <: a) sz vis;
     A.mask_mext x (mask_of 0 (SZ.v sz));
@@ -152,7 +152,7 @@ fn gpu_array_alloc
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures
-    exists* (s:seq a). 
+    exists* (s:seq a).
       on gpu_loc (x |-> s) **
       pure (
         Seq.length s == sz /\
@@ -234,7 +234,7 @@ fn gpu_array_write
   ensures
     with_pure
       (i <= j /\ j <= sz /\ Seq.length s == (j-i) /\ i <= SZ.v idx /\ SZ.v idx < j)
-      (fun _ -> 
+      (fun _ ->
         exists* s'. gpu_pts_to_slice #a #sz r #1.0R i j s' **
             (pure (s' == Seq.upd s (SZ.v idx - i) v)))
 {
@@ -266,7 +266,7 @@ fn rec gpu_memcpy_host_to_device'  //this is a CUDA primitive, so this definitio
   requires
     on gpu_loc (dst_garr |-> gv)
   ensures
-    exists* s'. 
+    exists* s'.
       on gpu_loc (dst_garr |-> s') **
       pure (s' == seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
 {
@@ -312,7 +312,7 @@ fn gpu_memcpy_host_to_device
     (src_arr |-> Frac f v)
   requires
     on gpu_loc (dst_garr |-> gv)
-  requires 
+  requires
     pure (SZ.v cnt == sz /\
           (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
@@ -323,7 +323,7 @@ fn gpu_memcpy_host_to_device
   gpu_pts_to_slice_ref_anywhere dst_garr _ _;
   gpu_memcpy_host_to_device' dst_garr 0sz #sz src_arr 0sz cnt;
   assert pure (Seq.equal v (seq_blit gv 0sz v 0sz cnt));
-  with ss. 
+  with ss.
     rewrite (on gpu_loc (dst_garr |-> ss))
     as      (on gpu_loc (dst_garr |-> v));
 }
@@ -425,7 +425,7 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
   requires
     on gpu_loc (dst_arr |-> v) **
     pure (
-      SZ.v cnt == sz /\ 
+      SZ.v cnt == sz /\
       (Seq.length gv == sz \/ Seq.length v == sz))
   ensures
     on gpu_loc (dst_arr |-> gv) **
@@ -461,7 +461,7 @@ fn rec gpu_memcpy_device_to_device  //this is a CUDA primitive, so this definiti
       fold (gpu_pts_to_slice dst_arr 0 sz gv);
       on_intro (dst_arr |-> gv);
     };
-} 
+}
 
 ghost
 fn gpu_slice_concat
@@ -650,8 +650,8 @@ fn gpu_slice_share_underspec
   requires gpu_pts_to_slice arr #f m n 'v
   ensures
     forall+ (_:natlt k). exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v
-{ 
-  gpu_slice_share arr m n k; 
+{
+  gpu_slice_share arr m n k;
   forevery_map #(natlt k)
     (fun _ -> gpu_pts_to_slice arr #(f /. Real.of_int k) m n 'v)
     (fun _ -> exists* v. gpu_pts_to_slice arr #(f /. Real.of_int k) m n v)

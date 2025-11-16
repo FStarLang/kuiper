@@ -94,7 +94,7 @@ let gpu_matrix
   : Type0
   = A.varray (aview_from_mlayout et l)
 
-let is_global_matrix 
+let is_global_matrix
   (#et : Type0)
   (#mrows #mcols #brows #bcols : nat)
   (#l : mlayout4 mrows mcols brows bcols)
@@ -246,7 +246,7 @@ fn gpu_matrix_alloc0
   open FStar.SizeT;
   let gm = A.varray_alloc0 (mrows *^ brows *^ mcols *^ bcols) (aview_from_mlayout et l);
   with s. assert (on gpu_loc (A.varray_pts_to gm #1.0R s));
-  map_loc gpu_loc 
+  map_loc gpu_loc
   #(A.varray_pts_to gm #1.0R s)
   #(gpu_matrix_pts_to gm s)
   fn () { fold gpu_matrix_pts_to gm s };
@@ -263,7 +263,7 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    on gpu_loc (gm |-> em) 
+    on gpu_loc (gm |-> em)
   ensures emp
 {
   A.varray_free gm;
@@ -570,7 +570,7 @@ fn gpu_matrix_from_array
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
-  map_loc gpu_loc 
+  map_loc gpu_loc
   #(A.varray_pts_to gm (View.from_seq (aview_from_mlayout et l) s))
   #(gpu_matrix_pts_to gm #1.0R (from_seq l s))
   fn () {  fold gpu_matrix_pts_to gm #1.0R (from_seq l s) };

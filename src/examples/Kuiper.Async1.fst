@@ -38,7 +38,7 @@ fn galloc (x : u64)
 }
 
 fn gread (gr : gpu_ref u64) (#v0 : erased u64)
-  preserves cpu 
+  preserves cpu
   requires on gpu_loc (gr |-> v0)
   returns  v : u64
   ensures  on gpu_loc (gr |-> v) ** pure (v == v0)

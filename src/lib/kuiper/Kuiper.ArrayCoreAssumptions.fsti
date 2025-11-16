@@ -2,7 +2,6 @@ module Kuiper.ArrayCoreAssumptions
 #lang-pulse
 open Pulse.Lib.Pervasives
 module A = Pulse.Lib.Array
-module SZ = FStar.SizeT
 
 //we could expose this from core_pcm_ref
 //assuming that every allocation is at least 128-aligned

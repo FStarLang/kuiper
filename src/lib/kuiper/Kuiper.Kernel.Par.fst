@@ -1,9 +1,9 @@
 module Kuiper.Kernel.Par
 open Pulse
 open Pulse.Lib.ConditionVar
- 
+
 #lang-pulse
- 
+
 fn par (#preL: slprop) #postL #preR #postR (vis: visibility) #l0 (l: loc_id)
   {| is_send_across vis preL, is_send_across vis postL |}
   (f:unit -> stt unit (loc l ** preL) (fun _ -> loc l ** postL))

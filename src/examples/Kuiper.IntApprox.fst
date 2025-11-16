@@ -24,7 +24,7 @@ fn reduce (#et:Type0) {| scalar et, real_like et |}
 (* A stronger exact spec for reduce on u32s, proven from the approximate spec. *)
 noextract
 fn reduce_u32 (len : erased nat) (a : larray u32 len) (#s : erased (seq u32))
-  preserves a |-> s 
+  preserves a |-> s
   returns   res : u32
   ensures   pure (U32.v res == seq_fold_left add zero s)
 {

@@ -852,7 +852,7 @@ fn kf
   let bFrags = __alloc_array_fragment et_ab FragB tm tn tk FragLRM wn;
   let accFrags = __alloc_array_fragment et_c FragAcc tm tn tk FragLAcc (wm *^ wn);
 
-  // Fill accumulators with 0 
+  // Fill accumulators with 0
   populate_acc_with_zero tm tn tk wm wn accFrags;
   let rAcc0 : ematrix real (wm*tm) (wn*tn) = const_matrix 0.0R;
   assert (rewrites_to rAcc0 (const_matrix 0.0R));

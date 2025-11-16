@@ -1005,7 +1005,7 @@ fn forevery_join_or_n
     forall+ (x:a {exists i. r i x}). p x
 
 ghost
-fn on_forevery_elim (#a: Type0) (p: a -> slprop) (l: loc_id) 
+fn on_forevery_elim (#a: Type0) (p: a -> slprop) (l: loc_id)
   requires
     on l (forall+ (x:a). p x)
   ensures
@@ -1025,7 +1025,7 @@ instance placeless_forevery
   placeless (forall+ x. p x)
   = is_send_across_forevery p _ #sa
 
-ghost  
+ghost
 fn forevery_factor_2
   (m : nat) (m1 m2 : nat { m == m1 * m2 })
   (n : nat) (n1 n2 : nat { n == n1 * n2 })

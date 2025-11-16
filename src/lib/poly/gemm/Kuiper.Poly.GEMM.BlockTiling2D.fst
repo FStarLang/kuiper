@@ -191,7 +191,7 @@ instance kpre_block_sendable
   (pf : c_shmems_inv sh)
   (i : natlt nblk)
   (j : natlt nthr)
-: is_send_across block_of 
+: is_send_across block_of
   (kpre comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
 
@@ -256,7 +256,7 @@ instance kpost_block_sendable
   (pf : c_shmems_inv sh)
   (i : natlt nblk)
   (j : natlt nthr)
-: is_send_across block_of 
+: is_send_across block_of
   (kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
 
@@ -601,7 +601,7 @@ fn kf
     assert (pure (odd (2 * !bkIdx + 1)));
     #set-options "--z3rlimit 60" {
     rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-    as 
+    as
       FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
       FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
     };

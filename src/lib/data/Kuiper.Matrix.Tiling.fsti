@@ -317,7 +317,7 @@ let is_gpu_matrix_subtile_global
   (#tcols : erased nat {tcols > 0 /\ tcols /? cols})
   (#tr : enatlt (rows / trows))
   (#tc : enatlt (cols / tcols))
-: Lemma 
+: Lemma
   (ensures
     is_global_matrix (gpu_matrix_subtile gm trows tcols tr tc) <==>
     is_global_matrix gm)

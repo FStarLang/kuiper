@@ -22,8 +22,8 @@ val gpu_array (a : Type u#0) (sz : nat) : Type u#0
 val loc_id_of_array (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : loc_id
 val visibility_of #a #sz (x:gpu_array a sz) : visibility
 
-let visible_at #a #sz (x:gpu_array a sz) (l:loc_id) = 
-  visibility_of x (loc_id_of_array x) == 
+let visible_at #a #sz (x:gpu_array a sz) (l:loc_id) =
+  visibility_of x (loc_id_of_array x) ==
   visibility_of x l
 
 let visible_on_gpu #a #sz (x:gpu_array a sz) (gpu_id:int) =
@@ -86,7 +86,7 @@ instance val is_send_gpu_pts_to_slice
      (gpu_pts_to_slice #a #sz x #f i j v)
 
 instance is_send_across_global_array
-  (#et:Type0) (#sz:_) 
+  (#et:Type0) (#sz:_)
   (a:gpu_array et sz { is_global_array a })
   (#i #j #f #s:_)
 : is_send_across gpu_of (gpu_pts_to_slice a #f i j s)
@@ -144,7 +144,7 @@ fn gpu_array_alloc
   preserves cpu
   returns   x : gpu_array a (SZ.v sz)
   ensures
-    exists* (s:seq a). 
+    exists* (s:seq a).
       on gpu_loc (x |-> s) **
       pure (
         Seq.length s == sz /\
@@ -219,7 +219,7 @@ fn gpu_memcpy_host_to_device'
   requires
     on gpu_loc (dst_garr |-> gv)
   ensures
-    exists* s'. on gpu_loc (dst_garr |-> s') 
+    exists* s'. on gpu_loc (dst_garr |-> s')
                ** pure (s' == seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
 
 fn gpu_memcpy_host_to_device
@@ -237,7 +237,7 @@ fn gpu_memcpy_host_to_device
     (src_arr |-> Frac f v)
   requires
     on gpu_loc (dst_garr |-> gv)
-  requires 
+  requires
     pure (SZ.v cnt == sz /\
           (Pulse.Lib.Vec.length src_arr == sz \/ Seq.length v == reveal sz))
   ensures
@@ -309,7 +309,7 @@ fn gpu_memcpy_device_to_device
   requires
     on gpu_loc (dst_arr |-> v) **
     pure (
-      SZ.v cnt == sz /\ 
+      SZ.v cnt == sz /\
       (Seq.length gv == sz \/ Seq.length v == sz))
   ensures
     on gpu_loc (dst_arr |-> gv) **

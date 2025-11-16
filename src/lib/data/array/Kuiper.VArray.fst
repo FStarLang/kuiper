@@ -17,7 +17,7 @@ type varray
   (vw : aview et st)
 = | VA of IArray.iarray et vw.iview
 
-let is_global_varray 
+let is_global_varray
   (#et:Type0) (#st : Type0)
   (#vw : aview et st)
   (arr: varray vw)

@@ -36,7 +36,7 @@ val mbarrier_tok
   (tid : natlt n)
   : slprop
 
-instance val mbarrier_tok_sendable 
+instance val mbarrier_tok_sendable
   (n:nat)
   (p : rpm_t n)
   (it : nat)

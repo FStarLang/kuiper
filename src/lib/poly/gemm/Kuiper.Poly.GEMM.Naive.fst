@@ -276,7 +276,7 @@ let kdesc
   f = kf comb gA gB gC;
   kpre_sendable=solve;
   kpost_sendable=solve;
-  
+
 }
 
 inline_for_extraction noextract

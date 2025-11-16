@@ -30,11 +30,11 @@ let rec bigstar_sendable_
   (vis: loc_id -> 'a)
   (sa : (i:_ -> is_send_across vis (f i)))
 : Tot (is_send_across vis (bigstar #uid m n f)) (decreases (n - m))
-= if m = n 
-  then FStar.Tactics.Typeclasses.solve #(is_send_across vis emp) 
-  else let _ = bigstar_sendable_ uid (m + 1) n (narrow m n f) vis sa in 
+= if m = n
+  then FStar.Tactics.Typeclasses.solve #(is_send_across vis emp)
+  else let _ = bigstar_sendable_ uid (m + 1) n (narrow m n f) vis sa in
       FStar.Tactics.Typeclasses.solve
-        #(is_send_across vis 
+        #(is_send_across vis
            (f m ** bigstar #uid (m+1) n (narrow m n f)))
 
 instance bigstar_sendable

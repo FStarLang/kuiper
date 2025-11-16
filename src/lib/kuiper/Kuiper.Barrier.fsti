@@ -42,7 +42,7 @@ val barrier_tok
   ([@@@mkey] tid : natlt n)
   : slprop
 
-instance val barrier_tok_sendable 
+instance val barrier_tok_sendable
   (n:nat)
   (p q : barrier_side n)
   (it : nat)
