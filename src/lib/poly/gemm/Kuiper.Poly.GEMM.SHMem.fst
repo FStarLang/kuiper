@@ -7,6 +7,7 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.View.TwoTiles { aview_2tile2, mkAIdx, mkCIdx }
+open Kuiper.StateMachine
 
 module M = Kuiper.Matrix
 open Kuiper.Matrix {
@@ -40,29 +41,41 @@ So in even steps, they give their shared ownership,
 and receive their cells. (p)
 *)
 
+let barrier_stm (mshared : pos) = even_odd_n (2 * mshared)
+
 (* To verify functional correctness: the existentials here should be made
 precise, and parametrize this over the starting input matrices. *)
 let barrier_p
   (#et : Type0)
   (#tile : valid_tile)
+  (mshared : pos)
   (#l1 : full_mlayout tile tile) (m1 : gpu_matrix et l1)
   (#l2 : full_mlayout tile tile) (m2 : gpu_matrix et l2)
-  : B.barrier_side (tile *^ tile) =
+  : B.barrier_side (barrier_stm (2 * mshared)) (tile *^ tile) =
   fun it tid ->
-    if even it then
+    match it with
+    | (_, Even) ->
       (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. (tile * tile)) x) **
       (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. (tile * tile)) x)
-    else
+    | (_, Odd)  ->
       (exists* x. gpu_matrix_pts_to_cell m1 (tid / tile) (tid % tile) x) **
       (exists* x. gpu_matrix_pts_to_cell m2 (tid / tile) (tid % tile) x)
 
 let barrier_q
   (#et : Type0)
   (#tile : valid_tile)
+  (mshared : pos)
   (#l1 : full_mlayout tile tile) (m1 : gpu_matrix et l1)
   (#l2 : full_mlayout tile tile) (m2 : gpu_matrix et l2)
-  : B.barrier_side (tile *^ tile) =
-  fun it tid -> barrier_p m1 m2 (it+1) tid (* flip flop *)
+  : B.barrier_side (barrier_stm (2 * mshared)) (tile *^ tile) =
+  fun it tid ->
+    match it with
+    | (_, Even)  ->
+      (exists* x. gpu_matrix_pts_to_cell m1 (tid / tile) (tid % tile) x) **
+      (exists* x. gpu_matrix_pts_to_cell m2 (tid / tile) (tid % tile) x)
+    | (_, Odd) ->
+      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. (tile * tile)) x) **
+      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. (tile * tile)) x)
 
 (* without shmem ownership *)
 unfold
@@ -121,19 +134,20 @@ let kpost1
 let barrier_tok
   (#et : Type0)
   (tile : valid_tile)
+  (mshared : pos)
   (l1 l2 : full_mlayout tile tile)
   (ar1 ar2 : gpu_array et (tile * tile))
   : slprop
   =
   B.barrier_tok
-    (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
-    (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
+    (barrier_p mshared (M.from_array l1 ar1) (M.from_array l2 ar2))
+    (barrier_q mshared (M.from_array l1 ar1) (M.from_array l2 ar2))
 
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : sz)
+  (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (slA slB : full_mlayout tile tile) // shmem layouts
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -154,14 +168,14 @@ let kpre
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
   (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state 0
+  barrier_tok tile mshared slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state #(even_odd_n mshared) (S (0, Even))
 
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#mrows #mshared #mcols : sz)
+  (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (slA slB : full_mlayout tile tile) // shmem layouts
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -181,8 +195,8 @@ let kpost
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
   (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state (2 * mshared)
+  barrier_tok tile mshared slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state #(even_odd_n mshared) Done
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
