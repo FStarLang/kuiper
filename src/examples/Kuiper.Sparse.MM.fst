@@ -51,7 +51,7 @@ fn smatrix_sdmm
 
       while ((!k <^ re))
         invariant
-            live dp ** live k 
+            live dp ** live k
       {
         let x = gpu_array_read gA.elems !k;
         let c = gpu_array_read gA.col_ind !k;
