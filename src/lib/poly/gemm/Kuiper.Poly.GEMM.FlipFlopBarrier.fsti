@@ -108,15 +108,12 @@ let barrier_tok
   (l2 : full_mlayout bk bn)
   (sar1 : gpu_array et (bm * bk))
   (sar2 : gpu_array et (bk * bn))
-  (it : nat)
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt nthr)
   : slprop
   =
   B.barrier_tok (barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
                 (barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
-                it tid
 
 (* The proof of correctness. *)
 ghost

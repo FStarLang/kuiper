@@ -6,6 +6,7 @@ open Pulse
 open Kuiper.ForEvery
 open Kuiper.Base
 open Kuiper.Common
+module B = Kuiper.Barrier
 
 (* A resource-passing matrix. *)
 let rpm_t (n:nat) =
@@ -32,16 +33,12 @@ let col
 val mbarrier_tok
   (n:nat)
   (p : rpm_t n)
-  (it : nat)
-  (tid : natlt n)
   : slprop
 
 instance val mbarrier_tok_sendable
   (n:nat)
   (p : rpm_t n)
-  (it : nat)
-  (tid : natlt n)
-: is_send_across block_of (mbarrier_tok n p it tid)
+: is_send_across block_of (mbarrier_tok n p)
 
 ghost
 fn mk_mbarrier
@@ -49,8 +46,9 @@ fn mk_mbarrier
   (p : rpm_t n)
   requires can_create_barrier n
   ensures  consumed_can_create_barrier
-  ensures forall+ i. mbarrier_tok n p 0 i
+  ensures forall+ (i : natlt n). mbarrier_tok n p ** B.barrier_state 0
 
+// NB: reusing the same barrier_state token
 inline_for_extraction noextract
 fn mbarrier_wait
   ()
@@ -58,5 +56,7 @@ fn mbarrier_wait
   (#p : rpm_t n)
   (#it : erased nat)
   (#tid : enatlt n)
-  requires mbarrier_tok n p  it    tid ** row p it tid
-  ensures  mbarrier_tok n p (it+1) tid ** col p it tid
+  preserves mbarrier_tok n p
+  preserves thread_id n tid
+  requires B.barrier_state it     ** row p it tid
+  ensures  B.barrier_state (it+1) ** col p it tid

@@ -27,27 +27,23 @@ type barrier_transform (#n:nat) (p q : barrier_side n) =
 (* A token representing that there is a barrier in scope.
    This is a ghost token, and is not used at runtime. *)
 
-(* A token representing that
-   1) There is a barrier in scope
-   2) We are thread 'tid' in the group
-   3) We are in interation 'it'
+(* A token representing that there is a barrier in scope with contract (p,q).
+This does not change as we wait on the barrier. *)
+[@@no_mkeys]
+val barrier_tok (#n:nat) (p q : barrier_side n) : slprop
 
-   p and q represent the pre- and postconditions
-   to the barrier_wait for a given thread at a given iteration.
-*)
-val barrier_tok
-  (#n:nat)
-  ([@@@mkey] p [@@@mkey] q : barrier_side n)
-  (it : nat)
-  ([@@@mkey] tid : natlt n)
-  : slprop
+(* A token that we are at iteration `it` of the current barrier. *)
+[@@no_mkeys]
+val barrier_state (it : nat) : slprop
 
 instance val barrier_tok_sendable
   (n:nat)
   (p q : barrier_side n)
+: is_send_across block_of (barrier_tok #n p q)
+
+instance val barrier_state_sendable
   (it : nat)
-  (tid : natlt n)
-: is_send_across block_of (barrier_tok #n p q it tid)
+: is_send_across block_of (barrier_state it)
 
 (* Creating a barrier for n threads. Note how this is a
    ghost function!. The 'pf' argument is a proof, once and
@@ -61,7 +57,7 @@ fn mk_barrier
   (pf : barrier_transform p q)
   requires can_create_barrier n
   ensures  consumed_can_create_barrier
-  ensures  forall+ (i:natlt n). barrier_tok p q 0 i
+  ensures  forall+ (i:natlt n). barrier_tok p q ** barrier_state 0
 
 (* Wait on the barrier. This function blocks until all threads call it
    simultaneously. Each thread provides the current p
@@ -72,5 +68,7 @@ fn barrier_wait
   (#p #q : barrier_side n)
   (#it : erased nat)
   (#tid : enatlt n)
-  requires barrier_tok p q  it    tid ** p it tid
-  ensures  barrier_tok p q (it+1) tid ** q it tid
+  preserves barrier_tok p q
+  preserves thread_id n tid
+  requires barrier_state it     ** p it tid
+  ensures  barrier_state (it+1) ** q it tid

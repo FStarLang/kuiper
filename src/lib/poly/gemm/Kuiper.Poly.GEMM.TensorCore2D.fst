@@ -826,7 +826,7 @@ fn kf
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
 
-  unfold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB 0 nthr bid tid;
+  unfold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid;
 
   gpu_matrix_abs' (R.row_major bm bk) sarA;
   let sA = from_array (R.row_major bm bk) sarA;
@@ -889,7 +889,7 @@ fn kf
     invariant
       (exists* em1. FB.bp_sharing sA em1 nthr) **
       (exists* em2. FB.bp_sharing sB em2 nthr) **
-      B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid) (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid //**
+      B.barrier_state (2 * !bkIdx)
   {
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
@@ -909,7 +909,6 @@ fn kf
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
 
-    assert B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid) (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
     (* sigh.. *)
@@ -1028,18 +1027,14 @@ fn kf
     rewrite
       B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid)
         (FB.barrier_q eA eB sA sB nthr bid)
-        (2 * v !bkIdx)
-        (v tid)
     as
       B.barrier_tok (FB.barrier_p eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
             (from_array (R.row_major (v bk) (v bn)) sarB)
             nthr bid)
         (FB.barrier_q eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
             (from_array (R.row_major (v bk) (v bn)) sarB)
-            nthr bid)
-        (2 * (shared / bk))
-        (v tid);
-    fold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) nthr bid tid;
+            nthr bid);
+    fold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid;
   };
 
   rewrite each sarA as fst sh;

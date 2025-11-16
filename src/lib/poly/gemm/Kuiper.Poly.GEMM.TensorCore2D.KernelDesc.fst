@@ -349,7 +349,7 @@ fn setup
 ghost
 fn block_setup
   (#et_ab #et_c : Type0)
-  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| scalar et_ab, v : has_vec_cpy et_ab, scalar et_c |}
   {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared)
@@ -408,7 +408,7 @@ fn block_setup
   forevery_zip
     (fun tid -> live_c_shmems sh #(recip nthr))
     (fun tid ->
-      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid);
+      FB.barrier_tok #_ #_ #v eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid ** B.barrier_state 0);
   forevery_zip #(natlt nthr)
     (fun tid -> kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) _;
   ()
@@ -467,10 +467,10 @@ fn block_teardown
   (* Restore and give back ownership of shared memory arrays. *)
   gpu_live_c_shmems_gather_underspec sh #(1.0R) #nthr;
 
-  (* Drop barrier token. *)
+  (* Drop barrier tokens. *)
   drop_
     (forall+ (x: natlt nthr).
-      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr bid x);
+      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid ** B.barrier_state (2 * (shared/bk)));
   ()
 }
 
@@ -739,7 +739,7 @@ let tiles_approx_lemma
   ()
 #pop-options
 
-#push-options "--z3rlimit 60" // the function below is pretty terribly performant
+#push-options "--z3rlimit 80" // the function below is pretty terribly performant
 ghost
 fn reconstruct_from_warp_approx
   (#et_ab #et_c : Type0)

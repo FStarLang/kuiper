@@ -191,13 +191,10 @@ let barrier_tok
   (l2 : full_mlayout bk bn)
   (sar1 : gpu_array et (bm * bk))
   (sar2 : gpu_array et (bk * bn))
-  (it : nat)
-  (tid : natlt (bm/tm * bn))
   : slprop
   =
   B.barrier_tok (barrier_p tm (M.from_array l1 sar1) (M.from_array l2 sar2))
                 (barrier_q tm (M.from_array l1 sar1) (M.from_array l2 sar2))
-                it tid
 
 unfold
 let kpre
@@ -229,7 +226,8 @@ let kpre
   kpre1 comb tm gA gB gC eA eB eC fA fB bid tid **
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
   (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  barrier_tok tm slA slB (fst sh) (fst (snd sh)) 0 tid
+  barrier_tok tm slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state 0
 
 unfold
 let kpost
@@ -261,7 +259,8 @@ let kpost
   kpost1 comb tm gA gB gC eA eB eC fA fB bid tid **
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
   (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  barrier_tok tm slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
+  barrier_tok tm slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state (2 * mshared)
 
 inline_for_extraction noextract
 fn populate_shmem
@@ -406,7 +405,7 @@ fn kf
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
 
-  unfold barrier_tok tm slA slB sarA sarB 0 tid;
+  unfold barrier_tok tm slA slB sarA sarB;
 
   M.gpu_matrix_abs' slA sarA;
   let sA = M.from_array slA sarA;
@@ -428,15 +427,13 @@ fn kf
   while ((!bkIdx <^ mshared))
     invariant
       live bkIdx ** pure (!bkIdx <= mshared) **
-      B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * !bkIdx) tid
+      B.barrier_state (2 * !bkIdx)
     invariant
       live cache1d
     invariant
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
   {
-    (* This assert should not be needed. I don't know what effect it even has. *)
-    assert B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * !bkIdx) tid;
     even_2x !bkIdx;
     rewrite
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
@@ -451,7 +448,6 @@ fn kf
        cache. Populate it. *)
     populate_shmem tm sA sB gA gB mrow !bkIdx mcol tid;
 
-    assert B.barrier_tok (barrier_p tm sA sB) (barrier_q tm sA sB) (2 * !bkIdx + 1) tid;
     odd_2x1 !bkIdx;
     assert pure (odd (2 * !bkIdx + 1));
     rewrite own_1_cell sA (tid/bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn)
@@ -530,7 +526,7 @@ fn kf
 
   rewrite each sA as M.from_array slA sarA;
   rewrite each sB as M.from_array slB sarB;
-  fold barrier_tok tm slA slB sarA sarB (2 * mshared) tid;
+  fold barrier_tok tm slA slB sarA sarB;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);

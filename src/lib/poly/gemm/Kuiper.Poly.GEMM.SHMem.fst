@@ -123,14 +123,11 @@ let barrier_tok
   (tile : valid_tile)
   (l1 l2 : full_mlayout tile tile)
   (ar1 ar2 : gpu_array et (tile * tile))
-  (it : nat)
-  (tid : natlt (tile *^ tile))
   : slprop
   =
   B.barrier_tok
     (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
     (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
-    it tid
 
 unfold
 let kpre
@@ -157,8 +154,8 @@ let kpre
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
   (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) 0 tid
-
+  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state 0
 
 unfold
 let kpost
@@ -184,7 +181,8 @@ let kpost
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
   (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
+  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state (2 * mshared)
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
@@ -227,7 +225,7 @@ fn kf
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
 
-  unfold barrier_tok tile slA slB ar1 ar2 0 tid;
+  unfold barrier_tok tile slA slB ar1 ar2;
 
   M.gpu_matrix_abs' slA ar1;
   let sa1 = M.from_array slA ar1;
@@ -258,7 +256,7 @@ fn kf
     invariant
       exists* (vbk : SZ.t).
         bk |-> vbk **
-        B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
+        B.barrier_state (2 * vbk) **
         pure (vbk <= mshared)
     invariant
       (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
@@ -350,6 +348,7 @@ fn kf
 
     (* Move to next tile *)
     bk := !bk +^ 1sz;
+    ()
   };
 
   let s = !sum;
@@ -367,17 +366,7 @@ fn kf
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
 
-  rewrite
-    B.barrier_tok
-      (barrier_p sa1 sa2)
-      (barrier_q sa1 sa2)
-      (2 * !bk) tid
-  as
-    B.barrier_tok
-      (barrier_p (M.from_array slA ar1) (M.from_array slB ar2))
-      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2))
-      (2 * mshared) tid;
-  fold barrier_tok tile slA slB ar1 ar2 (2 * mshared) tid;
+  fold barrier_tok tile slA slB ar1 ar2;
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);

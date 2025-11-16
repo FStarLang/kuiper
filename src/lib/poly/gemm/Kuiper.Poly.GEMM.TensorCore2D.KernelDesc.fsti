@@ -19,6 +19,7 @@ module MS = Kuiper.Spec.GEMM
 module R  = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
 module FlipFlopBarrier = Kuiper.Poly.GEMM.FlipFlopBarrier
+module B = Kuiper.Barrier
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
@@ -174,7 +175,8 @@ let kpre
   kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   live_c_shmems sh #(recip nthr) **
   FlipFlopBarrier.barrier_tok #_ #_ #v #rows #shared #cols eA eB #bm #bk #bn
-    (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 nthr bid tid
+    (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid **
+  B.barrier_state 0
 
 // #push-options "--z3rlimit_factor 4 --split_queries no --fuel 0 --ifuel 0 --query_stats"
 // instance kpre_block_sendable
@@ -451,7 +453,8 @@ let kpost
   =
   kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   live_c_shmems sh #(recip nthr) **
-  FlipFlopBarrier.barrier_tok #_ #_ #v eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) nthr bid tid
+  FlipFlopBarrier.barrier_tok #_ #_ #v eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid **
+  B.barrier_state (2 * (shared/bk))
 
 // #push-options "--z3rlimit_factor 4 --split_queries no --fuel 0 --ifuel 0 --query_stats"
 // #restart-solver

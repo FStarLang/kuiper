@@ -4,12 +4,13 @@ module Kuiper.Poly.HReduce
 
 open Kuiper
 open Kuiper.Barrier.RPM
-module RPM = Kuiper.Barrier.RPM
 open Kuiper.Math
 open Kuiper.Seq.Common
 
 module SZ = Kuiper.SizeT
 module U32 = FStar.UInt32
+module RPM = Kuiper.Barrier.RPM
+module B = Kuiper.Barrier
 
 [@@CPrologue "__device__"]
 noextract inline_for_extraction
@@ -139,7 +140,8 @@ let kpre
   (tid : natlt lena)
   : slprop =
     gpu_pts_to_slice a tid (tid +1) seq![s @! tid] **
-    mbarrier_tok lena (barrier_matrix lena a s vr) 0 tid
+    mbarrier_tok lena (barrier_matrix lena a s vr) **
+    B.barrier_state 0
 
 unfold
 let kpost
@@ -152,7 +154,8 @@ let kpost
   (tid : natlt lena)
   : slprop =
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s vr) **
-    (exists* it. mbarrier_tok lena (barrier_matrix lena a s vr) it tid)
+    mbarrier_tok lena (barrier_matrix lena a s vr) **
+    (exists* it. B.barrier_state it)
 
 // #push-options "--print_implicits"
 inline_for_extraction
@@ -165,12 +168,13 @@ fn iteration
   (#_: squash (len vv == nth))
   (tid : sz{SZ.v tid < nth})
   (it: sz{it < 31})
-  requires gpu
-    ** mbarrier_tok nth (barrier_matrix nth r vv vr) it tid
-    ** if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)
-  ensures gpu
-    ** mbarrier_tok nth (barrier_matrix nth r vv vr) (it+1) tid
-    ** if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv vr)
+  preserves gpu
+  preserves thread_id nth tid
+  preserves mbarrier_tok nth (barrier_matrix nth r vv vr)
+  requires B.barrier_state it
+  requires if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)
+  ensures  B.barrier_state (it + 1)
+  ensures  if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv vr)
 {
   assert (pure (len vv = nth));
 
@@ -309,7 +313,7 @@ fn kf
     invariant
       exists* (it : szlt 32).
         n |-> it **
-        mbarrier_tok nth (barrier_matrix nth a s vr) it tid **
+        B.barrier_state it **
         if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr)
   {
     iteration nth a s vr tid !n;
@@ -373,7 +377,8 @@ fn block_setup
   mk_mbarrier lena (barrier_matrix lena a va vr);
   forevery_zip
       _
-      (RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va vr) 0)
+      (fun i ->
+        RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va vr) ** B.barrier_state 0)
     ;
 }
 
@@ -397,17 +402,15 @@ fn block_teardown
     (fun (j:natlt lena) ->
       if_ (j = 0)
         (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr) **
-      (exists* (it: nat).
-          RPM.mbarrier_tok (SZ.v lena)
-            (barrier_matrix (SZ.v lena) a va vr)
-            it
-            j))
+      RPM.mbarrier_tok (SZ.v lena)
+        (barrier_matrix (SZ.v lena) a va vr) **
+      (exists* (it: nat). B.barrier_state it))
     (fun (j:natlt lena) ->
       if_ (op_Equality #(natlt lena) j 0)
         (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
     fn j {
-      with a b c d. assert (RPM.mbarrier_tok a b c d);
-      drop_ (RPM.mbarrier_tok a b c d);
+      drop_ (RPM.mbarrier_tok _ _);
+      drop_ (B.barrier_state _);
     };
   forevery_if_elim #(natlt lena) 0 (fun (x: natlt lena) ->
     gpu_pts_to_slice_sum a 0 (v lena) va vr);

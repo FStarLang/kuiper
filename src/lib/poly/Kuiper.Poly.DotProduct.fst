@@ -21,8 +21,9 @@ open Kuiper.Approximates
 
 module V = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
-
+module B = Kuiper.Barrier
 module HR = Kuiper.Poly.HReduce
+
 friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)
 
 let rsmul (s1 s2 : seq real{ Seq.length s1 == Seq.length s2 }) : GTot (seq real)
@@ -56,7 +57,8 @@ let kpre
   : slprop
   = gpu_pts_to_slice ga1 tid (tid + 1) seq![s1 @! tid] **
     gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) 0 tid
+    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) **
+    B.barrier_state 0
 
 (* ^ Note how the instantiation of the barrier states (pmul s1 s2) regarless
      of whatever is in sr. This is since the first thing the kernel will do is
@@ -74,8 +76,8 @@ let kpost
   (tid : natlt lena)
   : slprop
   = gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-    (exists* it.
-      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) it tid) **
+    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) **
+    (exists* it. B.barrier_state it) **
     (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2)))
 
 inline_for_extraction noextract
@@ -146,7 +148,7 @@ fn setup
    (fun (i: natlt (v lena)) -> //too bad that you have to write this; inference should find it
       gpu_pts_to_slice ga1 i (i + 1) seq![Seq.Base.index s1 i] **
       gpu_pts_to_slice ga2 i (i + 1) seq![Seq.Base.index s2 i] **
-      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) 0 i)
+      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) ** B.barrier_state 0)
    (kpre lena ga1 ga2 s1 s2 vr1 vr2) fn bid { fold kpre lena ga1 ga2 s1 s2 vr1 vr2 bid };
 }
 
@@ -174,17 +176,19 @@ fn teardown
   forevery_map (kpost lena ga1 ga2 s1 s2 vr1 vr2)
     (fun tid ->
       gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-      ((exists* it.
-        mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) it tid) **
+      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) **
+      ((exists* it. B.barrier_state it) **
        (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2)))))
     fn tid { unfold (kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) };
   forevery_unzip _ _;
   gpu_array_unslice_1 ga2;
   forevery_unzip _ _;
+  forevery_unzip _ _;
   forevery_extract #(natlt lena) 0
     (fun tid -> (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2))));
   if_elim_true _;
   drop_ (Pulse.Lib.Trade.trade _ _);
+  drop_ (forall+ (tid:natlt lena). exists* it. B.barrier_state it);
   drop_ (forall+ (tid:natlt lena). _);
   unfold HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2);
 }

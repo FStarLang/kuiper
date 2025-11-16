@@ -128,6 +128,7 @@ let kpost1
       (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       ii tid v)
 
+unfold
 let barrier_tok
   (#et : Type0)
   (tile : valid_tile)
@@ -136,14 +137,11 @@ let barrier_tok
   a matrix. *)
   (l1 l2 : full_mlayout tile tile)
   (ar1 ar2 : gpu_array et (tile * tile))
-  (it : nat)
-  (tid : natlt tile)
   : slprop
   =
   B.barrier_tok
     (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
     (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
-    it tid
 
 unfold
 let kpre
@@ -167,7 +165,8 @@ let kpre
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
   live_c_shmems sh #(1.0R /. tile) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) 0 tid
+  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state 0
 
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
@@ -212,7 +211,8 @@ let kpost
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
   live_c_shmems sh #(1.0R /. tile) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
+  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state (2 * mshared)
 
 let kpost_block_sendable
   (#et : Type0) {| scalar et |}
@@ -334,12 +334,8 @@ fn kf
   unfold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
   let (ar1, (ar2, _)) = sh;
 
-
-
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
-
-  unfold barrier_tok tile slA slB ar1 ar2 0 tid;
 
   M.gpu_matrix_abs' slA ar1;
   let sa1 = M.from_array slA ar1;
@@ -366,7 +362,7 @@ fn kf
     invariant
       exists* (vbk : SZ.t).
         bk |-> vbk **
-        B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
+        B.barrier_state (2 * vbk) **
         pure (vbk <= mshared)
     invariant
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
@@ -447,14 +443,9 @@ fn kf
   rewrite
     B.barrier_tok (barrier_p sa1 sa2)
       (barrier_q sa1 sa2)
-      (2 * v !bk)
-      (v tid)
   as
     B.barrier_tok (barrier_p (M.from_array slA ar1) (M.from_array slB ar2))
-      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2))
-      (2 * v mshared)
-      (v tid);
-  fold barrier_tok tile slA slB ar1 ar2 (2 * mshared) tid;
+      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2));
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
