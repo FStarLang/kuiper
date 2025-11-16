@@ -11,6 +11,13 @@ module T = FStar.Tactics.V2
 let gpu_matrix (et:Type0) (#rows #cols : nat) (l : mlayout rows cols) : Type0 =
   A.varray (aview_from_mlayout et #rows #cols l)
 
+let is_global_matrix
+  (#et:Type0) (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (arr: gpu_matrix et l)
+: prop
+= A.is_global_varray (arr)
+
 let from_array l p = A.from_array (aview_from_mlayout _ l) p
 let core g = A.core g
 
@@ -41,6 +48,15 @@ let gpu_matrix_pts_to
   : slprop
   = A.varray_pts_to gm #f em
 
+instance is_send_across_global_matrix
+  (#et:Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (x: gpu_matrix et l { is_global_matrix x })
+  (#f : perm)
+  (em : ematrix et rows cols)
+: is_send_across gpu_of (gpu_matrix_pts_to x #f em)
+= solve
 
 ghost
 fn gpu_matrix_pts_to_ref
@@ -53,11 +69,35 @@ fn gpu_matrix_pts_to_ref
   preserves
     gpu_matrix_pts_to g #f em
   ensures
-    pure (SZ.fits (rows * cols))
+    pure (SZ.fits (mlayout_size l))
 {
   unfold gpu_matrix_pts_to g #f em;
   A.varray_pts_to_ref g;
   fold gpu_matrix_pts_to g #f em;
+}
+
+ghost
+fn gpu_matrix_pts_to_ref_located
+  (#et:Type)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (g : gpu_matrix et l)
+  (#loc:_)
+  (#f : perm)
+  (#em : ematrix et rows cols)
+  preserves
+    on loc (gpu_matrix_pts_to g #f em)
+  ensures
+    pure (SZ.fits (mlayout_size l))
+{
+  ghost_impersonate loc
+    (on loc (gpu_matrix_pts_to g #f em))
+    (on loc (gpu_matrix_pts_to g #f em) ** pure (SZ.fits (mlayout_size l)))
+    fn () {
+      on_elim _;
+      gpu_matrix_pts_to_ref g;
+      on_intro (gpu_matrix_pts_to g #f em);
+    }
 }
 
 
@@ -171,7 +211,7 @@ fn gpu_matrix_iabs
     g |-> Frac f em
 {
   forevery_flatten _;
-  forevery_rw_type _ ((aview_from_mlayout et l).iview.sch.ait) _;
+  forevery_rw_type _ ((aview_from_mlayout et l).iview.ait) _;
   forevery_ext _
     (fun i -> gpu_pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
       ((aview_from_mlayout et l).igm.acc em i));
@@ -192,12 +232,11 @@ fn gpu_matrix_alloc0
   returns
     gm : gpu_matrix et l
   ensures
-    exists* em. gm |-> em
+    exists* em. on gpu_loc (gm |-> em)
+  ensures   pure (is_global_matrix gm)
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);
-  with s. assert (A.varray_pts_to gm #1.0R s);
-  fold gpu_matrix_pts_to gm s;
   gm;
 }
 
@@ -213,10 +252,9 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures emp
 {
-  unfold gpu_matrix_pts_to gm em;
   A.varray_free gm;
 }
 
@@ -289,7 +327,6 @@ fn gpu_matrix_pts_to_eq
 ghost
 fn gpu_matrix_gather_n_underspec
   (#et:Type0)
-  (#uid: int)
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
@@ -513,7 +550,7 @@ fn gpu_matrix_explode
 {
   unfold gpu_matrix_pts_to gm #f em;
   A.varray_explode gm;
-  forevery_rw_type (aview_from_mlayout et l).iview.sch.ait (natlt rows & natlt cols) _;
+  forevery_rw_type (aview_from_mlayout et l).iview.ait (natlt rows & natlt cols) _;
   ghost
   fn aux (rc : natlt rows & natlt cols)
     requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc)
@@ -569,16 +606,18 @@ fn gpu_matrix_from_array
     a |-> s **
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
-    (gm |-> from_seq l s)
+    on gpu_loc (gm |-> from_seq l s)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold gpu_matrix_pts_to gm #1.0R em;
   A.varray_from_array (rows *^ cols) gm a;
   from_seq_rel l s;
-  fold gpu_matrix_pts_to gm #1.0R (from_seq l s);
+  with p. assert (on gpu_loc p);
+  map_loc gpu_loc #p #(gpu_matrix_pts_to gm #1.0R (from_seq l s)) fn () {
+    fold gpu_matrix_pts_to gm #1.0R (from_seq l s)
+  };
 }
 
 inline_for_extraction noextract
@@ -591,7 +630,7 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == rows * cols})
   (#em : ematrix et rows cols)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     a |-> s
@@ -600,8 +639,7 @@ fn gpu_matrix_to_array
     (a |-> to_seq l em)
 {
   Pulse.Lib.Vec.pts_to_len a;
-  unfold gpu_matrix_pts_to gm #1.0R em;
   A.varray_to_array (rows *^ cols) a gm;
   to_seq_rel l em;
-  fold gpu_matrix_pts_to gm #1.0R em;
+  ()
 }

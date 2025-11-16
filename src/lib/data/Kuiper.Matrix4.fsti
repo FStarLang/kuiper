@@ -81,6 +81,13 @@ val gpu_matrix
   (l : mlayout4 mrows mcols brows bcols)
   : Type0
 
+val is_global_matrix
+  (#et : Type0)
+  (#mrows #mcols #brows #bcols : nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (gm : gpu_matrix et l)
+  : prop
+
 inline_for_extraction noextract
 val from_array
   (#a : Type0)
@@ -102,7 +109,7 @@ val lem_core_from_array
   (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (g : gpu_matrix et l)
-  : Lemma (ensures from_array l (core g) == g)
+  : Lemma (ensures from_array l (core g) == g /\ (is_global_matrix g <==> is_global_array (core g)))
           [SMTPat (core g)]
 
 val lem_from_array_core
@@ -110,7 +117,7 @@ val lem_from_array_core
   (#mrows #mcols #brows #bcols : erased nat)
   (#l : mlayout4 mrows mcols brows bcols)
   (p : gpu_array et (mlayout_size l))
-  : Lemma (ensures core (from_array l p) == p)
+  : Lemma (ensures core (from_array l p) == p /\ (is_global_array p <==> is_global_matrix (from_array l p)))
           [SMTPat (from_array l p)]
 
 val gpu_matrix_pts_to
@@ -120,6 +127,15 @@ val gpu_matrix_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (em : ematrix4 et mrows mcols brows bcols)
   : slprop
+
+instance
+val is_send_across_gpu_matrix_pts_to
+  (#et:Type) (#mrows #mcols #brows #bcols : nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (#gm : gpu_matrix et l { is_global_matrix gm })
+  (#[T.exact (`1.0R)] f : perm)
+  (#em : ematrix4 et mrows mcols brows bcols)
+: is_send_across gpu_of (gpu_matrix_pts_to gm #f em)
 
 (* erased is important for the lens! *)
 unfold
@@ -195,7 +211,9 @@ fn gpu_matrix_alloc0
   returns
     gm : gpu_matrix et l
   ensures
-    exists* em. gm |-> em
+    exists* em. on gpu_loc (gm |-> em)
+  ensures
+    pure (is_global_matrix gm)
 
 inline_for_extraction noextract
 fn gpu_matrix_free
@@ -207,7 +225,7 @@ fn gpu_matrix_free
   preserves
     cpu
   requires
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures emp
 
 ghost
@@ -343,6 +361,8 @@ fn gpu_matrix_explode
   requires
     gpu_matrix_pts_to gm #f em
   ensures
+    pure (SZ.fits (mlayout_size l))
+  ensures
     forall+ br bc r c.
       gpu_matrix_pts_to_cell gm #f br bc r c (macc em br bc r c)
 
@@ -354,6 +374,8 @@ fn gpu_matrix_implode
   (gm : gpu_matrix et l)
   (#f : perm)
   (#em : _)
+  requires
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+ br bc r c.
       gpu_matrix_pts_to_cell gm #f br bc r c (macc em br bc r c)
@@ -374,10 +396,10 @@ fn gpu_matrix_from_array
     cpu
   requires
     pure (mlayout_size l > 0) **
-    gm |-> em
+    on gpu_loc (gm |-> em)
   ensures
     pure (SZ.fits (mlayout_size l) /\ Pulse.Lib.Vec.length a == (mlayout_size l)) **
-    (gm |-> from_seq l s)
+    on gpu_loc (gm |-> from_seq l s)
 
 inline_for_extraction noextract
 fn gpu_matrix_to_array
@@ -389,7 +411,7 @@ fn gpu_matrix_to_array
   (#s : erased (seq et){Seq.length s == mlayout_size l})
   (#em : _)
   preserves
-    gm |-> em **
+    on gpu_loc (gm |-> em) **
     cpu
   requires
     pure (mlayout_size l > 0) **

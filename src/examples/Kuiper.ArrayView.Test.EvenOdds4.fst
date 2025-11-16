@@ -21,10 +21,8 @@ module SZ    = FStar.SizeT
 open Kuiper.IView
 open Kuiper.View
 
-let strided_schema (len : nat) (stride : nat) (offset : natlt stride) = {
-  ait      = natlt ((len + stride - 1 - offset) / stride);
-  ait_enum = solve;
-}
+let strided_ait (len : nat) (stride : nat) (offset : natlt stride) : Type =
+  natlt ((len + stride - 1 - offset) / stride)
 
 let strided_step (len : nat) (stride : nat) (offset : natlt stride) :
   aiview_step
@@ -39,29 +37,29 @@ let strided_step (len : nat) (stride : nat) (offset : natlt stride) :
 
 let strided_view #et (#len : nat) (stride : nat) (offset : natlt stride)
   (* Any base view with abstract indices being natlt can be strided. *)
-  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.sch.ait == (raw_aiview_schema len).ait })
+  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.ait == natlt len })
  : aview et (lseq et ((base.iview.len + stride - 1 - offset) / stride))
 = {
     iview = {
-      len  = base.iview.len;
-      sch  = strided_schema base.iview.len stride offset;
+      len = base.iview.len;
+      ait = strided_ait base.iview.len stride offset;
       step = IView.compose_astep (strided_step len stride offset) base.iview.step;
     };
     igm = solve;
 }
 
 let even_view #et #len
-  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.sch.ait == (raw_aiview_schema len).ait })
+  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.ait == natlt len})
   : aview et (lseq et ((len + 1) / 2))
   = strided_view 2 0 base
 
 let odd_view #et #len
-  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.sch.ait == (raw_aiview_schema len).ait })
+  (base : aview et (lseq et len) { base.iview.len == len /\ base.iview.ait == natlt len})
   : aview et (lseq et (len / 2))
   = strided_view 2 1 base
 
 let strided_cischema (len : nat{SZ.fits len}) (stride : sz) (offset : szlt stride)
-  : ciview_schema (strided_schema len stride offset) =
+  : ciview_schema (strided_ait len stride offset) =
 {
   cit  = szlt ((len + stride - 1 - offset) / stride);
   bij  = natural;
@@ -178,7 +176,7 @@ fn foo_odd'
   varray_read a 10sz;
 }
 
-let split_view (vw : aview 'et 'len (lseq 'et 'len) { vw.iview.sch.ait == (raw_aiview_schema 'len).ait }) =
+let split_view (vw : aview 'et 'len (lseq 'et 'len) { vw.iview.ait == (raw_aiview_schema 'len).ait }) =
   sum_aview (even_view vw) (odd_view vw)
 
 inline_for_extraction noextract // view polymorphic

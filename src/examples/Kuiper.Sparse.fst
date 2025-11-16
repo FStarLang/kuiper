@@ -292,6 +292,15 @@ type smatrix (et : Type0)
   row_off   : gpu_array sz (rows + 1); // posición de cada comienzo de  fila
 }
 
+let is_global_smatrix
+  (#et:Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (m : smatrix et rows cols)
+  : prop
+  = is_global_array m.elems
+    /\ is_global_array m.col_ind
+    /\ is_global_array m.row_off
+
 // Medio fea esta
 let valid_smatrix
   (#nnz rows cols : nat)
@@ -495,9 +504,10 @@ fn smatrix_gather_n
   {
     unfold smatrix_pts_to m #(f /. k) em;
 
-    gpu_slice_pts_to_eq' m.elems;
-    gpu_slice_pts_to_eq' m.col_ind;
-    gpu_slice_pts_to_eq' m.row_off;
+    gpu_slice_pts_to_eq m.elems 0 m.nnz (f /. k) #_ #v_elems;
+    gpu_slice_pts_to_eq m.col_ind 0 m.nnz (f /. k) #_ #v_col_ind;
+    gpu_slice_pts_to_eq m.row_off 0 (rows + 1) (f /. k) #_ #v_row_off;
+    ()
   };
 
   forevery_map_extra _ _ _ aux;

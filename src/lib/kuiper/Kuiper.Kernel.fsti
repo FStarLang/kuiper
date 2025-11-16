@@ -17,25 +17,26 @@ fn launch_kernel_full_sync
   (k : kernel_desc full_pre full_post)
   requires
     cpu **
-    full_pre
+    on gpu_loc full_pre
   ensures
     cpu **
-    full_post
+    on gpu_loc full_post
 
 (* A helper for very simple kernels, mostly for unit tests. *)
 inline_for_extraction noextract
 fn launch_kernel_1
   (#pre : slprop)
   (#post : slprop)
+  {| is_send_across gpu_of pre, is_send_across gpu_of post |}
   (k : unit ->
          stt unit (requires gpu ** pre)
                   (ensures fun _ -> gpu ** post))
   requires
     cpu **
-    pre
+    on gpu_loc pre
   ensures
     cpu **
-    post
+    on gpu_loc post
 
 (* NOTE: commented-out is how to define these functions using a typeclass
 of launchable things instead of making the kernel casts coercions. But this
@@ -48,37 +49,6 @@ there is no reason to), and will then fail to find an instance. *)
 // class launchable (t : Type) (full_pre full_post : slprop) = {
 //   [@@@no_method] cast : t -> kernel_desc full_pre full_post;
 // }
-
-inline_for_extraction noextract
-val launch
-  // (#t:Type)
-  (#full_pre #full_post : slprop)
-  // {| d : launchable t full_pre full_post |}
-  // (x : t)
-  (k : kernel_desc full_pre full_post)
-  (#e : epoch_t)
-  : stt epoch_t
-      (cpu **
-       epoch_live e **
-       full_pre)
-      (fun e' ->
-        cpu **
-        epoch_live e' **
-        pledge0 (epoch_done e') full_post **
-        pure (e' >= e))
-
-inline_for_extraction noextract
-val launch_sync
-  // (#t:Type)
-  (#full_pre #full_post : slprop)
-  // {| d : launchable t full_pre full_post |}
-  // (x : t)
-  (_ : kernel_desc full_pre full_post)
-  : stt unit
-      (cpu ** full_pre)
-      (fun _ ->
-        cpu **
-        full_post)
 
 // inline_for_extraction noextract
 // instance val launchable_self

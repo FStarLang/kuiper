@@ -15,13 +15,11 @@ module EMatrix = Kuiper.EMatrix
 module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
 
-// inline_for_extraction noextract
 type fragment_kind =
   | FragA
   | FragB
   | FragAcc
 
-// inline_for_extraction noextract
 type fragment_layout =
   | FragLRM
   | FragLCM
@@ -69,15 +67,7 @@ val fragment
   (layout : fragment_layout)
   : Type0
 
-// let dims_for knd m n k =
-//   match knd with
-//   | FragA   -> m, k
-//   | FragB   -> k, n
-//   | FragAcc -> m, n
-
 let value_for et knd m n k =
-  // let o, p = dims_for knd m n k
-  // in ematrix et o p
   match knd with
   | FragA   -> ematrix et m k
   | FragB   -> ematrix et k n
@@ -89,7 +79,6 @@ val fragment_pts_to
   (#m #n #k : nat)
   (#fl : fragment_layout)
   ([@@@mkey] f : fragment et knd m n k fl)
-  // why no permission?
   (em  : value_for et knd m n k)
   : slprop
 
@@ -138,12 +127,11 @@ val emma_approx_lemma
   (ra : ematrix real rows shared)
   (rb : ematrix real shared columns)
   : Lemma (requires
-            ematrix_approximates ma ra /\
-            ematrix_approximates mb rb /\
-            ematrix_approximates mc rc)
+            ma %~ ra /\
+            mb %~ rb /\
+            mc %~ rc)
           (ensures
-            ematrix_approximates (emma mc ma mb)
-                                 (matplus rc (matmul ra rb)))
+            emma mc ma mb %~ matplus rc (matmul ra rb))
 
 (* The actual multiplication operation *)
 fn mma_sync'
@@ -313,7 +301,6 @@ instance has_pts_to_array_fragment (et:Type0) (knd : fragment_kind) (m n k : era
   pts_to = array_fragment_pts_to
 }
 
-(* Unsound, clearly *)
 fn __alloc_fragment
   (et : Type0) (knd : fragment_kind)
   (m n k : sz)
@@ -323,7 +310,6 @@ fn __alloc_fragment
   returns  fr : fragment et knd m n k fl
   ensures  exists* v. fr |-> v
 
-(* Also clearly unsound *)
 fn __alloc_array_fragment
   (et : Type0) (knd : fragment_kind)
   (m n k : sz)

@@ -123,8 +123,8 @@ let barrier_p
       (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. nthr) x) **
       (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. nthr) x)
     else
-      live_tile_stride_cells m1 nthr tid **
-      live_tile_stride_cells m2 nthr tid
+      live_strided_chunks m1 nthr tid **
+      live_strided_chunks m2 nthr tid
 
 let barrier_q
   (#et : Type0)
@@ -147,14 +147,11 @@ let barrier_tok
   (l2 : full_mlayout bk bn)
   (sar1 : gpu_array et (bm * bk))
   (sar2 : gpu_array et (bk * bn))
-  (it : nat)
   (nthr : pos)
-  (tid : natlt nthr)
   : slprop
   =
   B.barrier_tok (barrier_p (from_array l1 sar1) (from_array l2 sar2) nthr)
                 (barrier_q (from_array l1 sar1) (from_array l2 sar2) nthr)
-                it tid
 
 unfold
 let kpre
@@ -184,7 +181,8 @@ let kpre
   kpre1 gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid **
   (exists* (x : seq _). gpu_pts_to_array (fst sh)       #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
   (exists* (x : seq _). gpu_pts_to_array (fst (snd sh)) #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) 0 (bm/tm * (bn/tn) * warp_size) tid
+  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (bm/tm * (bn/tn) * warp_size) **
+  B.barrier_state 0
 
 unfold
 let kpost
@@ -213,7 +211,8 @@ let kpost
   kpost1 gA eA gB eB gC bm bn tm tn fA fB bid tid **
   exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
   exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
-  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (2 * (shared/bk)) (bm/tm*(bn/tn)*warp_size) tid
+  barrier_tok (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) (bm/tm * (bn/tn) * warp_size) **
+  B.barrier_state (2 * (shared/bk))
 
 inline_for_extraction noextract
 fn subproducts_tc
@@ -380,7 +379,7 @@ fn kf
   // assert (rewrites_to slA (R.row_major bm bk));
   // let slB = R.row_major bk bn;
   // assert (rewrites_to slB (R.row_major bk bn));
-  unfold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB 0 (bm/tm * (bn/tn) * warp_size) tid;
+  unfold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (bm/tm * (bn/tn) * warp_size);
 
   gpu_matrix_abs' (R.row_major bm bk) sarA;
   let sA = from_array (R.row_major bm bk) sarA;
@@ -423,10 +422,8 @@ fn kf
         accumFrag |-> vaccumFrag **
         (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. ((bm/tm*(bn/tn) * warp_size))) x) **
         (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. ((bm/tm*(bn/tn) * warp_size))) x) **
-        B.barrier_tok (barrier_p sA sB ((bm/tm*(bn/tn)* warp_size))) (barrier_q sA sB ((bm/tm*(bn/tn) * warp_size))) (2 * !bkIdx) tid
+        B.barrier_state (2 * !bkIdx)
   {
-    (* This assert should not be needed. I don't know what effect it even has. *)
-    assert B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)) (2 * !bkIdx) tid;
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);
     rewrite
@@ -436,16 +433,16 @@ fn kf
 
     B.barrier_wait ();
     rewrite (barrier_q sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx) tid)
-        as live_tile_stride_cells sA (bm/tm * (bn/tn) * warp_size) tid **
-           live_tile_stride_cells sB (bm/tm * (bn/tn) * warp_size) tid;
+        as live_strided_chunks sA (bm/tm * (bn/tn) * warp_size) tid **
+           live_strided_chunks sB (bm/tm * (bn/tn) * warp_size) tid;
 
     copy_tiles_out_of_matrices bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)*^warp_sz) tid;
 
-    assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)) (2 * !bkIdx + 1) tid);
+    assert (B.barrier_tok (barrier_p sA sB (bm/tm * (bn/tn) * warp_size)) (barrier_q sA sB (bm/tm * (bn/tn) * warp_size)));
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    rewrite live_tile_stride_cells sA (bm/tm * (bn/tn) * warp_size) tid **
-            live_tile_stride_cells sB (bm/tm * (bn/tn) * warp_size) tid
+    rewrite live_strided_chunks sA (bm/tm * (bn/tn) * warp_size) tid **
+            live_strided_chunks sB (bm/tm * (bn/tn) * warp_size) tid
          as (barrier_p sA sB (bm/tm * (bn/tn) * warp_size) (2 * !bkIdx + 1) tid);
 
     B.barrier_wait ();
@@ -477,18 +474,14 @@ fn kf
   rewrite
     B.barrier_tok (barrier_p sA sB (v bm / v tm * (v bn / v tn) * 32))
       (barrier_q sA sB (v bm / v tm * (v bn / v tn) * 32))
-      (2 * v !bkIdx)
-      (v tid)
   as
     B.barrier_tok (barrier_p (from_array (R.row_major (v bm) (v bk)) sarA)
           (from_array (R.row_major (v bk) (v bn)) sarB)
           (v bm / v tm * (v bn / v tn) * 32))
       (barrier_q (from_array (R.row_major (v bm) (v bk)) sarA)
           (from_array (R.row_major (v bk) (v bn)) sarB)
-          (v bm / v tm * (v bn / v tn) * 32))
-      (2 * (shared / bk))
-      (v tid);
-  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (2 * (shared / bk)) (bm/tm * (bn/tn) * warp_size) tid;
+          (v bm / v tm * (v bn / v tn) * 32));
+  fold barrier_tok (R.row_major bm bk) (R.row_major bk bn) sarA sarB (bm/tm * (bn/tn) * warp_size);
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
@@ -569,12 +562,12 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok nthr **
+    can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpre1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid)
   ensures
-    block_setup_tok nthr **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
       kpre (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB sh bid tid) **
     emp (* frame *)
@@ -677,12 +670,12 @@ let mk_kernel
   {| scalar et_ab, scalar et_c |}
   (#rows #shared #cols : szp)
   (#lA : mlayout rows shared) {| clayout lA |}
-  (gA : gpu_matrix et_ab lA)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
   (#eA : ematrix et_ab rows shared)
   (#lB : mlayout shared cols) {| clayout lB |}
-  (gB : gpu_matrix et_ab lB)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
+  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm : szp{bm /?+ rows})
@@ -734,4 +727,9 @@ let mk_kernel
   kpost     = kpost gA eA gB eB gC bm bn bk tm tn fA fB;
 
   f = kf gA #eA gB #eB gC bm bn bk tm tn tk #() #() #() #fA #fB;
+
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
+  kpre_sendable=magic();
+  kpost_sendable=magic()
 }

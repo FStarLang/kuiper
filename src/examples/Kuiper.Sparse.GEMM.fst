@@ -70,6 +70,7 @@ let rec matmul_all_zeros_lemma
       matmul_all_zeros_lemma m1 m2 row col from (to - 1)
     )
 
+#push-options "--z3rlimit 20"
 let rec __matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
   (#nnz #rows #shared #cols : nat)
@@ -92,19 +93,18 @@ let rec __matmul_dotprod_lemma
   let ri = row_off @! i in
   let re = row_off @! (i + 1) in
 
-  if to = ri
-    then (
-      MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
-      matmul_all_zeros_lemma eA eB i j 0 (col_ind @! to)
-    )
-    else (
-      MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
-      smatrix_all_zeros rows shared elems col_ind row_off i to;
-      matmul_all_zeros_lemma eA eB i j ((col_ind @! to - 1) + 1) (col_ind @! to);
-      __matmul_dotprod_lemma elems col_ind row_off eB i j (to - 1);
-      assert macc eA i (col_ind @! to) == elems @! to
-    )
-
+  if to = ri then (
+    MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
+    matmul_all_zeros_lemma eA eB i j 0 (col_ind @! to)
+  ) else (
+    MS.matmul_single_lemma eA eB i j ((col_ind @! to) + 1);
+    smatrix_all_zeros rows shared elems col_ind row_off i to;
+    matmul_all_zeros_lemma eA eB i j ((col_ind @! to - 1) + 1) (col_ind @! to);
+    __matmul_dotprod_lemma elems col_ind row_off eB i j (to - 1);
+    assert macc eA i (col_ind @! to) == elems @! to;
+    ()
+  )
+#pop-options
 
 let matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}
@@ -412,11 +412,11 @@ let kdesc
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared))
+  (gA : smatrix et (SZ.v rows) (SZ.v shared) { is_global_smatrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -439,6 +439,9 @@ let kdesc
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
   f = kf comb gA gB gC;
+
+  kpre_sendable = solve;
+  kpost_sendable = solve;
 }
 
 inline_for_extraction noextract
@@ -449,23 +452,23 @@ fn mmcomb_gpu
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared))
+  (gA : smatrix et (SZ.v rows) (SZ.v shared) { is_global_smatrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (rows * cols <= max_blocks * max_threads) ** (* size_req *)
-    gC |-> eC
-  ensures gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> eC)
+  ensures on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   launch_sync (kdesc comb gA gB gC);
 }

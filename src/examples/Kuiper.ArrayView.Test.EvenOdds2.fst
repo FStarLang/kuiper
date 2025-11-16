@@ -18,10 +18,7 @@ noextract
 let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
   iview = {
     len;
-    sch = {
-      ait = natlt ((len + 1) / 2);
-      ait_enum = solve;
-    };
+    ait = natlt ((len + 1) / 2);
     step = {
       imap = {
         f = (fun (i : natlt ((len + 1)/2)) -> i * 2 <: natlt len);
@@ -36,10 +33,7 @@ noextract
 let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
   iview = {
     len;
-    sch = {
-      ait = natlt (len / 2);
-      ait_enum = solve;
-    };
+    ait = natlt (len / 2);
     step = {
       imap = {
         f = (fun (i : natlt (len/2)) -> 1 + i * 2 <: natlt len);
@@ -134,6 +128,7 @@ fn test_simpler (a : gpu_array u32 100)
   returns u32
   ensures  a |-> v0
 {
+  IView.full_iff_cardinal vw.iview #_;
   varray_abs' vw a;
   let va = from_array vw a;
 
@@ -178,11 +173,17 @@ let surj_lemma #et (len:nat)
           [SMTPat (it_to_nat (sum_aview (even_view et len) (odd_view et len)))]
   = Classical.forall_intro (surj_lemma' #et #len)
 
+let is_full (et:Type) (len:nat)
+  : Lemma (is_full_view (sum_aview (even_view et len) (odd_view et len)))
+          [SMTPat (is_full_view (sum_aview (even_view et len) (odd_view et len)))]
+  = IView.full_iff_cardinal (sum_aview (even_view et len) (odd_view et len)).iview #(solve <: enumerable _)
+
+#push-options "" // "--split_queries always"
+#restart-solver
 let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
-= admit(); // terrible SMT performance here, just admit
-  lem_no_overlap #et len;
+= lem_no_overlap #et len;
   calc (==) {
     it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2));
     == {}
@@ -196,11 +197,15 @@ let lem_idx1 #et (#len : nat) (i : natlt len{i % 2 = 0})
   assert (it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i);
   assert (Inl #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2) == it_of_nat (sum_aview (even_view et len) (odd_view et len)) i);
   ()
+#pop-options
 
+#push-options "--z3rlimit 20"
 let lem_idx2 #et (#len : nat) (i : natlt len{i % 2 = 1})
   (#_ : squash (in_image (it_to_nat (sum_aview (even_view et len) (odd_view et len))) i)) // should come from surj_lemma
   : Lemma (it_of_nat (sum_aview (even_view et len) (odd_view et len)) i == Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2))
-= admit()
+= assert (it_to_nat (sum_aview (even_view et len) (odd_view et len)) (Inr #(natlt ((len + 1)/ 2)) #(natlt (len / 2)) (i / 2)) == i);
+  ()
+#pop-options
 
 #push-options "--split_queries always --z3rlimit 10"
 let merge_lemma #et (#len:nat) (sl : lseq et ((len + 1) / 2)) (sr : lseq et (len / 2))

@@ -72,7 +72,7 @@ let gpu_pts_to_slice_sum_inner
   (r : gpu_array et sz)
   (i j :nat)
   (v : seq et)
-  (rr : seq Real.real { seq_approximates v rr })
+  (rr : seq real { seq_approximates v rr })
   (s : seq et)
 : slprop
 = gpu_pts_to_slice r i j s
@@ -89,6 +89,6 @@ let gpu_pts_to_slice_sum
   ([@@@mkey] i : nat)
   (j:nat)
   (v: seq et)
-  (rr : seq Real.real { seq_approximates v rr })
+  (rr : seq real { seq_approximates v rr })
 : slprop
 = exists* s. gpu_pts_to_slice_sum_inner r i j v rr s

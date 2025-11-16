@@ -17,9 +17,10 @@ fn kf
 ghost
 fn block_setup ()
   norewrite
-  requires block_setup_tok 0 ** emp
-  ensures  block_setup_tok 0 ** (forall+ (tid : natlt 0). emp) ** emp
+  requires can_create_barrier 0 ** emp
+  ensures  consumed_can_create_barrier ** (forall+ (tid : natlt 0). emp) ** emp
 {
+  no_mk_barrier ();
   forevery_emp_intro (natlt 0);
 }
 
@@ -47,6 +48,10 @@ let kdesc :
   frame = emp;
   block_setup    = block_setup;
   block_teardown = block_teardown;
+  kpost_sendable = solve;
+  kpre_sendable = solve;
+  full_post_sendable = solve;
+  full_pre_sendable = solve;
 }
 
 fn test ()

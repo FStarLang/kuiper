@@ -2,7 +2,7 @@ module Kuiper.Approximates.U64
 
 open Kuiper
 open Kuiper.Scalars
-open Kuiper.Approximates.Class
+open Kuiper.Approximates.Base
 open FStar.Real
 open Kuiper.Math.Silly { mod_prod }
 
@@ -12,7 +12,7 @@ weaker than you may expect. *)
 instance real_like_u64 : real_like u64 = {
   to_real = (fun x -> Real.of_int (UInt64.v x));
 
-  approximates = (fun x r ->
+  v_approximates = (fun x r ->
     exists (x' : int).
       r == Real.of_int x' /\ UInt64.v x == x' % 0x10000000000000000);
 
@@ -44,4 +44,8 @@ instance real_like_u64 : real_like u64 = {
     assert (r *. s == Real.of_int z');
     ()
   );
+}
+
+instance precise_real_like_u64 : precise_real_like u64 = {
+  v_approximates_inj = (fun x y r -> ());
 }

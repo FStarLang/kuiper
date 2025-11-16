@@ -41,8 +41,8 @@ fn copy_tiles_out_of_matrices_vec
   (#slB : mlayout bk bn) {| clayout slB |}
   (sA : gpu_matrix et slA)
   (sB : gpu_matrix et slB)
-  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
-  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
+  (#lA : mlayout rows shared) {| clayout lA, str_A : strided_row_major lA |}
+  (#lB : mlayout shared cols) {| clayout lB, str_B : strided_row_major lB |}
   (gA : gpu_matrix et lA)
   (#eA : ematrix et rows shared)
   (gB : gpu_matrix et lB)
@@ -51,9 +51,9 @@ fn copy_tiles_out_of_matrices_vec
   (tile_row : szlt (rows/bm))
   (tile_shared : szlt (shared/bk))
   (tile_col : szlt (cols/bn))
-  (nthr : sz)
-  (#_ : squash (chunk et * nthr /? (bm * bk))) // extra req
-  (#_ : squash (chunk et * nthr /? (bk * bn))) // extra req
+  (nthr : szp)
+  (#_ : squash (chunk et * nthr /?+ (bm * bk))) // extra req
+  (#_ : squash (chunk et * nthr /?+ (bk * bn))) // extra req
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (tid : szlt nthr)
@@ -64,13 +64,15 @@ fn copy_tiles_out_of_matrices_vec
     thread_id nthr tid
   requires
     pure (aligned 16 (core gA)) **
-    pure (aligned 16 (core gB))
+    pure (aligned 16 (core gB)) **
+    pure (aligned_strided_row_major (chunk et) str_A) **
+    pure (aligned_strided_row_major (chunk et) str_B)
   requires
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    live_strided_chunks sA nthr tid **
+    live_strided_chunks sB nthr tid
   ensures
-    live_tile_stride_cells sA nthr tid **
-    live_tile_stride_cells sB nthr tid
+    own_strided_chunks sA (ematrix_subtile eA bm bk tile_row tile_shared) nthr tid **
+    own_strided_chunks sB (ematrix_subtile eB bk bn tile_shared tile_col) nthr tid
 
 unfold
 let block_tile_idx_rows
@@ -111,7 +113,7 @@ let thread_tile_idx_cols
 
 inline_for_extraction noextract
 let block_tile
-  (#et : Type0) {| scalar et |}
+  (#et : Type0)
   (#rows #cols : erased nat)
   (#lC : mlayout rows cols)
   (gC : gpu_matrix et lC)
@@ -124,11 +126,12 @@ let block_tile
             (block_tile_idx_cols rows cols bm bn bid)))
   =
     gpu_matrix_subtile gC bm bn
-      (block_tile_idx_rows rows cols bm bn bid) (block_tile_idx_cols rows cols bm bn bid)
+      (block_tile_idx_rows rows cols bm bn bid)
+      (block_tile_idx_cols rows cols bm bn bid)
 
 inline_for_extraction noextract
 let thread_tile
-  (#et : Type0) {| scalar et |}
+  (#et : Type0)
   (#bm #bn : erased nat)
   (#lC_bt : mlayout bm bn)
   (gC_bt : gpu_matrix et lC_bt)

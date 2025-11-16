@@ -10,63 +10,111 @@ open Kuiper.Array.Vectorized
 
 module SZ = Kuiper.SizeT
 
-let live_cell
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : mlayout rows cols)
-  (gm : gpu_matrix et lm)
-  (i : natlt rows)
-  (j : natlt cols)
-  : slprop
-  = exists* v. gpu_matrix_pts_to_cell gm i j v
-
-let live_chunk
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat)
-  (#lm : mlayout rows cols)
-  ([@@@mkey] m : gpu_matrix et lm)
-  // (em : ematrix et rows cols)
-  (i : natlt rows)
-  (j : natlt (cols - chunk et + 1))
-  : slprop
+let in_chunk
+  (chunk : pos)
+  (rows cols : nat)
+  (nthr : nat)
+  (tid : natlt nthr)
+  (ij : (natlt rows & natlt cols))
+  : prop
 =
-  forall+ (k : natlt (chunk et)).
-    live_cell m i (j + k)
+  let flat_idx = ij._1 * cols + ij._2 <: nat in
+  let chunk_idx = flat_idx / chunk in
+  chunk_idx % nthr == tid
 
-let live_tile_stride_cells
-  (#et : Type0) {| sized et, has_vec_cpy et |}
+val in_chunk_covers_all
+  (chunk : pos)
+  (rows cols : nat)
+  (nthr : pos)
+  (ij : (natlt rows & natlt cols))
+  : Lemma (exists tid. in_chunk chunk rows cols nthr tid ij)
+
+val in_chunk_no_overlap
+  (chunk : pos)
+  (rows cols : nat)
+  (nthr : pos)
+  (ij : (natlt rows & natlt cols))
+  (tid1 tid2 : natlt nthr)
+  : Lemma (requires in_chunk chunk rows cols nthr tid1 ij /\
+                    in_chunk chunk rows cols nthr tid2 ij)
+          (ensures tid1 == tid2)
+
+let own_strided_chunks
+  (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
   (#rows #cols : nat)
   (#lm : mlayout rows cols)
   ([@@@mkey] m : gpu_matrix et lm)
-  // (#_ : squash (chunk et /? cols))
-  // ^ We will have this in any interesting client, but
-  // since it's not needed here let's just skip it, to make
-  // the type more defined.
-  // (em : ematrix et rows cols)
+  (em : ematrix et rows cols)
   (nthr : nat)
   (tid : natlt nthr)
   : slprop
 =
-  // Number of chunks each thread will copy
-  forall+ (it : natlt (divup (rows*cols) (chunk et * nthr))).
-    let flat_idx = tid * chunk et + it * nthr * chunk et <: nat in
-    let i : nat = flat_idx / cols in
-    let j : nat = flat_idx % cols in
-    if i < rows
-       && j < cols - chunk et + 1
-       // this fact about j should be provable here, we add it only to avoid a
-       // hard VC at this point, punting the proof on to the user (where it's
-       // hopefully easier)
-    then live_chunk m i j
-    else emp
+  forall+ (ij : (natlt rows & natlt cols){in_chunk (chunk et #_ #hvc) rows cols nthr tid ij}).
+    gpu_matrix_pts_to_cell m ij._1 ij._2 (macc em ij._1 ij._2)
 
-// NB: The scalar constraint is only here so we can use 'zero' as an initializer
-// for a local array... would be gone if we had uninitialized local arrays.
+let live_strided_chunks
+  (#et : Type0) {| sized et, hvc: has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  ([@@@mkey] m : gpu_matrix et lm)
+  (nthr : nat)
+  (tid : natlt nthr)
+  : slprop
+=
+  exists* em.
+    own_strided_chunks m em nthr tid
+
+ghost
+fn split_matrix_into_strided_chunks
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (#em : ematrix et rows cols)
+  (nthr : pos)
+  requires
+    m |-> em
+  ensures
+    pure (SZ.fits (mlayout_size lm))
+  ensures
+    forall+ (tid : natlt nthr).
+      own_strided_chunks m em nthr tid
+
+ghost
+fn join_matrix_from_strided_chunks
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (#em : ematrix et rows cols)
+  (nthr : pos)
+  requires
+    pure (SZ.fits (mlayout_size lm))
+  requires
+    forall+ (tid : natlt nthr).
+      own_strided_chunks m em nthr tid
+  ensures
+    m |-> em
+
+ghost
+fn join_matrix_from_strided_chunks_underspec
+  (#et : Type0) {| sized et, hvc : has_vec_cpy et |}
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (m : gpu_matrix et lm)
+  (nthr : pos)
+  requires
+    pure (SZ.fits (mlayout_size lm))
+  requires
+    forall+ (tid : natlt nthr).
+      live_strided_chunks m nthr tid
+  ensures
+    live m
+
 inline_for_extraction noextract
 fn cp_matrix_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (rows cols: sz)
-  // (#_ : squash (chunk et /? cols))
   (#lsrc #ldst : mlayout rows cols)
   {| clayout lsrc, clayout ldst |}
   {| src_str : strided_row_major lsrc |}
@@ -74,7 +122,8 @@ fn cp_matrix_vec
   (#f : perm)
   (#esrc : ematrix et rows cols)
   (dst : gpu_matrix et ldst)
-  (nthr : sz)
+  (#edst : ematrix et rows cols)
+  (nthr : szp)
   (tid : szlt nthr)
   preserves gpu
   preserves
@@ -84,8 +133,9 @@ fn cp_matrix_vec
     pure (chunk et /?+ cols) **
     pure (chunk et * nthr /?+ (rows * cols)) **
     pure (aligned 16 (core src)) **
-    pure (rows * cols > 0)
+    pure (rows * cols > 0) **
+    pure (aligned_strided_row_major (chunk et) src_str)
   requires
-    live_tile_stride_cells dst nthr tid
+    own_strided_chunks dst edst nthr tid
   ensures
-    live_tile_stride_cells dst nthr tid
+    own_strided_chunks dst esrc nthr tid

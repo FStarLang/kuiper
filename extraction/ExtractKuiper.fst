@@ -17,10 +17,6 @@ open FStarC.Class.Show
 open FStarC.Class.PP
 open FStarC.Class.Tagged
 
-(* Really pushing it *)
-let int_lit (i : int) : expr =
-  EQualified ([], show i)
-
 instance _ : tagged mlexpr' = {
   tag_of = (function
     | MLE_Const  .. -> "MLE_Const"
@@ -68,7 +64,7 @@ let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env 
   if None? x then raise NotSupportedByKrmlExtension;
   match Some?.v x with
   | "Kuiper.Ref.gpu_ref",     [t]      -> TBuf (cb t)
-  | "Kuiper.Array.gpu_array", [t; len] -> TBuf (cb t)
+  | "Kuiper.Array.Core.gpu_array", [t; len] -> TBuf (cb t)
 
   | "Kuiper.TensorCore.Base.fragment", [et; knd; m; n; k; layout] ->
     // Note: it is difficult to try to construct a proper type
@@ -431,7 +427,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Luckily addition works, but we trick karamel by adding this __id call
     // so it will not complain about the types.
     let gm = EApp (EQualified ([], "__id"), [gm]) in
-    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
+    let gm = EApp (EOp (Add, fake_SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm ])
 
   | "Kuiper.TensorCore.Base.mma_loadAccum", [et], [m; n; k; fr; l; strided_l; gm; f; m0; f0 ] ->
@@ -445,7 +441,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Luckily addition works, but we trick karamel by adding this __id call
     // so it will not complain about the types.
     let gm = EApp (EQualified ([], "__id"), [gm]) in
-    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
+    let gm = EApp (EOp (Add, fake_SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::load_matrix_sync"), [ fr; gm; ldm; layout ])
 
   | "Kuiper.TensorCore.Base.mma_fill", [et], [ knd; m; n; k; ly; fr; i; _v0 ] ->
@@ -476,7 +472,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     // Luckily addition works, but we trick karamel by adding this __id call
     // so it will not complain about the types.
     let gm = EApp (EQualified ([], "__id"), [gm]) in
-    let gm = EApp (EOp (Add, SizeT), [gm; offset]) in
+    let gm = EApp (EOp (Add, fake_SizeT), [gm; offset]) in
     EApp (EQualified ([], "wmma::store_matrix_sync"), [ gm; fr; ldm; layout])
 
   (******** FLOAT ARITHMETIC *******)
@@ -511,7 +507,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Ref.gpu_alloc0", [ty], [ sz; _unit ] ->
     let sz : mlexpr = get_sizet sz in
-    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; EConstant (SizeT, "1") ]),
+    ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; EConstant (fake_SizeT, "1") ]),
            TBuf (translate_type env ty))
 
   | "Kuiper.Ref.gpu_free", [ty], [ r; _v ] ->
@@ -537,29 +533,29 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** ARRAY ********)
 
-  | "Kuiper.Array.gpu_array_alloc", [ty], [ sz; len ] ->
+  | "Kuiper.Array.Core.gpu_array_alloc", [ty], [ sz; len ] ->
     let sz : mlexpr = get_sizet sz in
     ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ cb sz; cb len ]),
            TBuf (translate_type env ty))
 
-  | "Kuiper.Array.gpu_array_free", [ty], [ _sz; a; _v ] ->
+  | "Kuiper.Array.Core.gpu_array_free", [ty], [ _sz; a; _v ] ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb a])
 
-  | "Kuiper.Array.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _pf; _s ] ->
+  | "Kuiper.Array.Core.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
     EBufRead (cb a, cb idx)
 
-  | "Kuiper.Array.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
+  | "Kuiper.Array.Core.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
     EBufWrite (cb a, cb idx, cb v)
 
-  | "Kuiper.Array.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
+    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.gpu_memcpy_host_to_device'", [ty],
+  | "Kuiper.Array.Core.gpu_memcpy_host_to_device'", [ty],
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
-    let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
+    let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
     let dst_off = mul_by_sz (cb dst_off) in
     let dst_ga = cb dst_ga in
     let dst_ga = EBufSub (dst_ga, dst_off) in
@@ -569,15 +565,15 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
+    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
-  | "Kuiper.Array.gpu_memcpy_device_to_host'", [ty],
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_host'", [ty],
         [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
-    let mul_by_sz (e:expr) = EApp (EOp (Mult, SizeT), [ sz; e ]) in
+    let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
     let dst_off = mul_by_sz (cb dst_off) in
     let dst_ga = cb dst_a in
     let dst_ga = EBufSub (dst_ga, dst_off) in
@@ -587,9 +583,9 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
-  | "Kuiper.Array.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : mlexpr = get_sizet sz in
-    let bytesize : expr = EApp (EOp (Mult, SizeT), [ cb sz; cb cnt ]) in
+    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ cb sz; cb cnt ]) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
 
@@ -687,7 +683,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "FStar.Int8.zero"   , [], [] -> EConstant (Krml.Int8, "0")
   | "FStar.Int8.one"    , [], [] -> EConstant (Krml.Int8, "1")
 
-  | "Kuiper.SizeT.sizet_and",    [], [ x; y ] -> EApp (EOp (BAnd, SizeT), [ cb x; cb y ])
+  | "Kuiper.SizeT.sizet_and",    [], [ x; y ] -> EApp (EOp (BAnd, fake_SizeT), [ cb x; cb y ])
   | "Kuiper.SizeT.sizet_to_u32", [], [ sz ]   -> ECast (cb sz, TInt UInt32)
 
 

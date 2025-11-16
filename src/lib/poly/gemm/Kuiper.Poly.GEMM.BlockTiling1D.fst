@@ -13,6 +13,7 @@ open Kuiper.Matrix {
   gpu_matrix,
   gpu_matrix_pts_to,
   gpu_matrix_pts_to_cell,
+  is_global_matrix
 }
 open Kuiper.Matrix.Tiling
 
@@ -127,6 +128,7 @@ let kpost1
       (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       ii tid v)
 
+unfold
 let barrier_tok
   (#et : Type0)
   (tile : valid_tile)
@@ -135,14 +137,11 @@ let barrier_tok
   a matrix. *)
   (l1 l2 : full_mlayout tile tile)
   (ar1 ar2 : gpu_array et (tile * tile))
-  (it : nat)
-  (tid : natlt tile)
   : slprop
   =
   B.barrier_tok
     (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
     (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
-    it tid
 
 unfold
 let kpre
@@ -165,9 +164,30 @@ let kpre
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. tile) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. tile) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) 0 tid
+  live_c_shmems sh #(1.0R /. tile) **
+  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state 0
+
+let kpre_block_sendable
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile) // shmem layouts
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (fA fB : perm)
+  (sh : c_shmems (shmems_desc et tile))
+  (_:squash (c_shmems_inv sh))
+  (i:natlt (mrows * mcols))
+  (j:natlt tile)
+: is_send_across block_of (kpre comb tile slA slB gA gB gC eA eB fA fB sh i j)
+= solve
 
 unfold
 let kpost
@@ -190,9 +210,31 @@ let kpost
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. tile) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. tile) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) (2 * mshared) tid
+  live_c_shmems sh #(1.0R /. tile) **
+  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
+  B.barrier_state (2 * mshared)
+
+let kpost_block_sendable
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile) // shmem layouts
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (fA fB : perm)
+  (sh : c_shmems (shmems_desc et tile))
+  (_:squash (c_shmems_inv sh))
+  (i:natlt (mrows * mcols))
+  (j:natlt tile)
+: is_send_across block_of (kpost comb tile slA slB gA gB gC eA eB fA fB sh i j)
+= solve
+
 
 inline_for_extraction noextract
 fn bring_2cols
@@ -289,12 +331,11 @@ fn kf
     thread_id tile tid **
     block_id (mrows * mcols) bid
 {
+  unfold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
   let (ar1, (ar2, _)) = sh;
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
-
-  unfold barrier_tok tile slA slB ar1 ar2 0 tid;
 
   M.gpu_matrix_abs' slA ar1;
   let sa1 = M.from_array slA ar1;
@@ -321,7 +362,7 @@ fn kf
     invariant
       exists* (vbk : SZ.t).
         bk |-> vbk **
-        B.barrier_tok (barrier_p sa1 sa2) (barrier_q sa1 sa2) (2 * vbk) tid **
+        B.barrier_state (2 * vbk) **
         pure (vbk <= mshared)
     invariant
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
@@ -402,18 +443,14 @@ fn kf
   rewrite
     B.barrier_tok (barrier_p sa1 sa2)
       (barrier_q sa1 sa2)
-      (2 * v !bk)
-      (v tid)
   as
     B.barrier_tok (barrier_p (M.from_array slA ar1) (M.from_array slB ar2))
-      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2))
-      (2 * v mshared)
-      (v tid);
-  fold barrier_tok tile slA slB ar1 ar2 (2 * mshared) tid;
+      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2));
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
   rewrite each tileC as gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
+  fold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
   ()
 }
 
@@ -472,12 +509,12 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok tile **
+    can_create_barrier tile **
     live_c_shmems sh **
     (forall+ (tid : natlt tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
-    block_setup_tok tile **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt tile).
       kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
@@ -572,11 +609,11 @@ let mk_kernel
   (#lB : mlayout (mshared * tile) (mcols   * tile))
   (#lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows   * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols   * tile))
   (#eC : ematrix et (mrows   * tile) (mcols   * tile))
@@ -605,6 +642,10 @@ let mk_kernel
   kpost     = kpost comb tile slA slB gA gB gC eA eB fA fB;
 
   f = kf tile slA slB comb gA gB gC;
+  kpost_sendable = kpost_block_sendable comb tile slA slB gA gB gC eA eB fA fB;
+  kpre_sendable = kpre_block_sendable comb tile slA slB gA gB gC eA eB fA fB;
+  block_post_sendable = solve;
+  block_pre_sendable = solve;
 }
 
 inline_for_extraction noextract
@@ -617,27 +658,27 @@ fn mmcomb_gpu
   (lB : mlayout (mshared * tile) (mcols   * tile))
   (lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et (mrows   * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols   * tile))
   (#eC : ematrix et (mrows   * tile) (mcols   * tile))
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks /\
           tile * tile <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
   (* fixed the inner layouts, or we'd have to propagate this everywhere? *)
-  launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA gB gC ());
+  launch_sync (mk_kernel tile (R.row_major _ _) (R.row_major _ _) comb gA #fA gB #fB gC #eA #eB #eC ());
 }

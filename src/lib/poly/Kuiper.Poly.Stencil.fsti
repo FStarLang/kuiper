@@ -16,15 +16,16 @@ fn specialize_host_simple_stencil
   {| cIn : crepr rIn |}
   {| cOut : crepr rOut |}
   (#rows #cols : (x:szp{x >= 3}))
-  (gIn : M.gpu_matrix et (rIn rows cols))
-  (gOut : M.gpu_matrix et (rOut (rows - 2) (cols - 2)))
+  (gIn : M.gpu_matrix et (rIn rows cols) { M.is_global_matrix gIn })
+  (gOut : M.gpu_matrix et (rOut (rows - 2) (cols - 2)) { M.is_global_matrix gOut })
+  (#fIn : perm)
   (#eIn : ematrix et rows cols)
   (#eOut : ematrix et (rows - 2) (cols - 2))
   preserves
     cpu **
-    gIn |-> eIn
+    on gpu_loc (gIn |-> Frac fIn eIn)
   requires
     pure (rows * cols <= max_blocks) **
-    gOut |-> eOut
+    on gpu_loc (gOut |-> eOut)
   ensures
-    gOut |-> STS.stencil_result stencil eIn
+    on gpu_loc (gOut |-> STS.stencil_result stencil eIn)

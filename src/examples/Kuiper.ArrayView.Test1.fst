@@ -28,10 +28,7 @@ inline_for_extraction noextract
 let base_view (et : Type) (len : nat) : aview et (lseq et len) = {
   iview = {
     len;
-    sch = {
-      ait      = natlt len;
-      ait_enum = solve;
-    };
+    ait = natlt len;
     step = {
       imap     = inj_id;
     };
@@ -43,10 +40,7 @@ inline_for_extraction noextract
 let r_base_view (et : Type) (len : nat) : aview et (lseq et len) = {
   iview = {
     len;
-    sch = {
-      ait      = natlt len;
-      ait_enum = solve;
-    };
+    ait = natlt len;
     step = {
       imap     = inj_nat_rev len;
     };
@@ -169,6 +163,7 @@ fn write3
   requires p |-> s
   ensures  p |-> Seq.upd s 49 123ul
 {
+  IView.full_iff_cardinal (reverse_view u32 50).iview #_;
   varray_abs' (reverse_view u32 50) p;
   let a' = from_array (reverse_view u32 50) p;
   assert (pure (Seq.equal (to_seq (reverse_view u32 50) (from_seq (reverse_view u32 50) s)) s));

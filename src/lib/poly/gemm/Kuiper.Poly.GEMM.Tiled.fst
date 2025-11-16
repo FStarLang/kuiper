@@ -190,6 +190,26 @@ fn teardown
   admit();
 }
 
+(* No need to do anything special here, just skip the barrier *)
+ghost
+fn block_setup
+  (nblk : nat)
+  (nthr : nat)
+  (#p : natlt nblk -> slprop)
+  (bid : natlt nblk)
+  norewrite
+  requires
+    can_create_barrier nthr **
+    p bid
+  ensures
+    consumed_can_create_barrier **
+    p bid **
+    emp
+{
+  no_mk_barrier ();
+}
+
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -200,11 +220,11 @@ let mk_kernel
   (#lB : mlayout (mshared * tile) (mcols   * tile))
   (#lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA #eB #eC : ematrix _ _ _)
   (_ : squash (mrows * mcols <= max_blocks
                /\ tile * tile <= max_threads))
@@ -222,14 +242,20 @@ let mk_kernel
   teardown  = teardown tile comb gA gB gC #eA #eB #eC;
 
   block_frame    = (fun _bid -> emp);
-  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r2 ());
+  block_setup    = block_setup (mrows *^ mcols) (tile *^ tile);
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   kpre      = kpre  comb tile gA gB gC eA eB eC fA fB;
   kpost     = kpost comb tile gA gB gC eA eB eC fA fB;
 
   f = kf #et #_ comb #mrows #mshared #mcols tile gA gB gC eA eB eC fA fB;
+
+  kpre_sendable=solve;
+  kpost_sendable=solve;
+  block_pre_sendable=solve;
+  block_post_sendable=solve;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn mmcomb_gpu
@@ -241,23 +267,23 @@ fn mmcomb_gpu
   (lB : mlayout (mshared * tile) (mcols   * tile))
   (lC : mlayout (mrows   * tile) (mcols   * tile))
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA)
+  (gA : gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : gpu_matrix et lB)
+  (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : gpu_matrix et lC)
+  (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA #eB #eC : ematrix _ _ _)
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks /\
           tile * tile <= max_threads) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
   launch_sync (mk_kernel tile comb gA gB gC ());

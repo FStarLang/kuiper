@@ -7,12 +7,8 @@ open Kuiper.Matrix.Common
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.EMatrix { ematrix }
-open Kuiper.EMatrix4 { ematrix4 }
 open Kuiper.Matrix.Reprs.Type
 module M  = Kuiper.Matrix
-module M4 = Kuiper.Matrix4
-open Kuiper.Matrix4 { mlayout4, clayout4 }
-module MC = Kuiper.Matrix.Casts
 
 #set-options "--z3rlimit 20"
 
@@ -54,7 +50,7 @@ fn matmul_cpu
   M.gpu_matrix_from_array gA a;
   M.gpu_matrix_from_array gB b;
 
-  with vc. assert gC |-> vc;
+  with vc. assert on gpu_loc (gC |-> vc);
 
   mmcomb_gpu MS.comb2 gA gB gC;
 
@@ -84,24 +80,24 @@ fn mmcomb_gpu_tiled
   {| cA : clayout lA |}
   {| cB : clayout lB |}
   {| cC : clayout lC |}
-  (gA : M.gpu_matrix et lA)
+  (gA : M.gpu_matrix et lA { is_global_matrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.gpu_matrix et lC { is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (size_req (rows / tile) (shared / tile) (cols / tile) tile) **
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   dassert (tile >^ 0sz);
   dguard (rows   %^ tile = 0sz);
@@ -110,7 +106,6 @@ fn mmcomb_gpu_tiled
   let mrows   = rows   /^ tile;
   let mshared = shared /^ tile;
   let mcols   = cols   /^ tile;
-
   mmcomb_gpu
     tile
     comb
@@ -123,82 +118,6 @@ fn mmcomb_gpu_tiled
 }
 
 inline_for_extraction noextract
-fn mmcomb_gpu_block_tiled1d
-  (tiled_mmcomb_gpu : block_tiled1d_matmulcomb_gpu_ty)
-  (bm bn bk : szp)
-  (tm : szp{tm /? bm /\ (bm/tm * bn <= max_threads)})
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : full_mlayout rows shared)
-  (#lB : full_mlayout shared cols)
-  (#lC : full_mlayout rows cols)
-  {| cA : clayout lA |}
-  {| cB : clayout lB |}
-  {| cC : clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (#fA : perm)
-  (gB : M.gpu_matrix et lB)
-  (#fB : perm)
-  (gC : M.gpu_matrix et lC)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
-  norewrite
-  preserves
-    cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  requires
-    pure ((rows / bm) * (cols / bn) <= max_blocks) **
-    gC |-> eC
-  ensures
-    gC |-> MS.mmcomb comb eC eA eB
-{
-  dassert (bm >^ 0sz);
-  dassert (bn >^ 0sz);
-  dassert (bk >^ 0sz);
-  dassert (tm >^ 0sz);
-  dassert (bm %^ tm = 0sz);
-  dguard (rows   %^ bm = 0sz);
-  dguard (shared %^ bk = 0sz);
-  dguard (cols   %^ bn = 0sz);
-  // a HORRIBLE restriction
-  dguard ((bm /^ tm *^ bn) = bm *^ bk);
-  dguard ((bm /^ tm *^ bn) = bn *^ bk);
-  Math.Lemmas.lemma_cancel_mul bm bn bk; // odd...
-  dassert (bm = bn);
-  let mrows   = rows   /^ bm;
-  let mshared = shared /^ bk;
-  let mcols   = cols   /^ bn;
-
-  let lA4 : mlayout4 mrows   mshared bm bk = lA;
-  let lB4 : mlayout4 mshared mcols  bk bn = lB;
-  let lC4 : mlayout4 mrows   mcols  bm bn = lC;
-  let gA4 = MC.m2_to_m4 (SZ.v bm) (SZ.v bk) (SZ.v mrows) (SZ.v mshared) gA;
-  let gB4 = MC.m2_to_m4 (SZ.v bk) (SZ.v bn) (SZ.v mshared) (SZ.v mcols) gB;
-  let gC4 = MC.m2_to_m4 (SZ.v bm) (SZ.v bn) (SZ.v mrows) (SZ.v mcols) gC;
-  tiled_mmcomb_gpu
-    comb
-    bm bn bk
-    tm
-    lA4 lB4 lC4
-    #(M4.clayout4_from_clayout bm bk cA)
-    #(M4.clayout4_from_clayout bk bn cB)
-    #(M4.clayout4_from_clayout bm bn cC)
-    gA4 gB4 gC4;
-
-  let gA' = MC.m4_to_m2 gA4;
-  let gB' = MC.m4_to_m2 gB4;
-  let gC' = MC.m4_to_m2 gC4;
-
-  rewrite each gA' as gA;
-  rewrite each gB' as gB;
-  rewrite each gC' as gC;
-  ()
-}
-
-inline_for_extraction noextract
 fn specialize_as_gemm_to_type_and_reprs_gpu
   (#size_req : size_req_t)
   (mmcomb_gpu : matmulcomb_gpu_ty size_req)
@@ -207,28 +126,28 @@ fn specialize_as_gemm_to_type_and_reprs_gpu
   {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
   (alpha beta : et)
   (#rows #shared #cols : szp) (* concrete args *)
-  (gA : gpu_matrix et (rA rows shared))
-  (gB : gpu_matrix et (rB shared cols))
-  (gC : gpu_matrix et (rC rows cols))
+  (gA : gpu_matrix et (rA rows shared) { M.is_global_matrix gA })
+  (gB : gpu_matrix et (rB shared cols) { M.is_global_matrix gB })
+  (gC : gpu_matrix et (rC rows cols) { M.is_global_matrix gC })
   (#ma : ematrix et rows shared)
   (#mb : ematrix et shared cols)
   (#mc0 : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> ma **
-    gB |-> mb
+    on gpu_loc (gA |-> ma) **
+    on gpu_loc (gB |-> mb)
   requires
     pure (size_req rows shared cols) **
-    gC |-> mc0
+    on gpu_loc (gC |-> mc0)
   ensures
-    gC |-> MS.gemm alpha beta mc0 ma mb
+    on gpu_loc (gC |-> MS.gemm alpha beta mc0 ma mb)
 {
-  M.gpu_matrix_pts_to_ref gA;
-  M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
 
-  mmcomb_gpu #et #_ (MS.lincomb beta alpha) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
+  mmcomb_gpu #et #_ (MS.lincomb alpha beta) #rows #shared #cols #_ #_ #_ #(cA.map _ _) #(cB.map _ _) #(cC.map _ _) gA gB gC;
 }
 
 inline_for_extraction noextract
@@ -239,26 +158,26 @@ fn specialize_as_matmul_to_type_and_reprs_gpu
   (rA rB rC : mrepr)
   {| cA : crepr rA, cB : crepr rB, cC : crepr rC |}
   (#rows #shared #cols : szp) (* concrete args *)
-  (gA : gpu_matrix et (rA rows shared))
-  (gB : gpu_matrix et (rB shared cols))
-  (gC : gpu_matrix et (rC rows cols))
+  (gA : gpu_matrix et (rA rows shared) { M.is_global_matrix gA })
+  (gB : gpu_matrix et (rB shared cols) { M.is_global_matrix gB })
+  (gC : gpu_matrix et (rC rows cols) { M.is_global_matrix gC })
   (#ma : ematrix et rows shared)
   (#mb : ematrix et shared cols)
   (#mc0 : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> ma **
-    gB |-> mb
+    on gpu_loc (gA |-> ma) **
+    on gpu_loc (gB |-> mb)
   requires
     pure (size_req rows shared cols) **
-    gC |-> mc0
+    on gpu_loc (gC |-> mc0)
   ensures
-    gC |-> MS.matmul ma mb
+    on gpu_loc (gC |-> MS.matmul ma mb)
 {
-  M.gpu_matrix_pts_to_ref gA;
-  M.gpu_matrix_pts_to_ref gB;
-  M.gpu_matrix_pts_to_ref gC;
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
 
   mmcomb_gpu MS.comb2
     #rows #shared #cols

@@ -108,13 +108,15 @@ fn block_setup
   ()
   norewrite
   requires
-    block_setup_tok m_size **
+    can_create_barrier m_size **
     (live ga1 ** live ga2 ** live gr)
   ensures
-    block_setup_tok m_size **
+    consumed_can_create_barrier **
     (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
     emp (* frame *)
 {
+  no_mk_barrier ();
+
   // Slicing the arrays
   (**)gpu_array_slice_1_underspec ga1;
   (**)gpu_array_slice_1_underspec ga2;
@@ -148,7 +150,11 @@ fn block_teardown
 
 
 inline_for_extraction noextract
-let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
+let kdesc (#et:Type) {| scalar et |}
+    (ga1:gpu_array et size{ is_global_array ga1 })
+    (ga2:gpu_array et size{ is_global_array ga2 })
+    (r : gpu_array et size{ is_global_array r })
+
   : kernel_desc
     (live ga1 ** live ga2 ** live r)
     (live ga1 ** live ga2 ** live r)
@@ -160,6 +166,10 @@ let kdesc (#et:Type) {| scalar et |} (ga1 ga2 r : gpu_array et size)
   kpost = kpost #et size ga1 ga2 r;
   block_setup = block_setup #et ga1 ga2 r;
   block_teardown = block_teardown #et ga1 ga2 r;
+  kpost_sendable=solve;
+  kpre_sendable=solve;
+  full_post_sendable=solve;
+  full_pre_sendable=solve;
 } <: kernel_desc_1_n _ _
 
 inline_for_extraction noextract

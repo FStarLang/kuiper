@@ -20,6 +20,37 @@ fi
 
 # A really basic configure script.
 
+check_nvcc () {
+  if ! command -v nvcc >/dev/null 2>&1 ; then
+    echo "# NVCC not found in PATH, configuring to stop after code generation."
+    KUIPER_HAVE_NVCC=0
+    return
+  fi
+
+  f=$(mktemp --suffix .cu)
+  cat >$f <<EOF
+  #include <cuda.h>
+  __global__
+  void f() {
+    return;
+  }
+  void g () {
+    f<<<1,1>>>();
+  }
+EOF
+
+  #177: variable "f" was declared but never referenced
+  echo "# Testing nvcc compilation..."
+  if ! nvcc -diag-suppress 177 -c $f -o /dev/null ; then
+    echo "# NVCC test file failed to build, configuring to stop after code generation."
+    KUIPER_HAVE_NVCC=0
+  else
+    echo "# NVCC ok"
+    KUIPER_HAVE_NVCC=1
+  fi
+  rm -f "$f"
+}
+
 check_tensor_cores () {
   # Do we have tensor cores?
   f=$(mktemp --suffix .cu)
@@ -43,16 +74,22 @@ EOF
   rm -f "$f"
 }
 
-check_tensor_cores
+check_nvcc
+if [ "$KUIPER_HAVE_NVCC" -eq 1 ]; then
+  check_tensor_cores
+fi
 
 # Export whatever variables are needed.
 vv () {
-  if [ -v "$1" ]; then
-    echo "export ${1}=${!1}" >$out
-    if $repeat; then
-      echo "export ${1}=${!1}"
+  for v; do
+    if [ -v "$v" ]; then
+      echo "export ${v}=${!v}" >> $out
+      if $repeat; then
+        echo "export ${v}=${!v}"
+      fi
     fi
-  fi
+  done
 }
 
-vv KUIPER_CFG_TENSORCORES
+rm -f $out
+vv KUIPER_HAVE_NVCC KUIPER_CFG_TENSORCORES

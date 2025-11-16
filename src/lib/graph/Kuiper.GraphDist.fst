@@ -64,7 +64,7 @@ let mult (x y : dist) : dist =
 
 inline_for_extraction noextract
 instance scalar_dist : scalar dist = {
-  is_sized = { size = 2sz };
+  is_sized = { size = 2sz; default = D 0us };
   zero = D 0us;
   one = D 1us;
   add = add';
@@ -75,22 +75,19 @@ instance scalar_dist : scalar dist = {
 
 fn matmul_dist_gpu
   (#size : szp)
-  (a : M.gpu_matrix dist (R.row_major size size))
-  (b : M.gpu_matrix dist (R.row_major size size))
+  (a : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix a })
+  (b : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix b })
   (#ea : ematrix dist size size)
   (#eb : ematrix dist size size)
   preserves
-    cpu ** a |-> ea
+    cpu ** on gpu_loc (a |-> ea)
   requires
     pure (size * size <= max_blocks) **
-    b |-> eb
+    on gpu_loc (b |-> eb)
   ensures
-    exists* eb'. b |-> eb'
+    exists* eb'. on gpu_loc (b |-> eb')
 {
-  assert a |-> ea;
-  M.gpu_matrix_share_2 a;
-
+  map_loc gpu_loc (fun () -> M.gpu_matrix_share_2 a);
   P.mmcomb_gpu add' a a b;
-
-  M.gpu_matrix_gather_2 a;
+  map_loc gpu_loc (fun () -> M.gpu_matrix_gather_2 a);
 }

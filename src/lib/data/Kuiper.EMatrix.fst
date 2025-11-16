@@ -19,3 +19,11 @@ let ematrix_ext #et #rows #cols
   : Lemma (requires equal m1 m2)
           (ensures m1 == m2)
   = assert (F.feq_g m1.f m2.f)
+
+let lemma_to_real_matrix_approximates (#et : Type0)
+  {| scalar et, d : real_like et |}
+  (#rows #cols : nat)
+  (m : ematrix et rows cols)
+  : Lemma (ensures m %~ to_real_matrix m)
+          [SMTPat (to_real_matrix m)]
+  = Classical.forall_intro d.to_real_ok

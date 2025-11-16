@@ -7,6 +7,8 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Approximates
+module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
 
@@ -15,6 +17,7 @@ fn spec
   // specialize
   (et_ab et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (bm bn bk : szp)
   (#_ : squash (chunk et_ab /?+ bk))
   (#_ : squash (chunk et_ab /?+ bn))
@@ -38,9 +41,9 @@ fn spec
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (row_major rows shared))
-  (gB : gpu_matrix et_ab (row_major shared cols))
-  (gC : gpu_matrix et_c (row_major rows cols))
+  (gA : gpu_matrix et_ab (row_major rows shared) { is_global_matrix gA })
+  (gB : gpu_matrix et_ab (row_major shared cols) { is_global_matrix gB })
+  (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
   (#eA : ematrix et_ab rows shared)
@@ -51,11 +54,12 @@ fn spec
   //  partially applied
   preserves
     cpu **
-    // should be checked at runtime
-    pure (rows * cols <= max_blocks) **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    pure ((rows/bm) * (cols/bn) <= max_blocks) **
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    exists* eC'. gC |-> eC'
+    exists* eC'.
+      on gpu_loc (gC |-> eC') **
+      pure (eC' %~ MS.matmul (to_real_matrix eA) (to_real_matrix eB))

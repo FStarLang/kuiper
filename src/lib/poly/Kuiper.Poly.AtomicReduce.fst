@@ -42,7 +42,7 @@ let inv_p
   exists* (v_done:
     seq bool {len v_done >= len done /\ len v_done >= len v_a})
     v_r.
-    ((a |-> v_a) ** (r |-> v_r) **
+    ((r |-> v_r) **
     bigstar 0 (len done) (fun i -> (done @! i) |-> Frac 0.5R (v_done @! i))) **
     pure (contributions nn v_done v_a v_r zero)
 
@@ -58,6 +58,7 @@ let kpre
   (tid : natlt nn)
 =
   (done @! tid) |-> Frac 0.5R false **
+  (a |-> v_a) **
   inv i (inv_p nn a v_a r done)
 
 unfold
@@ -72,6 +73,7 @@ let kpost
   (tid : natlt nn)
 =
   (done @! tid) |-> Frac 0.5R true **
+  (a |-> v_a) **
   inv i (inv_p nn a v_a r done)
 
 ghost
@@ -102,12 +104,12 @@ val contributions_lemma
   : Lemma (requires contributions nn v_done v_a v_r acc /\ v_done @! tid == false)
           (ensures  contributions nn (Seq.upd v_done tid true) v_a (d.pure_op v_r (v_a @! tid)) acc)
           [SMTPat (contributions nn (Seq.upd v_done tid true) v_a (d.pure_op v_r (v_a @! tid)) acc)]
-
+#set-options "--print_implicits"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#nn: SZ.t)
-  (a : gpu_array et (SZ.v nn))
+  (a : gpu_global_array et (SZ.v nn))
   (#v_a : erased (seq et))
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == SZ.v nn})
@@ -124,37 +126,29 @@ fn kf
     block_id (SZ.v nn) bid
 {
   assume (pure (len v_a == SZ.v nn));
-  later_credit_buy 1;
-  later_credit_buy 1;
+  // later_credit_buy 1;
   (* Read array at idx *)
-  let v =
-    with_invariants i
-      returns v : et
-      ensures
-        gpu **
-        block_id (SZ.v nn) bid **
-        (done @! bid) |-> Frac 0.5R false **
-        later (inv_p (SZ.v nn) a v_a r done) **
-        pure (v == v_a @! SZ.v bid) **
-        later_credit 1
-    {
-      later_elim _;
-      unfold (inv_p (SZ.v nn) a v_a r done);
-      let rr = gpu_array_read a bid;
-      fold (inv_p (SZ.v nn) a v_a r done);
-      later_intro (inv_p (SZ.v nn) a v_a r done);
-      rr
-    };
+  let v = gpu_array_read a bid;
   (* Fetch and add into result cell. *)
-  with_invariants i
+  //  admit();
+  with_invariants unit emp_inames i (inv_p (SZ.v nn) a v_a r done)
+    (gpu_pts_to_slice a 0 (SZ.v nn) v_a **
+     block_id (SZ.v nn) (SZ.v bid) **
+     gpu **
+     Pulse.Lib.GhostReference.pts_to (Seq.Base.index done (SZ.v bid)) #0.5R false)
+    (fun _ ->
+      gpu **
+      (done @! bid) |-> Frac 0.5R true **
+       gpu_pts_to_slice a 0 (SZ.v nn) v_a **
+      block_id (SZ.v nn) bid)
+  fn _
   {
-    later_elim _;
+    // later_elim _;
     unfold (inv_p (SZ.v nn) a v_a r done);
     let _ = atomic_add r v;
-    bigstar_ghost_upd_lemma done _ _ ;
+    bigstar_ghost_upd_lemma done _ _;
     assume (pure False); (* FIXME *)
     fold (inv_p (SZ.v nn) a v_a r done);
-    later_intro (inv_p (SZ.v nn) a v_a r done);
   }
 }
 
@@ -235,7 +229,7 @@ inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (n : szp{n < max_blocks})
-  (a : gpu_array et n)
+  (a : gpu_array et n { is_global_array a })
   (#f : perm)
   (#v_a : erased (seq et))
   (r : gpu_ref et)
@@ -258,25 +252,27 @@ let kdesc
   kpre  = kpre  n a v_a r done i;
   kpost = kpost n a v_a r done i;
   frame = emp;
+  kpre_sendable=solve;
+  kpost_sendable=solve;
 } <: kernel_desc_m_1 _ _
 
 inline_for_extraction noextract
 fn reduce
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (n : szp {n < max_blocks})
-  (a : gpu_array et n)
+  (a : gpu_array et n { is_global_array a })
   (#f : perm)
   (#v_a : erased (seq et))
   requires
     cpu **
     pure (f == 1.0R) **
-    (a |-> Frac f v_a) **
+    on gpu_loc (a |-> Frac f v_a) **
     pure (SZ.v n > 0 /\ SZ.v n <= 1024)
   returns
     r : et
   ensures
     cpu **
-    (a |-> Frac f v_a) **
+    on gpu_loc (a |-> Frac f v_a) **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
   let mut r : et = zero;

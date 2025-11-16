@@ -53,10 +53,10 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
     (bid: natlt nblk) ->
     stt_ghost unit emp_inames
       (requires
-        block_setup_tok nthr **
+        can_create_barrier nthr **
         block_pre bid)
       (ensures fun _ ->
-        block_setup_tok nthr **
+        consumed_can_create_barrier **
         (forall+ (i : natlt nthr). kpre bid i) **
         block_frame bid)
   );
@@ -87,6 +87,15 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
          thread_id nthr tid **
          block_id nblk bid)
   );
+
+  block_pre_sendable: (i:natlt nblk -> is_send_across gpu_of (block_pre i));
+
+  block_post_sendable: (i:natlt nblk -> is_send_across gpu_of (block_post i));
+
+  kpre_sendable: (i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpre i j));
+
+  kpost_sendable: (i:natlt nblk -> j:natlt nthr -> is_send_across block_of (kpost i j));
+
 }
 
 (* N independent jobs, no shared memory, to be broken up
@@ -132,6 +141,10 @@ type kernel_desc_n (full_pre : slprop) (full_post : slprop) = {
          gpu **
          kpost tid)
   );
+
+  kpre_sendable: (j:natlt nthr -> is_send_across gpu_of (kpre j));
+  kpost_sendable: (j:natlt nthr -> is_send_across gpu_of (kpost j));
+
 }
 
 
@@ -150,10 +163,10 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        block_setup_tok nthr **
+        can_create_barrier nthr **
         full_pre)
       (ensures fun _ ->
-        block_setup_tok nthr **
+        consumed_can_create_barrier **
         (forall+ (tid : natlt nthr). kpre tid) **
         frame)
   );
@@ -181,6 +194,11 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
          kpost tid **
          thread_id nthr tid)
   );
+
+  full_pre_sendable: is_send_across gpu_of full_pre;
+  full_post_sendable: is_send_across gpu_of full_post;
+  kpre_sendable: (j:natlt nthr -> is_send_across block_of (kpre j));
+  kpost_sendable: (j:natlt nthr -> is_send_across block_of (kpost j));
 }
 
 (* Mx1, no shared memory *)
@@ -227,6 +245,9 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
          kpost bid **
          block_id nblk bid)
   );
+
+  kpre_sendable: (j:natlt nblk -> is_send_across gpu_of (kpre j));
+  kpost_sendable: (j:natlt nblk -> is_send_across gpu_of (kpost j));
 }
 
 (* 1x1, no shared memory *)
@@ -243,6 +264,9 @@ type kernel_desc_1_1 (full_pre : slprop) (full_post : slprop) = {
          gpu **
          full_post)
   );
+
+  full_pre_sendable: is_send_across gpu_of full_pre;
+  full_post_sendable: is_send_across gpu_of full_post;
 }
 
 [@@coercion]

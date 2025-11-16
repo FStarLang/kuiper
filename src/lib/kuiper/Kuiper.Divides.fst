@@ -47,6 +47,10 @@ let lemma_divides_exact (x:pos) (y:int)
 = lemma_divides_mod1 x y;
   Classical.move_requires (M.lemma_div_exact y) x
 
+let lemma_nat_divides_pos_divides (x: pos) (y: int)
+: Lemma (x /? y <==> x /?+ y)
+= ()
+
 let lemma_divides_le (x : nat) (y : pos)
   : Lemma (requires x /? y)
           (ensures x <= y)
@@ -105,7 +109,31 @@ let lemma_divides_product_l (d : pos) (a c : int)
       a * c;
   }
 
-let lemma_divides_product_r (d : pos) (a c : int)
-  : Lemma (requires d /? a)
-          (ensures d /? (c * a))
-  = lemma_divides_product_l d a c
+let lemma_divides_product_r (d : pos) (a b : int)
+  : Lemma (requires d /? b)
+          (ensures d /? (a * b))
+  = lemma_divides_product_l d b a
+
+let lemma_divides_chain (a b c : pos)
+  : Lemma (requires a /? b /\ b /? c)
+          (ensures a /? c)
+  = ()
+
+let lemma_divides_mod_op (d: pos) (a: int) (b: pos)
+  : Lemma (requires d /? a /\
+            d /? b)
+          (ensures d /? (a % b))
+= assert ((a % b) == a + ((-1) * (a / b)) * b);
+  lemma_divides_product_r d ((-1) * (a / b)) b;
+  lemma_divides_sum d a (((-1) * (a / b)) * b);
+  ()
+
+let lemma_eucl_unique
+  (b: pos)
+  (q r q' r': nat)
+: Lemma (requires q * b + r == q' * b + r' /\
+    r < b /\
+    r' < b
+  )
+  (ensures q == q' /\ r == r')
+= ()

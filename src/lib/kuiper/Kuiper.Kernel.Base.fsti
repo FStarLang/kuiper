@@ -19,17 +19,12 @@ fn launch_kernel_full
   (#full_post : slprop)
   (k : kernel_desc full_pre full_post)
   (#e : epoch_t)
+  preserves cpu
+  preserves epoch_live e
   requires
-    cpu **
-    epoch_live e **
-    full_pre
-  returns
-    e' : epoch_t
+    on gpu_loc full_pre
   ensures
-    cpu **
-    epoch_live e' **
-    pledge0 (epoch_done e') full_post **
-    pure (e' >= e)
+    pledge0 (epoch_done e) (on gpu_loc full_post)
 
 (* Sync the device: wait for all pending kernels. *)
 noextract

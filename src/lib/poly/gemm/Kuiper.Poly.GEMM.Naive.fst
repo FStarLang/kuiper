@@ -250,11 +250,11 @@ let kdesc
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA)
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -274,6 +274,9 @@ let kdesc
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
   f = kf comb gA gB gC;
+  kpre_sendable=solve;
+  kpost_sendable=solve;
+
 }
 
 inline_for_extraction noextract
@@ -285,24 +288,24 @@ fn mmcomb_gpu
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA)
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   norewrite
   preserves
     cpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (rows * cols <= max_blocks) ** (* size_req *)
-    gC |-> eC
+    on gpu_loc (gC |-> eC)
   ensures
-    gC |-> MS.mmcomb comb eC eA eB
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
-  launch_sync (kdesc comb gA gB gC);
+  launch_sync (kdesc comb gA #fA gB #fB gC #eA #eB #eC);
 }

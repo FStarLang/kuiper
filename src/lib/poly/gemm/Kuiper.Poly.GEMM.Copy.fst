@@ -26,7 +26,7 @@ fn cp_matrix
     gpu **
     pure (SZ.fits (rows * cols + nthr - 1)) **
     src |-> Frac f esrc **
-    live_tile_stride_cells dst nthr tid
+    live_strided_chunks dst nthr tid
 {
   let mlen = rows *^ cols;
 
@@ -37,7 +37,7 @@ fn cp_matrix
         pure (vi >= tid) **
         pure (vi % nthr == tid) **
         i |-> vi **
-        live_tile_stride_cells dst nthr tid **
+        live_strided_chunks dst nthr tid **
         pure (vi < mlen + nthr)
   {
     let v = gpu_matrix_read src (!i /^ cols) (!i %^ cols);
@@ -49,7 +49,7 @@ fn cp_matrix
     assert (pure ((!i - tid) % nthr == 0));
     assert (pure (ite * nthr == !i - tid));
 
-    unfold live_tile_stride_cells dst nthr tid;
+    unfold live_strided_chunks dst nthr tid;
     forevery_extract (reveal ite) _;
 
     rewrite each
@@ -75,7 +75,7 @@ fn cp_matrix
     rewrite each SZ.v !i as (tid + ite * nthr);
 
     Pulse.Lib.Trade.elim_trade _ _;
-    fold live_tile_stride_cells dst nthr tid;
+    fold live_strided_chunks dst nthr tid;
 
     Math.Lemmas.modulo_addition_lemma !i nthr 1;
     i := !i +^ nthr;
@@ -85,7 +85,7 @@ fn cp_matrix
 }
 #pop-options
 
-// let live_tile_stride_cells_from
+// let live_strided_chunks_from
 //   (#et : Type0)
 //   (#rows #cols : nat)
 //   (#lm : mlayout rows cols)
@@ -123,7 +123,7 @@ fn cp_matrix
 //     pure (SZ.fits (rows * cols + nthr - 1)) **
 //     src |-> Frac f esrc
 //   requires
-//     live_tile_stride_cells dst nthr tid
+//     live_strided_chunks dst nthr tid
 //   ensures
 //     dst |-> esrc
 // {
@@ -136,14 +136,14 @@ fn cp_matrix
 //         pure (vi >= tid) **
 //         pure (vi % nthr == tid) **
 //         i |-> vi **
-//         live_tile_stride_cells dst nthr tid **
+//         live_strided_chunks dst nthr tid **
 //         pure (vi < mlen + nthr)
 //   {
 //     let v = gpu_matrix_read src (!i /^ cols) (!i %^ cols);
 
 //     let ite : erased (natlt (div_ceil (rows*cols) nthr)) = (!i - tid) / nthr;
 
-//     unfold live_tile_stride_cells dst nthr tid;
+//     unfold live_strided_chunks dst nthr tid;
 //     forevery_extract (reveal ite) _;
 
 //     rewrite each
@@ -163,7 +163,7 @@ fn cp_matrix
 //     rewrite each SZ.v !i as (tid + ite * nthr);
 
 //     Pulse.Lib.Trade.elim_trade _ _;
-//     fold live_tile_stride_cells dst nthr tid;
+//     fold live_strided_chunks dst nthr tid;
 
 //     Math.Lemmas.modulo_addition_lemma !i nthr 1;
 //     i := !i +^ nthr;

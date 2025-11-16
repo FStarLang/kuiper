@@ -6,10 +6,12 @@ open Kuiper
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Approximates
 
 open Kuiper.Matrix.Reprs
 module R = Kuiper.Matrix.Reprs
 open Kuiper.TensorCore
+module MS = Kuiper.Spec.GEMM
 
 module SZ = Kuiper.SizeT
 
@@ -21,14 +23,19 @@ inline_for_extraction noextract
 val mk_kernel
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
+  {| real_like et_ab, real_like et_c |}
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared) {| clayout lA, strided_row_major lA |}
-  (gA : gpu_matrix et_ab lA)
+  (#lA : mlayout rows shared) {| clayout lA |}
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
   (#eA : ematrix et_ab rows shared)
-  (#lB : mlayout shared cols) {| clayout lB, strided_row_major lB |}
-  (gB : gpu_matrix et_ab lB)
+  (#lB : mlayout shared cols) {| clayout lB |}
+  {| str_A : strided_row_major lA,
+     str_B : strided_row_major lB |}
+  (#_ : squash (aligned_strided_row_major (chunk et_ab) str_A))
+  (#_ : squash (aligned_strided_row_major (chunk et_ab) str_B))
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
   (#eB : ematrix et_ab shared cols)
-  (gC : gpu_matrix et_c (R.row_major rows cols))
+  (gC : gpu_matrix et_c (R.row_major rows cols) { is_global_matrix gC })
   (#_ : squash (SZ.fits (rows * cols)))
   (#eC : ematrix et_c rows cols)
   (bm bn bk
@@ -58,7 +65,17 @@ val mk_kernel
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
   (#_ : squash (nthr <= max_threads))
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
+  (#_ : squash (wm * tm /?+ rows)) // obvious, but SMT is flaky
+  (#_ : squash (wn * tn /?+ cols)) // idem
   ()
   : kernel_desc
-      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
-      (gA |-> Frac fA eA ** gB |-> Frac fB eB ** (exists* eC'. gC |-> eC'))
+      (gA |-> Frac fA eA ** pure (eA %~ rA) **
+       gB |-> Frac fB eB ** pure (eB %~ rB) **
+       gC |-> eC ** pure (eC %~ rC))
+      (gA |-> Frac fA eA **
+       gB |-> Frac fB eB **
+       (exists* (eC' : ematrix et_c rows cols).
+         gC |-> eC' ** pure (eC' %~ MS.matmul rA rB)))

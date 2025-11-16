@@ -24,6 +24,16 @@ let ematrix_subtile
   mkM fun i j ->
     macc em (tr * trows + i) (tc * tcols + j)
 
+let ematrix_tiled
+  (#et : _)
+  (#rows #cols : _)
+  (em : ematrix et rows cols)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  : ematrix (ematrix et trows tcols) (rows/trows) (cols/tcols)
+=
+  mkM fun i j -> ematrix_subtile em trows tcols i j
+
 let ematrix_from_tiles
   (#et : _)
   (#rows #cols : nat)
@@ -158,6 +168,46 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
   |}
   : strided_row_major (subtile_layout l trows tcols tr tc)
 
+val lemma_subtile_strided_row_major_offset
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_row_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            SZ.v (strided_row_major_subtile l trows tcols tr tc).offset
+            ==
+            sub.offset + sub.stride * (tr * trows) + tc * tcols)
+          [SMTPat (strided_row_major_subtile l trows tcols tr tc).offset]
+
+val lemma_subtile_strided_row_major_stride
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_row_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            (strided_row_major_subtile l trows tcols tr tc).stride
+            ==
+            sub.stride)
+          [SMTPat (strided_row_major_subtile l trows tcols tr tc).stride]
+
 inline_for_extraction noextract
 instance val strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
@@ -173,6 +223,46 @@ instance val strided_col_major_subtile (#rows #cols : erased nat)
      c_tc    : concrete_sz tc,
   |}
   : strided_col_major (subtile_layout l trows tcols tr tc)
+
+val lemma_subtile_strided_col_major_offset
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            SZ.v (strided_col_major_subtile l trows tcols tr tc).offset
+            ==
+            sub.offset + sub.stride * (tc * tcols) + tr * trows)
+          [SMTPat (strided_col_major_subtile l trows tcols tr tc).offset]
+
+val lemma_subtile_strided_col_major_stride
+  (#rows #cols : erased nat)
+  (l : mlayout rows cols)
+  {| sub : strided_col_major l |}
+  (trows : erased nat {trows > 0 /\ trows /? rows})
+  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (tr    : enatlt (rows / trows))
+  (tc    : enatlt (cols / tcols))
+  {| c_trows : concrete_sz trows,
+     c_tcols : concrete_sz tcols,
+     c_tr    : concrete_sz tr,
+     c_tc    : concrete_sz tc,
+  |}
+  : Lemma (requires SZ.fits (mlayout_size l))
+          (ensures
+            (strided_col_major_subtile l trows tcols tr tc).stride
+            ==
+            sub.stride)
+          [SMTPat (strided_col_major_subtile l trows tcols tr tc).stride]
 
 inline_for_extraction noextract
 instance val c_subtile_layout
@@ -217,6 +307,22 @@ val gpu_matrix_subtile_base
       core gm
     )
     [SMTPat (core (gpu_matrix_subtile gm trows tcols tr tc))]
+
+let is_gpu_matrix_subtile_global
+  (#et : _)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (#gm : gpu_matrix et l)
+  (#trows : erased nat {trows > 0 /\ trows /? rows})
+  (#tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (#tr : enatlt (rows / trows))
+  (#tc : enatlt (cols / tcols))
+: Lemma
+  (ensures
+    is_global_matrix (gpu_matrix_subtile gm trows tcols tr tc) <==>
+    is_global_matrix gm)
+  [SMTPat (is_global_matrix (gpu_matrix_subtile gm trows tcols tr tc))]
+= gpu_matrix_subtile_base gm trows tcols tr tc
 
 val cell_convert_eq
   (#et : _)
@@ -304,6 +410,8 @@ fn gpu_matrix_untile'
   (tf : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
   (#f : perm)
   requires
+    pure (SZ.fits (mlayout_size l))
+  requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
@@ -322,6 +430,8 @@ fn gpu_matrix_untile
   (#em : ematrix et rows cols)
   (#f : perm)
   requires
+    pure (SZ.fits (mlayout_size l))
+  requires
     forall+
       (tr : natlt (rows / trows))
       (tc : natlt (cols / tcols)).
@@ -338,6 +448,8 @@ fn gpu_matrix_untile_underspec
   (trows : pos { trows /? rows })
   (tcols : pos { tcols /? cols })
   (#f : perm)
+  requires
+    pure (SZ.fits (mlayout_size l))
   requires
     forall+
       (tr : natlt (rows / trows))
@@ -365,6 +477,29 @@ fn gpu_matrix_extract_tile
     gpu_matrix_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc) **
     (forall* (tm' : ematrix et trows tcols).
       gpu_matrix_subtile gm trows tcols tr tc |-> Frac f tm' @==>
+      gm |-> Frac f (update_tile em trows tcols tr tc tm'))
+
+inline_for_extraction noextract
+fn gpu_matrix_extract_tile_st
+  (#et:Type0)
+  (#rows #cols : erased nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : erased nat { trows > 0 /\ trows /? rows })
+  (tcols : erased nat { tcols > 0 /\ tcols /? cols })
+  (tr : enatlt (rows / trows))
+  (tc : enatlt (cols / tcols))
+  (#em : ematrix et rows cols)
+  (#f : perm)
+  requires
+    gm |-> Frac f em
+  returns tc_tile : gpu_matrix et (subtile_layout l trows tcols tr tc)
+  // use rewrites_to?
+  ensures pure (tc_tile == gpu_matrix_subtile gm trows tcols tr tc)
+  ensures
+    tc_tile |-> Frac f (ematrix_subtile em trows tcols tr tc) **
+    (forall* (tm' : ematrix et trows tcols).
+      tc_tile |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 
 ghost
@@ -402,8 +537,7 @@ fn gpu_matrix_extract_tile_ro'
     gm |-> Frac f em
   returns gm' : gpu_matrix et (subtile_layout l trows tcols tr tc)
   ensures
-    // is this helpful?
-    pure (gm' == gpu_matrix_subtile gm trows tcols tr tc) **
+    rewrites_to gm' (gpu_matrix_subtile gm trows tcols tr tc) **
     factored
       (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)

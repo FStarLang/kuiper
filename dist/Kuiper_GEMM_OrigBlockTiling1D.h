@@ -4,13 +4,13 @@
 
 #include <kuiper.h>
 
-float_t
-    *
+void
 Kuiper_GEMM_OrigBlockTiling1D_matmul_f32_tiles64x8_8x64_rc8_rrr(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                float_t * a,
-                                                                float_t * b);
+                                                                float_t * gA,
+                                                                float_t * gB,
+                                                                float_t * gC);
 
 void
 Kuiper_GEMM_OrigBlockTiling1D_g_gemm_f32_tiles64x8_8x64_rc8_rrr(float_t alpha,

@@ -6,7 +6,7 @@ open Kuiper
 open Kuiper.Bijection
 module F = FStar.FunctionalExtensionality
 
-let it_nat_rel #a #st (vw : aview a st) (i : vw.iview.sch.ait)
+let it_nat_rel #a #st (vw : aview a st) (i : vw.iview.ait)
   (j : natlt (len vw){FStar.Functions.in_image vw.iview.step.imap.f j})
   : Lemma (it_to_nat vw i == j <==> i == it_of_nat vw j)
   = IView.it_nat_rel vw.iview i j
@@ -16,7 +16,7 @@ let to_from (#a:Type) (#st:Type)
   (s : lseq a (len vw))
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
-  = let _ = vw.igm.bij.gg (F.on_g vw.iview.sch.ait <| fun i -> s @! it_to_nat vw i) in
+  = let _ = vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i) in
     (* funny, mentioning the term above (= from_seq vw s) makes the proof work. *)
     let aux (i : natlt (len vw))
       : Lemma (to_seq vw (from_seq vw s) @! i == s @! i) =
@@ -52,7 +52,7 @@ let from_to (#a:Type) (#st:Type)
   let rhs = v in
   let lf = vw.igm.bij.ff lhs in
   let rf = vw.igm.bij.ff rhs in
-  let aux (i : vw.iview.sch.ait)
+  let aux (i : vw.iview.ait)
     : Lemma (lf i == rf i) =
     let g = from_seq_aux vw (to_seq vw v) in
     calc (==) {
@@ -85,7 +85,7 @@ let from_to (#a:Type) (#st:Type)
 let to_seq_upd (#a:Type) (#st:Type)
   (vw : aview a st { is_full_view vw })
   (v : st)
-  (i : vw.iview.sch.ait)
+  (i : vw.iview.ait)
   (x : a)
   : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
           [SMTPat (to_seq vw (vw.igm.upd v i x))]

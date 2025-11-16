@@ -18,15 +18,17 @@ let view_equiv (#et #st : Type)
   (vw1 vw2 : aview et st)
   : prop
 = vw1.iview.len == vw2.iview.len /\
-  vw1.iview.sch.ait == vw2.iview.sch.ait /\
+  vw1.iview.ait == vw2.iview.ait /\
   F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
-  (forall (x: st) (i: vw1.iview.sch.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
+  (forall (x: st) (i: vw1.iview.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
   (* probably need more about the mappings in igm *)
   True
 
 new
 inline_for_extraction
 val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
+
+val is_global_varray (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
 
 inline_for_extraction noextract
 val from_array
@@ -47,14 +49,14 @@ val lem_from_array_core
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (arr : varray vw)
-  : Lemma (ensures from_array vw (core arr) == arr)
+  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_varray arr))
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (p : gpu_array a (len vw))
-  : Lemma (ensures core (from_array vw p) == p)
+  : Lemma (ensures core (from_array vw p) == p /\ (is_global_varray (from_array vw p) <==> is_global_array p))
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -63,7 +65,7 @@ val varray_pts_to_cell
   (#st:Type0) (#vw : aview et st)
   ([@@@mkey] a : varray vw)
   (#[T.exact (`1.0R)] f : perm)
-  ([@@@mkey]i : vw.iview.sch.ait)
+  ([@@@mkey]i : vw.iview.ait)
   (v : et)
   : slprop
 
@@ -71,7 +73,7 @@ val varray_pts_to_cell_eq
   (#et:Type)
   (#st:Type0) (#vw : aview et st)
   (a : varray vw)
-  (i : vw.iview.sch.ait)
+  (i : vw.iview.ait)
   (f : perm)
   (v : et)
   : Lemma (varray_pts_to_cell a #f i v
@@ -80,7 +82,7 @@ val varray_pts_to_cell_eq
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#st : Type) (#vw : aview et st)
-  : has_pts_to (cell (varray vw) vw.iview.sch.ait) et
+  : has_pts_to (cell (varray vw) vw.iview.ait) et
 = {
   pts_to = (fun (Cell ar i) #f v -> varray_pts_to_cell #et #st #vw ar #f i v);
 }
@@ -91,6 +93,16 @@ val varray_pts_to
   (#[T.exact (`1.0R)] f : perm)
   (v : st)
   : slprop
+
+instance
+val is_send_across_global_varray
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (x: varray vw { is_global_varray x })
+  (#f : perm)
+  (v : st)
+  : is_send_across gpu_of (varray_pts_to x #f v)
 
 unfold
 instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)
@@ -111,15 +123,6 @@ fn varray_pts_to_ref
   ensures
     pure (SZ.fits (len vw))
 
-
-(* Note: the functions below use the Enumerable instance for vw.iview.sch.ait
-   that is inside the aview record.
-   We do this since it's
-   not necessary for that enumeration to match the one in the typeclass system.
-   For example, for a matrix view, that enumeration can be anything
-   depending on the layout chosen, but the enumeration we want for the
-   **abstract indices** is just lexicographic. *)
-
 ghost
 fn varray_explode
   (#et : Type) (#st : Type)
@@ -130,7 +133,7 @@ fn varray_explode
   requires
     a |-> Frac f v
   ensures
-    forall+ (i : vw.iview.sch.ait).
+    forall+ (i : vw.iview.ait).
       Cell a i |-> Frac f (vw.igm.acc v i)
 
 ghost
@@ -143,7 +146,7 @@ fn varray_implode
   requires
     pure (SZ.fits (len vw))
   requires
-    forall+ (i : vw.iview.sch.ait).
+    forall+ (i : vw.iview.ait).
       Cell a i |-> Frac f (vw.igm.acc v i)
   ensures
     a |-> Frac f v
@@ -155,8 +158,7 @@ fn varray_reindex_
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
-  (bij : vw.iview.sch.ait =~ ait')
+  (bij : vw.iview.ait =~ ait')
   (a : varray vw)
   (#f : perm)
   (#v : st)
@@ -170,8 +172,7 @@ fn varray_reindex
   (#et : Type) (#st : Type)
   (#vw : aview et st)
   (#ait' : Type)
-  {| Enumerable.enumerable ait' |}
-  (bij : vw.iview.sch.ait =~ ait')
+  (bij : vw.iview.ait =~ ait')
   (a : varray vw)
   (#f : perm)
   (#v : erased st)
@@ -272,9 +273,9 @@ fn varray_cell_reindex
   (#vw : aview et st)
   (#vw' : aview et st')
   (a : varray vw)
-  (i : vw.iview.sch.ait)
+  (i : vw.iview.ait)
   (a' : varray vw')
-  (i' : vw'.iview.sch.ait)
+  (i' : vw'.iview.ait)
   (#v : et)
   requires
     pure (len vw == len vw' /\ core a == core a')
@@ -332,7 +333,7 @@ fn varray_iconcr
     a |-> Frac f v
   ensures
     pure (SZ.fits (len vw)) **
-    (forall+ (i : vw.iview.sch.ait).
+    (forall+ (i : vw.iview.ait).
       gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
 
 ghost
@@ -344,14 +345,14 @@ fn varray_iabs
   (#v : erased st)
   requires
     pure (SZ.fits (len vw)) **
-    (forall+ (i : vw.iview.sch.ait).
+    (forall+ (i : vw.iview.ait).
       gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
   ensures
     a |-> Frac f v
 
 inline_for_extraction noextract
 fn varray_alloc0
-  (#et : Type0) {| sized et |} (len : sz) (#st : Type0)
+  (#et : Type0) {| sized et |} (len : sz { len > 0 }) (#st : Type0)
   (vw : aview et st { is_full_view vw /\ Len.len vw == len})
   preserves
     cpu
@@ -360,7 +361,8 @@ fn varray_alloc0
   returns
     a : varray vw
   ensures
-    exists* v. a |-> v
+    exists* v. on gpu_loc (a |-> v)
+  ensures pure (is_global_varray a)
 
 inline_for_extraction noextract
 fn varray_free
@@ -371,7 +373,7 @@ fn varray_free
   preserves
     cpu
   requires
-    a |-> v
+    on gpu_loc (a |-> v)
   ensures emp
 
 ghost
@@ -409,14 +411,14 @@ fn varray_split2_
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : varray (sum_aview vw1 vw2))
   (#f : perm)
   (#v : st1 & st2)
   requires
     a |-> Frac f v
   ensures
-    (from_array vw1 (core a) |-> Frac f (fst v)) **
-    (from_array vw2 (core a) |-> Frac f (snd v))
+    from_array vw1 (core a) |-> Frac f (fst v) **
+    from_array vw2 (core a) |-> Frac f (snd v)
 
 inline_for_extraction noextract
 fn varray_split2
@@ -424,7 +426,7 @@ fn varray_split2
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : varray (sum_aview vw1 vw2))
   (#f : perm)
   (#v : erased (st1 & st2))
   requires
@@ -432,10 +434,25 @@ fn varray_split2
   returns
     a1a2 : varray vw1 & varray vw2
   ensures
-    (fst a1a2 |-> Frac f (fst v)) **
-    (snd a1a2 |-> Frac f (snd v)) **
+    fst a1a2 |-> Frac f (fst v) **
+    snd a1a2 |-> Frac f (snd v) **
     pure (core (fst a1a2) == core a) **
     pure (core (snd a1a2) == core a)
+
+ghost
+fn varray_split_n
+  (#et : Type0) (#st : Type)
+  (#n : pos)
+  (vw : natlt n -> aview et st { forall i. len (vw i) = len (vw 0) })
+  (#_ : squash (no_overlap_fam n vw))
+  (a : varray (sum_aview_fam n vw))
+  (#f : perm)
+  (#v : natlt n ^->> st)
+  requires
+    a |-> Frac f v
+  ensures
+    forall+ (i : natlt n).
+      from_array (vw i) (core a) |-> Frac f (v i)
 
 ghost
 fn varray_join2_
@@ -472,7 +489,7 @@ fn varray_join2
     al |-> Frac f v1 **
     ar |-> Frac f v2
   returns
-    a : varray (sum_aview vw1 vw2 #())
+    a : varray (sum_aview vw1 vw2)
   ensures
     (a |-> Frac f (reveal v1, reveal v2)) **
     pure (core a == core al)
@@ -523,12 +540,11 @@ inline_for_extraction noextract
 fn varray_write_cell
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves gpu
   requires
     Cell a (ci_to_ai vw ci) |-> v0
   ensures
@@ -538,14 +554,12 @@ inline_for_extraction noextract
 fn varray_write_cell'
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
-  (ai : erased vw.iview.sch.ait)
+  (ai : erased vw.iview.ait)
   (ci : cw.sch.cit)
   (v1 : et)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> reveal v0) **
     pure (ai == ci_to_ai vw ci)
@@ -556,13 +570,11 @@ inline_for_extraction noextract
 fn varray_read_cell
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     varray_pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
@@ -575,14 +587,12 @@ inline_for_extraction noextract
 fn varray_read_cell'
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (i : cw.sch.cit)
-  (ai : erased vw.iview.sch.ait)
+  (ai : erased vw.iview.ait)
   (#f : perm)
   (#v0 : erased et)
-  preserves
-    gpu
   requires
     (Cell a (reveal ai) |-> Frac f v0) **
     pure (ai == ci_to_ai vw i)
@@ -596,13 +606,12 @@ inline_for_extraction noextract
 fn varray_read
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (#f : perm)
   (#v : erased st)
   preserves
-    gpu **
     a |-> Frac f v
   returns
     e : et
@@ -613,17 +622,15 @@ inline_for_extraction noextract
 fn varray_write
   (#et : Type) (#st : Type)
   (#vw : aview et st)
-  {| cw : IView.ciview vw.iview |} // fixme
+  {| cw : cview vw |}
   (a : varray vw)
   (ci : cw.sch.cit)
   (e : et)
   (#v0 : erased st)
-  preserves
-    gpu
   requires
     a |-> v0
   ensures
-    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e
+    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e //TODO: consider rebinding this
 
 inline_for_extraction noextract
 fn varray_from_array
@@ -638,10 +645,10 @@ fn varray_from_array
     a |-> s **
     cpu
   requires
-    va |-> v
+    on gpu_loc (va |-> v)
   ensures
     pure (Pulse.Lib.Vec.length a == len vw) **
-    (va |-> from_seq vw s)
+    on gpu_loc (va |-> from_seq vw s)
 
 inline_for_extraction noextract
 fn varray_to_array
@@ -653,7 +660,7 @@ fn varray_to_array
   (#s : erased (seq et){Seq.length s == len vw})
   (#v : erased st)
   preserves
-    va |-> v **
+    on gpu_loc (va |-> v) **
     cpu
   requires
     a |-> s

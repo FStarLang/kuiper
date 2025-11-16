@@ -49,12 +49,12 @@ the result in the 0th index of the original array (overwriting that element). *)
 fn k_reduce_and_set
   (#tt : Type0)
   {| d : scalar tt |}
-  (size : sz)
+  (size : sz { size > 0 })
   (a : gpu_array tt size)
   (#v : erased (seq tt))
   ()
   preserves gpu
-  requires (a |-> v ** pure (size > 0))
+  requires (a |-> v)
   ensures  (exists* v'. (a |-> v') ** pure (Seq.length v' == size))
 {
   let r = k_reduce size a;
@@ -63,17 +63,17 @@ fn k_reduce_and_set
 }
 
 inline_for_extraction noextract
-[@@noextract_to "krml"]
 fn copy_to_gpu
   (#t:Type0)
   {| d : sized t |}
-  (sz : sz)
+  (sz : sz { sz > 0 })
   (a : vec t)
   (#v : erased (seq t){len v == SZ.v sz})
   preserves cpu ** a |-> v
   requires emp
   returns  ga : GA.gpu_array t sz
-  ensures  ga |-> v
+  ensures  on gpu_loc (ga |-> v)
+  ensures pure (is_global_array ga)
 {
   let ga = gpu_array_alloc #t #d sz;
   gpu_memcpy_host_to_device ga a sz;
@@ -81,7 +81,6 @@ fn copy_to_gpu
 }
 
 inline_for_extraction noextract
-[@@noextract_to "krml"]
 fn reduce
   (#t : Type0)
   {| d : scalar t |}
@@ -99,8 +98,7 @@ fn reduce
       a |-> v'
 {
   let ga = copy_to_gpu size a;
-  launch_kernel_1
-    (k_reduce_and_set #t #d size ga #v);
+  launch_kernel_1 (k_reduce_and_set #t #d size ga #v);
   gpu_memcpy_device_to_host a ga size;
   gpu_array_free ga;
   with v'. assert (a |-> v');
