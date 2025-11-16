@@ -430,6 +430,8 @@ let kpost
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn
                  /\ 2 * (shared / bk) >= 0 // obvious, but SMT is flaky
+                 /\ bm * bk > 0 // idem
+                  /\ bk * bn > 0 // idem
                  })
   (#_ : squash (bm /?+ rows))
   (#_ : squash (bk /?+ shared))
