@@ -14,6 +14,9 @@ type natlt (b:int) = n:nat{n <  b}
 type natle (b:int) = n:nat{n <= b}
 type posmultiple (k:int) = n:pos{k /? n}
 
+let between (lo hi : nat) : Type =
+  x:nat{lo <= x /\ x < hi}
+
 type binop (t : Type) = t -> t -> t
 
 (* Erased version, with refinement **on the outside** to prevent

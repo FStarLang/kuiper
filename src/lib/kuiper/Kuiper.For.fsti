@@ -6,9 +6,6 @@ open Kuiper
 open Kuiper.ForEvery
 module SZ = Kuiper.SizeT
 
-let between (lo hi : nat) : Type =
-  x:nat{lo <= x /\ x < hi}
-
 (* A sequential for loop, but whose verification is
    morally done in parallel over a forall+. *)
 fn for_loop (lo hi : SZ.t)
