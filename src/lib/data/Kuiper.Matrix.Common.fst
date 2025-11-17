@@ -3,10 +3,9 @@ module Kuiper.Matrix.Common
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.GhostMap
+open Kuiper.Container
 open Kuiper.Matrix.Reprs.Type
 module V = Kuiper.View
-module F = FStar.FunctionalExtensionality
 
 let from_seq (#et:Type) (#rows #cols : nat)
   (l : full_mlayout rows cols)
@@ -20,20 +19,17 @@ let to_seq (#et:Type) (#rows #cols : nat)
   : GTot (lseq et (rows * cols))
   = Seq.init_ghost (rows * cols) (fun i -> m.f (Kuiper.Injection.inverse_f l.map i))
 
-instance ematrix_is_ghost_map
+instance ematrix_is_container
   (et:Type) (#rows #cols : nat)
-  : is_ghost_map (ematrix et rows cols) (natlt rows & natlt cols) et
+  : container (ematrix et rows cols) (natlt rows & natlt cols) et
 = {
-    bij = {
-      ff = (fun m -> M?.f m);
-      gg = (fun f -> M f);
-      ff_gg = ez;
-      gg_ff = ez;
-    };
-    acc = (fun m (i, j) -> (macc m i j));
+    acc = (fun m (r,c) -> macc m r c);
     upd = (fun m (i, j) x -> mupd m i j x);
     l1 = ez;
     l2 = ez;
+    ext = (fun c1 c2 _ -> assert (Kuiper.EMatrix.equal c1 c2));
+    from_fun = (fun f -> mkM fun i j -> f (i, j));
+    from_fun_ok = ez;
   }
 
 let aview_from_mlayout
@@ -49,31 +45,13 @@ let open Kuiper.Bijection in
       imap = l.map;
     };
   };
-  igm = ematrix_is_ghost_map et;
+  ctn = ematrix_is_container et;
 }
 
 let from_seq_rel (#et #rows #cols : _) (l : mlayout rows cols {is_full_layout l})
   (s : lseq et (rows * cols))
   : Lemma (from_seq l s == V.from_seq (aview_from_mlayout et l) s)
-  = let vw = aview_from_mlayout et l in
-    let aux (i : natlt rows) (j : natlt cols)
-      : Lemma (macc (from_seq l s) i j == macc (V.from_seq vw s) i j)
-    = calc (==) {
-        macc (from_seq l s) i j;
-        == { _ by (Tactics.compute ()) } // weird
-        s @! l.map.f (i, j);
-        == {}
-        s @! V.it_to_nat vw (i, j);
-        == {}
-        (F.on_g vw.iview.ait <| fun i -> s @! V.it_to_nat vw i) (i, j);
-        == {}
-        macc (vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! V.it_to_nat vw i)) i j;
-        == { _ by (Tactics.compute ()) } // weird
-        macc (V.from_seq vw s) i j;
-      }
-    in
-    Classical.forall_intro_2 aux;
-    assert (Kuiper.EMatrix.equal (from_seq l s) (V.from_seq (aview_from_mlayout et l) s))
+  = assert (Kuiper.EMatrix.equal (from_seq l s) (V.from_seq (aview_from_mlayout et l) s))
 
 let to_seq_rel (#et #rows #cols : _) (l : mlayout rows cols{is_full_layout l})
   (s : ematrix et rows cols)

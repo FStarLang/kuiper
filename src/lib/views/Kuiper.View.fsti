@@ -4,7 +4,7 @@ module Kuiper.View
 
 open Kuiper
 open Kuiper.Len
-open Kuiper.GhostMap { is_ghost_map }
+open Kuiper.Container { container }
 open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.IView
@@ -18,7 +18,7 @@ type aview (et : Type) (st : Type0) = {
   iview : aiview;
 
   (* The high-level spec type is a container, roughly a ghost function ait -> et *)
-  igm  : is_ghost_map st iview.ait et;
+  ctn  : container st iview.ait et;
 }
 
 unfold
@@ -32,21 +32,21 @@ let _helper (et st : Type) (vw : aview et st)
   = ()
 
 unfold
-instance is_ghost_map_view_igm (#et:Type) (#st:Type0)
+instance is_container_view_igm (#et:Type) (#st:Type0)
   (vw : aview et st)
-  : is_ghost_map st vw.iview.ait et
-  = vw.igm
+  : container st vw.iview.ait et
+  = vw.ctn
 
 (* Nothing fancy here. *)
 let raw_view (#et:Type) (#len:nat) : aview et (lseq et len) = {
   iview  = IView.raw_view #len;
-  igm    = solve;
+  ctn    = solve;
 }
 
 (* Viewing as a (ghost) function from indices to elements. Forget about sequences. *)
 let raw_function_view (#et:Type) (#len:nat) : aview et (natlt len ^->> et) = {
   iview  = IView.raw_view #len;
-  igm    = solve;
+  ctn    = solve;
 }
 
 (* What it means for a view to be concretizable, i.e. executable.
@@ -69,17 +69,20 @@ let bij_reindex_ghost_efun (it it' et : Type)
   (fun f -> assert (F.feq_g (F.on_g _ <| fun it  -> f (bij.gg (bij.ff it)))
                             f))
 
-let igm_reindex (#mt #it #et : Type) (igm : is_ghost_map mt it et)
+let container_reindex (#mt #it #et : Type) (ctn : container mt it et)
   (#it': Type) (bij : it =~ it')
-   : is_ghost_map mt it' et =
+   : container mt it' et =
 {
-  acc = (fun (v : mt) (i' : it') ->
-    igm.acc v (bij.gg i'));
-  upd = (fun (v : mt) (i' : it') (x : et) ->
-    igm.upd v (bij.gg i') x);
-  bij = igm.bij `bij_comp` bij_reindex_ghost_efun _ _ _ bij;
-  l1 = ez;
-  l2 = ez;
+  acc = (fun (v : mt) (i' : it') -> ctn.acc v (bij.gg i'));
+  upd = (fun (v : mt) (i' : it') (x : et) -> ctn.upd v (bij.gg i') x);
+  l1 = (fun c i v -> ctn.l1 c (bij.gg i) v);
+  l2 = (fun c i1 i2 v -> ctn.l2 c (bij.gg i1) (bij.gg i2) v);
+  ext = (fun c1 c2 _ ->
+    assert (forall (i : it).
+      ctn.acc c1 i == ctn.acc c1 (bij.gg (bij.ff i)));
+    ctn.ext c1 c2 ());
+  from_fun = (fun f -> ctn.from_fun (fun i -> f (bij.ff i)));
+  from_fun_ok = (fun f i -> ctn.from_fun_ok (fun i' -> f (bij.ff i')) (bij.gg i));
 }
 
 let reindex_view (#et : Type0) (#st : Type0)
@@ -88,18 +91,20 @@ let reindex_view (#et : Type0) (#st : Type0)
   (bij : vw.iview.ait =~ ait')
   : aview et st = {
   iview  = IView.reindex_view vw.iview bij;
-  igm    = igm_reindex vw.igm bij;
+  ctn    = container_reindex vw.ctn bij;
 }
 
-let igm_review (#mt #it #et : Type) (igm : is_ghost_map mt it et)
+let container_review (#mt #it #et : Type) (ctn : container mt it et)
   (#mt': Type) (bij : mt =~ mt')
-   : is_ghost_map mt' it et =
+   : container mt' it et =
 {
-  acc = (fun (v : mt') (i : it) -> igm.acc (bij.gg v) i);
-  upd = (fun (v : mt') (i : it) (x : et) -> bij.ff (igm.upd (bij.gg v) i x));
-  bij = bij_sym bij `bij_comp` igm.bij;
-  l1 = ez;
-  l2 = ez;
+  acc = (fun (v : mt') (i : it) -> ctn.acc (bij.gg v) i);
+  upd = (fun (v : mt') (i : it) (x : et) -> bij.ff (ctn.upd (bij.gg v) i x));
+  l1 = (fun c i v -> ctn.l1 (bij.gg c) i v; bij.gg_ff (ctn.upd (bij.gg c) i v));
+  l2 = (fun c i1 i2 v -> ctn.l2 (bij.gg c) i1 i2 v);
+  ext = (fun c1 c2 _ -> ctn.ext (bij.gg c1) (bij.gg c2) ());
+  from_fun = (fun f -> bij.ff (ctn.from_fun f));
+  from_fun_ok = (fun f i -> ctn.from_fun_ok f i);
 }
 
 let review_view (#et : Type0) (#st : Type0)
@@ -108,7 +113,7 @@ let review_view (#et : Type0) (#st : Type0)
   (bij : st =~ st')
   : aview et st' = {
   iview    = vw.iview;
-  igm      = igm_review vw.igm bij;
+  ctn      = container_review vw.ctn bij;
 }
 
 unfold
@@ -169,20 +174,14 @@ let to_seq
   (v : st)
   : GTot (lseq a (len vw))
   = Seq.init_ghost (len vw) fun (i : natlt (len vw)) ->
-      reveal (vw.igm.acc v (it_of_nat vw i))
-
-let from_seq_aux
-  (#a:Type) (#st:Type)
-  (vw : aview a st)
-  (s : lseq a (len vw))
-  = F.on_g vw.iview.ait fun i -> s @! it_to_nat vw i
+      reveal (vw.ctn.acc v (it_of_nat vw i))
 
 let from_seq
   (#a:Type) (#st:Type)
   (vw : aview a st)
   (s : lseq a (len vw))
   : GTot st
-  = vw.igm.bij.gg (from_seq_aux vw s)
+  = vw.ctn.from_fun (fun i -> s @! it_to_nat vw i)
 
 val to_from (#a:Type) (#st:Type)
   (vw : aview a st { is_full_view vw })
@@ -201,8 +200,8 @@ val to_seq_upd (#a:Type) (#st:Type)
   (v : st)
   (i : vw.iview.ait)
   (x : a)
-  : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
-          [SMTPat (to_seq vw (vw.igm.upd v i x))]
+  : Lemma (ensures to_seq vw (vw.ctn.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
+          [SMTPat (to_seq vw (vw.ctn.upd v i x))]
 
 let sum_aview
   (#et : Type) (#st1 #st2 : Type)
@@ -212,7 +211,7 @@ let sum_aview
   : aview et (st1 & st2) =
 {
   iview = sum_aiview vw1.iview vw2.iview;
-  igm   = solve;
+  ctn   = solve;
 }
 
 let no_overlap_fam
@@ -230,5 +229,5 @@ let sum_aview_fam
   : aview et (natlt n ^->> st) =
 {
   iview = sum_aiview_fam n (fun i -> (vws i).iview);
-  igm   = GhostMap.ghost_map_fun (natlt n) st (fun (i : natlt n) -> (vws i).iview.ait) et;
+  ctn   = solve;
 }

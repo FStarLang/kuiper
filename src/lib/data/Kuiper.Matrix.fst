@@ -3,7 +3,6 @@ module Kuiper.Matrix
 
 open Kuiper
 open Kuiper.Bijection
-open Kuiper.GhostMap
 open Kuiper.EMatrix
 module A = Kuiper.VArray
 module T = FStar.Tactics.V2
@@ -214,7 +213,7 @@ fn gpu_matrix_iabs
   forevery_rw_type _ ((aview_from_mlayout et l).iview.ait) _;
   forevery_ext _
     (fun i -> gpu_pts_to_cell (A.core g) #f ((aview_from_mlayout et l).iview.step.imap.f i)
-      ((aview_from_mlayout et l).igm.acc em i));
+      ((aview_from_mlayout et l).ctn.acc em i));
 
   A.varray_iabs g;
   fold gpu_matrix_pts_to g #f em;
@@ -447,7 +446,7 @@ fn gpu_matrix_write
   assert (pure (
     mupd em i j v
     `Kuiper.EMatrix.equal`
-    (aview_from_mlayout et #rows #cols l).igm.upd em (A.ci_to_ai _ (i,j)) v));
+    (aview_from_mlayout et #rows #cols l).ctn.upd em (A.ci_to_ai _ (i,j)) v));
   fold gpu_matrix_pts_to gm (mupd em i j v);
 }
 
@@ -553,14 +552,14 @@ fn gpu_matrix_explode
   forevery_rw_type (aview_from_mlayout et l).iview.ait (natlt rows & natlt cols) _;
   ghost
   fn aux (rc : natlt rows & natlt cols)
-    requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc)
+    requires A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).ctn.acc em rc)
     ensures  gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2)
   {
     rewrite each rc as (rc._1, rc._2);
     fold gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2);
   };
   forevery_map #(natlt rows & natlt cols)
-    (fun rc -> A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc))
+    (fun rc -> A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).ctn.acc em rc))
     (fun rc -> gpu_matrix_pts_to_cell gm #f rc._1 rc._2 (macc em rc._1 rc._2))
     aux;
   forevery_unflatten #(natlt rows) #(natlt cols) (fun r c ->
@@ -588,7 +587,7 @@ fn gpu_matrix_implode
     (fun r c -> gpu_matrix_pts_to_cell gm #f r c (macc em r c));
   forevery_ext #(natlt rows & natlt cols)
     (fun i -> gpu_matrix_pts_to_cell gm #f i._1 i._2 (macc em i._1 i._2))
-    (fun i -> A.varray_pts_to_cell gm #f i ((aview_from_mlayout et l).igm.acc em i));
+    (fun i -> A.varray_pts_to_cell gm #f i ((aview_from_mlayout et l).ctn.acc em i));
   A.varray_implode gm;
   fold gpu_matrix_pts_to gm #f em;
 }

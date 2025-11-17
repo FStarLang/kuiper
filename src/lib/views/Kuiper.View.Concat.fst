@@ -27,7 +27,7 @@ let aview_concat
       imap     = inj_either vw1.iview.step.imap vw2.iview.step.imap `inj_comp` inj_nat_sum _ _;
     };
   };
-  igm = solve;
+  ctn = solve;
 }
 
 // Note: maybe len1/len2 should be nats, and the relevant size_t

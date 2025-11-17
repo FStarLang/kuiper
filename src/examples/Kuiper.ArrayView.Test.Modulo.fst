@@ -26,7 +26,7 @@ let strided_view et (len : nat) (stride : nat) (offset : natlt stride) :
       };
     };
   };
-  igm = solve;
+  ctn = solve;
 }
 
 let even_view et len : aview et _ = strided_view et len 2 0

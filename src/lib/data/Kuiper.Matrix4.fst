@@ -3,7 +3,6 @@ module Kuiper.Matrix4
 
 open Kuiper
 open Kuiper.Bijection
-open Kuiper.GhostMap
 open Kuiper.EMatrix4
 open Kuiper.Injection { mk_cinj }
 module A = Kuiper.VArray
@@ -507,7 +506,7 @@ fn gpu_matrix_explode
     (aview_from_mlayout et l).iview.ait
     (natlt (mrows * brows) & natlt (mcols * bcols))
     (fun rc ->
-      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));
+      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).ctn.acc em rc));
   forevery_iso bij_2_4 _;
   forevery_ext
     _
@@ -538,7 +537,7 @@ fn gpu_matrix_implode
   forevery_ext
     _
     (fun rc ->
-      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).igm.acc em rc));
+      A.varray_pts_to_cell gm #f rc ((aview_from_mlayout et l).ctn.acc em rc));
   A.varray_implode gm;
   fold gpu_matrix_pts_to gm #f em;
 }

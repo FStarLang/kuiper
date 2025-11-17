@@ -45,7 +45,7 @@ let strided_view #et (#len : nat) (stride : nat) (offset : natlt stride)
       ait = strided_ait base.iview.len stride offset;
       step = IView.compose_astep (strided_step len stride offset) base.iview.step;
     };
-    igm = solve;
+    ctn = solve;
 }
 
 let even_view #et #len

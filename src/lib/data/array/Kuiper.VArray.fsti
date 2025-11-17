@@ -8,7 +8,6 @@ include Kuiper.View
 
 open Kuiper
 open Kuiper.Bijection
-open Kuiper.GhostMap { is_ghost_map }
 open Kuiper.View
 module T = FStar.Tactics.V2
 module SZ = Kuiper.SizeT
@@ -20,8 +19,8 @@ let view_equiv (#et #st : Type)
 = vw1.iview.len == vw2.iview.len /\
   vw1.iview.ait == vw2.iview.ait /\
   F.feq_g vw1.iview.step.imap.f vw2.iview.step.imap.f /\
-  (forall (x: st) (i: vw1.iview.ait). vw1.igm.acc x i == vw2.igm.acc x i) /\
-  (* probably need more about the mappings in igm *)
+  (forall (x: st) (i: vw1.iview.ait). vw1.ctn.acc x i == vw2.ctn.acc x i) /\
+  (* probably need more about the mappings in ctn *)
   True
 
 new
@@ -134,7 +133,7 @@ fn varray_explode
     a |-> Frac f v
   ensures
     forall+ (i : vw.iview.ait).
-      Cell a i |-> Frac f (vw.igm.acc v i)
+      Cell a i |-> Frac f (vw.ctn.acc v i)
 
 ghost
 fn varray_implode
@@ -147,7 +146,7 @@ fn varray_implode
     pure (SZ.fits (len vw))
   requires
     forall+ (i : vw.iview.ait).
-      Cell a i |-> Frac f (vw.igm.acc v i)
+      Cell a i |-> Frac f (vw.ctn.acc v i)
   ensures
     a |-> Frac f v
 
@@ -334,7 +333,7 @@ fn varray_iconcr
   ensures
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
-      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
 
 ghost
 fn varray_iabs
@@ -346,7 +345,7 @@ fn varray_iabs
   requires
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.iview.ait).
-      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.igm.acc v i))
+      gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
   ensures
     a |-> Frac f v
 
@@ -616,7 +615,7 @@ fn varray_read
   returns
     e : et
   ensures
-    pure (e == vw.igm.acc v (ci_to_ai vw ci))
+    pure (e == vw.ctn.acc v (ci_to_ai vw ci))
 
 inline_for_extraction noextract
 fn varray_write
@@ -630,7 +629,7 @@ fn varray_write
   requires
     a |-> v0
   ensures
-    a |-> vw.igm.upd v0 (ci_to_ai vw ci) e //TODO: consider rebinding this
+    a |-> vw.ctn.upd v0 (ci_to_ai vw ci) e //TODO: consider rebinding this
 
 inline_for_extraction noextract
 fn varray_from_array

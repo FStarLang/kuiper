@@ -4,7 +4,6 @@ module Kuiper.View
 
 open Kuiper
 open Kuiper.Bijection
-module F = FStar.FunctionalExtensionality
 
 let it_nat_rel #a #st (vw : aview a st) (i : vw.iview.ait)
   (j : natlt (len vw){FStar.Functions.in_image vw.iview.step.imap.f j})
@@ -16,26 +15,19 @@ let to_from (#a:Type) (#st:Type)
   (s : lseq a (len vw))
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
-  = let _ = vw.igm.bij.gg (F.on_g vw.iview.ait <| fun i -> s @! it_to_nat vw i) in
-    (* funny, mentioning the term above (= from_seq vw s) makes the proof work. *)
-    let aux (i : natlt (len vw))
+  = let aux (i : natlt (len vw))
       : Lemma (to_seq vw (from_seq vw s) @! i == s @! i) =
-      let g = from_seq_aux vw s in
       calc (==) {
         to_seq vw (from_seq vw s) @! i;
         == {}
-        Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> (vw.igm.acc (from_seq vw s) (it_of_nat vw j))) @! i;
+        Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> (vw.ctn.acc (from_seq vw s) (it_of_nat vw j))) @! i;
         == {}
-        (vw.igm.acc (from_seq vw s) (it_of_nat vw i));
+        vw.ctn.acc (from_seq vw s) (it_of_nat vw i);
         == {}
-        vw.igm.bij.ff (from_seq vw s) (it_of_nat vw i);
-        == {}
-        vw.igm.bij.ff (vw.igm.bij.gg g) (it_of_nat vw i);
-        == { vw.igm.bij.ff_gg g }
-        g (it_of_nat vw i);
-        == {}
+        vw.ctn.acc (vw.ctn.from_fun (fun i -> s @! it_to_nat vw i)) (it_of_nat vw i);
+        == { vw.ctn.from_fun_ok (fun i -> s @! it_to_nat vw i) (it_of_nat vw i) }
         s @! it_to_nat vw (it_of_nat vw i);
-        == { assert_norm (it_to_nat vw (it_of_nat vw i) == i) }
+        == {}
         s @! i;
       }
     in
@@ -48,67 +40,51 @@ let from_to (#a:Type) (#st:Type)
   : Lemma (ensures from_seq vw (to_seq vw v) == v)
           [SMTPat (from_seq vw (to_seq vw v))]
 =
-  let lhs = from_seq vw (to_seq vw v) in
-  let rhs = v in
-  let lf = vw.igm.bij.ff lhs in
-  let rf = vw.igm.bij.ff rhs in
   let aux (i : vw.iview.ait)
-    : Lemma (lf i == rf i) =
-    let g = from_seq_aux vw (to_seq vw v) in
+    : Lemma (vw.ctn.acc (from_seq vw (to_seq vw v)) i == vw.ctn.acc v i) =
     calc (==) {
-      lf i;
-      == {}
-      vw.igm.bij.ff (from_seq vw (to_seq vw v)) i;
-      == {}
-      vw.igm.bij.ff (vw.igm.bij.gg g) i;
-      == { vw.igm.bij.ff_gg g }
-      g i;
-      == {}
+      vw.ctn.acc (from_seq vw (to_seq vw v)) i;
+      == { _ by (Tactics.compute ()) } // Odd.
+      vw.ctn.acc (vw.ctn.from_fun (fun i -> to_seq vw v @! it_to_nat vw i)) i;
+      == { vw.ctn.from_fun_ok (fun i -> to_seq vw v @! it_to_nat vw i) i }
       to_seq vw v @! it_to_nat vw i;
       == {}
-      rf i;
+      Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> reveal (vw.ctn.acc v (it_of_nat vw j))) @! it_to_nat vw i;
+      == {}
+      reveal (vw.ctn.acc v (it_of_nat vw (it_to_nat vw i)));
+      == { it_nat_rel vw i (it_to_nat vw i) }
+      reveal (vw.ctn.acc v i);
     }
   in
   Classical.forall_intro aux;
-  assert (F.feq_g lf rf);
-  calc (==) {
-    lhs;
-    == { vw.igm.bij.gg_ff lhs }
-    vw.igm.bij.gg lf <: st;
-    == {}
-    vw.igm.bij.gg rf <: st;
-    == { vw.igm.bij.gg_ff rhs }
-    rhs;
-  }
+  vw.ctn.ext (from_seq vw (to_seq vw v)) v ();
+  ()
 
-#push-options "--retry 10" // flaky, but fast when it works
 let to_seq_upd (#a:Type) (#st:Type)
   (vw : aview a st { is_full_view vw })
   (v : st)
   (i : vw.iview.ait)
   (x : a)
-  : Lemma (ensures to_seq vw (vw.igm.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
-          [SMTPat (to_seq vw (vw.igm.upd v i x))]
+  : Lemma (ensures to_seq vw (vw.ctn.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
+          [SMTPat (to_seq vw (vw.ctn.upd v i x))]
 =
   let aux (idx : natlt (len vw))
-    : Lemma (to_seq vw (vw.igm.upd v i x) @! idx == Seq.upd (to_seq vw v) (it_to_nat vw i) x @! idx) =
-    vw.igm.l2 (it_of_nat vw idx) v x;
-    // calc (==) {
-    //   to_seq vw (vw.igm.upd v i x) @! idx;
-    //   == {}
-    //   // Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> reveal (vw.igm.acc (vw.igm.upd v i x) (it_of_nat vw j))) @! idx;
-    //   // == {}
-    //   // reveal (vw.igm.acc (vw.igm.upd v i x) (it_of_nat vw idx));
-    //   // == { vw.igm.l2 (it_of_nat vw idx) v x }
-    //   // if FStar.StrongExcludedMiddle.strong_excluded_middle (it_of_nat vw idx == i)
-    //   // then x
-    //   // else reveal (vw.igm.acc v (it_of_nat vw idx));
-    //   // == {}
-    //   Seq.upd (to_seq vw v) (it_to_nat vw i) x @! idx;
-    // };
+    : Lemma (to_seq vw (vw.ctn.upd v i x) @! idx == Seq.upd (to_seq vw v) (it_to_nat vw i) x @! idx) =
+    calc (==) {
+      to_seq vw (vw.ctn.upd v i x) @! idx;
+      == {}
+      Seq.init_ghost (len vw) (fun (j : natlt (len vw)) -> reveal (vw.ctn.acc (vw.ctn.upd v i x) (it_of_nat vw j))) @! idx;
+      == {}
+      reveal (vw.ctn.acc (vw.ctn.upd v i x) (it_of_nat vw idx));
+      == {
+        if FStar.StrongExcludedMiddle.strong_excluded_middle (it_of_nat vw idx == i)
+        then vw.ctn.l1 v (it_of_nat vw idx) x
+        else vw.ctn.l2 v (it_of_nat vw idx) i x
+       }
+      Seq.upd (to_seq vw v) (it_to_nat vw i) x @! idx;
+    };
     ()
   in
   Classical.forall_intro aux;
-  assert (to_seq vw (vw.igm.upd v i x) `Seq.equal` Seq.upd (to_seq vw v) (it_to_nat vw i) x) ;
+  assert (to_seq vw (vw.ctn.upd v i x) `Seq.equal` Seq.upd (to_seq vw v) (it_to_nat vw i) x) ;
   ()
-#pop-options

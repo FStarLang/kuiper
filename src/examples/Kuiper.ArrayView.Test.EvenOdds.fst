@@ -27,7 +27,7 @@ let even_view et (len : nat) : aview et (lseq et ((len + 1) / 2)) = {
       };
     }
   };
-  igm = solve;
+  ctn = solve;
 }
 
 noextract
@@ -42,7 +42,7 @@ let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
       };
     };
   };
-  igm = solve;
+  ctn = solve;
 }
 
 (* Somehow generate these automatically for constants? *)

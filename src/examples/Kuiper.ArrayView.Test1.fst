@@ -4,7 +4,6 @@ inline_for_extraction noextract let _ = 1
 
 open Kuiper
 open Kuiper.VArray
-open Kuiper.GhostMap
 open Kuiper.Bijection
 open Kuiper.Injection
 open Kuiper.View
@@ -33,7 +32,7 @@ let base_view (et : Type) (len : nat) : aview et (lseq et len) = {
       imap     = inj_id;
     };
   };
-  igm = solve;
+  ctn = solve;
 }
 
 inline_for_extraction noextract
@@ -45,7 +44,7 @@ let r_base_view (et : Type) (len : nat) : aview et (lseq et len) = {
       imap     = inj_nat_rev len;
     };
   };
-  igm = solve;
+  ctn = solve;
 }
 
 noeq
@@ -144,7 +143,7 @@ fn write2 (a : varray (reverse_view u32 50sz))
   varray_write a 0sz 123ul;
   // varray_write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul;
   // assert (pure (Seq.equal
-  //                (R?._0 ((reverse_view u32 50).igm.upd (R s) (ci_to_ai (reverse_view u32 50) #(creverse_view u32 50sz) 0sz) 123ul))
+  //                (R?._0 ((reverse_view u32 50).ctn.upd (R s) (ci_to_ai (reverse_view u32 50) #(creverse_view u32 50sz) 0sz) 123ul))
   //                (Seq.upd s 0 123ul)));
   ();
 }
