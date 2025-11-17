@@ -201,9 +201,7 @@ let arrayfragments_fade
   (rAcc : ematrix real (wm*tm) (wn*tn))
 : ematrix real tm tn
 =
-  let flat_idx = i * wn + j in
-  let num_res_computed = resIdxM * wn + resIdxN in
-  if flat_idx < num_res_computed
+  if i < resIdxM || (i = resIdxM && j < resIdxN)
   then ematrix_subtile rAcc tm tn i j `matplus`
     (matmul (ematrix_subtile rA tm tk i 0) (ematrix_subtile rB tk tn 0 j))
   else ematrix_subtile rAcc tm tn i j
