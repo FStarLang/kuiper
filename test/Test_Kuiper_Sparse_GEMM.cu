@@ -1,8 +1,11 @@
 #include "Kuiper_Sparse_GEMM.h"
+#include "test-common.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
+
+const char *progname = __FILE__;
 
 #define N 128
 
@@ -81,15 +84,40 @@ void print_matrix(const char *name, uint32_t *M)
 
 int main(int argc, char **argv)
 {
-    srand(time(NULL) + getpid());
+    // srand(time(NULL) + getpid());
     uint32_t *AD = mk_dense_matrix();
     smatrix_t A = sparsify_matrix(AD);
     uint32_t *B = mk_dense_matrix();
-    uint32_t *C = (uint32_t *) calloc(N * N, sizeof C[0]);
-    uint32_t *CD = (uint32_t *) calloc(N * N, sizeof C[0]);
+    uint32_t *CD = (uint32_t *) calloc(N * N, sizeof CD[0]);
 
-    Kuiper_Sparse_GEMM__gemm_u32_rr(N, N, N, A, B, C);
+    smatrix_t dA;
+    dA.nnz1 = A.nnz1;
+    dA.elems1 = (uint32_t *) kpr_wait_alloc(sizeof dA.elems1[0], A.nnz1);
+    dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0], A.nnz1);
+    dA.row_off = (uint32_t *) kpr_wait_alloc(sizeof dA.row_off[0], N + 1);
+
+    cudaMemcpy(dA.elems1, A.elems1,
+               sizeof A.elems1[0] * A.nnz1, cudaMemcpyHostToDevice);
+    cudaMemcpy(dA.col_ind, A.col_ind,
+               sizeof A.col_ind[0] * A.nnz1, cudaMemcpyHostToDevice);
+    cudaMemcpy(dA.row_off, A.row_off,
+               sizeof A.row_off[0] * (N + 1), cudaMemcpyHostToDevice);
+
+    uint32_t *dB = (uint32_t *) kpr_wait_alloc(sizeof dB[0], N * N);
+    cudaMemcpy(dB, B, sizeof B[0] * N * N, cudaMemcpyHostToDevice);
+    uint32_t *dC = (uint32_t *) kpr_wait_alloc(sizeof dC[0], N * N);
+
+    Kuiper_Sparse_GEMM__gemm_u32_rr(N, N, N, dA, dB, dC);
     matmul(AD, B, CD);
+
+    uint32_t *C = (uint32_t *) calloc(N * N, sizeof C[0]);
+    cudaMemcpy(C, dC, sizeof C[0] * N * N, cudaMemcpyDeviceToHost);
+
+    cudaFree(dA.elems1);
+    cudaFree(dA.col_ind);
+    cudaFree(dA.row_off);
+    cudaFree(dB);
+    cudaFree(dC);
 
     // print_matrix("AD", AD);
     // print_matrix("B", B);
