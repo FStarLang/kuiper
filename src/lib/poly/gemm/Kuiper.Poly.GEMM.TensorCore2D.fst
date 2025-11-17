@@ -104,7 +104,7 @@ ensures
     let tile_for_tc_a_tiles =
       gpu_matrix_extract_tile_ro' gm (wm*tm) (SZ.v tk) (SZ.v arow) (SZ.v dotIdx);
     let mut i0 = 0sz;
-    while ((!i0 <^ wm))
+    while (!i0 <^ wm)
       invariant live i0
       invariant
         (exists* ems.
@@ -162,7 +162,7 @@ ensures
 
     let tile_for_tc_b_tiles = gpu_matrix_extract_tile_ro' gm (SZ.v tk) (wn*tn) (SZ.v dotIdx) (SZ.v bcol);
     let mut i1 = 0sz;
-    while ((!i1 <^ wn))
+    while (!i1 <^ wn)
       invariant live i1
       invariant
         (exists* ems.
@@ -243,7 +243,7 @@ fn fragarray_mma
   with eBs. assert bFrags |-> eBs;
 
   let mut resIdxM = 0sz;
-  while ((!resIdxM <^ wm))
+  while (!resIdxM <^ wm)
     invariant live resIdxM
     invariant
       exists* (eAcc : seq (ematrix et_acc tm tn)).
@@ -256,7 +256,7 @@ fn fragarray_mma
               (arrayfragments_fade tm tn tk wm wn i j !resIdxM 0 rA rB rAcc))
   {
     let mut resIdxN = 0sz;
-    while ((!resIdxN <^ wn))
+    while (!resIdxN <^ wn)
       invariant live resIdxN
       invariant
         exists* (eAcc : seq (ematrix et_acc tm tn)).
@@ -385,7 +385,7 @@ fn subproducts_tc_2d
       (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol 0;
 
   let mut dotIdx : sz = 0sz;
-  while ((!dotIdx <^ (bk/^tk)))
+  while (!dotIdx <^ (bk/^tk))
     invariant live aFrags ** live bFrags
     invariant
       exists* (vdotIdx : sz { vdotIdx <= (bk/tk) }).
@@ -526,7 +526,7 @@ fn epilogue
   assert pure (eWarpTile %~ em_fade_tiles tm tn wm wn 0 0 rWarpTile rAcc);
 
   let mut i = 0sz;
-  while ((!i <^ wm))
+  while (!i <^ wm)
     invariant
       live i
     invariant
@@ -536,7 +536,7 @@ fn epilogue
             eWarpTile %~ (em_fade_tiles tm tn wm wn !i 0 rWarpTile rAcc))
   {
     let mut j = 0sz;
-    while ((!j <^ wn))
+    while (!j <^ wn)
       invariant live j
       invariant
         exists* (eWarpTile: ematrix et (wm*tm) (wn*tn)).
@@ -608,7 +608,7 @@ ensures
   array_fragment_pts_to_ref accumFrags;
 
   let mut fi : sz = 0sz;
-  while ((!fi <^ wm*^wn))
+  while (!fi <^ wm*^wn)
     invariant
       live fi **
       (exists* (eAcc : seq (ematrix et tm tn)).
@@ -871,7 +871,7 @@ fn kf
   let gwCol : enatlt (cols/(wn*tn)) = mcol * (bn/(wn*tn)) + warpCol;
 
   let mut bkIdx : sz = 0sz;
-  while ((!bkIdx <^ num_k_tiles))
+  while (!bkIdx <^ num_k_tiles)
     invariant
       exists* (vbkIdx : sz { vbkIdx <= num_k_tiles }).
         bkIdx |-> vbkIdx **

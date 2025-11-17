@@ -533,7 +533,7 @@ fn smatrix_id
 {
 
   let mut i = 0sz;
-  while ((!i <^ m.nnz))
+  while (!i <^ m.nnz)
     invariant
       m |-> e ** live i
   {

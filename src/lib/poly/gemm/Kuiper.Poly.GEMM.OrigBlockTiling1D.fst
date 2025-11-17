@@ -335,7 +335,7 @@ fn subproducts1d
       rch1d |-> resvs'
 {
   let mut dotIdx : sz = 0sz;
-  while ((!dotIdx <^ bk))
+  while (!dotIdx <^ bk)
     invariant live dotIdx ** pure (!dotIdx <= bk)
     invariant live rch1d
   {
@@ -424,7 +424,7 @@ fn kf
   let mut cache1d : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
 
   let mut bkIdx  : sz = 0sz;
-  while ((!bkIdx <^ mshared))
+  while (!bkIdx <^ mshared)
     invariant
       live bkIdx ** pure (!bkIdx <= mshared) **
       B.barrier_state (2 * !bkIdx)
@@ -496,7 +496,7 @@ fn kf
 
   (* Write all the accumulated dotproducts. *)
   let mut resIdx : sz = 0sz;
-  while ((!resIdx <^ tm))
+  while (!resIdx <^ tm)
     invariant live resIdx ** pure (!resIdx <= tm)
     invariant live cache1d
   {

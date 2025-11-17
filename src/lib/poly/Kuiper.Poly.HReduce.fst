@@ -309,7 +309,7 @@ fn kf
   (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + 1) s vr);
 
   open FStar.SizeT;
-  while ((spow2 !n <^ nth))
+  while (spow2 !n <^ nth)
     invariant
       exists* (it : szlt 32).
         n |-> it **

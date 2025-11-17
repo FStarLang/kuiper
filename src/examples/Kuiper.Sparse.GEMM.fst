@@ -172,7 +172,7 @@ fn matmul_dotprod
 
   let mut k = ri;
 
-  while ((!k <^ re))
+  while (!k <^ re)
     invariant
       live dp **
       live k **

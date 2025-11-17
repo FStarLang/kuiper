@@ -250,7 +250,7 @@ fn sarray_product_dense
 
   let pos : erased (lseq nat a.nnz) = cast_pos v_pos;
 
-  while ((!i <^ a.nnz))
+  while (!i <^ a.nnz)
     invariant
       (exists* i_v dp_v.
         i |-> i_v **
@@ -306,12 +306,12 @@ fn sarray_product_quadratic
   let mut dp : et = zero;
 
   let mut i = 0sz;
-  while ((!i <^ a.nnz))
+  while (!i <^ a.nnz)
     invariant live i ** live dp
   {
     let mut j = 0sz;
     let p_a = gpu_array_read a.pos !i;
-    while ((!j <^ b.nnz))
+    while (!j <^ b.nnz)
       invariant live j ** live dp
     {
       let p_b = gpu_array_read b.pos !j;
@@ -361,7 +361,7 @@ fn sarray_product
 
   let mut i = 0sz;
   let mut j = 0sz;
-  while ((!i <^ a.nnz && !j <^ b.nnz))
+  while (!i <^ a.nnz && !j <^ b.nnz)
     invariant live i ** live j
     invariant live dp
   {

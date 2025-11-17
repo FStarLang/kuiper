@@ -27,7 +27,7 @@ fn for_loop (lo hi : SZ.t)
     (fun x -> x >= lo)
     pre;
 
-  while ((!i <^ hi))
+  while (!i <^ hi)
     invariant
       exists* (vi : SZ.t).
         i |-> vi **

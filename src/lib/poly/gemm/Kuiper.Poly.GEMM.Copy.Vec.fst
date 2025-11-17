@@ -569,7 +569,7 @@ fn cp_matrix_vec
        as own_strided_chunks dst (em_fade edst esrc nthr 0) nthr tid;
 
   let git = Pulse.Lib.GhostReference.alloc #nat 0;
-  while ((!i <^ mlen))
+  while (!i <^ mlen)
     invariant
       live i ** live git **
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
@@ -604,7 +604,7 @@ fn cp_matrix_vec
     mul_inv_2 ite (!i) nthr (chunk et);
 
     let mut k = 0sz;
-    while ((!k <^ chunk et))
+    while (!k <^ chunk et)
       invariant live k ** pure (!k <= chunk et)
       invariant
         exists* em'.

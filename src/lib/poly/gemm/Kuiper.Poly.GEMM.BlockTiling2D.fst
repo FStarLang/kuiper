@@ -551,7 +551,7 @@ fn kf
   with x. fold FB.bp_sharing sB x nthr;
 
   let mut bkIdx  : sz = 0sz;
-  while ((!bkIdx <^ num_k_tiles))
+  while (!bkIdx <^ num_k_tiles)
     invariant
       exists* (vbkIdx : SZ.t{vbkIdx <= num_k_tiles}) (vrAcol : lseq et tm) (vrBrow : lseq et tn) (vrchProd : lseq et (tm*tn)).
         bkIdx |-> vbkIdx **

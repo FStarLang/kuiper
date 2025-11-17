@@ -18,7 +18,7 @@ fn sarray_id
   preserves sarray_pts_to a s0
 {
   let mut i = 0sz;
-  while ((!i <^ a.nnz))
+  while (!i <^ a.nnz)
     invariant a |-> s0 ** live i
   {
     unfold sarray_pts_to a s0;
@@ -86,7 +86,7 @@ fn sarray_scale
   with v_elems. assert a.elems |-> v_elems;
   with v_pos. assert a.pos |-> v_pos;
 
-  while ((!i <^ a.nnz))
+  while (!i <^ a.nnz)
     invariant
       (exists* i_v v_elems'.
         i |-> i_v **

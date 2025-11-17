@@ -33,7 +33,7 @@ fn smatrix_sdmm
   let mut i = 0sz;
   unfold smatrix_pts_to gA;
 
-  while ((!i <^ rows))
+  while (!i <^ rows)
     invariant live i ** pure (!i <= rows)
     invariant live gC
   {
@@ -49,7 +49,7 @@ fn smatrix_sdmm
 
       let mut k = ri;
 
-      while ((!k <^ re))
+      while (!k <^ re)
         invariant
             live dp ** live k
       {
