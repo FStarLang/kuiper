@@ -410,11 +410,9 @@ fn gpu_matrix_read
   (#f : perm)
   (#em : ematrix et rows cols)
   requires
-    gpu **
     gpu_matrix_pts_to gm #f em
   returns v : et
   ensures
-    gpu **
     gpu_matrix_pts_to gm #f em **
     pure (v == macc em i j)
 {
@@ -435,10 +433,8 @@ fn gpu_matrix_write
   (v : et)
   (#em : ematrix et rows cols)
   requires
-    gpu **
     gpu_matrix_pts_to gm em
   ensures
-    gpu **
     gpu_matrix_pts_to gm (mupd em i j v)
 {
   unfold gpu_matrix_pts_to gm em;
@@ -485,11 +481,9 @@ fn gpu_matrix_read_cell
   (#f : perm)
   (#v0 : erased et)
   requires
-    gpu **
     gpu_matrix_pts_to_cell gm #f i j v0
   returns v : et
   ensures
-    gpu **
     gpu_matrix_pts_to_cell gm #f i j v **
     pure (v == v0)
 {
@@ -516,10 +510,8 @@ fn gpu_matrix_write_cell
   (v1 : et)
   (#v0 : erased et)
   requires
-    gpu **
     gpu_matrix_pts_to_cell gm i j v0
   ensures
-    gpu **
     gpu_matrix_pts_to_cell gm i j v1
 {
   unfold gpu_matrix_pts_to_cell gm i j v0;
