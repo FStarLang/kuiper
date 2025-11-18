@@ -20,10 +20,11 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module FB = Kuiper.Poly.GEMM.FlipFlopBarrier
 
+inline_for_extraction noextract
 let ttile
   (#et : Type0)
-  (#rows : nat)
-  (#cols : nat)
+  (#rows : erased nat)
+  (#cols : erased nat)
   (#lC : mlayout rows cols)
   (gC : gpu_matrix et lC)
   (bm : nat{bm > 0 /\ bm /?+ rows})
@@ -259,14 +260,18 @@ instance kpost_block_sendable
   (kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
 
+let flat_matrix (#et : Type0) (#rows #cols : nat) (m : ematrix et rows cols)
+  : GTot (lseq et (rows * cols))
+  = Seq.init_ghost (rows * cols) (fun idx -> macc m (idx / cols) (idx % cols))
+
 inline_for_extraction noextract
 fn subproducts2d
   (#et : Type0) {| scalar et |}
   (bm bn bk: szp)
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
-  (rAcol rBrow rchProd: array et)
-  (#vrAcol #vrBrow #vrchProd : erased (seq et))
+  (rchProd: larray et (tm * tn))
+  (#vrchProd : erased (seq et))
   (#l1 : mlayout bm bk) {| clayout l1 |}
   (#l2 : mlayout bk bn) {| clayout l2 |}
   (gA : gpu_matrix et l1)
@@ -276,95 +281,87 @@ fn subproducts2d
   (#f : perm)
   (arow: szlt (bm/tm))
   (bcol : szlt (bn/tn))
+  (#_ : squash (len vrchProd == tm * tn))
   preserves
-    gpu **
     gA |-> Frac f eA **
     gB |-> Frac f eB
   requires
-    pure (Seq.length vrAcol == tm) **
-    pure (Seq.length vrBrow == tn) **
-    pure (Seq.length vrchProd == tm * tn) **
-    // I think this should be implied through the clayouts and the facts that
-    //  tm and tn divide the matrix dimensions.
-    pure (SZ.fits (tm * tn)) **
-    rAcol |-> vrAcol **
-    rBrow |-> vrBrow **
     rchProd |-> vrchProd
   ensures
-    exists* vrAcol' vrBrow' vrchProd'.
-      pure (Seq.length vrAcol' == tm /\
-            Seq.length vrBrow' == tn /\
-            Seq.length vrchProd' == tm * tn) **
-      rAcol |-> vrAcol' **
-      rBrow |-> vrBrow' **
-      rchProd |-> vrchProd'
+    rchProd |-> Seq.init_ghost (tm * tn)
+      (fun idx ->
+        let i = idx / tn in
+        let j = idx % tn in
+        (vrchProd @! idx) `add` macc (MS.matmul eA eB) i j)
 {
+  open Pulse.Lib.Array;
+
   let mut dotIdx : sz = 0sz;
-  while (SZ.(!dotIdx <^ bk))
-    invariant
-      exists* (vdotIdx : sz{vdotIdx <= bk}) (vrAcol : erased (lseq et tm))
-        (vrBrow : erased (lseq et tn)) (vrchProd : erased (lseq et (tm*tn))).
-        dotIdx |-> vdotIdx **
-        rAcol |-> vrAcol **
-        rBrow |-> vrBrow **
-        rchProd |-> vrchProd
+  while (!dotIdx <^ bk)
+    invariant live dotIdx ** pure (!dotIdx <= bk)
+    invariant live rchProd
   {
-    open Pulse.Lib.Array;
+    (* register caches *)
+    let mut rAcol : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
+    let mut rBrow : Pulse.Lib.Array.array et = [| zero #et #_ ; tn |];
 
-    let mut i0 = 0sz;
-    while (SZ.(!i0 <^ tm))
-      invariant
-        exists* (vi : sz{vi <= tm}) (vrAcol : erased (lseq et tm)).
-          i0 |-> vi **
-          rAcol |-> vrAcol
+    let mut j0 = 0sz;
+    while (!j0 <^ tm)
+      invariant exists* (vj0 : sz{SZ.v vj0 <= tm}). j0 |-> vj0
+      invariant exists* (vrAcol : lseq et tm).
+        rAcol |-> vrAcol **
+        pure (forall (k : natlt (!j0)).
+                vrAcol @! k == macc eA (tm * arow + k) !dotIdx)
     {
-      (* get rid of a few non-linear arithmetic expressions *)
-      let a_tile = gpu_matrix_extract_tile_ro' gA
-        (SZ.v tm) 1 (SZ.v arow) (SZ.v !dotIdx);
-      let va = gpu_matrix_read a_tile !i0 0sz;
-      ambig_trade_elim ();
-      rAcol.(!i0) <- va;
-
-      i0 := !i0 +^ 1sz;
+      pts_to_len rAcol;
+      let va = gpu_matrix_read gA (tm *^ arow +^ !j0) !dotIdx;
+      rAcol.(!j0) <- va;
+      j0 := !j0 +^ 1sz;
     };
+    with vrAcol. assert rAcol |-> vrAcol;
+    assert
+        pure (forall (k : natlt tm).
+                vrAcol @! k == macc eA (tm * arow + k) !dotIdx);
 
-    let mut i1 = 0sz;
-    while (SZ.(!i1 <^ tn))
-      invariant
-        exists* (vi : sz{vi <= tn}) (vrBrow : erased (lseq et tn)).
-          i1 |-> vi **
-          rBrow |-> vrBrow
+    let mut j1 = 0sz;
+    while (!j1 <^ tn)
+      invariant exists* (vj1 : sz{SZ.v vj1 <= tn}). j1 |-> vj1
+      invariant exists* (vrBrow : lseq et tn).
+        rBrow |-> vrBrow **
+        pure (forall (k : natlt (!j1)).
+                vrBrow @! k == macc eB !dotIdx (tn * bcol + k))
     {
-      let b_tile = gpu_matrix_extract_tile_ro' gB
-        1 (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
-      let vb = gpu_matrix_read b_tile 0sz !i1;
-      ambig_trade_elim ();
-      rBrow.(!i1) <- vb;
-
-      i1 := !i1 +^ 1sz;
+      pts_to_len rBrow;
+      let vb = gpu_matrix_read gB !dotIdx (tn *^ bcol +^ !j1);
+      rBrow.(!j1) <- vb;
+      j1 := !j1 +^ 1sz;
     };
+    with vrBrow. assert rBrow |-> vrBrow;
+    assert
+        pure (forall (k : natlt tn).
+                vrBrow @! k == macc eB !dotIdx (tn * bcol + k));
 
     let mut resIdxM = 0sz;
-    while (SZ.(!resIdxM <^ tm))
-      invariant
-        exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : erased (lseq et (tm*tn))).
-          resIdxM |-> vresIdxM **
-          rchProd |-> vrchProd
+    while (!resIdxM <^ tm)
+      invariant live resIdxM ** pure (!resIdxM <= tm)
+      invariant live rchProd
     {
       let mut resIdxN = 0sz;
-      while (SZ.(!resIdxN <^ tn))
-        invariant
-          exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : erased (lseq et (tm*tn))).
-            resIdxN |-> vresIdxN **
-            rchProd |-> vrchProd
+      while (!resIdxN <^ tn)
+        invariant live resIdxN ** pure (!resIdxN <= tn)
+        invariant live rchProd
       {
+        pts_to_len rAcol;
+        pts_to_len rBrow;
+        pts_to_len rchProd;
+
         (* works on arrays and therefore does not have the nice matrix abstraction *)
         let ra = rAcol.(!resIdxM);
         let rb = rBrow.(!resIdxN);
-        assert(pure(SZ.fits(!resIdxM *^ tn +^ !resIdxN)));
-        let old = rchProd.(!resIdxM *^ tn +^ !resIdxN);
+        let idx = !resIdxM *^ tn +^ !resIdxN;
+        let old = rchProd.(idx);
         let mad = old `add` (ra `mul` rb);
-        rchProd.(!resIdxM *^ tn +^ !resIdxN) <- mad;
+        rchProd.(idx) <- mad;
 
         resIdxN := !resIdxN +^ 1sz;
       };
@@ -373,7 +370,14 @@ fn subproducts2d
     };
 
     dotIdx := !dotIdx +^ 1sz;
-  }
+  };
+
+  with v. assert rchProd |-> v;
+  assume pure (v == Seq.init_ghost (tm * tn)
+    (fun idx ->
+      let i = idx / tn in
+      let j = idx % tn in
+      (vrchProd @! idx) `add` macc (MS.matmul eA eB) i j));
 }
 
 inline_for_extraction noextract
@@ -386,7 +390,7 @@ fn epilogue
   (bn : szp{bn /?+ cols})
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
-  (rchProd: array et)
+  (rchProd: larray et (tm * tn))
   (#lC : mlayout rows cols)
   {| clayout lC |}
   (gC : gpu_matrix et lC)
@@ -397,53 +401,35 @@ fn epilogue
   (bid : szlt (rows/bm * (cols/bn)))
   (tid : szlt (bm/tm * (bn/tn)))
   requires
-    gpu **
-    ttile gC bm bn tm tn bid tid |-> 'init **
-    (exists* vrchProd.
-      pure (Seq.length vrchProd == tm * tn) **
-      rchProd |-> vrchProd)
+    ttile gC bm bn tm tn bid tid |-> ettile eC bm bn tm tn bid tid **
+    live rchProd
   ensures
-    gpu **
     ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid **
-    (exists* vrchProd'.
-      pure (Seq.length vrchProd' == tm * tn) **
-      (rchProd |-> vrchProd'))
+    live rchProd
 {
-  // unfold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
-  let t_tile = thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-    (SZ.v tm) (SZ.v tn)  (SZ.v tid);
-  assert (rewrites_to t_tile (thread_tile (block_tile gC (SZ.v bm) (SZ.v bn) (SZ.v bid))
-    (SZ.v tm) (SZ.v tn)  (SZ.v tid)));
+  let t_tile = ttile gC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid);
+  assert (rewrites_to t_tile (ttile gC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid)));
 
   let mut resIdxM = 0sz;
-  while (SZ.(!resIdxM <^ tm))
-    invariant
-      exists* (vresIdxM : sz{vresIdxM <= tm}) (vrchProd : lseq et (tm*tn)) (v : ematrix et tm tn).
-        resIdxM |-> vresIdxM **
-        rchProd |-> vrchProd **
-        gpu_matrix_pts_to t_tile v
+  while (!resIdxM <^ tm)
+    invariant live resIdxM ** pure (!resIdxM <= tm)
+    invariant live rchProd
+    invariant exists* v. t_tile |-> v
   {
     let mut resIdxN = 0sz;
-    while (SZ.(!resIdxN <^ tn))
-      invariant
-        exists* (vresIdxN : sz{vresIdxN <= tn}) (vrchProd : lseq et (tm*tn)) (v : ematrix et tm tn).
-          resIdxN |-> vresIdxN **
-          rchProd |-> vrchProd **
-          gpu_matrix_pts_to t_tile v
-
+    while (!resIdxN <^ tn)
+      invariant live resIdxN ** pure (!resIdxN <= tn)
+      invariant live rchProd
+      invariant exists* v. t_tile |-> v
     {
-      let v0 = gpu_matrix_read t_tile !resIdxM !resIdxN;
-
-      (* add the new result in the register cache to the value from gC and overwrite the the cell in gC *)
       open Pulse.Lib.Array;
-      // all obvious but without the asserts the next line fails
-      assert pure (SZ.fits (tm * tn));
-      assert pure (SZ.fits ((tm-1) * tn + tn));
-      with vrchProd. assert Pulse.Lib.Array.pts_to rchProd vrchProd;
-      assert pure (Seq.length vrchProd == tm * tn);
+      pts_to_len rchProd;
+
+      (* Combine the new result in the register cache to the value from gC and
+      overwrite the the cell in gC *)
+      let v0 = gpu_matrix_read t_tile !resIdxM !resIdxN;
       let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
       let v' = comb v0 v1;
-
       gpu_matrix_write t_tile !resIdxM !resIdxN v';
 
       resIdxN := !resIdxN +^ 1sz;
@@ -455,8 +441,6 @@ fn epilogue
   with m. assert gpu_matrix_pts_to t_tile m;
   assume pure (m == ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid);
 
-  // rewrite each t_tile as thread_tile (block_tile gC bm bn bid) tm tn tid;
-  // fold own_thread_tile gC bm bn tm tn (SZ.v bid) (SZ.v tid);
   ()
 }
 
@@ -539,8 +523,6 @@ fn kf
   let threadCol = tid %^ (bn/^tn);
 
   (* register caches *)
-  let mut rAcol : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
-  let mut rBrow : Pulse.Lib.Array.array et = [| zero #et #_ ; tn |];
   assert pure (tm <= rows);
   assert pure (tn <= cols);
   assert pure (tm * tn <= rows * cols);
@@ -552,15 +534,11 @@ fn kf
 
   let mut bkIdx  : sz = 0sz;
   while (!bkIdx <^ num_k_tiles)
-    invariant
-      exists* (vbkIdx : SZ.t{vbkIdx <= num_k_tiles}) (vrAcol : lseq et tm) (vrBrow : lseq et tn) (vrchProd : lseq et (tm*tn)).
-        bkIdx |-> vbkIdx **
-        rAcol |-> vrAcol **
-        rBrow |-> vrBrow **
-        rchProd |-> vrchProd **
+    invariant live bkIdx ** pure (!bkIdx <= num_k_tiles)
+    invariant live rchProd
+    invariant B.barrier_state (2 * !bkIdx) **
         (exists* (x : ematrix _ _ _). FB.bp_sharing sA x nthr) **
-        (exists* (x : ematrix _ _ _). FB.bp_sharing sB x nthr) **
-        B.barrier_state (2 * vbkIdx)
+        (exists* (x : ematrix _ _ _). FB.bp_sharing sB x nthr)
   {
     even_2x !bkIdx;
     #set-options "--z3rlimit 60" {
@@ -593,6 +571,8 @@ fn kf
     assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure (odd (2 * !bkIdx + 1)));
+    assert pure ((2 * !bkIdx + 1) < (2 * (shared /^ bk)));
+    assert pure ((2 * !bkIdx + 1) / 2 == !bkIdx);
     #set-options "--z3rlimit 60" {
     rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
     as
@@ -603,7 +583,8 @@ fn kf
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
-    subproducts2d bm bn bk tm tn rAcol rBrow rchProd sA sB threadRow threadCol;
+    pts_to_len rchProd;
+    subproducts2d bm bn bk tm tn rchProd sA sB threadRow threadCol;
 
     fold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;

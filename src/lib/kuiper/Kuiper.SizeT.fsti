@@ -32,12 +32,8 @@ unfold type szp = x:sz{FStar.SizeT.v x > 0}
 // Note: making this argument int instead of nat prevents
 // queries about non-negativity from appearing in the well-formedness
 // of types.
-unfold type szlt (n:int) = i:sz{SZ.v i < n}
-
-// Good riddance
-// unfold type szlt2
-//   (b1 : SZ.t)
-//   (b2 : SZ.t{SZ.fits (SZ.v b1 * SZ.v b2)}) = szlt (SZ.v (b1 `SZ.mul` b2))
+unfold type szlt (n:int) = i:sz{SZ.v i <  n}
+unfold type szle (n:int) = i:sz{SZ.v i <= n}
 
 unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
