@@ -14,7 +14,6 @@
 #include "tensorcores.h"
 #endif
 
-typedef half half_t; /* crutch */
 /* NOTE: making this a macro means it works in host/device, but we
  * need a more scalable solution. */
 #define __hexp(f) (__float2half(exp(__half2float(f))))

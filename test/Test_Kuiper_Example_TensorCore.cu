@@ -6,12 +6,12 @@
 // about multiple declarations.
 #include "Kuiper_Example_TensorCore.cu"
 
-__global__ void k(half_t *a, half_t *b, half_t *c)
+__global__ void k(half *a, half *b, half *c)
 {
     Kuiper_Example_TensorCore_test(a, b, c);
 }
 
-__global__ void k2(half_t *a, half_t *b, half_t *c)
+__global__ void k2(half *a, half *b, half *c)
 {
     Kuiper_Example_TensorCore_test2(a, b, c);
 }
