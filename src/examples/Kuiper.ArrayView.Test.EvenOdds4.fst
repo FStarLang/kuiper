@@ -21,6 +21,7 @@ module SZ    = FStar.SizeT
 open Kuiper.IView
 open Kuiper.View
 
+noextract
 let strided_ait (len : nat) (stride : nat) (offset : natlt stride) : Type =
   natlt ((len + stride - 1 - offset) / stride)
 
