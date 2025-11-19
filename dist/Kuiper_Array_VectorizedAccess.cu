@@ -5,10 +5,10 @@ __global__
 /**
   hoisted when extracting hf
 */
-static void __hoisted_0(float_t *a, float_t two)
+static void __hoisted_0(float *a, float two)
 {
-    float_t local[4U];
-    memset(local, 0U, 4U * sizeof(float_t));
+    float local[4U];
+    memset(local, 0U, 4U * sizeof(float));
     vec_memcpy(local, a);
     *local *= two;
     local[1U] *= two;
@@ -17,9 +17,9 @@ static void __hoisted_0(float_t *a, float_t two)
     vec_memcpy(a, local);
 }
 
-void Kuiper_Array_VectorizedAccess_hf(float_t *v)
+void Kuiper_Array_VectorizedAccess_hf(float *v)
 {
-    float_t *a = (float_t *) KPR_GPU_ALLOC(4U, 4U);
+    float *a = (float *)KPR_GPU_ALLOC(4U, 4U);
     MUST(cudaMemcpy(a, v, 16U, cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute

@@ -53,15 +53,15 @@ __global__
 /**
   hoisted when extracting reduce_f32
 */
-static void __hoisted_2(float_t *a, float_t *gr)
+static void __hoisted_2(float *a, float *gr)
 {
     atomic_add_f32(gr, a[blockIdx.x]);
 }
 
-float_t Kuiper_AtomicReduce_reduce_f32(uint32_t n, float_t *a)
+float Kuiper_AtomicReduce_reduce_f32(uint32_t n, float *a)
 {
-    float_t r = 0.0f;
-    float_t *gr = (float_t *) KPR_GPU_ALLOC(4U, 1U);
+    float r = 0.0f;
+    float *gr = (float *)KPR_GPU_ALLOC(4U, 1U);
     MUST(cudaMemcpy(gr, &r, 4U, cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -77,15 +77,15 @@ __global__
 /**
   hoisted when extracting reduce_f64
 */
-static void __hoisted_3(double_t *a, double_t *gr)
+static void __hoisted_3(double *a, double *gr)
 {
     atomic_add_f64(gr, a[blockIdx.x]);
 }
 
-double_t Kuiper_AtomicReduce_reduce_f64(uint32_t n, double_t *a)
+double Kuiper_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
-    double_t r = 0.0l;
-    double_t *gr = (double_t *) KPR_GPU_ALLOC(8U, 1U);
+    double r = 0.0l;
+    double *gr = (double *)KPR_GPU_ALLOC(8U, 1U);
     MUST(cudaMemcpy(gr, &r, 8U, cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute

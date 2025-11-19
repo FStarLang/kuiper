@@ -4,17 +4,15 @@
 
 #include <kuiper.h>
 
-float_t
-    * Kuiper_GEMM_Naive2_matmul_f32_rrr(uint32_t rows,
-                                        uint32_t shared,
-                                        uint32_t cols,
-                                        float_t * a, float_t * b);
+float
+*Kuiper_GEMM_Naive2_matmul_f32_rrr(uint32_t rows,
+                                   uint32_t shared,
+                                   uint32_t cols, float *a, float *b);
 
-double_t
-    * Kuiper_GEMM_Naive2_matmul_f64_rrr(uint32_t rows,
-                                        uint32_t shared,
-                                        uint32_t cols,
-                                        double_t * a, double_t * b);
+double
+*Kuiper_GEMM_Naive2_matmul_f64_rrr(uint32_t rows,
+                                   uint32_t shared,
+                                   uint32_t cols, double *a, double *b);
 
 uint32_t
     * Kuiper_GEMM_Naive2_matmul_u32_rrr(uint32_t rows,
@@ -28,17 +26,15 @@ uint64_t
                                         uint32_t cols,
                                         uint64_t * a, uint64_t * b);
 
-float_t
-    * Kuiper_GEMM_Naive2_matmul_f32_ccc(uint32_t rows,
-                                        uint32_t shared,
-                                        uint32_t cols,
-                                        float_t * a, float_t * b);
+float
+*Kuiper_GEMM_Naive2_matmul_f32_ccc(uint32_t rows,
+                                   uint32_t shared,
+                                   uint32_t cols, float *a, float *b);
 
-double_t
-    * Kuiper_GEMM_Naive2_matmul_f64_ccc(uint32_t rows,
-                                        uint32_t shared,
-                                        uint32_t cols,
-                                        double_t * a, double_t * b);
+double
+*Kuiper_GEMM_Naive2_matmul_f64_ccc(uint32_t rows,
+                                   uint32_t shared,
+                                   uint32_t cols, double *a, double *b);
 
 uint32_t
     * Kuiper_GEMM_Naive2_matmul_u32_ccc(uint32_t rows,
@@ -56,14 +52,13 @@ void
 Kuiper_GEMM_Naive2_g_matmul_f32_rrr(uint32_t rows,
                                     uint32_t shared,
                                     uint32_t cols,
-                                    float_t * gA, float_t * gB, float_t * gC);
+                                    float *gA, float *gB, float *gC);
 
 void
 Kuiper_GEMM_Naive2_g_matmul_f64_rrr(uint32_t rows,
                                     uint32_t shared,
                                     uint32_t cols,
-                                    double_t * gA,
-                                    double_t * gB, double_t * gC);
+                                    double *gA, double *gB, double *gC);
 
 void
 Kuiper_GEMM_Naive2_g_matmul_u32_rrr(uint32_t rows,
@@ -83,14 +78,13 @@ void
 Kuiper_GEMM_Naive2_g_matmul_f32_ccc(uint32_t rows,
                                     uint32_t shared,
                                     uint32_t cols,
-                                    float_t * gA, float_t * gB, float_t * gC);
+                                    float *gA, float *gB, float *gC);
 
 void
 Kuiper_GEMM_Naive2_g_matmul_f64_ccc(uint32_t rows,
                                     uint32_t shared,
                                     uint32_t cols,
-                                    double_t * gA,
-                                    double_t * gB, double_t * gC);
+                                    double *gA, double *gB, double *gC);
 
 void
 Kuiper_GEMM_Naive2_g_matmul_u32_ccc(uint32_t rows,

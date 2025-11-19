@@ -5,7 +5,7 @@ __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_0(float_t *ga)
+static void __hoisted_0(float *ga)
 {
     ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
@@ -14,7 +14,7 @@ __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_1(uint32_t lena, float_t *a_)
+static void __hoisted_1(uint32_t lena, float *a_)
 {
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
@@ -32,34 +32,34 @@ __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_2(float_t *ga, float_t avg)
+static void __hoisted_2(float *ga, float avg)
 {
     ga[blockIdx.x] /= avg;
 }
 
-void Kuiper_Softmax_softmax_f32(uint32_t lena, float_t *a)
+void Kuiper_Softmax_softmax_f32(uint32_t lena, float *a)
 {
-    float_t *ga = (float_t *) KPR_GPU_ALLOC(4U, lena);
+    float *ga = (float *)KPR_GPU_ALLOC(4U, lena);
     MUST(cudaMemcpy(ga, a, 4U * lena, cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, lena, 1U, 0U, ga);
     MUST(cudaDeviceSynchronize());
-    float_t *a_ = (float_t *) KPR_GPU_ALLOC(4U, lena);
+    float *a_ = (float *)KPR_GPU_ALLOC(4U, lena);
     MUST(cudaMemcpy(a_, ga, 4U * lena, cudaMemcpyDeviceToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, 1U, lena, 0U, lena, a_);
     MUST(cudaDeviceSynchronize());
-    float_t *ca = (float_t *) KRML_HOST_MALLOC(sizeof(float_t));
+    float *ca = (float *)KRML_HOST_MALLOC(sizeof(float));
     if (ca != NULL)
         *ca = 0.0f;
     MUST(cudaMemcpy(ca, a_, 4U, cudaMemcpyDeviceToHost));
-    float_t x = *ca;
+    float x = *ca;
     KRML_HOST_FREE(ca);
-    float_t avg = x;
+    float avg = x;
     MUST(cudaFree(a_));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -74,7 +74,7 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_3(double_t *ga)
+static void __hoisted_3(double *ga)
 {
     ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
@@ -83,7 +83,7 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_4(uint32_t lena, double_t *a_)
+static void __hoisted_4(uint32_t lena, double *a_)
 {
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
@@ -101,34 +101,34 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_5(double_t *ga, double_t avg)
+static void __hoisted_5(double *ga, double avg)
 {
     ga[blockIdx.x] /= avg;
 }
 
-void Kuiper_Softmax_softmax_f64(uint32_t lena, double_t *a)
+void Kuiper_Softmax_softmax_f64(uint32_t lena, double *a)
 {
-    double_t *ga = (double_t *) KPR_GPU_ALLOC(8U, lena);
+    double *ga = (double *)KPR_GPU_ALLOC(8U, lena);
     MUST(cudaMemcpy(ga, a, 8U * lena, cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_3, lena, 1U, 0U, ga);
     MUST(cudaDeviceSynchronize());
-    double_t *a_ = (double_t *) KPR_GPU_ALLOC(8U, lena);
+    double *a_ = (double *)KPR_GPU_ALLOC(8U, lena);
     MUST(cudaMemcpy(a_, ga, 8U * lena, cudaMemcpyDeviceToDevice));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_4, 1U, lena, 0U, lena, a_);
     MUST(cudaDeviceSynchronize());
-    double_t *ca = (double_t *) KRML_HOST_MALLOC(sizeof(double_t));
+    double *ca = (double *)KRML_HOST_MALLOC(sizeof(double));
     if (ca != NULL)
         *ca = 0.0l;
     MUST(cudaMemcpy(ca, a_, 8U, cudaMemcpyDeviceToHost));
-    double_t x = *ca;
+    double x = *ca;
     KRML_HOST_FREE(ca);
-    double_t avg = x;
+    double avg = x;
     MUST(cudaFree(a_));
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute

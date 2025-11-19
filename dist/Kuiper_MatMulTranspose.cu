@@ -6,14 +6,13 @@ __global__
   hoisted when extracting matmul_transpose_gpu_f32_ff
 */
 static void
-__hoisted_0(uint32_t rows,
-            uint32_t shared,
-            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+__hoisted_0(uint32_t rows, uint32_t shared, uint32_t cols, float *gA, float *gB,
+            float *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    float_t sum = 0.0f;
+    float sum = 0.0f;
     for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[tcol * rows + trow] = sum;
@@ -23,8 +22,8 @@ void
 Kuiper_MatMulTranspose_matmul_transpose_gpu_f32_ff(uint32_t rows,
                                                    uint32_t shared,
                                                    uint32_t cols,
-                                                   float_t *gA,
-                                                   float_t *gB, float_t *gC)
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute

@@ -5,11 +5,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_2x2
 */
-static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -32,11 +32,11 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -46,11 +46,11 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -64,7 +64,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -76,7 +76,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -121,9 +121,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x2(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -143,11 +143,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_2x4
 */
-static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -170,11 +170,11 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -184,11 +184,11 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -202,7 +202,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -214,7 +214,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -257,9 +257,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_2x4(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -279,11 +279,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_4x2
 */
-static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -306,11 +306,11 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -320,11 +320,11 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -338,7 +338,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -350,7 +350,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -395,9 +395,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x2(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -417,11 +417,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16_4x4
 */
-static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -444,11 +444,11 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -458,11 +458,11 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -476,7 +476,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -488,7 +488,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -531,9 +531,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x16_16x16x16_4x4(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -553,11 +553,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x32_16x16x16_2x2
 */
-static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -580,11 +580,11 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -594,11 +594,11 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -612,7 +612,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -624,7 +624,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -669,9 +669,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x2(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -691,11 +691,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x32_16x16x16_2x4
 */
-static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -718,11 +718,11 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -732,11 +732,11 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -750,7 +750,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -762,7 +762,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -805,9 +805,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_2x4(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -827,11 +827,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x32_16x16x16_4x2
 */
-static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -854,11 +854,11 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -868,11 +868,11 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -886,7 +886,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -898,7 +898,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -943,9 +943,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x2(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -965,11 +965,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x32_16x16x16_4x4
 */
-static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -992,11 +992,11 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -1006,11 +1006,11 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1024,7 +1024,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1036,7 +1036,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1079,9 +1079,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x32_16x16x16_4x4(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1101,11 +1101,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_2x2
 */
-static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1128,11 +1128,11 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1142,11 +1142,11 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1160,7 +1160,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1172,7 +1172,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1217,9 +1217,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x2(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1239,11 +1239,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_2x4
 */
-static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                        half_t *gC)
+static void __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                        half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1266,11 +1266,11 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1280,11 +1280,11 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1298,7 +1298,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1310,7 +1310,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1353,9 +1353,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_2x4(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1375,11 +1375,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_4x2
 */
-static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1402,11 +1402,11 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1416,11 +1416,11 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1434,7 +1434,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1446,7 +1446,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1491,9 +1491,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x2(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1513,11 +1513,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16_4x4
 */
-static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_11(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1540,11 +1540,11 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1554,11 +1554,11 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1572,7 +1572,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1584,7 +1584,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1627,9 +1627,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x64x64_16x16x16_4x4(uint32_t rows,
                                                               uint32_t shared,
                                                               uint32_t cols,
-                                                              half_t *gA,
-                                                              half_t *gB,
-                                                              half_t *gC)
+                                                              half *gA,
+                                                              half *gB,
+                                                              half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1649,11 +1649,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x16_16x16x16_2x4
 */
-static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_12(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1676,11 +1676,11 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1690,11 +1690,11 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -1708,7 +1708,7 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1720,7 +1720,7 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1765,9 +1765,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -1787,11 +1787,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x16_16x16x16_2x8
 */
-static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_13(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1814,11 +1814,11 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1828,11 +1828,11 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -1846,7 +1846,7 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1858,7 +1858,7 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -1901,9 +1901,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_2x8(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -1923,11 +1923,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x16_16x16x16_4x2
 */
-static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_14(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -1950,11 +1950,11 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1964,11 +1964,11 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -1982,7 +1982,7 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -1994,7 +1994,7 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2039,9 +2039,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2061,11 +2061,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x16_16x16x16_4x4
 */
-static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_15(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2088,11 +2088,11 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -2102,11 +2102,11 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2120,7 +2120,7 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2132,7 +2132,7 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2177,9 +2177,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2199,11 +2199,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x16_16x16x16_4x8
 */
-static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_16(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(2048U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(2048U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2226,11 +2226,11 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -2240,11 +2240,11 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2258,7 +2258,7 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2270,7 +2270,7 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2313,9 +2313,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x16_16x16x16_4x8(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2335,11 +2335,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x32_16x16x16_2x2
 */
-static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_17(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2362,11 +2362,11 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2376,11 +2376,11 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2394,7 +2394,7 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2406,7 +2406,7 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2451,9 +2451,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2473,11 +2473,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x32_16x16x16_2x4
 */
-static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_18(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2500,11 +2500,11 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2514,11 +2514,11 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2532,7 +2532,7 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2544,7 +2544,7 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2589,9 +2589,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2611,11 +2611,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x32_16x16x16_2x8
 */
-static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_19(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2638,11 +2638,11 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2652,11 +2652,11 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2670,7 +2670,7 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2682,7 +2682,7 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2725,9 +2725,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_2x8(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2747,11 +2747,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x32_16x16x16_4x2
 */
-static void __hoisted_20(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_20(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2774,11 +2774,11 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2788,11 +2788,11 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2806,7 +2806,7 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2818,7 +2818,7 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -2863,9 +2863,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2885,11 +2885,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x32_16x16x16_4x4
 */
-static void __hoisted_21(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_21(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -2912,11 +2912,11 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2926,11 +2926,11 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2944,7 +2944,7 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -2956,7 +2956,7 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3001,9 +3001,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3023,11 +3023,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x32_16x16x16_4x8
 */
-static void __hoisted_22(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_22(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3050,11 +3050,11 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -3064,11 +3064,11 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3082,7 +3082,7 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3094,7 +3094,7 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3137,9 +3137,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x32_16x16x16_4x8(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3159,11 +3159,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x64_16x16x16_2x2
 */
-static void __hoisted_23(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_23(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3186,11 +3186,11 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3200,11 +3200,11 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3218,7 +3218,7 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3230,7 +3230,7 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3275,9 +3275,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3297,11 +3297,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x64_16x16x16_2x4
 */
-static void __hoisted_24(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_24(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3324,11 +3324,11 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3338,11 +3338,11 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3356,7 +3356,7 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3368,7 +3368,7 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3413,9 +3413,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3435,11 +3435,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x64_16x16x16_2x8
 */
-static void __hoisted_25(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_25(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3462,11 +3462,11 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3476,11 +3476,11 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3494,7 +3494,7 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3506,7 +3506,7 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3549,9 +3549,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_2x8(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3571,11 +3571,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x64_16x16x16_4x2
 */
-static void __hoisted_26(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_26(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3598,11 +3598,11 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3612,11 +3612,11 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3630,7 +3630,7 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3642,7 +3642,7 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3687,9 +3687,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3709,11 +3709,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x64_16x16x16_4x4
 */
-static void __hoisted_27(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_27(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3736,11 +3736,11 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3750,11 +3750,11 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3768,7 +3768,7 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3780,7 +3780,7 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3825,9 +3825,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3847,11 +3847,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x128x64_16x16x16_4x8
 */
-static void __hoisted_28(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_28(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -3874,11 +3874,11 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3888,11 +3888,11 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3906,7 +3906,7 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -3918,7 +3918,7 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -3961,9 +3961,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_64x128x64_16x16x16_4x8(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3983,11 +3983,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x16_16x16x16_2x4
 */
-static void __hoisted_29(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_29(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4010,11 +4010,11 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4024,11 +4024,11 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4042,7 +4042,7 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4054,7 +4054,7 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4097,9 +4097,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -4119,11 +4119,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x16_16x16x16_4x2
 */
-static void __hoisted_30(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_30(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4146,11 +4146,11 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4160,11 +4160,11 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4178,7 +4178,7 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4190,7 +4190,7 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4235,9 +4235,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -4257,11 +4257,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x16_16x16x16_4x4
 */
-static void __hoisted_31(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_31(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4284,11 +4284,11 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4298,11 +4298,11 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4316,7 +4316,7 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4328,7 +4328,7 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4371,9 +4371,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_4x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -4393,11 +4393,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x16_16x16x16_8x2
 */
-static void __hoisted_32(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_32(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4420,11 +4420,11 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4434,11 +4434,11 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4452,7 +4452,7 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4464,7 +4464,7 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4509,9 +4509,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -4531,11 +4531,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x16_16x16x16_8x4
 */
-static void __hoisted_33(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_33(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4558,11 +4558,11 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4572,11 +4572,11 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4590,7 +4590,7 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4602,7 +4602,7 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4645,9 +4645,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x16_16x16x16_8x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -4667,11 +4667,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x32_16x16x16_2x2
 */
-static void __hoisted_34(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_34(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4694,11 +4694,11 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4708,11 +4708,11 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4726,7 +4726,7 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4738,7 +4738,7 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4783,9 +4783,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -4805,11 +4805,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x32_16x16x16_2x4
 */
-static void __hoisted_35(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_35(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4832,11 +4832,11 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4846,11 +4846,11 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4864,7 +4864,7 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -4876,7 +4876,7 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -4919,9 +4919,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -4941,11 +4941,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x32_16x16x16_4x2
 */
-static void __hoisted_36(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_36(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -4968,11 +4968,11 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4982,11 +4982,11 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5000,7 +5000,7 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5012,7 +5012,7 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5057,9 +5057,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5079,11 +5079,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x32_16x16x16_4x4
 */
-static void __hoisted_37(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_37(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5106,11 +5106,11 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5120,11 +5120,11 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5138,7 +5138,7 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5150,7 +5150,7 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5193,9 +5193,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_4x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5215,11 +5215,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x32_16x16x16_8x2
 */
-static void __hoisted_38(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_38(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5242,11 +5242,11 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5256,11 +5256,11 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5274,7 +5274,7 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5286,7 +5286,7 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5331,9 +5331,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5353,11 +5353,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x32_16x16x16_8x4
 */
-static void __hoisted_39(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_39(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5380,11 +5380,11 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5394,11 +5394,11 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5412,7 +5412,7 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5424,7 +5424,7 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5467,9 +5467,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x32_16x16x16_8x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5489,11 +5489,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x64_16x16x16_2x2
 */
-static void __hoisted_40(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_40(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5516,11 +5516,11 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5530,11 +5530,11 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5548,7 +5548,7 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5560,7 +5560,7 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5605,9 +5605,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5627,11 +5627,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x64_16x16x16_2x4
 */
-static void __hoisted_41(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_41(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5654,11 +5654,11 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5668,11 +5668,11 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5686,7 +5686,7 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5698,7 +5698,7 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5741,9 +5741,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_2x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5763,11 +5763,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x64_16x16x16_4x2
 */
-static void __hoisted_42(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_42(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5790,11 +5790,11 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5804,11 +5804,11 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5822,7 +5822,7 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5834,7 +5834,7 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -5879,9 +5879,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5901,11 +5901,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x64_16x16x16_4x4
 */
-static void __hoisted_43(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_43(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -5928,11 +5928,11 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5942,11 +5942,11 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5960,7 +5960,7 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -5972,7 +5972,7 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6015,9 +6015,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_4x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6037,11 +6037,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x64_16x16x16_8x2
 */
-static void __hoisted_44(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_44(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6064,11 +6064,11 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6078,11 +6078,11 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6096,7 +6096,7 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6108,7 +6108,7 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6153,9 +6153,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x2(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6175,11 +6175,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x64x64_16x16x16_8x4
 */
-static void __hoisted_45(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_45(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6202,11 +6202,11 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6216,11 +6216,11 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6234,7 +6234,7 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6246,7 +6246,7 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6289,9 +6289,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x64x64_16x16x16_8x4(uint32_t rows,
                                                                uint32_t shared,
                                                                uint32_t cols,
-                                                               half_t *gA,
-                                                               half_t *gB,
-                                                               half_t *gC)
+                                                               half *gA,
+                                                               half *gB,
+                                                               half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6311,11 +6311,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_2x4
 */
-static void __hoisted_46(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_46(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6338,11 +6338,11 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6352,11 +6352,11 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6370,7 +6370,7 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6382,7 +6382,7 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6427,9 +6427,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -6449,11 +6449,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_2x8
 */
-static void __hoisted_47(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_47(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6476,11 +6476,11 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6490,11 +6490,11 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6508,7 +6508,7 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6520,7 +6520,7 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6563,9 +6563,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_2x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -6585,11 +6585,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_4x2
 */
-static void __hoisted_48(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_48(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6612,11 +6612,11 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6626,11 +6626,11 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6644,7 +6644,7 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6656,7 +6656,7 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6701,9 +6701,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -6723,11 +6723,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_4x4
 */
-static void __hoisted_49(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_49(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6750,11 +6750,11 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6764,11 +6764,11 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6782,7 +6782,7 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6794,7 +6794,7 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6839,9 +6839,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -6861,11 +6861,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_4x8
 */
-static void __hoisted_50(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_50(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -6888,11 +6888,11 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6902,11 +6902,11 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6920,7 +6920,7 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -6932,7 +6932,7 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -6975,9 +6975,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_4x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -6997,11 +6997,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_8x2
 */
-static void __hoisted_51(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_51(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7024,11 +7024,11 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -7038,11 +7038,11 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7056,7 +7056,7 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7068,7 +7068,7 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7113,9 +7113,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -7135,11 +7135,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_8x4
 */
-static void __hoisted_52(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_52(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7162,11 +7162,11 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -7176,11 +7176,11 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7194,7 +7194,7 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7206,7 +7206,7 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7251,9 +7251,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -7273,11 +7273,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x16_16x16x16_8x8
 */
-static void __hoisted_53(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_53(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(4096U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(4096U);
     uint32_t num_k_tiles = shared / 16U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7300,11 +7300,11 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -7314,11 +7314,11 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 16U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7332,7 +7332,7 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7344,7 +7344,7 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        16U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7387,9 +7387,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_16x16x16_8x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -7409,11 +7409,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_2x2
 */
-static void __hoisted_54(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_54(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7436,11 +7436,11 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 4096U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7450,11 +7450,11 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 4096U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7468,7 +7468,7 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7480,7 +7480,7 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7525,9 +7525,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7547,11 +7547,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_2x4
 */
-static void __hoisted_55(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_55(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7574,11 +7574,11 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7588,11 +7588,11 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7606,7 +7606,7 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7618,7 +7618,7 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7663,9 +7663,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7685,11 +7685,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_2x8
 */
-static void __hoisted_56(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_56(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7712,11 +7712,11 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7726,11 +7726,11 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7744,7 +7744,7 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7756,7 +7756,7 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7799,9 +7799,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_2x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7821,11 +7821,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_4x2
 */
-static void __hoisted_57(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_57(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7848,11 +7848,11 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7862,11 +7862,11 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7880,7 +7880,7 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -7892,7 +7892,7 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -7937,9 +7937,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7959,11 +7959,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_4x4
 */
-static void __hoisted_58(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_58(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -7986,11 +7986,11 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8000,11 +8000,11 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8018,7 +8018,7 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8030,7 +8030,7 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8075,9 +8075,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -8097,11 +8097,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_4x8
 */
-static void __hoisted_59(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_59(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8124,11 +8124,11 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8138,11 +8138,11 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8156,7 +8156,7 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8168,7 +8168,7 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8211,9 +8211,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_4x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -8233,11 +8233,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_8x2
 */
-static void __hoisted_60(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_60(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8260,11 +8260,11 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8274,11 +8274,11 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8292,7 +8292,7 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8304,7 +8304,7 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8349,9 +8349,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -8371,11 +8371,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_8x4
 */
-static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_61(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8398,11 +8398,11 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8412,11 +8412,11 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8430,7 +8430,7 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8442,7 +8442,7 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8487,9 +8487,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -8509,11 +8509,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x32_16x16x16_8x8
 */
-static void __hoisted_62(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_62(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(8192U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(8192U);
     uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8536,11 +8536,11 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8550,11 +8550,11 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 32U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8568,7 +8568,7 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8580,7 +8580,7 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        32U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8623,9 +8623,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -8645,11 +8645,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_2x2
 */
-static void __hoisted_63(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_63(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8672,11 +8672,11 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 4096U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8686,11 +8686,11 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 4096U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8704,7 +8704,7 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8716,7 +8716,7 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8761,9 +8761,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -8783,11 +8783,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_2x4
 */
-static void __hoisted_64(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_64(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8810,11 +8810,11 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8824,11 +8824,11 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8842,7 +8842,7 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8854,7 +8854,7 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -8899,9 +8899,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -8921,11 +8921,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_2x8
 */
-static void __hoisted_65(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_65(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -8948,11 +8948,11 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8962,11 +8962,11 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8980,7 +8980,7 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++) {
                 uint32_t __anf07 = i0;
@@ -8992,7 +8992,7 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9035,9 +9035,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_2x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -9057,11 +9057,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_4x2
 */
-static void __hoisted_66(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_66(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -9084,11 +9084,11 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9098,11 +9098,11 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9116,7 +9116,7 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -9128,7 +9128,7 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9173,9 +9173,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -9195,11 +9195,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_4x4
 */
-static void __hoisted_67(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_67(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -9222,11 +9222,11 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9236,11 +9236,11 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9254,7 +9254,7 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -9266,7 +9266,7 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9311,9 +9311,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -9333,11 +9333,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_4x8
 */
-static void __hoisted_68(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_68(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -9360,11 +9360,11 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9374,11 +9374,11 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9392,7 +9392,7 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++) {
                 uint32_t __anf07 = i0;
@@ -9404,7 +9404,7 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9447,9 +9447,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_4x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -9469,11 +9469,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_8x2
 */
-static void __hoisted_69(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_69(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -9496,11 +9496,11 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9510,11 +9510,11 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9528,7 +9528,7 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -9540,7 +9540,7 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 2U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9585,9 +9585,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x2(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -9607,11 +9607,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_8x4
 */
-static void __hoisted_70(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_70(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -9634,11 +9634,11 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9648,11 +9648,11 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9666,7 +9666,7 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -9678,7 +9678,7 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 4U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9723,9 +9723,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x4(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -9745,11 +9745,11 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_128x128x64_16x16x16_8x8
 */
-static void __hoisted_71(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
-                         half_t *gC)
+static void __hoisted_71(uint32_t shared, uint32_t cols, half *gA, half *gB,
+                         half *gC)
 {
-    half_t *sA = (half_t *) KPR_SHMEM_AT(0U);
-    half_t *sB = (half_t *) KPR_SHMEM_AT(16384U);
+    half *sA = (half *) KPR_SHMEM_AT(0U);
+    half *sB = (half *) KPR_SHMEM_AT(16384U);
     uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
@@ -9772,11 +9772,11 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf01 = bkIdx;
-        half_t *tileA = gA;
+        half *tileA = gA;
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9786,11 +9786,11 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
             for (; k < 8U; k++)
                 sA[row * 64U + col + k] = local[k];
         }
-        half_t *tileB = gB;
+        half *tileB = gB;
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            half_t local[8U];
-            memset(local, 0U, 8U * sizeof(half_t));
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9804,7 +9804,7 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
             uint32_t __anf06 = dotIdx;
-            half_t *tile_for_tc_a_tiles = sA;
+            half *tile_for_tc_a_tiles = sA;
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++) {
                 uint32_t __anf07 = i0;
@@ -9816,7 +9816,7 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half_t *gA, half_t *gB,
                                        64U);
             }
             uint32_t __anf07 = dotIdx;
-            half_t *tile_for_tc_b_tiles = sB;
+            half *tile_for_tc_b_tiles = sB;
             uint32_t i1 = 0U;
             for (; i1 < 8U; i1++) {
                 uint32_t __anf08 = i1;
@@ -9859,9 +9859,9 @@ void
 Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x64_16x16x16_8x8(uint32_t rows,
                                                                 uint32_t shared,
                                                                 uint32_t cols,
-                                                                half_t *gA,
-                                                                half_t *gB,
-                                                                half_t *gC)
+                                                                half *gA,
+                                                                half *gB,
+                                                                half *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);

@@ -5,7 +5,7 @@ __global__
 /**
   hoisted when extracting reduce_f16_plus
 */
-static void __hoisted_0(uint32_t lena, half_t *a)
+static void __hoisted_0(uint32_t lena, half *a)
 {
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
@@ -19,7 +19,7 @@ static void __hoisted_0(uint32_t lena, half_t *a)
     }
 }
 
-void Kuiper_HReduce_reduce_f16_plus(uint32_t lena, half_t *a)
+void Kuiper_HReduce_reduce_f16_plus(uint32_t lena, half *a)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -32,7 +32,7 @@ __global__
 /**
   hoisted when extracting reduce_f32_plus
 */
-static void __hoisted_1(uint32_t lena, float_t *a)
+static void __hoisted_1(uint32_t lena, float *a)
 {
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
@@ -46,7 +46,7 @@ static void __hoisted_1(uint32_t lena, float_t *a)
     }
 }
 
-void Kuiper_HReduce_reduce_f32_plus(uint32_t lena, float_t *a)
+void Kuiper_HReduce_reduce_f32_plus(uint32_t lena, float *a)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -59,7 +59,7 @@ __global__
 /**
   hoisted when extracting reduce_f64_plus
 */
-static void __hoisted_2(uint32_t lena, double_t *a)
+static void __hoisted_2(uint32_t lena, double *a)
 {
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < lena; n++) {
@@ -73,7 +73,7 @@ static void __hoisted_2(uint32_t lena, double_t *a)
     }
 }
 
-void Kuiper_HReduce_reduce_f64_plus(uint32_t lena, double_t *a)
+void Kuiper_HReduce_reduce_f64_plus(uint32_t lena, double *a)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute

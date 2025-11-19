@@ -5,8 +5,8 @@
 #include <kuiper.h>
 
 void
-Kuiper_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols,
-                                     float_t * gIn, float_t * gOut);
+Kuiper_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols, float *gIn,
+                                     float *gOut);
 
 void
 Kuiper_Stencil_stencil3x3_i32_add_mul2_rc(uint32_t rows,

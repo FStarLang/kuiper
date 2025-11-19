@@ -8,13 +8,12 @@ __global__
 static void
 __hoisted_0(uint32_t shared,
             uint32_t cols,
-            float_t *gA,
-            float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+            float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(4096U);
-    float_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(4096U);
+    float sums[32U];
+    memset(sums, 0U, 32U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -33,27 +32,27 @@ __hoisted_0(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 32U + threadIdx.x];
+            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x / mcols * 32U + row) * cols +
               blockIdx.x % mcols * 32U + threadIdx.x] = sums[row];
 }
 
-float_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f32_tile32_rrr(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      float_t *a, float_t *b)
+float
+*Kuiper_GEMM_BlockTiling1D_matmul_f32_tile32_rrr(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *a, float *b)
 {
-    float_t *gA = (float_t *) KPR_GPU_ALLOC(4U, rows * shared);
-    float_t *gB = (float_t *) KPR_GPU_ALLOC(4U, shared * cols);
-    float_t *gC = (float_t *) KPR_GPU_ALLOC(4U, rows * cols);
+    float *gA = (float *)KPR_GPU_ALLOC(4U, rows * shared);
+    float *gB = (float *)KPR_GPU_ALLOC(4U, shared * cols);
+    float *gC = (float *)KPR_GPU_ALLOC(4U, rows * cols);
     MUST(cudaMemcpy(gA, a, 4U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 4U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 32U == 0U);
@@ -68,10 +67,10 @@ float_t
     KPR_KCALL(__hoisted_0, mrows * mcols, 32U, 8192U, shared, cols, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
-    float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(float), rows * cols);
+    float *c = (float *)KRML_HOST_MALLOC(sizeof(float) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(float_t));
+        memset(c, 0U, rows * cols * sizeof(float));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -86,13 +85,13 @@ __global__
 static void
 __hoisted_1(uint32_t shared,
             uint32_t cols,
-            double_t *gA,
-            double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+            double *gA,
+            double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(8192U);
-    double_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(8192U);
+    double sums[32U];
+    memset(sums, 0U, 32U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -111,27 +110,27 @@ __hoisted_1(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 32U + threadIdx.x];
+            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x / mcols * 32U + row) * cols +
               blockIdx.x % mcols * 32U + threadIdx.x] = sums[row];
 }
 
-double_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f64_tile32_rrr(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      double_t *a, double_t *b)
+double
+*Kuiper_GEMM_BlockTiling1D_matmul_f64_tile32_rrr(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 double *a, double *b)
 {
-    double_t *gA = (double_t *) KPR_GPU_ALLOC(8U, rows * shared);
-    double_t *gB = (double_t *) KPR_GPU_ALLOC(8U, shared * cols);
-    double_t *gC = (double_t *) KPR_GPU_ALLOC(8U, rows * cols);
+    double *gA = (double *)KPR_GPU_ALLOC(8U, rows * shared);
+    double *gB = (double *)KPR_GPU_ALLOC(8U, shared * cols);
+    double *gC = (double *)KPR_GPU_ALLOC(8U, rows * cols);
     MUST(cudaMemcpy(gA, a, 8U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 8U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 32U == 0U);
@@ -146,11 +145,10 @@ double_t
     KPR_KCALL(__hoisted_1, mrows * mcols, 32U, 16384U, shared, cols, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
-    double_t *c =
-        (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(double), rows * cols);
+    double *c = (double *)KRML_HOST_MALLOC(sizeof(double) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(double_t));
+        memset(c, 0U, rows * cols * sizeof(double));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -315,13 +313,12 @@ __global__
 static void
 __hoisted_4(uint32_t rows,
             uint32_t shared,
-            float_t *gA,
-            float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+            float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(4096U);
-    float_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(4096U);
+    float sums[32U];
+    memset(sums, 0U, 32U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -340,27 +337,27 @@ __hoisted_4(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 32U + threadIdx.x];
+            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x % mcols * 32U + threadIdx.x) * rows +
               blockIdx.x / mcols * 32U + row] = sums[row];
 }
 
-float_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f32_tile32_ccc(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      float_t *a, float_t *b)
+float
+*Kuiper_GEMM_BlockTiling1D_matmul_f32_tile32_ccc(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *a, float *b)
 {
-    float_t *gA = (float_t *) KPR_GPU_ALLOC(4U, rows * shared);
-    float_t *gB = (float_t *) KPR_GPU_ALLOC(4U, shared * cols);
-    float_t *gC = (float_t *) KPR_GPU_ALLOC(4U, rows * cols);
+    float *gA = (float *)KPR_GPU_ALLOC(4U, rows * shared);
+    float *gB = (float *)KPR_GPU_ALLOC(4U, shared * cols);
+    float *gC = (float *)KPR_GPU_ALLOC(4U, rows * cols);
     MUST(cudaMemcpy(gA, a, 4U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 4U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 32U == 0U);
@@ -375,10 +372,10 @@ float_t
     KPR_KCALL(__hoisted_4, mrows * mcols, 32U, 8192U, rows, shared, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
-    float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(float), rows * cols);
+    float *c = (float *)KRML_HOST_MALLOC(sizeof(float) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(float_t));
+        memset(c, 0U, rows * cols * sizeof(float));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -393,13 +390,13 @@ __global__
 static void
 __hoisted_5(uint32_t rows,
             uint32_t shared,
-            double_t *gA,
-            double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+            double *gA,
+            double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(8192U);
-    double_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(8192U);
+    double sums[32U];
+    memset(sums, 0U, 32U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -418,27 +415,27 @@ __hoisted_5(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 32U + threadIdx.x];
+            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x % mcols * 32U + threadIdx.x) * rows +
               blockIdx.x / mcols * 32U + row] = sums[row];
 }
 
-double_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f64_tile32_ccc(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      double_t *a, double_t *b)
+double
+*Kuiper_GEMM_BlockTiling1D_matmul_f64_tile32_ccc(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 double *a, double *b)
 {
-    double_t *gA = (double_t *) KPR_GPU_ALLOC(8U, rows * shared);
-    double_t *gB = (double_t *) KPR_GPU_ALLOC(8U, shared * cols);
-    double_t *gC = (double_t *) KPR_GPU_ALLOC(8U, rows * cols);
+    double *gA = (double *)KPR_GPU_ALLOC(8U, rows * shared);
+    double *gB = (double *)KPR_GPU_ALLOC(8U, shared * cols);
+    double *gC = (double *)KPR_GPU_ALLOC(8U, rows * cols);
     MUST(cudaMemcpy(gA, a, 8U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 8U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 32U == 0U);
@@ -453,11 +450,10 @@ double_t
     KPR_KCALL(__hoisted_5, mrows * mcols, 32U, 16384U, rows, shared, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
-    double_t *c =
-        (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(double), rows * cols);
+    double *c = (double *)KRML_HOST_MALLOC(sizeof(double) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(double_t));
+        memset(c, 0U, rows * cols * sizeof(double));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -622,13 +618,12 @@ __global__
 static void
 __hoisted_8(uint32_t shared,
             uint32_t cols,
-            float_t *gA,
-            float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+            float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(1024U);
-    float_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(1024U);
+    float sums[16U];
+    memset(sums, 0U, 16U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -647,27 +642,27 @@ __hoisted_8(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 16U + threadIdx.x];
+            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x / mcols * 16U + row) * cols +
               blockIdx.x % mcols * 16U + threadIdx.x] = sums[row];
 }
 
-float_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f32_tile16_rrr(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      float_t *a, float_t *b)
+float
+*Kuiper_GEMM_BlockTiling1D_matmul_f32_tile16_rrr(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *a, float *b)
 {
-    float_t *gA = (float_t *) KPR_GPU_ALLOC(4U, rows * shared);
-    float_t *gB = (float_t *) KPR_GPU_ALLOC(4U, shared * cols);
-    float_t *gC = (float_t *) KPR_GPU_ALLOC(4U, rows * cols);
+    float *gA = (float *)KPR_GPU_ALLOC(4U, rows * shared);
+    float *gB = (float *)KPR_GPU_ALLOC(4U, shared * cols);
+    float *gC = (float *)KPR_GPU_ALLOC(4U, rows * cols);
     MUST(cudaMemcpy(gA, a, 4U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 4U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 16U == 0U);
@@ -682,10 +677,10 @@ float_t
     KPR_KCALL(__hoisted_8, mrows * mcols, 16U, 2048U, shared, cols, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
-    float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(float), rows * cols);
+    float *c = (float *)KRML_HOST_MALLOC(sizeof(float) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(float_t));
+        memset(c, 0U, rows * cols * sizeof(float));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -700,13 +695,13 @@ __global__
 static void
 __hoisted_9(uint32_t shared,
             uint32_t cols,
-            double_t *gA,
-            double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+            double *gA,
+            double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(2048U);
-    double_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(2048U);
+    double sums[16U];
+    memset(sums, 0U, 16U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -725,27 +720,27 @@ __hoisted_9(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 16U + threadIdx.x];
+            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x / mcols * 16U + row) * cols +
               blockIdx.x % mcols * 16U + threadIdx.x] = sums[row];
 }
 
-double_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f64_tile16_rrr(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      double_t *a, double_t *b)
+double
+*Kuiper_GEMM_BlockTiling1D_matmul_f64_tile16_rrr(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 double *a, double *b)
 {
-    double_t *gA = (double_t *) KPR_GPU_ALLOC(8U, rows * shared);
-    double_t *gB = (double_t *) KPR_GPU_ALLOC(8U, shared * cols);
-    double_t *gC = (double_t *) KPR_GPU_ALLOC(8U, rows * cols);
+    double *gA = (double *)KPR_GPU_ALLOC(8U, rows * shared);
+    double *gB = (double *)KPR_GPU_ALLOC(8U, shared * cols);
+    double *gC = (double *)KPR_GPU_ALLOC(8U, rows * cols);
     MUST(cudaMemcpy(gA, a, 8U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 8U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 16U == 0U);
@@ -760,11 +755,10 @@ double_t
     KPR_KCALL(__hoisted_9, mrows * mcols, 16U, 4096U, shared, cols, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
-    double_t *c =
-        (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(double), rows * cols);
+    double *c = (double *)KRML_HOST_MALLOC(sizeof(double) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(double_t));
+        memset(c, 0U, rows * cols * sizeof(double));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -929,13 +923,12 @@ __global__
 static void
 __hoisted_12(uint32_t rows,
              uint32_t shared,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(1024U);
-    float_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(1024U);
+    float sums[16U];
+    memset(sums, 0U, 16U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -954,27 +947,27 @@ __hoisted_12(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 16U + threadIdx.x];
+            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x % mcols * 16U + threadIdx.x) * rows +
               blockIdx.x / mcols * 16U + row] = sums[row];
 }
 
-float_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f32_tile16_ccc(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      float_t *a, float_t *b)
+float
+*Kuiper_GEMM_BlockTiling1D_matmul_f32_tile16_ccc(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *a, float *b)
 {
-    float_t *gA = (float_t *) KPR_GPU_ALLOC(4U, rows * shared);
-    float_t *gB = (float_t *) KPR_GPU_ALLOC(4U, shared * cols);
-    float_t *gC = (float_t *) KPR_GPU_ALLOC(4U, rows * cols);
+    float *gA = (float *)KPR_GPU_ALLOC(4U, rows * shared);
+    float *gB = (float *)KPR_GPU_ALLOC(4U, shared * cols);
+    float *gC = (float *)KPR_GPU_ALLOC(4U, rows * cols);
     MUST(cudaMemcpy(gA, a, 4U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 4U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 16U == 0U);
@@ -989,10 +982,10 @@ float_t
     KPR_KCALL(__hoisted_12, mrows * mcols, 16U, 2048U, rows, shared, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
-    float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(float), rows * cols);
+    float *c = (float *)KRML_HOST_MALLOC(sizeof(float) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(float_t));
+        memset(c, 0U, rows * cols * sizeof(float));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -1007,13 +1000,13 @@ __global__
 static void
 __hoisted_13(uint32_t rows,
              uint32_t shared,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(2048U);
-    double_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(2048U);
+    double sums[16U];
+    memset(sums, 0U, 16U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1032,27 +1025,27 @@ __hoisted_13(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 16U + threadIdx.x];
+            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x % mcols * 16U + threadIdx.x) * rows +
               blockIdx.x / mcols * 16U + row] = sums[row];
 }
 
-double_t
-    * Kuiper_GEMM_BlockTiling1D_matmul_f64_tile16_ccc(uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      double_t *a, double_t *b)
+double
+*Kuiper_GEMM_BlockTiling1D_matmul_f64_tile16_ccc(uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 double *a, double *b)
 {
-    double_t *gA = (double_t *) KPR_GPU_ALLOC(8U, rows * shared);
-    double_t *gB = (double_t *) KPR_GPU_ALLOC(8U, shared * cols);
-    double_t *gC = (double_t *) KPR_GPU_ALLOC(8U, rows * cols);
+    double *gA = (double *)KPR_GPU_ALLOC(8U, rows * shared);
+    double *gB = (double *)KPR_GPU_ALLOC(8U, shared * cols);
+    double *gC = (double *)KPR_GPU_ALLOC(8U, rows * cols);
     MUST(cudaMemcpy(gA, a, 8U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 8U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_GUARD(rows % 16U == 0U);
@@ -1067,11 +1060,10 @@ double_t
     KPR_KCALL(__hoisted_13, mrows * mcols, 16U, 4096U, rows, shared, gA, gB, gC,
               mshared, mcols);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
-    double_t *c =
-        (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(double), rows * cols);
+    double *c = (double *)KRML_HOST_MALLOC(sizeof(double) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(double_t));
+        memset(c, 0U, rows * cols * sizeof(double));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -1236,13 +1228,12 @@ __global__
 static void
 __hoisted_16(uint32_t shared,
              uint32_t cols,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(4096U);
-    float_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(4096U);
+    float sums[32U];
+    memset(sums, 0U, 32U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1261,12 +1252,12 @@ __hoisted_16(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 32U + threadIdx.x];
+            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x / mcols * 32U + row) * cols +
@@ -1277,8 +1268,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  float_t *gA,
-                                                  float_t *gB, float_t *gC)
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1301,13 +1292,13 @@ __global__
 static void
 __hoisted_17(uint32_t shared,
              uint32_t cols,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(8192U);
-    double_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(8192U);
+    double sums[32U];
+    memset(sums, 0U, 32U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1326,12 +1317,12 @@ __hoisted_17(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 32U + threadIdx.x];
+            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x / mcols * 32U + row) * cols +
@@ -1342,8 +1333,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  double_t *gA,
-                                                  double_t *gB, double_t *gC)
+                                                  double *gA,
+                                                  double *gB, double *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1494,13 +1485,12 @@ __global__
 static void
 __hoisted_20(uint32_t rows,
              uint32_t shared,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(4096U);
-    float_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(4096U);
+    float sums[32U];
+    memset(sums, 0U, 32U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1519,12 +1509,12 @@ __hoisted_20(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 32U + threadIdx.x];
+            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x % mcols * 32U + threadIdx.x) * rows +
@@ -1535,8 +1525,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_ccc(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  float_t *gA,
-                                                  float_t *gB, float_t *gC)
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1559,13 +1549,13 @@ __global__
 static void
 __hoisted_21(uint32_t rows,
              uint32_t shared,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(8192U);
-    double_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(8192U);
+    double sums[32U];
+    memset(sums, 0U, 32U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1584,12 +1574,12 @@ __hoisted_21(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 32U + threadIdx.x];
+            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x % mcols * 32U + threadIdx.x) * rows +
@@ -1600,8 +1590,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_ccc(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  double_t *gA,
-                                                  double_t *gB, double_t *gC)
+                                                  double *gA,
+                                                  double *gB, double *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1752,13 +1742,12 @@ __global__
 static void
 __hoisted_24(uint32_t shared,
              uint32_t cols,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(1024U);
-    float_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(1024U);
+    float sums[16U];
+    memset(sums, 0U, 16U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1777,12 +1766,12 @@ __hoisted_24(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 16U + threadIdx.x];
+            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x / mcols * 16U + row) * cols +
@@ -1793,8 +1782,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  float_t *gA,
-                                                  float_t *gB, float_t *gC)
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -1817,13 +1806,13 @@ __global__
 static void
 __hoisted_25(uint32_t shared,
              uint32_t cols,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(2048U);
-    double_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(2048U);
+    double sums[16U];
+    memset(sums, 0U, 16U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -1842,12 +1831,12 @@ __hoisted_25(uint32_t shared,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 16U + threadIdx.x];
+            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x / mcols * 16U + row) * cols +
@@ -1858,8 +1847,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  double_t *gA,
-                                                  double_t *gB, double_t *gC)
+                                                  double *gA,
+                                                  double *gB, double *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2010,13 +1999,12 @@ __global__
 static void
 __hoisted_28(uint32_t rows,
              uint32_t shared,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(1024U);
-    float_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(1024U);
+    float sums[16U];
+    memset(sums, 0U, 16U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2035,12 +2023,12 @@ __hoisted_28(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 16U + threadIdx.x];
+            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x % mcols * 16U + threadIdx.x) * rows +
@@ -2051,8 +2039,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_ccc(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  float_t *gA,
-                                                  float_t *gB, float_t *gC)
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2075,13 +2063,13 @@ __global__
 static void
 __hoisted_29(uint32_t rows,
              uint32_t shared,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(2048U);
-    double_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(2048U);
+    double sums[16U];
+    memset(sums, 0U, 16U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2100,12 +2088,12 @@ __hoisted_29(uint32_t rows,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 16U + threadIdx.x];
+            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x % mcols * 16U + threadIdx.x) * rows +
@@ -2116,8 +2104,8 @@ void
 Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_ccc(uint32_t rows,
                                                   uint32_t shared,
                                                   uint32_t cols,
-                                                  double_t *gA,
-                                                  double_t *gB, double_t *gC)
+                                                  double *gA,
+                                                  double *gB, double *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2266,17 +2254,16 @@ __global__
   hoisted when extracting g_gemm_f32_tile32_rrr
 */
 static void
-__hoisted_32(float_t alpha,
-             float_t beta,
+__hoisted_32(float alpha,
+             float beta,
              uint32_t shared,
              uint32_t cols,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(4096U);
-    float_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(4096U);
+    float sums[32U];
+    memset(sums, 0U, 32U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2295,12 +2282,12 @@ __hoisted_32(float_t alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 32U + threadIdx.x];
+            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x / mcols * 32U + row) * cols +
@@ -2311,13 +2298,12 @@ __hoisted_32(float_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(float_t alpha,
-                                                float_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(float alpha,
+                                                float beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                float_t *gA,
-                                                float_t *gB, float_t *gC)
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2338,17 +2324,17 @@ __global__
   hoisted when extracting g_gemm_f64_tile32_rrr
 */
 static void
-__hoisted_33(double_t alpha,
-             double_t beta,
+__hoisted_33(double alpha,
+             double beta,
              uint32_t shared,
              uint32_t cols,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(8192U);
-    double_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(8192U);
+    double sums[32U];
+    memset(sums, 0U, 32U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2367,12 +2353,12 @@ __hoisted_33(double_t alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 32U + threadIdx.x];
+            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x / mcols * 32U + row) * cols +
@@ -2383,13 +2369,13 @@ __hoisted_33(double_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(double_t alpha,
-                                                double_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(double alpha,
+                                                double beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                double_t *gA,
-                                                double_t *gB, double_t *gC)
+                                                double *gA,
+                                                double *gB, double *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2552,17 +2538,16 @@ __global__
   hoisted when extracting g_gemm_f32_tile32_ccc
 */
 static void
-__hoisted_36(float_t alpha,
-             float_t beta,
+__hoisted_36(float alpha,
+             float beta,
              uint32_t rows,
              uint32_t shared,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(4096U);
-    float_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(4096U);
+    float sums[32U];
+    memset(sums, 0U, 32U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2581,12 +2566,12 @@ __hoisted_36(float_t alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 32U + threadIdx.x];
+            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x % mcols * 32U + threadIdx.x) * rows +
@@ -2597,13 +2582,12 @@ __hoisted_36(float_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_ccc(float_t alpha,
-                                                float_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_ccc(float alpha,
+                                                float beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                float_t *gA,
-                                                float_t *gB, float_t *gC)
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2624,17 +2608,17 @@ __global__
   hoisted when extracting g_gemm_f64_tile32_ccc
 */
 static void
-__hoisted_37(double_t alpha,
-             double_t beta,
+__hoisted_37(double alpha,
+             double beta,
              uint32_t rows,
              uint32_t shared,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(8192U);
-    double_t sums[32U];
-    memset(sums, 0U, 32U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(8192U);
+    double sums[32U];
+    memset(sums, 0U, 32U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2653,12 +2637,12 @@ __hoisted_37(double_t alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 32U + threadIdx.x];
+            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
                 sums[i] += sa1[i * 32U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
         tileC[(blockIdx.x % mcols * 32U + threadIdx.x) * rows +
@@ -2669,13 +2653,13 @@ __hoisted_37(double_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_ccc(double_t alpha,
-                                                double_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_ccc(double alpha,
+                                                double beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                double_t *gA,
-                                                double_t *gB, double_t *gC)
+                                                double *gA,
+                                                double *gB, double *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2838,17 +2822,16 @@ __global__
   hoisted when extracting g_gemm_f32_tile16_rrr
 */
 static void
-__hoisted_40(float_t alpha,
-             float_t beta,
+__hoisted_40(float alpha,
+             float beta,
              uint32_t shared,
              uint32_t cols,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(1024U);
-    float_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(1024U);
+    float sums[16U];
+    memset(sums, 0U, 16U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2867,12 +2850,12 @@ __hoisted_40(float_t alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 16U + threadIdx.x];
+            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x / mcols * 16U + row) * cols +
@@ -2883,13 +2866,12 @@ __hoisted_40(float_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(float_t alpha,
-                                                float_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(float alpha,
+                                                float beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                float_t *gA,
-                                                float_t *gB, float_t *gC)
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -2910,17 +2892,17 @@ __global__
   hoisted when extracting g_gemm_f64_tile16_rrr
 */
 static void
-__hoisted_41(double_t alpha,
-             double_t beta,
+__hoisted_41(double alpha,
+             double beta,
              uint32_t shared,
              uint32_t cols,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(2048U);
-    double_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(2048U);
+    double sums[16U];
+    memset(sums, 0U, 16U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -2939,12 +2921,12 @@ __hoisted_41(double_t alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 16U + threadIdx.x];
+            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x / mcols * 16U + row) * cols +
@@ -2955,13 +2937,13 @@ __hoisted_41(double_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(double_t alpha,
-                                                double_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(double alpha,
+                                                double beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                double_t *gA,
-                                                double_t *gB, double_t *gC)
+                                                double *gA,
+                                                double *gB, double *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -3124,17 +3106,16 @@ __global__
   hoisted when extracting g_gemm_f32_tile16_ccc
 */
 static void
-__hoisted_44(float_t alpha,
-             float_t beta,
+__hoisted_44(float alpha,
+             float beta,
              uint32_t rows,
              uint32_t shared,
-             float_t *gA,
-             float_t *gB, float_t *gC, uint32_t mshared, uint32_t mcols)
+             float *gA, float *gB, float *gC, uint32_t mshared, uint32_t mcols)
 {
-    float_t *sa1 = (float_t *) KPR_SHMEM_AT(0U);
-    float_t *sa2 = (float_t *) KPR_SHMEM_AT(1024U);
-    float_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(float_t));
+    float *sa1 = (float *)KPR_SHMEM_AT(0U);
+    float *sa2 = (float *)KPR_SHMEM_AT(1024U);
+    float sums[16U];
+    memset(sums, 0U, 16U * sizeof(float));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -3153,12 +3134,12 @@ __hoisted_44(float_t alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float_t v2 = sa2[sk * 16U + threadIdx.x];
+            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    float_t *tileC = gC;
+    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x % mcols * 16U + threadIdx.x) * rows +
@@ -3169,13 +3150,12 @@ __hoisted_44(float_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_ccc(float_t alpha,
-                                                float_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_ccc(float alpha,
+                                                float beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                float_t *gA,
-                                                float_t *gB, float_t *gC)
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
@@ -3196,17 +3176,17 @@ __global__
   hoisted when extracting g_gemm_f64_tile16_ccc
 */
 static void
-__hoisted_45(double_t alpha,
-             double_t beta,
+__hoisted_45(double alpha,
+             double beta,
              uint32_t rows,
              uint32_t shared,
-             double_t *gA,
-             double_t *gB, double_t *gC, uint32_t mshared, uint32_t mcols)
+             double *gA,
+             double *gB, double *gC, uint32_t mshared, uint32_t mcols)
 {
-    double_t *sa1 = (double_t *) KPR_SHMEM_AT(0U);
-    double_t *sa2 = (double_t *) KPR_SHMEM_AT(2048U);
-    double_t sums[16U];
-    memset(sums, 0U, 16U * sizeof(double_t));
+    double *sa1 = (double *)KPR_SHMEM_AT(0U);
+    double *sa2 = (double *)KPR_SHMEM_AT(2048U);
+    double sums[16U];
+    memset(sums, 0U, 16U * sizeof(double));
     uint32_t bk = 0U;
     for (; bk < mshared; bk++) {
         __syncthreads();
@@ -3225,12 +3205,12 @@ __hoisted_45(double_t alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double_t v2 = sa2[sk * 16U + threadIdx.x];
+            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
                 sums[i] += sa1[i * 16U + sk] * v2;
         }
     }
-    double_t *tileC = gC;
+    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
         tileC[(blockIdx.x % mcols * 16U + threadIdx.x) * rows +
@@ -3241,13 +3221,13 @@ __hoisted_45(double_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_ccc(double_t alpha,
-                                                double_t beta,
+Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_ccc(double alpha,
+                                                double beta,
                                                 uint32_t rows,
                                                 uint32_t shared,
                                                 uint32_t cols,
-                                                double_t *gA,
-                                                double_t *gB, double_t *gC)
+                                                double *gA,
+                                                double *gB, double *gC)
 {
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);

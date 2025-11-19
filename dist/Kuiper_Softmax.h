@@ -4,9 +4,9 @@
 
 #include <kuiper.h>
 
-void Kuiper_Softmax_softmax_f32(uint32_t lena, float_t * a);
+void Kuiper_Softmax_softmax_f32(uint32_t lena, float *a);
 
-void Kuiper_Softmax_softmax_f64(uint32_t lena, double_t * a);
+void Kuiper_Softmax_softmax_f64(uint32_t lena, double *a);
 
 #define Kuiper_Softmax_H_DEFINED
 #endif                          /* Kuiper_Softmax_H */

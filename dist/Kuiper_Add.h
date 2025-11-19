@@ -4,13 +4,13 @@
 
 #include <kuiper.h>
 
-float_t Kuiper_Add_pincr_f32(float_t x);
+float Kuiper_Add_pincr_f32(float x);
 
 uint64_t Kuiper_Add_pincr_u64(uint64_t x);
 
-float_t Kuiper_Add_incr_f32(float_t x);
+float Kuiper_Add_incr_f32(float x);
 
-float_t Kuiper_Add_incr_f32_(float_t x);
+float Kuiper_Add_incr_f32_(float x);
 
 uint64_t Kuiper_Add_incr_u64(uint64_t x);
 

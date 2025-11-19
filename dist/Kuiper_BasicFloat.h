@@ -4,7 +4,7 @@
 
 #include <kuiper.h>
 
-float_t Kuiper_BasicFloat_main(void);
+float Kuiper_BasicFloat_main(void);
 
 #define Kuiper_BasicFloat_H_DEFINED
 #endif                          /* Kuiper_BasicFloat_H */

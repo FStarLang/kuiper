@@ -5,26 +5,26 @@ __global__
 /**
   hoisted when extracting matmul_f32_rrr
 */
-static void __hoisted_0(uint32_t shared, uint32_t cols, float_t *gA,
-                        float_t *gB, float_t *gC)
+static void __hoisted_0(uint32_t shared, uint32_t cols, float *gA, float *gB,
+                        float *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    float_t sum = 0.0f;
+    float sum = 0.0f;
     for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
 
-float_t
-    * Kuiper_GEMM_Naive_matmul_f32_rrr(uint32_t rows,
-                                       uint32_t shared,
-                                       uint32_t cols, float_t *a, float_t *b)
+float
+*Kuiper_GEMM_Naive_matmul_f32_rrr(uint32_t rows,
+                                  uint32_t shared,
+                                  uint32_t cols, float *a, float *b)
 {
-    float_t *gA = (float_t *) KPR_GPU_ALLOC(4U, rows * shared);
-    float_t *gB = (float_t *) KPR_GPU_ALLOC(4U, shared * cols);
-    float_t *gC = (float_t *) KPR_GPU_ALLOC(4U, rows * cols);
+    float *gA = (float *)KPR_GPU_ALLOC(4U, rows * shared);
+    float *gB = (float *)KPR_GPU_ALLOC(4U, shared * cols);
+    float *gC = (float *)KPR_GPU_ALLOC(4U, rows * cols);
     MUST(cudaMemcpy(gA, a, 4U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 4U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
@@ -32,10 +32,10 @@ float_t
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, rows * cols, 1U, 0U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
-    float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(float), rows * cols);
+    float *c = (float *)KRML_HOST_MALLOC(sizeof(float) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(float_t));
+        memset(c, 0U, rows * cols * sizeof(float));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -47,27 +47,26 @@ __global__
 /**
   hoisted when extracting matmul_f64_rrr
 */
-static void
-__hoisted_1(uint32_t shared, uint32_t cols, double_t *gA, double_t *gB,
-            double_t *gC)
+static void __hoisted_1(uint32_t shared, uint32_t cols, double *gA, double *gB,
+                        double *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    double_t sum = 0.0l;
+    double sum = 0.0l;
     for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
 }
 
-double_t
-    * Kuiper_GEMM_Naive_matmul_f64_rrr(uint32_t rows,
-                                       uint32_t shared,
-                                       uint32_t cols, double_t *a, double_t *b)
+double
+*Kuiper_GEMM_Naive_matmul_f64_rrr(uint32_t rows,
+                                  uint32_t shared,
+                                  uint32_t cols, double *a, double *b)
 {
-    double_t *gA = (double_t *) KPR_GPU_ALLOC(8U, rows * shared);
-    double_t *gB = (double_t *) KPR_GPU_ALLOC(8U, shared * cols);
-    double_t *gC = (double_t *) KPR_GPU_ALLOC(8U, rows * cols);
+    double *gA = (double *)KPR_GPU_ALLOC(8U, rows * shared);
+    double *gB = (double *)KPR_GPU_ALLOC(8U, shared * cols);
+    double *gC = (double *)KPR_GPU_ALLOC(8U, rows * cols);
     MUST(cudaMemcpy(gA, a, 8U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 8U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
@@ -75,11 +74,10 @@ double_t
          (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, rows * cols, 1U, 0U, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
-    double_t *c =
-        (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(double), rows * cols);
+    double *c = (double *)KRML_HOST_MALLOC(sizeof(double) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(double_t));
+        memset(c, 0U, rows * cols * sizeof(double));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -174,27 +172,26 @@ __global__
   hoisted when extracting matmul_f32_ccc
 */
 static void
-__hoisted_4(uint32_t rows,
-            uint32_t shared,
-            uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+__hoisted_4(uint32_t rows, uint32_t shared, uint32_t cols, float *gA, float *gB,
+            float *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    float_t sum = 0.0f;
+    float sum = 0.0f;
     for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
 
-float_t
-    * Kuiper_GEMM_Naive_matmul_f32_ccc(uint32_t rows,
-                                       uint32_t shared,
-                                       uint32_t cols, float_t *a, float_t *b)
+float
+*Kuiper_GEMM_Naive_matmul_f32_ccc(uint32_t rows,
+                                  uint32_t shared,
+                                  uint32_t cols, float *a, float *b)
 {
-    float_t *gA = (float_t *) KPR_GPU_ALLOC(4U, rows * shared);
-    float_t *gB = (float_t *) KPR_GPU_ALLOC(4U, shared * cols);
-    float_t *gC = (float_t *) KPR_GPU_ALLOC(4U, rows * cols);
+    float *gA = (float *)KPR_GPU_ALLOC(4U, rows * shared);
+    float *gB = (float *)KPR_GPU_ALLOC(4U, shared * cols);
+    float *gC = (float *)KPR_GPU_ALLOC(4U, rows * cols);
     MUST(cudaMemcpy(gA, a, 4U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 4U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
@@ -202,10 +199,10 @@ float_t
          (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_4, rows * cols, 1U, 0U, rows, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(float_t), rows * cols);
-    float_t *c = (float_t *) KRML_HOST_MALLOC(sizeof(float_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(float), rows * cols);
+    float *c = (float *)KRML_HOST_MALLOC(sizeof(float) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(float_t));
+        memset(c, 0U, rows * cols * sizeof(float));
     MUST(cudaMemcpy(c, gC, 4U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -218,27 +215,26 @@ __global__
   hoisted when extracting matmul_f64_ccc
 */
 static void
-__hoisted_5(uint32_t rows,
-            uint32_t shared,
-            uint32_t cols, double_t *gA, double_t *gB, double_t *gC)
+__hoisted_5(uint32_t rows, uint32_t shared, uint32_t cols, double *gA,
+            double *gB, double *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    double_t sum = 0.0l;
+    double sum = 0.0l;
     for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
 }
 
-double_t
-    * Kuiper_GEMM_Naive_matmul_f64_ccc(uint32_t rows,
-                                       uint32_t shared,
-                                       uint32_t cols, double_t *a, double_t *b)
+double
+*Kuiper_GEMM_Naive_matmul_f64_ccc(uint32_t rows,
+                                  uint32_t shared,
+                                  uint32_t cols, double *a, double *b)
 {
-    double_t *gA = (double_t *) KPR_GPU_ALLOC(8U, rows * shared);
-    double_t *gB = (double_t *) KPR_GPU_ALLOC(8U, shared * cols);
-    double_t *gC = (double_t *) KPR_GPU_ALLOC(8U, rows * cols);
+    double *gA = (double *)KPR_GPU_ALLOC(8U, rows * shared);
+    double *gB = (double *)KPR_GPU_ALLOC(8U, shared * cols);
+    double *gC = (double *)KPR_GPU_ALLOC(8U, rows * cols);
     MUST(cudaMemcpy(gA, a, 8U * (rows * shared), cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gB, b, 8U * (shared * cols), cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
@@ -246,11 +242,10 @@ double_t
          (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_5, rows * cols, 1U, 0U, rows, shared, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
-    KRML_CHECK_SIZE(sizeof(double_t), rows * cols);
-    double_t *c =
-        (double_t *) KRML_HOST_MALLOC(sizeof(double_t) * (rows * cols));
+    KRML_CHECK_SIZE(sizeof(double), rows * cols);
+    double *c = (double *)KRML_HOST_MALLOC(sizeof(double) * (rows * cols));
     if (c != NULL)
-        memset(c, 0U, rows * cols * sizeof(double_t));
+        memset(c, 0U, rows * cols * sizeof(double));
     MUST(cudaMemcpy(c, gC, 8U * (rows * cols), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gA));
     MUST(cudaFree(gB));
@@ -346,13 +341,13 @@ __global__
 /**
   hoisted when extracting g_matmul_f32_rrr
 */
-static void __hoisted_8(uint32_t shared, uint32_t cols, float_t *gA,
-                        float_t *gB, float_t *gC)
+static void __hoisted_8(uint32_t shared, uint32_t cols, float *gA, float *gB,
+                        float *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    float_t sum = 0.0f;
+    float sum = 0.0f;
     for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
@@ -362,7 +357,7 @@ void
 Kuiper_GEMM_Naive_g_matmul_f32_rrr(uint32_t rows,
                                    uint32_t shared,
                                    uint32_t cols,
-                                   float_t *gA, float_t *gB, float_t *gC)
+                                   float *gA, float *gB, float *gC)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -375,14 +370,13 @@ __global__
 /**
   hoisted when extracting g_matmul_f64_rrr
 */
-static void
-__hoisted_9(uint32_t shared, uint32_t cols, double_t *gA, double_t *gB,
-            double_t *gC)
+static void __hoisted_9(uint32_t shared, uint32_t cols, double *gA, double *gB,
+                        double *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    double_t sum = 0.0l;
+    double sum = 0.0l;
     for (; k < shared; k++)
         sum += gA[trow * shared + k] * gB[k * cols + tcol];
     gC[trow * cols + tcol] = sum;
@@ -392,7 +386,7 @@ void
 Kuiper_GEMM_Naive_g_matmul_f64_rrr(uint32_t rows,
                                    uint32_t shared,
                                    uint32_t cols,
-                                   double_t *gA, double_t *gB, double_t *gC)
+                                   double *gA, double *gB, double *gC)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -466,14 +460,13 @@ __global__
   hoisted when extracting g_matmul_f32_ccc
 */
 static void
-__hoisted_12(uint32_t rows,
-             uint32_t shared,
-             uint32_t cols, float_t *gA, float_t *gB, float_t *gC)
+__hoisted_12(uint32_t rows, uint32_t shared, uint32_t cols, float *gA,
+             float *gB, float *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    float_t sum = 0.0f;
+    float sum = 0.0f;
     for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
@@ -483,7 +476,7 @@ void
 Kuiper_GEMM_Naive_g_matmul_f32_ccc(uint32_t rows,
                                    uint32_t shared,
                                    uint32_t cols,
-                                   float_t *gA, float_t *gB, float_t *gC)
+                                   float *gA, float *gB, float *gC)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
@@ -498,14 +491,13 @@ __global__
   hoisted when extracting g_matmul_f64_ccc
 */
 static void
-__hoisted_13(uint32_t rows,
-             uint32_t shared,
-             uint32_t cols, double_t *gA, double_t *gB, double_t *gC)
+__hoisted_13(uint32_t rows, uint32_t shared, uint32_t cols, double *gA,
+             double *gB, double *gC)
 {
     uint32_t trow = blockIdx.x / cols;
     uint32_t tcol = blockIdx.x % cols;
     uint32_t k = 0U;
-    double_t sum = 0.0l;
+    double sum = 0.0l;
     for (; k < shared; k++)
         sum += gA[k * rows + trow] * gB[tcol * shared + k];
     gC[tcol * rows + trow] = sum;
@@ -515,7 +507,7 @@ void
 Kuiper_GEMM_Naive_g_matmul_f64_ccc(uint32_t rows,
                                    uint32_t shared,
                                    uint32_t cols,
-                                   double_t *gA, double_t *gB, double_t *gC)
+                                   double *gA, double *gB, double *gC)
 {
     KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute

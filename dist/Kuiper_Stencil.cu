@@ -5,7 +5,7 @@ __global__
 /**
   hoisted when extracting stencil3x3_f32_add_rr
 */
-static void __hoisted_0(float_t *gIn, float_t *gOut, uint32_t cols_sub2)
+static void __hoisted_0(float *gIn, float *gOut, uint32_t cols_sub2)
 {
     uint32_t i = blockIdx.x / cols_sub2;
     uint32_t j = blockIdx.x % cols_sub2;
@@ -22,8 +22,8 @@ static void __hoisted_0(float_t *gIn, float_t *gOut, uint32_t cols_sub2)
 }
 
 void
-Kuiper_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols, float_t *gIn,
-                                     float_t *gOut)
+Kuiper_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols, float *gIn,
+                                     float *gOut)
 {
     uint32_t cols_sub2 = cols - 2U;
     KPR_SHMEM_FITS(0U);

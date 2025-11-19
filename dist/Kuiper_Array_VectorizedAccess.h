@@ -4,7 +4,7 @@
 
 #include <kuiper.h>
 
-void Kuiper_Array_VectorizedAccess_hf(float_t * v);
+void Kuiper_Array_VectorizedAccess_hf(float *v);
 
 #define Kuiper_Array_VectorizedAccess_H_DEFINED
 #endif                          /* Kuiper_Array_VectorizedAccess_H */

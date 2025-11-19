@@ -34,9 +34,9 @@ void Kuiper_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
     MUST(cudaFree(gr2));
 }
 
-__device__ static void kswap__float_t(float_t *r1, float_t *r2)
+__device__ static void kswap__float(float *r1, float *r2)
 {
-    float_t v11 = *r1;
+    float v11 = *r1;
     *r1 = *r2;
     *r2 = v11;
 }
@@ -45,15 +45,15 @@ __global__
 /**
   hoisted when extracting swap_F32
 */
-static void __hoisted_1(float_t *gr1, float_t *gr2)
+static void __hoisted_1(float *gr1, float *gr2)
 {
-    kswap__float_t(gr1, gr2);
+    kswap__float(gr1, gr2);
 }
 
-void Kuiper_Polymorphism1_swap_F32(float_t *r1, float_t *r2)
+void Kuiper_Polymorphism1_swap_F32(float *r1, float *r2)
 {
-    float_t *gr1 = (float_t *) KPR_GPU_ALLOC(4U, 1U);
-    float_t *gr2 = (float_t *) KPR_GPU_ALLOC(4U, 1U);
+    float *gr1 = (float *)KPR_GPU_ALLOC(4U, 1U);
+    float *gr2 = (float *)KPR_GPU_ALLOC(4U, 1U);
     MUST(cudaMemcpy(gr1, r1, 4U, cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(gr2, r2, 4U, cudaMemcpyHostToDevice));
     KPR_SHMEM_FITS(0U);
