@@ -59,8 +59,6 @@ void predicateSet(int n_idx, int n, uint32_t *predicates, int threadItemsX, int 
     }
 }
 
-// hay que conocerlos en tiempo de compilacion
-// TODO cómo se hace esto en kuiper?
 template<int blockItemsX, int blockItemsK>
 
 // creo que si los parámetros dividen bien esto debería andar
@@ -150,7 +148,7 @@ void spmm_kernel(int rows,
     int dense_offset = n_idx + threadIdx.x;
     
     // Nota: en sputniik solo se sincroniza cuando hay mas de 32 threads
-    for (; nnz > 0; nnz -= blockItemsK) {
+    for (; nnz >= blockItemsK; nnz -= blockItemsK) {
 
         // cargamos cooperativamente el tile sparse
         __syncthreads();
