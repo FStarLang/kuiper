@@ -688,22 +688,20 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (* For loops *)
   | "Kuiper.For.for_loop", [], [ lo; hi; _pre; _post; f ] ->
-    let v, body = get_one_binder f in
-    let lo = cb lo in
-    let hi = cb hi in
-    let f = cb body in
+    let env_v = extend env "i" in
+    let cb_v = translate_expr env_v in
     let v_binder : binder = {
-      name = v.mlbinder_name;
+      name = "i";
       typ = TInt fake_SizeT;
       mut = true;
       meta = [];
     } in
-    ELet (v_binder, lo,
+    ELet (v_binder, cb lo,
       EGFor (EUnit,
-             EApp (EOp (Lt, fake_SizeT), [ EBound 0; hi ]),
+             EApp (EOp (Lt, fake_SizeT), [ EBound 0; cb_v hi ]),
              EAssign (EBound 0,
                EApp (EOp (Add, fake_SizeT), [ EBound 0; EConstant (fake_SizeT, "1") ])),
-              f))
+             EApp (cb_v f, [EBound 0])))
 
   | _ -> raise NotSupportedByKrmlExtension
 
