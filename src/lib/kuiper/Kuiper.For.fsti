@@ -10,7 +10,7 @@ module SZ = Kuiper.SizeT
    morally done in parallel over a forall+. *)
 fn for_loop (lo hi : SZ.t)
   (pre post : between lo hi -> slprop)
-  (f : (x:SZ.t{lo <= SZ.v x /\ SZ.v x < hi}) ->
+  (f : (x:SZ.t{lo <= x /\ x < hi}) ->
           stt unit
             (requires (pre (SZ.v x)))
             (ensures (fun _ -> post (SZ.v x))))

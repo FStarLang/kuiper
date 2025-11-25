@@ -127,6 +127,13 @@ let rec takeWhile f xs =
     else
       ([], xs)
 
+let get_one_binder (e:mlexpr) : mlbinder & mlexpr =
+  match e.expr with
+  | MLE_Fun ([b], body) -> b, body
+  | MLE_Fun (b::bs, body) ->
+    b, { e with expr = MLE_Fun (bs, body) } (* type is wrong, but it doesn't matter *)
+  | _ -> failwith ("launch_kernel: no binder for: " ^ show e)
+
 let remove_trailing_units (e : mlexpr) : mlexpr =
   let hd, args = head_and_args e in
   let units, non_units = List.rev args |> takeWhile (fun a -> match a.expr with
@@ -271,13 +278,6 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       //     drop_n_binders body (n - List.length bs)
       //   | _ -> failwith ("launch_kernel: not enough binders: " ^ show e)
       // in
-      let get_one_binder (e:mlexpr) : mlbinder & mlexpr =
-        match e.expr with
-        | MLE_Fun ([b], body) -> b, body
-        | MLE_Fun (b::bs, body) ->
-          b, { e with expr = MLE_Fun (bs, body) } (* type is wrong, but it doesn't matter *)
-        | _ -> failwith ("launch_kernel: no binder for: " ^ show e)
-      in
       // let rec drop_last_n_args (e:mlexpr) n =
       //   match e.expr with
       //   | MLE_App (head, args) when List.length args = n -> head
@@ -686,6 +686,24 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.SizeT.sizet_and",    [], [ x; y ] -> EApp (EOp (BAnd, fake_SizeT), [ cb x; cb y ])
   | "Kuiper.SizeT.sizet_to_u32", [], [ sz ]   -> ECast (cb sz, TInt UInt32)
 
+  (* For loops *)
+  | "Kuiper.For.for_loop", [], [ lo; hi; _pre; _post; f ] ->
+    let v, body = get_one_binder f in
+    let lo = cb lo in
+    let hi = cb hi in
+    let f = cb body in
+    let v_binder : binder = {
+      name = v.mlbinder_name;
+      typ = TInt fake_SizeT;
+      mut = true;
+      meta = [];
+    } in
+    ELet (v_binder, lo,
+      EGFor (EUnit,
+             EApp (EOp (Lt, fake_SizeT), [ EBound 0; hi ]),
+             EAssign (EBound 0,
+               EApp (EOp (Add, fake_SizeT), [ EBound 0; EConstant (fake_SizeT, "1") ])),
+              f))
 
   | _ -> raise NotSupportedByKrmlExtension
 

@@ -517,7 +517,7 @@ let em_fade'_fade
         end
       )
 
-#push-options "--z3rlimit 45 --fuel 0 --ifuel 1"
+#push-options "--z3rlimit 80 --fuel 0 --ifuel 1"
 // NB: The scalar constraint is only here so we can use 'zero' as an initializer
 // for a local array... would be gone if we had uninitialized local arrays.
 inline_for_extraction noextract
