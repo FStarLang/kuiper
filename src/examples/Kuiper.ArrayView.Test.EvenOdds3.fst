@@ -160,6 +160,7 @@ let it_of_nat_lem_1 (#len:nat) (i : natlt len) :
     ()
 #pop-options
 
+#restart-solver // work around Z3 crash
 let it_of_nat_lem (#len:nat) (i : natlt len)
   : Lemma (it_to_nat (sum_aview (even_view u32 len) (odd_view u32 len)) (__it_of_nat #len i) == i)
           [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
