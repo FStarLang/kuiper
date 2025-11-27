@@ -631,6 +631,7 @@ ensures
   ()
 }
 
+#push-options "--z3rlimit 100"
 let loop_invariant_lemma
   (rows shared cols : nat)
   (bm bn bk
@@ -755,6 +756,7 @@ let loop_invariant_lemma
   Classical.forall_intro_2 aux;
   assert (Kuiper.EMatrix.equal lhs rhs);
   ()
+#pop-options
 
 inline_for_extraction noextract
 fn kf
