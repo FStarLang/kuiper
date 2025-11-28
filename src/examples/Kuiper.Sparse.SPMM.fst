@@ -23,7 +23,8 @@ let size_req : size_req_t =
     mrows <= max_blocks /\
     mcols <= max_threads
 
-instance _ : sized sz = {
+inline_for_extraction noextract
+instance sized_sz : sized sz = {
   size = 4sz;
   default = 0sz;
 }
@@ -732,7 +733,8 @@ let kdesc
   kpost_sendable=magic();
 }
 
-#set-options "--print_implicits"
+#set-options "--print_implicits --split_queries always"
+
 inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et |}
