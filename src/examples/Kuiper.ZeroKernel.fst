@@ -17,10 +17,9 @@ fn kf
 ghost
 fn block_setup ()
   norewrite
-  requires can_create_barrier 0 ** emp
-  ensures  consumed_can_create_barrier ** (forall+ (tid : natlt 0). emp) ** emp
+  requires emp
+  ensures  (forall+ (tid : natlt 0). emp) ** emp
 {
-  no_mk_barrier ();
   forevery_emp_intro (natlt 0);
 }
 

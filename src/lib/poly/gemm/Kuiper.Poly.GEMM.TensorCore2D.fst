@@ -6,26 +6,20 @@ open Kuiper
 #set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #set-options "--z3rlimit 60"
 
-open Pulse.Lib.Array
-open Pulse.Lib.Trade
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Math { even, odd, even_2x, odd_2x1 }
+open Kuiper.Approximates
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Matrix
 open Kuiper.EMatrix { ematrix }
-open Kuiper.VArray {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
-open Kuiper.TensorCore
 open Kuiper.Float16
+open Kuiper.Math { even, odd, even_2x, odd_2x1 }
+open Kuiper.Matrix
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
 open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
-
-open Kuiper.Approximates
 open Kuiper.Spec.GEMM
+open Kuiper.TensorCore
+open Pulse.Lib.Array
+open Pulse.Lib.Trade
 
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
@@ -813,7 +807,9 @@ fn kf
     gpu **
     kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
-    block_id (rows/bm * (cols/bn)) bid
+    block_id (rows/bm * (cols/bn)) bid **
+    B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
@@ -825,8 +821,6 @@ fn kf
 
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
-
-  unfold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid;
 
   gpu_matrix_abs' (R.row_major bm bk) sarA;
   let sA = from_array (R.row_major bm bk) sarA;
@@ -896,42 +890,48 @@ fn kf
     assert pure (even (2 * !bkIdx));
 
     #set-options "--z3rlimit 100 --retry 3" {
-    rewrite
-        (exists* em1. FB.bp_sharing sA em1 nthr) **
-        (exists* em2. FB.bp_sharing sB em2 nthr)
-      as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid;
+    // Silly intermediate step
+    rewrite (exists* em1. FB.bp_sharing sA em1 nthr) **
+            (exists* em2. FB.bp_sharing sB em2 nthr)
+         as (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
+         as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
     };
 
     B.barrier_wait ();
-    rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid
-        as live_strided_chunks sA nthr tid **
-           live_strided_chunks sB nthr tid;
+
+    // Again silly intermediate step
+    rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
+         as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    rewrite (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid
+         as live_strided_chunks sA nthr tid **
+            live_strided_chunks sB nthr tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    (* sigh.. *)
     #set-options "--z3rlimit 100 --retry 3" {
+    // Silly intermediate step
     rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
             own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
-         as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+         as (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
+    rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid
+         as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
     };
 
     B.barrier_wait ();
 
     even_2x (!bkIdx + 1);
-    #set-options "--z3refresh --z3rlimit_factor 2 --fuel 0 --ifuel 0" {
-      assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
-      assert pure (odd (2 * !bkIdx + 1));
-      assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
-      assert pure (even (2 * !bkIdx + 2))
-    };
-    rewrite
-      FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-    as
-      FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
-      FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
+    assert pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2);
+    assert pure (odd (2 * !bkIdx + 1));
+    assert pure ((2 * !bkIdx + 1) < 2 * shared / bk);
+    assert pure (even (2 * !bkIdx + 2));
+    rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
+         as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
+    rewrite (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid
+         as FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
+            FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -1023,20 +1023,6 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  #set-options "--z3rlimit 100 --retry 3" {
-    rewrite
-      B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid)
-        (FB.barrier_q eA eB sA sB nthr bid)
-    as
-      B.barrier_tok (FB.barrier_p eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
-            (from_array (R.row_major (v bk) (v bn)) sarB)
-            nthr bid)
-        (FB.barrier_q eA eB (from_array (R.row_major (v bm) (v bk)) sarA)
-            (from_array (R.row_major (v bk) (v bn)) sarB)
-            nthr bid);
-    fold FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid;
-  };
-
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
 
@@ -1048,6 +1034,10 @@ fn kf
             0 (warp_tile_j #rows #cols bm bn bk tm tn tk wm wn nthr bid (tid / warp_size)));
 
   fold_c_shmems sh (`%shmems_desc);
+
+  drop_ (B.barrier_state _);
+  drop_ (B.barrier_tok _);
+
   ()
 }
 
@@ -1119,6 +1109,9 @@ let mk_kernel
   nthr;
 
   shmems_desc = shmems_desc et_ab bm bn bk;
+
+  barrier_contract = (fun bid ptrs -> FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
 
   frame = pure (SZ.fits (mlayout_size (R.row_major rows cols)));
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid);

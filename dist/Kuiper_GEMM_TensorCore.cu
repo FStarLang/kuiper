@@ -5,8 +5,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x16_16x16x16
 */
-static void __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(2048U);
@@ -31,29 +32,46 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 1024U; i0 += 512U)
-            sA[i0] =
-                tileA[(mrow * 64U + i0 / 16U) * shared + __anf01 * 16U +
-                      i0 % 16U];
+        uint32_t i0 = 0U;
+        for (; i0 < 1024U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf02 * 16U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 16U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 1024U; i += 512U)
-            sB[i] =
-                tileB[(__anf01 * 16U + i / 64U) * cols + mcol * 64U + i % 64U];
+        uint32_t i = 0U;
+        for (; i < 1024U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 16U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 16U * (threadIdx.x / 32U / 4U * 16U) +
-                                   __anf04 * 16U, 16U);
+                                   __anf05 * 16U, 16U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 64U * (__anf05 * 16U) +
+                                   b_tile + 64U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 4U * 16U, 64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -77,10 +95,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_0, nblk, 512U, 4096U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_0, nblk, 512U, 4096U, shared, cols, gA, gB, gC, 512U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -88,8 +107,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_32x32x32_32x8x16
 */
-static void __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(2048U);
@@ -114,29 +134,46 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 1024U; i0 += 128U)
-            sA[i0] =
-                tileA[(mrow * 32U + i0 / 32U) * shared + __anf01 * 32U +
-                      i0 % 32U];
+        uint32_t i0 = 0U;
+        for (; i0 < 1024U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf02 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 32U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 1024U; i += 128U)
-            sB[i] =
-                tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
+        uint32_t i = 0U;
+        for (; i < 1024U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 32U * (threadIdx.x / 32U / 4U * 32U) +
-                                   __anf04 * 16U, 32U);
+                                   __anf05 * 16U, 32U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 32U * (__anf05 * 16U) +
+                                   b_tile + 32U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 4U * 8U, 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -160,10 +197,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
     uint32_t nblk = rows / 32U * (cols / 32U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_1, nblk, 128U, 4096U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_1, nblk, 128U, 4096U, shared, cols, gA, gB, gC, 128U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -171,8 +209,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_32x32x32_8x32x16
 */
-static void __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(2048U);
@@ -196,28 +235,45 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 1024U; i0 += 128U)
-            sA[i0] =
-                tileA[(mrow * 32U + i0 / 32U) * shared + __anf01 * 32U +
-                      i0 % 32U];
+        uint32_t i0 = 0U;
+        for (; i0 < 1024U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf02 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 32U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 1024U; i += 128U)
-            sB[i] =
-                tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
+        uint32_t i = 0U;
+        for (; i < 1024U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 32U * (threadIdx.x / 32U * 8U) +
-                                   __anf04 * 16U, 32U);
-            wmma::load_matrix_sync(bFrag, b_tile + 32U * (__anf05 * 16U), 32U);
+                                   __anf05 * 16U, 32U);
+            wmma::load_matrix_sync(bFrag, b_tile + 32U * (__anf06 * 16U), 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -239,10 +295,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
     uint32_t nblk = rows / 32U * (cols / 32U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_2, nblk, 128U, 4096U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_2, nblk, 128U, 4096U, shared, cols, gA, gB, gC, 128U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -250,8 +307,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_32x8x16_32x8x16
 */
-static void __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(1024U);
@@ -275,27 +333,45 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 512U; i0 += 32U)
-            sA[i0] =
-                tileA[(mrow * 32U + i0 / 16U) * shared + __anf01 * 16U +
-                      i0 % 16U];
+        uint32_t i0 = 0U;
+        for (; i0 < 512U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf02 * 16U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 16U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 128U; i += 32U)
-            sB[i] = tileB[(__anf01 * 16U + i / 8U) * cols + mcol * 8U + i % 8U];
+        uint32_t i = 0U;
+        for (; i < 128U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 8U;
+            uint32_t col = (i + threadIdx.x * 8U) % 8U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 16U) + mcol * 8U + cols * row +
+                       col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 8U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 16U * (threadIdx.x / 32U * 32U) +
-                                   __anf04 * 16U, 16U);
-            wmma::load_matrix_sync(bFrag, b_tile + 8U * (__anf05 * 16U), 8U);
+                                   __anf05 * 16U, 16U);
+            wmma::load_matrix_sync(bFrag, b_tile + 8U * (__anf06 * 16U), 8U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -317,10 +393,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 8U == 0U);
     uint32_t nblk = rows / 32U * (cols / 8U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(1280U);
     MUST(cudaFuncSetAttribute
          (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 1280U));
-    KPR_KCALL(__hoisted_3, nblk, 32U, 1280U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_3, nblk, 32U, 1280U, shared, cols, gA, gB, gC, 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -328,8 +405,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_8x32x16_8x32x16
 */
-static void __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(2048U);
@@ -353,28 +431,45 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 1024U; i0 += 128U)
-            sA[i0] =
-                tileA[(mrow * 32U + i0 / 32U) * shared + __anf01 * 32U +
-                      i0 % 32U];
+        uint32_t i0 = 0U;
+        for (; i0 < 1024U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf02 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 32U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 1024U; i += 128U)
-            sB[i] =
-                tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
+        uint32_t i = 0U;
+        for (; i < 1024U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 32U * (threadIdx.x / 32U * 8U) +
-                                   __anf04 * 16U, 32U);
-            wmma::load_matrix_sync(bFrag, b_tile + 32U * (__anf05 * 16U), 32U);
+                                   __anf05 * 16U, 32U);
+            wmma::load_matrix_sync(bFrag, b_tile + 32U * (__anf06 * 16U), 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -396,10 +491,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
     uint32_t nblk = rows / 32U * (cols / 32U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_4, nblk, 128U, 4096U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_4, nblk, 128U, 4096U, shared, cols, gA, gB, gC, 128U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -407,8 +503,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_16x16x16
 */
-static void __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(8192U);
@@ -433,29 +530,46 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 4096U; i0 += 512U)
-            sA[i0] =
-                tileA[(mrow * 64U + i0 / 64U) * shared + __anf01 * 64U +
-                      i0 % 64U];
+        uint32_t i0 = 0U;
+        for (; i0 < 4096U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf02 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 64U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 4096U; i += 512U)
-            sB[i] =
-                tileB[(__anf01 * 64U + i / 64U) * cols + mcol * 64U + i % 64U];
+        uint32_t i = 0U;
+        for (; i < 4096U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 64U * (threadIdx.x / 32U / 4U * 16U) +
-                                   __anf04 * 16U, 64U);
+                                   __anf05 * 16U, 64U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 64U * (__anf05 * 16U) +
+                                   b_tile + 64U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 4U * 16U, 64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -479,10 +593,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_5, nblk, 512U, 16384U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_5, nblk, 512U, 16384U, shared, cols, gA, gB, gC, 512U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -490,8 +605,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_32x8x16
 */
-static void __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(8192U);
@@ -516,29 +632,46 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 4096U; i0 += 512U)
-            sA[i0] =
-                tileA[(mrow * 64U + i0 / 64U) * shared + __anf01 * 64U +
-                      i0 % 64U];
+        uint32_t i0 = 0U;
+        for (; i0 < 4096U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf02 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 64U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 4096U; i += 512U)
-            sB[i] =
-                tileB[(__anf01 * 64U + i / 64U) * cols + mcol * 64U + i % 64U];
+        uint32_t i = 0U;
+        for (; i < 4096U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 64U * (threadIdx.x / 32U / 8U * 32U) +
-                                   __anf04 * 16U, 64U);
+                                   __anf05 * 16U, 64U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 64U * (__anf05 * 16U) +
+                                   b_tile + 64U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 8U * 8U, 64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -562,10 +695,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_6, nblk, 512U, 16384U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_6, nblk, 512U, 16384U, shared, cols, gA, gB, gC, 512U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -573,8 +707,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_64x64x64_8x32x16
 */
-static void __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(8192U);
@@ -599,29 +734,46 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 4096U; i0 += 512U)
-            sA[i0] =
-                tileA[(mrow * 64U + i0 / 64U) * shared + __anf01 * 64U +
-                      i0 % 64U];
+        uint32_t i0 = 0U;
+        for (; i0 < 4096U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 64U) + __anf02 * 64U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 64U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 4096U; i += 512U)
-            sB[i] =
-                tileB[(__anf01 * 64U + i / 64U) * cols + mcol * 64U + i % 64U];
+        uint32_t i = 0U;
+        for (; i < 4096U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 64U;
+            uint32_t col = (i + threadIdx.x * 8U) % 64U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 64U) + mcol * 64U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 64U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 4U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 64U * (threadIdx.x / 32U / 2U * 8U) +
-                                   __anf04 * 16U, 64U);
+                                   __anf05 * 16U, 64U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 64U * (__anf05 * 16U) +
+                                   b_tile + 64U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 2U * 32U, 64U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -645,10 +797,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16(uint32_t rows,
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
     uint32_t nblk = rows / 64U * (cols / 64U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(16384U);
     MUST(cudaFuncSetAttribute
          (__hoisted_7, cudaFuncAttributeMaxDynamicSharedMemorySize, 16384U));
-    KPR_KCALL(__hoisted_7, nblk, 512U, 16384U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_7, nblk, 512U, 16384U, shared, cols, gA, gB, gC, 512U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -656,8 +809,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_32x32x32_16x16x16
 */
-static void __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(2048U);
@@ -682,29 +836,46 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 1024U; i0 += 128U)
-            sA[i0] =
-                tileA[(mrow * 32U + i0 / 32U) * shared + __anf01 * 32U +
-                      i0 % 32U];
+        uint32_t i0 = 0U;
+        for (; i0 < 1024U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf02 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 32U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 1024U; i += 128U)
-            sB[i] =
-                tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
+        uint32_t i = 0U;
+        for (; i < 1024U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 32U * (threadIdx.x / 32U / 2U * 16U) +
-                                   __anf04 * 16U, 32U);
+                                   __anf05 * 16U, 32U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 32U * (__anf05 * 16U) +
+                                   b_tile + 32U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 2U * 16U, 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -728,10 +899,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
     uint32_t nblk = rows / 32U * (cols / 32U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_8, nblk, 128U, 4096U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_8, nblk, 128U, 4096U, shared, cols, gA, gB, gC, 128U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -739,8 +911,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f16_16x16x16_16x16x16
 */
-static void __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                        half *gC)
+static void
+__hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
+            uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(512U);
@@ -764,28 +937,45 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 256U; i0 += 32U)
-            sA[i0] =
-                tileA[(mrow * 16U + i0 / 16U) * shared + __anf01 * 16U +
-                      i0 % 16U];
+        uint32_t i0 = 0U;
+        for (; i0 < 256U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 16U) + __anf02 * 16U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 16U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 256U; i += 32U)
-            sB[i] =
-                tileB[(__anf01 * 16U + i / 16U) * cols + mcol * 16U + i % 16U];
+        uint32_t i = 0U;
+        for (; i < 256U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 16U;
+            uint32_t col = (i + threadIdx.x * 8U) % 16U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 16U) + mcol * 16U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 16U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 1U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 16U * (threadIdx.x / 32U * 16U) +
-                                   __anf04 * 16U, 16U);
-            wmma::load_matrix_sync(bFrag, b_tile + 16U * (__anf05 * 16U), 16U);
+                                   __anf05 * 16U, 16U);
+            wmma::load_matrix_sync(bFrag, b_tile + 16U * (__anf06 * 16U), 16U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
     }
@@ -807,10 +997,11 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16(uint32_t rows,
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
     uint32_t nblk = rows / 16U * (cols / 16U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(1024U);
     MUST(cudaFuncSetAttribute
          (__hoisted_9, cudaFuncAttributeMaxDynamicSharedMemorySize, 1024U));
-    KPR_KCALL(__hoisted_9, nblk, 32U, 1024U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_9, nblk, 32U, 1024U, shared, cols, gA, gB, gC, 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -818,8 +1009,9 @@ __global__
 /**
   hoisted when extracting g_gemm_f16_f32_32x32x32_16x16x16
 */
-static void __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB,
-                         float *gC)
+static void
+__hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB, float *gC,
+             uint32_t nthr)
 {
     half *sA = (half *) KPR_SHMEM_AT(0U);
     half *sB = (half *) KPR_SHMEM_AT(2048U);
@@ -844,29 +1036,46 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB,
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
-        uint32_t __anf01 = bkIdx;
+        uint32_t __anf02 = bkIdx;
         half *tileA = gA;
-        uint32_t i0 = threadIdx.x;
-        for (; i0 < 1024U; i0 += 128U)
-            sA[i0] =
-                tileA[(mrow * 32U + i0 / 32U) * shared + __anf01 * 32U +
-                      i0 % 32U];
+        uint32_t i0 = 0U;
+        for (; i0 < 1024U; i0 += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileA + shared * (mrow * 32U) + __anf02 * 32U +
+                       shared * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sA[row * 32U + col + k] = local[k];
+        }
         half *tileB = gB;
-        uint32_t i = threadIdx.x;
-        for (; i < 1024U; i += 128U)
-            sB[i] =
-                tileB[(__anf01 * 32U + i / 32U) * cols + mcol * 32U + i % 32U];
+        uint32_t i = 0U;
+        for (; i < 1024U; i += nthr * 8U) {
+            half local[8U];
+            memset(local, 0U, 8U * sizeof(half));
+            uint32_t row = (i + threadIdx.x * 8U) / 32U;
+            uint32_t col = (i + threadIdx.x * 8U) % 32U;
+            vec_memcpy(local,
+                       tileB + cols * (__anf02 * 32U) + mcol * 32U +
+                       cols * row + col);
+            uint32_t k = 0U;
+            for (; k < 8U; k++)
+                sB[row * 32U + col + k] = local[k];
+        }
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 2U; dotIdx++) {
-            uint32_t __anf04 = dotIdx;
             uint32_t __anf05 = dotIdx;
+            uint32_t __anf06 = dotIdx;
             half *b_tile = sB;
             wmma::load_matrix_sync(aFrag,
                                    sA + 32U * (threadIdx.x / 32U / 2U * 16U) +
-                                   __anf04 * 16U, 32U);
+                                   __anf05 * 16U, 32U);
             wmma::load_matrix_sync(bFrag,
-                                   b_tile + 32U * (__anf05 * 16U) +
+                                   b_tile + 32U * (__anf06 * 16U) +
                                    threadIdx.x / 32U % 2U * 16U, 32U);
             wmma::mma_sync(accumFrag, aFrag, bFrag, accumFrag);
         }
@@ -890,9 +1099,10 @@ Kuiper_GEMM_TensorCore_g_gemm_f16_f32_32x32x32_16x16x16(uint32_t rows,
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
     uint32_t nblk = rows / 32U * (cols / 32U);
+    KPR_ASSERT(nblk <= 2097152U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
-    KPR_KCALL(__hoisted_10, nblk, 128U, 4096U, shared, cols, gA, gB, gC);
+    KPR_KCALL(__hoisted_10, nblk, 128U, 4096U, shared, cols, gA, gB, gC, 128U);
     MUST(cudaDeviceSynchronize());
 }

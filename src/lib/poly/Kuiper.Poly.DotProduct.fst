@@ -56,9 +56,7 @@ let kpre
   (tid : natlt lena)
   : slprop
   = gpu_pts_to_slice ga1 tid (tid + 1) seq![s1 @! tid] **
-    gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) **
-    B.barrier_state 0
+    gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid]
 
 (* ^ Note how the instantiation of the barrier states (pmul s1 s2) regarless
      of whatever is in sr. This is since the first thing the kernel will do is
@@ -76,8 +74,6 @@ let kpost
   (tid : natlt lena)
   : slprop
   = gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-    mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) **
-    (exists* it. B.barrier_state it) **
     (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2)))
 
 inline_for_extraction noextract
@@ -93,7 +89,9 @@ fn kf
   requires
     gpu **
     kpre lena ga1 ga2 s1 s2 vr1 vr2 tid **
-    thread_id lena tid
+    thread_id lena tid **
+    B.barrier_tok (mbarrier_contract #lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2))) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost lena ga1 ga2 s1 s2 vr1 vr2 tid **
@@ -131,24 +129,18 @@ fn setup
   (_: squash ( len s1 == SZ.v lena /\ len s2 == SZ.v lena ))
   norewrite
   requires
-    can_create_barrier lena **
-    (ga2 |-> s2 ** ga1 |-> s1)
+    ga2 |-> s2 ** ga1 |-> s1
   ensures
-    consumed_can_create_barrier **
     (forall+ (bid : natlt lena). kpre lena ga1 ga2 s1 s2 vr1 vr2 bid) **
     emp (* frame *)
 {
-  mk_mbarrier lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2));
   gpu_array_slice_1 ga2;
-  forevery_zip
-    (fun (i: natlt (v lena)) -> gpu_pts_to_slice ga2 i (i + 1) seq![Seq.Base.index s2 i]) _;
   gpu_array_slice_1 ga1;
   forevery_zip (fun (i: natlt (v lena)) -> gpu_pts_to_slice ga1 i (i + 1) seq![Seq.Base.index s1 i]) _;
   forevery_map
    (fun (i: natlt (v lena)) -> //too bad that you have to write this; inference should find it
       gpu_pts_to_slice ga1 i (i + 1) seq![Seq.Base.index s1 i] **
-      gpu_pts_to_slice ga2 i (i + 1) seq![Seq.Base.index s2 i] **
-      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) ** B.barrier_state 0)
+      gpu_pts_to_slice ga2 i (i + 1) seq![Seq.Base.index s2 i])
    (kpre lena ga1 ga2 s1 s2 vr1 vr2) fn bid { fold kpre lena ga1 ga2 s1 s2 vr1 vr2 bid };
 }
 
@@ -176,20 +168,14 @@ fn teardown
   forevery_map (kpost lena ga1 ga2 s1 s2 vr1 vr2)
     (fun tid ->
       gpu_pts_to_slice ga2 tid (tid + 1) seq![s2 @! tid] **
-      mbarrier_tok lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2)) **
-      ((exists* it. B.barrier_state it) **
-       (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2)))))
+      (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2))))
     fn tid { unfold (kpost lena ga1 ga2 s1 s2 vr1 vr2 tid) };
   forevery_unzip _ _;
   gpu_array_unslice_1 ga2;
-  forevery_unzip _ _;
-  forevery_unzip _ _;
   forevery_extract #(natlt lena) 0
     (fun tid -> (if_ (tid = 0) (HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2))));
   if_elim_true _;
   drop_ (Pulse.Lib.Trade.trade _ _);
-  drop_ (forall+ (tid:natlt lena). exists* it. B.barrier_state it);
-  drop_ (forall+ (tid:natlt lena). _);
   unfold HR.gpu_pts_to_slice_sum ga1 0 lena (pmul s1 s2) (rsmul vr1 vr2);
 }
 
@@ -209,6 +195,9 @@ let dp_kernel
     nthr = lena;
     f = kf lena ga1 ga2 #s1 #s2;
 
+    barrier_contract = mbarrier_contract #lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2));
+    barrier_ok       = mbarrier_transform _;
+
     block_setup    = setup lena ga1 ga2 #s1 #s2;
     block_teardown = teardown lena ga1 ga2 #s1 #s2;
 
@@ -221,7 +210,7 @@ let dp_kernel
     kpre_sendable=solve;
     full_post_sendable=solve;
     full_pre_sendable=solve;
-  } <: kernel_desc_1_n _ _
+  } <: kernel_desc_1_n_barr _ _
 
 
 inline_for_extraction noextract

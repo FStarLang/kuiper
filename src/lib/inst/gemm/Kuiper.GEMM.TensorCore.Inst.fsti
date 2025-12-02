@@ -1,7 +1,9 @@
 module Kuiper.GEMM.TensorCore.Inst
 
 #lang-pulse
+
 open Kuiper
+open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs
@@ -15,8 +17,10 @@ inline_for_extraction noextract
 fn specialize_gpu
   // specialize
   (et_ab et_c : Type0)
-  {| scalar et_ab, scalar et_c |}
+  {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
   (bm bn bk : szp)
+  (#_ : squash (chunk et_ab /?+ bk))
+  (#_ : squash (chunk et_ab /?+ bn))
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn})
   (tk : szp{tk /? bk})
@@ -32,14 +36,16 @@ fn specialize_gpu
   (#_ : squash (bm/tm * bn/tn * warp_size <= max_threads))
   (#_ : squash (SZ.fits (bm*bk + bm/tm * bn/tn * warp_size)))
   (#_ : squash (SZ.fits (bk*bn + bm/tm * bn/tn * warp_size)))
-  (rA rB rC : mrepr)
-  {| ca : crepr rA, cB : crepr rB, cC : crepr rC |}
 
   // do not specialize
   (rows shared cols : szp)
-  (gA : gpu_matrix et_ab (rA rows shared) { is_global_matrix gA })
-  (gB : gpu_matrix et_ab (rB shared cols) { is_global_matrix gB })
+  (gA : gpu_matrix et_ab (row_major rows shared) { is_global_matrix gA })
+  (gB : gpu_matrix et_ab (row_major shared cols) { is_global_matrix gB })
   (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
+  (#_ : squash (aligned 16 (core gA)))
+  (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_sz) /?+ (bm * bk)))
+  (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_sz) /?+ (bk * bn)))
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
   (#eC : ematrix et_c rows cols)

@@ -108,15 +108,11 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier m_size **
     (live ga1 ** live ga2 ** live gr)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt m_size). kpre m_size ga1 ga2 gr tid) **
     emp (* frame *)
 {
-  no_mk_barrier ();
-
   // Slicing the arrays
   (**)gpu_array_slice_1_underspec ga1;
   (**)gpu_array_slice_1_underspec ga2;

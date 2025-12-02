@@ -18,11 +18,26 @@ type barrier_side (n:nat) =
   tid : natlt n ->
   slprop
 
-type barrier_transform (#n:nat) (p q : barrier_side n) =
+[@@erasable]
+noeq
+type contract (n:nat) = {
+  rin  : barrier_side n;
+  rout : barrier_side n;
+}
+
+let empty_contract (n:nat) : contract n = {
+  rin  = (fun _it _tid -> emp);
+  rout = (fun _it _tid -> emp);
+}
+
+type barrier_transform (#n:nat) (c : contract n) =
   it:nat ->
   stt_ghost unit emp_inames
-           (requires forall+ (i:natlt n). p it i)
-           (ensures  fun _ -> forall+ (i:natlt n). q it i)
+           (requires forall+ (i:natlt n). c.rin it i)
+           (ensures  fun _ -> forall+ (i:natlt n). c.rout it i)
+
+val empty_barrier_transform (n:nat)
+  : barrier_transform (empty_contract n)
 
 (* A token representing that there is a barrier in scope.
    This is a ghost token, and is not used at runtime. *)
@@ -30,34 +45,13 @@ type barrier_transform (#n:nat) (p q : barrier_side n) =
 (* A token representing that there is a barrier in scope with contract (p,q).
 This does not change as we wait on the barrier. *)
 [@@no_mkeys]
-val barrier_tok (#n:nat) (p q : barrier_side n) : slprop
+val barrier_tok (#n:nat) (c : contract n) : slprop
 
 (* A token that we are at iteration `it` of the current barrier. *)
 [@@no_mkeys]
 val barrier_state (it : nat) : slprop
 
-instance val barrier_tok_sendable
-  (n:nat)
-  (p q : barrier_side n)
-: is_send_across block_of (barrier_tok #n p q)
-
-instance val barrier_state_sendable
-  (it : nat)
-: is_send_across block_of (barrier_state it)
-
-(* Creating a barrier for n threads. Note how this is a
-   ghost function!. The 'pf' argument is a proof, once and
-   for all, that the resource passing in each barrier_wait is
-   correct, since it shows how all of the p's give all of the
-   q's at each iteration. *)
-ghost
-fn mk_barrier
-  (n: nat)
-  (p q : barrier_side n)
-  (pf : barrier_transform p q)
-  requires can_create_barrier n
-  ensures  consumed_can_create_barrier
-  ensures  forall+ (i:natlt n). barrier_tok p q ** barrier_state 0
+(* Note: none of the tokens above are sendable at all. *)
 
 (* Wait on the barrier. This function blocks until all threads call it
    simultaneously. Each thread provides the current p
@@ -65,10 +59,10 @@ fn mk_barrier
 fn barrier_wait
   ()
   (#n : erased nat)
-  (#p #q : barrier_side n)
+  (#c : contract n)
   (#it : erased nat)
   (#tid : enatlt n)
-  preserves barrier_tok p q
+  preserves barrier_tok c
   preserves thread_id n tid
-  requires barrier_state it     ** p it tid
-  ensures  barrier_state (it+1) ** q it tid
+  requires barrier_state it     ** c.rin it tid
+  ensures  barrier_state (it+1) ** c.rout it tid

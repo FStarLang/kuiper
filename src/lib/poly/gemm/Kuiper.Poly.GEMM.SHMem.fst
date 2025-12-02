@@ -64,6 +64,26 @@ let barrier_q
   : B.barrier_side (tile *^ tile) =
   fun it tid -> barrier_p m1 m2 (it+1) tid (* flip flop *)
 
+let barrier_contract
+  (#et : Type0)
+  (#tile : valid_tile)
+  (#l1 : full_mlayout tile tile) (m1 : gpu_matrix et l1)
+  (#l2 : full_mlayout tile tile) (m2 : gpu_matrix et l2)
+  : B.contract (tile *^ tile) =
+{
+  rin = barrier_p m1 m2;
+  rout = barrier_q m1 m2;
+}
+
+// let barrier_tok
+//   (#et : Type0)
+//   (tile : valid_tile)
+//   (l1 l2 : full_mlayout tile tile)
+//   (ar1 ar2 : gpu_array et (tile * tile))
+//   : slprop
+//   =
+//   B.barrier_tok (barrier_contract (M.from_array l1 ar1) (M.from_array l2 ar2))
+
 (* without shmem ownership *)
 unfold
 let kpre1
@@ -118,17 +138,6 @@ let kpost1
       #1.0R
       (tid / tile) (tid % tile) v)
 
-let barrier_tok
-  (#et : Type0)
-  (tile : valid_tile)
-  (l1 l2 : full_mlayout tile tile)
-  (ar1 ar2 : gpu_array et (tile * tile))
-  : slprop
-  =
-  B.barrier_tok
-    (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
-    (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
-
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
@@ -153,9 +162,7 @@ let kpre
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
-  (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state 0
+  (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x)
 
 unfold
 let kpost
@@ -180,9 +187,7 @@ let kpost
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
   (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
-  (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state (2 * mshared)
+  (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x)
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
@@ -213,7 +218,9 @@ fn kf
     gpu **
     kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid **
     thread_id (tile * tile) tid **
-    block_id (mrows * mcols) bid
+    block_id (mrows * mcols) bid **
+    B.barrier_tok (barrier_contract (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost comb tile slA slB gA gB gC eA eB fA fB sh bid tid **
@@ -224,8 +231,6 @@ fn kf
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
-
-  unfold barrier_tok tile slA slB ar1 ar2;
 
   M.gpu_matrix_abs' slA ar1;
   let sa1 = M.from_array slA ar1;
@@ -279,10 +284,10 @@ fn kf
     rewrite
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
-      as barrier_p sa1 sa2 (2 * vbk) tid;
+      as (barrier_contract sa1 sa2).rin (2 * vbk) tid; 
 
     B.barrier_wait ();
-    rewrite (barrier_q sa1 sa2 (2 * vbk) tid)
+    rewrite (barrier_contract sa1 sa2).rout (2 * vbk) tid
          as (exists* x. gpu_matrix_pts_to_cell sa1 (tid / tile) (tid % tile) x) **
             (exists* x. gpu_matrix_pts_to_cell sa2 (tid / tile) (tid % tile) x);
 
@@ -307,9 +312,9 @@ fn kf
 
     rewrite (exists* x. gpu_matrix_pts_to_cell sa1 (tid / tile) (tid % tile) x) **
             (exists* x. gpu_matrix_pts_to_cell sa2 (tid / tile) (tid % tile) x)
-         as (barrier_p sa1 sa2 (2 * vbk + 1) tid);
+         as (barrier_contract sa1 sa2).rin (2 * vbk + 1) tid;
     B.barrier_wait ();
-    rewrite (barrier_q sa1 sa2 (2 * vbk + 1) tid)
+    rewrite (barrier_contract sa1 sa2).rout (2 * vbk + 1) tid
     as
       (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
       (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x);
@@ -366,7 +371,9 @@ fn kf
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
 
-  fold barrier_tok tile slA slB ar1 ar2;
+  // fold barrier_tok tile slA slB ar1 ar2;
+  drop_ (B.barrier_tok _);
+  drop_ (B.barrier_state _);
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
@@ -428,12 +435,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier (tile *^ tile) **
     live_c_shmems sh **
     (forall+ (tid : natlt2 tile  tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt2 tile  tile).
       kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
@@ -536,6 +541,11 @@ let mk_kernel
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
+
+  barrier_contract = (fun bid ptrs -> barrier_contract
+                        (M.from_array slA (fst ptrs))
+                        (M.from_array slB (fst (snd ptrs))));
+  barrier_ok = magic();
 
   shmems_desc = shmems_desc et tile;
 

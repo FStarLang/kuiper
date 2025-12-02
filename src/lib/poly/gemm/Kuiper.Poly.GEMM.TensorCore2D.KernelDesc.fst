@@ -384,12 +384,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
       kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
@@ -398,17 +396,7 @@ fn block_setup
   // shmem for A tile
   gpu_live_c_shmems_share_underspec sh #(1.0R) #nthr;
 
-  (* create barrier token *)
-  B.mk_barrier nthr _ _
-    (FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid);
-  let sar1 = fst sh;
-  let sar2 = fst (snd sh);
-
   (* consolidate permissions under a single forall+ *)
-  forevery_zip
-    (fun tid -> live_c_shmems sh #(recip nthr))
-    (fun tid ->
-      FB.barrier_tok #_ #_ #v eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid ** B.barrier_state 0);
   forevery_zip #(natlt nthr)
     (fun tid -> kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) _;
   ()
@@ -460,18 +448,9 @@ fn block_teardown
   forevery_unzip #(natlt nthr)
     (fun tid -> kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
     _;
-  forevery_unzip #(natlt nthr)
-    (fun _tid -> live_c_shmems sh #(recip nthr))
-    _;
 
   (* Restore and give back ownership of shared memory arrays. *)
   gpu_live_c_shmems_gather_underspec sh #(1.0R) #nthr;
-
-  (* Drop barrier tokens. *)
-  drop_
-    (forall+ (x: natlt nthr).
-      FB.barrier_tok eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid ** B.barrier_state (2 * (shared/bk)));
-  ()
 }
 
 

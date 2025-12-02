@@ -73,6 +73,20 @@ let barrier_q
   : B.barrier_side tile =
   fun it tid -> barrier_p m1 m2 (it+1) tid (* flip flop *)
 
+let barrier_contract
+  (#et : Type0)
+  (tile : valid_tile)
+  (* This is defined over the base shared gpu_arrays, as
+  this spec must make sense before the arrays are viewed as
+  a matrix. *)
+  (l1 l2 : full_mlayout tile tile)
+  (ar1 ar2 : gpu_array et (tile * tile))
+  : B.contract tile =
+  {
+    rin  = barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2);
+    rout = barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2);
+  }
+
 (* without shmem ownership *)
 unfold
 let kpre1
@@ -129,21 +143,6 @@ let kpost1
       ii tid v)
 
 unfold
-let barrier_tok
-  (#et : Type0)
-  (tile : valid_tile)
-  (* This is defined over the base shared gpu_arrays, as
-  this spec must make sense before the arrays are viewed as
-  a matrix. *)
-  (l1 l2 : full_mlayout tile tile)
-  (ar1 ar2 : gpu_array et (tile * tile))
-  : slprop
-  =
-  B.barrier_tok
-    (barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2))
-    (barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2))
-
-unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -164,9 +163,7 @@ let kpre
   : slprop
   =
   kpre1 comb tile gA gB gC eA eB fA fB bid tid **
-  live_c_shmems sh #(1.0R /. tile) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state 0
+  live_c_shmems sh #(1.0R /. tile)
 
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
@@ -210,9 +207,7 @@ let kpost
   : slprop
   =
   kpost1 comb tile gA gB gC eA eB fA fB bid tid **
-  live_c_shmems sh #(1.0R /. tile) **
-  barrier_tok tile slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state (2 * mshared)
+  live_c_shmems sh #(1.0R /. tile)
 
 let kpost_block_sendable
   (#et : Type0) {| scalar et |}
@@ -324,7 +319,9 @@ fn kf
     gpu **
     kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid **
     thread_id tile tid **
-    block_id (mrows * mcols) bid
+    block_id (mrows * mcols) bid **
+    B.barrier_tok (barrier_contract tile slA slB (fst sh) (fst (snd sh))) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost comb tile slA slB gA gB gC eA eB fA fB sh bid tid **
@@ -359,11 +356,7 @@ fn kf
 
   while (let vbk = !bk; SZ.(vbk <^ mshared))
     invariant live sums
-    invariant
-      exists* (vbk : SZ.t).
-        bk |-> vbk **
-        B.barrier_state (2 * vbk) **
-        pure (vbk <= mshared)
+    invariant live bk ** pure (!bk <= mshared) ** B.barrier_state (2 * !bk)
     invariant
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x)
@@ -371,13 +364,14 @@ fn kf
     pts_to_len sums;
     let vbk = !bk;
 
-    rewrite
-        (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
-        (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x)
-      as barrier_p sa1 sa2 (2 * vbk) tid;
-
+    // Odd.. we have to go via this intermediate rewrite.
+    rewrite (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
+            (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x)
+         as barrier_p sa1 sa2 (2 * vbk) tid;
+    rewrite barrier_p sa1 sa2 (2 * vbk) tid
+         as (barrier_contract tile slA slB ar1 ar2).rin (2 * vbk) tid;
     B.barrier_wait ();
-    rewrite (barrier_q sa1 sa2 (2 * vbk) tid)
+    rewrite (barrier_contract tile slA slB ar1 ar2).rout (2 * vbk) tid
          as own_1_col sa1 tid ** own_1_col sa2 tid;
 
     (* At this point we exclusively own a full column of the SHMEM
@@ -386,20 +380,19 @@ fn kf
     bring_2cols tile gA gB sa1 sa2 mrow vbk mcol tid;
 
     rewrite own_1_col sa1 tid ** own_1_col sa2 tid
-         as (barrier_p sa1 sa2 (2 * vbk + 1) tid);
+        as (barrier_contract tile slA slB ar1 ar2).rin (2 * vbk + 1) tid;
     B.barrier_wait ();
-    rewrite (barrier_q sa1 sa2 (2 * vbk + 1) tid)
-    as
-      (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
-      (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x);
+    // Same odd thing.
+    rewrite (barrier_contract tile slA slB ar1 ar2).rout (2 * vbk + 1) tid
+         as barrier_q sa1 sa2 (2 * vbk + 1) tid;
+    rewrite barrier_q sa1 sa2 (2 * vbk + 1) tid
+        as (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
+           (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x);
 
     (* At this point the SHMem cache is filled with the submatrices
        and we have RO permission to it. Compute product for our cell in
        the tile and add to sum. *)
     Kuiper.Poly.GEMM.Util.subproduct_cols tile sums sa1 sa2 bcol;
-
-    // What the hell.
-    assert (pure (2 * (vbk + 1) == 2 * vbk + 1 + 1));
 
     (* Move to next tile *)
     bk := !bk +^ 1sz;
@@ -440,12 +433,8 @@ fn kf
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
 
-  rewrite
-    B.barrier_tok (barrier_p sa1 sa2)
-      (barrier_q sa1 sa2)
-  as
-    B.barrier_tok (barrier_p (M.from_array slA ar1) (M.from_array slB ar2))
-      (barrier_q (M.from_array slA ar1) (M.from_array slB ar2));
+  drop_ (B.barrier_tok _);
+  drop_ (B.barrier_state _);
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
@@ -509,12 +498,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier tile **
     live_c_shmems sh **
     (forall+ (tid : natlt tile).
       kpre1 comb tile gA gB gC eA eB fA fB bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt tile).
       kpre comb tile slA slB gA gB gC eA eB fA fB sh bid tid) **
     emp (* frame *)
@@ -625,6 +612,9 @@ let mk_kernel
 = {
   nblk = mrows *^ mcols;
   nthr = tile;
+
+  barrier_contract = (fun bid ptrs -> barrier_contract tile slA slB (fst ptrs) (fst (snd ptrs)));
+  barrier_ok = magic();
 
   shmems_desc = shmems_desc et tile;
 

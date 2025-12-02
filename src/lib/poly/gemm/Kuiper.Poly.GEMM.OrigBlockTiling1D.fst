@@ -5,29 +5,18 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D
 #set-options "--z3rlimit 30"
 
 open Kuiper
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.EMatrix
-
-module M = Kuiper.Matrix
-open Kuiper.Matrix {
-  gpu_matrix,
-  gpu_matrix_pts_to,
-  gpu_matrix_pts_to_cell,
-}
+open Kuiper.Math { even, odd, even_2x, odd_2x1 }
+open Kuiper.Matrix { gpu_matrix, gpu_matrix_pts_to, gpu_matrix_pts_to_cell, }
+open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
-module Trade = Pulse.Lib.Trade
-module MS = Kuiper.Spec.GEMM
-module SZ = Kuiper.SizeT
+
 module B = Kuiper.Barrier
-
+module M = Kuiper.Matrix
+module MS = Kuiper.Spec.GEMM
 module R = Kuiper.Matrix.Reprs
-
-open Kuiper.VArray {
-  varray,
-  varray_pts_to,
-  varray_pts_to_cell
-}
+module SZ = Kuiper.SizeT
+module Trade = Pulse.Lib.Trade
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -178,23 +167,18 @@ let barrier_q
   : B.barrier_side (bm/tm * bn) =
   fun it tid -> barrier_p tm m1 m2 (it+1) tid (* flip flop *)
 
-
-let barrier_tok
+let barrier_contract
   (#et : Type0)
   (#bm #bn #bk : szp)
-  (tm : szp{tm /?+ bm})
+  (tm : szp{tm `divides` bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
-  (* This is defined over the base shared gpu_arrays, as
-  this spec must make sense before the arrays are viewed as
-  a matrix. *)
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
-  : slprop
-  =
-  B.barrier_tok (barrier_p tm (M.from_array l1 sar1) (M.from_array l2 sar2))
-                (barrier_q tm (M.from_array l1 sar1) (M.from_array l2 sar2))
+  (#l1 : full_mlayout bm bk)
+  (#l2 : full_mlayout bk bn)
+  (m1 : gpu_matrix et l1)
+  (m2 : gpu_matrix et l2) : B.contract (bm/tm * bn) = {
+    rin = barrier_p tm m1 m2;
+    rout = barrier_q tm m1 m2;
+  }
 
 unfold
 let kpre
@@ -225,9 +209,7 @@ let kpre
   =
   kpre1 comb tm gA gB gC eA eB eC fA fB bid tid **
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  barrier_tok tm slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state 0
+  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x)
 
 unfold
 let kpost
@@ -258,9 +240,7 @@ let kpost
   =
   kpost1 comb tm gA gB gC eA eB eC fA fB bid tid **
   (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  barrier_tok tm slA slB (fst sh) (fst (snd sh)) **
-  B.barrier_state (2 * mshared)
+  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x)
 
 inline_for_extraction noextract
 fn populate_shmem
@@ -393,7 +373,9 @@ fn kf
     gpu **
     kpre comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (bm/tm * bn) tid **
-    block_id (mrows * mcols) bid
+    block_id (mrows * mcols) bid **
+    B.barrier_tok (barrier_contract tm (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid **
@@ -404,8 +386,6 @@ fn kf
 
   gpu_pts_to_ref sarA;
   gpu_pts_to_ref sarB;
-
-  unfold barrier_tok tm slA slB sarA sarB;
 
   M.gpu_matrix_abs' slA sarA;
   let sA = M.from_array slA sarA;
@@ -435,12 +415,16 @@ fn kf
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
   {
     even_2x !bkIdx;
-    rewrite
-        (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
-        (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
-      as barrier_p tm sA sB (2 * !bkIdx) tid;
+    rewrite (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
+            (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
+         as barrier_p tm sA sB (2 * !bkIdx) tid;
+    rewrite barrier_p tm sA sB (2 * !bkIdx) tid
+         as (barrier_contract tm sA sB).rin (2 * !bkIdx) tid;
 
     B.barrier_wait ();
+
+    rewrite (barrier_contract tm sA sB).rout (2 * !bkIdx) tid
+         as barrier_q tm sA sB (2 * !bkIdx) tid;
     rewrite barrier_q tm sA sB (2 * !bkIdx) tid
          as own_1_cell sA (tid/bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn);
 
@@ -452,12 +436,17 @@ fn kf
     assert pure (odd (2 * !bkIdx + 1));
     rewrite own_1_cell sA (tid/bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn)
          as barrier_p tm sA sB (2 * !bkIdx + 1) tid;
+    rewrite barrier_p tm sA sB (2 * !bkIdx + 1) tid
+         as (barrier_contract tm sA sB).rin (2 * !bkIdx + 1) tid;
+
     B.barrier_wait ();
     even_2x (!bkIdx + 1);
     (* sigh *)
     let vbkIdx = !bkIdx;
     assert (pure (2 * (vbkIdx + 1) == 2 * vbkIdx + 1 + 1));
     assert (pure (even (2 * vbkIdx + 2)));
+    rewrite (barrier_contract tm sA sB).rout (2 * vbkIdx + 1) tid
+         as barrier_q tm sA sB (2 * vbkIdx + 1) tid;
     rewrite barrier_q tm sA sB (2 * vbkIdx + 1) tid
     as
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
@@ -526,10 +515,14 @@ fn kf
 
   rewrite each sA as M.from_array slA sarA;
   rewrite each sB as M.from_array slB sarB;
-  fold barrier_tok tm slA slB sarA sarB;
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
+
+  drop_ (B.barrier_tok _);
+  drop_ (B.barrier_state _);
+
+  ();
 }
 #pop-options
 
@@ -598,12 +591,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier (bm /^ tm *^ bn) **
     live_c_shmems sh **
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpre1 comb tm gA gB gC eA eB eC fA fB bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpre comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid) **
     emp (* frame *)
@@ -726,6 +717,9 @@ let mk_kernel
   nthr = (bm /^ tm *^ bn);
 
   shmems_desc = shmems_desc et bm bn bk;
+
+  barrier_contract = (fun bid ptrs -> barrier_contract tm (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
+  barrier_ok = (fun bid ptrs -> magic());
 
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt (bm/^tm *^ bn)). kpre1  comb tm gA gB gC eA eB eC fA fB bid tid);
