@@ -154,8 +154,6 @@ void spmm_kernel(int rows,
         __syncthreads();
 
         int sparse_tile_offset = threadIdx.x;
-        // TODO hace falta que dividan bien?
-        // assert(blockItemsK % blockWidth == 0);
 #pragma unroll
         for (int k = 0; k < blockItemsK / blockWidth; k++) {
             elems_tile[sparse_tile_offset] = elems[sparse_offset];
