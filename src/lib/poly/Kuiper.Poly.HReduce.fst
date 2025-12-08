@@ -139,9 +139,7 @@ let kpre
   (#_: squash (len s == lena))
   (tid : natlt lena)
   : slprop =
-    gpu_pts_to_slice a tid (tid +1) seq![s @! tid] **
-    mbarrier_tok lena (barrier_matrix lena a s vr) **
-    B.barrier_state 0
+    gpu_pts_to_slice a tid (tid +1) seq![s @! tid]
 
 unfold
 let kpost
@@ -153,9 +151,7 @@ let kpost
   (#_: squash (len s == lena))
   (tid : natlt lena)
   : slprop =
-    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s vr) **
-    mbarrier_tok lena (barrier_matrix lena a s vr) **
-    (exists* it. B.barrier_state it)
+    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s vr)
 
 // #push-options "--print_implicits"
 inline_for_extraction
@@ -293,7 +289,9 @@ fn kf
   requires
     gpu **
     kpre nth a s vr tid **
-    thread_id nth tid
+    thread_id nth tid **
+    mbarrier_tok nth (barrier_matrix nth a s vr) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost nth a s vr tid **
@@ -319,6 +317,11 @@ fn kf
     iteration nth a s vr tid !n;
     n := !n +^ 1sz;
   };
+
+  drop_ (mbarrier_tok nth (barrier_matrix nth a s vr));
+  drop_ (B.barrier_state _);
+
+  ()
 }
 
 ghost
@@ -366,20 +369,12 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier lena **
     a |-> va
   ensures
-    consumed_can_create_barrier **
     (forall+ (i : natlt lena). kpre lena a va vr i) **
     emp
 {
   gpu_array_slice_1 a;
-  mk_mbarrier lena (barrier_matrix lena a va vr);
-  forevery_zip
-      _
-      (fun i ->
-        RPM.mbarrier_tok (sizet_to_nat lena) (barrier_matrix (sizet_to_nat lena) a va vr) ** B.barrier_state 0)
-    ;
 }
 
 ghost
@@ -398,20 +393,13 @@ fn block_teardown
   ensures
     gpu_pts_to_slice_sum a 0 lena va vr
 {
+  // Adjust type of equality...
   forevery_map
     (fun (j:natlt lena) ->
-      if_ (j = 0)
-        (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr) **
-      RPM.mbarrier_tok (SZ.v lena)
-        (barrier_matrix (SZ.v lena) a va vr) **
-      (exists* (it: nat). B.barrier_state it))
+      if_ (j = 0) (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
     (fun (j:natlt lena) ->
-      if_ (op_Equality #(natlt lena) j 0)
-        (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
-    fn j {
-      drop_ (RPM.mbarrier_tok _ _);
-      drop_ (B.barrier_state _);
-    };
+      if_ (op_Equality #(natlt lena) j 0) (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
+    fn j {};
   forevery_if_elim #(natlt lena) 0 (fun (x: natlt lena) ->
     gpu_pts_to_slice_sum a 0 (v lena) va vr);
 }
@@ -425,11 +413,15 @@ let kernel
   (#va : erased (seq et))
   (#vr : erased (seq real) { va %~ vr })
   (#_ : squash (Seq.length va == SZ.v lena))
-: kernel_desc_1_n
+: kernel_desc_1_n_barr
     (a |-> va)
     (gpu_pts_to_slice_sum a 0 lena va vr)
 = {
   nthr = lena;
+
+  barrier_contract = mbarrier_contract (barrier_matrix lena a va vr);
+  barrier_ok       = mbarrier_transform (barrier_matrix lena a va vr);
+
   f = kf lena a #va #vr;
 
   block_setup = block_setup lena a #va;

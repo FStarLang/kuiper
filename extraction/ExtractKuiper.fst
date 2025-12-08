@@ -403,7 +403,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** BARRIERS ********)
 
-  | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _p; _q; _it; _tid ] ->
+  | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _contract; _it; _tid ] ->
     EApp (EQualified ([], "__syncthreads"), [ EUnit ])
 
   (******** TENSOR CORE OPERATIONS, FRAGMENTS, ETC ********)

@@ -86,25 +86,6 @@ val is_cpu_loc_single_process (l0 l1:loc_id)
 (* Token for being in CPU code *)
 let cpu : slprop = exists* l. loc l ** pure (is_cpu_loc l)
 
-(* Token allowing to create a barrier for n threads. Only
-   available while in the block_setup of a kernel. *)
-[@@no_mkeys]
-val can_create_barrier (nthr : nat) : slprop
-
-(* Token marking we have in fact created a barrier, or ditched the
-   token.  This makes sure the token is not stashed away somewhere. *)
-[@@no_mkeys]
-val consumed_can_create_barrier : slprop
-
-(* A function that can be called to consume the token
-   without actually creating a barrier. We could also
-   define consumed_can_create_barrier as a trivial
-   barrier token. *)
-ghost
-fn no_mk_barrier (#n:nat) ()
-  requires can_create_barrier n
-  ensures  consumed_can_create_barrier
-
 (* This should be 2^31-1, or 2^30. We constrain this more than normal due to our
 hack about interpreting size_t as uint32_t in karamel (see Kuiper.SizeT). When
 that is gone, this should be increased. *)

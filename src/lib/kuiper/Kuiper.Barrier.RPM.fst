@@ -8,39 +8,11 @@ open Kuiper.Base
 module B = Kuiper.Barrier
 open Kuiper.SizeT
 
-let mbarrier_tok
-  (n : nat)
-  (p : rpm_t n)
-  : slprop
-  =
-  (* Trade a row of p for a column of p. *)
-  B.barrier_tok #n
-    (row p)
-    (col p)
 
-instance mbarrier_tok_sendable
-  (n:nat)
-  (p : rpm_t n)
-: is_send_across block_of (mbarrier_tok n p)
-= solve
-
-ghost
-fn mk_mbarrier
-  (n: nat { 0 < n /\ n <= max_threads })
-  (p : rpm_t n)
-  requires can_create_barrier n
-  ensures  consumed_can_create_barrier
-  ensures forall+ (i : natlt n). mbarrier_tok n p ** B.barrier_state 0
-{
-  B.mk_barrier n (row p) (col p) fn it {
-    (* very nice. *)
-    forevery_commute (p it);
-  };
-  (* Need to intro an exists in every component of the bigstar. *)
-  forevery_map
-    (fun (i: natlt n) -> B.barrier_tok #n (row p) (col p) ** B.barrier_state 0)
-    (fun (i: natlt n) -> mbarrier_tok n p ** B.barrier_state 0)
-    fn i { fold (mbarrier_tok n p) };
+(* Cool. *)
+fn mbarrier_transform (#n:nat) (p:rpm_t n)
+: B.barrier_transform #n (mbarrier_contract p) = it {
+  forevery_commute (p it);
 }
 
 inline_for_extraction noextract
@@ -56,6 +28,8 @@ fn mbarrier_wait
   ensures  B.barrier_state (it+1) ** col p it tid
 {
   unfold mbarrier_tok;
+  rewrite row p it tid as (mbarrier_contract p).B.rin it tid;
   B.barrier_wait ();
+  rewrite (mbarrier_contract p).B.rout it tid as col p it tid;
   fold mbarrier_tok;
 }

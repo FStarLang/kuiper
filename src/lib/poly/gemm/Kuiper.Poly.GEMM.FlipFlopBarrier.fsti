@@ -41,8 +41,6 @@ let barrier_p
   (bid : natlt (rows/bm * (cols/bn)))
   : B.barrier_side nthr =
   fun it tid ->
-    let mrow = bid / (cols/bn) in
-    let mcol = bid % (cols/bn) in
     (* Barrier contract must be infinite, currently, but we will
        stop after this amount of steps. *)
     if it >= 2 * shared / bk then
@@ -57,6 +55,8 @@ let barrier_p
     else
       (* After populating a bit of this matrix, we will give back
          exclusive access to the properly filled strided chunks. *)
+      let mrow = bid / (cols/bn) in
+      let mcol = bid % (cols/bn) in
       own_strided_chunks m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr tid **
       own_strided_chunks m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr tid
 
@@ -76,8 +76,6 @@ let barrier_q
   (bid : natlt (rows/bm * (cols/bn)))
   : B.barrier_side nthr =
   fun it tid ->
-    let mrow = bid / (cols/bn) in
-    let mcol = bid % (cols/bn) in
     (* Barrier contract must be infinite, currently, but we will
        stop after this amount of steps. *)
     if it >= 2 * shared / bk then
@@ -90,8 +88,30 @@ let barrier_q
     else
       (* We get back shared, read-only access to the matrix. Over the
          *proper* contents. *)
+      let mrow = bid / (cols/bn) in
+      let mcol = bid % (cols/bn) in
       bp_sharing m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr **
       bp_sharing m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr
+
+let contract 
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (l1 : full_mlayout bm bk)
+  (l2 : full_mlayout bk bn)
+  (sar1 : gpu_array et (bm * bk))
+  (sar2 : gpu_array et (bk * bn))
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  : B.contract nthr =
+{
+  B.rin  = barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid;
+  B.rout = barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid;
+}
 
 let barrier_tok
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -111,9 +131,7 @@ let barrier_tok
   (nthr : pos)
   (bid : natlt (rows/bm * (cols/bn)))
   : slprop
-  =
-  B.barrier_tok (barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
-                (barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
+  = B.barrier_tok (contract eA eB l1 l2 sar1 sar2 nthr bid)
 
 (* The proof of correctness. *)
 ghost

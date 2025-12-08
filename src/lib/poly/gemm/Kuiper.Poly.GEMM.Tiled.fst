@@ -190,7 +190,7 @@ fn teardown
   admit();
 }
 
-(* No need to do anything special here, just skip the barrier *)
+(* No op *)
 ghost
 fn block_setup
   (nblk : nat)
@@ -199,14 +199,12 @@ fn block_setup
   (bid : natlt nblk)
   norewrite
   requires
-    can_create_barrier nthr **
     p bid
   ensures
-    consumed_can_create_barrier **
     p bid **
     emp
 {
-  no_mk_barrier ();
+  ();
 }
 
 #push-options "--z3rlimit 40"

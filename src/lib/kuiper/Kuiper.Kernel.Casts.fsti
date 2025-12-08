@@ -8,13 +8,14 @@ open Kuiper.Base
 open Kuiper.Kernel.Desc
 open Kuiper.SizeT
 module SZ = Kuiper.SizeT
+module B = Kuiper.Barrier
 
 (* PLEASE NOTE: the types here are very order sensitive. Make
 sure to keep uniformity if you change anything. For instance,
 all the frames are on the right most component of a star
 so they can be easily intro/elim'd when empty. *)
 
-(* MxN, no shared memory *)
+(* MxN, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
 type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
@@ -53,10 +54,8 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
     (bid: natlt nblk) ->
     stt_ghost unit emp_inames
       (requires
-        can_create_barrier nthr **
         block_pre bid)
       (ensures fun _ ->
-        consumed_can_create_barrier **
         (forall+ (i : natlt nthr). kpre bid i) **
         block_frame bid)
   );
@@ -98,7 +97,7 @@ type kernel_desc_m_n (full_pre : slprop) (full_post : slprop) = {
 
 }
 
-(* N independent jobs, no shared memory, to be broken up
+(* N independent jobs, no shared memory, no barrier, to be broken up
 into blocks/threads as needed. *)
 noeq
 inline_for_extraction noextract
@@ -148,7 +147,7 @@ type kernel_desc_n (full_pre : slprop) (full_post : slprop) = {
 }
 
 
-(* 1xN, no shared memory *)
+(* 1xN, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
 type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
@@ -163,10 +162,8 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        can_create_barrier nthr **
         full_pre)
       (ensures fun _ ->
-        consumed_can_create_barrier **
         (forall+ (tid : natlt nthr). kpre tid) **
         frame)
   );
@@ -201,7 +198,64 @@ type kernel_desc_1_n (full_pre : slprop) (full_post : slprop) = {
   kpost_sendable: (j:natlt nthr -> is_send_across block_of (kpost j));
 }
 
-(* Mx1, no shared memory *)
+(* 1xN, no shared memory, but with a barrier *)
+noeq
+inline_for_extraction noextract
+type kernel_desc_1_n_barr (full_pre : slprop) (full_post : slprop) = {
+  nthr : (x : SZ.t { x <= max_threads });
+
+  frame : slprop;
+
+  kpre  : (tid : natlt nthr) -> slprop;
+  kpost : (tid : natlt nthr) -> slprop;
+
+  (* Note, does not depend on bid (only one) or shmem ptrs (there are none) *)
+  barrier_contract : B.contract nthr;
+  barrier_ok       : B.barrier_transform barrier_contract;
+
+  block_setup : (
+    unit ->
+    stt_ghost unit emp_inames
+      (requires
+        full_pre)
+      (ensures fun _ ->
+        (forall+ (tid : natlt nthr). kpre tid) **
+        frame)
+  );
+
+  block_teardown : (
+    unit ->
+    stt_ghost unit emp_inames
+      (requires
+        (forall+ (tid : natlt nthr). kpost tid) **
+        frame)
+      (ensures fun _ ->
+        full_post)
+  );
+
+  f : (
+    tid : szlt nthr ->
+    unit ->
+    stt unit
+      (requires
+         gpu **
+         kpre tid **
+         thread_id nthr tid **
+         B.barrier_tok barrier_contract **
+         B.barrier_state 0)
+      (ensures fun _ ->
+         gpu **
+         kpost tid **
+         thread_id nthr tid)
+  );
+
+  full_pre_sendable: is_send_across gpu_of full_pre;
+  full_post_sendable: is_send_across gpu_of full_post;
+  kpre_sendable: (j:natlt nthr -> is_send_across block_of (kpre j));
+  kpost_sendable: (j:natlt nthr -> is_send_across block_of (kpost j));
+}
+
+(* Mx1, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
 type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
@@ -250,7 +304,7 @@ type kernel_desc_m_1 (full_pre : slprop) (full_post : slprop) = {
   kpost_sendable: (j:natlt nblk -> is_send_across gpu_of (kpost j));
 }
 
-(* 1x1, no shared memory *)
+(* 1x1, no shared memory, no barrier *)
 noeq
 inline_for_extraction noextract
 type kernel_desc_1_1 (full_pre : slprop) (full_post : slprop) = {
@@ -320,4 +374,11 @@ inline_for_extraction noextract
 val k11_as_kfull
   (#full_pre #full_post : slprop)
   (k : kernel_desc_1_1 full_pre full_post)
+     : kernel_desc     full_pre full_post
+
+[@@coercion]
+inline_for_extraction noextract
+val k1nb_as_kfull
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
      : kernel_desc     full_pre full_post

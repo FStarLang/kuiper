@@ -10,6 +10,7 @@ open Kuiper.Base
 open Kuiper.SizeT
 open Kuiper.SHMem
 module SZ = Kuiper.SizeT
+module B = Kuiper.Barrier
 
 (* A full kernel description, in its most general form. There are
 simpler version in the Kuiper.Kernel.Casts module. *)
@@ -33,6 +34,10 @@ type kernel_desc (full_pre full_post : slprop) = {
     natlt nthr ->
     slprop;
 
+  (* Barrier contract + proof, for every block. *)
+  barrier_contract : bid:natlt nblk -> ptrs:c_shmems shmems_desc -> B.contract nthr;
+  barrier_ok       : bid:natlt nblk -> ptrs:c_shmems shmems_desc -> B.barrier_transform (barrier_contract bid ptrs);
+
   f : (
     sh : c_shmems shmems_desc ->
     bid : szlt nblk ->
@@ -43,7 +48,13 @@ type kernel_desc (full_pre full_post : slprop) = {
          gpu **
          kpre sh bid tid **
          thread_id nthr tid **
-         block_id nblk bid)
+         block_id nblk bid **
+         B.barrier_tok (barrier_contract bid sh) **
+         B.barrier_state 0
+         )
+      // Note: can drop barrier_tok (ok...) and barrier_state (maybe not ok,
+      // would maybe be nice to have a barrier_count for each block and enforce
+      // it here?)
       (ensures fun _ ->
          gpu **
          kpost sh bid tid **
@@ -83,11 +94,9 @@ type kernel_desc (full_pre full_post : slprop) = {
     unit ->
     stt_ghost unit emp_inames
       (requires
-        can_create_barrier nthr **
         live_c_shmems sh **
         block_pre bid)
       (ensures fun _ ->
-        consumed_can_create_barrier **
         (forall+ (i : natlt nthr). kpre sh bid i) **
         block_frame sh bid)
   );

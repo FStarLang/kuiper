@@ -173,10 +173,7 @@ let kpre
   : slprop
   =
   kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
-  live_c_shmems sh #(recip nthr) **
-  FlipFlopBarrier.barrier_tok #_ #_ #v #rows #shared #cols eA eB #bm #bk #bn
-    (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid **
-  B.barrier_state 0
+  live_c_shmems sh #(recip nthr)
 
 // #push-options "--z3rlimit_factor 4 --split_queries no --fuel 0 --ifuel 0 --query_stats"
 // instance kpre_block_sendable
@@ -299,12 +296,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
       kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid) **
     emp (* frame *)
@@ -452,9 +447,7 @@ let kpost
   : slprop
   =
   kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
-  live_c_shmems sh #(recip nthr) **
-  FlipFlopBarrier.barrier_tok #_ #_ #v eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid **
-  B.barrier_state (2 * (shared/bk))
+  live_c_shmems sh #(recip nthr)
 
 // #push-options "--z3rlimit_factor 4 --split_queries no --fuel 0 --ifuel 0 --query_stats"
 // #restart-solver

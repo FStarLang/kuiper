@@ -109,25 +109,6 @@ let kpost1
   gB |-> Frac (fB /. (rows/tm * (cols/tn))) eB **
   ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid
 
-let barrier_tok
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #shared #cols : pos)
-  (#bm : pos{bm /?+ rows})
-  (#bk : pos{bk /?+ shared})
-  (#bn : pos{bn /?+ cols})
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  (l1 : full_mlayout bm bk)
-  (l2 : full_mlayout bk bn)
-  (sar1 : gpu_array et (bm * bk))
-  (sar2 : gpu_array et (bk * bn))
-  (nthr : pos)
-  (bid : natlt (rows/bm * (cols/bn)))
-  : slprop
-  =
-  B.barrier_tok (FB.barrier_p eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
-                (FB.barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid)
-
 unfold
 let kpre
   (#et : Type0) {| scalar et, v : has_vec_cpy et |}
@@ -158,9 +139,7 @@ let kpre
   : slprop
   =
   kpre1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid **
-  live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
-  barrier_tok #_ #_ #v eA eB slA slB (fst sh) (fst (snd sh)) nthr bid **
-  B.barrier_state 0
+  live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn)))
 
 instance kpre_block_sendable
   (#et : Type0) (_:scalar et) (v : has_vec_cpy et)
@@ -224,9 +203,7 @@ let kpost
   : slprop
   =
   kpost1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid **
-  live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))) **
-  barrier_tok #_ #_ #v eA eB slA slB (fst sh) (fst (snd sh)) nthr bid **
-  B.barrier_state (2 * (shared / bk))
+  live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn)))
 
 instance kpost_block_sendable
   (#et : Type0) (_:scalar et) (v : has_vec_cpy et)
@@ -259,10 +236,6 @@ instance kpost_block_sendable
 : is_send_across block_of
   (kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
-
-let flat_matrix (#et : Type0) (#rows #cols : nat) (m : ematrix et rows cols)
-  : GTot (lseq et (rows * cols))
-  = Seq.init_ghost (rows * cols) (fun idx -> macc m (idx / cols) (idx % cols))
 
 inline_for_extraction noextract
 fn subproducts2d
@@ -489,7 +462,9 @@ fn kf
     gpu **
     kpre comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn)) tid **
-    block_id (rows/bm * (cols/bn)) bid
+    block_id (rows/bm * (cols/bn)) bid **
+    B.barrier_tok (FB.contract eA eB slA slB (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid **
@@ -503,8 +478,6 @@ fn kf
   gpu_pts_to_ref sarB;
   gpu_matrix_pts_to_ref gA;
   gpu_matrix_pts_to_ref gB;
-
-  unfold barrier_tok eA eB slA slB sarA sarB nthr bid;
 
   gpu_matrix_abs' slA sarA;
   let sA = from_array slA sarA;
@@ -542,17 +515,20 @@ fn kf
   {
     even_2x !bkIdx;
     #set-options "--z3rlimit 60" {
-    rewrite
-        (exists* emA. FB.bp_sharing sA emA nthr) **
-        (exists* emB. FB.bp_sharing sB emB nthr)
-      as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid;
+      rewrite (exists* emA. FB.bp_sharing sA emA nthr) **
+              (exists* emB. FB.bp_sharing sB emB nthr)
+          as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid;
+      rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid
+          as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx) tid;
     };
 
     B.barrier_wait ();
 
+    rewrite (FB.contract eA eB slA slB sarA sarB nthr bid).rout (2 * !bkIdx) tid
+         as (FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid);
     rewrite (FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid)
-        as live_strided_chunks sA nthr tid **
-           live_strided_chunks sB nthr tid;
+         as live_strided_chunks sA nthr tid **
+            live_strided_chunks sB nthr tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)) tid;
 
@@ -564,6 +540,8 @@ fn kf
     rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
             own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
          as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
+         as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
@@ -574,10 +552,11 @@ fn kf
     assert pure ((2 * !bkIdx + 1) < (2 * (shared /^ bk)));
     assert pure ((2 * !bkIdx + 1) / 2 == !bkIdx);
     #set-options "--z3rlimit 60" {
-    rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-    as
-      FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
-      FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
+      rewrite (FB.contract eA eB slA slB sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
+          as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+      rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
+          as FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
+              FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
     };
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
@@ -608,17 +587,8 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  rewrite
-    B.barrier_tok (FB.barrier_p eA eB sA sB nthr bid)
-      (FB.barrier_q eA eB sA sB nthr bid)
-  as
-    B.barrier_tok (FB.barrier_p eA eB (from_array slA sarA)
-          (from_array slB sarB)
-          nthr bid)
-      (FB.barrier_q eA eB (from_array slA sarA)
-          (from_array slB sarB)
-          nthr bid);
-  fold barrier_tok eA eB slA slB sarA sarB nthr bid;
+  drop_ (B.barrier_tok _);
+  drop_ (B.barrier_state _);
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
@@ -699,12 +669,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier nthr **
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpre1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt nthr).
       kpre comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh bid tid) **
     emp (* frame *)
@@ -844,6 +812,9 @@ let mk_kernel
   nthr;// = (bm /^ tm *^ (bn /^ tn));
 
   shmems_desc = shmems_desc et bm bn bk;
+
+  barrier_contract = (fun bid ptrs -> FB.contract eA eB slA slB (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB slA slB (fst ptrs) (fst (snd ptrs)) nthr bid);
 
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt nthr). kpre1  comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid);

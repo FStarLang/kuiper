@@ -19,11 +19,9 @@ fn kmn_as_kfull_block_setup
   ()
   norewrite
   requires
-    can_create_barrier k.nthr **
     live_c_shmems sh **
     k.block_pre bid
   ensures
-    consumed_can_create_barrier **
     (forall+ (i : natlt k.nthr). k.kpre bid i) **
     (k.block_frame bid **
       live_c_shmems sh)
@@ -51,6 +49,49 @@ fn kmn_as_kfull_block_teardown
   f bid;
 }
 
+inline_for_extraction noextract
+fn adapt_kmn_kf
+  (#nblk #nthr : erased nat)
+  #kpre
+  #kpost
+  (f : (
+    bid : szlt nblk ->
+    tid : szlt nthr ->
+    unit ->
+    stt unit
+      (requires
+         gpu **
+         kpre bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
+      (ensures fun _ ->
+         gpu **
+         kpost bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
+  ))
+  (_ : c_shmems [])
+  (bid : szlt nblk)
+  (tid : szlt nthr)
+  ()
+  requires
+    gpu **
+    kpre bid tid **
+    thread_id nthr tid **
+    block_id nblk bid **
+    B.barrier_tok (B.empty_contract nthr) **
+    B.barrier_state 0
+  ensures
+    gpu **
+    kpost bid tid **
+    thread_id nthr tid **
+    block_id nblk bid
+{
+  drop_ (B.barrier_tok _);
+  drop_ (B.barrier_state _);
+  f bid tid ();
+}
+
 [@@coercion]
 inline_for_extraction noextract
 let kmn_as_kfull
@@ -61,6 +102,9 @@ let kmn_as_kfull
   {
   nblk=k.nblk;
   nthr=k.nthr;
+
+  barrier_contract = (fun _bid _ptrs -> B.empty_contract k.nthr);
+  barrier_ok       = (fun _bid _ptrs -> B.empty_barrier_transform k.nthr);
 
   shmems_desc = [];
 
@@ -79,7 +123,7 @@ let kmn_as_kfull
   block_setup = kmn_as_kfull_block_setup k;
   block_teardown = kmn_as_kfull_block_teardown k;
 
-  f = (fun _ear -> f);
+  f = adapt_kmn_kf k.f;
 
   block_pre_sendable;
   block_post_sendable;
@@ -224,23 +268,6 @@ fn pad_teardown
   teardown ();
 }
 
-ghost
-fn kn_as_kmn_block_setup (#full_pre #full_post : slprop)
-  (k : kernel_desc_n full_pre full_post)
-  (bid : natlt (sdivup k.nthr 1024sz))
-  norewrite
-  requires
-    can_create_barrier 1024 **
-    (forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid)
-  ensures
-    consumed_can_create_barrier **
-    (forall+ (tid : natlt 1024sz). pad_kn k k.kpre bid tid) **
-    emp
-{
-  no_mk_barrier ();
-}
-
-
 inline_for_extraction noextract
 let kn_as_kmn (#full_pre #full_post : slprop)
   (k : kernel_desc_n full_pre full_post)
@@ -264,7 +291,7 @@ let kn_as_kmn (#full_pre #full_post : slprop)
   kpre  = pad_kn k k.kpre;
   kpost = pad_kn k k.kpost;
 
-  block_setup    = kn_as_kmn_block_setup k;
+  block_setup    = (fun bid -> Kuiper.Frame.emp_intro_r ());
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   f = adapt_kn_as_kmn k #();
@@ -288,14 +315,11 @@ fn km1_as_kmn_block_setup
   (bid: natlt k.nblk)
   norewrite
   requires
-    can_create_barrier 1sz **
     k.kpre bid
   ensures
-    consumed_can_create_barrier **
     (forall+ (i : natlt 1sz). k.kpre bid) **
     emp
 {
-  no_mk_barrier ();
   forevery_singleton_intro #(natlt 1sz) (fun _ -> k.kpre bid);
 }
 
@@ -431,14 +455,11 @@ fn k11_as_k1n_block_setup
   ()
   norewrite
   requires
-    can_create_barrier 1sz **
     full_pre
   ensures
-    consumed_can_create_barrier **
     (forall+ (bid: natlt 1sz). full_pre) **
     emp
 {
-  no_mk_barrier ();
   forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
 }
 
@@ -506,3 +527,69 @@ let k11_as_kfull
   (k : kernel_desc_1_1 full_pre full_post)
      : kernel_desc     full_pre full_post
   = k |> k11_as_k1n |> k1n_as_kmn |> kmn_as_kfull
+
+inline_for_extraction noextract
+fn adapt_k1nb_kf
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  (_ptrs : c_shmems [])
+  (_bid : szlt 1sz)
+  (tid : szlt k.nthr)
+  ()
+  requires
+    gpu **
+    k.kpre tid **
+    thread_id k.nthr tid **
+    block_id 1sz _bid **
+    B.barrier_tok k.barrier_contract **
+    B.barrier_state 0
+  ensures
+    gpu **
+    k.kpost tid **
+    thread_id k.nthr tid **
+    block_id 1sz _bid
+{
+  let f = k.f;
+  f tid ();
+  ()
+}
+
+[@@coercion]
+inline_for_extraction noextract
+let k1nb_as_kfull
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+     : kernel_desc     full_pre full_post
+  = let open k <: kernel_desc_1_n_barr full_pre full_post in
+    [@@inline_let] let _ : is_send_across gpu_of full_pre = k.full_pre_sendable in
+    [@@inline_let] let _ : is_send_across gpu_of full_post = k.full_post_sendable in
+    {
+    nblk = 1sz;
+    nthr = k.nthr;
+
+    shmems_desc = [];
+
+    barrier_contract = (fun _bid _ptrs -> k.barrier_contract);
+    barrier_ok       = (fun _bid _ptrs -> k.barrier_ok);
+
+    frame = emp;
+
+    block_pre   = (fun _ -> full_pre);
+    block_post  = (fun _ -> full_post);
+    block_frame = (fun _ptrs _bid -> k.frame);
+
+    setup    = magic();
+    teardown = magic();
+
+    kpre  = (fun _ptrs _bid -> k.kpre);
+    kpost = (fun _ptrs _bid -> k.kpost);
+
+    block_setup = magic(); // (fun _ -> k.block_setup ());
+    block_teardown = magic(); // (fun _ -> k.block_teardown ());
+
+    f = adapt_k1nb_kf k;
+    block_pre_sendable = (fun _ -> k.full_pre_sendable);
+    block_post_sendable = (fun _ -> k.full_post_sendable);
+    kpre_sendable = magic();
+    kpost_sendable = magic();
+  } <: kernel_desc full_pre full_post
