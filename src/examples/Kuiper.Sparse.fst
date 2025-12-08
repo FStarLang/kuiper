@@ -301,7 +301,6 @@ let is_global_smatrix
     /\ is_global_array m.col_ind
     /\ is_global_array m.row_off
 
-// Medio fea esta
 let valid_smatrix
   (#nnz rows cols : nat)
   (col_ind : lseq nat nnz)
@@ -395,6 +394,25 @@ let pure_smatrix_pt_to
   e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
 
 
+unfold
+let smatrix_pts_to'
+  (#et:Type0) {| d : scalar et |}
+  #rows #cols
+  (m : smatrix et rows cols)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (v_elems   : lseq et m.nnz)
+  (v_col_ind : lseq sz m.nnz)
+  (v_row_off : lseq sz (rows + 1))
+  (e : ematrix et rows cols)
+  : slprop
+=
+  m.elems   |-> Frac f v_elems **
+  m.col_ind |-> Frac f v_col_ind **
+  m.row_off |-> Frac f v_row_off **
+  pure (pure_smatrix_pt_to m e v_elems v_col_ind v_row_off)
+
+
+
 let smatrix_pts_to
   (#et:Type0) {| d : scalar et |}
   #rows #cols
@@ -410,6 +428,38 @@ let smatrix_pts_to
     m.col_ind |-> Frac f v_col_ind **
     m.row_off |-> Frac f v_row_off **
     pure (pure_smatrix_pt_to m e v_elems v_col_ind v_row_off)
+
+
+fn unfold_smatrix
+  (#et:Type0) {| d : scalar et |}
+  #rows #cols
+  (m : smatrix et rows cols)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (e : ematrix et rows cols)
+  requires smatrix_pts_to m e
+  ensures
+    exists* (v_elems    : lseq et m.nnz).
+    exists* (v_col_ind  : lseq sz m.nnz).
+    exists* (v_row_off  : lseq sz (rows + 1)).
+      smatrix_pts_to' m v_elems v_col_ind v_row_off e
+{
+  unfold smatrix_pts_to m _
+}
+
+fn fold_smatrix
+  (#et:Type0) {| d : scalar et |}
+  #rows #cols
+  (m : smatrix et rows cols)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (v_elems    : lseq et m.nnz)
+  (v_col_ind  : lseq sz m.nnz)      
+  (v_row_off  : lseq sz (rows + 1))
+  (e : ematrix et rows cols)
+  requires smatrix_pts_to' m v_elems v_col_ind v_row_off e
+  ensures smatrix_pts_to m e
+{
+  fold smatrix_pts_to m e
+}
 
 inline_for_extraction noextract
 unfold

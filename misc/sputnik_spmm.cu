@@ -59,9 +59,7 @@ void predicateSet(int n_idx, int n, uint32_t *predicates, int threadItemsX, int 
     }
 }
 
-// hay que conocerlos en tiempo de compilacion
-// TODO cómo se hace esto en kuiper?
-template<int blockItemsX, int blockItemsK>
+template<int blockItemsX, int blockItemsK, int blockWidth>
 
 // creo que si los parámetros dividen bien esto debería andar
 __global__
@@ -80,14 +78,17 @@ void spmm_kernel(int rows,
                  int residueUnroll)
 {
     
+    static_assert(blockWidth <= blockItemsK);
+    static_assert(blockItemsK % blockWidth == 0);
+    static_assert(blockWidth <= blockItemsX);
+    static_assert(blockItemsX % blockWidth == 0);
+
     // grid de M x blockItemsX ==> tiles de C por fila de largo blockItemsX
 
     // fila de bloque
     const int m_idx = blockIdx.y;
     // primer columna de bloque
     const int n_idx = blockIdx.x * blockItemsX;
-
-    const int blockWidth = blockDim.x;
 
     // creo que esto debería valer siempre
     assert(m_idx < rows);
@@ -102,9 +103,6 @@ void spmm_kernel(int rows,
     scalar elems_tile[blockItemsK];
     int col_ind_tile[blockItemsK];
 
-    // TOOD hace falta que divida bien?
-    // assert(blockItemsX % blockWidth == 0);
-    // numero de valores que tiene que calcular cada thread
     const int threadItemsX = blockItemsX / blockWidth;
 
     // por qué align 16? está así en sputnik
@@ -150,7 +148,7 @@ void spmm_kernel(int rows,
     int dense_offset = n_idx + threadIdx.x;
     
     // Nota: en sputniik solo se sincroniza cuando hay mas de 32 threads
-    for (; nnz > 0; nnz -= blockItemsK) {
+    for (; nnz >= blockItemsK; nnz -= blockItemsK) {
 
         // cargamos cooperativamente el tile sparse
         __syncthreads();
