@@ -388,7 +388,10 @@ fn barrier_p_fold_even
   ensures barrier_p p elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2) tid
 {
-  admit();
+  rewrite (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
+          (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
+       as barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
+  ();
 }
 
 ghost
@@ -411,9 +414,17 @@ fn barrier_p_fold_odd
   requires
     forall+ (k: natlt (p.blockItemsK /^ p.blockWidth)).
       barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k
-  ensures barrier_p p elems col_ind row_off
-    elems_tile col_ind_tile bid (idx * 2 + 1) tid
+  ensures
+    barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid
 {
+  assert pure ((idx * 2 + 1) / 2 == idx);
+  assert pure ((row_off @! brow p bid) + ((idx * 2 + 1) / 2) * p.blockItemsK < re);
+  assert pure (odd (idx * 2 + 1));
+  assert pure (not (even (idx * 2 + 1)));
+  // rewrite forall+ (k: natlt (p.blockItemsK /^ p.blockWidth)).
+  //           barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k
+  //      as barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
+  // ();
   admit();
 }
 
