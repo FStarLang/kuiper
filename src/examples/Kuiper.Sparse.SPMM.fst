@@ -80,11 +80,11 @@ let barrier_p
     let ri = row_off @! bid in
     let re = row_off @! bid + 1 in
     // nos pasamos
-    if (it / 2) * blockItemsK >= re - ri then emp else 
+    if (it / 2) * blockItemsK >= re - ri then emp else
     let off = ri + (it / 2) * blockItemsK in
     // a veces no puede probar esto
     assert (tid < blockItemsK);
-    assert (it / 2) * blockItemsK + tid < re - ri; 
+    assert (it / 2) * blockItemsK + tid < re - ri;
     assert blockItemsK /? (re - ri);
     assert (off + blockItemsK <= nnz);
     if even it then
@@ -114,11 +114,11 @@ let barrier_q
     let ri = row_off @! bid in
     let re = row_off @! bid + 1 in
     // nos pasamos
-    if (it / 2) * blockItemsK >= re - ri then emp else 
+    if (it / 2) * blockItemsK >= re - ri then emp else
     let off = ri + (it / 2) * blockItemsK in
     // a veces no puede probar esto
     assert (tid < blockItemsK);
-    assert (it / 2) * blockItemsK + tid < re - ri; 
+    assert (it / 2) * blockItemsK + tid < re - ri;
     assert blockItemsK /? (re - ri);
     assert (off + blockItemsK <= nnz);
     if even it then
@@ -126,7 +126,7 @@ let barrier_q
       (exists* (x : sz). gpu_pts_to_cell col_ind_tile tid x)
     else
       elems_tile |-> Frac (1.0R /. cols) (Seq.slice elems off (off + blockItemsK)) **
-      col_ind_tile |-> Frac (1.0R /. cols) (Seq.slice col_ind off (off + blockItemsK)) 
+      col_ind_tile |-> Frac (1.0R /. cols) (Seq.slice col_ind off (off + blockItemsK))
 
 // TODO renombrar a block_pre
 unfold
@@ -183,8 +183,7 @@ let kpost1
   M.gpu_matrix_pts_to_cell gC bid tid
     (MS.matmul_single eA eB bid tid)
 
-
-let barrier_tok
+let barrier_contract
   (#et : Type0)
   (#rows #shared #cols : nat)
   (#nnz : sz)
@@ -196,12 +195,11 @@ let barrier_tok
   (col_ind_tile : gpu_array sz blockItemsK)
   (#_ : squash (well_formed #rows #shared #cols col_ind row_off blockItemsK))
   (bid : natlt rows)
-  (it : nat)
-  : slprop
-  =
-  B.barrier_tok
-    (barrier_p  #_ #rows #shared #cols elems col_ind row_off elems_tile col_ind_tile bid)
-    (barrier_q #_ #rows #shared #cols elems col_ind row_off elems_tile col_ind_tile bid)
+  : B.contract cols =
+  {
+    rin  = barrier_p #_ #rows #shared #cols elems col_ind row_off elems_tile col_ind_tile bid;
+    rout = barrier_q #_ #rows #shared #cols elems col_ind row_off elems_tile col_ind_tile bid;
+  }
 
 unfold
 let kpre
@@ -230,10 +228,7 @@ let kpre
   let (elems_tile, (col_ind_tile, _)) = sh in
   kpre1 gA gB gC elems col_ind row_off eA eB fA fB bid tid **
   (exists* (s : seq et). elems_tile |-> Frac (1.0R /. cols) s) **
-  (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. cols) s) **
-  barrier_tok #_ #rows #shared #cols
-    elems col_ind row_off elems_tile col_ind_tile bid tid **
-  B.barrier_state 0
+  (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. cols) s)
 
 unfold
 let kpost
@@ -264,11 +259,7 @@ let kpost
   let re = row_off @! bid + 1 in
   kpost1 gA gB gC elems col_ind row_off eA eB fA fB bid tid **
   live elems_tile #(1.0R /. cols) **
-  live col_ind_tile #(1.0R /. cols) **
-  barrier_tok #_ #rows #shared #cols
-    elems col_ind row_off (elems_tile) (col_ind_tile)
-    bid  tid **
-  B.barrier_state ((re - ri) / blockItemsK * 2)
+  live col_ind_tile #(1.0R /. cols)
 
 inline_for_extraction noextract
 fn sparse_load
@@ -293,11 +284,11 @@ fn sparse_load
   (#_ : squash(ri + (idx + 1) * blockItemsK <= gA.nnz))
   norewrite
   preserves
-    gpu ** 
+    gpu **
     smatrix_pts_to' gA #(fA /. (rows * cols))
       elems col_ind row_off eA **
-    barrier_tok #_ #rows #shared #cols
-      elems col_ind row_off elems_tile col_ind_tile bid tid **
+    B.barrier_tok (barrier_contract #et #rows #shared #cols
+      elems col_ind row_off elems_tile col_ind_tile bid) **
     thread_id cols tid
   requires
     B.barrier_state (idx * 2) **
@@ -313,21 +304,29 @@ fn sparse_load
     col_ind_tile |-> Frac (1.0R /. cols)
       (Seq.slice col_ind (ri + idx * blockItemsK) (ri + idx * blockItemsK + blockItemsK))
 {
-  unfold barrier_tok #_ #rows #shared #cols
-    elems col_ind row_off elems_tile col_ind_tile bid tid;
 
-  rewrite 
+  rewrite
     (exists* (s : seq et). elems_tile |-> Frac (1.0R /. cols) s) **
     (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. cols) s)
-    as barrier_p 
+    as barrier_p
       #et #rows #shared #cols #gA.nnz
       elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
+  rewrite barrier_p
+            #et #rows #shared #cols #gA.nnz
+            elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid
+       as (barrier_contract #et #rows #shared #cols
+            elems col_ind row_off elems_tile col_ind_tile bid).rin (idx * 2) tid;
 
   B.barrier_wait ();
 
   //assert pure (((idx * 2) / 2) * blockItemsK < re - ri);
   //assert pure (even (idx * 2));
 
+  rewrite (barrier_contract #et #rows #shared #cols
+            elems col_ind row_off elems_tile col_ind_tile bid).rout (idx * 2) tid
+    as barrier_q
+      #et #rows #shared #cols #gA.nnz
+      elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
   rewrite
     (barrier_q #et #rows #shared #cols #gA.nnz
       elems col_ind row_off
@@ -355,14 +354,25 @@ fn sparse_load
   //assert pure (not (even (idx * 2 + 1)));
   //assert pure (((ri + idx * blockItemsK) + tid) < gA.nnz);
   //assert pure ((idx * 2 + 1) / 2  == idx);
-  rewrite 
+  rewrite
     gpu_pts_to_cell elems_tile   tid (elems   @! ((ri + idx * blockItemsK) + tid)) **
     gpu_pts_to_cell col_ind_tile tid (col_ind @! ((ri + idx * blockItemsK) + tid))
-    as barrier_p 
+    as barrier_p
       #et #rows #shared #cols #gA.nnz
       elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
+  rewrite barrier_p
+            #et #rows #shared #cols #gA.nnz
+            elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid
+       as (barrier_contract #et #rows #shared #cols
+            elems col_ind row_off elems_tile col_ind_tile bid).rin (idx * 2 + 1) tid;
 
   B.barrier_wait ();
+
+  rewrite (barrier_contract #et #rows #shared #cols
+            elems col_ind row_off elems_tile col_ind_tile bid).rout (idx * 2 + 1) tid
+    as barrier_q
+      #et #rows #shared #cols #gA.nnz
+      elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
 
   rewrite
     (barrier_q #et #rows #shared #cols #gA.nnz
@@ -375,8 +385,7 @@ fn sparse_load
       col_ind_tile |-> Frac (1.0R /. cols)
         (Seq.slice col_ind (ri + idx * blockItemsK) (ri + idx * blockItemsK + blockItemsK));
 
-  fold barrier_tok #_ #rows #shared #cols
-    elems col_ind row_off elems_tile col_ind_tile bid tid;
+  ();
 }
 
 
@@ -464,7 +473,10 @@ fn kf
     gpu **
     kpre gA gB gC elems col_ind row_off eA eB fA fB sh bid tid **
     thread_id cols tid **
-    block_id rows bid
+    block_id rows bid **
+    B.barrier_tok (barrier_contract #et #rows #shared #cols
+      elems col_ind row_off (fst sh) (fst (snd sh)) bid) **
+    B.barrier_state 0
   ensures
     gpu **
     kpost gA gB gC elems col_ind row_off eA eB fA fB sh bid tid **
@@ -504,7 +516,7 @@ fn kf
       pure (
         !idx <= (re -^ ri) /^ blockItemsK /\
         !nnz == re -^ ri -^ !idx *^ blockItemsK
-      ) 
+      )
   {
     sparse_load #et #_ #rows #shared #cols gA
       #row_off #elems #col_ind #eA #fA #blockItemsK
@@ -519,15 +531,14 @@ fn kf
 
   M.gpu_matrix_write_cell gC bid tid !dp;
 
+  drop_ (B.barrier_tok _);
+  drop_ (B.barrier_state (!idx * 2));
+
   assume pure (!dp == MS.matmul_single eA eB bid tid);
   rewrite
     kpost1 gA gB gC elems col_ind row_off eA eB fA fB bid tid **
     live elems_tile #(1.0R /. cols) **
-    live col_ind_tile #(1.0R /. cols) **
-    barrier_tok #_ #rows #shared #cols
-      elems col_ind row_off (elems_tile) (col_ind_tile)
-      bid  tid **
-    B.barrier_state ((re - ri) / blockItemsK * 2)
+    live col_ind_tile #(1.0R /. cols)
     as kpost gA gB gC elems col_ind row_off eA eB fA fB sh bid tid;
 }
 
@@ -549,7 +560,7 @@ fn setup
   // matrices densas
   (#eB : ematrix et shared cols)
   (#fA #fB : perm)
-  // TODO por que toma unit? 
+  // TODO por que toma unit?
   ()
   norewrite
   requires
@@ -589,12 +600,10 @@ fn block_setup
   ()
   norewrite
   requires
-    can_create_barrier cols **
     live_c_shmems sh **
     (forall+ (tid : natlt cols).
       kpre1 gA gB gC elems col_ind row_off eA eB fA fB bid tid)
   ensures
-    consumed_can_create_barrier **
     (forall+ (tid : natlt cols).
       kpre gA gB gC elems col_ind row_off eA eB fA fB sh bid tid) **
       emp
@@ -706,6 +715,11 @@ let kdesc
 = {
   nblk = rows;
   nthr = cols;
+
+  barrier_contract = (fun bid ptrs ->
+    barrier_contract #et #rows #shared #cols
+      elems col_ind row_off (fst ptrs) (fst (snd ptrs)) bid);
+  barrier_ok = (fun bid ptrs -> magic());
 
   shmems_desc = shmems_desc et blockItemsK;
 
