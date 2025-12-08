@@ -17,6 +17,9 @@ open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 
 open Kuiper.Poly.GEMMGPU.Type
 
+(* Shadow lseq to make it erased. *)
+let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
+
 inline_for_extraction noextract
 let size_req : size_req_t =
   fun mrows mshared mcols ->
@@ -402,8 +405,8 @@ fn compute
   (#fB : perm)
   (out : ref et)
   // fragmentos sparse
-  (#v_elems : erased (lseq et blockItemsK))
-  (#v_col_ind : erased (lseq sz blockItemsK))
+  (#v_elems : lseq et blockItemsK)
+  (#v_col_ind : lseq sz blockItemsK)
   (#_ : squash(forall i. 0 <= v_col_ind @! i /\ v_col_ind @! i < shared))
   // matriz densa B
   (#eB : erased (ematrix et shared cols))
