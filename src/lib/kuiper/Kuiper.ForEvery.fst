@@ -4,7 +4,6 @@ module Kuiper.ForEvery
 open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
-open Pulse.Lib.BigStar
 open Pulse.Lib.Trade
 open FStar.FunctionalExtensionality { (^->) }
 module F = FStar.FunctionalExtensionality
@@ -1221,80 +1220,6 @@ fn forevery_natlt_push_shift
   forevery_natlt_push n (fun i -> p (n - 1 - i));
 
   forevery_iso_back (bij_mirror_n n) p;
-}
-
-ghost
-fn rec forevery_fromnat
-  (n : nat)
-  (p : natlt n -> slprop)
-  requires
-    bigstar 0 n (fun i -> p i)
-  ensures
-    forall+ (x : natlt n). p x
-  decreases
-    n
-{
-  if (n = 0) {
-    rewrite each n as 0;
-    bigstar_zs_elim #_;
-    forevery_intro_fill (fun x -> p x) fn x { unreachable () };
-  } else {
-    bigstar_extract 0 n (fun i -> p i) (n-1);
-    rewrite each (n-1+1) as n; bigstar_zs_elim #_;
-    forevery_fromnat (n-1) (fun j -> p (natlt_coerce j));
-    forevery_natlt_push n p;
-  }
-}
-
-ghost
-fn rec forevery_tonat
-  (n : nat)
-  (p : natlt n -> slprop)
-  requires
-    forall+ (x : natlt n). p x
-  ensures
-    bigstar 0 n (fun i -> p i)
-  decreases
-    n
-{
-  if (n = 0) {
-    assert rewrites_to n 0;
-    forevery_elim_empty (fun (x : natlt n) -> p x);
-    bigstar_zs_intro 0 p;
-  } else {
-    forevery_natlt_pop n p;
-    forevery_tonat (n-1) _;
-    bigstar_zs_intro n p;
-    rewrite bigstar #0 n n p as bigstar #0 (n - 1 + 1) n (fun j -> p j);
-    bigstar_compose 0 n p (n-1);
-  }
-}
-
-
-ghost
-fn forevery_tostar
-  (#a:Type0) {| d: enumerable a |}
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
-{
-  forevery_iso d.bij (fun i -> p i);
-  forevery_tonat (cardinal a #_) (fun i -> p (of_nat i));
-}
-
-ghost
-fn forevery_fromstar
-  (#a:Type0) {| d: enumerable a |}
-  (p : a -> slprop)
-  requires
-    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
-  ensures
-    forall+ (x:a). p x
-{
-  forevery_fromnat (cardinal a #_) (fun i -> p (of_nat i));
-  forevery_iso_back d.bij (fun i -> p i);
 }
 
 ghost

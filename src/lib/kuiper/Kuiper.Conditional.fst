@@ -3,7 +3,6 @@ module Kuiper.Conditional
 #lang-pulse
 
 open Pulse.Lib.Pervasives
-open Pulse.Lib.BigStar
 open FStar.Tactics.V2
 
 // REWRITE
@@ -187,38 +186,6 @@ fn if_flatten (#b1 #b2: bool) (#p: slprop)
     if_intro_false p;
     rewrite if_ false p as if_ (b1 && b2) p;
   }
-}
-
-// BIGSTAR
-
-ghost
-fn bigstar_if_elim
-  (#u1 : int)
-  (#m: nat)
-  (#n : nat {m <= n})
-  (x : nat { m <= x /\ x < n })
-  (p: (i:nat { m <= i /\ i < n }) -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
-  ensures  p x
-{
-  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)))
-       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp));
-  Pulse.Lib.BigStar.bigstar_if_elim #u1 #m #n x p;
-}
-
-ghost
-fn bigstar_if_intro
-  (#[Tactics.exact (`0)]u1 : int)
-  (m: nat)
-  (n : nat {m <= n})
-  (x : nat { m <= x /\ x < n })
-  (p: (i:nat { m <= i /\ i < n }) -> slprop)
-  requires p x
-  ensures  bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
-{
-  Pulse.Lib.BigStar.bigstar_if_intro #u1 m n x p;
-  rewrite (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> cond (i = x) (p i) emp))
-       as (bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i)));
 }
 
 ghost
