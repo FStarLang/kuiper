@@ -47,7 +47,7 @@ bool GetBit(uint32_t *predicates, int x) {
 }
 
 __device__ __forceinline__
-void predicateSet(int n_idx, int n, uint32_t *predicates, int threadItemsX, int blockWidth) {
+void predicateSet(int n, int n_idx, uint32_t *predicates, int threadItemsX, int blockWidth) {
     int index = n_idx + threadIdx.x;
 
 #pragma unroll
