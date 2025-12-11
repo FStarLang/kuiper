@@ -17,6 +17,16 @@ open Kuiper.Matrix.Reprs
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Poly.GEMMGPU.Type { size_req_t }
 
+let live_cell
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (gm : M.gpu_matrix et lm)
+  (i : natlt rows)
+  (j : natlt cols)
+  : slprop
+  = exists* v. M.gpu_matrix_pts_to_cell gm i j v
+
 type parameters = {
   rows : szp;
   shared : szp;
@@ -32,25 +42,37 @@ type parameters = {
 let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
 
 
-inline_for_extraction noextract
-let size_req : size_req_t =
-  fun mrows mshared mcols ->
-    mrows <= max_blocks /\
-    mcols <= max_threads
-
 let nblocks (p : parameters) = p.rows * p.cols / p.blockItemsX
 let nthreads (p : parameters) = nblocks p * p.blockWidth
 
+inline_for_extraction noextract
+let size_req (p : parameters) =
+    nblocks p <= max_blocks /\
+    nthreads p <= max_threads
+
+let sz_nblocks (p : parameters{size_req p}) : szle max_blocks
+=  p.rows *^ (p.cols /^ p.blockItemsX)
+
+let sz_nthreads (p : parameters{size_req p}) : szle max_threads
+=
+  assert nblocks p == SZ.v (sz_nblocks p);
+  assert sz_nblocks p * p.blockWidth <= max_threads;
+  sz_nblocks p *^ p.blockWidth
+
+
+
 let brow (p : parameters) (bid : natlt (nblocks p))
+  : GTot (natlt p.rows)
   //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
-  : GTot nat
   = bid / (p.cols / p.blockItemsX)
 
 unfold
-let n_idx (p : parameters) (bid : szlt (nblocks p)) : sz
+let n_idx (p : parameters) (bid : szlt (nblocks p))
+  : GTot (szlt p.cols)
   = bid %^ (p.cols /^ p.blockItemsX)
 
 let bcol (p : parameters) (bid : natlt (nblocks p))
+  : GTot (natlt p.cols)
   // definir en terminos de n_idx??
   //= bid % ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
   = bid % (p.cols / p.blockItemsX)
@@ -254,10 +276,11 @@ let block_pre
   smatrix_pts_to' gA #(fA /. (nthreads p))
     elems col_ind row_off eA **
   gB |-> Frac (fB /. (nthreads p)) eB **
-  forall+ (k : nat{k * p.blockWidth + tid < p.blockItemsX}).
-    exists* c.
-      M.gpu_matrix_pts_to_cell gC
-        (brow p bid) (bcol p bid + k * p.blockWidth + tid) c
+  forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
+    // TODO tiene sentido usar when acá? podria refinar
+    when__
+      (bcol p bid + k * p.blockWidth + tid < p.cols)
+      (fun _ -> live_cell gC (brow p bid) (bcol p bid + k * p.blockWidth + tid))
   
 
 unfold
@@ -284,10 +307,13 @@ let block_post
   smatrix_pts_to' gA #(fA /. (nthreads p))
     elems col_ind row_off eA **
   gB |-> Frac (fB /. (nthreads p)) eB **
-  forall+ (k : nat{k * p.blockWidth + tid < p.blockItemsX}).
-    M.gpu_matrix_pts_to_cell gC
-      (brow p bid) (bcol p bid + k * p.blockWidth + tid)
-      (MS.matmul_single eA eB (brow p bid) (bcol p bid + k * p.blockWidth + tid))
+  forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
+    when__
+      (bcol p bid + k * p.blockWidth + tid < p.cols)
+      (fun _ -> M.gpu_matrix_pts_to_cell gC
+        (brow p bid) (bcol p bid + k * p.blockWidth + tid)
+        (MS.matmul_single eA eB
+          (brow p bid) (bcol p bid + k * p.blockWidth + tid)))
 
 let barrier_contract
   (#et : Type0)
@@ -411,16 +437,13 @@ fn barrier_p_fold_odd
   (ri : sz{ri == row_off @! brow p bid})
   (re : sz{re == row_off @! brow p bid + 1})
   (#_ : squash (ri + idx * p.blockItemsK < re))
+  (#_ : squash (p.blockItemsK /? (re - ri)))
   requires
     forall+ (k: natlt (p.blockItemsK /^ p.blockWidth)).
       barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k
   ensures
     barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid
 {
-  assert pure ((idx * 2 + 1) / 2 == idx);
-  assert pure ((row_off @! brow p bid) + ((idx * 2 + 1) / 2) * p.blockItemsK < re);
-  assert pure (odd (idx * 2 + 1));
-  assert pure (not (even (idx * 2 + 1)));
   // rewrite forall+ (k: natlt (p.blockItemsK /^ p.blockWidth)).
   //           barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k
   //      as barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
@@ -445,6 +468,7 @@ fn barrier_q_unfold_even
   (ri : sz{ri == row_off @! brow p bid})
   (re : sz{re == row_off @! brow p bid + 1})
   (#_ : squash (ri + idx * p.blockItemsK < re))
+  (#_ : squash (p.blockItemsK /? (re - ri)))
   requires
     barrier_q p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid
   ensures
@@ -549,12 +573,9 @@ fn foreach
     (); // por que no sale?
     admit();
   };
-  with vk. assert k |-> vk;
+  rewrite each !k as n;
 
-  forevery_rw_type (natlt (n - vk)) (natlt 0) (fun ki -> p (vk + ki));
-  forevery_tonat 0 (fun ki -> p (vk + ki));
-  bigstar_zs_elim #_;
-
+  forevery_elim_empty (fun (ki : natlt (n - n))  -> p (n + ki));
   forevery_unrefine q; 
 }
 
@@ -768,10 +789,10 @@ fn compute
       assert pure (n_idx + !x * p.blockWidth + tid < p.cols);
 
       let b = M.gpu_matrix_read gB c (n_idx +^ !x *^ p.blockWidth +^ tid);
-      with o. unfold Pulse.Lib.Array.pts_to out o;
-      admit();
-      let c = mask_read out !x;
-      mask_write out !x (c `add` (a `mul` b));
+      open Pulse.Lib.Array;
+      Pulse.Lib.Array.pts_to_len out;
+      let c = out.(!x);
+      out.(!x) <- (c `add` (a `mul` b));
 
       x := !x +^ 1sz;
     };
@@ -780,16 +801,66 @@ fn compute
   };
 }
 
-// fn foo (r : ref int)
-//   requires r |-> 1
-//   ensures  r |-> 1
-// {
-//   assert (exists* v. r |-> v);
-//   ();
-// }
+inline_for_extraction noextract
+fn store_out
+  (#et : Type0) {| scalar et |}
+  (p : parameters)
+  (#lC : mlayout p.rows p.cols)
+  {| clayout lC |}
+  (gC : M.gpu_matrix et lC)
+  (out : larray et (p.blockItemsX /^ p.blockWidth))
+  (#v_out : erased (seq et){length out == len v_out})
+  (bid : szlt (nblocks p))
+  (tid : szlt p.blockWidth)
+  (trow : sz{SZ.v trow == brow p bid})
+  (tcol : sz{SZ.v tcol == bcol p bid})
+  (x : szlt (p.blockItemsX /^ p.blockWidth))
+  requires
+    when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+      live_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid)
+    ) **
+    out |-> v_out
+  ensures
+    when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+        M.gpu_matrix_pts_to_cell gC
+          trow
+          (tcol + x * p.blockWidth + tid)
+          (v_out @! x)
+    ) **
+    out |-> v_out
+{
+  block_lemma_off p.blockItemsX p.blockWidth x tid;
+  assert pure (bcol p bid + x * p.blockWidth + tid < p.cols);
+  rewrite
+    when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+      live_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid))
+    as live_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid);
+
+  unfold live_cell;
+
+  open Pulse.Lib.Array;
+  let c = out.(x);
+  assert pure (tcol +^ x *^ p.blockWidth +^ tid <^ p.cols);
+  M.gpu_matrix_write_cell gC trow (tcol +^ x *^ p.blockWidth +^ tid) c;
+  admit();
+}
+#pop-options
 
 
-#set-options "--print_implicits"
+ghost
+fn forevery_refine_pred'
+  (#a:Type0)
+  (f: a -> prop)
+  (p: (x:a -> squash (f x) -> slprop))
+  requires
+    forall+ (x:a). when__ (f x) (p x)
+  ensures
+    forall+ (x:a { f x }). p x ()
+{
+  forevery_refine_split (fun x -> when__ (f x) (p x)) f;
+  drop_ (forall+ (x:a { ~(f x) }). when__ (f x) (p x));
+  forevery_ext (fun (x:a { f x }) -> when__ (f x) (p x)) (fun x -> p x ());
+}
 
 #push-options "--z3rlimit 20"
 inline_for_extraction noextract
@@ -885,19 +956,22 @@ fn kf
     nnz := !nnz -^ p.blockItemsK;
   };
 
-  //M.gpu_matrix_write_cell gC bid tid !dp;
-  let mut x : sz = 0sz;
-  while (!x <^ p.blockItemsX /^ p.blockWidth)
-    invariant live out 
-  {
-    open Pulse.Lib.Array;
-    Pulse.Lib.Array.pts_to_len out;
-    // let c = mask_read out !x;
-    let c = out.(!x);
-    block_lemma_off p.blockItemsX p.blockWidth !x tid;
-    M.gpu_matrix_write_cell gC trow (tcol +^ !x *^ p.blockWidth +^ tid);
-    ();
-  };
+  with v_out. assert out |-> v_out;
+  Pulse.Lib.Array.pts_to_len out;
+
+
+  foreach (p.blockItemsX /^ p.blockWidth)
+    (fun x ->
+      when__ (bcol p bid + x * p.blockWidth + tid < p.cols) 
+        (fun _ -> live_cell gC trow (tcol + x * p.blockWidth + tid)))
+    (fun x ->
+      when__ (bcol p bid + x * p.blockWidth + tid < p.cols) 
+        (fun _ ->
+          M.gpu_matrix_pts_to_cell gC
+            trow
+            (tcol + x * p.blockWidth + tid)
+            (v_out @! x)))
+    (store_out p gC out bid tid trow tcol) ;
 
   //assume pure (!dp == MS.matmul_single eA eB bid tid);
   admit();
@@ -911,25 +985,25 @@ fn kf
     live col_ind_tile #(1.0R /. p.blockWidth)
     as kpost p gA gB gC elems col_ind row_off eA eB fA fB sh bid tid;
 }
+#pop-options
 
-(*
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (p : parameters)
+  (#lB : mlayout p.shared p.cols)
+  (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et rows shared)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (gB : M.gpu_matrix et lB)
   (gC : M.gpu_matrix et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (row_off : lseq sz (p.rows + 1))
+  (#eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
   // TODO por que toma unit?
   ()
@@ -939,8 +1013,8 @@ fn setup
     gB |-> Frac fB eB **
     live gC
   ensures
-    (forall+ (bid : natlt rows) (tid : natlt cols).
-      kpre1 gA gB gC elems col_ind row_off eA eB fA fB bid tid) **
+    (forall+ (bid : natlt (nblocks p)) (tid : natlt p.blockWidth).
+      block_pre p gA gB gC elems col_ind row_off eA eB fA fB bid tid) **
       emp
 {
   admit()
@@ -949,34 +1023,33 @@ fn setup
 ghost
 fn block_setup
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (p : parameters)
+  (#lB : mlayout p.shared p.cols)
+  (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et rows shared)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (gB : M.gpu_matrix et lB)
   (gC : M.gpu_matrix et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (row_off : lseq sz (p.rows + 1))
+  (#eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
-  (#blockItemsK : szp)
-  (#_ : squash (well_formed #rows #shared #cols col_ind row_off blockItemsK))
-  (sh : c_shmems (shmems_desc et blockItemsK))
-  (bid : natlt rows)
+  (#_ : squash (well_formed p col_ind row_off))
+  (sh : c_shmems (shmems_desc et p ))
+  (bid : natlt (nblocks p))
   ()
   norewrite
   requires
     live_c_shmems sh **
-    (forall+ (tid : natlt cols).
-      kpre1 gA gB gC elems col_ind row_off eA eB fA fB bid tid)
+    (forall+ (tid : natlt p.blockWidth).
+      block_pre p gA gB gC elems col_ind row_off eA eB fA fB bid tid)
   ensures
-    (forall+ (tid : natlt cols).
-      kpre gA gB gC elems col_ind row_off eA eB fA fB sh bid tid) **
+    (forall+ (tid : natlt p.blockWidth).
+      kpre p gA gB gC elems col_ind row_off eA eB fA fB sh bid tid) **
       emp
 {
   admit()
@@ -985,36 +1058,34 @@ fn block_setup
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (p : parameters)
+  (#lB : mlayout p.shared p.cols)
+  (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et rows shared)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (gB : M.gpu_matrix et lB)
   (gC : M.gpu_matrix et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (row_off : lseq sz (p.rows + 1))
+  (#eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
-  (#blockItemsK : szp)
-  (#_ : squash (well_formed #rows #shared #cols col_ind row_off blockItemsK))
-  (sh : c_shmems (shmems_desc et blockItemsK))
-  (bid : natlt rows)
+  (#_ : squash (well_formed p col_ind row_off))
+  (sh : c_shmems (shmems_desc et p ))
+  (bid : natlt (nblocks p))
   ()
   norewrite
   requires
-    // TODO falta el frame aca??
-    (forall+ (tid : natlt cols).
-      kpost gA gB gC elems col_ind row_off eA eB fA fB sh bid tid) **
+    (forall+ (tid : natlt p.blockWidth).
+      kpost p gA gB gC elems col_ind row_off eA eB fA fB sh bid tid) **
       emp
   ensures
     live_c_shmems sh **
-    (forall+ (tid : natlt cols).
-      kpost1 gA gB gC elems col_ind row_off eA eB fA fB bid tid)
+    (forall+ (tid : natlt p.blockWidth).
+      block_post p gA gB gC elems col_ind row_off eA eB fA fB bid tid)
 {
   admit();
 }
@@ -1022,27 +1093,28 @@ fn block_teardown
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : nat)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (p : parameters)
+  (#lB : mlayout p.shared p.cols)
+  (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et rows shared)
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (gB : M.gpu_matrix et lB)
   (gC : M.gpu_matrix et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (row_off : lseq sz (p.rows + 1))
+  (#eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
+  // TODO por que toma unit?
   ()
   norewrite
   requires
     // TODO falta el frame aca??
-    (forall+ (bid : natlt rows) (tid : natlt cols).
-      kpost1 gA gB gC elems col_ind row_off eA eB fA fB bid tid) **
+    (forall+ (bid : natlt (nblocks p)) (tid : natlt p.blockWidth).
+      block_post p gA gB gC elems col_ind row_off eA eB fA fB bid tid) **
       emp
   ensures
     smatrix_pts_to' gA #fA elems col_ind row_off eA **
@@ -1055,24 +1127,22 @@ fn teardown
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : sz)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (p : parameters{size_req p})
+  (#lB : mlayout p.shared p.cols)
+  (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
   (gB : M.gpu_matrix et lB{M.is_global_matrix gB})
   (gC : M.gpu_matrix et lC{M.is_global_matrix gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
-  (eA : ematrix et rows shared)
+  (row_off : lseq sz (p.rows + 1))
+  (eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et shared cols)
+  (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
-  (blockItemsK : szp)
-  (#_ : size_req rows shared cols)
-  (#_ : squash (well_formed #rows #shared #cols col_ind row_off blockItemsK))
+  (#_ : squash (well_formed p col_ind row_off))
   : kernel_desc (
       smatrix_pts_to' gA #fA elems col_ind row_off eA **
       gB |-> Frac fB eB **
@@ -1084,33 +1154,33 @@ let kdesc
       gC |-> MS.matmul eA eB
     )
 = {
-  nblk = rows;
-  nthr = cols;
+  nblk = sz_nblocks p;
+  nthr = sz_nthreads p;
 
   barrier_contract = (fun bid ptrs ->
-    barrier_contract #et #rows #shared #cols
-      elems col_ind row_off (fst ptrs) (fst (snd ptrs)) bid);
+    barrier_contract p elems col_ind row_off
+      (fst ptrs) (fst (snd ptrs)) bid);
   barrier_ok = (fun bid ptrs -> magic());
 
-  shmems_desc = shmems_desc et blockItemsK;
+  shmems_desc = shmems_desc et p;
 
   frame = emp;
 
-  block_pre  = (fun bid -> forall+ (tid : natlt cols).
-    kpre1 gA gB gC elems col_ind row_off eA eB fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt cols).
-    kpost1 gA gB gC elems col_ind row_off eA eB fA fB bid tid);
-  setup    = setup    gA gB gC elems col_ind row_off #_ #_ #fA;
-  teardown = teardown gA gB gC elems col_ind row_off #_ #_ #fA;
+  block_pre  = (fun bid -> forall+ (tid : natlt p.blockWidth).
+    block_pre p gA gB gC elems col_ind row_off eA eB fA fB bid tid);
+  block_post = (fun bid -> forall+ (tid : natlt p.blockWidth).
+    block_post p gA gB gC elems col_ind row_off eA eB fA fB bid tid);
+  setup    = setup    p gA gB gC elems col_ind row_off #_ #_ #fA;
+  teardown = teardown p gA gB gC elems col_ind row_off #_ #_ #fA;
 
   block_frame    = (fun _ar _bid -> emp);
-  block_setup    = block_setup    gA gB gC elems col_ind row_off #eA #eB #fA #fB;
-  block_teardown = block_teardown gA gB gC elems col_ind row_off #eA #eB #fA #fB;
+  block_setup    = block_setup    p gA gB gC elems col_ind row_off #eA #eB #fA #fB;
+  block_teardown = block_teardown p gA gB gC elems col_ind row_off #eA #eB #fA #fB;
 
-  kpre = kpre gA gB gC elems col_ind row_off eA eB fA fB;
-  kpost = kpost gA gB gC elems col_ind row_off eA eB fA fB;
+  kpre  = kpre  p gA gB gC elems col_ind row_off eA eB fA fB;
+  kpost = kpost p gA gB gC elems col_ind row_off eA eB fA fB;
 
-  f = kf gA gB gC;
+  f = kf p gA gB gC;
 
   block_pre_sendable=solve;
   block_post_sendable=solve;
@@ -1118,16 +1188,15 @@ let kdesc
   kpost_sendable=magic();
 }
 
-#set-options "--print_implicits --split_queries always"
 
 inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : szp)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (p : parameters{size_req p})
+  (#lB : mlayout p.shared p.cols)
+  (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
   (#fA : perm)
   (gB : M.gpu_matrix et lB{M.is_global_matrix gB})
   (#fB : perm)
@@ -1135,12 +1204,11 @@ fn spmm
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (rows + 1))
-  (#eA : ematrix et rows shared)
+  (row_off : lseq sz (p.rows + 1))
+  (#eA : ematrix et p.rows p.shared)
   // matrices densas
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
-  (#blockItemsK : szp)
+  (#eB : ematrix et p.shared p.cols)
+  (#eC : ematrix et p.rows p.cols)
   //(#_ : size_req rows shared cols)
   norewrite
   preserves
@@ -1150,26 +1218,20 @@ fn spmm
     on gpu_loc (gB |-> Frac fB eB)
   requires
     on gpu_loc (live gC) **
-    pure (
-      size_req rows shared cols /\
-      cols /? SZ.v blockItemsK
-    )
+    pure (size_req p)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  assume pure (well_formed #rows #shared #cols #gA.nnz col_ind row_off blockItemsK);
+  assume pure (well_formed p #gA.nnz col_ind row_off);
   // que raro
-  let pf_size_req : squash (size_req rows shared cols) = ();
+  let pf_size_req : squash (size_req p) = ();
   launch_sync (
-    kdesc #et #_ #rows #shared #cols #lB #lC
+    kdesc p #lB #lC
       gA gB gC elems col_ind row_off eA
       #eB #fA #fB
-      blockItemsK #pf_size_req #()
   );
 }
 
-let _spmm_u32
-  (rows shared cols : szp {SZ.fits (rows * cols) /\ SZ.fits (shared * cols)})
+let _spmm_u32 (p : parameters {size_req p /\ SZ.fits (p.rows * p.cols) /\ SZ.fits (p.shared * p.cols)})
   =
-  spmm #u32 #_
-  #rows #shared #cols
+  spmm #u32 #_ p
   #(row_major _ _) #(row_major _ _)
