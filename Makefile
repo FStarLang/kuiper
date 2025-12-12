@@ -10,6 +10,10 @@ all:
 minimal:
 	+$(MAKE) -f verify.mk minimal
 
+.PHONY: verify
+verify:
+	+$(MAKE) -f verify.mk verify-all
+
 .PHONY: prepare
 prepare:
 	+$(MAKE) -f verify.mk prepare

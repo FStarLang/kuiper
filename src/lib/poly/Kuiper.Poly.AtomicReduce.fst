@@ -43,7 +43,7 @@ let inv_p
     seq bool {len v_done >= len done /\ len v_done >= len v_a})
     v_r.
     ((r |-> v_r) **
-    bigstar 0 (len done) (fun i -> (done @! i) |-> Frac 0.5R (v_done @! i))) **
+    (forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (v_done @! i))) **
     pure (contributions nn v_done v_a v_r zero)
 
 unfold
@@ -77,12 +77,12 @@ let kpost
   inv i (inv_p nn a v_a r done)
 
 ghost
-fn bigstar_ghost_upd_lemma
+fn forevery_ghost_upd_lemma
   (done : seq (gref bool))
   (v_done : seq bool{len v_done >= len done})
   (tid : nat{tid < len done})
   preserves
-    bigstar 0 (len done) (fun i -> (done @! i) |-> Frac 0.5R (v_done @! i))
+    forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (v_done @! i)
   requires
     (done @! tid) |-> Frac 0.5R false
   // returns
@@ -146,7 +146,7 @@ fn kf
     // later_elim _;
     unfold (inv_p (SZ.v nn) a v_a r done);
     let _ = atomic_add r v;
-    bigstar_ghost_upd_lemma done _ _;
+    forevery_ghost_upd_lemma done _ _;
     assume (pure False); (* FIXME *)
     fold (inv_p (SZ.v nn) a v_a r done);
   }
@@ -163,7 +163,7 @@ fn done_lemma
   (v_a : erased (seq et))
   requires
     gpu **
-    bigstar 0 nn (fun tid -> kpost nn a v_a r done i tid)
+    (forall+ (tid : natlt nn). kpost nn a v_a r done i tid)
   ensures
     gpu **
     (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a) **
@@ -192,7 +192,7 @@ fn setup
     (match i_done with | (i, done) ->
     cpu
     ** W.with_pure (len done == SZ.v n) (fun _ ->
-       bigstar 0 (SZ.v n) (fun tid ->
+       (forall+ (tid : natlt n).
         (done @! tid) |-> Frac 0.5R false **
         inv i (inv_p (SZ.v n) a v_a r done))
     ))
@@ -214,7 +214,7 @@ fn teardown
   //   i_done : erased (iname & erased (seq (gref bool)))
   requires
     pure (len done == SZ.v n) **
-    bigstar 0 (SZ.v n) (fun tid ->
+    (forall+ (tid : natlt n).
      (done @! tid) |-> Frac 0.5R true **
      inv i (inv_p (SZ.v n) a v_a r done))
   ensures

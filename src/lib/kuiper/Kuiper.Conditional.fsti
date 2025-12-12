@@ -3,7 +3,6 @@ module Kuiper.Conditional
 #lang-pulse
 
 open Pulse.Lib.Pervasives
-open Pulse.Lib.BigStar
 open Kuiper.ForEvery
 
 [@@no_mkeys]
@@ -83,26 +82,6 @@ ghost
 fn if_flatten (#b1 #b2: bool) (#p: slprop)
   requires if_ b1 (if_ b2 p)
   ensures  if_ (b1 && b2) p
-
-ghost
-fn bigstar_if_elim
-  (#u1 : int)
-  (#m: nat)
-  (#n : nat {m <= n})
-  (x : nat { m <= x /\ x < n })
-  (p: (i:nat { m <= i /\ i < n }) -> slprop)
-  requires bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
-  ensures  p x
-
-ghost
-fn bigstar_if_intro
-  (#[Tactics.exact (`0)]u1 : int)
-  (m: nat)
-  (n : nat {m <= n})
-  (x : nat { m <= x /\ x < n })
-  (p: (i: nat { m <= i /\ i < n }) -> slprop)
-  requires p x
-  ensures bigstar #u1 m n (fun (i:nat { m <= i /\ i < n }) -> if_ (i = x) (p i))
 
 ghost
 fn forevery_if_elim

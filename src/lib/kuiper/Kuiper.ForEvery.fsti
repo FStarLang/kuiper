@@ -5,7 +5,6 @@ open Pulse
 open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Enumerable
-open Pulse.Lib.BigStar
 open Pulse.Lib.Trade
 
 let t2b =
@@ -420,42 +419,6 @@ fn forevery_natlt_push_shift
     p 0
   ensures
     forall+ (i: natlt n). p i
-
-ghost
-fn forevery_fromnat
-  (n : nat)
-  (p : natlt n -> slprop)
-  requires
-    bigstar 0 n (fun i -> p i)
-  ensures
-    forall+ (x : natlt n). p x
-
-ghost
-fn forevery_tonat
-  (n : nat)
-  (p : natlt n -> slprop)
-  requires
-    forall+ (x : natlt n). p x
-  ensures
-    bigstar 0 n (fun i -> p i)
-
-ghost
-fn forevery_tostar
-  (#a:Type0) {| enumerable a |}
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
-
-ghost
-fn forevery_fromstar
-  (#a:Type0) {| enumerable a |}
-  (p : a -> slprop)
-  requires
-    bigstar 0 (cardinal a #_) (fun i -> p (of_nat i))
-  ensures
-    forall+ (x:a). p x
 
 ghost
 fn forevery_exists
