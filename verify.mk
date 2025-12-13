@@ -117,6 +117,7 @@ FSTAR_FLAGS += --ext optimize_let_vc
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext context_pruning
 FSTAR_FLAGS += --ext no_krml_private
+# FSTAR_FLAGS += --ext core_phase2
 FSTAR_FLAGS += --warn_error -288 # using has_type (we only use it in SMT patterns)
 # FSTAR_FLAGS += --ext krml_inline_all
 # FSTAR_FLAGS += --error_contexts true
@@ -132,8 +133,6 @@ FSTAR = $(FSTAR_EXE)							\
 	--include $(abspath pulse/lib/pulse)				\
 	--include $(abspath src)					\
 	$(FSTAR_FLAGS)
-
-GPUH := $(realpath include/kuiper.h)
 
 KOTHERFLAGS += $(KO)
 

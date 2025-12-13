@@ -30,7 +30,8 @@ let clayout4_imap
 
 (* This is only between abstract indices and concrete indices.
    Nothing here depends on the *actual* layout. *)
-#push-options "--split_queries always --retry 5 --z3rlimit 20" // flaky
+#push-options "--z3rlimit 20"
+[@@"core"]
 inline_for_extraction noextract
 let clayout4_bij
   (#mrows #mcols #brows #bcols : nat)
@@ -57,11 +58,8 @@ let clayout4_bij
 }
 #pop-options
 
-// FIXME: The VC for this definition is huge. It's incredible
-// we can actually print it out and solve it. Try to make
-// sense of it and report bug in F*.
-#push-options "--z3rlimit 50 --split_queries always --fuel 0 --ifuel 1"
-#restart-solver
+#push-options "--z3rlimit 20 --split_queries always"
+[@@"core"]
 inline_for_extraction noextract
 instance cview_from_clayout4
   (et : Type)
