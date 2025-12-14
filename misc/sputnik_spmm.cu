@@ -19,12 +19,17 @@ void predicateInit(uint32_t *predicates, int words) {
     }
 }
 
+// en sputnik se usan solo los primeros 4 bits de cada byte
+// no está claro por qué
+// acá usamos los 8 bits
 __device__ __forceinline__
 void GetWordAndBitOffsets(int x, int *word, int *bit) {
     const int kWordOffset =
         (x / 8) / sizeof(uint32_t);
     const int kByteOffset =
         (x / 8) % sizeof(uint32_t);
+    // esto esta bien?? no parece
+    // deberia ser kBitOffset = x % 8
     const int kBitOffset =
         (x % 8) % sizeof(uint32_t);
 
