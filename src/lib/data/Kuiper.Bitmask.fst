@@ -1,5 +1,5 @@
 module Kuiper.Bitmask
-#set-options "--debug SMTFail --split_queries always"
+//#set-options "--debug SMTFail --split_queries always"
 
 open Kuiper
 module U32 = FStar.UInt32
