@@ -64,7 +64,7 @@ void predicateSet(int n, int n_idx, uint32_t *predicates, int threadItemsX, int 
     }
 }
 
-template<int blockItemsX, int blockItemsK, int blockWidth>
+template<int blockItemsX, int blockItemsK, int blockWidth, int residueUnroll>
 
 // creo que si los parámetros dividen bien esto debería andar
 __global__
@@ -74,13 +74,7 @@ void spmm_kernel(int rows,
                  // matrix rala en formato CSR
                  smatrix gA,
                  // matrices densas en formato row major
-                 scalar *gB, scalar *gC,
-                 // largo del tile de C
-                 //int blockItemsX,
-                 // largo del tile de reduccion de A
-                 //int blockItemsK,
-                 // constante para factorizar loop residual y facilitar unrolling
-                 int residueUnroll)
+                 scalar *gB, scalar *gC)
 {
     
     static_assert(blockWidth <= blockItemsK);
@@ -211,8 +205,8 @@ void spmm_kernel(int rows,
     // calculamos valores residuales
 
     // precondicion del kernel
-    assert(residueUnroll > 0);
-    assert(blockItemsK % residueUnroll == 0);
+    static_assert(residueUnroll > 0);
+    static_assert(blockItemsK % residueUnroll == 0);
 
     // cargamos tile sparse
     __syncthreads();
@@ -231,16 +225,16 @@ void spmm_kernel(int rows,
     }
 
 
-    sparse_offset = 0;
     int sparse_tile_offset = threadIdx.x;
+    int residue = nnz;
 #pragma unroll
     for (int k = 0; k < blockItemsK / blockWidth; k++) {
-        if (nnz <= threadIdx.x) break;
+        if (residue <= threadIdx.x) break;
 
         elems_tile[sparse_tile_offset] = elems[sparse_offset];
         col_ind_tile[sparse_tile_offset] = cols * col_ind[sparse_offset];
 
-        nnz -= blockWidth;
+        residue -= blockWidth;
         
         sparse_offset += blockWidth;
         sparse_tile_offset += blockWidth;
@@ -250,10 +244,11 @@ void spmm_kernel(int rows,
     
 
     sparse_offset = 0;
+    residue = nnz;
     // esto es solo para poder unrollear los loops
 #pragma unroll
     for (int k_outer = 0; k_outer++ < blockItemsK / residueUnroll; k_outer++) {
-        if (nnz <= 0) break;
+        if (residue <= 0) break;
 #pragma unroll
         for (int k_inner = 0; k_inner < residueUnroll; k_inner++) {
             int dense_offset = col_ind_tile[sparse_offset];
@@ -267,7 +262,7 @@ void spmm_kernel(int rows,
             }
             sparse_offset++;
         }
-        nnz -= residueUnroll;
+        residue -= residueUnroll;
     }
 
 

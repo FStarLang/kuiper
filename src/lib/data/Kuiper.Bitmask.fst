@@ -56,6 +56,7 @@ let getBit_lemma (u : u32) (i : szlt 32)
 : Lemma
     (requires true)
     (ensures getBit u i == UI.nth #32 u (31 - i))
+    [SMTPat (getBit u i)]
 =
   shift_bit_lemma_true u i;
   shift_bit_lemma_false (UI.shift_right #32 u i);
@@ -90,9 +91,15 @@ let unsetBit_lemma_ensures (u : u32) (i : szlt 32)
     (requires true)
     (ensures UI.nth #32 (unsetBit u i) (31 - i) == false)
 =
-  UI.shift_left_lemma_2 #32 1 i (31 - i);
-  UI.lognot_definition (UI.shift_left #32 1 i) (31 - i);
-  UI.logand_definition u (UI.lognot (UI.shift_left #32 1 i)) (31 - i);
+  calc (==) {
+    UI.nth #32 (unsetBit u i) (31 - i);
+    == {
+      UI.shift_left_lemma_2 #32 1 i (31 - i);
+      UI.lognot_definition (UI.shift_left #32 1 i) (31 - i);
+      UI.logand_definition u (UI.lognot (UI.shift_left #32 1 i)) (31 - i)
+    }
+    false;
+  };
   ()
 
 let unsetBit_lemma_preserves (u : u32) (i j : szlt 32)
