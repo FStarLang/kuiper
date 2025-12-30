@@ -58,7 +58,7 @@ let clayout4_bij
 }
 #pop-options
 
-#push-options "--z3rlimit 20 --split_queries always"
+#push-options "--z3rlimit 40 --split_queries always"
 [@@"core"]
 inline_for_extraction noextract
 instance cview_from_clayout4
