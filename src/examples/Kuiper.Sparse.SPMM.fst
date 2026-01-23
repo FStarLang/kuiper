@@ -886,6 +886,12 @@ fn gpu_forall_live_cell_to_slice
   gpu_forall_cell_to_slice_ arr i j;
 }
 
+inline_for_extraction noextract
+let div_sub (a b : sz) (c : szp)
+: Pure sz (requires fits (a + c) /\ a + c >= b + 1) (ensures fun _ -> true)
+=
+  (a +^ c -^ 1sz -^ b) /^ c
+
 //#set-options "--print_implicits"
 inline_for_extraction noextract
 fn sparse_load_residue
@@ -958,6 +964,46 @@ fn sparse_load_residue
   barrier_q_unfold_even p elems col_ind row_off elems_tile col_ind_tile
     bid ri re idx tid;
 
+  assume pure (fits (p.blockItemsK + p.blockWidth));
+  let tresidue : sz = div_sub (re -^ off) tid p.blockWidth;
+
+  forevery_refine_split #(natlt (p.blockItemsK /^ p.blockWidth))
+    (barrier_q_even p gA.nnz elems_tile col_ind_tile ri re idx tid)
+    (fun k ->
+      k < SZ.v tresidue);
+  
+  forevery_natlt_restrict #tresidue
+    (p.blockItemsK /^ p.blockWidth)
+    (fun (k : natlt (div_sub (re -^ off) tid p.blockWidth)) ->
+      barrier_q_even p gA.nnz elems_tile col_ind_tile ri re idx tid (natlt_coerce k));
+  
+  foreach tresidue
+    (fun (ki : natlt tresidue) ->
+      barrier_q_even p gA.nnz elems_tile col_ind_tile ri re idx tid (natlt_coerce ki))
+    (fun (ki : natlt tresidue) ->
+      barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid (natlt_coerce ki))
+    #(
+      gpu ** 
+      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      B.barrier_tok (barrier_contract p elems col_ind row_off elems_tile col_ind_tile bid) **
+      thread_id p.blockWidth tid
+    )
+    fn (k : natlt tresidue)
+    {
+      sparse_load_one p gA #row_off #elems #col_ind #eA elems_tile col_ind_tile
+        bid ri re idx tid k;
+    };
+
+  forevery_map #(k : natlt (p.blockItemsK /^ p.blockWidth) {~(k < tresidue)})
+    (fun k -> barrier_q_even p gA.nnz elems_tile col_ind_tile ri re idx tid k)
+    (fun k -> barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k)
+    fn k {
+      unfold barrier_q_even;
+      unfold array_live_cell elems_tile;
+      unfold array_live_cell col_ind_tile;
+      fold barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k;
+    };
+  admit();  
 
   foreach (p.blockItemsK /^ p.blockWidth)
     (fun ki -> barrier_q_even p gA.nnz elems_tile col_ind_tile ri re idx tid ki)
