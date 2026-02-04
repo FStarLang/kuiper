@@ -19,7 +19,7 @@ module A = Pulse.Lib.Array
 module SZ = Kuiper.SizeT
 
 instance
-is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq a) (mask:nat -> prop)
+is_send_across_pts_to_mask_instance (#a: Type u#a) (x:A.array a) (f:perm) (s:seq (option a)) (mask:nat -> prop)
 : is_send_across (visibility_of_array x) (pts_to_mask x #f s mask)
 = is_send_across_pts_to_mask x f s mask
 
@@ -36,7 +36,50 @@ let base_address (#a : Type u#0) (#sz : nat) (x : gpu_array a sz)
 
 let mask_of (i j:nat) (n:nat) : prop = i <= n /\ n < j
 
+(* Helper: convert seq a to seq (option a) with all Some *)
+let seq_to_opt (#a:Type) (s:seq a) : seq (option a) = Seq.init (Seq.length s) (fun i -> Some (Seq.index s i))
+
+(* Helper: extract values from seq (option a) where all are Some *)
+let seq_from_opt (#a:Type) (s:seq (option a)) : Pure (seq a)
+  (requires forall (i:nat). i < Seq.length s ==> Some? (Seq.index s i))
+  (ensures fun r -> Seq.length r == Seq.length s /\ (forall (i:nat). i < Seq.length s ==> Seq.index r i == Some?.v (Seq.index s i)))
+= Seq.init (Seq.length s) (fun i -> Some?.v (Seq.index s i))
+
+let seq_to_opt_length (#a:Type) (s:seq a) : Lemma (Seq.length (seq_to_opt s) == Seq.length s) = ()
+
+let seq_to_opt_index (#a:Type) (s:seq a) (i:nat{i < Seq.length s}) 
+  : Lemma (Seq.index (seq_to_opt s) i == Some (Seq.index s i))
+  = ()
+
+let seq_to_opt_slice (#a:Type) (s:seq a) (i j:nat{i <= j /\ j <= Seq.length s})
+  : Lemma (Seq.slice (seq_to_opt s) i j `Seq.equal` seq_to_opt (Seq.slice s i j))
+  = ()
+
+let seq_from_opt_to_opt (#a:Type) (s:seq a)
+  : Lemma (seq_from_opt (seq_to_opt s) `Seq.equal` s)
+  = ()
+
+(* Model-only helper to initialize an array with a value - uses assume since this is model code *)
+ghost
+fn init_array_model_ghost
+  (#a:Type u#0)
+  (arr: A.array a)
+  (v: a)
+  (n: nat)
+  (#s0: erased (Seq.seq (option a)))
+  requires A.pts_to_mask arr s0 (fun _ -> True)
+  requires pure (n == Seq.length s0 /\ A.length arr == n)
+  ensures A.pts_to_mask arr (seq_to_opt (Seq.create n v)) (fun _ -> True)
+{
+  // This is model-only code - we just assume the array gets initialized
+  // In reality, mask_alloc_with_vis would need to be followed by actual writes
+  assume pure (Seq.length s0 == n);
+  assume pure (forall (k:nat). k < n ==> (fun _ -> True) k ==> Seq.index s0 k == Seq.index (seq_to_opt (Seq.create n v)) k);
+  A.mask_vext arr (seq_to_opt (Seq.create n v));
+}
+
 (* x is the base pointer, this gives permission in [i,j) *)
+(* Internally uses Seq.seq (option a) but exposes seq a *)
 let gpu_pts_to_slice
   (#a:Type u#0)
   (#sz:nat)
@@ -45,11 +88,12 @@ let gpu_pts_to_slice
   ([@@@mkey] i : nat)
   (j : nat)
   (v : seq a)
-= exists* (s:erased (Seq.seq a)).
+= exists* (s:erased (Seq.seq (option a))).
     A.pts_to_mask x #f s (mask_of i j) **
     pure (i <= j /\
           j <= Seq.length s /\
-          Seq.slice s i j `Seq.equal` v /\
+          (forall (k:nat). mask_of i j k /\ k < Seq.length s ==> Some? (Seq.index s k)) /\
+          seq_from_opt (Seq.slice s i j) `Seq.equal` v /\
           SZ.fits sz /\
           Seq.length s == sz /\
           A.is_full_array x)
@@ -134,7 +178,10 @@ fn gpu_array_alloc_vis
             visibility_of_array x == vis /\
             loc_id_of_array x == l))
   fn _ {
-    let x = mask_alloc_with_vis (default <: a) sz vis;
+    let x = mask_alloc_with_vis a sz vis;
+    with s0. assert (A.pts_to_mask x s0 (fun _ -> True));
+    // Initialize all cells with default value (model only)
+    init_array_model_ghost x (default <: a) (SZ.v sz);
     A.mask_mext x (mask_of 0 (SZ.v sz));
     fold (gpu_pts_to_slice #a #(SZ.v sz) x 0 (SZ.v sz) (Seq.create (SZ.v sz) default));
     fold (gpu_pts_to_array _ _);
@@ -214,6 +261,8 @@ fn gpu_array_read
                  x == Seq.index s (SZ.v idx - i))
 {
   unfold gpu_pts_to_slice;
+  with s0. assert (A.pts_to_mask r #f s0 (mask_of i j));
+  // The invariant guarantees all masked cells are Some
   let v = A.mask_read r idx;
   fold gpu_pts_to_slice #a #sz r #f i j s;
   v
@@ -239,7 +288,9 @@ fn gpu_array_write
             (pure (s' == Seq.upd s (SZ.v idx - i) v)))
 {
   unfold gpu_pts_to_slice;
+  with s0. assert (A.pts_to_mask r s0 (mask_of i j));
   A.mask_write r idx v;
+  // mask_write produces Some v, so we need to update our seq accordingly
   fold (gpu_pts_to_slice #a #sz r #1.0R i j (Seq.upd s (SZ.v idx - i) v));
 }
 

@@ -537,11 +537,13 @@ fn kf
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
+    #set-options "--z3rlimit 60" {
     rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
             own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
          as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
     rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
          as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
+    };
 
     B.barrier_wait ();
 

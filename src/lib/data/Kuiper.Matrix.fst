@@ -236,6 +236,8 @@ fn gpu_matrix_alloc0
 {
   open FStar.SizeT;
   let gm = A.varray_alloc0 (rows *^ cols) (aview_from_mlayout et l);
+  with v. assert on gpu_loc (A.varray_pts_to gm v);
+  rewrite on gpu_loc (A.varray_pts_to gm v) as on gpu_loc (gpu_matrix_pts_to gm v);
   gm;
 }
 
@@ -254,6 +256,7 @@ fn gpu_matrix_free
     on gpu_loc (gm |-> em)
   ensures emp
 {
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   A.varray_free gm;
 }
 
@@ -603,6 +606,7 @@ fn gpu_matrix_from_array
     on gpu_loc (gm |-> from_seq l s)
 {
   Pulse.Lib.Vec.pts_to_len a;
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   A.varray_from_array (rows *^ cols) gm a;
   from_seq_rel l s;
   with p. assert (on gpu_loc p);
@@ -630,7 +634,9 @@ fn gpu_matrix_to_array
     (a |-> to_seq l em)
 {
   Pulse.Lib.Vec.pts_to_len a;
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   A.varray_to_array (rows *^ cols) a gm;
+  rewrite on gpu_loc (A.varray_pts_to gm em) as on gpu_loc (gpu_matrix_pts_to gm em);
   to_seq_rel l em;
   ()
 }

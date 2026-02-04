@@ -263,6 +263,7 @@ fn gpu_matrix_free
     on gpu_loc (gm |-> em)
   ensures emp
 {
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   A.varray_free gm;
 }
 
@@ -563,7 +564,7 @@ fn gpu_matrix_from_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   assert (pure (SZ.fits (mlayout_size l)));
-  // unfold gpu_matrix_pts_to gm #1.0R em;
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
@@ -595,6 +596,7 @@ fn gpu_matrix_to_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   open FStar.SizeT;
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_to_array #_ #_ sz a gm;
   to_seq_rel l em;

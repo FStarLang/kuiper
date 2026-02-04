@@ -4,7 +4,7 @@ module Kuiper.Poly.GEMM.TensorCore
 
 open Kuiper
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 80"
 
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Float16
@@ -408,7 +408,7 @@ fn kf
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    #set-options "--z3rlimit 40 --retry 3" {
+    #set-options "--z3rlimit 80 --retry 3" {
       rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
               own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
           as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
@@ -422,7 +422,7 @@ fn kf
     assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure ((2 * !bkIdx + 1) / 2 == !bkIdx));
-    #set-options "--z3rlimit 40 --retry 3" {
+    #set-options "--z3rlimit 80 --retry 3" {
       rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
            as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
       rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
