@@ -2344,3 +2344,102 @@ fn forevery_extract_pure_2
   assert pure (forall (x:a) (y:b). q x y);
   ();
 }
+
+ghost
+fn forevery_rw_size4
+  (n1 : nat)
+  (n2 : nat{n1 == n2})
+  (n3 : nat)
+  (n4 : nat{n3 == n4})
+  (n5 : nat)
+  (n6 : nat{n5 == n6})
+  (n7 : nat)
+  (n8 : nat{n7 == n8})
+  (#p : natlt n1 -> natlt n3 -> natlt n5 -> natlt n7 -> slprop)
+  requires
+    forall+ (i : natlt n1) (j : natlt n3) (k : natlt n5) (l : natlt n7). p i j k l
+  ensures
+    forall+ (i : natlt n2) (j : natlt n4) (k : natlt n6) (l : natlt n8). p i j k l
+{
+  rewrite each n1 as n2;
+  rewrite each n3 as n4;
+  rewrite each n5 as n6;
+  rewrite each n7 as n8;
+}
+
+ghost
+fn forevery_swap_mid_4
+  (#a #b #c #d : Type0)
+  (p : a -> b -> c -> d -> slprop)
+  requires
+    forall+ (w:a) (x:b) (y:c) (z:d). p w x y z
+  ensures
+    forall+ (w:a) (y:c) (x:b) (z:d). p w x y z
+{
+  (* forall+ w x y z -> forall+ w y x z *)
+  (* Swap x and y by flattening (y,z) into a pair, commuting x with it, then unflattening *)
+  forevery_map #a
+    (fun w -> forall+ (x:b) (y:c) (z:d). p w x y z)
+    (fun w -> forall+ (y:c) (x:b) (z:d). p w x y z)
+    fn w {
+      (* forall+ x y z -> forall+ x (y,z) *)
+      forevery_map #b
+        (fun x -> forall+ (y:c) (z:d). p w x y z)
+        (fun x -> forall+ (yz : c & d). p w x yz._1 yz._2)
+        fn x { forevery_flatten (fun y z -> p w x y z) };
+      (* forall+ x (y,z) -> forall+ (y,z) x *)
+      forevery_commute (fun (x:b) (yz : c & d) -> p w x yz._1 yz._2);
+      (* forall+ (y,z) x -> forall+ y z x *)
+      forevery_map #(c & d)
+        (fun yz -> forall+ (x:b). p w x yz._1 yz._2)
+        (fun yz -> forall+ (x:b). p w x (fst yz) (snd yz))
+        fn yz { () };
+      forevery_map #(c & d)
+        (fun yz -> forall+ (x:b). p w x (fst yz) (snd yz))
+        (fun yz -> forall+ (x:b). p w x yz._1 yz._2)
+        fn yz { () };
+      forevery_unflatten (fun (y:c) (z:d) -> forall+ (x:b). p w x y z);
+      (* forall+ y z x -> forall+ y x z *)
+      forevery_map #c
+        (fun y -> forall+ (z:d) (x:b). p w x y z)
+        (fun y -> forall+ (x:b) (z:d). p w x y z)
+        fn y { forevery_commute (fun (z:d) (x:b) -> p w x y z) };
+    };
+}
+
+ghost
+fn forevery_zip3_2
+  (#a #b : Type0)
+  (p1 p2 p3 : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p1 x y
+  requires
+    forall+ (x:a) (y:b). p2 x y
+  requires
+    forall+ (x:a) (y:b). p3 x y
+  ensures
+    forall+ (x:a) (y:b). p1 x y ** p2 x y ** p3 x y
+{
+  forevery_zip_2 p1 p2;
+  forevery_zip_2 (fun x y -> p1 x y ** p2 x y) p3;
+  (* Have: forall+ x y. (p1 ** p2) ** p3 *)
+  (* Want: forall+ x y. p1 ** (p2 ** p3) *)
+  forevery_map_2 #a #b
+    (fun (x:a) (y:b) -> (p1 x y ** p2 x y) ** p3 x y)
+    (fun (x:a) (y:b) -> p1 x y ** p2 x y ** p3 x y)
+    fn x y { () };
+}
+
+ghost
+fn forevery_ext_4
+  (#a #b #c #d : Type0)
+  (f : a -> b -> c -> d -> slprop)
+  (g : a -> b -> c -> d -> slprop { forall w x y z. f w x y z == g w x y z })
+  requires
+    forall+ (w:a) (x:b) (y:c) (z:d). f w x y z
+  ensures
+    forall+ (w:a) (x:b) (y:c) (z:d). g w x y z
+{
+  rewrite (forall+ (w:a) (x:b) (y:c) (z:d). f w x y z)
+    as (forall+ (w:a) (x:b) (y:c) (z:d). g w x y z);
+}

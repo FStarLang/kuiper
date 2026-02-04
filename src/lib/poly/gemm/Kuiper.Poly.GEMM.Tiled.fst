@@ -10,6 +10,7 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Tiling
+open Kuiper.Bijection
 
 unfold
 let kpre
@@ -31,18 +32,21 @@ let kpre
   (tid : natlt (tile * tile))
   : slprop
   =
-  gA |-> Frac fA eA **
-  gB |-> Frac fB eB **
-  (exists* v.
-    gpu_matrix_pts_to_cell
-      (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-      (tid / tile)
-      (tid % tile)
-      v)
-  **
-  emp
+  let mrow = bid / mcols in
+  let mcol = bid % mcols in
+  let brow = tid / tile in
+  let bcol = tid % tile in
+  let grow = mrow * tile + brow in
+  let gcol = mcol * tile + bcol in
+  gA |-> Frac (fA /. ((mrows * mcols) * (tile * tile))) eA **
+  gB |-> Frac (fB /. ((mrows * mcols) * (tile * tile))) eB **
+  gpu_matrix_pts_to_cell
+    (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+    (tid / tile)
+    (tid % tile)
+    (macc eC grow gcol)
 
-(* NO FUNCTIONAL SPEC RIGHT NOW *)
+(* Functional postcondition: the cell contains the combined value *)
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
@@ -63,7 +67,19 @@ let kpost
   (tid : natlt (tile * tile))
   : slprop
   =
-  kpre comb tile gA gB gC eA eB eC fA fB bid tid
+  let mrow = bid / mcols in
+  let mcol = bid % mcols in
+  let brow = tid / tile in
+  let bcol = tid % tile in
+  let grow = mrow * tile + brow in
+  let gcol = mcol * tile + bcol in
+  gA |-> Frac (fA /. ((mrows * mcols) * (tile * tile))) eA **
+  gB |-> Frac (fB /. ((mrows * mcols) * (tile * tile))) eB **
+  gpu_matrix_pts_to_cell
+    (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+    (tid / tile)
+    (tid % tile)
+    (MS.gemm_single comb eA eB eC grow gcol)
 
 inline_for_extraction noextract
 fn kf
@@ -98,32 +114,43 @@ fn kf
   let mrow, mcol = s_divmod mcols bid;
   let brow, bcol = s_divmod tile  tid;
 
-  with i0 j0 v0.
-    rewrite
-      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) #1.0R i0 j0 v0
-    as
-      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) #1.0R brow bcol v0
-    ;
+  (* Global indices for this thread (erased since they're ghost computations) *)
+  let grow : erased nat = mrow * tile + brow;
+  let gcol : erased nat = mcol * tile + bcol;
 
   assert (pure (mrow < mrows));
   assert (pure (mcol < mcols));
   assert (pure (brow < tile));
   assert (pure (bcol < tile));
 
+  (* Rewrite kpre's cell indices to use brow/bcol (which equal tid/tile, tid%tile) *)
+  rewrite
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+      (tid / tile) (tid % tile) (macc eC grow gcol)
+  as
+    gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+      brow bcol (macc eC grow gcol);
+
   let gTile = gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
   assert (rewrites_to gTile (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)));
 
   let s = MU.matmul_tiled_dotprod gA gB mrow mcol brow bcol;
   let v0 = gpu_matrix_read_cell gTile brow bcol;
+  (* v0 == macc eC grow gcol follows from kpre and gpu_matrix_read_cell's ensures *)
   let v1 = comb v0 s;
   gpu_matrix_write_cell gTile brow bcol v1;
+
+  (* Assume matmul_tiled_dotprod computes the correct matmul_single.
+     TODO: Prove by adding ensures clause to matmul_tiled_dotprod in Util.fst *)
+  assume pure (s == MS.matmul_single eA eB grow gcol);
+  assert pure (v1 == MS.gemm_single comb eA eB eC grow gcol);
 
   rewrite
     gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       brow bcol v1
   as
     gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-      (tid / tile) (tid % tile) v1;
+      (tid / tile) (tid % tile) (MS.gemm_single comb eA eB eC grow gcol);
 
   ()
 }
@@ -156,7 +183,53 @@ fn setup
       kpre comb tile gA gB gC eA eB eC fA fB bid tid) **
     emp (* frame *)
 {
-  admit();
+  let n_threads = (mrows * mcols) * (tile * tile);
+
+  (* Step 1: Share gA/gB, explode+tile gC *)
+  gpu_matrix_share_n gA n_threads;
+  gpu_matrix_share_n gB n_threads;
+  gpu_matrix_explode_tiled gC (SZ.v tile) (SZ.v tile);
+  (* Need to rewrite types: (rows/tile) == mrows, (cols/tile) == mcols *)
+  forevery_rw_size4 ((mrows * tile) / tile) mrows ((mcols * tile) / tile) mcols (SZ.v tile) tile (SZ.v tile) tile;
+  (* gC: forall+ mrow mcol brow bcol. subtile_cell *)
+
+  (* Step 2: Factor gA/gB to 2D *)
+  forevery_factor n_threads (mrows * mcols) (tile * tile) (fun _ -> gA |-> Frac (fA /. n_threads) eA);
+  forevery_factor n_threads (mrows * mcols) (tile * tile) (fun _ -> gB |-> Frac (fB /. n_threads) eB);
+
+  (* Step 3: Convert 4D -> 2D using unfactor_2 *)
+  assert pure (forall (mrow:natlt mrows) (mcol:natlt mcols). (mrow * mcols + mcol) / mcols == mrow /\ (mrow * mcols + mcol) % mcols == mcol);
+  assert pure (forall (brow:natlt tile) (bcol:natlt tile). (brow * tile + bcol) / tile == brow /\ (brow * tile + bcol) % tile == bcol);
+  forevery_ext_4
+    (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) brow bcol (macc eC (mrow * tile + brow) (mcol * tile + bcol)))
+    (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
+      let bid = mrow * mcols + mcol in let tid = brow * tile + bcol in
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile) (tid % tile)
+        (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
+  forevery_unfactor_2 (mrows * mcols) mrows mcols (tile * tile) tile tile
+    (fun bid tid -> gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile) (tid % tile)
+      (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
+  (* gC: forall+ bid tid. subtile_cell with div/mod indexing *)
+
+  (* Step 4: Zip gA, gB, gC together *)
+  forevery_zip3_2
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) -> gA |-> Frac (fA /. n_threads) eA)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) -> gB |-> Frac (fB /. n_threads) eB)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile) (tid % tile)
+        (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
+  (* Combined: forall+ bid tid. gA ** gB ** cell *)
+
+  (* Step 5: Convert types and match kpre *)
+  forevery_rw_size2 (mrows * mcols) (SZ.v (mrows `SZ.mul` mcols)) (tile * tile) (SZ.v (tile `SZ.mul` tile));
+  forevery_ext_2
+    (fun (bid : natlt (SZ.v (mrows `SZ.mul` mcols))) (tid : natlt (SZ.v (tile `SZ.mul` tile))) ->
+      gA |-> Frac (fA /. n_threads) eA ** gB |-> Frac (fB /. n_threads) eB **
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile) (tid % tile)
+        (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))))
+    (fun (bid : natlt2 mrows mcols) (tid : natlt2 tile tile) -> kpre comb tile gA gB gC eA eB eC fA fB bid tid);
+  ();
 }
 
 ghost
@@ -187,7 +260,127 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  admit();
+  (* kpost contains gemm_single results in each cell.
+
+     The proof structure is the reverse of setup:
+     1. Convert types from natlt2 to natlt
+     2. Unzip to separate gA, gB, and gC resources
+     3. Gather gA and gB permissions
+     4. For gC: reorganize indices, convert subtile cells back, implode *)
+
+  let n_threads = (mrows * mcols) * (tile * tile);
+
+  (* Step 1: Convert types from natlt2 to natlt *)
+  forevery_rw_size2
+    (SZ.v (mrows `SZ.mul` mcols)) (mrows * mcols)
+    (SZ.v (tile `SZ.mul` tile)) (tile * tile);
+
+  (* Step 2: Unfold to explicit predicates first *)
+  forevery_ext_2
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      kpost comb tile gA gB gC eA eB eC fA fB bid tid)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gA |-> Frac (fA /. n_threads) eA **
+      gB |-> Frac (fB /. n_threads) eB **
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+        (tid / tile) (tid % tile)
+        (MS.gemm_single comb eA eB eC
+          ((bid / mcols) * tile + (tid / tile))
+          ((bid % mcols) * tile + (tid % tile))));
+
+  (* Step 3: Unzip gA, gB, and cell using forevery_unzip_2 *)
+  forevery_unzip_2
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gA |-> Frac (fA /. n_threads) eA)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gB |-> Frac (fB /. n_threads) eB **
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+        (tid / tile) (tid % tile)
+        (MS.gemm_single comb eA eB eC
+          ((bid / mcols) * tile + (tid / tile))
+          ((bid % mcols) * tile + (tid % tile))));
+  forevery_unzip_2
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gB |-> Frac (fB /. n_threads) eB)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+        (tid / tile) (tid % tile)
+        (MS.gemm_single comb eA eB eC
+          ((bid / mcols) * tile + (tid / tile))
+          ((bid % mcols) * tile + (tid % tile))));
+  (* Now:
+     forall+ (bid) (tid). gA
+     forall+ (bid) (tid). gB
+     forall+ (bid) (tid). cell with gemm_single *)
+
+  (* Step 4: Use forevery_unfactor' to convert from 2 quantifiers to single natlt *)
+  forevery_unfactor' n_threads (mrows * mcols) (tile * tile)
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (tile * tile)) ->
+      gA |-> Frac (fA /. n_threads) eA);
+  forevery_unfactor' n_threads (mrows * mcols) (tile * tile)
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (tile * tile)) ->
+      gB |-> Frac (fB /. n_threads) eB);
+  (* Now gA and gB are on forall+ (i:natlt n_threads) *)
+
+  (* Step 5: Gather gA and gB *)
+  gpu_matrix_gather_n gA n_threads;
+  gpu_matrix_gather_n gB n_threads;
+
+  (* Step 6: For gC, we need to reverse the setup transformations:
+     We have: forall+ (bid:mrows*mcols) (tid:tile*tile). subtile_cell with gemm_single
+     We need: gC |-> mmcomb comb eC eA eB *)
+
+  (* Factor to get (mrow, mcol, brow, bcol) from (bid, tid) *)
+  forevery_factor_2
+    (mrows * mcols) mrows mcols
+    (tile * tile) tile tile
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+        (tid / tile) (tid % tile)
+        (MS.gemm_single comb eA eB eC
+          ((bid / mcols) * tile + (tid / tile))
+          ((bid % mcols) * tile + (tid % tile))));
+  (* Now: forall+ mrow mcol brow bcol. cell((mrow*mcols+mcol)/mcols, ...) with gemm_single *)
+
+  (* Simplify: (mrow*mcols+mcol)/mcols == mrow, (mrow*mcols+mcol)%mcols == mcol, etc. *)
+  assert pure (forall (mrow:natlt mrows) (mcol:natlt mcols). (mrow * mcols + mcol) / mcols == mrow /\ (mrow * mcols + mcol) % mcols == mcol);
+  assert pure (forall (brow:natlt tile) (bcol:natlt tile). (brow * tile + bcol) / tile == brow /\ (brow * tile + bcol) % tile == bcol);
+
+  (* Now use ext_4 to simplify indices from div/mod form to direct form *)
+  forevery_ext_4
+    (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
+      let bid = mrow * mcols + mcol in let tid = brow * tile + bcol in
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
+        (tid / tile) (tid % tile)
+        (MS.gemm_single comb eA eB eC
+          ((bid / mcols) * tile + (tid / tile))
+          ((bid % mcols) * tile + (tid % tile))))
+    (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol)
+        brow bcol
+        (MS.gemm_single comb eA eB eC (mrow * tile + brow) (mcol * tile + bcol)));
+  (* Now: forall+ mrow mcol brow bcol. subtile_cell(mrow, mcol) brow bcol (gemm_single ...) *)
+
+  (* Need to reorder quantifiers for implode_tiled which expects tr tc i j *)
+  (* Currently: mrow mcol brow bcol = tr tc i j (already correct order!) *)
+  forevery_rw_size4 mrows ((mrows * tile) / tile) mcols ((mcols * tile) / tile) tile (SZ.v tile) tile (SZ.v tile);
+
+  (* Call implode_tiled with the gemm_single value function *)
+  gpu_matrix_implode_tiled gC (SZ.v tile) (SZ.v tile)
+    (fun (tr:natlt mrows) (tc:natlt mcols) (i:natlt tile) (j:natlt tile) ->
+      MS.gemm_single comb eA eB eC (tr * tile + i) (tc * tile + j));
+
+  (* Now we have gC |-> mkM(...), need to show it equals mmcomb comb eC eA eB *)
+  rewrite each (mkM (fun (row : natlt (mrows * tile)) (col : natlt (mcols * tile)) ->
+      MS.gemm_single comb eA eB eC ((row / tile) * tile + (row % tile)) ((col / tile) * tile + (col % tile))))
+    as (MS.mmcomb comb eC eA eB);
+  ();
 }
 
 (* No op *)

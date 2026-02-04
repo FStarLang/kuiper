@@ -93,7 +93,7 @@ let barrier_q
       bp_sharing m1 (ematrix_subtile eA bm bk mrow (it / 2)) nthr **
       bp_sharing m2 (ematrix_subtile eB bk bn (it / 2) mcol) nthr
 
-let contract 
+let contract
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #shared #cols : pos)
   (eA : ematrix et rows shared)

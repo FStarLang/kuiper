@@ -16,10 +16,7 @@ open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
 module MS = Kuiper.Spec.GEMM
-module R  = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
-module FlipFlopBarrier = Kuiper.Poly.GEMM.FlipFlopBarrier
-module B = Kuiper.Barrier
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.

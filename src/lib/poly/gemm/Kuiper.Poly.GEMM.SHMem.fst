@@ -284,7 +284,7 @@ fn kf
     rewrite
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
-      as (barrier_contract sa1 sa2).rin (2 * vbk) tid; 
+      as (barrier_contract sa1 sa2).rin (2 * vbk) tid;
 
     B.barrier_wait ();
     rewrite (barrier_contract sa1 sa2).rout (2 * vbk) tid

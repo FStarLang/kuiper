@@ -748,3 +748,103 @@ fn gpu_matrix_extract_tile_ro'
   gpu_matrix_extract_tile_ro gm trows tcols tr tc;
   gpu_matrix_subtile gm trows tcols tr tc;
 }
+
+ghost
+fn gpu_matrix_explode_tiled
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#em : ematrix et rows cols)
+  requires
+    gm |-> em
+  ensures
+    forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+            (i : natlt trows) (j : natlt tcols).
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+        (macc em (tr * trows + i) (tc * tcols + j))
+{
+  (* Step 1: Tile the matrix *)
+  gpu_matrix_tile gm trows tcols;
+  (* Now: forall+ tr tc. subtile |-> ematrix_subtile em *)
+
+  (* Step 2: For each subtile, explode to per-cell *)
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+    ensures
+      forall+ (i : natlt trows) (j : natlt tcols).
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+          (macc em (tr * trows + i) (tc * tcols + j))
+  {
+    gpu_matrix_explode (gpu_matrix_subtile gm trows tcols tr tc);
+    (* Now: forall+ i j. subtile_cell i j (macc (ematrix_subtile em ...) i j) *)
+    (* Need to rewrite: macc (ematrix_subtile em trows tcols tr tc) i j == macc em (tr*trows+i) (tc*tcols+j) *)
+    forevery_ext_2
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+          (macc (ematrix_subtile em trows tcols tr tc) i j))
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+          (macc em (tr * trows + i) (tc * tcols + j)));
+  };
+  forevery_map_2 _ _ aux;
+}
+
+ghost
+fn gpu_matrix_implode_tiled
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (val_fn : natlt (rows / trows) -> natlt (cols / tcols) -> natlt trows -> natlt tcols -> GTot et)
+  requires
+    pure (SZ.fits (mlayout_size l))
+  requires
+    forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+            (i : natlt trows) (j : natlt tcols).
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+        (val_fn tr tc i j)
+  ensures
+    gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
+      val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
+{
+  (* Step 1: For each subtile, implode cells back to subtile ownership *)
+  let em' = mkM (fun (row : natlt rows) (col : natlt cols) ->
+    val_fn (row / trows) (col / tcols) (row % trows) (col % tcols));
+
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      forall+ (i : natlt trows) (j : natlt tcols).
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+          (val_fn tr tc i j)
+    ensures
+      gpu_matrix_subtile gm trows tcols tr tc |-> ematrix_subtile em' trows tcols tr tc
+  {
+    (* Help SMT see val_fn tr tc i j == macc (ematrix_subtile em' ...) i j *)
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tr * trows + i) / trows == tr);
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tc * tcols + j) / tcols == tc);
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tr * trows + i) % trows == i);
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tc * tcols + j) % tcols == j);
+    (* Rewrite val_fn to macc form *)
+    forevery_ext_2
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+          (val_fn tr tc i j))
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+          (macc (ematrix_subtile em' trows tcols tr tc) i j));
+    gpu_matrix_implode (gpu_matrix_subtile gm trows tcols tr tc);
+  };
+  forevery_map_2 _ _ aux;
+  (* Now: forall+ tr tc. subtile |-> ematrix_subtile em' *)
+
+  (* Step 2: Untile back to full matrix *)
+  gpu_matrix_untile gm trows tcols;
+}

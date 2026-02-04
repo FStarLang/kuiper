@@ -371,7 +371,7 @@ fn kf
     invariant
       live bkIdx ** pure (!bkIdx <= num_k_tiles)
     invariant
-      live aFrag ** live bFrag ** live accumFrag 
+      live aFrag ** live bFrag ** live accumFrag
     invariant
       (exists* em1. FB.bp_sharing sA em1 nthr) **
       (exists* em2. FB.bp_sharing sB em2 nthr)

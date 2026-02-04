@@ -47,7 +47,7 @@ let seq_from_opt (#a:Type) (s:seq (option a)) : Pure (seq a)
 
 let seq_to_opt_length (#a:Type) (s:seq a) : Lemma (Seq.length (seq_to_opt s) == Seq.length s) = ()
 
-let seq_to_opt_index (#a:Type) (s:seq a) (i:nat{i < Seq.length s}) 
+let seq_to_opt_index (#a:Type) (s:seq a) (i:nat{i < Seq.length s})
   : Lemma (Seq.index (seq_to_opt s) i == Some (Seq.index s i))
   = ()
 

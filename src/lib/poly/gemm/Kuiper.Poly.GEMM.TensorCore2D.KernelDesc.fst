@@ -29,10 +29,7 @@ open Kuiper.VArray { varray, varray_pts_to, varray_pts_to_cell }
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
-module B = Kuiper.Barrier
-module R = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
-module FB = Kuiper.Poly.GEMM.FlipFlopBarrier
 
 let bid_of_ij
   (rows cols : nat)
