@@ -3,6 +3,7 @@ module Kuiper.Poly.GEMMGPU.Type
 #lang-pulse
 
 open Kuiper
+open Kuiper.Approximates { real_like }
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix { ematrix, matrix_comb }
 open Kuiper.Matrix.Reprs.Type
