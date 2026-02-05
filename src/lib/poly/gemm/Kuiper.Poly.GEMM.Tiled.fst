@@ -281,6 +281,8 @@ fn teardown
   let n_threads = (mrows * mcols) * (tile * tile);
 
   (* Step 1: Convert types from natlt2 to natlt *)
+  assert pure (SZ.v (mrows `SZ.mul` mcols) == mrows * mcols);
+  assert pure (SZ.v (tile `SZ.mul` tile) == tile * tile);
   forevery_rw_size2
     (SZ.v (mrows `SZ.mul` mcols)) (mrows * mcols)
     (SZ.v (tile `SZ.mul` tile)) (tile * tile);
