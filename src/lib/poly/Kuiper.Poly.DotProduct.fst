@@ -14,6 +14,8 @@ module Kuiper.Poly.DotProduct
         swap |-> __)
 *)
 
+friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)
+
 open Kuiper
 open Kuiper.Barrier.RPM
 open Kuiper.Math
@@ -24,7 +26,6 @@ module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module HR = Kuiper.Poly.HReduce
 
-friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)
 
 let rsmul (s1 s2 : seq real{ Seq.length s1 == Seq.length s2 }) : GTot (seq real)
   = Seq.init_ghost (Seq.length s1) (fun i -> (s1 @! i) *. (s2 @! i))

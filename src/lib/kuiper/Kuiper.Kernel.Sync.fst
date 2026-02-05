@@ -1,7 +1,9 @@
 module Kuiper.Kernel.Sync
-#lang-pulse
-open Pulse.Lib.Pervasives
 friend Kuiper.Array.Core // for gpu_array_alloc_vis, gpu_array_free_gen
+
+#lang-pulse
+
+open Pulse.Lib.Pervasives
 
 module Par = Pulse.Lib.Par
 

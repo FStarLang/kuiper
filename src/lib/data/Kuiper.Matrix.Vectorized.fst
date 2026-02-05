@@ -1,7 +1,7 @@
 module Kuiper.Matrix.Vectorized
-#lang-pulse
-
 friend Kuiper.Matrix
+
+#lang-pulse
 
 open Kuiper.Matrix.Common
 
