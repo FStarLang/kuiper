@@ -51,9 +51,7 @@ type parameters = {
   cols : szp;
   blockItemsK : szp;
   blockItemsX : szp;
-  blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX});
-  // TODO quitar esto
-  no_mask : squash (blockItemsX /? cols)
+  blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX})
 }
 
 (* Shadow lseq to make it erased. *)
@@ -67,11 +65,7 @@ let nthreads (p : parameters) = nblocks p * p.blockWidth
 inline_for_extraction noextract
 let size_req (p : parameters) =
     nblocks p <= max_blocks /\
-    p.blockWidth <= max_threads /\
-    // necesitamos exactamente esto en una prueba
-    // probablemente se puede escrbir de otra manera
-    // o asumir que cada parametro del algoritmo esta acotado
-    fits (p.blockWidth + p.blockItemsK)
+    p.blockWidth <= max_threads
 
 let sz_nblocks (p : parameters{size_req p}) : szle max_blocks
 =  p.rows *^ (p.cols /^ p.blockItemsX)
@@ -79,21 +73,32 @@ let sz_nblocks (p : parameters{size_req p}) : szle max_blocks
 let sz_nthreads (p : parameters{size_req p}) : szle max_threads
   = p.blockWidth
 
-
-
 let brow (p : parameters) (bid : natlt (nblocks p))
   : GTot (natlt p.rows)
   //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
   = bid / (p.cols / p.blockItemsX)
 
+let brow_ (p : parameters) (bid : szlt (nblocks p))
+: Pure sz
+  (requires true)//fits (p.cols + p.blockItemsX))
+  (ensures fun m -> SZ.v m == brow p bid)
+  //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+  = bid /^ (p.cols /^ p.blockItemsX)
+
+// TODO corregir definicion
 let bcol (p : parameters) (bid : natlt (nblocks p))
   : GTot (natlt p.cols)
-  // definir en terminos de n_idx??
-  //= bid % ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
-  = bid % (p.cols / p.blockItemsX)
+  // MAYBE definir en terminos de bcol_
+  = (bid % ((p.cols + p.blockItemsX - 1) / p.blockItemsX)) * p.blockItemsX
 
-// TODO definir n_idx y m_idx? como brow y bcol pero no ghost
-// TODO definir threadItemsX?
+let bcol_ (p : parameters) (bid : szlt (nblocks p))
+: Pure sz
+  (requires fits (p.cols + p.blockItemsX))
+  (ensures fun n -> SZ.v n == bcol p bid)
+=
+  (bid %^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)) *^ p.blockItemsX
+
+// MAYBE definir threadItemsX?
 
 inline_for_extraction noextract
 instance sized_sz : sized sz = {
@@ -120,7 +125,13 @@ let well_formed
   =
   // condicion de smatrix
   valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off) /\
-  fits (p.blockWidth + p.blockItemsK)
+  // necesitamos exactamente esto en una prueba
+  // probablemente se puede escrbir de otra manera
+  // o asumir que cada parametro del algoritmo esta acotado
+  // esta bien ponerlo aca?
+  fits (p.blockWidth + p.blockItemsK) /\
+  // esta es rara
+  fits (p.cols + p.blockItemsX)
 
 noextract
 let block_lemma whole block k
@@ -534,14 +545,6 @@ let natlt_refined_bij (m n : nat)
   gg_ff = (fun a -> ())
 }
 
-ghost
-fn forevery_natlt_refined (m n : nat) (p : (a : nat{a < n /\ a < m}) -> slprop)
-  requires forall+ (k : natlt m {k < n}). p k
-  ensures  forall+ (k : natlt (min m n)). p k
-{
-  forevery_iso (natlt_refined_bij m n) p
-}
-
 let natlt_is_between (n : nat) : Lemma (natlt n == between 0 n)
   =
   FStar.RefinementExtensionality.refext
@@ -924,11 +927,6 @@ fn gpu_forall_live_cell_to_slice
   gpu_forall_cell_to_slice_ arr i j;
 }
 
-let fits_add_mono (m m' n : nat)
-: Lemma (requires fits (m + n) /\ m' <= m) (ensures fits (m' + n))
-= ()
-
-//#set-options "--print_implicits"
 inline_for_extraction noextract
 fn sparse_load_residue
   (#et : Type0) {| scalar et |}
@@ -1189,6 +1187,7 @@ fn sparse_load_residue
 #pop-options
 
 
+
 inline_for_extraction noextract
 fn compute
   (#et : Type0) {| scalar et |}
@@ -1210,6 +1209,7 @@ fn compute
   (#v_out : erased (seq et))
   (bid : szlt (nblocks p))
   (tid : szlt p.blockWidth)
+  (n_idx : szlt p.cols {SZ.v n_idx == bcol p bid})
   norewrite
   preserves
     gpu **
@@ -1217,6 +1217,7 @@ fn compute
     col_ind_tile |-> Frac (1.0R /. p.blockWidth) v_col_ind **
     gB |-> Frac (fB /. nthreads p) eB
   requires
+    pure (fits (p.cols + p.blockItemsX)) **
     out |-> v_out
   ensures
     //out |-> v_out + dprod v_elems v_col_ind eB (col := tid)
@@ -1245,16 +1246,34 @@ fn compute
           !x <= p.blockItemsX /^ p.blockWidth
         )
     {
-      let n_idx : sz = bid %^ (p.cols /^ p.blockItemsX);
       block_lemma_off p.blockItemsX p.blockWidth !x tid;
-      assert pure (n_idx < p.cols /^ p.blockItemsX);
-      assert pure (n_idx + !x * p.blockWidth + tid < p.cols);
 
-      let b = M.gpu_matrix_read gB c (n_idx +^ !x *^ p.blockWidth +^ tid);
-      open Pulse.Lib.Array;
-      Pulse.Lib.Array.pts_to_len out;
-      let c = out.(!x);
-      out.(!x) <- (c `add` (a `mul` b));
+      assert pure (!x *^ p.blockWidth + tid < p.blockItemsX);
+      let dense_off : sz = n_idx +^ !x *^ p.blockWidth +^ tid;
+
+      if (dense_off <^ p.cols)
+        ensures 
+          gpu **
+          elems_tile |-> Frac (1.0R /. p.blockWidth) v_elems **
+          col_ind_tile |-> Frac (1.0R /. p.blockWidth) v_col_ind **
+          gB |-> Frac (fB /. nthreads p) eB **
+          live out **
+          (exists* (k_v x_v : sz).
+            k |-> k_v **
+            x |-> x_v **
+            pure (
+              k_v < p.blockItemsK /\
+              x_v < p.blockItemsX /^ p.blockWidth
+            )
+          )
+      {
+        let b = M.gpu_matrix_read gB c dense_off;
+        open Pulse.Lib.Array;
+        Pulse.Lib.Array.pts_to_len out;
+        let c = out.(!x);
+        out.(!x) <- (c `add` (a `mul` b));
+        ();
+      };
 
       x := !x +^ 1sz;
     };
@@ -1285,6 +1304,7 @@ fn compute_residue
   (#v_out : erased (seq et))
   (bid : szlt (nblocks p))
   (tid : szlt p.blockWidth)
+  (n_idx : szlt p.cols {SZ.v n_idx == bcol p bid})
   (residue : szlt p.blockItemsK)
   norewrite
   preserves
@@ -1295,6 +1315,7 @@ fn compute_residue
       0 residue v_col_ind **
     gB |-> Frac (fB /. nthreads p) eB
   requires
+    pure (fits (p.cols + p.blockItemsX)) **
     pure (len v_elems == residue /\ len v_col_ind == residue) **
     out |-> v_out
   ensures
@@ -1324,16 +1345,35 @@ fn compute_residue
           !x <= p.blockItemsX /^ p.blockWidth
         )
     {
-      let n_idx : sz = bid %^ (p.cols /^ p.blockItemsX);
       block_lemma_off p.blockItemsX p.blockWidth !x tid;
-      assert pure (n_idx < p.cols /^ p.blockItemsX);
-      assert pure (n_idx + !x * p.blockWidth + tid < p.cols);
 
-      let b = M.gpu_matrix_read gB c (n_idx +^ !x *^ p.blockWidth +^ tid);
-      open Pulse.Lib.Array;
-      Pulse.Lib.Array.pts_to_len out;
-      let c = out.(!x);
-      out.(!x) <- (c `add` (a `mul` b));
+      let dense_off : sz = n_idx +^ !x *^ p.blockWidth +^ tid;
+
+      if (dense_off <^ p.cols)
+        ensures 
+          gpu **
+          gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth)
+            0 residue v_elems **
+          gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
+            0 residue v_col_ind **
+          gB |-> Frac (fB /. nthreads p) eB **
+          live out **
+          (exists* (k_v x_v : sz).
+            k |-> k_v **
+            x |-> x_v **
+            pure (
+              k_v < residue /\
+              x_v < p.blockItemsX /^ p.blockWidth
+            )
+          )
+      {
+        let b = M.gpu_matrix_read gB c dense_off;
+        open Pulse.Lib.Array;
+        Pulse.Lib.Array.pts_to_len out;
+        let c = out.(!x);
+        out.(!x) <- (c `add` (a `mul` b));
+        ();
+      };
 
       x := !x +^ 1sz;
     };
@@ -1343,17 +1383,42 @@ fn compute_residue
 }
 
 ghost
-fn when__intro (b:bool{b == true}) (p : slprop)
+fn when__intro_true (b:bool{b == true}) (p : slprop)
   requires p
   ensures when__ b (fun _ -> p)
 {
   rewrite p as when__ b (fun _ -> p);
 }
 
+ghost
+fn when__intro_false (b : bool{b == false}) (p : slprop)
+  ensures when__ b (fun _ -> p)
+{
+  rewrite emp as when__ b (fun _ -> p);
+}
+
+ghost
+fn when__elim_true (b:bool{b == true}) (p : slprop)
+  requires when__ b (fun _ -> p)
+  ensures p
+{
+  rewrite when__ b (fun _ -> p) as p;
+}
+
+ghost
+fn when__elim_false (b:bool{b == false}) (p : slprop)
+  requires when__ b (fun _ -> p)
+  ensures emp
+{
+  rewrite when__ b (fun _ -> p) as emp;
+}
+
 inline_for_extraction noextract
 fn store_out
   (#et : Type0) {| scalar et |}
   (p : parameters)
+  // TODO esto es raro acá
+  (#_ : squash (fits (p.cols + p.blockItemsX)))
   (#lC : mlayout p.rows p.cols)
   {| clayout lC |}
   (gC : M.gpu_matrix et lC)
@@ -1361,8 +1426,8 @@ fn store_out
   (#v_out : erased (seq et){length out == len v_out})
   (bid : szlt (nblocks p))
   (tid : szlt p.blockWidth)
-  (trow : szlt p.rows{SZ.v trow == brow p bid})
-  (tcol : szlt p.cols{SZ.v tcol == bcol p bid})
+  (m_idx : szlt p.rows{SZ.v m_idx == brow p bid})
+  (n_idx : szlt p.cols{SZ.v n_idx == bcol p bid})
   (x : szlt (p.blockItemsX /^ p.blockWidth))
   requires
     when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
@@ -1379,27 +1444,43 @@ fn store_out
     ** out |-> v_out
 {
   block_lemma_off p.blockItemsX p.blockWidth x tid;
-  assert pure (bcol p bid + x * p.blockWidth + tid < p.cols);
-  rewrite
-    when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-      matrix_live_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid))
-    as matrix_live_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid);
-  unfold matrix_live_cell;
 
-  open Pulse.Lib.Array;
-  let c = out.(x);
-  assert pure (tcol +^ x *^ p.blockWidth +^ tid <^ p.cols);
+  let out_off = n_idx +^ x *^ p.blockWidth +^ tid;
+  assert rewrites_to out_off (n_idx +^ x *^ p.blockWidth +^ tid);
 
-  assert rewrites_to #sz trow (SZ.uint_to_t (brow p bid));
-  assert rewrites_to #sz tcol (SZ.uint_to_t (bcol p bid));
+  if (out_off <^ p.cols) {
+    when__elim_true _ _;
+    unfold matrix_live_cell;
 
-  M.gpu_matrix_write_cell gC trow (tcol +^ x *^ p.blockWidth +^ tid) c;
+    open Pulse.Lib.Array;
+    let c = out.(x);
+    assert pure (n_idx +^ x *^ p.blockWidth +^ tid <^ p.cols);
 
-  assert M.gpu_matrix_pts_to_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid) (v_out @! x);
-  when__intro (bcol p bid + x * p.blockWidth + tid < p.cols)
-    (M.gpu_matrix_pts_to_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid) (v_out @! x));
+    assert rewrites_to #sz m_idx (SZ.uint_to_t (brow p bid));
+    assert rewrites_to #sz n_idx (SZ.uint_to_t (bcol p bid));
 
-  ();
+    M.gpu_matrix_write_cell gC m_idx (n_idx +^ x *^ p.blockWidth +^ tid) c;
+
+    assert M.gpu_matrix_pts_to_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid) (v_out @! x);
+    when__intro_true (bcol p bid + x * p.blockWidth + tid < p.cols)
+      (M.gpu_matrix_pts_to_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid) (v_out @! x));
+  }
+  else {
+    rewrite when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+      matrix_live_cell gC (brow p bid) (bcol p bid + x * p.blockWidth + tid)
+    ) as when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
+      M.gpu_matrix_pts_to_cell gC
+        (brow p bid) (bcol p bid + x * p.blockWidth + tid)
+        (v_out @! x)
+    );
+
+    // por que no anda?
+    // when__elim_false _ _;
+    //assert pure (bcol p bid + x * p.blockWidth + tid < p.cols == false);
+    //when__intro_false (bcol p bid + x * p.blockWidth + tid < p.cols)
+      //(m.gpu_matrix_pts_to_cell gc (brow p bid) (bcol p bid + x * p.blockWidth + tid) (v_out @! x));
+  };
+
 }
 
 
@@ -1408,18 +1489,18 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
   (p : parameters)
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lB, clayout lC |}
+  (#lb : mlayout p.shared p.cols)
+  (#lc : mlayout p.rows p.cols)
+  {| clayout lb, clayout lc |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
-  // matriz sparse gA
+  (gB : M.gpu_matrix et lb)
+  (gC : M.gpu_matrix et lc)
+  // matriz sparse ga
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
   (#row_off : lseq sz (p.rows + 1))
   (#eA : ematrix et p.rows p.shared)
-  // matriz densa gB
+  // matriz densa gb
   (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
@@ -1441,23 +1522,16 @@ fn kf
     thread_id p.blockWidth tid **
     block_id (nblocks p) bid
 {
-  // renombrar a brow/bcol
-  let trow = bid /^ (p.cols /^ p.blockItemsX);
-  let tcol = bid %^ (p.cols /^ p.blockItemsX);
-  assert pure (SZ.v trow == brow p bid);
-  assert pure (SZ.v tcol == bcol p bid);
-
-  // let m_idx = trow;
-  // let n_idx = 0;
-  // let blockItemsX = 1;
+  let m_idx = brow_ p bid;
+  let n_idx = bcol_ p bid;
 
   let (elems_tile, (col_ind_tile, _)) = sh;
 
   gpu_pts_to_ref elems_tile;
   gpu_pts_to_ref col_ind_tile;
 
-  let ri = gpu_array_read gA.row_off trow;
-  let re = gpu_array_read gA.row_off (trow +^ 1sz);
+  let ri = gpu_array_read gA.row_off m_idx;
+  let re = gpu_array_read gA.row_off (m_idx +^ 1sz);
 
   let mut out = [| zero #et #_; (p.blockItemsX /^ p.blockWidth) |];
 
@@ -1489,7 +1563,7 @@ fn kf
     sparse_load p gA #row_off #elems #col_ind #eA
       elems_tile col_ind_tile bid ri re !idx tid #();
  
-    compute p elems_tile col_ind_tile gB out bid tid;
+    compute p elems_tile col_ind_tile gB out bid tid n_idx;
 
     idx := !idx +^ 1sz;
     nnz := !nnz -^ p.blockItemsK;
@@ -1499,7 +1573,7 @@ fn kf
   assert pure (re - (ri + !idx * p.blockItemsK) < p.blockItemsK);
   sparse_load_residue p gA #row_off #elems #col_ind #eA
     elems_tile col_ind_tile bid ri re !idx tid;
-  compute_residue p elems_tile col_ind_tile gB out bid tid
+  compute_residue p elems_tile col_ind_tile gB out bid tid n_idx
     (re -^ (ri +^ !idx *^ p.blockItemsK));
   
   
@@ -1528,7 +1602,7 @@ fn kf
             (brow p bid)
             (bcol p bid + x * p.blockWidth + tid)
             (v_out @! x)))
-    (store_out p gC out bid tid trow tcol) ;
+    (store_out p gC out bid tid m_idx n_idx);
 
   //assume pure (!dp == MS.matmul_single eA eB bid tid);
   admit();
@@ -1783,7 +1857,7 @@ fn spmm
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  let params = { rows; shared; cols; blockItemsK; blockItemsX; blockWidth; no_mask = magic() };
+  let params = { rows; shared; cols; blockItemsK; blockItemsX; blockWidth };
   assume pure (well_formed params #gA.nnz col_ind row_off);
   // que raro
   let pf_size_req : squash (size_req params) = ();
