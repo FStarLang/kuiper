@@ -247,6 +247,7 @@ fn setup
   ();
 }
 
+#push-options "--z3rlimit 80"
 ghost
 fn teardown
   (tile : valid_tile)
@@ -511,6 +512,7 @@ fn teardown
 
   ();
 }
+#pop-options
 
 (* No op *)
 ghost
