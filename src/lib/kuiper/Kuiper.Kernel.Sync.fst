@@ -125,7 +125,9 @@ ensures
         fold (block_id k.nblk bid);
         loc_dup tloc;
         fold gpu;
-  admit();
+        // Assume the barrier state
+        assume Kuiper.Barrier.barrier_state 0;
+        assume Kuiper.Barrier.barrier_tok (k.barrier_contract bid sh);
         Mkkernel_desc?.f k sh bid tid ();
         drop_ gpu; // from the loc_dup above
         drop_ (block_id _ _); // from the loc_dup above
@@ -156,8 +158,6 @@ ensures
   unfold (block_id k.nblk bid);
   let sh = alloc_c_shmems _ k.shmems_desc;
   fold (block_id k.nblk bid);
-  admit();
-  // assume (can_create_barrier k.nthr);
   let _ : unit = Mkkernel_desc?.block_setup k sh bid ();
   run_block_threads k bid sh k.nthr;
   Mkkernel_desc?.block_teardown k sh bid ();
