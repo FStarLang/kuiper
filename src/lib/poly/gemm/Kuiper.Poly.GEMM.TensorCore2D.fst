@@ -814,7 +814,9 @@ fn kf
     gpu **
     kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr sh bid tid **
     thread_id nthr tid **
-    block_id (rows/bm * (cols/bn)) bid
+    block_id (rows/bm * (cols/bn)) bid **
+    B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_state (2 * (shared / bk))
 {
   unfold_c_shmems sh (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
@@ -1035,9 +1037,6 @@ fn kf
 
   fold_c_shmems sh (`%shmems_desc);
 
-  drop_ (B.barrier_state _);
-  drop_ (B.barrier_tok _);
-
   ()
 }
 
@@ -1111,6 +1110,7 @@ let mk_kernel
   shmems_desc = shmems_desc et_ab bm bn bk;
 
   barrier_contract = (fun bid ptrs -> FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_count    = (fun _bid -> 2 * (SZ.v shared / SZ.v bk));
   barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn) (fst ptrs) (fst (snd ptrs)) nthr bid);
 
   frame = pure (SZ.fits (mlayout_size (R.row_major rows cols)));

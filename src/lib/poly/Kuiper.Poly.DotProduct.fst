@@ -96,7 +96,9 @@ fn kf
   ensures
     gpu **
     kpost lena ga1 ga2 s1 s2 vr1 vr2 tid **
-    thread_id lena tid
+    thread_id lena tid **
+    B.barrier_tok (mbarrier_contract #lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2))) **
+    B.barrier_state (HR.hreduce_barrier_count lena)
 {
   (**)unfold (kpre lena ga1 ga2 s1 s2 vr1 vr2 tid);
 
@@ -197,6 +199,7 @@ let dp_kernel
     f = kf lena ga1 ga2 #s1 #s2;
 
     barrier_contract = mbarrier_contract #lena (HR.barrier_matrix lena ga1 (pmul s1 s2) (rsmul vr1 vr2));
+    barrier_count    = HR.hreduce_barrier_count lena;
     barrier_ok       = mbarrier_transform _;
 
     block_setup    = setup lena ga1 ga2 #s1 #s2;

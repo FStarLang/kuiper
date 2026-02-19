@@ -225,7 +225,9 @@ fn kf
     gpu **
     kpost comb tile slA slB gA gB gC eA eB fA fB sh bid tid **
     thread_id (tile * tile) tid **
-    block_id (mrows * mcols) bid
+    block_id (mrows * mcols) bid **
+    B.barrier_tok (barrier_contract (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
+    B.barrier_state (2 * mshared)
 {
   let (ar1, (ar2, _)) = sh;
 
@@ -370,10 +372,6 @@ fn kf
 
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
-
-  // fold barrier_tok tile slA slB ar1 ar2;
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state _);
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
@@ -545,6 +543,7 @@ let mk_kernel
   barrier_contract = (fun bid ptrs -> barrier_contract
                         (M.from_array slA (fst ptrs))
                         (M.from_array slB (fst (snd ptrs))));
+  barrier_count    = (fun _bid -> 2 * SZ.v mshared);
   barrier_ok = magic();
 
   shmems_desc = shmems_desc et tile;

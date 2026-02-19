@@ -132,6 +132,9 @@ ensures
         drop_ gpu; // from the loc_dup above
         drop_ (block_id _ _); // from the loc_dup above
         drop_ (thread_id _ _); // from the loc_dup above
+        // Drop barrier state
+        drop_ (Kuiper.Barrier.barrier_tok _);
+        drop_ (Kuiper.Barrier.barrier_state _);
       }
       fn _ {
         run_block_threads k bid sh tid

@@ -276,6 +276,9 @@ fn iteration
   }
 }
 
+(* Number of barrier calls in the reduction loop: smallest k s.t. pow2 k >= nth *)
+let hreduce_barrier_count (nth : pos) : GTot nat = log2 (2 * nth - 1)
+
 inline_for_extraction noextract
 fn kf
   (#et:Type0) {| scalar et, real_like et |}
@@ -295,7 +298,9 @@ fn kf
   ensures
     gpu **
     kpost nth a s vr tid **
-    thread_id nth tid
+    thread_id nth tid **
+    mbarrier_tok nth (barrier_matrix nth a s vr) **
+    B.barrier_state (hreduce_barrier_count nth)
 {
   (* Reduction *)
   let mut n : szlt 32 = 0sz;
@@ -318,8 +323,9 @@ fn kf
     n := !n +^ 1sz;
   };
 
-  drop_ (mbarrier_tok nth (barrier_matrix nth a s vr));
-  drop_ (B.barrier_state _);
+  with it. assert (B.barrier_state it);
+  assume pure (it == hreduce_barrier_count (v nth));
+  rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
   ()
 }
@@ -420,6 +426,7 @@ let kernel
   nthr = lena;
 
   barrier_contract = mbarrier_contract (barrier_matrix lena a va vr);
+  barrier_count    = hreduce_barrier_count lena;
   barrier_ok       = mbarrier_transform (barrier_matrix lena a va vr);
 
   f = kf lena a #va #vr;

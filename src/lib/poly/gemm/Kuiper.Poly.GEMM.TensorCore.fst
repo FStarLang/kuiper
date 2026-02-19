@@ -320,7 +320,9 @@ fn kf
     gpu **
     kpost gA eA gB eB gC bm bn bk tm tn fA fB sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
-    block_id (rows/bm * (cols/bn)) bid
+    block_id (rows/bm * (cols/bn)) bid **
+    B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_state (2 * (shared / bk))
 {
   let (sarA, (sarB, _)) = sh;
 
@@ -453,9 +455,6 @@ fn kf
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
-
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state _);
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
@@ -692,6 +691,7 @@ let mk_kernel
 
   barrier_contract = (fun bid ptrs -> FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn)
                                         (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_count    = (fun _bid -> 2 * (SZ.v shared / SZ.v bk));
   barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn)
                                         (fst ptrs) (fst (snd ptrs)) nthr bid);
 

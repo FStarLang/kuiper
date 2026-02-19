@@ -85,10 +85,10 @@ fn adapt_kmn_kf
     gpu **
     kpost bid tid **
     thread_id nthr tid **
-    block_id nblk bid
+    block_id nblk bid **
+    B.barrier_tok (B.empty_contract nthr) **
+    B.barrier_state 0
 {
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state _);
   f bid tid ();
 }
 
@@ -104,6 +104,7 @@ let kmn_as_kfull
   nthr=k.nthr;
 
   barrier_contract = (fun _bid _ptrs -> B.empty_contract k.nthr);
+  barrier_count    = (fun _bid -> 0);
   barrier_ok       = (fun _bid _ptrs -> B.empty_barrier_transform k.nthr);
 
   shmems_desc = [];
@@ -547,7 +548,9 @@ fn adapt_k1nb_kf
     gpu **
     k.kpost tid **
     thread_id k.nthr tid **
-    block_id 1sz _bid
+    block_id 1sz _bid **
+    B.barrier_tok k.barrier_contract **
+    B.barrier_state k.barrier_count
 {
   let f = k.f;
   f tid ();
@@ -570,6 +573,7 @@ let k1nb_as_kfull
     shmems_desc = [];
 
     barrier_contract = (fun _bid _ptrs -> k.barrier_contract);
+    barrier_count    = (fun _bid -> k.barrier_count);
     barrier_ok       = (fun _bid _ptrs -> k.barrier_ok);
 
     frame = emp;

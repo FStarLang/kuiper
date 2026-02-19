@@ -211,6 +211,7 @@ type kernel_desc_1_n_barr (full_pre : slprop) (full_post : slprop) = {
 
   (* Note, does not depend on bid (only one) or shmem ptrs (there are none) *)
   barrier_contract : B.contract nthr;
+  barrier_count    : Ghost.erased nat;
   barrier_ok       : B.barrier_transform barrier_contract;
 
   block_setup : (
@@ -246,7 +247,9 @@ type kernel_desc_1_n_barr (full_pre : slprop) (full_post : slprop) = {
       (ensures fun _ ->
          gpu **
          kpost tid **
-         thread_id nthr tid)
+         thread_id nthr tid **
+         B.barrier_tok barrier_contract **
+         B.barrier_state barrier_count)
   );
 
   full_pre_sendable: is_send_across gpu_of full_pre;

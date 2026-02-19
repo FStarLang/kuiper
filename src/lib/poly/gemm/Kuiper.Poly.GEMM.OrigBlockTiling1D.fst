@@ -380,7 +380,9 @@ fn kf
     gpu **
     kpost comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (bm/tm * bn) tid **
-    block_id (mrows * mcols) bid
+    block_id (mrows * mcols) bid **
+    B.barrier_tok (barrier_contract tm (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
+    B.barrier_state (2 * mshared)
 {
   let (sarA, (sarB, _)) = sh;
 
@@ -518,9 +520,6 @@ fn kf
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
-
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state _);
 
   ();
 }
@@ -719,6 +718,7 @@ let mk_kernel
   shmems_desc = shmems_desc et bm bn bk;
 
   barrier_contract = (fun bid ptrs -> barrier_contract tm (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
+  barrier_count    = (fun _bid -> 2 * SZ.v mshared);
   barrier_ok = (fun bid ptrs -> magic());
 
   frame = emp;
