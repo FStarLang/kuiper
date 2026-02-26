@@ -169,6 +169,7 @@ fn kf
   ()
 }
 
+#push-options "--z3rlimit 20"
 ghost
 fn setup
   (tile : valid_tile)
@@ -246,6 +247,7 @@ fn setup
     (fun (bid : natlt2 mrows mcols) (tid : natlt2 tile tile) -> kpre comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
   ();
 }
+#pop-options
 
 #push-options "--z3rlimit 80"
 ghost

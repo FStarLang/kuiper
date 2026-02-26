@@ -591,6 +591,7 @@ fn gpu_matrix_implode_tiled
     gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
       val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
 
+#push-options "--z3rlimit 20"
 (* Combinator for teardown of approximate kernels.
    Collects per-cell existentials into a matrix-level existential,
    and transforms per-cell approximation facts into matrix-level approximation.
@@ -625,3 +626,4 @@ fn gpu_matrix_collect_approx_tiled
     pure (forall (row : natlt rows) (col : natlt cols).
       spec_fn row col
         (vf ((row / trows) * ntc + (col / tcols)) ((row % trows) * tcols + (col % tcols))))
+#pop-options
