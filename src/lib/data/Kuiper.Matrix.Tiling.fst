@@ -594,6 +594,7 @@ fn gpu_matrix_untile_underspec
 }
 
 
+#push-options "--z3rlimit 20"
 ghost
 fn gpu_matrix_extract_tile
   (#et:Type0)
@@ -671,6 +672,7 @@ fn gpu_matrix_extract_tile
   };
   Pulse.Lib.Forall.intro_forall _ aux;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn gpu_matrix_extract_tile_st

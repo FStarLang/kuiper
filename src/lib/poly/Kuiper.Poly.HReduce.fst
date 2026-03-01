@@ -324,6 +324,14 @@ fn kf
   };
 
   with it. assert (B.barrier_state it);
+
+  // After loop exit: pow2 it >= nth, and tid < nth, so div_pow2 it tid <==> tid = 0
+  FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
+  rewrite
+    (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr))
+  as
+    (if_ (op_Equality #nat tid 0) (gpu_pts_to_slice_sum a 0 nth s vr));
+
   assume pure (it == hreduce_barrier_count (v nth));
   rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
