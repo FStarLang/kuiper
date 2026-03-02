@@ -93,7 +93,9 @@ fn specialize_gpu
 
   assert pure (rows/bm <= rows);
   assert pure (cols/bn <= cols);
-  dassert (nblk <=^ SZ.uint_to_t 2097152); // Inlining max_blocks.. not great.
+  #set-options "--z3rlimit 100" {
+    dassert (nblk <=^ SZ.uint_to_t 2097152); // Inlining max_blocks.. not great.
+  };
   assert pure (nblk <= max_blocks);
 
   launch_sync (
