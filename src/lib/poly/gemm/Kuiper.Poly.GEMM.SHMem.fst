@@ -236,13 +236,16 @@ fn kf
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
+  let grow : erased (natlt (mrows * tile)) = hide (SZ.v mrow * SZ.v tile + SZ.v brow);
+  let gcol : erased (natlt (mcols * tile)) = hide (SZ.v mcol * SZ.v tile + SZ.v bcol);
+
   while (SZ.(!bk <^ mshared))
-    invariant live sum
     invariant
-      exists* (vbk : SZ.t).
+      exists* (vbk : SZ.t{vbk <= mshared}) sumv.
         bk |-> vbk **
+        sum |-> sumv **
         B.barrier_state (2 * vbk) **
-        pure (vbk <= mshared)
+        pure (sumv %~ MU.__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * SZ.v tile))
     invariant
       (exists* em1. FB.bp_sharing sa1 em1 (tile * tile)) **
       (exists* em2. FB.bp_sharing sa2 em2 (tile * tile))
@@ -344,7 +347,19 @@ fn kf
       as an argument a reference into which to add the values.
     *)
     let t = Kuiper.Poly.GEMM.Util.matmul_dotprod sa1 sa2 brow bcol;
-    sum := !sum `add` t;
+    let s = !sum;
+    sum := s `add` t;
+
+    (* Prove the approximation invariant is maintained:
+       t == matmul_single (subtile eA) (subtile eB) brow bcol,
+       so t %~ real_matmul_single_subtile eA eB mrow mcol vbk brow bcol.
+       Combined with s %~ __real_matmul_single_tiled ... (vbk * tile)
+       and the step lemma, we get s+t %~ __real_matmul_single_tiled ... ((vbk+1) * tile). *)
+    MU.matmul_single_subtile_approx eA eB mrow mcol vbk brow bcol;
+    MU.__real_matmul_single_tiled_step eA eB mrow mcol (SZ.v vbk) brow bcol;
+    a_add s t
+      (MU.__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * SZ.v tile))
+      (MU.real_matmul_single_subtile eA eB mrow mcol (SZ.v vbk) brow bcol);
 
     fold FB.bp_sharing sa1 (ematrix_subtile eA tile tile mrow !bk) (tile * tile);
     fold FB.bp_sharing sa2 (ematrix_subtile eB tile tile !bk mcol) (tile * tile);
@@ -358,9 +373,9 @@ fn kf
   };
 
   let s = !sum;
-  (* The dot product computed via shared memory approximates the real matmul_single.
-     This is the same computation as matmul_tiled_dotprod, just via shared memory. *)
-  assume pure (s %~ MU.real_matmul_single eA eB (mrow * tile + brow) (mcol * tile + bcol));
+  (* After the loop, vbk == mshared, so:
+     s %~ __real_matmul_single_tiled eA eB grow gcol (mshared * tile)
+        == real_matmul_single eA eB (mrow * tile + brow) (mcol * tile + bcol) *)
 
   let v0 = M.gpu_matrix_read_cell gTile brow bcol;
   let v1 = comb v0 s;

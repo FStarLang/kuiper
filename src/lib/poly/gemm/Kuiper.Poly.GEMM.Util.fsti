@@ -9,6 +9,7 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
+open Kuiper.Matrix.Tiling { ematrix_subtile }
 
 inline_for_extraction noextract
 fn matmul_dotprod
@@ -76,6 +77,70 @@ let real_mmcomb
   (m2 : ematrix et shared cols)
   : GTot (ematrix real rows cols)
   = mkM (fun i j -> real_gemm_single comb_r m1 m2 m0 i j)
+
+(* Partial real dot product over tiled matrices, summing first `to` elements *)
+let __real_matmul_single_tiled
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #shared #cols #tile : nat)
+  (m1 : ematrix et (rows * tile) (shared * tile))
+  (m2 : ematrix et (shared * tile) (cols * tile))
+  (row : natlt (rows * tile))
+  (col : natlt (cols * tile))
+  (to : nat{to <= shared * tile})
+  : GTot real
+  = MS.__gmatmul_single 0.0R ( *. ) ( +. )
+      (ematrix_to_real m1) (ematrix_to_real m2)
+      row col to
+
+(* Real-valued matmul_single for a subtile *)
+let real_matmul_single_subtile
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #shared #cols #tile : nat)
+  (m1 : ematrix et (rows * tile) (shared * tile))
+  (m2 : ematrix et (shared * tile) (cols * tile))
+  (bi : natlt rows) (bj : natlt cols) (bk : natlt shared)
+  (i : natlt tile) (j : natlt tile)
+  : GTot real
+  = MS.__gmatmul_single 0.0R ( *. ) ( +. )
+      (ematrix_to_real (ematrix_subtile m1 tile tile bi bk))
+      (ematrix_to_real (ematrix_subtile m2 tile tile bk bj))
+      i j tile
+
+(* Stepping the tiled partial sum by one tile block *)
+val __real_matmul_single_tiled_step
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #shared #cols : nat)
+  (#tile : pos)
+  (m1 : ematrix et (rows * tile) (shared * tile))
+  (m2 : ematrix et (shared * tile) (cols * tile))
+  (bi : natlt rows) (bj : natlt cols) (bk : nat{bk < shared})
+  (i : natlt tile) (j : natlt tile)
+  : Lemma
+    (ensures (
+      let row = bi * tile + i in
+      let col = bj * tile + j in
+      __real_matmul_single_tiled m1 m2 row col ((bk + 1) * tile)
+      ==
+      __real_matmul_single_tiled m1 m2 row col (bk * tile) +.
+      real_matmul_single_subtile m1 m2 bi bj bk i j
+    ))
+
+(* Scalar matmul_single of subtile approximates the real version *)
+val matmul_single_subtile_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #shared #cols : nat)
+  (#tile : pos)
+  (m1 : ematrix et (rows * tile) (shared * tile))
+  (m2 : ematrix et (shared * tile) (cols * tile))
+  (bi : natlt rows) (bj : natlt cols) (bk : natlt shared)
+  (i : natlt tile) (j : natlt tile)
+  : Lemma
+    (ensures (
+      MS.matmul_single (ematrix_subtile m1 tile tile bi bk)
+                       (ematrix_subtile m2 tile tile bk bj)
+                       i j
+      %~ real_matmul_single_subtile m1 m2 bi bj bk i j
+    ))
 
 (* Version of matmul_tiled_dotprod with approximate postcondition *)
 inline_for_extraction noextract

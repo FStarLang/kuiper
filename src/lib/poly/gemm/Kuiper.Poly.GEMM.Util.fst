@@ -58,36 +58,6 @@ fn matmul_dotprod
   !sum
 }
 
-(* Helper for real matmul partial sum over tiled matrices *)
-let __real_matmul_single_tiled
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols #tile : nat)
-  (m1 : ematrix et (rows * tile) (shared * tile))
-  (m2 : ematrix et (shared * tile) (cols * tile))
-  (row : natlt (rows * tile))
-  (col : natlt (cols * tile))
-  (to : nat{to <= shared * tile})
-  : GTot real
-  = MS.__gmatmul_single 0.0R ( *. ) ( +. )
-      (ematrix_to_real m1) (ematrix_to_real m2)
-      row col to
-
-(* Real-valued matmul_single for a subtile.
-   This computes the dot product of row `i` of subtile (bi, bk) of m1
-   with column `j` of subtile (bk, bj) of m2. *)
-let real_matmul_single_subtile
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols #tile : nat)
-  (m1 : ematrix et (rows * tile) (shared * tile))
-  (m2 : ematrix et (shared * tile) (cols * tile))
-  (bi : natlt rows) (bj : natlt cols) (bk : natlt shared)
-  (i : natlt tile) (j : natlt tile)
-  : GTot real
-  = MS.__gmatmul_single 0.0R ( *. ) ( +. )
-      (ematrix_to_real (ematrix_subtile m1 tile tile bi bk))
-      (ematrix_to_real (ematrix_subtile m2 tile tile bk bj))
-      i j tile
-
 (* Key lemma: stepping the tiled partial sum by one tile block.
    Shows that __real_matmul_single_tiled at ((bk+1)*tile) equals
    the value at (bk*tile) plus the subtile matmul_single.
