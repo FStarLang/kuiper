@@ -181,14 +181,36 @@ fn subproduct_cols
   (#acc0 : erased (seq et))
   (#v1 #v2 : ematrix et tile tile)
   (#f : perm)
+  (#_ : squash (Seq.length acc0 == tile))
   preserves
     gpu **
     m1 |-> Frac f v1 **
     m2 |-> Frac f v2
   requires
-    pure (Seq.length acc0 == tile) **
     acc |-> acc0
   ensures
     exists* acc'.
-      pure (Seq.length acc' == tile) **
+      pure (Seq.length acc' == tile /\
+        (forall (i:nat{i < tile}).
+          Seq.index acc' i == MS.__gmatmul_single (Seq.index acc0 i) mul add v1 v2 i j tile)) **
       (acc |-> acc')
+
+(* Lemma: __gmatmul_single with non-zero initial value approximates
+   the real sum starting from the approximated initial value.
+   If x %~ r, then __gmatmul_single x mul add m1 m2 i j n %~
+   r +. __gmatmul_single 0.0R (*.) (+.) (to_real m1) (to_real m2) i j n *)
+val gmatmul_single_init_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (x : et) (r : real)
+  (m1 : ematrix et rows cols)
+  (m2 : ematrix et cols rows)
+  (row : natlt rows)
+  (col : natlt rows)
+  (n : nat{n <= cols})
+  : Lemma
+    (requires x %~ r)
+    (ensures
+      MS.__gmatmul_single x mul add m1 m2 row col n %~
+      (r +. MS.__gmatmul_single 0.0R ( *. ) ( +. )
+        (ematrix_to_real m1) (ematrix_to_real m2) row col n))

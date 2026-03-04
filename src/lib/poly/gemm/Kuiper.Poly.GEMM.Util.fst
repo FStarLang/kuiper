@@ -333,6 +333,7 @@ fn matmul_tiled_dotprod'
 }
 
 (* Used by SHMEM, Blocktiling1D *)
+#push-options "--z3rlimit 80"
 inline_for_extraction noextract
 fn subproduct_cols
   (#et : Type0) {| scalar et |}
@@ -346,43 +347,99 @@ fn subproduct_cols
   (#acc0 : erased (seq et))
   (#v1 #v2 : ematrix et tile tile)
   (#f : perm)
+  (#_ : squash (Seq.length acc0 == tile))
   preserves
     gpu **
     m1 |-> Frac f v1 **
     m2 |-> Frac f v2
   requires
-    pure (Seq.length acc0 == tile) **
     acc |-> acc0
   ensures
     exists* acc'.
-      pure (Seq.length acc' == tile) **
+      pure (Seq.length acc' == tile /\
+        (forall (i:nat{i < tile}).
+          Seq.index acc' i == MS.__gmatmul_single (Seq.index acc0 i) mul add v1 v2 i j tile)) **
       (acc |-> acc')
 {
   pts_to_len acc;
   let mut sk : sz = 0sz;
   while (SZ.(!sk <^ tile))
-    invariant live sk ** live acc
+    invariant
+      exists* (vsk : SZ.t{SZ.v vsk <= SZ.v tile}) cur.
+        sk |-> vsk **
+        acc |-> cur **
+        pure (Seq.length cur == SZ.v tile /\
+          (forall (i:nat{i < SZ.v tile}).
+            Seq.index cur i == MS.__gmatmul_single (Seq.index acc0 i) mul add v1 v2 i (SZ.v j) (SZ.v vsk)))
   {
     pts_to_len acc;
+    let vsk = !sk;
+    assert pure (SZ.v vsk + 1 <= SZ.v tile);
     let mut i = 0sz;
     (* We can read v2 out of the inner loop, this is extremely
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
-    let v2 = M.gpu_matrix_read m2 !sk j;
+    let v2_val = M.gpu_matrix_read m2 vsk j;
     while (SZ.(!i <^ tile))
-      invariant live i ** live acc
+      invariant
+        exists* (vi : SZ.t{SZ.v vi <= SZ.v tile}) cur.
+          i |-> vi **
+          acc |-> cur **
+          pure (Seq.length cur == SZ.v tile /\
+            (forall (r:nat{r < SZ.v tile}).
+              (r < SZ.v vi ==>
+                Seq.index cur r == MS.__gmatmul_single (Seq.index acc0 r) mul add v1 v2 r (SZ.v j) (SZ.v vsk + 1)) /\
+              (SZ.v vi <= r ==>
+                Seq.index cur r == MS.__gmatmul_single (Seq.index acc0 r) mul add v1 v2 r (SZ.v j) (SZ.v vsk))))
     {
-      let v1 = M.gpu_matrix_read m1 !i !sk;
+      let vi = !i;
+      let v1_val = M.gpu_matrix_read m1 vi vsk;
 
       open Pulse.Lib.Array;
       pts_to_len acc;
-      let sum0 = acc.(!i);
-      let sum1 = sum0 `add` (v1 `mul` v2);
-      acc.(!i) <- sum1;
-      i := !i +^ 1sz;
+      let sum0 = acc.(vi);
+      let sum1 = sum0 `add` (v1_val `mul` v2_val);
+      acc.(vi) <- sum1;
+
+      MS.__gmatmul_single_lemma (Seq.index acc0 (SZ.v vi)) mul add v1 v2 (SZ.v vi) (SZ.v j) (SZ.v vsk + 1);
+
+      i := vi +^ 1sz;
     };
     pts_to_len acc;
-    sk := !sk +^ 1sz;
+    sk := vsk +^ 1sz;
   };
   pts_to_len acc;
 }
+#pop-options
+
+let rec gmatmul_single_init_approx
+  (#et:Type) {| d1: scalar et |} {| d2: real_like et |}
+  (#rows #cols : nat)
+  (x : et) (r : real)
+  (m1 : ematrix et rows cols)
+  (m2 : ematrix et cols rows)
+  (row : natlt rows)
+  (col : natlt rows)
+  (n : nat{n <= cols})
+  : Lemma
+    (requires x %~ r)
+    (ensures
+      MS.__gmatmul_single x mul add m1 m2 row col n %~
+      (r +. MS.__gmatmul_single 0.0R ( *. ) ( +. )
+        (ematrix_to_real m1) (ematrix_to_real m2) row col n))
+    (decreases n)
+  = if n = 0 then ()
+    else begin
+      gmatmul_single_init_approx x r m1 m2 row col (n-1);
+      let a = macc m1 row (n-1) in
+      let b = macc m2 (n-1) col in
+      to_real_ok a;
+      to_real_ok b;
+      a_mul a b (to_real a) (to_real b);
+      let ps = MS.__gmatmul_single x mul add m1 m2 row col (n-1) in
+      let rps = r +. MS.__gmatmul_single 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col (n-1) in
+      a_add ps (mul a b) rps (to_real a *. to_real b);
+      MS.__gmatmul_single_lemma x mul add m1 m2 row col n;
+      MS.__gmatmul_single_lemma 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col n;
+      ()
+    end
