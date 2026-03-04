@@ -11,7 +11,6 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Tiling
-open Kuiper.Bijection
 
 unfold
 let kpre
