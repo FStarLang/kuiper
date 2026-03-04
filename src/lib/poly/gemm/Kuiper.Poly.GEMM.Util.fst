@@ -247,6 +247,38 @@ let matmul_single_subtile_approx
     let sub_m2 = ematrix_subtile m2 tile tile bk bj in
     matmul_single_subtile_approx_aux sub_m1 sub_m2 i j tile
 
+let rec gmatmul_single_init_approx
+  (#et:Type) {| d1: scalar et |} {| d2: real_like et |}
+  (#rows #cols : nat)
+  (x : et) (r : real)
+  (m1 : ematrix et rows cols)
+  (m2 : ematrix et cols rows)
+  (row : natlt rows)
+  (col : natlt rows)
+  (n : nat{n <= cols})
+  (_: squash (x %~ r))
+  : Lemma
+    (ensures
+      MS.__gmatmul_single x mul add m1 m2 row col n %~
+      (r +. MS.__gmatmul_single 0.0R ( *. ) ( +. )
+        (ematrix_to_real m1) (ematrix_to_real m2) row col n))
+    (decreases n)
+  = if n = 0 then ()
+    else begin
+      gmatmul_single_init_approx x r m1 m2 row col (n-1) ();
+      let a = macc m1 row (n-1) in
+      let b = macc m2 (n-1) col in
+      to_real_ok a;
+      to_real_ok b;
+      a_mul a b (to_real a) (to_real b);
+      let ps = MS.__gmatmul_single x mul add m1 m2 row col (n-1) in
+      let rps = r +. MS.__gmatmul_single 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col (n-1) in
+      a_add ps (mul a b) rps (to_real a *. to_real b);
+      MS.__gmatmul_single_lemma x mul add m1 m2 row col n;
+      MS.__gmatmul_single_lemma 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col n;
+      ()
+    end
+
 inline_for_extraction noextract
 fn matmul_tiled_dotprod'
   (#et : Type0) {| scalar et, real_like et |}
@@ -411,35 +443,3 @@ fn subproduct_cols
   pts_to_len acc;
 }
 #pop-options
-
-let rec gmatmul_single_init_approx
-  (#et:Type) {| d1: scalar et |} {| d2: real_like et |}
-  (#rows #cols : nat)
-  (x : et) (r : real)
-  (m1 : ematrix et rows cols)
-  (m2 : ematrix et cols rows)
-  (row : natlt rows)
-  (col : natlt rows)
-  (n : nat{n <= cols})
-  : Lemma
-    (requires x %~ r)
-    (ensures
-      MS.__gmatmul_single x mul add m1 m2 row col n %~
-      (r +. MS.__gmatmul_single 0.0R ( *. ) ( +. )
-        (ematrix_to_real m1) (ematrix_to_real m2) row col n))
-    (decreases n)
-  = if n = 0 then ()
-    else begin
-      gmatmul_single_init_approx x r m1 m2 row col (n-1);
-      let a = macc m1 row (n-1) in
-      let b = macc m2 (n-1) col in
-      to_real_ok a;
-      to_real_ok b;
-      a_mul a b (to_real a) (to_real b);
-      let ps = MS.__gmatmul_single x mul add m1 m2 row col (n-1) in
-      let rps = r +. MS.__gmatmul_single 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col (n-1) in
-      a_add ps (mul a b) rps (to_real a *. to_real b);
-      MS.__gmatmul_single_lemma x mul add m1 m2 row col n;
-      MS.__gmatmul_single_lemma 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col n;
-      ()
-    end
