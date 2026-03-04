@@ -225,12 +225,6 @@ fn teardown
       M.gpu_matrix_pts_to_cell gC r c (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
     ()
-    // MS.lemma_matmul_index eA eB r c;
-    // ^has smtpat now
-    (* If it doesn't have an SMTPat, we should just be able to call it,
-    but we currently require an extra ;() to make pure elimination kick
-    in (I think). *)
-    // () (* BUG! Should not be needed. *)
   };
   forevery_map_2 #(natlt rows) #(natlt cols)
     (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
