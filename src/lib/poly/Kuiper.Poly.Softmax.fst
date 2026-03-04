@@ -11,7 +11,6 @@ module Array = Kuiper.Array
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
 module KS = Kuiper.Seq.Common
-module Vec = Pulse.Lib.Vec
 open Kuiper.Real
 open Kuiper.Approximates
 

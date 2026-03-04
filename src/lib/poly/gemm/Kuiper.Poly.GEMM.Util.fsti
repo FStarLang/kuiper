@@ -33,30 +33,6 @@ fn matmul_dotprod
   ensures
     pure (res == MS.matmul_single eA eB i j)
 
-inline_for_extraction noextract
-fn matmul_tiled_dotprod
-  (#et : Type0) {| scalar et |}
-  (#mrows #mshared #mcols #tile : szp)
-  (#lA : mlayout (mrows * tile)   (mshared * tile))
-  (#lB : mlayout (mshared * tile) (mcols   * tile))
-  {| clayout lA, clayout lB |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (#eA #eB : ematrix et _ _)
-  (bi : szlt mrows)
-  (bj : szlt mcols)
-  (i : szlt tile)
-  (j : szlt tile)
-  (#fA #fB : perm)
-  preserves
-    gpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  returns
-    res : et
-  // ensures
-  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
-
 (* Real-valued matrix for specification purposes *)
 let ematrix_to_real (#et:Type) {| scalar et, real_like et |}
   (#rows #cols : nat)

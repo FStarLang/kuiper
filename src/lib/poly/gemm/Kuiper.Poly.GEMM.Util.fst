@@ -58,66 +58,6 @@ fn matmul_dotprod
   !sum
 }
 
-inline_for_extraction noextract
-fn matmul_tiled_dotprod
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : sz)
-  (#tile : szp)
-  (#lA : mlayout (rows   * tile) (shared * tile))
-  (#lB : mlayout (shared * tile) (cols   * tile))
-  {| clayout lA, clayout lB |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (#eA #eB : ematrix _ _ _)
-  (bi : szlt rows)
-  (bj : szlt cols)
-  (i : szlt tile)
-  (j : szlt tile)
-  (#fA #fB : perm)
-  preserves
-    gpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  returns
-    res : et
-  // ensures
-  //   pure (res == MS.matmul_single #et #_ #(rows * tile) #(shared * tile) #(cols * tile) eA eB i j shared)
-{
-  let mut sum : et = zero;
-  let mut bk  : sz = 0sz;
-
-  while (SZ.(!bk <^ shared))
-    invariant
-      exists* (vbk : SZ.t) sumv.
-        pure (vbk <= shared) **
-        bk |-> vbk **
-        sum |-> sumv
-  {
-    let vbk = !bk;
-    let s = !sum;
-    assert (pure (bi  < (rows   * tile) / tile));
-    assert (pure (vbk < (shared * tile) / tile));
-    // Sigh.... need to reveal and hide. Terrible UX.
-    let tA = Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk);
-    let tB = Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj);
-    assert (rewrites_to tA (Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk)));
-    assert (rewrites_to tB (Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj)));
-
-    Tiling.gpu_matrix_extract_tile_ro gA tile tile bi vbk;
-    Tiling.gpu_matrix_extract_tile_ro gB tile tile vbk bj;
-
-    let s' = matmul_dotprod tA tB i j;
-    sum := !sum `add` s';
-
-    ambig_trade_elim ();
-    ambig_trade_elim ();
-
-    bk := !bk +^ 1sz;
-  };
-
-  !sum
-}
-
 (* Helper for real matmul partial sum over tiled matrices *)
 let __real_matmul_single_tiled
   (#et:Type) {| scalar et, real_like et |}
