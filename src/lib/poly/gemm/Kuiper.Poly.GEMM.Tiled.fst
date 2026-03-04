@@ -249,7 +249,7 @@ fn setup
 }
 #pop-options
 
-#push-options "--z3rlimit 80"
+#push-options "--z3rlimit 40"
 ghost
 fn teardown
   (tile : valid_tile)
@@ -352,166 +352,15 @@ fn teardown
   gpu_matrix_gather_n gA n_threads;
   gpu_matrix_gather_n gB n_threads;
 
-  (* Step 5: Collect the existential witnesses using forevery_exists_2 *)
-  let vf = forevery_exists_2
-    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) (v : et) ->
-      let mrow = bid / mcols in
-      let mcol = bid % mcols in
-      let brow = tid / tile in
-      let bcol = tid % tile in
-      let grow = mrow * tile + brow in
-      let gcol = mcol * tile + bcol in
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-        (tid / tile) (tid % tile) v **
-      pure (v %~ MU.real_gemm_single comb_r eA eB eC grow gcol));
-  (* Now vf : (bid -> tid -> GTot et) witnesses the value at each cell *)
+  (* Step 5: Collect gC cells back into matrix *)
+  let _vf = gpu_matrix_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
+    (SZ.v mrows) (SZ.v mcols)
+    (fun (row : natlt (mrows * tile)) (col : natlt (mcols * tile)) (v : et) ->
+      v %~ MU.real_gemm_single comb_r eA eB eC row col);
 
-  (* Step 6: Extract the pure approximation facts *)
-  forevery_extract_pure_2
-    #(natlt (mrows * mcols)) #(natlt (tile * tile))
-    (fun bid tid ->
-      let mrow = bid / mcols in
-      let mcol = bid % mcols in
-      let brow = tid / tile in
-      let bcol = tid % tile in
-      let grow = mrow * tile + brow in
-      let gcol = mcol * tile + bcol in
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-        (tid / tile) (tid % tile) (vf bid tid) **
-      pure (vf bid tid %~ MU.real_gemm_single comb_r eA eB eC grow gcol))
-    (fun bid tid ->
-      let mrow = bid / mcols in
-      let mcol = bid % mcols in
-      let brow = tid / tile in
-      let bcol = tid % tile in
-      let grow = mrow * tile + brow in
-      let gcol = mcol * tile + bcol in
-      vf bid tid %~ MU.real_gemm_single comb_r eA eB eC grow gcol)
-    fn bid tid { (); };
-
-  (* Now we have the pure fact that all cells approximate real_gemm_single *)
-  assert pure (forall (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)).
-    let mrow = bid / mcols in
-    let mcol = bid % mcols in
-    let brow = tid / tile in
-    let bcol = tid % tile in
-    let grow = mrow * tile + brow in
-    let gcol = mcol * tile + bcol in
-    vf bid tid %~ MU.real_gemm_single comb_r eA eB eC grow gcol);
-
-  (* Step 7: Drop the pures and reorganize cells for implode *)
-  forevery_map_2
-    #(natlt (mrows * mcols)) #(natlt (tile * tile))
-    (fun bid tid ->
-      let mrow = bid / mcols in
-      let mcol = bid % mcols in
-      let brow = tid / tile in
-      let bcol = tid % tile in
-      let grow = mrow * tile + brow in
-      let gcol = mcol * tile + bcol in
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-        (tid / tile) (tid % tile) (vf bid tid) **
-      pure (vf bid tid %~ MU.real_gemm_single comb_r eA eB eC grow gcol))
-    (fun bid tid ->
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-        (tid / tile) (tid % tile) (vf bid tid))
-    fn bid tid {
-      let mrow = bid / mcols;
-      let mcol = bid % mcols;
-      let brow = tid / tile;
-      let bcol = tid % tile;
-      let grow = mrow * tile + brow;
-      let gcol = mcol * tile + bcol;
-      drop_ (pure (vf bid tid %~ MU.real_gemm_single comb_r eA eB eC grow gcol));
-    };
-
-  (* Step 8: Factor to 4D for implode_tiled *)
-  forevery_factor_2
-    (mrows * mcols) mrows mcols
-    (tile * tile) tile tile
-    (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-        (tid / tile) (tid % tile) (vf bid tid));
-
-  (* Simplify div/mod *)
-  assert pure (forall (mrow:natlt mrows) (mcol:natlt mcols). (mrow * mcols + mcol) / mcols == mrow /\ (mrow * mcols + mcol) % mcols == mcol);
-  assert pure (forall (brow:natlt tile) (bcol:natlt tile). (brow * tile + bcol) / tile == brow /\ (brow * tile + bcol) % tile == bcol);
-
-  forevery_ext_4
-    (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
-      let bid = mrow * mcols + mcol in let tid = brow * tile + bcol in
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-        (tid / tile) (tid % tile) (vf bid tid))
-    (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
-      gpu_matrix_pts_to_cell
-        (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol)
-        brow bcol (vf (mrow * mcols + mcol) (brow * tile + bcol)));
-
-  (* Step 9: Convert sizes for implode_tiled *)
-  forevery_rw_size4 mrows ((mrows * tile) / tile) mcols ((mcols * tile) / tile) tile (SZ.v tile) tile (SZ.v tile);
-
-  (* Step 10: Call implode_tiled *)
-  gpu_matrix_implode_tiled gC (SZ.v tile) (SZ.v tile)
-    (fun (tr:natlt mrows) (tc:natlt mcols) (i:natlt tile) (j:natlt tile) ->
-      vf (tr * mcols + tc) (i * tile + j));
-
-  (* Now we have gC |-> eC' where eC' = mkM(fun row col -> vf ...) *)
-  with eC'. assert gC |-> eC';
-
-  (* Step 11: Prove the approximation postcondition *)
-  (* eC'[row][col] = vf (row/tile * mcols + col/tile) ((row%tile) * tile + col%tile)
-     and we know vf bid tid %~ real_gemm_single comb_r eA eB eC grow gcol
-     where grow = (bid/mcols)*tile + tid/tile, gcol = (bid%mcols)*tile + tid%tile *)
-
-  (* The indexing matches: for row, col in the result matrix:
-     bid = row/tile * mcols + col/tile, tid = (row%tile)*tile + col%tile
-     grow = (bid/mcols)*tile + tid/tile = (row/tile)*tile + row%tile = row
-     gcol = (bid%mcols)*tile + tid%tile = (col/tile)*tile + col%tile = col
-     So vf bid tid %~ real_gemm_single comb_r eA eB eC row col = macc (real_mmcomb comb_r eC eA eB) row col *)
-
-  assert pure (forall (row:natlt (mrows * tile)) (col:natlt (mcols * tile)).
-    let tr = row / tile in
-    let tc = col / tile in
-    let i = row % tile in
-    let j = col % tile in
-    let bid = tr * mcols + tc in
-    let tid = i * tile + j in
-    macc eC' row col == vf bid tid);
-
-  (* Index simplifications for SMT *)
-  assert pure (forall (row:natlt (mrows * tile)) (col:natlt (mcols * tile)).
-    let tr = row / tile in
-    let tc = col / tile in
-    let i = row % tile in
-    let j = col % tile in
-    let bid = tr * mcols + tc in
-    let tid = i * tile + j in
-    bid / mcols == tr /\ bid % mcols == tc /\
-    tid / tile == i /\ tid % tile == j /\
-    tr * tile + i == row /\ tc * tile + j == col);
-
-  (* Connect vf with real_gemm_single using the row/col indices *)
-  assert pure (forall (row:natlt (mrows * tile)) (col:natlt (mcols * tile)).
-    let tr = row / tile in
-    let tc = col / tile in
-    let i = row % tile in
-    let j = col % tile in
-    let bid = tr * mcols + tc in
-    let tid = i * tile + j in
-    vf bid tid %~ MU.real_gemm_single comb_r eA eB eC row col);
-
-  (* Bridge to ematrix_approximates: each cell of eC' approximates the corresponding cell of real_mmcomb *)
-  assert pure (forall (row:natlt (mrows * tile)) (col:natlt (mcols * tile)).
-    macc eC' row col %~ macc (MU.real_mmcomb comb_r eC eA eB) row col);
-
+  (* Step 6: Prove ematrix_approximates *)
+  with eC'. assert (gC |-> eC');
   assert pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB));
-
   ();
 }
 #pop-options
