@@ -381,6 +381,99 @@ fn block_setup
   ();
 }
 
+(* Sendability helpers — standalone definitions so the typeclass resolver
+   runs in a minimal context with an explicit goal type.
+   kpre/kpost are block_of-sendable (all components are global matrices, hence
+   gpu_of-sendable, and gpu_of implies block_of).
+   block_pre/post wrap kpre/kpost in forall+, needing gpu_of directly. *)
+#push-options "--z3rlimit 40"
+let kpre_block_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (#mrows #mshared #mcols : szp)
+  (tile : valid_tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA : ematrix et (mrows   * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols   * tile))
+  (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (fA fB : perm)
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (tile * tile))
+: is_send_across block_of (kpre comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+= solve
+
+let kpost_block_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (#mrows #mshared #mcols : szp)
+  (tile : valid_tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA : ematrix et (mrows   * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols   * tile))
+  (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (fA fB : perm)
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (tile * tile))
+: is_send_across block_of (kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+= solve
+
+let block_pre_gpu_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (#mrows #mshared #mcols : szp)
+  (tile : valid_tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA : ematrix et (mrows   * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols   * tile))
+  (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (fA fB : perm)
+  (bid : natlt (mrows * mcols))
+: is_send_across gpu_of
+    (forall+ (tid : natlt2 tile tile).
+      kpre comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+= solve
+
+let block_post_gpu_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (#mrows #mshared #mcols : szp)
+  (tile : valid_tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA : ematrix et (mrows   * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols   * tile))
+  (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (fA fB : perm)
+  (bid : natlt (mrows * mcols))
+: is_send_across gpu_of
+    (forall+ (tid : natlt2 tile tile).
+      kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+= solve
+#pop-options
+
 #push-options "--z3rlimit 40"
 inline_for_extraction noextract
 let mk_kernel
@@ -426,12 +519,10 @@ let mk_kernel
 
   f = kf #et #_ #_ comb comb_r #mrows #mshared #mcols tile gA gB gC eA eB eC fA fB;
 
-  // FIXME: admitting these, they should be trivial but are extremely slow
-  // and end up failing.
-  kpre_sendable=magic();
-  kpost_sendable=magic();
-  block_pre_sendable=magic();
-  block_post_sendable=magic();
+  kpre_sendable = kpre_block_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
+  kpost_sendable = kpost_block_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
+  block_pre_sendable = block_pre_gpu_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
+  block_post_sendable = block_post_gpu_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
 }
 #pop-options
 

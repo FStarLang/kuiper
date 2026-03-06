@@ -876,6 +876,59 @@ fn teardown
   gpu_matrix_untile_underspec gC (SZ.v bm) (SZ.v bn);
 }
 
+let kpre_block_sendable
+  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
+  (eA : ematrix et_ab rows shared)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
+  (eB : ematrix et_ab shared cols)
+  (gC : gpu_matrix et_c lC { is_global_matrix gC })
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (tk : szp{tk /?+ bk})
+  (fA fB : perm)
+  (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
+  (sh : c_shmems (shmems_desc et_ab bm bn bk))
+  (_: squash (c_shmems_inv sh))
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
+: is_send_across block_of (kpre gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid)
+= solve
+
+let kpost_block_sendable
+  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
+  (eA : ematrix et_ab rows shared)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
+  (eB : ematrix et_ab shared cols)
+  (gC : gpu_matrix et_c lC { is_global_matrix gC })
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (fA fB : perm)
+  (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
+  (sh : c_shmems (shmems_desc et_ab bm bn bk))
+  (_: squash (c_shmems_inv sh))
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
+: is_send_across block_of (kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid)
+= solve
+
 inline_for_extraction noextract
 let mk_kernel
   (#et_ab #et_c : Type0)
@@ -958,6 +1011,6 @@ let mk_kernel
 
   block_pre_sendable=solve;
   block_post_sendable=solve;
-  kpre_sendable=magic();
-  kpost_sendable=magic()
+  kpre_sendable = kpre_block_sendable gA eA gB eB gC bm bn bk tm tn tk fA fB nthr;
+  kpost_sendable = kpost_block_sendable gA eA gB eB gC bm bn bk tm tn fA fB nthr
 }

@@ -594,6 +594,6 @@ let k1nb_as_kfull
     f = adapt_k1nb_kf k;
     block_pre_sendable = (fun _ -> k.full_pre_sendable);
     block_post_sendable = (fun _ -> k.full_post_sendable);
-    kpre_sendable = magic();
-    kpost_sendable = magic();
+    kpre_sendable = (fun _ _ _ -> k.kpre_sendable);
+    kpost_sendable = (fun _ _ _ -> k.kpost_sendable);
   } <: kernel_desc full_pre full_post
