@@ -414,6 +414,53 @@ fn subproducts2d
       __gms (vrchProd @! idx) eA eB (tm * arow + i) (tn * bcol + j) bk)));
 }
 
+(* Injectivity of a * n + b when 0 <= b < n: if a*n+b == c*n+d with b,d < n then a=c and b=d. *)
+let mul_add_inj (#n : pos) (a : nat) (b : natlt n) (c : nat) (d : natlt n)
+  : Lemma (requires a * n + b == c * n + d)
+          (ensures a == c /\ b == d)
+          [SMTPat (a * n + b); SMTPat (c * n + d)]
+  = FStar.Math.Lemmas.division_addition_lemma b n a;
+    FStar.Math.Lemmas.small_div b n;
+    FStar.Math.Lemmas.division_addition_lemma d n c;
+    FStar.Math.Lemmas.small_div d n
+
+(* macc distributes over mupd: gives the new value at the updated position,
+   or the old value elsewhere. *)
+let macc_mupd
+  (#et : Type0) (#rows #cols : nat)
+  (m : ematrix et rows cols)
+  (i0 : natlt rows) (j0 : natlt cols) (v : et)
+  (i : natlt rows) (j : natlt cols)
+  : Lemma (macc (mupd m i0 j0 v) i j == (if i = i0 && j = j0 then v else macc m i j))
+          [SMTPat (macc (mupd m i0 j0 v) i j)]
+  = ()
+
+(* ettile commutes with matrix_comb (and thus mmcomb) pointwise.
+   This needs normalization through ematrix_subtile → mkM → macc chains. *)
+let ettile_mmcomb_pointwise
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#rows #cols : nat)
+  (#shared : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (eC : ematrix et rows cols)
+  (bm : nat{bm > 0 /\ bm /?+ rows})
+  (bn : nat{bn > 0 /\ bn /?+ cols})
+  (tm : nat{tm > 0 /\ tm /?+ bm})
+  (tn : nat{tn > 0 /\ tn /?+ bn})
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt (bm/tm * (bn/tn)))
+  (i : natlt tm) (j : natlt tn)
+  : Lemma (macc (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j ==
+           comb (macc (ettile eC bm bn tm tn bid tid) i j)
+                (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
+          [SMTPat (macc (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j)]
+  = assert_norm (macc (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid) i j ==
+                 comb (macc (ettile eC bm bn tm tn bid tid) i j)
+                      (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
+
+#push-options "--z3rlimit 120"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -425,36 +472,59 @@ fn epilogue
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (rchProd: larray et (tm * tn))
+  (#vrch : erased (seq et))
+  (#_ : squash (Seq.length vrch == tm * tn))
   (#lC : mlayout rows cols)
   {| clayout lC |}
   (gC : gpu_matrix et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
-  // (#_ : squash (SZ.fits (bm/tm * (bn/tn))))
   (bid : szlt (rows/bm * (cols/bn)))
   (tid : szlt (bm/tm * (bn/tn)))
+  preserves
+    rchProd |-> vrch
   requires
-    ttile gC bm bn tm tn bid tid |-> ettile eC bm bn tm tn bid tid **
-    live rchProd
+    pure (forall (idx : natlt (tm * tn)).
+      vrch @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn)) **
+    ttile gC bm bn tm tn bid tid |-> ettile eC bm bn tm tn bid tid
   ensures
-    ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid **
-    live rchProd
+    ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid
 {
+  (* Help the SMT connect vrch to the matmul subtile via div/mod *)
+  assert pure (forall (i:natlt tm) (j:natlt tn).
+    (i * tn + j) / tn == i);
+  assert pure (forall (i:natlt tm) (j:natlt tn).
+    (i * tn + j) % tn == j);
+  assert pure (forall (i:natlt tm) (j:natlt tn).
+    vrch @! (i * tn + j) == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j);
+
   let t_tile = ttile gC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid);
   assert (rewrites_to t_tile (ttile gC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid)));
+
+  let eC_tile = Ghost.hide (ettile eC (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (SZ.v bid) (SZ.v tid));
 
   let mut resIdxM = 0sz;
   while (!resIdxM <^ tm)
     invariant live resIdxM ** pure (!resIdxM <= tm)
-    invariant live rchProd
-    invariant exists* v. t_tile |-> v
+    invariant exists* (m_cur : ematrix et tm tn).
+      t_tile |-> m_cur **
+      pure (forall (i:natlt tm) (j:natlt tn).
+        macc m_cur i j ==
+          (if i < !resIdxM
+           then comb (macc eC_tile i j) (vrch @! (i * tn + j))
+           else macc eC_tile i j))
   {
     let mut resIdxN = 0sz;
     while (!resIdxN <^ tn)
       invariant live resIdxN ** pure (!resIdxN <= tn)
-      invariant live rchProd
-      invariant exists* v. t_tile |-> v
+      invariant exists* (m_cur : ematrix et tm tn).
+        t_tile |-> m_cur **
+        pure (forall (i:natlt tm) (j:natlt tn).
+          macc m_cur i j ==
+            (if i * tn + j < !resIdxM * tn + !resIdxN
+             then comb (macc eC_tile i j) (vrch @! (i * tn + j))
+             else macc eC_tile i j))
     {
       open Pulse.Lib.Array;
       pts_to_len rchProd;
@@ -473,10 +543,11 @@ fn epilogue
   };
 
   with m. assert gpu_matrix_pts_to t_tile m;
-  assume pure (m == ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid);
 
+  assert pure (Kuiper.EMatrix.equal m (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid));
   ()
 }
+#pop-options
 
 inline_for_extraction noextract
 fn kf
@@ -647,6 +718,12 @@ fn kf
   assert pure (not (vbkIdx < num_k_tiles));
   assert pure (vbkIdx == num_k_tiles); // Somehow this is flaky.
 
+  // Name rchProd content and establish matmul relationship for epilogue
+  with vrch_val. assert (rchProd |-> vrch_val);
+  pts_to_len rchProd;
+  // TODO: Prove from bkIdx loop invariant (matmul decomposition over tiles)
+  assume pure (forall (idx : natlt (tm * tn)).
+    vrch_val @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn));
   epilogue comb bm bn tm tn rchProd gC eA eB eC bid tid;
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
