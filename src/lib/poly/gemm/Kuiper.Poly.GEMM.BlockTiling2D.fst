@@ -2,7 +2,7 @@ module Kuiper.Poly.GEMM.BlockTiling2D
 
 #lang-pulse
 
-#set-options "--z3rlimit 30"
+#set-options "--z3rlimit 60"
 
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
@@ -237,6 +237,38 @@ instance kpost_block_sendable
   (kpost comb gA eA gB eB gC eC bm bn bk slA slB tm tn fA fB nthr sh i j)
 = solve
 
+(* Wrapper for __gmatmul_single that doesn't require refined row/col/to.
+   Returns the initial value when arguments are out of bounds. *)
+let __gms
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (z : et)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat) (col : nat) (to : nat)
+  : GTot et
+  = if row < rows && col < columns && to <= shared
+    then MS.__gmatmul_single z mul add m1 m2 row col to
+    else z
+
+(* Step lemma in the "forward" direction: given a partial sum and one more
+   product term, the result is __gms at (d+1). Uses an SMTPat so the SMT
+   can apply this automatically inside universal quantifiers. *)
+let __gms_fwd
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (z : et)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : nat) (col : nat) (d : nat)
+  : Lemma
+    (requires row < rows /\ col < columns /\ d < shared)
+    (ensures add (__gms z m1 m2 row col d)
+                 (mul (macc m1 row d) (macc m2 d col))
+             == __gms z m1 m2 row col (d + 1))
+    [SMTPat (__gms z m1 m2 row col (d + 1))]
+  = MS.__gmatmul_single_lemma z mul add m1 m2 row col (d + 1)
+
 inline_for_extraction noextract
 fn subproducts2d
   (#et : Type0) {| scalar et |}
@@ -265,14 +297,20 @@ fn subproducts2d
       (fun idx ->
         let i = idx / tn in
         let j = idx % tn in
-        (vrchProd @! idx) `add` macc (MS.matmul eA eB) i j)
+        __gms (vrchProd @! idx) eA eB (tm * arow + i) (tn * bcol + j) bk)
 {
   open Pulse.Lib.Array;
 
   let mut dotIdx : sz = 0sz;
   while (!dotIdx <^ bk)
     invariant live dotIdx ** pure (!dotIdx <= bk)
-    invariant live rchProd
+    invariant exists* (v_d : seq et).
+      rchProd |-> v_d **
+      pure (len v_d == tm * tn /\
+            (forall (idx : natlt (tm * tn)).
+              v_d @! idx ==
+                __gms (vrchProd @! idx) eA eB
+                  (tm * arow + idx / tn) (tn * bcol + idx % tn) !dotIdx))
   {
     (* register caches *)
     let mut rAcol : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
@@ -314,15 +352,31 @@ fn subproducts2d
         pure (forall (k : natlt tn).
                 vrBrow @! k == macc eB !dotIdx (tn * bcol + k));
 
+    with v_cur. assert rchProd |-> v_cur;
+
     let mut resIdxM = 0sz;
     while (!resIdxM <^ tm)
       invariant live resIdxM ** pure (!resIdxM <= tm)
-      invariant live rchProd
+      invariant exists* (v_m : seq et).
+        rchProd |-> v_m **
+        pure (len v_m == tm * tn /\
+              (forall (idx : natlt (tm * tn)).
+                v_m @! idx ==
+                  (if idx < !resIdxM * tn
+                   then add (v_cur @! idx) (mul (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))
+                   else v_cur @! idx)))
     {
       let mut resIdxN = 0sz;
       while (!resIdxN <^ tn)
         invariant live resIdxN ** pure (!resIdxN <= tn)
-        invariant live rchProd
+        invariant exists* (v_n : seq et).
+          rchProd |-> v_n **
+          pure (len v_n == tm * tn /\
+                (forall (idx : natlt (tm * tn)).
+                  v_n @! idx ==
+                    (if idx < !resIdxM * tn + !resIdxN
+                     then add (v_cur @! idx) (mul (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))
+                     else v_cur @! idx)))
       {
         pts_to_len rAcol;
         pts_to_len rBrow;
@@ -342,15 +396,22 @@ fn subproducts2d
       resIdxM := !resIdxM +^ 1sz;
     };
 
+    (* After the double loop: all elements are updated.
+       Re-establish the outer loop invariant for dotIdx + 1.
+       Help the SMT with the index bounds for __gms_fwd. *)
+    assert pure (forall (idx : natlt (tm * tn)).
+      tm * arow + idx / tn < bm /\ tn * bcol + idx % tn < bn /\ !dotIdx < bk);
+
     dotIdx := !dotIdx +^ 1sz;
   };
 
   with v. assert rchProd |-> v;
-  assume pure (v == Seq.init_ghost (tm * tn)
+  (* Help SMT derive Seq.init_ghost equality from pointwise invariant *)
+  assert pure (Seq.equal v (Seq.init_ghost (tm * tn)
     (fun idx ->
       let i = idx / tn in
       let j = idx % tn in
-      (vrchProd @! idx) `add` macc (MS.matmul eA eB) i j));
+      __gms (vrchProd @! idx) eA eB (tm * arow + i) (tn * bcol + j) bk)));
 }
 
 inline_for_extraction noextract
