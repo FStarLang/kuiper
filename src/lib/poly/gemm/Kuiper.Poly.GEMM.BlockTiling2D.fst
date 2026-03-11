@@ -269,6 +269,150 @@ let __gms_fwd
     [SMTPat (__gms z m1 m2 row col (d + 1))]
   = MS.__gmatmul_single_lemma z mul add m1 m2 row col (d + 1)
 
+(* Tiled accumulation step: computing __gms on a subtile with the previous
+   accumulation equals advancing the full accumulation by d more elements. *)
+let rec __gms_tiled_step
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (bk : pos{bk /?+ shared})
+  (mrow : natlt (rows/bm))
+  (mcol : natlt (cols/bn))
+  (local_r : natlt bm)
+  (local_c : natlt bn)
+  (bkIdx : natlt (shared/bk))
+  (d : nat{d <= bk})
+  : Lemma
+    (ensures (
+      let glob_r = mrow * bm + local_r in
+      let glob_c = mcol * bn + local_c in
+      __gms (__gms (zero #et) eA eB glob_r glob_c (bkIdx * bk))
+            (ematrix_subtile eA bm bk mrow bkIdx)
+            (ematrix_subtile eB bk bn bkIdx mcol)
+            local_r local_c d
+      == __gms (zero #et) eA eB glob_r glob_c (bkIdx * bk + d)))
+    (decreases d)
+  = if d = 0 then ()
+    else (
+      __gms_tiled_step eA eB bm bn bk mrow mcol local_r local_c bkIdx (d - 1);
+      MS.__gmatmul_single_lemma
+        (__gms (zero #et) eA eB (mrow * bm + local_r) (mcol * bn + local_c) (bkIdx * bk))
+        mul add
+        (ematrix_subtile eA bm bk mrow bkIdx)
+        (ematrix_subtile eB bk bn bkIdx mcol)
+        local_r local_c d;
+      MS.__gmatmul_single_lemma
+        (zero #et) mul add eA eB
+        (mrow * bm + local_r) (mcol * bn + local_c)
+        (bkIdx * bk + d)
+    )
+
+(* Non-recursive wrapper for d=bk with SMTPat: the full tile step. *)
+let __gms_tile_full
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (bk : pos{bk /?+ shared})
+  (mrow : natlt (rows/bm))
+  (mcol : natlt (cols/bn))
+  (local_r : natlt bm)
+  (local_c : natlt bn)
+  (bkIdx : natlt (shared/bk))
+  : Lemma
+    (ensures (
+      let glob_r = mrow * bm + local_r in
+      let glob_c = mcol * bn + local_c in
+      __gms (__gms (zero #et) eA eB glob_r glob_c (bkIdx * bk))
+            (ematrix_subtile eA bm bk mrow bkIdx)
+            (ematrix_subtile eB bk bn bkIdx mcol)
+            local_r local_c bk
+      == __gms (zero #et) eA eB glob_r glob_c ((bkIdx + 1) * bk)))
+    [SMTPat (__gms (__gms (zero #et) eA eB (mrow * bm + local_r) (mcol * bn + local_c) (bkIdx * bk))
+                   (ematrix_subtile eA bm bk mrow bkIdx)
+                   (ematrix_subtile eB bk bn bkIdx mcol)
+                   local_r local_c bk)]
+  = __gms_tiled_step eA eB bm bn bk mrow mcol local_r local_c bkIdx bk;
+    assert (bkIdx * bk + bk == (bkIdx + 1) * bk)
+
+(* Full accumulation: __gms with zero initial value over the entire shared
+   dimension equals matmul_single. *)
+let __gms_full
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (row : natlt rows) (col : natlt cols)
+  : Lemma (__gms (zero #et) eA eB row col shared == MS.matmul_single eA eB row col)
+          [SMTPat (__gms (zero #et) eA eB row col shared)]
+  = ()
+
+(* Helper for the bkIdx loop body: given the old invariant (rchProd tracks
+   partial accumulations up to bkIdx*bk) and the subproducts2d postcondition
+   (one more tile of bk columns accumulated), derive the new invariant
+   (accumulation up to (bkIdx+1)*bk). *)
+let __bkIdx_loop_step
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (bk : pos{bk /?+ shared})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (mrow : natlt (rows/bm))
+  (mcol : natlt (cols/bn))
+  (threadRow : natlt (bm/tm))
+  (threadCol : natlt (bn/tn))
+  (bkIdx : natlt (shared/bk))
+  (old_v : seq et)
+  : Lemma
+    (requires
+      Seq.length old_v == tm * tn /\
+      (forall (idx : natlt (tm * tn)).
+        old_v @! idx == __gms (zero #et) eA eB
+          (mrow * bm + tm * threadRow + idx / tn)
+          (mcol * bn + tn * threadCol + idx % tn)
+          (bkIdx * bk)))
+    (ensures (
+      let new_v = Seq.init_ghost (tm * tn) (fun idx ->
+        __gms (old_v @! idx)
+          (ematrix_subtile eA bm bk mrow bkIdx)
+          (ematrix_subtile eB bk bn bkIdx mcol)
+          (tm * threadRow + idx / tn)
+          (tn * threadCol + idx % tn)
+          bk) in
+      Seq.length new_v == tm * tn /\
+      (forall (idx : natlt (tm * tn)).
+        new_v @! idx == __gms (zero #et) eA eB
+          (mrow * bm + tm * threadRow + idx / tn)
+          (mcol * bn + tn * threadCol + idx % tn)
+          ((bkIdx + 1) * bk))))
+  = let new_v = Seq.init_ghost (tm * tn) (fun idx ->
+      __gms (old_v @! idx)
+        (ematrix_subtile eA bm bk mrow bkIdx)
+        (ematrix_subtile eB bk bn bkIdx mcol)
+        (tm * threadRow + idx / tn)
+        (tn * threadCol + idx % tn)
+        bk) in
+    let aux (idx : natlt (tm * tn))
+      : Lemma (new_v @! idx == __gms (zero #et) eA eB
+                (mrow * bm + tm * threadRow + idx / tn)
+                (mcol * bn + tn * threadCol + idx % tn)
+                ((bkIdx + 1) * bk))
+      = let local_r : natlt bm = tm * threadRow + idx / tn in
+        let local_c : natlt bn = tn * threadCol + idx % tn in
+        __gms_tiled_step eA eB bm bn bk mrow mcol local_r local_c bkIdx bk;
+        assert (bkIdx * bk + bk == (bkIdx + 1) * bk)
+    in
+    FStar.Classical.forall_intro aux
+
 inline_for_extraction noextract
 fn subproducts2d
   (#et : Type0) {| scalar et |}
@@ -437,6 +581,75 @@ let macc_mupd
 
 (* ettile commutes with matrix_comb (and thus mmcomb) pointwise.
    This needs normalization through ematrix_subtile → mkM → macc chains. *)
+let ettile_matmul_pointwise
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (#shared : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (bm : nat{bm > 0 /\ bm /?+ rows})
+  (bn : nat{bn > 0 /\ bn /?+ cols})
+  (tm : nat{tm > 0 /\ tm /?+ bm})
+  (tn : nat{tn > 0 /\ tn /?+ bn})
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt (bm/tm * (bn/tn)))
+  (i : natlt tm) (j : natlt tn)
+  : Lemma (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j ==
+           macc (MS.matmul eA eB)
+             (bid/(cols/bn) * bm + tid/(bn/tn) * tm + i)
+             (bid%(cols/bn) * bn + tid%(bn/tn) * tn + j))
+  = assert_norm (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j ==
+                 macc (MS.matmul eA eB)
+                   (bid/(cols/bn) * bm + tid/(bn/tn) * tm + i)
+                   (bid%(cols/bn) * bn + tid%(bn/tn) * tn + j))
+
+(* Connects the post-bkIdx-loop state to the epilogue precondition.
+   The loop invariant tracks __gms zero eA eB glob_r glob_c shared.
+   The epilogue needs macc (ettile (matmul eA eB) ...) (idx/tn) (idx%tn).
+   This lemma bridges them via __gms_full + lemma_matmul_index + ettile normalization. *)
+let __post_loop_to_epilogue
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (bm : pos{bm /?+ rows})
+  (bn : pos{bn /?+ cols})
+  (tm : pos{tm /?+ bm})
+  (tn : pos{tn /?+ bn})
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt (bm/tm * (bn/tn)))
+  (vrch_val : seq et)
+  : Lemma
+    (requires
+      Seq.length vrch_val == tm * tn /\
+      (forall (idx : natlt (tm * tn)).
+        vrch_val @! idx == __gms (zero #et) eA eB
+          (bid/(cols/bn) * bm + tm * (tid/(bn/tn)) + idx / tn)
+          (bid%(cols/bn) * bn + tn * (tid%(bn/tn)) + idx % tn)
+          shared))
+    (ensures
+      forall (idx : natlt (tm * tn)).
+        vrch_val @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn))
+  = let aux (idx : natlt (tm * tn))
+      : Lemma (vrch_val @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn))
+      = let i : natlt tm = idx / tn in
+        let j : natlt tn = idx % tn in
+        let br : natlt (rows/bm) = bid / (cols/bn) in
+        let bc : natlt (cols/bn) = bid % (cols/bn) in
+        let tr : natlt (bm/tm) = tid / (bn/tn) in
+        let tc : natlt (bn/tn) = tid % (bn/tn) in
+        assert (tm * tr + i < bm);
+        assert (tn * tc + j < bn);
+        assert (br * bm + (tm * tr + i) < rows);
+        assert (bc * bn + (tn * tc + j) < cols);
+        let glob_r : natlt rows = br * bm + tm * tr + i in
+        let glob_c : natlt cols = bc * bn + tn * tc + j in
+        __gms_full eA eB glob_r glob_c;
+        MS.lemma_matmul_index eA eB glob_r glob_c;
+        ettile_matmul_pointwise eA eB bm bn tm tn bid tid i j
+    in
+    Classical.forall_intro aux
+
 let ettile_mmcomb_pointwise
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -460,7 +673,7 @@ let ettile_mmcomb_pointwise
                  comb (macc (ettile eC bm bn tm tn bid tid) i j)
                       (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
-#push-options "--z3rlimit 120"
+#push-options "--z3rlimit 150"
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -642,7 +855,14 @@ fn kf
   let mut bkIdx  : sz = 0sz;
   while (!bkIdx <^ num_k_tiles)
     invariant live bkIdx ** pure (!bkIdx <= num_k_tiles)
-    invariant live rchProd
+    invariant exists* (v : seq et).
+      rchProd |-> v **
+      pure (len v == tm * tn /\
+        forall (idx : natlt (tm * tn)).
+          v @! idx == __gms (zero #et) eA eB
+            (mrow * bm + tm * threadRow + idx / tn)
+            (mcol * bn + tn * threadCol + idx % tn)
+            (!bkIdx * bk))
     invariant B.barrier_state (2 * !bkIdx) **
         (exists* (x : ematrix _ _ _). FB.bp_sharing sA x nthr) **
         (exists* (x : ematrix _ _ _). FB.bp_sharing sB x nthr)
@@ -698,8 +918,10 @@ fn kf
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
+    with old_v. assert (rchProd |-> old_v);
     pts_to_len rchProd;
     subproducts2d bm bn bk tm tn rchProd sA sB threadRow threadCol;
+    __bkIdx_loop_step eA eB bm bn bk tm tn mrow mcol threadRow threadCol !bkIdx old_v;
 
     fold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -718,12 +940,13 @@ fn kf
   assert pure (not (vbkIdx < num_k_tiles));
   assert pure (vbkIdx == num_k_tiles); // Somehow this is flaky.
 
-  // Name rchProd content and establish matmul relationship for epilogue
+  (* After the loop: rchProd[idx] == __gms zero eA eB glob_r glob_c (num_k_tiles * bk)
+     == __gms zero eA eB glob_r glob_c shared == matmul_single eA eB glob_r glob_c
+     == macc (matmul eA eB) glob_r glob_c == macc (ettile (matmul eA eB) ...) (idx/tn) (idx%tn) *)
   with vrch_val. assert (rchProd |-> vrch_val);
   pts_to_len rchProd;
-  // TODO: Prove from bkIdx loop invariant (matmul decomposition over tiles)
-  assume pure (forall (idx : natlt (tm * tn)).
-    vrch_val @! idx == macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) (idx / tn) (idx % tn));
+  assert pure (num_k_tiles * bk == shared);
+  __post_loop_to_epilogue eA eB bm bn tm tn bid tid vrch_val;
   epilogue comb bm bn tm tn rchProd gC eA eB eC bid tid;
 
   gpu_matrix_concr sA; rewrite each core sA as sarA;
