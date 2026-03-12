@@ -142,7 +142,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: kuiper-bench
-          path: kuiper-bench.tgz
+          path: kuiper-bench.tar.gz
 
       - name: Make artifact with output
         if: ${{ always () }}
@@ -195,7 +195,7 @@ jobs:
         with:
           name: kuiper-bench
 
-      - run: tar xzf kuiper-bench.tgz
+      - run: tar xzf kuiper-bench.tar.gz
 
       - working-directory: kuiper-bench
         run: |

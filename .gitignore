@@ -8,7 +8,8 @@ dep.graph
 *.smt2
 
 kuiper-bench
-kuiper-bench.tgz
+kuiper-bench.tar.gz
+kuiper-src.tar.gz
 _tmp
 
 # from tuning script

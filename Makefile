@@ -99,10 +99,30 @@ wc:
 	echo CUDA:
 	find dist/ -name '*.cu' -exec cat {} \+ | grep '[^ ]' | wc -l
 
-.PHONY: bench-package
-bench-package: kuiper-bench.tgz
+.PHONY: src-package
+src-package: kuiper-src.tar.gz
 
-kuiper-bench.tgz: all
+.PHONY: kuiper-src.tar.gz
+kuiper-src.tar.gz:
+	# Relying on Git here. This will NOT place uncommited
+	# changes in the archive. And sadly one cannot run this
+	# rule from an extracted archive.
+	rm -f $@
+	git archive HEAD -o kuiper-src.tar
+	# Archive submodules and concatenate them
+	git -C FStar   archive --prefix=FStar/   HEAD -o ../fstar.tar
+	git -C karamel archive --prefix=karamel/ HEAD -o ../karamel.tar
+	git -C pulse   archive --prefix=pulse/   HEAD -o ../pulse.tar
+	tar --concatenate --file=kuiper-src.tar fstar.tar
+	tar --concatenate --file=kuiper-src.tar karamel.tar
+	tar --concatenate --file=kuiper-src.tar pulse.tar
+	gzip kuiper-src.tar
+	rm -f fstar.tar karamel.tar pulse.tar kuiper-src.tar
+
+.PHONY: bench-package
+bench-package: kuiper-bench.tar.gz
+
+kuiper-bench.tar.gz: all
 	rm -rf kuiper-bench
 	mkdir -p kuiper-bench
 	mkdir -p kuiper-bench/obj
@@ -118,12 +138,12 @@ kuiper-bench.tgz: all
 	cp -r bench kuiper-bench/bench
 	rm -f kuiper-bench/bench/*.o   # clean built files
 	rm -f kuiper-bench/bench/bench # clean built files
-	tar czf kuiper-bench.tgz ./kuiper-bench
+	tar czf kuiper-bench.tar.gz ./kuiper-bench
 
 .PHONY: test-bench-package
 test-bench-package: bench-package
 	rm -rf _tmp
 	mkdir _tmp
-	cd _tmp && tar xzf ../kuiper-bench.tgz
+	cd _tmp && tar xzf ../kuiper-bench.tar.gz
 	$(MAKE) -C _tmp
 	rm -rf _tmp
