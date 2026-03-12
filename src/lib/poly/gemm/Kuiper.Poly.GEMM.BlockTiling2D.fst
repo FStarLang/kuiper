@@ -749,8 +749,21 @@ fn epilogue
       let v' = comb v0 v1;
       gpu_matrix_write t_tile !resIdxM !resIdxN v';
 
+      (* Key arithmetic fact for the invariant step: for (i,j) in bounds,
+         i*tn+j == resIdxM*tn+resIdxN iff i==resIdxM /\ j==resIdxN.
+         This is needed so the SMT can connect mupd to the linearized
+         index comparison in the invariant. *)
+      assert pure (forall (i:natlt tm) (j:natlt tn).
+        i * tn + j == !resIdxM * tn + !resIdxN <==> (i == !resIdxM /\ j == !resIdxN));
+
       resIdxN := !resIdxN +^ 1sz;
     };
+
+    (* Bridge inner→outer: when resIdxN==tn, the linearized condition
+       i*tn+j < resIdxM*tn+tn is equivalent to i <= resIdxM, and
+       since j < tn, also to i < resIdxM+1. *)
+    assert pure (forall (i:natlt tm) (j:natlt tn).
+      i * tn + j < !resIdxM * tn + tn <==> i <= !resIdxM);
 
     resIdxM := !resIdxM +^ 1sz;
   };
