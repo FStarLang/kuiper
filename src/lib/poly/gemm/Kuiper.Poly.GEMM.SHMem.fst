@@ -48,16 +48,25 @@ let shmems_desc (et:Type0) {| sized et |} (tile:valid_tile) : list shmem_desc = 
 let barrier_p_cell
   (#et : Type0)
   (tile : valid_tile)
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (bid : natlt (mrows * mcols))
   (#slA #slB : full_mlayout tile tile)
   (sa1 : gpu_matrix et slA)
   (sa2 : gpu_matrix et slB)
   : B.barrier_side (tile * tile)
   = fun it tid ->
-    if even it then
+    if it >= 2 * mshared then
+      emp
+    else if even it then
       (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
       (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
     else
-      live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile)
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      gpu_matrix_pts_to_cell sa1 (tid/tile) (tid%tile) (macc (ematrix_subtile eA tile tile mrow (it / 2)) (tid/tile) (tid%tile)) **
+      gpu_matrix_pts_to_cell sa2 (tid/tile) (tid%tile) (macc (ematrix_subtile eB tile tile (it / 2) mcol) (tid/tile) (tid%tile))
 
 let barrier_q_cell
   (#et : Type0) {| scalar et |}
@@ -92,9 +101,125 @@ let shmem_contract
   (sa1 : gpu_matrix et slA)
   (sa2 : gpu_matrix et slB)
   : B.contract (tile * tile) = {
-    rin  = barrier_p_cell tile sa1 sa2;
+    rin  = barrier_p_cell tile eA eB bid sa1 sa2;
     rout = barrier_q_cell tile eA eB bid sa1 sa2;
   }
+
+#push-options "--z3rlimit 80 --fuel 0 --ifuel 0"
+ghost
+fn barrier_p_to_q_cell_transform
+  (#et : Type0) {| scalar et |}
+  (tile : valid_tile)
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (bid : natlt (mrows * mcols))
+  (#slA #slB : full_mlayout tile tile)
+  (sa1 : gpu_matrix et slA)
+  (sa2 : gpu_matrix et slB)
+  (#_ : squash (SZ.fits (mlayout_size slA)))
+  (#_ : squash (SZ.fits (mlayout_size slB)))
+  (it : nat)
+  requires
+    forall+ (tid : natlt (tile * tile)).
+      barrier_p_cell tile eA eB bid sa1 sa2 it tid
+  ensures
+    forall+ (tid : natlt (tile * tile)).
+      barrier_q_cell tile eA eB bid sa1 sa2 it tid
+{
+  if (it >= 2 * mshared) {
+    forevery_map
+      (fun (tid : natlt (tile * tile)) -> barrier_p_cell tile eA eB bid sa1 sa2 it tid)
+      (fun (tid : natlt (tile * tile)) -> barrier_q_cell tile eA eB bid sa1 sa2 it tid)
+      fn tid {
+        rewrite barrier_p_cell tile eA eB bid sa1 sa2 it tid as emp;
+        rewrite emp as barrier_q_cell tile eA eB bid sa1 sa2 it tid;
+      };
+  } else {
+    let ev = even it;
+    if ev {
+      assert pure (it < 2 * mshared);
+      assert pure (even it);
+      forevery_map
+        (fun (tid : natlt (tile * tile)) -> barrier_p_cell tile eA eB bid sa1 sa2 it tid)
+        (fun (tid : natlt (tile * tile)) ->
+          (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+          (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x))
+        fn tid {
+          rewrite barrier_p_cell tile eA eB bid sa1 sa2 it tid
+               as (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+                  (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x);
+        };
+      forevery_unzip _ _;
+      M.gpu_matrix_gather_n_underspec sa1 (tile * tile);
+      with em1. assert sa1 |-> em1;
+      M.gpu_matrix_explode sa1;
+      forevery_unfactor' (tile * tile) tile tile
+        (fun r c -> gpu_matrix_pts_to_cell sa1 r c (macc em1 r c));
+      forevery_map
+        (fun (tid : natlt (tile * tile)) -> gpu_matrix_pts_to_cell sa1 (tid/tile) (tid%tile) (macc em1 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> live_cell sa1 (tid/tile) (tid%tile))
+        fn tid { fold (live_cell sa1 (tid/tile) (tid%tile)) };
+      M.gpu_matrix_gather_n_underspec sa2 (tile * tile);
+      with em2. assert sa2 |-> em2;
+      M.gpu_matrix_explode sa2;
+      forevery_unfactor' (tile * tile) tile tile
+        (fun r c -> gpu_matrix_pts_to_cell sa2 r c (macc em2 r c));
+      forevery_map
+        (fun (tid : natlt (tile * tile)) -> gpu_matrix_pts_to_cell sa2 (tid/tile) (tid%tile) (macc em2 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> live_cell sa2 (tid/tile) (tid%tile))
+        fn tid { fold (live_cell sa2 (tid/tile) (tid%tile)) };
+      forevery_zip
+        (fun (tid : natlt (tile * tile)) -> live_cell sa1 (tid/tile) (tid%tile)) _;
+      forevery_map
+        (fun (tid : natlt (tile * tile)) -> live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile))
+        (fun (tid : natlt (tile * tile)) -> barrier_q_cell tile eA eB bid sa1 sa2 it tid)
+        fn tid {
+          rewrite live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile)
+               as barrier_q_cell tile eA eB bid sa1 sa2 it tid;
+        };
+    } else {
+      assert pure (it < 2 * mshared);
+      assert pure (odd it);
+      let mrow = bid / mcols;
+      let mcol = bid % mcols;
+      forevery_map
+        (fun (tid : natlt (tile * tile)) -> barrier_p_cell tile eA eB bid sa1 sa2 it tid)
+        (fun (tid : natlt (tile * tile)) ->
+          gpu_matrix_pts_to_cell sa1 (tid/tile) (tid%tile) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
+          gpu_matrix_pts_to_cell sa2 (tid/tile) (tid%tile) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile)))
+        fn tid {
+          rewrite barrier_p_cell tile eA eB bid sa1 sa2 it tid
+               as gpu_matrix_pts_to_cell sa1 (tid/tile) (tid%tile) (macc (ematrix_subtile eA tile tile mrow (it/2)) (tid/tile) (tid%tile)) **
+                  gpu_matrix_pts_to_cell sa2 (tid/tile) (tid%tile) (macc (ematrix_subtile eB tile tile (it/2) mcol) (tid/tile) (tid%tile));
+        };
+      forevery_unzip _ _;
+      forevery_factor' (tile * tile) tile tile
+        (fun r c -> gpu_matrix_pts_to_cell sa1 r c (macc (ematrix_subtile eA tile tile mrow (it/2)) r c));
+      M.gpu_matrix_implode sa1;
+      M.gpu_matrix_share_n sa1 (tile * tile);
+      forevery_factor' (tile * tile) tile tile
+        (fun r c -> gpu_matrix_pts_to_cell sa2 r c (macc (ematrix_subtile eB tile tile (it/2) mcol) r c));
+      M.gpu_matrix_implode sa2;
+      M.gpu_matrix_share_n sa2 (tile * tile);
+      forevery_zip
+        (fun (_ : natlt (tile * tile)) -> sa1 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eA tile tile mrow (it/2))) _;
+      forevery_map
+        (fun (tid : natlt (tile * tile)) ->
+          sa1 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eA tile tile mrow (it/2)) **
+          sa2 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eB tile tile (it/2) mcol))
+        (fun (tid : natlt (tile * tile)) -> barrier_q_cell tile eA eB bid sa1 sa2 it tid)
+        fn tid {
+          rewrite
+            sa1 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eA tile tile mrow (it/2)) **
+            sa2 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eB tile tile (it/2) mcol)
+          as
+            barrier_q_cell tile eA eB bid sa1 sa2 it tid;
+        };
+    }
+  }
+}
+#pop-options
 
 (* without shmem ownership *)
 unfold
@@ -322,8 +447,8 @@ fn kf
     (* Even barrier: give shared ownership, receive per-cell ownership *)
     rewrite (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
             (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
-         as barrier_p_cell tile sa1 sa2 (2 * vbk) tid;
-    rewrite barrier_p_cell tile sa1 sa2 (2 * vbk) tid
+         as barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbk) tid;
+    rewrite barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbk) tid
          as (shmem_contract tile eA eB (SZ.v bid) sa1 sa2).rin (2 * vbk) tid;
 
     B.barrier_wait ();
@@ -335,24 +460,28 @@ fn kf
     rewrite each (tid / tile) as v brow;
     rewrite each (tid % tile) as v bcol;
 
-    (* Write to shmem: unfold live_cell, write, fold back *)
+    (* Write to shmem: unfold live_cell, write, keep specific content *)
     unfold live_cell sa1 (v brow) (v bcol);
     M.gpu_matrix_write_cell sa1 brow bcol v1;
-    fold (live_cell sa1 (v brow) (v bcol));
 
     unfold live_cell sa2 (v brow) (v bcol);
     M.gpu_matrix_write_cell sa2 brow bcol v2;
-    fold (live_cell sa2 (v brow) (v bcol));
 
-    (* Odd barrier: give per-cell ownership, receive shared ownership *)
+    (* Odd barrier: give per-cell ownership with specific content *)
     odd_2x1 !bk;
     assert (pure (odd (2 * !bk + 1)));
 
     rewrite each (v brow) as (tid / tile);
     rewrite each (v bcol) as (tid % tile);
-    rewrite live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile)
-         as barrier_p_cell tile sa1 sa2 (2 * vbk + 1) tid;
-    rewrite barrier_p_cell tile sa1 sa2 (2 * vbk + 1) tid
+    rewrite each v1 as (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v vbk)) (tid / tile) (tid % tile));
+    rewrite each v2 as (macc (ematrix_subtile eB tile tile (SZ.v vbk) (SZ.v mcol)) (tid / tile) (tid % tile));
+    rewrite
+      gpu_matrix_pts_to_cell sa1 (tid / tile) (tid % tile)
+        (macc (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v vbk)) (tid / tile) (tid % tile)) **
+      gpu_matrix_pts_to_cell sa2 (tid / tile) (tid % tile)
+        (macc (ematrix_subtile eB tile tile (SZ.v vbk) (SZ.v mcol)) (tid / tile) (tid % tile))
+    as barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbk + 1) tid;
+    rewrite barrier_p_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbk + 1) tid
          as (shmem_contract tile eA eB (SZ.v bid) sa1 sa2).rin (2 * vbk + 1) tid;
 
     B.barrier_wait ();
@@ -784,7 +913,7 @@ let mk_kernel
 
   barrier_contract = (fun _bid ptrs -> shmem_contract tile eA eB _bid (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
   barrier_count    = (fun _bid -> 2 * SZ.v mshared);
-  barrier_ok = (fun _bid _ptrs -> magic());
+  barrier_ok = (fun _bid _ptrs -> barrier_p_to_q_cell_transform tile eA eB _bid (M.from_array slA (fst _ptrs)) (M.from_array slB (fst (snd _ptrs))));
 
   shmems_desc = shmems_desc et tile;
 
