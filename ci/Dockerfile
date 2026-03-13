@@ -42,7 +42,7 @@ USER $USER
 ENV HOME /home/$USER
 
 # Install OCaml
-ARG OCAML_VERSION=5.4.0
+ARG OCAML_VERSION=5.3.0
 RUN opam init --compiler=$OCAML_VERSION --disable-sandboxing
 RUN opam update --yes
 RUN opam option depext-run-installs=true
