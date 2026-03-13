@@ -33,8 +33,19 @@ include the relevant Kuiper header files in `include/`.
 
 ## Getting Started
 
-Requirements:
-- OCaml, OPAM, and some packages
+### devcontainer (codespace)
+
+To set up:
+```
+git submodule init
+git submodule update
+eval $(opam env)
+```
+
+TODO: check if extension works.
+
+### Requirements
+- OCaml 5.3.0, OPAM, and some packages
 - Z3 version 4.13.3
 - NVCC (if you wish to _compile_ the kernels)
 - An Nvidia GPU (if you wish to _run_ the kernels)
@@ -65,6 +76,24 @@ Then make sure the necessary packages are installed:
 ```
 opam install batteries zarith stdint yojson dune menhir menhirLib pprint sedlex ppxlib process ppx_deriving ppx_deriving_yojson memtrace visitors uucp wasm fix mtime
 ```
+
+### Building
+
+Kuiper includes F*, karamel, and Pulse as submodules. The top-level makefile
+drives their build, so you shouldn't have to interact with them, except for the
+occasional `git submodule update` if you update Kuiper.
+
+Running `make` (use parallelism if possible) will build the submodules, verify
+every file in `src/`, build the extraction plugin, extract all examples into
+CUDA files, and build the test drivers. All build artifacts go into `obj/`.
+Running `make test` will run the tests and fail if any of them fails.
+
+There is a simple `./configure` script that detects if nvcc is installed, and
+whether it supports tensor cores.  If nvcc is not installed, `make test` will
+not run any tests. If tensor cores are not enabled, `make test` will skip the
+examples that require them. This script is probably not very robust.  Please
+file an issue if it does not work as expected.  You can edit `.configure.output`
+manually if need be.
 
 ### Run the Benchmarks
 (UPDATE)
