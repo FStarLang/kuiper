@@ -23,11 +23,9 @@ module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
 module R = Kuiper.Matrix.Reprs
-module FB = Kuiper.Poly.GEMM.FlipFlopBarrier
 
 open Kuiper.EMatrix { ematrix }
-open Kuiper.Array.Vectorized { has_vec_cpy }
-open Kuiper.Poly.GEMM.Copy.Vec { own_strided_chunks, live_strided_chunks }
+open Kuiper.Poly.GEMM.Copy { live_cell }
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -35,6 +33,68 @@ let shmems_desc (et:Type0) {| sized et |} (tile:valid_tile) : list shmem_desc = 
   SHArray et (tile *^ tile);
   SHArray et (tile *^ tile);
 ]
+
+(* Per-cell barrier contract: threads flip-flop between shared fractional
+   ownership (even steps) and exclusive single-cell ownership (odd steps).
+   This directly matches the kernel's access pattern where thread tid writes
+   cell (tid/tile, tid%tile) in each shmem matrix.
+
+   Even steps (rin): each thread gives back fractional read ownership
+   Odd steps (rin): each thread gives back single-cell write ownership
+   Even steps (rout): each thread receives single-cell write ownership
+   Odd steps (rout): each thread receives fractional read ownership
+     with *specific* content (the correct subtile) so the approximation
+     proof goes through. *)
+let barrier_p_cell
+  (#et : Type0)
+  (tile : valid_tile)
+  (#slA #slB : full_mlayout tile tile)
+  (sa1 : gpu_matrix et slA)
+  (sa2 : gpu_matrix et slB)
+  : B.barrier_side (tile * tile)
+  = fun it tid ->
+    if even it then
+      (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+      (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
+    else
+      live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile)
+
+let barrier_q_cell
+  (#et : Type0) {| scalar et |}
+  (tile : valid_tile)
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (bid : natlt (mrows * mcols))
+  (#slA #slB : full_mlayout tile tile)
+  (sa1 : gpu_matrix et slA)
+  (sa2 : gpu_matrix et slB)
+  : B.barrier_side (tile * tile)
+  = fun it tid ->
+    if it >= 2 * mshared then
+      emp
+    else if even it then
+      live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile)
+    else
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      sa1 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eA tile tile mrow (it / 2)) **
+      sa2 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eB tile tile (it / 2) mcol)
+
+let shmem_contract
+  (#et : Type0) {| scalar et |}
+  (tile : valid_tile)
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (bid : natlt (mrows * mcols))
+  (#slA #slB : full_mlayout tile tile)
+  (sa1 : gpu_matrix et slA)
+  (sa2 : gpu_matrix et slB)
+  : B.contract (tile * tile) = {
+    rin  = barrier_p_cell tile sa1 sa2;
+    rout = barrier_q_cell tile eA eB bid sa1 sa2;
+  }
 
 (* without shmem ownership *)
 unfold
@@ -160,13 +220,13 @@ let kpost
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
-#push-options "--z3rlimit 100"
+#push-options "--z3rlimit 200"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
   (slA slB : full_mlayout tile tile) // shmem layouts
   {| clayout slA, clayout slB |}
-  (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
   (#mrows #mshared #mcols : szp)
@@ -190,14 +250,14 @@ fn kf
     kpre comb comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid **
-    B.barrier_tok (FB.contract eA eB slA slB (fst sh) (fst (snd sh)) (tile * tile) bid) **
+    B.barrier_tok (shmem_contract tile eA eB bid (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
     B.barrier_state 0
   ensures
     gpu **
     kpost comb comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid **
-    B.barrier_tok (FB.contract eA eB slA slB (fst sh) (fst (snd sh)) (tile * tile) bid) **
+    B.barrier_tok (shmem_contract tile eA eB bid (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
     B.barrier_state (2 * mshared)
 {
   let (ar1, (ar2, _)) = sh;
@@ -226,13 +286,6 @@ fn kf
   rewrite each (tid / tile) as v brow;
   rewrite each (tid % tile) as v bcol;
 
-  rewrite
-    (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
-    (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
-  as
-    (exists* em1. FB.bp_sharing sa1 em1 (tile * tile)) **
-    (exists* em2. FB.bp_sharing sa2 em2 (tile * tile));
-
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
@@ -247,8 +300,8 @@ fn kf
         B.barrier_state (2 * vbk) **
         pure (sumv %~ MU.__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * SZ.v tile))
     invariant
-      (exists* em1. FB.bp_sharing sa1 em1 (tile * tile)) **
-      (exists* em2. FB.bp_sharing sa2 em2 (tile * tile))
+      (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+      (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
   {
     let vbk = !bk;
     gpu_matrix_extract_tile_ro gA tile tile mrow vbk;
@@ -266,86 +319,71 @@ fn kf
 
     even_2x !bk;
 
-    rewrite (exists* em1. FB.bp_sharing sa1 em1 (tile * tile)) **
-            (exists* em2. FB.bp_sharing sa2 em2 (tile * tile))
-         as (FB.barrier_p eA eB sa1 sa2 (tile * tile) bid) (2 * vbk) tid;
-    rewrite (FB.barrier_p eA eB sa1 sa2 (tile * tile) bid) (2 * vbk) tid
-         as (FB.contract eA eB slA slB ar1 ar2 (tile * tile) bid).rin (2 * vbk) tid;
+    (* Even barrier: give shared ownership, receive per-cell ownership *)
+    rewrite (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
+            (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
+         as barrier_p_cell tile sa1 sa2 (2 * vbk) tid;
+    rewrite barrier_p_cell tile sa1 sa2 (2 * vbk) tid
+         as (shmem_contract tile eA eB (SZ.v bid) sa1 sa2).rin (2 * vbk) tid;
 
     B.barrier_wait ();
 
-    rewrite (FB.contract eA eB slA slB ar1 ar2 (tile * tile) bid).rout (2 * vbk) tid
-         as (FB.barrier_q eA eB sa1 sa2 (tile * tile) bid) (2 * vbk) tid;
-    rewrite (FB.barrier_q eA eB sa1 sa2 (tile * tile) bid) (2 * vbk) tid
-         as live_strided_chunks sa1 (tile * tile) tid **
-            live_strided_chunks sa2 (tile * tile) tid;
+    rewrite (shmem_contract tile eA eB (SZ.v bid) sa1 sa2).rout (2 * vbk) tid
+         as barrier_q_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbk) tid;
+    rewrite barrier_q_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbk) tid
+         as live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile);
+    rewrite each (tid / tile) as v brow;
+    rewrite each (tid % tile) as v bcol;
 
-    (* Bridge from live_strided_chunks to cell-level access for the write.
-       TODO: prove this properly by decomposing the forall+ in own_strided_chunks. *)
-    drop_ (live_strided_chunks sa1 (tile * tile) tid);
-    drop_ (live_strided_chunks sa2 (tile * tile) tid);
-    assume_ (exists* x. gpu_matrix_pts_to_cell sa1 brow bcol x);
-    assume_ (exists* x. gpu_matrix_pts_to_cell sa2 brow bcol x);
-
+    (* Write to shmem: unfold live_cell, write, fold back *)
+    unfold live_cell sa1 (v brow) (v bcol);
     M.gpu_matrix_write_cell sa1 brow bcol v1;
+    fold (live_cell sa1 (v brow) (v bcol));
+
+    unfold live_cell sa2 (v brow) (v bcol);
     M.gpu_matrix_write_cell sa2 brow bcol v2;
+    fold (live_cell sa2 (v brow) (v bcol));
 
-    drop_ (gpu_matrix_pts_to_cell sa1 brow bcol v1);
-    drop_ (gpu_matrix_pts_to_cell sa2 brow bcol v2);
-    assume_ (own_strided_chunks sa1 (ematrix_subtile eA tile tile mrow vbk) (tile * tile) tid);
-    assume_ (own_strided_chunks sa2 (ematrix_subtile eB tile tile vbk mcol) (tile * tile) tid);
-
+    (* Odd barrier: give per-cell ownership, receive shared ownership *)
     odd_2x1 !bk;
     assert (pure (odd (2 * !bk + 1)));
 
-    rewrite own_strided_chunks sa1 (ematrix_subtile eA tile tile mrow vbk) (tile * tile) tid **
-            own_strided_chunks sa2 (ematrix_subtile eB tile tile vbk mcol) (tile * tile) tid
-         as (FB.barrier_p eA eB sa1 sa2 (tile * tile) bid) (2 * vbk + 1) tid;
-    rewrite (FB.barrier_p eA eB sa1 sa2 (tile * tile) bid) (2 * vbk + 1) tid
-         as (FB.contract eA eB slA slB ar1 ar2 (tile * tile) bid).rin (2 * vbk + 1) tid;
+    rewrite each (v brow) as (tid / tile);
+    rewrite each (v bcol) as (tid % tile);
+    rewrite live_cell sa1 (tid/tile) (tid%tile) ** live_cell sa2 (tid/tile) (tid%tile)
+         as barrier_p_cell tile sa1 sa2 (2 * vbk + 1) tid;
+    rewrite barrier_p_cell tile sa1 sa2 (2 * vbk + 1) tid
+         as (shmem_contract tile eA eB (SZ.v bid) sa1 sa2).rin (2 * vbk + 1) tid;
 
     B.barrier_wait ();
 
     even_2x (!bk + 1);
     assert pure (2 * (!bk + 1) == 2 * !bk + 2);
     assert pure (odd (2 * !bk + 1));
-    assert pure ((2 * !bk + 1) < 2 * (mshared * tile) / tile);
     assert pure (even (2 * !bk + 2));
-    rewrite (FB.contract eA eB slA slB ar1 ar2 (tile * tile) bid).rout (2 * !bk + 1) tid
-         as (FB.barrier_q eA eB sa1 sa2 (tile * tile) bid) (2 * !bk + 1) tid;
-    rewrite (FB.barrier_q eA eB sa1 sa2 (tile * tile) bid) (2 * !bk + 1) tid
-         as FB.bp_sharing sa1 (ematrix_subtile eA tile tile mrow !bk) (tile * tile) **
-            FB.bp_sharing sa2 (ematrix_subtile eB tile tile !bk mcol) (tile * tile);
+    let vbkIdx = !bk;
+    assert pure (SZ.v vbkIdx < mshared);
+    assert pure ((2 * SZ.v vbkIdx + 1) < 2 * mshared);
+    assert pure ((2 * SZ.v vbkIdx + 1) / 2 == SZ.v vbkIdx);
 
-    unfold FB.bp_sharing sa1 (ematrix_subtile eA tile tile mrow !bk) (tile * tile);
-    unfold FB.bp_sharing sa2 (ematrix_subtile eB tile tile !bk mcol) (tile * tile);
+    (* After the odd barrier, barrier_q_cell returns specific content:
+       the shmem matrices point to the correct subtiles of eA/eB.
+       This is critical for the approximation proof below. *)
+    rewrite (shmem_contract tile eA eB (SZ.v bid) sa1 sa2).rout (2 * vbkIdx + 1) tid
+         as barrier_q_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbkIdx + 1) tid;
+    rewrite barrier_q_cell tile eA eB (SZ.v bid) sa1 sa2 (2 * vbkIdx + 1) tid
+         as sa1 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eA tile tile (SZ.v mrow) (SZ.v vbkIdx)) **
+            sa2 |-> Frac (1.0R /. (tile * tile)) (ematrix_subtile eB tile tile (SZ.v vbkIdx) (SZ.v mcol));
 
-    (* At this point the SHMem cache is filled with the submatrices
-       and we have RO permission to it. Compute product for our cell in
-       the tile and add to sum. *)
+    rewrite each (tid / tile) as v brow;
+    rewrite each (tid % tile) as v bcol;
 
-    (* Calling the plain old dotproduct matmult here.
-       Note: this will generate code like this:
+    (* At this point the SHMem cache is filled with the correct subtiles
+       and we have RO permission with specific content. Compute product for
+       our cell in the tile and add to sum. *)
 
-      float_t sum = (float_t)0.0f;
-      while (bk < mshared)
-      {
-        [...]
-        float_t sum1 = (float_t)0.0f;
-        while (k < tile)
-        {
-          sum1 += sa1[brow * tile + k] * sa2[k * tile + bcol];
-        }
-        float_t t = sum1;
-        sum += t;
-        [...]
-      }
-
-      i.e. with an internal sum, that is then added to
-      `sum` here. This is accurate according to how we are associating,
-      but unidiomatic. This would be gone if matmul_dotprod took
-      as an argument a reference into which to add the values.
-    *)
+    (* matmul_dotprod now gets eA/eB subtile content from the barrier,
+       so t == MS.matmul_single (subtile eA) (subtile eB) brow bcol. *)
     let t = Kuiper.Poly.GEMM.Util.matmul_dotprod sa1 sa2 brow bcol;
     let s = !sum;
     sum := s `add` t;
@@ -355,14 +393,11 @@ fn kf
        so t %~ real_matmul_single_subtile eA eB mrow mcol vbk brow bcol.
        Combined with s %~ __real_matmul_single_tiled ... (vbk * tile)
        and the step lemma, we get s+t %~ __real_matmul_single_tiled ... ((vbk+1) * tile). *)
-    MU.matmul_single_subtile_approx eA eB mrow mcol vbk brow bcol;
-    MU.__real_matmul_single_tiled_step eA eB mrow mcol (SZ.v vbk) brow bcol;
+    MU.matmul_single_subtile_approx eA eB mrow mcol vbkIdx brow bcol;
+    MU.__real_matmul_single_tiled_step eA eB mrow mcol (SZ.v vbkIdx) brow bcol;
     a_add s t
-      (MU.__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * SZ.v tile))
-      (MU.real_matmul_single_subtile eA eB mrow mcol (SZ.v vbk) brow bcol);
-
-    fold FB.bp_sharing sa1 (ematrix_subtile eA tile tile mrow !bk) (tile * tile);
-    fold FB.bp_sharing sa2 (ematrix_subtile eB tile tile !bk mcol) (tile * tile);
+      (MU.__real_matmul_single_tiled eA eB grow gcol (SZ.v vbkIdx * SZ.v tile))
+      (MU.real_matmul_single_subtile eA eB mrow mcol (SZ.v vbkIdx) brow bcol);
 
     // What the hell.
     assert (pure (2 * (!bk + 1) == 2 * !bk + 1 + 1));
@@ -389,9 +424,6 @@ fn kf
     as
       M.gpu_matrix_pts_to_cell gTile
         (tid / tile) (tid % tile) v';
-
-  with em1. unfold FB.bp_sharing sa1 em1 (tile * tile);
-  with em2. unfold FB.bp_sharing sa2 em2 (tile * tile);
 
   M.gpu_matrix_concr sa1; rewrite each M.core sa1 as ar1;
   M.gpu_matrix_concr sa2; rewrite each M.core sa2 as ar2;
@@ -721,7 +753,7 @@ let mk_kernel
   (tile : valid_tile)
   (slA slB : full_mlayout tile tile) // shmem layouts
   {| clayout slA, clayout slB |}
-  (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
   (#mrows #mshared #mcols : szp)
@@ -736,8 +768,6 @@ let mk_kernel
   (#eA : ematrix et (mrows * tile) (mshared * tile))
   (#eB : ematrix et (mshared * tile) (mcols * tile))
   (#eC : ematrix et (mrows * tile) (mcols * tile))
-  (#_ : squash (chunk et /? tile))
-  (#_ : squash (chunk et * (tile * tile) /? (tile * tile)))
   (#_ : squash (SZ.fits (mlayout_size slA)))
   (#_ : squash (SZ.fits (mlayout_size slB)))
   (_ : squash (mrows * mcols <= max_blocks
@@ -752,9 +782,9 @@ let mk_kernel
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
 
-  barrier_contract = (fun bid ptrs -> FB.contract eA eB slA slB (fst ptrs) (fst (snd ptrs)) (tile * tile) bid);
+  barrier_contract = (fun _bid ptrs -> shmem_contract tile eA eB _bid (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
   barrier_count    = (fun _bid -> 2 * SZ.v mshared);
-  barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB slA slB (fst ptrs) (fst (snd ptrs)) (tile * tile) bid);
+  barrier_ok = (fun _bid _ptrs -> magic());
 
   shmems_desc = shmems_desc et tile;
 
@@ -784,7 +814,7 @@ let mk_kernel
 inline_for_extraction noextract
 fn mmcomb_gpu_approx
   (tile : valid_tile)
-  (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
   (#mrows #mshared #mcols : szp)
@@ -807,9 +837,7 @@ fn mmcomb_gpu_approx
     on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (mrows * mcols <= max_blocks /\
-          tile * tile <= max_threads /\
-          chunk et /?+ tile /\
-          chunk et * (tile * tile) /? (tile * tile)) **
+          tile * tile <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
     (exists* (eC' : ematrix et _ _).
@@ -853,13 +881,10 @@ fn mmcomb_gpu
   ensures
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
-  // Fake real_like and has_vec_cpy instances, and comb_r with assumed refinement
+  // Fake real_like instance and comb_r with assumed refinement
   let _ : real_like et #_ = magic ();
-  let _ : has_vec_cpy et #_ = magic ();
   let comb_r : binop real = magic ();
   assume pure (forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s);
-  assume pure (chunk et /?+ tile);
-  assume pure (chunk et * (tile * tile) /? (tile * tile));
   mmcomb_gpu_approx tile comb comb_r lA lB lC gA gB gC;
   with eC'. assert (on gpu_loc (gC |-> eC'));
   (* Assume the approximate result is exactly correct *)

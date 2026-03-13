@@ -9,7 +9,6 @@ module MU = Kuiper.Poly.GEMM.Util
 module M = Kuiper.Matrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.EMatrix
-open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 inline_for_extraction noextract
 let size_req : tiled_size_req_t =
@@ -22,7 +21,7 @@ let size_req : tiled_size_req_t =
 inline_for_extraction noextract
 val mmcomb_gpu_approx
   (tile : valid_tile)
-  (#et : Type0) {| scalar et, has_vec_cpy et, real_like et |}
+  (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
   (#mrows #mshared #mcols : szp)
@@ -42,9 +41,7 @@ val mmcomb_gpu_approx
     (requires
       (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
       (pure (mrows * mcols <= max_blocks /\
-             tile * tile <= max_threads /\
-             chunk et /?+ tile /\
-             chunk et * (tile * tile) /? (tile * tile)) **
+             tile * tile <= max_threads) **
        on gpu_loc (gC |-> eC)))
     (ensures fun _ ->
       (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
