@@ -145,6 +145,21 @@ ensures
   }
 }
 
+// Helper to avoid ambiguity below.
+noextract
+fn free_c_shmems'
+  (#bid : int)
+  (d : list SH.shmem_desc)
+  (res : SH.c_shmems d)
+  preserves block_id 'x bid
+  requires SH.live_c_shmems res
+  requires pure (SH.c_shmems_inv res)
+{
+  unfold block_id 'x bid;
+  free_c_shmems _ d res;
+  fold block_id 'x bid;
+}
+
 noextract
 fn rec run_block
   (#full_pre : slprop)
@@ -164,9 +179,8 @@ ensures
   let _ : unit = Mkkernel_desc?.block_setup k sh bid ();
   run_block_threads k bid sh k.nthr;
   Mkkernel_desc?.block_teardown k sh bid ();
-  unfold (block_id k.nblk bid);
-  free_c_shmems _ _ sh;
-  fold (block_id k.nblk bid);
+  free_c_shmems' _ sh;
+  ()
 }
 
 noextract
