@@ -557,6 +557,76 @@ fn adapt_k1nb_kf
   ()
 }
 
+ghost
+fn k1nb_as_kfull_setup
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  ()
+  norewrite
+  requires
+    full_pre
+  ensures
+    (forall+ (bid: natlt 1sz). full_pre) **
+    emp
+{
+  forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
+}
+
+ghost
+fn k1nb_as_kfull_teardown
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  ()
+  norewrite
+  requires
+    (forall+ (bid: natlt 1sz). full_post) **
+    emp
+  ensures
+    full_post
+{
+  forevery_singleton_elim #(natlt 1sz) (fun _ -> full_post);
+}
+
+ghost
+fn k1nb_as_kfull_block_setup
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  (sh : c_shmems [])
+  (bid: natlt 1sz)
+  ()
+  norewrite
+  requires
+    live_c_shmems sh **
+    full_pre
+  ensures
+    (forall+ (i : natlt k.nthr). k.kpre i) **
+    k.frame
+{
+  rewrite (live_c_shmems sh) as emp;
+  let f = k.block_setup;
+  f ();
+}
+
+ghost
+fn k1nb_as_kfull_block_teardown
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  (sh : c_shmems [])
+  (bid: natlt 1sz)
+  ()
+  norewrite
+  requires
+    (forall+ (i : natlt k.nthr). k.kpost i) **
+    k.frame
+  ensures
+    live_c_shmems sh **
+    full_post
+{
+  let f = k.block_teardown;
+  f ();
+  rewrite emp as (live_c_shmems sh);
+}
+
 [@@coercion]
 inline_for_extraction noextract
 let k1nb_as_kfull
@@ -582,14 +652,14 @@ let k1nb_as_kfull
     block_post  = (fun _ -> full_post);
     block_frame = (fun _ptrs _bid -> k.frame);
 
-    setup    = magic();
-    teardown = magic();
+    setup    = k1nb_as_kfull_setup k;
+    teardown = k1nb_as_kfull_teardown k;
 
     kpre  = (fun _ptrs _bid -> k.kpre);
     kpost = (fun _ptrs _bid -> k.kpost);
 
-    block_setup = magic(); // (fun _ -> k.block_setup ());
-    block_teardown = magic(); // (fun _ -> k.block_teardown ());
+    block_setup = k1nb_as_kfull_block_setup k;
+    block_teardown = k1nb_as_kfull_block_teardown k;
 
     f = adapt_k1nb_kf k;
     block_pre_sendable = (fun _ -> k.full_pre_sendable);
