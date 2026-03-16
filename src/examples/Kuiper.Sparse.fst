@@ -430,22 +430,24 @@ let smatrix_pts_to
     pure (pure_smatrix_pt_to m e v_elems v_col_ind v_row_off)
 
 
+ghost
 fn unfold_smatrix
   (#et:Type0) {| d : scalar et |}
   #rows #cols
   (m : smatrix et rows cols)
   (#[Tactics.exact (`1.0R)] f : perm)
   (e : ematrix et rows cols)
-  requires smatrix_pts_to m e
+  requires smatrix_pts_to m #f e
   ensures
     exists* (v_elems    : lseq et m.nnz).
     exists* (v_col_ind  : lseq sz m.nnz).
     exists* (v_row_off  : lseq sz (rows + 1)).
-      smatrix_pts_to' m v_elems v_col_ind v_row_off e
+      smatrix_pts_to' m #f v_elems v_col_ind v_row_off e
 {
-  unfold smatrix_pts_to m _
+  unfold smatrix_pts_to m #f e
 }
 
+ghost
 fn fold_smatrix
   (#et:Type0) {| d : scalar et |}
   #rows #cols
@@ -473,6 +475,42 @@ instance has_pts_to_smatrix
 module T = FStar.Tactics.V2
 
 ghost
+fn smatrix_share_n'
+  (#et:Type0) {| d : scalar et |}
+  #rows #cols
+  (m : smatrix et rows cols)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (v_elems   : lseq et m.nnz)
+  (v_col_ind : lseq sz m.nnz)
+  (v_row_off : lseq sz (rows + 1))
+  (em : ematrix et rows cols)
+  (k : pos)
+  requires smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
+  ensures forall+ (_ : natlt k).
+    smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
+{
+  gpu_slice_share m.elems _ _ k;
+  gpu_slice_share m.col_ind _ _ k;
+  gpu_slice_share m.row_off _ _ k;
+
+  forevery_zip
+    (fun _ -> gpu_pts_to_array m.col_ind #(f /. k) v_col_ind)
+    (fun _ -> gpu_pts_to_array m.row_off #(f /. k) v_row_off);
+  forevery_zip
+    (fun _ -> gpu_pts_to_array m.elems #(f /.k) v_elems) _;
+
+  forevery_map #(natlt k)
+    (fun _ ->
+      gpu_pts_to_slice m.elems #(f /. k) 0 (SZ.v m.nnz) v_elems **
+      gpu_pts_to_slice m.col_ind #(f /. k)0 (SZ.v m.nnz) v_col_ind **
+      gpu_pts_to_slice m.row_off #(f /. k) 0 (rows + 1) v_row_off
+    ) 
+    (fun _ -> smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
+    fn _ {};
+
+}
+
+ghost
 fn smatrix_share_n
   (#et:Type0) {| scalar et |}
   (#[T.exact (`0)]uid: int)
@@ -495,30 +533,66 @@ fn smatrix_share_n
   with v_row_off.
     assert gpu_pts_to_array m.row_off #f v_row_off;
 
-  gpu_slice_share m.elems _ _ k;
-  gpu_slice_share m.col_ind _ _ k;
-  gpu_slice_share m.row_off _ _ k;
+  smatrix_share_n' m #f _ _ _ em k;
 
-  forevery_zip
-    (fun _ -> gpu_pts_to_array m.col_ind #(f /. k) v_col_ind)
-    (fun _ -> gpu_pts_to_array m.row_off #(f /. k) v_row_off);
-  forevery_zip
-    (fun _ -> gpu_pts_to_array m.elems #(f /.k) v_elems) _;
+  forevery_map #(natlt k)
+    (fun _ -> smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
+    (fun _ -> smatrix_pts_to m #(f /. k) em)
+    fn _ { fold smatrix_pts_to m #(f /. k) em; };
 
-  ghost
-  fn aux (i:natlt k)
-    requires (
-      gpu_pts_to_array m.elems #(f /. k) v_elems **
-      gpu_pts_to_array m.col_ind #(f /. k) v_col_ind **
-      gpu_pts_to_array m.row_off #(f /. k) v_row_off
-    )
-    ensures smatrix_pts_to m #(f /. k) em
-  {
-    fold smatrix_pts_to m #(f /. k) em;
-  };
-  forevery_map _ _ aux;
 }
 
+
+let forall_natlt_elim (n : pos) (p : prop)
+: Lemma (requires forall (_ : natlt n). p) (ensures p)
+= eliminate forall (_ : natlt n). p with 0
+
+ghost
+fn forevery_natlt_elim
+  (n : pos) (p : prop)
+  requires forall+ (_ : natlt n). pure p
+  ensures pure p
+{
+  forevery_extract_pure #(natlt n)
+    (fun _ -> pure p) (fun _ -> p) fn _ {};
+
+  forall_natlt_elim n p;
+
+  forevery_map #(natlt n) (fun _ -> pure p) (fun _ -> emp) fn _ {}; 
+  forevery_emp_elim _;
+
+}
+
+ghost
+fn smatrix_gather_n'
+  (#et:Type0) {| d : scalar et |}
+  #rows #cols
+  (m : smatrix et rows cols)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (v_elems   : lseq et m.nnz)
+  (v_col_ind : lseq sz m.nnz)
+  (v_row_off : lseq sz (rows + 1))
+  (em : ematrix et rows cols)
+  (k : pos)
+  requires forall+ (_ : natlt k).
+    smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
+  ensures smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
+{
+  forevery_unzip #(natlt k) _ _;
+  forevery_unzip #(natlt k) _ _;
+  forevery_unzip #(natlt k) _ _;
+
+  gpu_slice_gather m.elems   _ _ k;
+  gpu_slice_gather m.col_ind _ _ k;
+  gpu_slice_gather m.row_off _ _ k;
+
+  forevery_natlt_elim k _;
+
+  ();
+}
+
+// Para escribir esto en terminos de smatrix_gather_n'
+// tendriamos que probar smatrix_pts_to_eq'
 ghost
 fn smatrix_gather_n
   (#et:Type0) {| scalar et |}
