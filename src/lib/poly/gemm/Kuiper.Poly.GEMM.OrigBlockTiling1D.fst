@@ -861,7 +861,7 @@ let block_pre_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt (bm/tm * bn)).
       kpre1 comb tm gA gB gC eA eB eC fA fB bid tid)
-= magic()
+= solve
 
 let block_post_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -884,7 +884,7 @@ let block_post_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt (bm/tm * bn)).
       kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
-= magic()
+= solve
 #pop-options
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit_factor 10 --z3refresh"
