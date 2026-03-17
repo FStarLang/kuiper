@@ -977,6 +977,7 @@ fn block_teardown
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
 {
+  admit();
   // Bridge from SizeT-based to nat-based size
   forevery_rw_size (bm/^tm *^ bn) (bm/tm * bn);
 

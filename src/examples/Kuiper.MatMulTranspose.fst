@@ -55,6 +55,6 @@ fn matmul_transpose_gpu
 
 let matmul_transpose_gpu_f32_ff #rows #shared #cols =
   matmul_transpose_gpu
-    Kuiper.Poly.GEMM.Naive.mmcomb_gpu
+    Kuiper.Poly.GEMM.Naive.mmcomb_gpu_exact
     #f32 #_
     #rows #shared #cols

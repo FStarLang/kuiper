@@ -142,6 +142,53 @@ val matmul_single_subtile_approx
       %~ real_matmul_single_subtile m1 m2 bi bj bk i j
     ))
 
+(* General matmul approximation: scalar matmul_single approximates real version.
+   Generalization of matmul_single_subtile_approx to non-square matrices. *)
+val matmul_single_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #shared #cols : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  : Lemma
+    (ensures (
+      MS.matmul_single m1 m2 row col
+      %~ real_matmul_single m1 m2 row col
+    ))
+
+(* mmcomb approximation: exact mmcomb result approximates real-valued real_mmcomb *)
+val mmcomb_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#rows #shared #cols : nat)
+  (eC : ematrix et rows cols)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  : Lemma
+    (requires approx2 comb comb_r)
+    (ensures ematrix_approximates (MS.mmcomb comb eC eA eB) (real_mmcomb comb_r eC eA eB))
+
+(* mmcomb approximation over external real matrices:
+   If eA %~ rA, eB %~ rB, eC %~ rC, and approx2 comb comb_r,
+   then mmcomb comb eC eA eB %~ mmcomb comb_r rC rA rB. *)
+val mmcomb_approx_real
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#rows #shared #cols : nat)
+  (eC : ematrix et rows cols)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
+  : Lemma
+    (requires approx2 comb comb_r /\
+              eA %~ rA /\ eB %~ rB /\ eC %~ rC)
+    (ensures MS.mmcomb comb eC eA eB %~ MS.mmcomb comb_r rC rA rB)
+
 (* Version of matmul_tiled_dotprod with approximate postcondition *)
 inline_for_extraction noextract
 fn matmul_tiled_dotprod'
@@ -166,6 +213,36 @@ fn matmul_tiled_dotprod'
     res : et
   ensures
     pure (res %~ real_matmul_single eA eB (bi * tile + i) (bj * tile + j))
+
+(* Version of matmul_tiled_dotprod with external real matrices.
+   Proves the result approximates the real-valued dot product over rA, rB. *)
+inline_for_extraction noextract
+fn matmul_tiled_dotprod_real
+  (#et : Type0) {| scalar et, real_like et |}
+  (#mrows #mshared #mcols #tile : szp)
+  (#lA : mlayout (mrows * tile)   (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  {| clayout lA, clayout lB |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (#eA #eB : ematrix et _ _)
+  (rA : ematrix real (mrows * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols * tile))
+  (bi : szlt mrows)
+  (bj : szlt mcols)
+  (i : szlt tile)
+  (j : szlt tile)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (eA %~ rA /\ eB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ MS.matmul_single rA rB (bi * tile + i) (bj * tile + j))
 
 (* Used by SHMEM, Blocktiling1D *)
 inline_for_extraction noextract

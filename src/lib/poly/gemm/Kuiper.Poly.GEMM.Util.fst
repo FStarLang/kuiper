@@ -247,6 +247,129 @@ let matmul_single_subtile_approx
     let sub_m2 = ematrix_subtile m2 tile tile bk bj in
     matmul_single_subtile_approx_aux sub_m1 sub_m2 i j tile
 
+let rec __matmul_single_approx
+  (#et:Type) {| d1: scalar et |} {| d2: real_like et |}
+  (#rows #shared #cols : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  (n : nat{n <= shared})
+  : Lemma
+    (ensures
+      MS.__gmatmul_single zero mul add m1 m2 row col n
+      %~
+      MS.__gmatmul_single 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col n)
+    (decreases n)
+  = if n = 0 then begin
+      ()
+    end
+    else begin
+      __matmul_single_approx m1 m2 row col (n - 1);
+
+      let a = macc m1 row (n-1) in
+      let b = macc m2 (n-1) col in
+      let ra = macc (ematrix_to_real m1) row (n-1) in
+      let rb = macc (ematrix_to_real m2) (n-1) col in
+
+      to_real_ok a;
+      to_real_ok b;
+      a_mul a b (to_real a) (to_real b);
+
+      let ps = MS.__gmatmul_single zero mul add m1 m2 row col (n-1) in
+      let rps = MS.__gmatmul_single 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col (n-1) in
+      a_add ps (mul a b) rps (ra *. rb);
+
+      MS.__gmatmul_single_lemma zero mul add m1 m2 row col n;
+      MS.__gmatmul_single_lemma 0.0R ( *. ) ( +. ) (ematrix_to_real m1) (ematrix_to_real m2) row col n;
+      ()
+    end
+
+let matmul_single_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (#rows #shared #cols : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  = __matmul_single_approx m1 m2 row col shared
+
+let mmcomb_approx
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#rows #shared #cols : nat)
+  (eC : ematrix et rows cols)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  = let aux (i : natlt rows) (j : natlt cols)
+      : Lemma (macc (MS.mmcomb comb eC eA eB) i j %~ macc (real_mmcomb comb_r eC eA eB) i j)
+      =
+        to_real_ok (macc eC i j);
+        matmul_single_approx eA eB i j;
+        ()
+    in
+    Classical.forall_intro_2 aux
+
+let rec __matmul_single_approx_real
+  (#et:Type) {| d1: scalar et |} {| d2: real_like et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  (n : nat{n <= shared})
+  : Lemma
+    (requires eA %~ rA /\ eB %~ rB)
+    (ensures
+      MS.__gmatmul_single zero mul add eA eB row col n
+      %~
+      MS.__gmatmul_single #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col n)
+    (decreases n)
+  = if n = 0 then ()
+    else begin
+      __matmul_single_approx_real eA eB rA rB row col (n - 1);
+      let a = macc eA row (n-1) in
+      let b = macc eB (n-1) col in
+      let ra = macc rA row (n-1) in
+      let rb = macc rB (n-1) col in
+      a_mul a b ra rb;
+      let ps = MS.__gmatmul_single zero mul add eA eB row col (n-1) in
+      let rps = MS.__gmatmul_single #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col (n-1) in
+      a_add ps (mul a b) rps (Kuiper.Scalars.mul ra rb);
+      MS.__gmatmul_single_lemma zero mul add eA eB row col n;
+      MS.__gmatmul_single_lemma #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col n
+    end
+
+let mmcomb_approx_real
+  (#et:Type) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real)
+  (#rows #shared #cols : nat)
+  (eC : ematrix et rows cols)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
+  = let aux (i : natlt rows) (j : natlt cols)
+      : Lemma
+        (requires eA %~ rA /\ eB %~ rB /\ eC %~ rC /\ approx2 comb comb_r)
+        (ensures macc (MS.mmcomb comb eC eA eB) i j %~ macc (MS.mmcomb comb_r rC rA rB) i j)
+      =
+        __matmul_single_approx_real eA eB rA rB i j shared;
+        (* eC[i,j] %~ rC[i,j] from eC %~ rC *)
+        (* matmul_single eA eB i j %~ matmul_single rA rB i j from above *)
+        (* approx2 comb comb_r gives: comb x y %~ comb_r r s when x %~ r /\ y %~ s *)
+        assert (macc eC i j %~ macc rC i j);
+        assert (MS.matmul_single eA eB i j %~ MS.matmul_single rA rB i j);
+        ()
+    in
+    Classical.forall_intro_2 (fun i j ->
+      Classical.move_requires (aux i) j)
+
 inline_for_extraction noextract
 fn matmul_tiled_dotprod'
   (#et : Type0) {| scalar et, real_like et |}
@@ -326,6 +449,101 @@ fn matmul_tiled_dotprod'
     a_add s s'
       (__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * tile))
       (real_matmul_single_subtile eA eB bi bj (SZ.v vbk) i j);
+    ()
+  };
+
+  !sum
+}
+
+inline_for_extraction noextract
+fn matmul_tiled_dotprod_real
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #shared #cols : sz)
+  (#tile : szp)
+  (#lA : mlayout (rows   * tile) (shared * tile))
+  (#lB : mlayout (shared * tile) (cols   * tile))
+  {| clayout lA, clayout lB |}
+  (gA : M.gpu_matrix et lA)
+  (gB : M.gpu_matrix et lB)
+  (#eA #eB : ematrix _ _ _)
+  (rA : ematrix real (rows * tile) (shared * tile))
+  (rB : ematrix real (shared * tile) (cols * tile))
+  (bi : szlt rows)
+  (bj : szlt cols)
+  (i : szlt tile)
+  (j : szlt tile)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (eA %~ rA /\ eB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ MS.matmul_single rA rB (bi * tile + i) (bj * tile + j))
+{
+  let grow : erased (natlt (rows * tile)) = hide (bi * tile + i);
+  let gcol : erased (natlt (cols * tile)) = hide (bj * tile + j);
+
+  let mut sum : et = zero;
+  let mut bk  : sz = 0sz;
+
+  while (SZ.(!bk <^ shared))
+    invariant
+      exists* (vbk : SZ.t{vbk <= shared}) sumv.
+        bk |-> vbk **
+        sum |-> sumv **
+        pure (eA %~ rA /\ eB %~ rB) **
+        pure (v_approximates sumv (MS.__gmatmul_single 0.0R ( *. ) ( +. ) rA rB grow gcol (SZ.v vbk * tile)))
+  {
+    let vbk = !bk;
+    assert (pure (bi  < (rows   * tile) / tile));
+    assert (pure (vbk < (shared * tile) / tile));
+
+    let tA = Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk);
+    let tB = Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj);
+    assert (rewrites_to tA (Tiling.gpu_matrix_subtile gA (SZ.v tile) (SZ.v tile) (SZ.v bi) (SZ.v vbk)));
+    assert (rewrites_to tB (Tiling.gpu_matrix_subtile gB (SZ.v tile) (SZ.v tile) (SZ.v vbk) (SZ.v bj)));
+
+    Tiling.gpu_matrix_extract_tile_ro gA tile tile bi vbk;
+    Tiling.gpu_matrix_extract_tile_ro gB tile tile vbk bj;
+
+    let s' = matmul_dotprod tA tB i j;
+    (* s' == matmul_single (subtile_eA bi vbk) (subtile_eB vbk bj) i j *)
+
+    let s = !sum;
+
+    sum := s `add` s';
+
+    ambig_trade_elim ();
+    ambig_trade_elim ();
+
+    bk := !bk +^ 1sz;
+
+    (* Proof that s' %~ matmul_single (subtile rA) (subtile rB) i j:
+       subtile eA %~ subtile rA (from eA %~ rA, subtiling preserves %~)
+       Then __matmul_single_approx_real gives the approximation. *)
+    let sub_rA = Tiling.ematrix_subtile rA tile tile bi (SZ.v vbk);
+    let sub_rB = Tiling.ematrix_subtile rB tile tile (SZ.v vbk) bj;
+    __matmul_single_approx_real
+      (Tiling.ematrix_subtile eA tile tile bi (SZ.v vbk))
+      (Tiling.ematrix_subtile eB tile tile (SZ.v vbk) bj)
+      sub_rA sub_rB
+      i j tile;
+
+    let r_partial = MS.__gmatmul_single 0.0R ( *. ) ( +. ) rA rB grow gcol (SZ.v vbk * tile);
+    let r_subtile = MS.__gmatmul_single 0.0R ( *. ) ( +. ) sub_rA sub_rB i j tile;
+
+    (* Step the partial sum: split property of __gmatmul_single over rA, rB *)
+    __gmatmul_single_split rA rB grow gcol (SZ.v vbk * tile) tile sub_rA sub_rB i j;
+    assert (pure (
+      MS.__gmatmul_single 0.0R ( *. ) ( +. ) rA rB grow gcol (SZ.v vbk * tile + tile)
+      == r_partial +. r_subtile));
+    assert (pure ((SZ.v vbk + 1) * tile == SZ.v vbk * tile + tile));
+
+    a_add s s' r_partial r_subtile;
     ()
   };
 

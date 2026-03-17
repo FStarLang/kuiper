@@ -47,7 +47,8 @@ let kpre
     (tid % tile)
     (macc eC grow gcol)
 
-(* Functional postcondition: the cell contains a value approximating real_gemm_single *)
+(* Functional postcondition: the cell contains a value approximating
+   MS.gemm_single over external real matrices rA, rB, rC *)
 unfold
 let kpost
   (#et : Type0) {| scalar et, real_like et |}
@@ -64,6 +65,9 @@ let kpost
   (eA : ematrix et (mrows   * tile) (mshared * tile))
   (eB : ematrix et (mshared * tile) (mcols   * tile))
   (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
@@ -83,7 +87,7 @@ let kpost
       (tid / tile)
       (tid % tile)
       v **
-    pure (v %~ MU.real_gemm_single comb_r eA eB eC grow gcol))
+    pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol))
 
 
 
@@ -101,7 +105,13 @@ fn kf
   (gA : gpu_matrix et lA)
   (gB : gpu_matrix et lB)
   (gC : gpu_matrix et lC)
-  (eA eB eC : ematrix et _ _)
+  (eA : ematrix et (mrows * tile) (mshared * tile))
+  (eB : ematrix et (mshared * tile) (mcols * tile))
+  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (_sq : squash (eA %~ rA /\ eB %~ rB /\ eC %~ rC))
   (fA fB : perm)
   (bid : szlt (mrows * mcols))
   (tid : szlt (tile * tile))
@@ -114,7 +124,7 @@ fn kf
     block_id (mrows * mcols) bid
   ensures
     gpu **
-    kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid **
+    kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid **
     thread_id (tile * tile) tid **
     block_id (mrows * mcols) bid
 {
@@ -141,21 +151,24 @@ fn kf
   let gTile = gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
   assert (rewrites_to gTile (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)));
 
-  (* Use matmul_tiled_dotprod' which gives us the approximation postcondition *)
-  let s = MU.matmul_tiled_dotprod' gA gB mrow mcol brow bcol;
-  (* s %~ real_matmul_single eA eB grow gcol *)
+  (* Introduce the pure approximation facts from the squash parameter *)
+  assert pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC);
+
+  (* Use matmul_tiled_dotprod_real which gives us the approximation over rA, rB *)
+  let s = MU.matmul_tiled_dotprod_real gA gB rA rB mrow mcol brow bcol;
+  (* s %~ MS.matmul_single rA rB grow gcol *)
 
   let v0 = gpu_matrix_read_cell gTile brow bcol;
   (* v0 == macc eC grow gcol *)
   let v1 = comb v0 s;
   gpu_matrix_write_cell gTile brow bcol v1;
 
-  (* Prove v1 approximates real_gemm_single:
-     - v0 = macc eC grow gcol, so to_real v0 approximates itself by to_real_ok
-     - s %~ real_matmul_single eA eB grow gcol (from matmul_tiled_dotprod')
+  (* Prove v1 approximates MS.gemm_single comb_r rA rB rC grow gcol:
+     - v0 = macc eC grow gcol, and eC %~ rC, so v0 %~ macc rC grow gcol
+     - s %~ MS.matmul_single rA rB grow gcol (from matmul_tiled_dotprod_real)
      - v1 = comb v0 s
-     - By comb_r's refinement: v1 %~ comb_r (to_real v0) (real_matmul_single) = real_gemm_single *)
-  to_real_ok v0;
+     - By approx2 comb comb_r: v1 %~ comb_r (macc rC grow gcol) (MS.matmul_single rA rB grow gcol)
+     - Which is: v1 %~ MS.gemm_single comb_r rA rB rC grow gcol *)
 
   rewrite
     gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
@@ -164,7 +177,7 @@ fn kf
     gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
       (tid / tile) (tid % tile) v1;
 
-  fold (kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
+  fold (kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
   ()
 }
 
@@ -186,6 +199,9 @@ fn setup
   (#fB : perm)
   (gC : gpu_matrix et lC)
   (#eA #eB #eC : ematrix _ _ _)
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
   ()
   norewrite
   requires
@@ -266,19 +282,22 @@ fn teardown
   (#fB : perm)
   (gC : gpu_matrix et lC)
   (#eA #eB #eC : ematrix _ _ _)
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
   ()
   norewrite
   requires
     (forall+ (bid : natlt2 mrows mcols)
             (tid : natlt2 tile  tile).
-      kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid) **
+      kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid) **
     emp (* frame *)
   ensures
     gA |-> Frac fA eA **
     gB |-> Frac fB eB **
-    (exists* (eC' : ematrix et _ _).
+    (exists* (eC' : ematrix et (mrows * tile) (mcols * tile)).
       gC |-> eC' **
-      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
+      pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {
   let n_threads = (mrows * mcols) * (tile * tile);
 
@@ -292,7 +311,7 @@ fn teardown
   (* Step 2: Unfold kpost to expose the existentials *)
   forevery_ext_2
     (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
-      kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+      kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
     (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
       let mrow = bid / mcols in
       let mcol = bid % mcols in
@@ -306,7 +325,7 @@ fn teardown
         gpu_matrix_pts_to_cell
           (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
           (tid / tile) (tid % tile) v **
-        pure (v %~ MU.real_gemm_single comb_r eA eB eC grow gcol)));
+        pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol)));
 
   (* Step 3: Unzip gA, gB *)
   forevery_unzip_2
@@ -324,7 +343,7 @@ fn teardown
         gpu_matrix_pts_to_cell
           (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
           (tid / tile) (tid % tile) v **
-        pure (v %~ MU.real_gemm_single comb_r eA eB eC grow gcol)));
+        pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol)));
   forevery_unzip_2
     (fun (bid : natlt (mrows * mcols)) (tid : natlt (tile * tile)) ->
       gB |-> Frac (fB /. n_threads) eB)
@@ -339,7 +358,7 @@ fn teardown
         gpu_matrix_pts_to_cell
           (gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
           (tid / tile) (tid % tile) v **
-        pure (v %~ MU.real_gemm_single comb_r eA eB eC grow gcol));
+        pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol));
 
   (* Step 4: Gather gA and gB *)
   forevery_unfactor' n_threads (mrows * mcols) (tile * tile)
@@ -355,11 +374,11 @@ fn teardown
   let _vf = gpu_matrix_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
     (SZ.v mrows) (SZ.v mcols)
     (fun (row : natlt (mrows * tile)) (col : natlt (mcols * tile)) (v : et) ->
-      v %~ MU.real_gemm_single comb_r eA eB eC row col);
+      v %~ MS.gemm_single comb_r rA rB rC row col);
 
-  (* Step 6: Prove ematrix_approximates *)
+  (* Step 6: Prove eC' %~ MS.mmcomb comb_r rC rA rB *)
   with eC'. assert (gC |-> eC');
-  assert pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB));
+  assert pure (eC' %~ MS.mmcomb comb_r rC rA rB);
   ();
 }
 #pop-options
@@ -423,10 +442,13 @@ let kpost_block_sendable
   (eA : ematrix et (mrows   * tile) (mshared * tile))
   (eB : ematrix et (mshared * tile) (mcols   * tile))
   (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
-: is_send_across block_of (kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+: is_send_across block_of (kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
 = solve
 
 let block_pre_gpu_sendable
@@ -466,11 +488,14 @@ let block_post_gpu_sendable
   (eA : ematrix et (mrows   * tile) (mshared * tile))
   (eB : ematrix et (mshared * tile) (mcols   * tile))
   (eC : ematrix et (mrows   * tile) (mcols   * tile))
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
   (fA fB : perm)
   (bid : natlt (mrows * mcols))
 : is_send_across gpu_of
     (forall+ (tid : natlt2 tile tile).
-      kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+      kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
 = solve
 #pop-options
 
@@ -492,37 +517,41 @@ let mk_kernel
   (#fB : perm)
   (gC : gpu_matrix et lC { is_global_matrix gC })
   (#eA #eB #eC : ematrix _ _ _)
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
   (_ : squash (mrows * mcols <= max_blocks
-               /\ tile * tile <= max_threads))
+               /\ tile * tile <= max_threads
+               /\ eA %~ rA /\ eB %~ rB /\ eC %~ rC))
   : kernel_desc_m_n
       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
       (gA |-> Frac fA eA ** gB |-> Frac fB eB **
-        (exists* (eC' : ematrix et _ _).
+        (exists* (eC' : ematrix et (mrows * tile) (mcols * tile)).
           gC |-> eC' **
-          pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB))))
+          pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
 = {
   nblk = mrows *^ mcols;
   nthr = tile *^ tile;
 
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt2 tile tile). kpre  comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
-  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
-  setup     = setup    tile comb comb_r gA gB gC #eA #eB #eC;
-  teardown  = teardown tile comb comb_r gA gB gC #eA #eB #eC;
+  block_post = (fun bid -> forall+ (tid : natlt2 tile tile). kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
+  setup     = setup    tile comb comb_r gA gB gC #eA #eB #eC rA rB rC;
+  teardown  = teardown tile comb comb_r gA gB gC #eA #eB #eC rA rB rC;
 
   block_frame    = (fun _bid -> emp);
   block_setup    = block_setup (mrows *^ mcols) (tile *^ tile);
   block_teardown = (fun bid -> Kuiper.Frame.emp_elim_r ());
 
   kpre      = kpre  comb comb_r tile gA gB gC eA eB eC fA fB;
-  kpost     = kpost comb comb_r tile gA gB gC eA eB eC fA fB;
+  kpost     = kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB;
 
-  f = kf #et #_ #_ comb comb_r #mrows #mshared #mcols tile gA gB gC eA eB eC fA fB;
+  f = kf #et #_ #_ comb comb_r #mrows #mshared #mcols tile gA gB gC eA eB eC rA rB rC () fA fB;
 
   kpre_sendable = kpre_block_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
-  kpost_sendable = kpost_block_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
+  kpost_sendable = kpost_block_sendable comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB;
   block_pre_sendable = block_pre_gpu_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
-  block_post_sendable = block_post_gpu_sendable comb comb_r tile gA gB gC eA eB eC fA fB;
+  block_post_sendable = block_post_gpu_sendable comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB;
 }
 #pop-options
 
@@ -542,7 +571,12 @@ fn mmcomb_gpu_approx
   (gB : gpu_matrix et lB { is_global_matrix gB })
   (#fB : perm)
   (gC : gpu_matrix et lC { is_global_matrix gC })
-  (#eA #eB #eC : ematrix _ _ _)
+  (#eA : ematrix et (mrows * tile) (mshared * tile))
+  (#eB : ematrix et (mshared * tile) (mcols * tile))
+  (#eC : ematrix et (mrows * tile) (mcols * tile))
+  (rA  : ematrix real (mrows * tile) (mshared * tile))
+  (rB  : ematrix real (mshared * tile) (mcols * tile))
+  (rC  : ematrix real (mrows * tile) (mcols * tile))
   norewrite
   preserves
     cpu **
@@ -551,53 +585,13 @@ fn mmcomb_gpu_approx
   requires
     pure (mrows * mcols <= max_blocks /\
           tile * tile <= max_threads) **
+    pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    (exists* (eC' : ematrix et _ _).
+    (exists* (eC' : ematrix et (mrows * tile) (mcols * tile)).
       on gpu_loc (gC |-> eC') **
-      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
+      pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {
   dassert (tile >^ 0sz);
-  launch_sync (mk_kernel tile comb comb_r gA gB gC ());
-}
-
-
-(* Legacy interface for backward compatibility.
-   Calls the approximate kernel with add/(+.) and assumes the exact result. *)
-inline_for_extraction noextract
-fn mmcomb_gpu
-  (tile : valid_tile)
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
-  (#mrows #mshared #mcols : szp)
-  (lA : mlayout (mrows   * tile) (mshared * tile))
-  (lB : mlayout (mshared * tile) (mcols   * tile))
-  (lC : mlayout (mrows   * tile) (mcols   * tile))
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : gpu_matrix et lA { is_global_matrix gA })
-  (#fA : perm)
-  (gB : gpu_matrix et lB { is_global_matrix gB })
-  (#fB : perm)
-  (gC : gpu_matrix et lC { is_global_matrix gC })
-  (#eA #eB #eC : ematrix _ _ _)
-  norewrite
-  preserves
-    cpu **
-    on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (gB |-> Frac fB eB)
-  requires
-    pure (mrows * mcols <= max_blocks /\
-          tile * tile <= max_threads) **
-    on gpu_loc (gC |-> eC)
-  ensures
-    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
-{
-  // Fake real_like instance and comb_r with assumed refinement
-  let _ : real_like et #_ = magic ();
-  let comb_r : binop real = magic ();
-  assume pure (approx2 comb comb_r);
-  mmcomb_gpu_approx tile comb comb_r lA lB lC gA gB gC;
-  with eC'. assert (on gpu_loc (gC |-> eC'));
-  (* Assume the approximate result is exactly correct *)
-  assume pure (eC' == MS.mmcomb comb eC eA eB);
+  launch_sync (mk_kernel tile comb comb_r gA gB gC rA rB rC ());
 }
