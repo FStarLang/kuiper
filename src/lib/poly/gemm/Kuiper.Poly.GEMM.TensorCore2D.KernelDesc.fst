@@ -715,7 +715,7 @@ let tiles_approx_lemma
   ()
 #pop-options
 
-#push-options "--z3rlimit 80" // the function below is pretty terribly performant
+#push-options "--z3rlimit 100" // the function below is pretty terribly performant
 ghost
 fn reconstruct_from_warp_approx
   (#et_ab #et_c : Type0)
