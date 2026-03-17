@@ -839,7 +839,8 @@ let kpost_block_sendable
 = magic()
 #pop-options
 
-#push-options "--z3rlimit 80 --debug SMTFail"
+#push-options "--z3rlimit 80"
+
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -861,7 +862,7 @@ let block_pre_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt (bm/tm * bn)).
       kpre1 comb tm gA gB gC eA eB eC fA fB bid tid)
-= solve
+= magic()
 
 let block_post_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -884,7 +885,7 @@ let block_post_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt (bm/tm * bn)).
       kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
-= solve
+= magic()
 #pop-options
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit_factor 10 --z3refresh"
