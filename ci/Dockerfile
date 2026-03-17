@@ -1,3 +1,12 @@
+# Base image for Kuiper CI, devcontainer, and artifact.
+#
+# CI / devcontainer:
+#   docker build -t mtzguido/pulse-cuda-devcontainer .
+#
+# Artifact (see artifact/build-artifact.sh):
+#   docker build -t kuiper-base .
+#   docker build -t kuiper-pldi2026 -f artifact/Dockerfile artifact/
+
 FROM ubuntu:24.04
 
 SHELL ["/bin/bash", "-c"]
@@ -34,12 +43,12 @@ RUN wget -nv https://github.com/Z3Prover/z3/releases/download/z3-4.13.3/z3-4.13.
  && cp z3-4.13.3-x64-glibc-2.35/bin/z3 /usr/local/bin/z3-4.13.3 \
  && rm -r z3-4.13.3-*
 
-# Create a new user and give them sudo rights
-ARG USER=vscode
-RUN useradd -d /home/$USER -s /bin/bash -m $USER
+# Reuse the ubuntu user (UID=1000) for devcontainer compatibility
+ARG USER=ubuntu
 RUN echo "$USER ALL=NOPASSWD: ALL" >> /etc/sudoers
 USER $USER
 ENV HOME /home/$USER
+WORKDIR $HOME
 
 # Install OCaml
 ARG OCAML_VERSION=5.3.0
@@ -48,3 +57,6 @@ RUN opam update --yes
 RUN opam option depext-run-installs=true
 ENV OPAMYES=1
 RUN opam install --yes batteries zarith stdint yojson dune menhir menhirLib pprint sedlex ppxlib process ppx_deriving ppx_deriving_yojson memtrace visitors uucp wasm fix mtime
+
+# Instrument .profile and .bashrc to set the opam switch
+RUN echo 'eval $(opam env)' | tee --append $HOME/.profile $HOME/.bashrc $HOME/.bash_profile
