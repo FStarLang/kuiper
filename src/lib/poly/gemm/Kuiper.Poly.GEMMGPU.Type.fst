@@ -70,6 +70,46 @@ type matmulcomb_gpu_ty
   matmulcomb_gpu_fixed_ty comb lA lB lC
     (size_req rows shared cols)
 
+unfold
+inline_for_extraction
+type matmulcomb_gpu_approx_ty
+  (size_req : size_req_t)
+=
+  (#et : Type0) -> {| scalar et |} -> {| real_like et |} ->
+  (comb : binop et) ->
+  (comb_r : binop real { approx2 comb comb_r }) ->
+  (#rows : szp) ->
+  (#shared : szp) ->
+  (#cols : szp) ->
+  (#lA : full_mlayout rows shared) ->
+  (#lB : full_mlayout shared cols) ->
+  (#lC : full_mlayout rows cols) ->
+  {| clayout lA |} ->
+  {| clayout lB |} ->
+  {| clayout lC |} ->
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA }) ->
+  (#fA : perm) ->
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB }) ->
+  (#fB : perm) ->
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC }) ->
+  (#eA : ematrix et rows shared) ->
+  (#eB : ematrix et shared cols) ->
+  (#eC : ematrix et rows cols) ->
+  (rA : ematrix real rows shared) ->
+  (rB : ematrix real shared cols) ->
+  (rC : ematrix real rows cols) ->
+  stt unit
+    (requires
+      (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
+      (pure (size_req rows shared cols) **
+       pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
+       on gpu_loc (gC |-> eC)))
+    (ensures fun _ ->
+      (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
+      (exists* (eC' : ematrix et rows cols).
+        on gpu_loc (gC |-> eC') **
+        pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
+
 (* The type of GPU-side matmuls that only work over already
 tiled matrices. *)
 unfold
