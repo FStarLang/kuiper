@@ -719,6 +719,7 @@ fn kf
 #pop-options
 
 
+#push-options "--z3rlimit 80"
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
@@ -753,8 +754,118 @@ fn setup
       kpre1 comb tm gA gB gC eA eB eC fA fB bid tid) **
     emp (* frame *)
 {
-  admit();
+  let n_threads = (mrows * mcols) * (bm/tm * bn);
+
+  (* Step 1: Share gA/gB, explode gC *)
+  M.gpu_matrix_share_n gA n_threads;
+  M.gpu_matrix_share_n gB n_threads;
+  gpu_matrix_explode_tiled gC (SZ.v bm) (SZ.v bn);
+  forevery_rw_size4
+    ((mrows * bm) / bm) mrows
+    ((mcols * bn) / bn) mcols
+    (SZ.v bm) bm
+    (SZ.v bn) bn;
+
+  (* Step 2: Rearrange inner (r,c) → (tid,i) per tile *)
+  forevery_map_2
+    (fun (tr : natlt mrows) (tc : natlt mcols) ->
+      forall+ (r : natlt bm) (c : natlt bn).
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc) r c
+          (macc eC (tr * bm + r) (tc * bn + c)))
+    (fun (tr : natlt mrows) (tc : natlt mcols) ->
+      forall+ (tid : natlt (bm/tm * bn)) (i : natlt tm).
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc)
+          ((tid / bn * tm) + i) (tid % bn)
+          (macc eC (tr * bm + ((tid / bn * tm) + i)) (tc * bn + (tid % bn))))
+    fn tr tc {
+      forevery_factor bm (bm/tm) tm
+        (fun (r : natlt bm) ->
+          forall+ (c : natlt bn).
+            gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc) r c
+              (macc eC (tr * bm + r) (tc * bn + c)));
+      forevery_mid_flip
+        (fun (threadRow : natlt (bm/tm)) (i : natlt tm) (c : natlt bn) ->
+          gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc)
+            (threadRow * tm + i) c
+            (macc eC (tr * bm + (threadRow * tm + i)) (tc * bn + c)));
+      forevery_unfactor' (bm/tm * bn) (bm/tm) bn
+        (fun (threadRow : natlt (bm/tm)) (c : natlt bn) ->
+          forall+ (i : natlt tm).
+            gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc)
+              (threadRow * tm + i) c
+              (macc eC (tr * bm + (threadRow * tm + i)) (tc * bn + c)));
+    };
+
+  (* Step 3: Collapse (tr,tc) → bid *)
+  forevery_unfactor' (mrows * mcols) mrows mcols
+    (fun (tr : natlt mrows) (tc : natlt mcols) ->
+      forall+ (tid : natlt (bm/tm * bn)) (i : natlt tm).
+        gpu_matrix_pts_to_cell (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc)
+          ((tid / bn * tm) + i) (tid % bn)
+          (macc eC (tr * bm + ((tid / bn * tm) + i)) (tc * bn + (tid % bn))));
+
+  (* Step 4: Factor gA/gB to 2D *)
+  forevery_factor n_threads (mrows * mcols) (bm/tm * bn)
+    (fun _ -> gA |-> Frac (fA /. n_threads) eA);
+  forevery_factor n_threads (mrows * mcols) (bm/tm * bn)
+    (fun _ -> gB |-> Frac (fB /. n_threads) eB);
+
+  (* Step 5: Zip gA, gB, gC *)
+  forevery_zip3_2
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (bm/tm * bn)) ->
+      gA |-> Frac (fA /. n_threads) eA)
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (bm/tm * bn)) ->
+      gB |-> Frac (fB /. n_threads) eB)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (bm/tm * bn)) ->
+      forall+ (i : natlt tm).
+        gpu_matrix_pts_to_cell
+          (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+          ((tid / bn * tm) + i) (tid % bn)
+          (macc eC ((bid / mcols) * bm + ((tid / bn * tm) + i))
+                   ((bid % mcols) * bn + (tid % bn))));
+
+  (* Step 6: Bridge to SizeT and match kpre1 *)
+  forevery_rw_size2
+    (mrows * mcols) (mrows *^ mcols)
+    (bm/tm * bn) (bm /^ tm *^ bn);
+  forevery_map_2
+    (fun (bid : natlt (mrows *^ mcols)) (tid : natlt (bm /^ tm *^ bn)) ->
+      gA |-> Frac (fA /. n_threads) eA **
+      gB |-> Frac (fB /. n_threads) eB **
+      forall+ (i : natlt tm).
+        gpu_matrix_pts_to_cell
+          (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+          ((tid / bn * tm) + i) (tid % bn)
+          (macc eC ((bid / mcols) * bm + ((tid / bn * tm) + i))
+                   ((bid % mcols) * bn + (tid % bn))))
+    (fun (bid : natlt (mrows *^ mcols)) (tid : natlt (bm /^ tm *^ bn)) ->
+      kpre1 comb tm gA gB gC eA eB eC fA fB bid tid)
+    fn bid tid {
+      forevery_map
+        (fun (i : natlt tm) ->
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            ((tid / bn * tm) + i) (tid % bn)
+            (macc eC ((bid / mcols) * bm + ((tid / bn * tm) + i))
+                     ((bid % mcols) * bn + (tid % bn))))
+        (fun (i : natlt tm) ->
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            ((tid / bn * tm) + i) (tid % bn)
+            (macc (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                  ((tid / bn * tm) + i) (tid % bn)))
+        fn i {
+          rewrite each
+            (macc eC ((bid / mcols) * bm + ((tid / bn * tm) + i))
+                     ((bid % mcols) * bn + (tid % bn)))
+          as
+            (macc (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                  ((tid / bn * tm) + i) (tid % bn));
+        };
+    };
+  ();
 }
+#pop-options
 
 ghost
 fn block_setup
@@ -898,6 +1009,7 @@ fn block_teardown
 }
 #pop-options
 
+#push-options "--z3rlimit 160"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -933,8 +1045,198 @@ fn teardown
       gC |-> eC' **
       pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))
 {
-  admit();
+  let n_threads = (mrows * mcols) * (bm/tm * bn);
+
+  (* Step 1: Bridge from SizeT to nat *)
+  forevery_rw_size2
+    (mrows *^ mcols) (mrows * mcols)
+    (bm /^ tm *^ bn) (bm/tm * bn);
+
+  (* Step 2: Unfold kpost1 *)
+  forevery_ext_2
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (bm/tm * bn)) ->
+      kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (bm/tm * bn)) ->
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      gA |-> Frac (fA /. n_threads) eA **
+      gB |-> Frac (fB /. n_threads) eB **
+      forall+ (i : natlt tm).
+        exists* (v : et).
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            ((tid / bn * tm) + i) (tid % bn) v **
+          pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                  (mrow * bm + (tid / bn * tm) + i)
+                  (mcol * bn + (tid % bn))));
+
+  (* Step 3: Unzip gA *)
+  forevery_unzip_2
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (bm/tm * bn)) ->
+      gA |-> Frac (fA /. n_threads) eA)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (bm/tm * bn)) ->
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      gB |-> Frac (fB /. n_threads) eB **
+      forall+ (i : natlt tm).
+        exists* (v : et).
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            ((tid / bn * tm) + i) (tid % bn) v **
+          pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                  (mrow * bm + (tid / bn * tm) + i)
+                  (mcol * bn + (tid % bn))));
+
+  (* Step 4: Unzip gB *)
+  forevery_unzip_2
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (bm/tm * bn)) ->
+      gB |-> Frac (fB /. n_threads) eB)
+    (fun (bid : natlt (mrows * mcols)) (tid : natlt (bm/tm * bn)) ->
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      forall+ (i : natlt tm).
+        exists* (v : et).
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            ((tid / bn * tm) + i) (tid % bn) v **
+          pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                  (mrow * bm + (tid / bn * tm) + i)
+                  (mcol * bn + (tid % bn))));
+
+  (* Step 5: Gather gA and gB *)
+  forevery_unfactor' n_threads (mrows * mcols) (bm/tm * bn)
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (bm/tm * bn)) ->
+      gA |-> Frac (fA /. n_threads) eA);
+  M.gpu_matrix_gather_n gA n_threads;
+
+  forevery_unfactor' n_threads (mrows * mcols) (bm/tm * bn)
+    (fun (_ : natlt (mrows * mcols)) (_ : natlt (bm/tm * bn)) ->
+      gB |-> Frac (fB /. n_threads) eB);
+  M.gpu_matrix_gather_n gB n_threads;
+
+  (* Step 6: Rearrange (bid, tid, i) → (bid, flatid) *)
+  forevery_map
+    (fun (bid : natlt (mrows * mcols)) ->
+      forall+ (tid : natlt (bm/tm * bn)) (i : natlt tm).
+        exists* (v : et).
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            ((tid / bn * tm) + i) (tid % bn) v **
+          pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                  (bid / mcols * bm + (tid / bn * tm) + i)
+                  (bid % mcols * bn + (tid % bn))))
+    (fun (bid : natlt (mrows * mcols)) ->
+      forall+ (flatid : natlt (bm * bn)).
+        exists* (v : et).
+          gpu_matrix_pts_to_cell
+            (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+            (flatid / bn) (flatid % bn) v **
+          pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                  (bid / mcols * bm + flatid / bn)
+                  (bid % mcols * bn + flatid % bn)))
+    fn bid {
+      forevery_factor' (bm/tm * bn) (bm/tm) bn
+        (fun (threadRow : natlt (bm/tm)) (c : natlt bn) ->
+          forall+ (i : natlt tm).
+            exists* (v : et).
+              gpu_matrix_pts_to_cell
+                (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                (threadRow * tm + i) c v **
+              pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                      (bid / mcols * bm + (threadRow * tm) + i)
+                      (bid % mcols * bn + c)));
+      forevery_mid_flip
+        (fun (threadRow : natlt (bm/tm)) (c : natlt bn) (i : natlt tm) ->
+          exists* (v : et).
+            gpu_matrix_pts_to_cell
+              (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+              (threadRow * tm + i) c v **
+            pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                    (bid / mcols * bm + (threadRow * tm) + i)
+                    (bid % mcols * bn + c)));
+      // Re-associate addition: (a + b) + c → a + (b + c)
+      forevery_map_2
+        (fun (threadRow : natlt (bm/tm)) (i : natlt tm) ->
+          forall+ (c : natlt bn).
+            exists* (v : et).
+              gpu_matrix_pts_to_cell
+                (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                (threadRow * tm + i) c v **
+              pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                      (bid / mcols * bm + (threadRow * tm) + i)
+                      (bid % mcols * bn + c)))
+        (fun (threadRow : natlt (bm/tm)) (i : natlt tm) ->
+          forall+ (c : natlt bn).
+            exists* (v : et).
+              gpu_matrix_pts_to_cell
+                (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                (threadRow * tm + i) c v **
+              pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                      (bid / mcols * bm + (threadRow * tm + i))
+                      (bid % mcols * bn + c)))
+        fn threadRow i {
+          assert pure (bid / mcols * bm + (threadRow * tm) + i == bid / mcols * bm + (threadRow * tm + i));
+          forevery_map
+            (fun (c : natlt bn) ->
+              exists* (v : et).
+                gpu_matrix_pts_to_cell
+                  (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                  (threadRow * tm + i) c v **
+                pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                        (bid / mcols * bm + (threadRow * tm) + i)
+                        (bid % mcols * bn + c)))
+            (fun (c : natlt bn) ->
+              exists* (v : et).
+                gpu_matrix_pts_to_cell
+                  (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                  (threadRow * tm + i) c v **
+                pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                        (bid / mcols * bm + (threadRow * tm + i))
+                        (bid % mcols * bn + c)))
+            fn c {
+              ();
+            };
+        };
+      forevery_unfactor bm (bm/tm) tm
+        (fun (r : natlt bm) ->
+          forall+ (c : natlt bn).
+            exists* (v : et).
+              gpu_matrix_pts_to_cell
+                (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+                r c v **
+              pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                      (bid / mcols * bm + r)
+                      (bid % mcols * bn + c)));
+      forevery_unfactor' (bm * bn) bm bn
+        (fun (r : natlt bm) (c : natlt bn) ->
+          exists* (v : et).
+            gpu_matrix_pts_to_cell
+              (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+              r c v **
+            pure (v %~ MU.real_gemm_single comb_r eA eB eC
+                    (bid / mcols * bm + r)
+                    (bid % mcols * bn + c)));
+    };
+
+  (* Step 7: Collect cells back into matrix *)
+  let _vf = gpu_matrix_collect_approx_tiled gC (SZ.v bm) (SZ.v bn)
+    mrows mcols
+    (fun (row : natlt (mrows * bm)) (col : natlt (mcols * bn)) (v : et) ->
+      v %~ MU.real_gemm_single comb_r eA eB eC row col);
+
+  (* Step 8: Prove ematrix_approximates *)
+  with eC'. assert (gC |-> eC');
+
+  assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
+    macc eC' row col %~ MU.real_gemm_single comb_r eA eB eC row col);
+
+  assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
+    macc eC' row col %~ macc (MU.real_mmcomb comb_r eC eA eB) row col);
+
+  assert pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB));
+  ();
 }
+#pop-options
 
 #push-options "--z3rlimit 80"
 let kpre_block_sendable
