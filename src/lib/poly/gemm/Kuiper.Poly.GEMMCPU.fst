@@ -10,7 +10,6 @@ module SZ = Kuiper.SizeT
 open Kuiper.EMatrix { ematrix, to_real_matrix, lemma_to_real_matrix_approximates }
 open Kuiper.Matrix.Reprs.Type
 module M  = Kuiper.Matrix
-module MU = Kuiper.Poly.GEMM.Util
 
 #set-options "--z3rlimit 20"
 

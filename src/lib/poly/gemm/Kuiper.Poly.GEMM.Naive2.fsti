@@ -9,7 +9,6 @@ computing a full dot product. *)
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
-module MU = Kuiper.Poly.GEMM.Util
 module MS = Kuiper.Spec.GEMM
 module M = Kuiper.Matrix
 open Kuiper.Matrix.Reprs.Type
