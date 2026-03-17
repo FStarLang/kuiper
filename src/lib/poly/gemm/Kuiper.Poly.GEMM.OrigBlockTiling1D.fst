@@ -20,6 +20,8 @@ module R = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
 
+open Kuiper.Poly.GEMM.Copy { live_cell }
+
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
 let shmems_desc
@@ -136,57 +138,202 @@ in each array, related to their tid.
 So in even steps, they give their shared ownership,
 and receive their cells. (p)
 *)
-let own_1_cell
-  (#et : Type0)
-  (#rows #cols : szp)
-  (#l : mlayout rows cols)
-  (m : gpu_matrix et l)
-  (i : natlt rows)
-  (j : natlt cols)
-  : slprop =
-  exists* va. gpu_matrix_pts_to_cell m i j va
+(* Per-cell barrier contract following SHMem's pattern:
+   threads flip-flop between shared fractional ownership (even steps)
+   and exclusive single-cell ownership (odd steps).
 
+   Even steps (rin): each thread gives back fractional read ownership
+   Odd steps (rin): each thread gives back single-cell write ownership
+     with *specific* content (the correct subtile) so the proof goes through.
+   Even steps (rout): each thread receives single-cell write ownership
+   Odd steps (rout): each thread receives fractional read ownership
+     with *specific* content (the correct subtile). *)
 let barrier_p
   (#et : Type0)
   (#bm #bn #bk : szp)
   (tm : szp{tm `divides` bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * bm) (mshared * bk))
+  (eB : ematrix et (mshared * bk) (mcols * bn))
+  (bid : natlt (mrows * mcols))
   (#l1 : full_mlayout bm bk)
   (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   : B.barrier_side (bm/tm * bn) =
   fun it tid ->
-    if even it then
+    if it >= 2 * mshared then
+      emp
+    else if even it then
       (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. (bm/tm * bn)) x) **
       (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. (bm/tm * bn)) x)
     else
-      own_1_cell m1 (tid/bk) (tid%bk) ** own_1_cell m2 (tid/bn) (tid%bn)
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      gpu_matrix_pts_to_cell m1 (tid/bk) (tid%bk) (macc (ematrix_subtile eA bm bk mrow (it / 2)) (tid/bk) (tid%bk)) **
+      gpu_matrix_pts_to_cell m2 (tid/bn) (tid%bn) (macc (ematrix_subtile eB bk bn (it / 2) mcol) (tid/bn) (tid%bn))
 
 let barrier_q
-  (#et : Type0)
+  (#et : Type0) {| scalar et |}
   (#bm #bn #bk : szp)
   (tm : szp{tm `divides` bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * bm) (mshared * bk))
+  (eB : ematrix et (mshared * bk) (mcols * bn))
+  (bid : natlt (mrows * mcols))
   (#l1 : full_mlayout bm bk)
   (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2)
   : B.barrier_side (bm/tm * bn) =
-  fun it tid -> barrier_p tm m1 m2 (it+1) tid (* flip flop *)
+  fun it tid ->
+    if it >= 2 * mshared then
+      emp
+    else if even it then
+      live_cell m1 (tid/bk) (tid%bk) ** live_cell m2 (tid/bn) (tid%bn)
+    else
+      let mrow = bid / mcols in
+      let mcol = bid % mcols in
+      m1 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eA bm bk mrow (it / 2)) **
+      m2 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eB bk bn (it / 2) mcol)
 
 let barrier_contract
-  (#et : Type0)
+  (#et : Type0) {| scalar et |}
   (#bm #bn #bk : szp)
   (tm : szp{tm `divides` bm})
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * bm) (mshared * bk))
+  (eB : ematrix et (mshared * bk) (mcols * bn))
+  (bid : natlt (mrows * mcols))
   (#l1 : full_mlayout bm bk)
   (#l2 : full_mlayout bk bn)
   (m1 : gpu_matrix et l1)
   (m2 : gpu_matrix et l2) : B.contract (bm/tm * bn) = {
-    rin = barrier_p tm m1 m2;
-    rout = barrier_q tm m1 m2;
+    rin  = barrier_p tm eA eB bid m1 m2;
+    rout = barrier_q tm eA eB bid m1 m2;
   }
+
+#push-options "--z3rlimit 80 --fuel 0 --ifuel 0"
+ghost
+fn barrier_p_to_q_transform
+  (#et : Type0) {| scalar et |}
+  (#bm #bn #bk : szp)
+  (tm : szp{tm `divides` bm})
+  (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
+  (#mrows #mshared #mcols : pos)
+  (eA : ematrix et (mrows * bm) (mshared * bk))
+  (eB : ematrix et (mshared * bk) (mcols * bn))
+  (bid : natlt (mrows * mcols))
+  (#l1 : full_mlayout bm bk)
+  (#l2 : full_mlayout bk bn)
+  (m1 : gpu_matrix et l1)
+  (m2 : gpu_matrix et l2)
+  (#_ : squash (SZ.fits (mlayout_size l1)))
+  (#_ : squash (SZ.fits (mlayout_size l2)))
+  (it : nat)
+  requires
+    forall+ (tid : natlt (bm/tm * bn)).
+      barrier_p tm eA eB bid m1 m2 it tid
+  ensures
+    forall+ (tid : natlt (bm/tm * bn)).
+      barrier_q tm eA eB bid m1 m2 it tid
+{
+  if (it >= 2 * mshared) {
+    forevery_map
+      (fun (tid : natlt (bm/tm * bn)) -> barrier_p tm eA eB bid m1 m2 it tid)
+      (fun (tid : natlt (bm/tm * bn)) -> barrier_q tm eA eB bid m1 m2 it tid)
+      fn tid {
+        rewrite barrier_p tm eA eB bid m1 m2 it tid as emp;
+        rewrite emp as barrier_q tm eA eB bid m1 m2 it tid;
+      };
+  } else {
+    let ev = even it;
+    if ev {
+      assert pure (it < 2 * mshared);
+      assert pure (even it);
+      forevery_map
+        (fun (tid : natlt (bm/tm * bn)) -> barrier_p tm eA eB bid m1 m2 it tid)
+        (fun (tid : natlt (bm/tm * bn)) ->
+          (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. (bm/tm * bn)) x) **
+          (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. (bm/tm * bn)) x))
+        fn tid {
+          rewrite barrier_p tm eA eB bid m1 m2 it tid
+               as (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. (bm/tm * bn)) x) **
+                  (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. (bm/tm * bn)) x);
+        };
+      forevery_unzip _ _;
+      M.gpu_matrix_gather_n_underspec m1 (bm/tm * bn);
+      with em1. assert m1 |-> em1;
+      M.gpu_matrix_explode m1;
+      forevery_unfactor' (bm/tm * bn) bm bk
+        (fun r c -> gpu_matrix_pts_to_cell m1 r c (macc em1 r c));
+      forevery_map
+        (fun (tid : natlt (bm/tm * bn)) -> gpu_matrix_pts_to_cell m1 (tid/bk) (tid%bk) (macc em1 (tid/bk) (tid%bk)))
+        (fun (tid : natlt (bm/tm * bn)) -> live_cell m1 (tid/bk) (tid%bk))
+        fn tid { fold (live_cell m1 (tid/bk) (tid%bk)) };
+      M.gpu_matrix_gather_n_underspec m2 (bm/tm * bn);
+      with em2. assert m2 |-> em2;
+      M.gpu_matrix_explode m2;
+      forevery_unfactor' (bm/tm * bn) bk bn
+        (fun r c -> gpu_matrix_pts_to_cell m2 r c (macc em2 r c));
+      forevery_map
+        (fun (tid : natlt (bm/tm * bn)) -> gpu_matrix_pts_to_cell m2 (tid/bn) (tid%bn) (macc em2 (tid/bn) (tid%bn)))
+        (fun (tid : natlt (bm/tm * bn)) -> live_cell m2 (tid/bn) (tid%bn))
+        fn tid { fold (live_cell m2 (tid/bn) (tid%bn)) };
+      forevery_zip
+        (fun (tid : natlt (bm/tm * bn)) -> live_cell m1 (tid/bk) (tid%bk)) _;
+      forevery_map
+        (fun (tid : natlt (bm/tm * bn)) -> live_cell m1 (tid/bk) (tid%bk) ** live_cell m2 (tid/bn) (tid%bn))
+        (fun (tid : natlt (bm/tm * bn)) -> barrier_q tm eA eB bid m1 m2 it tid)
+        fn tid {
+          rewrite live_cell m1 (tid/bk) (tid%bk) ** live_cell m2 (tid/bn) (tid%bn)
+               as barrier_q tm eA eB bid m1 m2 it tid;
+        };
+    } else {
+      assert pure (it < 2 * mshared);
+      assert pure (odd it);
+      let mrow = bid / mcols;
+      let mcol = bid % mcols;
+      forevery_map
+        (fun (tid : natlt (bm/tm * bn)) -> barrier_p tm eA eB bid m1 m2 it tid)
+        (fun (tid : natlt (bm/tm * bn)) ->
+          gpu_matrix_pts_to_cell m1 (tid/bk) (tid%bk) (macc (ematrix_subtile eA bm bk mrow (it/2)) (tid/bk) (tid%bk)) **
+          gpu_matrix_pts_to_cell m2 (tid/bn) (tid%bn) (macc (ematrix_subtile eB bk bn (it/2) mcol) (tid/bn) (tid%bn)))
+        fn tid {
+          rewrite barrier_p tm eA eB bid m1 m2 it tid
+               as gpu_matrix_pts_to_cell m1 (tid/bk) (tid%bk) (macc (ematrix_subtile eA bm bk mrow (it/2)) (tid/bk) (tid%bk)) **
+                  gpu_matrix_pts_to_cell m2 (tid/bn) (tid%bn) (macc (ematrix_subtile eB bk bn (it/2) mcol) (tid/bn) (tid%bn));
+        };
+      forevery_unzip _ _;
+      forevery_factor' (bm/tm * bn) bm bk
+        (fun r c -> gpu_matrix_pts_to_cell m1 r c (macc (ematrix_subtile eA bm bk mrow (it/2)) r c));
+      M.gpu_matrix_implode m1;
+      M.gpu_matrix_share_n m1 (bm/tm * bn);
+      forevery_factor' (bm/tm * bn) bk bn
+        (fun r c -> gpu_matrix_pts_to_cell m2 r c (macc (ematrix_subtile eB bk bn (it/2) mcol) r c));
+      M.gpu_matrix_implode m2;
+      M.gpu_matrix_share_n m2 (bm/tm * bn);
+      forevery_zip
+        (fun (_ : natlt (bm/tm * bn)) -> m1 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eA bm bk mrow (it/2))) _;
+      forevery_map
+        (fun (tid : natlt (bm/tm * bn)) ->
+          m1 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eA bm bk mrow (it/2)) **
+          m2 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eB bk bn (it/2) mcol))
+        (fun (tid : natlt (bm/tm * bn)) -> barrier_q tm eA eB bid m1 m2 it tid)
+        fn tid {
+          rewrite
+            m1 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eA bm bk mrow (it/2)) **
+            m2 |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eB bk bn (it/2) mcol)
+          as
+            barrier_q tm eA eB bid m1 m2 it tid;
+        };
+    }
+  }
+}
+#pop-options
 
 unfold
 let kpre
@@ -278,23 +425,27 @@ fn populate_shmem
   preserves
     gpu **
     gA |-> Frac fA eA **
-    gB |-> Frac fB eB **
-    own_1_cell sA (tid/bk) (tid%bk) **
-    own_1_cell sB (tid/bn) (tid%bn)
+    gB |-> Frac fB eB
+  requires
+    live_cell sA (tid/bk) (tid%bk) **
+    live_cell sB (tid/bn) (tid%bn)
+  ensures
+    gpu_matrix_pts_to_cell sA (tid/bk) (tid%bk) (macc (ematrix_subtile eA bm bk mrow mk) (tid/bk) (tid%bk)) **
+    gpu_matrix_pts_to_cell sB (tid/bn) (tid%bn) (macc (ematrix_subtile eB bk bn mk mcol) (tid/bn) (tid%bn))
 {
-  unfold own_1_cell sA (tid/bk) (tid%bk);
+  unfold live_cell sA (tid/bk) (tid%bk);
   let tA = gpu_matrix_extract_tile_ro' gA (SZ.v bm) (SZ.v bk) (SZ.v mrow) (SZ.v mk);
   let va = M.gpu_matrix_read tA (tid /^ bk) (tid %^ bk);
   M.gpu_matrix_write_cell sA (tid /^ bk) (tid %^ bk) va;
   Trade.elim_trade _ _;
-  fold own_1_cell sA (tid/bk) (tid%bk);
+  rewrite each va as (macc (ematrix_subtile eA bm bk mrow mk) (tid/bk) (tid%bk));
 
-  unfold own_1_cell sB (tid/bn) (tid%bn);
+  unfold live_cell sB (tid/bn) (tid%bn);
   let tB = gpu_matrix_extract_tile_ro' gB (SZ.v bk) (SZ.v bn) (SZ.v mk) (SZ.v mcol);
   let vb = M.gpu_matrix_read tB (tid /^ bn) (tid %^ bn);
   M.gpu_matrix_write_cell sB (tid /^ bn) (tid %^ bn) vb;
   Trade.elim_trade _ _;
-  fold own_1_cell sB (tid/bn) (tid%bn);
+  rewrite each vb as (macc (ematrix_subtile eB bk bn mk mcol) (tid/bn) (tid%bn));
 }
 
 inline_for_extraction noextract
@@ -384,14 +535,14 @@ fn kf
     kpre comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (bm/tm * bn) tid **
     block_id (mrows * mcols) bid **
-    B.barrier_tok (barrier_contract tm (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
+    B.barrier_tok (barrier_contract tm eA eB bid (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
     B.barrier_state 0
   ensures
     gpu **
     kpost comb comb_r tm slA slB gA gB gC eA eB eC fA fB sh bid tid **
     thread_id (bm/tm * bn) tid **
     block_id (mrows * mcols) bid **
-    B.barrier_tok (barrier_contract tm (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
+    B.barrier_tok (barrier_contract tm eA eB bid (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
     B.barrier_state (2 * mshared)
 {
   let (sarA, (sarB, _)) = sh;
@@ -429,40 +580,42 @@ fn kf
     even_2x !bkIdx;
     rewrite (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
             (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
-         as barrier_p tm sA sB (2 * !bkIdx) tid;
-    rewrite barrier_p tm sA sB (2 * !bkIdx) tid
-         as (barrier_contract tm sA sB).rin (2 * !bkIdx) tid;
+         as barrier_p tm eA eB bid sA sB (2 * !bkIdx) tid;
+    rewrite barrier_p tm eA eB bid sA sB (2 * !bkIdx) tid
+         as (barrier_contract tm eA eB bid sA sB).rin (2 * !bkIdx) tid;
 
     B.barrier_wait ();
 
-    rewrite (barrier_contract tm sA sB).rout (2 * !bkIdx) tid
-         as barrier_q tm sA sB (2 * !bkIdx) tid;
-    rewrite barrier_q tm sA sB (2 * !bkIdx) tid
-         as own_1_cell sA (tid/bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn);
+    rewrite (barrier_contract tm eA eB bid sA sB).rout (2 * !bkIdx) tid
+         as barrier_q tm eA eB bid sA sB (2 * !bkIdx) tid;
+    rewrite barrier_q tm eA eB bid sA sB (2 * !bkIdx) tid
+         as live_cell sA (tid/bk) (tid%bk) ** live_cell sB (tid/bn) (tid%bn);
 
-    (* At this point we exclusively own a full column of the SHMEM
-       cache. Populate it. *)
+    (* At this point we exclusively own a cell of the SHMEM
+       cache. Populate it with specific content. *)
     populate_shmem tm sA sB gA gB mrow !bkIdx mcol tid;
 
     odd_2x1 !bkIdx;
     assert pure (odd (2 * !bkIdx + 1));
-    rewrite own_1_cell sA (tid/bk) (tid%bk) ** own_1_cell sB (tid/bn) (tid%bn)
-         as barrier_p tm sA sB (2 * !bkIdx + 1) tid;
-    rewrite barrier_p tm sA sB (2 * !bkIdx + 1) tid
-         as (barrier_contract tm sA sB).rin (2 * !bkIdx + 1) tid;
+    rewrite gpu_matrix_pts_to_cell sA (tid/bk) (tid%bk) (macc (ematrix_subtile eA bm bk mrow !bkIdx) (tid/bk) (tid%bk)) **
+            gpu_matrix_pts_to_cell sB (tid/bn) (tid%bn) (macc (ematrix_subtile eB bk bn !bkIdx mcol) (tid/bn) (tid%bn))
+         as barrier_p tm eA eB bid sA sB (2 * !bkIdx + 1) tid;
+    rewrite barrier_p tm eA eB bid sA sB (2 * !bkIdx + 1) tid
+         as (barrier_contract tm eA eB bid sA sB).rin (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
     even_2x (!bkIdx + 1);
-    (* sigh *)
     let vbkIdx = !bkIdx;
     assert (pure (2 * (vbkIdx + 1) == 2 * vbkIdx + 1 + 1));
     assert (pure (even (2 * vbkIdx + 2)));
-    rewrite (barrier_contract tm sA sB).rout (2 * vbkIdx + 1) tid
-         as barrier_q tm sA sB (2 * vbkIdx + 1) tid;
-    rewrite barrier_q tm sA sB (2 * vbkIdx + 1) tid
+    assert pure ((2 * vbkIdx + 1) < 2 * mshared);
+    assert pure ((2 * vbkIdx + 1) / 2 == vbkIdx);
+    rewrite (barrier_contract tm eA eB bid sA sB).rout (2 * vbkIdx + 1) tid
+         as barrier_q tm eA eB bid sA sB (2 * vbkIdx + 1) tid;
+    rewrite barrier_q tm eA eB bid sA sB (2 * vbkIdx + 1) tid
     as
-      (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
-      (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x);
+      sA |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eA bm bk mrow vbkIdx) **
+      sB |-> Frac (1.0R /. (bm/tm * bn)) (ematrix_subtile eB bk bn vbkIdx mcol);
 
     subproducts1d tm cache1d sA sB threadRow threadCol;
 
@@ -928,9 +1081,9 @@ let mk_kernel
 
   shmems_desc = shmems_desc et bm bn bk;
 
-  barrier_contract = (fun bid ptrs -> barrier_contract tm (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
+  barrier_contract = (fun bid ptrs -> barrier_contract tm eA eB bid (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
   barrier_count    = (fun _bid -> 2 * SZ.v mshared);
-  barrier_ok = (fun bid ptrs -> magic());
+  barrier_ok = (fun bid ptrs -> barrier_p_to_q_transform tm eA eB bid (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
 
   frame = emp;
   block_pre  = (fun bid -> forall+ (tid : natlt (bm/^tm *^ bn)). kpre1  comb tm gA gB gC eA eB eC fA fB bid tid);
