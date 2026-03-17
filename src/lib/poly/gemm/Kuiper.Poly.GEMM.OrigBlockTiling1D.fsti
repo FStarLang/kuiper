@@ -8,7 +8,6 @@ open Kuiper.Poly.GEMMGPU.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Poly.GEMM.Util
 
 inline_for_extraction noextract

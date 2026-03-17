@@ -7,7 +7,6 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
 module M = Kuiper.Matrix
-module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Poly.GEMM.Util
 module P = Kuiper.Poly.GEMM.OrigBlockTiling1D
 
