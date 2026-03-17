@@ -36,12 +36,17 @@ instance erased_can_approximate_rhs (c m : Type)
 unfold let (%~) #c #m (x:c) (y:m) {| can_approximate c m |}
   : prop = approximates x y
 
+let pts_to_approx_via #pt #rt #mt {| has_pts_to pt rt, can_approximate rt mt |}
+  (p : pt) (#[full_default()] f:perm) (v : rt) (m : mt)
+=
+  p |-> v ** pure (v %~ m)
+
 (* "Approximated" points-to. Inference does not really work to make this useful,
-but it would be really nice. *)
+so we use pts_to_approx_via instead, but it would be really nice. *)
 let ( |~> ) #pt #rt #mt {| has_pts_to pt rt, can_approximate rt mt |}
   (p : pt) (#[full_default()] f:perm) (m : mt)
   : slprop =
-  exists* (v : rt). p |-> v ** pure (v %~ m)
+  exists* (v : rt). pts_to_approx_via p #f v m
 
 instance real_like_can_approximate (#a:Type) (_ : scalar a) (_ : real_like a)
   : can_approximate a real = {
@@ -87,3 +92,14 @@ val sum_is_approx' #a {| scalar a, real_like a |}
 val sum_is_approx #a {| scalar a, real_like a |} (s: seq a) (s': seq real) :
     Lemma (requires s %~ s')
           (ensures seq_fold_left add zero s %~ seq_fold_left (+.) 0.0R s')
+
+let approx2
+  (#a #b #c : Type)
+  {| scalar a, real_like a,
+     scalar b, real_like b,
+     scalar c, real_like c |}
+  (f : a -> b -> c)
+  (g : real -> real -> real)
+  : prop
+  = forall x y r s.
+      x %~ r /\ y %~ s ==> f x y %~ g r s
