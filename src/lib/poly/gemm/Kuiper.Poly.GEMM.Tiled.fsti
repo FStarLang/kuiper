@@ -23,7 +23,7 @@ val mmcomb_gpu_approx
   (tile : valid_tile)
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (lA : mlayout (mrows   * tile) (mshared * tile))
   (lB : mlayout (mshared * tile) (mcols   * tile))

@@ -16,7 +16,7 @@ fn spec
   (tm : szp{tm /?+ bm /\ (bm/tm * bn <= max_threads)})
   (et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (rA rB rC : mrepr)
   {| cA : crepr rA, cB : crepr rB, cC :  crepr rC |}
   (rows shared cols : szp)

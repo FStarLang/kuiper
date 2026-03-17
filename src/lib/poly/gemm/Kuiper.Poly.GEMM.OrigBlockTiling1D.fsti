@@ -14,7 +14,7 @@ inline_for_extraction noextract
 fn mmcomb_gpu_approx
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (bm bn bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})

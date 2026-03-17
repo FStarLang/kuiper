@@ -16,7 +16,7 @@ unfold
 let kpre
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -52,7 +52,7 @@ unfold
 let kpost
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -91,7 +91,7 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -174,7 +174,7 @@ fn setup
   (tile : valid_tile)
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
   (#lB : mlayout (mshared * tile) (mcols   * tile))
@@ -254,7 +254,7 @@ fn teardown
   (tile : valid_tile)
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
   (#lB : mlayout (mshared * tile) (mcols   * tile))
@@ -390,7 +390,7 @@ fn block_setup
 let kpre_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -411,7 +411,7 @@ let kpre_block_sendable
 let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -432,7 +432,7 @@ let kpost_block_sendable
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -454,7 +454,7 @@ let block_pre_gpu_sendable
 let block_post_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (tile : valid_tile)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
@@ -480,7 +480,7 @@ let mk_kernel
   (tile : valid_tile)
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (#lA : mlayout (mrows   * tile) (mshared * tile))
   (#lB : mlayout (mshared * tile) (mcols   * tile))
@@ -531,7 +531,7 @@ fn mmcomb_gpu_approx
   (tile : valid_tile)
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#mrows #mshared #mcols : szp)
   (lA : mlayout (mrows   * tile) (mshared * tile))
   (lB : mlayout (mshared * tile) (mcols   * tile))
@@ -595,7 +595,7 @@ fn mmcomb_gpu
   // Fake real_like instance and comb_r with assumed refinement
   let _ : real_like et #_ = magic ();
   let comb_r : binop real = magic ();
-  assume pure (forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s);
+  assume pure (approx2 comb comb_r);
   mmcomb_gpu_approx tile comb comb_r lA lB lC gA gB gC;
   with eC'. assert (on gpu_loc (gC |-> eC'));
   (* Assume the approximate result is exactly correct *)

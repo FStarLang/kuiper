@@ -96,7 +96,7 @@ unfold
 let kpost1
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -369,7 +369,7 @@ unfold
 let kpost
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -504,7 +504,7 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -834,7 +834,7 @@ ghost
 fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -902,7 +902,7 @@ ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -966,7 +966,7 @@ let kpre_block_sendable
 let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp{SZ.fits (bm * bk) /\ SZ.fits (bk * bn)})
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -1019,7 +1019,7 @@ let block_pre_gpu_sendable
 let block_post_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -1046,7 +1046,7 @@ inline_for_extraction noextract
 let mk_kernel
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (#bm #bn #bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -1110,7 +1110,7 @@ inline_for_extraction noextract
 fn mmcomb_gpu_approx
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
-  (comb_r : binop real { forall x y r s. x %~ r /\ y %~ s ==> comb x y %~ comb_r r s })
+  (comb_r : binop real { approx2 comb comb_r })
   (bm bn bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
