@@ -106,6 +106,32 @@ let real_matmul_single_subtile
       (ematrix_to_real (ematrix_subtile m2 tile tile bk bj))
       i j tile
 
+(* Splitting partial sum over real matrices:
+   sum(0 to base+n) = sum(0 to base) + sum over subtile elements *)
+val __gmatmul_single_split
+  (#rows #shared #cols : nat)
+  (m1 : ematrix real rows shared)
+  (m2 : ematrix real shared cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  (base : nat{base <= shared})
+  (n : nat{base + n <= shared})
+  (#sub_n : nat{n <= sub_n})
+  (sub_m1 : ematrix real sub_n sub_n)
+  (sub_m2 : ematrix real sub_n sub_n)
+  (sub_row : natlt sub_n)
+  (sub_col : natlt sub_n)
+  : Lemma
+    (requires
+      (forall (k:nat). k < n ==>
+        macc sub_m1 sub_row k == macc m1 row (base + k) /\
+        macc sub_m2 k sub_col == macc m2 (base + k) col))
+    (ensures
+      MS.__gmatmul_single 0.0R ( *. ) ( +. ) m1 m2 row col (base + n)
+      ==
+      MS.__gmatmul_single 0.0R ( *. ) ( +. ) m1 m2 row col base +.
+      MS.__gmatmul_single 0.0R ( *. ) ( +. ) sub_m1 sub_m2 sub_row sub_col n)
+
 (* Stepping the tiled partial sum by one tile block *)
 val __real_matmul_single_tiled_step
   (#et:Type) {| scalar et, real_like et |}
@@ -169,6 +195,26 @@ val mmcomb_approx
   : Lemma
     (requires approx2 comb comb_r)
     (ensures ematrix_approximates (MS.mmcomb comb eC eA eB) (real_mmcomb comb_r eC eA eB))
+
+(* Approximation of partial matmul over external real matrices:
+   if eA %~ rA and eB %~ rB then
+   __gmatmul_single ... eA eB row col n %~ __gmatmul_single ... rA rB row col n *)
+val __matmul_single_approx_real
+  (#et:Type) {| scalar et |} {| real_like et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (row : natlt rows)
+  (col : natlt cols)
+  (n : nat{n <= shared})
+  : Lemma
+    (requires eA %~ rA /\ eB %~ rB)
+    (ensures
+      MS.__gmatmul_single zero mul add eA eB row col n
+      %~
+      MS.__gmatmul_single #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col n)
 
 (* mmcomb approximation over external real matrices:
    If eA %~ rA, eB %~ rB, eC %~ rC, and approx2 comb comb_r,
