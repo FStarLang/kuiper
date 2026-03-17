@@ -1,11 +1,11 @@
 name: Advance submodules
 
 on:
-  # Only manually triggered
+  # Manually triggered
   workflow_dispatch:
   schedule:
-    # every three hours
-    - cron: '0 */3 * * *'
+    # Or once a day
+    - cron: '0 0 * * *'
 
 jobs:
   build:
