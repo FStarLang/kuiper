@@ -13,7 +13,7 @@ let size_req tile : size_req_t =
     (rows / tile) * (cols / tile) <= max_blocks /\
     tile * tile <= max_threads
 
-(* CPU approximate matmul — dynamically-chosen tile *)
+(* CPU approximate matmul - dynamically-chosen tile *)
 
 val matmul_f32_rrr (tile : valid_tile) : fixed_repr_matmul_cpu_approx_ty f32 (size_req tile) RM RM RM
 val matmul_f64_rrr (tile : valid_tile) : fixed_repr_matmul_cpu_approx_ty f64 (size_req tile) RM RM RM
@@ -25,7 +25,7 @@ val matmul_f64_ccc (tile : valid_tile) : fixed_repr_matmul_cpu_approx_ty f64 (si
 val matmul_u32_ccc (tile : valid_tile) : fixed_repr_matmul_cpu_approx_ty u32 (size_req tile) CM CM CM
 val matmul_u64_ccc (tile : valid_tile) : fixed_repr_matmul_cpu_approx_ty u64 (size_req tile) CM CM CM
 
-(* CPU approximate matmul — tile=32 *)
+(* CPU approximate matmul - tile=32 *)
 
 val matmul_f32_tile32_rrr : fixed_repr_matmul_cpu_approx_ty f32 (size_req 32) RM RM RM
 val matmul_f64_tile32_rrr : fixed_repr_matmul_cpu_approx_ty f64 (size_req 32) RM RM RM
@@ -37,7 +37,7 @@ val matmul_f64_tile32_ccc : fixed_repr_matmul_cpu_approx_ty f64 (size_req 32) CM
 val matmul_u32_tile32_ccc : fixed_repr_matmul_cpu_approx_ty u32 (size_req 32) CM CM CM
 val matmul_u64_tile32_ccc : fixed_repr_matmul_cpu_approx_ty u64 (size_req 32) CM CM CM
 
-(* CPU approximate matmul — tile=16 *)
+(* CPU approximate matmul - tile=16 *)
 
 val matmul_f32_tile16_rrr : fixed_repr_matmul_cpu_approx_ty f32 (size_req 16) RM RM RM
 val matmul_f64_tile16_rrr : fixed_repr_matmul_cpu_approx_ty f64 (size_req 16) RM RM RM
@@ -49,7 +49,7 @@ val matmul_f64_tile16_ccc : fixed_repr_matmul_cpu_approx_ty f64 (size_req 16) CM
 val matmul_u32_tile16_ccc : fixed_repr_matmul_cpu_approx_ty u32 (size_req 16) CM CM CM
 val matmul_u64_tile16_ccc : fixed_repr_matmul_cpu_approx_ty u64 (size_req 16) CM CM CM
 
-(* GPU-side approximate matmul — dynamically-chosen tile *)
+(* GPU-side approximate matmul - dynamically-chosen tile *)
 
 val g_matmul_f32_rrr (tile : valid_tile) : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req tile) RM RM RM
 val g_matmul_f64_rrr (tile : valid_tile) : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req tile) RM RM RM
@@ -61,7 +61,7 @@ val g_matmul_f64_ccc (tile : valid_tile) : fixed_repr_mmcomb_gpu_approx_ty f64 (
 val g_matmul_u32_ccc (tile : valid_tile) : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req tile) CM CM CM
 val g_matmul_u64_ccc (tile : valid_tile) : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req tile) CM CM CM
 
-(* GPU-side approximate matmul — tile=32 *)
+(* GPU-side approximate matmul - tile=32 *)
 
 val g_matmul_f32_tile32_rrr : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 32) RM RM RM
 val g_matmul_f64_tile32_rrr : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 32) RM RM RM
@@ -73,7 +73,7 @@ val g_matmul_f64_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 32) 
 val g_matmul_u32_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req 32) CM CM CM
 val g_matmul_u64_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req 32) CM CM CM
 
-(* GPU-side approximate matmul — tile=16 *)
+(* GPU-side approximate matmul - tile=16 *)
 
 val g_matmul_f32_tile16_rrr : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 16) RM RM RM
 val g_matmul_f64_tile16_rrr : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 16) RM RM RM

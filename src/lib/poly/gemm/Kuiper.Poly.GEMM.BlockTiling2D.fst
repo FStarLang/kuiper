@@ -583,7 +583,7 @@ let macc_mupd
   = ()
 
 (* ettile commutes with matrix_comb (and thus mmcomb) pointwise.
-   This needs normalization through ematrix_subtile → mkM → macc chains. *)
+   This needs normalization through ematrix_subtile -> mkM -> macc chains. *)
 let ettile_matmul_pointwise
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
@@ -762,7 +762,7 @@ fn epilogue
       resIdxN := !resIdxN +^ 1sz;
     };
 
-    (* Bridge inner→outer: when resIdxN==tn, the linearized condition
+    (* Bridge inner->outer: when resIdxN==tn, the linearized condition
        i*tn+j < resIdxM*tn+tn is equivalent to i <= resIdxM, and
        since j < tn, also to i < resIdxM+1. *)
     assert pure (forall (i:natlt tm) (j:natlt tn).
@@ -1042,7 +1042,7 @@ fn setup
             Frac 1.0R (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc));
     };
 
-  (* Step 4: Collapse (br, bc) → bid *)
+  (* Step 4: Collapse (br, bc) -> bid *)
   forevery_rw_size2 (SZ.v (rows /^ bm)) (rows / bm) (SZ.v (cols /^ bn)) (cols / bn);
   forevery_unfactor' (rows/bm * (cols/bn)) (rows/bm) (cols/bn)
     (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
@@ -1082,7 +1082,7 @@ fn setup
 
   forevery_rw_size2 (rows/bm * (cols/bn)) (SZ.v nblk) (bm/tm * (bn/tn)) (SZ.v nthr);
 
-  (* Step 7: Fold into kpre1 — introduce pure facts *)
+  (* Step 7: Fold into kpre1 - introduce pure facts *)
   forevery_map_2
     (fun (bid : natlt nblk) (tid : natlt nthr) ->
       gA |-> Frac (fA /. n_total) eA **
@@ -1192,7 +1192,7 @@ fn block_teardown
     (fun (tid : natlt nthr) -> kpost1 comb gA eA gB eB gC eC bm bn bk tm tn fA fB bid tid)
     (fun (_ : natlt nthr) -> live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))));
 
-  (* Need to convert natlt nthr → natlt (bm/tm * (bn/tn)) for gather *)
+  (* Need to convert natlt nthr -> natlt (bm/tm * (bn/tn)) for gather *)
   forevery_rw_size (SZ.v nthr) (bm/tm * (bn/tn))
     #(fun (_ : natlt (SZ.v nthr)) -> live_c_shmems sh #(1.0R /. (bm/tm * (bn/tn))));
   gpu_live_c_shmems_gather_underspec sh #1.0R #(bm/tm * (bn/tn));
@@ -1238,7 +1238,7 @@ fn teardown
   let nblk_val = rows/bm * (cols/bn);
   let nthr_val = bm/tm * (bn/tn);
 
-  (* Step 1: Collapse 2D → 1D (single forall+ in context, no ambiguity) *)
+  (* Step 1: Collapse 2D -> 1D (single forall+ in context, no ambiguity) *)
   forevery_rw_size2 (SZ.v nblk) nblk_val (SZ.v nthr) nthr_val;
   (* Divisibility chain: rows/tm == (rows/bm) * (bm/tm), cols/tn == (cols/bn) * (bn/tn) *)
   assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
@@ -1264,12 +1264,12 @@ fn teardown
   gpu_matrix_gather_n gA (rows/tm * (cols/tn));
   gpu_matrix_gather_n gB (rows/tm * (cols/tn));
 
-  (* Step 3: Factor' gC: 1D → 2D (bid, tid) *)
+  (* Step 3: Factor' gC: 1D -> 2D (bid, tid) *)
   forevery_factor' (rows/tm * (cols/tn)) nblk_val nthr_val
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
       ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid);
 
-  (* Step 4: Convert ttile/ettile to explicit subtile form — Pulse tactic can unfold these *)
+  (* Step 4: Convert ttile/ettile to explicit subtile form - Pulse tactic can unfold these *)
   forevery_ext_2
     (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
       ttile gC bm bn tm tn bid tid |-> ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid)
@@ -1281,7 +1281,7 @@ fn teardown
       gpu_matrix_subtile (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc |->
         Frac 1.0R (ematrix_subtile (ematrix_subtile (MS.mmcomb comb eC eA eB) (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc));
 
-  (* Step 5: Factor' bid → (br, bc) — now the body uses explicit div/mod *)
+  (* Step 5: Factor' bid -> (br, bc) - now the body uses explicit div/mod *)
   forevery_factor' nblk_val (rows/bm) (cols/bn)
     (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
       forall+ (tid : natlt nthr_val).
@@ -1290,7 +1290,7 @@ fn teardown
         gpu_matrix_subtile (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc |->
           Frac 1.0R (ematrix_subtile (ematrix_subtile (MS.mmcomb comb eC eA eB) (SZ.v bm) (SZ.v bn) br bc) (SZ.v tm) (SZ.v tn) tr tc));
 
-  (* Step 6: Per block, factor' tid → (tr, tc) and untile *)
+  (* Step 6: Per block, factor' tid -> (tr, tc) and untile *)
   forevery_map_2
     (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
       forall+ (tid : natlt nthr_val).

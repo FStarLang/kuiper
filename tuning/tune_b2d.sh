@@ -28,6 +28,7 @@ go () {
             -Dtile_sizes= \
             -Dregch_sizes= \
             -Det_lbl= \
+            -DKUIPER_CFG_TENSORCORES=0 \
             obj/Kuiper_GEMM_BlockTiling2D.o \
             test/Tune_Kuiper_GEMM_BlockTiling2D.cu
     ./bench.exe 50 4096 4096 4096 0 || echo "RES ERROR"

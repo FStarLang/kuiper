@@ -823,7 +823,7 @@ fn teardown
       gpu_matrix_gather_n_underspec (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) warp_size;
     };
 
-  (* 5d: Per block, rewrite warp_tile → subtile, factor, and untile *)
+  (* 5d: Per block, rewrite warp_tile -> subtile, factor, and untile *)
   forevery_map
     (fun (bid : natlt nblk_val) ->
       forall+ (wid : natlt (bm/tm * (bn/tn))).
@@ -854,7 +854,7 @@ fn teardown
       gpu_matrix_untile_underspec (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn);
     };
 
-  (* 5e: Rewrite block_tile → subtile, factor, and untile *)
+  (* 5e: Rewrite block_tile -> subtile, factor, and untile *)
   forevery_map
     (fun (bid : natlt nblk_val) ->
       exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).

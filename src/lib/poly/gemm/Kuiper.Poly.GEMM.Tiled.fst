@@ -400,11 +400,6 @@ fn block_setup
   ();
 }
 
-(* Sendability helpers — standalone definitions so the typeclass resolver
-   runs in a minimal context with an explicit goal type.
-   kpre/kpost are block_of-sendable (all components are global matrices, hence
-   gpu_of-sendable, and gpu_of implies block_of).
-   block_pre/post wrap kpre/kpost in forall+, needing gpu_of directly. *)
 #push-options "--z3rlimit 40"
 let kpre_block_sendable
   (#et : Type0) {| scalar et, real_like et |}

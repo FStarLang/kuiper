@@ -729,7 +729,7 @@ fn block_setup
   // Share shmem into (tile * tile) copies
   gpu_live_c_shmems_share_underspec sh #1.0R #(tile * tile);
 
-  // Bridge natlt type: natlt (tile * tile) → natlt2 tile tile
+  // Bridge natlt type: natlt (tile * tile) -> natlt2 tile tile
   forevery_rw_size (tile * tile) (SZ.v (tile *^ tile));
 
   // Zip shmem fracs with kpre1 to form kpre
@@ -777,7 +777,7 @@ fn block_teardown
     (forall+ (tid : natlt2 tile  tile).
       kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
 {
-  // Convert natlt2 → natlt (tile * tile) first (1 forall+, no ambiguity)
+  // Convert natlt2 -> natlt (tile * tile) first (1 forall+, no ambiguity)
   forevery_rw_size (SZ.v (tile *^ tile)) (tile * tile);
 
   // Unzip kpost into kpost1 + shmem fracs
@@ -829,7 +829,7 @@ fn teardown
       gC |-> eC' **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {
-  (* Step 1: Bridge natlt2 → natlt *)
+  (* Step 1: Bridge natlt2 -> natlt *)
   forevery_rw_size2
     (SZ.v (mrows *^ mcols)) (mrows * mcols)
     (SZ.v (tile *^ tile))   (SZ.v tile * SZ.v tile);
