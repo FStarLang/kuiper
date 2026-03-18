@@ -339,20 +339,6 @@ fn specialize_tiled_approx_gpu
   ()
 }
 
-let lincomb_approx2
-  (#et:Type) {| scalar et |} {| real_like et |}
-  (alpha beta : et) (alpha_r beta_r : real)
-  : Lemma (requires alpha %~ alpha_r /\ beta %~ beta_r)
-          (ensures approx2 (MS.lincomb alpha beta) (MS.lincomb alpha_r beta_r))
-  = let aux (x:et) (y:et) (r:real) (s:real) :
-      Lemma (requires x %~ r /\ y %~ s)
-            (ensures MS.lincomb alpha beta x y %~ MS.lincomb alpha_r beta_r r s) =
-      a_mul beta x beta_r r;
-      a_mul alpha y alpha_r s;
-      a_add (mul beta x) (mul alpha y) (beta_r *. r) (alpha_r *. s)
-    in
-    Classical.forall_intro_4 (fun x y r -> Classical.move_requires (aux x y r))
-
 inline_for_extraction noextract
 fn specialize_tiled_approx_gemm_gpu
   (#size_req : tiled_size_req_t)
@@ -396,7 +382,6 @@ fn specialize_tiled_approx_gemm_gpu
   // let comb = MS.lincomb alpha beta;
   let comb_r : (real -> real -> real) =
     (MS.lincomb (alpha_r) (beta_r));
-  lincomb_approx2 alpha beta (alpha_r) (beta_r);
 
   mmcomb_gpu_tiled_approx
     mmcomb_gpu_approx

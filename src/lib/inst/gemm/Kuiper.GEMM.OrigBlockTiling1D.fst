@@ -15,6 +15,8 @@ let matmul_f32_tiles64x8_8x64_rc8_rrr =
 // let matmul_f32_tiles32x32_32x32_rc32_rrr = spec_cpu (mmcomb_gpu_block_tiled1d P.mmcomb_gpu 32sz 32sz 32sz 32sz) f32 RM RM RM
 
 let g_gemm_f32_tiles64x8_8x64_rc8_rrr alpha beta =
+  to_real_ok alpha;
+  to_real_ok beta;
   spec 64sz 64sz 8sz 8sz f32
-    (MS.lincomb alpha beta) (magic())
+    (MS.lincomb alpha beta) (MS.lincomb (to_real alpha) (to_real beta))
      RM RM RM
