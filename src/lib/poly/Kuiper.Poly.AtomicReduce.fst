@@ -81,16 +81,28 @@ fn forevery_ghost_upd_lemma
   (done : seq (gref bool))
   (v_done : seq bool{len v_done >= len done})
   (tid : nat{tid < len done})
-  preserves
-    forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (v_done @! i)
   requires
+    (forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (v_done @! i)) **
     (done @! tid) |-> Frac 0.5R false
-  // returns
-  //   v_done' : (v_done' : seq bool{len v_done' >= len done})
   ensures
+    (forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i)) **
     (done @! tid) |-> Frac 0.5R true
 {
-  admit();
+  forevery_extract'
+    tid
+    (fun (i : natlt (len done)) -> (done @! i) |-> Frac 0.5R (v_done @! i));
+
+  Pulse.Lib.GhostReference.gather (done @! tid);
+  Pulse.Lib.GhostReference.write (done @! tid) true;
+  Pulse.Lib.GhostReference.share (done @! tid);
+
+  Pulse.Lib.Forall.elim_forall
+    (fun (i : natlt (len done)) -> (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i));
+
+  rewrite ((done @! tid) |-> Frac 0.5R true)
+      as  ((done @! tid) |-> Frac 0.5R (Seq.upd v_done tid true @! tid));
+
+  Pulse.Lib.Trade.elim_trade _ _;
 }
 
 assume
