@@ -120,11 +120,13 @@ There is also:
 For every `.fst` file mentioned here, there is usually also a matching
 `.fsti` with the interface for the module.
 
-### §2 Overview
+### Section 2
 
 The naive matrix multiplication shown in Figure 2 corresponds to
-`src/examples/Kuiper.Example1.fst`. The GEMM specification (dot products, matrix
-multiply) is in `src/lib/spec/Kuiper.Spec.GEMM.fst`.
+`src/lib/poly/gemm/Kuiper.Poly.GEMM.Naive.fst`, with some minor differences
+(e.g. it calls into a function to do the computation instead of having an
+inlined while loop). The GEMM specification (dot products, matrix multiply) is
+in `src/lib/spec/Kuiper.Spec.GEMM.fst`.
 
 ### Section 3
 
@@ -197,9 +199,22 @@ and print results. The maximum perf number is the one that should be taken.
 Running the script can take a *very* long time, possibly even days if the space
 is too big.
 
-There are two scripts: `./tuning/tune_b2d.sh` and `./tuning/tune_tc2d.sh`, for
-BlockTiling2D and TensorCore2D respectively. They will take _all_
-implementations present in the relevant instantiation modules
+We provide here the variants that gave the best performance for the GPUs we tried:
+
+For BlockTiling2D:
+- RTX 3050: `Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8_cr 4579.162 GFLOPS`
+- A6000: `Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8_cr 20447.934 GFLOPS`
+- A100: `Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x16_8x8_cr   17509.739 GFLOPS`
+
+For TensorCore2D:
+- RTX 3050: `Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x4 20854.286 GFLOPS`
+- A6000: `Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x32_16x16x16_8x4 88071.211 GFLOPS`
+- A100: `Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_128x128x16_8x32x16_16x2 103542.872 GFLOPS`
+
+To find the best-tuned variant in your configuration there are two scripts:
+`./tuning/tune_b2d.sh` and `./tuning/tune_tc2d.sh`, for BlockTiling2D and
+TensorCore2D respectively. They will take _all_ implementations present in the
+relevant instantiation modules
 (`src/lib/inst/gemm/Kuiper.GEMM.BlockTiling2D.fst` and
 `src/lib/inst/gemm/Kuiper.GEMM.TensorCore2D.fst`) and measure them.  To change
 the space, edit the relevant `.fst.sh` scripts.
