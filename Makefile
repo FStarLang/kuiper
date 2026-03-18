@@ -139,6 +139,7 @@ kuiper-bench.tar.gz: all
 	rm -f kuiper-bench/bench/*.o   # clean built files
 	rm -f kuiper-bench/bench/bench # clean built files
 	tar czf kuiper-bench.tar.gz ./kuiper-bench
+	rm -rf ./kuiper-bench
 
 .PHONY: test-bench-package
 test-bench-package: bench-package
