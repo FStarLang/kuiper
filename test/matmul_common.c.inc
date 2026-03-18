@@ -19,16 +19,24 @@ double et2double(et v)
 // for tensor core operations assume the accumulator's type for inputs as well
 cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 {
-    cet *m3 = (cet *) calloc(rows * cols, sizeof(cet));
+    // Accumulate in double to avoid precision loss from repeated
+    // rounding to cet (especially when cet is half).
+    // Note: tensor cores accumulate internally in FP32.
+    double *acc = (double *) calloc(rows * cols, sizeof(double));
     int i, j, k;
     for (i = 0; i < rows; i++) {
         for (k = 0; k < shared; k++) {
             for (j = 0; j < cols; j++) {
-                m3[i * cols + j] +=
+                acc[i * cols + j] +=
                     et2double(m1[i * shared + k]) * et2double(m2[k * cols + j]);
             }
         }
     }
+    cet *m3 = (cet *) malloc(rows * cols * sizeof(cet));
+    for (size_t n = 0; n < rows * cols; n++) {
+        m3[n] = acc[n];
+    }
+    free(acc);
     return m3;
 }
 
