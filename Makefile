@@ -136,6 +136,8 @@ kuiper-bench.tar.gz: all
 	cp -r .common.mk kuiper-bench/.common.mk
 	cp -r .configure.mk kuiper-bench/.configure.mk
 	cp -r bench kuiper-bench/bench
+	cp -r tuning kuiper-bench/tuning
+	cp -r handwritten-bench kuiper-bench/handwritten-bench
 	rm -f kuiper-bench/bench/*.o   # clean built files
 	rm -f kuiper-bench/bench/bench # clean built files
 	tar czf kuiper-bench.tar.gz ./kuiper-bench
