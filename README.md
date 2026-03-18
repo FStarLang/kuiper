@@ -33,17 +33,6 @@ include the relevant Kuiper header files in `include/`.
 
 ## Getting Started
 
-### devcontainer (codespace)
-
-To set up:
-```
-git submodule init
-git submodule update
-eval $(opam env)
-```
-
-TODO: check if extension works.
-
 ### Requirements
 - OCaml 5.3.0, OPAM, and some packages
 - Z3 version 4.13.3
@@ -118,11 +107,3 @@ Also:
 - `include/`: C/CUDA headers, needed to compile Kuiper code
 - `test/`: CUDA test drivers with expected-output files
 - `dist/`: a CUDA snapshot of the verified kernels
-
-### Run the Benchmarks
-(UPDATE)
-To run the benchmarks and test the compiled kernels, execute the provided script:
-```bash
-./scripts/bench.sh
-```
-This will run the benchmarks and provide performance and correctness outputs for the compiled code.
