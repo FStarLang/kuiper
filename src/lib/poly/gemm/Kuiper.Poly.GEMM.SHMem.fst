@@ -318,8 +318,7 @@ let kpre
   : slprop
   =
   kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid **
-  (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
-  (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x)
+  live_c_shmems sh #(1.0R /. (tile * tile))
 
 unfold
 let kpost
@@ -347,8 +346,7 @@ let kpost
   : slprop
   =
   kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid **
-  (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
-  (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x)
+  live_c_shmems sh #(1.0R /. (tile * tile))
 
 (* TODO: Find out where the time is going when checking this function,
 it feels a lot slower than the others. *)
@@ -397,7 +395,17 @@ fn kf
     B.barrier_tok (shmem_contract tile eA eB bid (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
     B.barrier_state (2 * mshared)
 {
+  (* Unfold live_c_shmems to get raw gpu_pts_to_array *)
+  unfold_live_c_shmems_cons sh #(1.0R /. (tile * tile));
+  unfold_live_c_shmems_cons (snd sh) #(1.0R /. (tile * tile));
+  unfold_live_c_shmems_nil (snd (snd sh)) #(1.0R /. (tile * tile));
+
   let (ar1, (ar2, _)) = sh;
+
+  rewrite (live_c_shmem ar1 #(1.0R /. (tile * tile)))
+      as  (exists* v. gpu_pts_to_array ar1 #(1.0R /. (tile * tile)) v);
+  rewrite (live_c_shmem ar2 #(1.0R /. (tile * tile)))
+      as  (exists* v. gpu_pts_to_array ar2 #(1.0R /. (tile * tile)) v);
 
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
@@ -597,6 +605,17 @@ fn kf
   rewrite each gTile as gpu_matrix_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols);
 
   fold (kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
+
+  (* Fold live_c_shmem for each shmem array *)
+  rewrite (exists* v. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) v)
+      as  (live_c_shmem (fst sh) #(1.0R /. (tile * tile)));
+  rewrite (exists* v. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) v)
+      as  (live_c_shmem (fst (snd sh)) #(1.0R /. (tile * tile)));
+
+  (* Fold live_c_shmems back for kpost *)
+  fold_live_c_shmems_nil (snd (snd sh)) #(1.0R /. (tile * tile));
+  fold_live_c_shmems_cons (snd sh) #(1.0R /. (tile * tile));
+  fold_live_c_shmems_cons sh #(1.0R /. (tile * tile));
   ()
 }
 #pop-options
@@ -710,20 +729,6 @@ fn block_setup
   // Share shmem into (tile * tile) copies
   gpu_live_c_shmems_share_underspec sh #1.0R #(tile * tile);
 
-  // Unfold live_c_shmems into explicit gpu_pts_to_array inside forall+
-  forevery_map
-    (fun (_ : natlt (tile * tile)) -> live_c_shmems sh #(1.0R /. (tile * tile)))
-    (fun (_ : natlt (tile * tile)) ->
-      (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
-      (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x))
-    fn _ {
-      unfold_live_c_shmems_cons sh #(1.0R /. (tile * tile));
-      unfold_live_c_shmem (fst sh) #(1.0R /. (tile * tile));
-      unfold_live_c_shmems_cons (snd sh) #(1.0R /. (tile * tile));
-      unfold_live_c_shmem (fst (snd sh)) #(1.0R /. (tile * tile));
-      unfold_live_c_shmems_nil (snd (snd sh)) #(1.0R /. (tile * tile));
-    };
-
   // Bridge natlt type: natlt (tile * tile) → natlt2 tile tile
   forevery_rw_size (tile * tile) (SZ.v (tile *^ tile));
 
@@ -732,6 +737,8 @@ fn block_setup
     (fun (tid : natlt2 tile tile) ->
       kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
     _;
+
+  ();
 }
 
 #push-options "--z3rlimit 20"
@@ -778,20 +785,6 @@ fn block_teardown
     (fun (tid : natlt (tile * tile)) ->
       kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
     _;
-
-  // Fold explicit gpu_pts_to_array back into live_c_shmems inside forall+
-  forevery_map
-    (fun (_ : natlt (tile * tile)) ->
-      (exists* x. gpu_pts_to_array (fst sh) #(1.0R /. (tile * tile)) x) **
-      (exists* x. gpu_pts_to_array (fst (snd sh)) #(1.0R /. (tile * tile)) x))
-    (fun (_ : natlt (tile * tile)) -> live_c_shmems sh #(1.0R /. (tile * tile)))
-    fn _ {
-      fold_live_c_shmem (fst (snd sh)) #(1.0R /. (tile * tile));
-      fold_live_c_shmems_nil (snd (snd sh)) #(1.0R /. (tile * tile));
-      fold_live_c_shmems_cons (snd sh) #(1.0R /. (tile * tile));
-      fold_live_c_shmem (fst sh) #(1.0R /. (tile * tile));
-      fold_live_c_shmems_cons sh #(1.0R /. (tile * tile));
-    };
 
   // Gather shmem fractions back
   gpu_live_c_shmems_gather_underspec sh #1.0R #(tile * tile);
@@ -919,6 +912,105 @@ fn teardown
 
 #push-options "--z3rlimit_factor 10 --fuel 0 --ifuel 0 --split_queries no"
 #restart-solver
+
+#push-options "--z3rlimit 40"
+let kpre_block_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (fA fB : perm)
+  (sh : c_shmems (shmems_desc et tile))
+  (_:squash (c_shmems_inv sh))
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (tile * tile))
+: is_send_across block_of (kpre comb comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid)
+= solve
+
+let kpost_block_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (fA fB : perm)
+  (sh : c_shmems (shmems_desc et tile))
+  (_:squash (c_shmems_inv sh))
+  (bid : natlt (mrows * mcols))
+  (tid : natlt (tile * tile))
+: is_send_across block_of (kpost comb comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB sh bid tid)
+= solve
+
+let block_pre_gpu_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (fA fB : perm)
+  (bid : natlt (mrows * mcols))
+: is_send_across gpu_of
+    (forall+ (tid : natlt2 tile tile).
+      kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
+= solve
+
+let block_post_gpu_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
+  (#mrows #mshared #mcols : sz)
+  (tile : valid_tile)
+  (slA slB : full_mlayout tile tile)
+  (#lA : mlayout (mrows   * tile) (mshared * tile))
+  (#lB : mlayout (mshared * tile) (mcols   * tile))
+  (#lC : mlayout (mrows   * tile) (mcols   * tile))
+  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (eA eB : ematrix _ _ _)
+  (eC : ematrix et (mrows * tile) (mcols * tile))
+  (rA : ematrix real (mrows   * tile) (mshared * tile))
+  (rB : ematrix real (mshared * tile) (mcols   * tile))
+  (rC : ematrix real (mrows   * tile) (mcols   * tile))
+  (fA fB : perm)
+  (bid : natlt (mrows * mcols))
+: is_send_across gpu_of
+    (forall+ (tid : natlt2 tile tile).
+      kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
+= solve
+#pop-options
+
 inline_for_extraction noextract
 let mk_kernel
   (tile : valid_tile)
@@ -978,10 +1070,10 @@ let mk_kernel
 
   f = kf tile slA slB comb comb_r gA gB gC rA rB rC;
 
-  block_pre_sendable=solve;
-  block_post_sendable=solve;
-  kpre_sendable=magic();
-  kpost_sendable=magic();
+  block_pre_sendable=block_pre_gpu_sendable comb comb_r tile slA slB gA gB gC eA eB eC fA fB;
+  block_post_sendable=block_post_gpu_sendable comb comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB;
+  kpre_sendable=kpre_block_sendable comb comb_r tile slA slB gA gB gC eA eB eC fA fB;
+  kpost_sendable=kpost_block_sendable comb comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB;
 }
 #pop-options
 
