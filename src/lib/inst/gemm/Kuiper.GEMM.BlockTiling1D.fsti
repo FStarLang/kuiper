@@ -60,3 +60,27 @@ val g_matmul_f32_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 16) 
 val g_matmul_f64_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 16) CM CM CM
 val g_matmul_u32_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req 16) CM CM CM
 val g_matmul_u64_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req 16) CM CM CM
+
+(* GPU-side approximate GEMM — tile=32 *)
+
+val g_gemm_f32_tile32_rrr : fixed_repr_gemm_gpu_approx_ty f32 (size_req 32) RM RM RM
+val g_gemm_f64_tile32_rrr : fixed_repr_gemm_gpu_approx_ty f64 (size_req 32) RM RM RM
+val g_gemm_u32_tile32_rrr : fixed_repr_gemm_gpu_approx_ty u32 (size_req 32) RM RM RM
+val g_gemm_u64_tile32_rrr : fixed_repr_gemm_gpu_approx_ty u64 (size_req 32) RM RM RM
+
+val g_gemm_f32_tile32_ccc : fixed_repr_gemm_gpu_approx_ty f32 (size_req 32) CM CM CM
+val g_gemm_f64_tile32_ccc : fixed_repr_gemm_gpu_approx_ty f64 (size_req 32) CM CM CM
+val g_gemm_u32_tile32_ccc : fixed_repr_gemm_gpu_approx_ty u32 (size_req 32) CM CM CM
+val g_gemm_u64_tile32_ccc : fixed_repr_gemm_gpu_approx_ty u64 (size_req 32) CM CM CM
+
+(* GPU-side approximate GEMM — tile=16 *)
+
+val g_gemm_f32_tile16_rrr : fixed_repr_gemm_gpu_approx_ty f32 (size_req 16) RM RM RM
+val g_gemm_f64_tile16_rrr : fixed_repr_gemm_gpu_approx_ty f64 (size_req 16) RM RM RM
+val g_gemm_u32_tile16_rrr : fixed_repr_gemm_gpu_approx_ty u32 (size_req 16) RM RM RM
+val g_gemm_u64_tile16_rrr : fixed_repr_gemm_gpu_approx_ty u64 (size_req 16) RM RM RM
+
+val g_gemm_f32_tile16_ccc : fixed_repr_gemm_gpu_approx_ty f32 (size_req 16) CM CM CM
+val g_gemm_f64_tile16_ccc : fixed_repr_gemm_gpu_approx_ty f64 (size_req 16) CM CM CM
+val g_gemm_u32_tile16_ccc : fixed_repr_gemm_gpu_approx_ty u32 (size_req 16) CM CM CM
+val g_gemm_u64_tile16_ccc : fixed_repr_gemm_gpu_approx_ty u64 (size_req 16) CM CM CM

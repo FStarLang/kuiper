@@ -339,6 +339,79 @@ fn specialize_tiled_approx_gpu
   ()
 }
 
+let lincomb_approx2
+  (#et:Type) {| scalar et |} {| real_like et |}
+  (alpha beta : et) (alpha_r beta_r : real)
+  : Lemma (requires alpha %~ alpha_r /\ beta %~ beta_r)
+          (ensures approx2 (MS.lincomb alpha beta) (MS.lincomb alpha_r beta_r))
+  = let aux (x:et) (y:et) (r:real) (s:real) :
+      Lemma (requires x %~ r /\ y %~ s)
+            (ensures MS.lincomb alpha beta x y %~ MS.lincomb alpha_r beta_r r s) =
+      a_mul beta x beta_r r;
+      a_mul alpha y alpha_r s;
+      a_add (mul beta x) (mul alpha y) (beta_r *. r) (alpha_r *. s)
+    in
+    Classical.forall_intro_4 (fun x y r -> Classical.move_requires (aux x y r))
+
+inline_for_extraction noextract
+fn specialize_tiled_approx_gemm_gpu
+  (#size_req : tiled_size_req_t)
+  (mmcomb_gpu_approx : tiled_matmulcomb_gpu_approx_ty size_req)
+  (tile : valid_tile)
+  (et : Type0) {| scalar et |} {| real_like et |}
+  (repA repB repC : mrepr)
+  {| cA : crepr repA, cB : crepr repB, cC : crepr repC |}
+  (alpha beta : et)
+  (alpha_r beta_r : real)
+  (#rows #shared #cols : szp)
+  (gA : gpu_matrix et (repA rows shared) { M.is_global_matrix gA })
+  (gB : gpu_matrix et (repB shared cols) { M.is_global_matrix gB })
+  (gC : gpu_matrix et (repC rows cols) { M.is_global_matrix gC })
+  (#ma : ematrix et rows shared)
+  (#mb : ematrix et shared cols)
+  (#mc0 : ematrix et rows cols)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
+  norewrite
+  preserves
+    cpu **
+    on gpu_loc (gA |-> ma) **
+    on gpu_loc (gB |-> mb)
+  requires
+    pure (size_req (rows / tile) (shared / tile) (cols / tile) tile) **
+    pure (ma %~ rA /\ mb %~ rB /\ mc0 %~ rC /\
+          alpha %~ alpha_r /\ beta %~ beta_r) **
+    on gpu_loc (gC |-> mc0)
+  ensures
+    exists* (mc' : ematrix et rows cols).
+      on gpu_loc (gC |-> mc') **
+      pure (mc' %~ MS.gemm (alpha_r) (beta_r) rC rA rB)
+{
+  M.gpu_matrix_pts_to_ref_located gA;
+  M.gpu_matrix_pts_to_ref_located gB;
+  M.gpu_matrix_pts_to_ref_located gC;
+
+  // Defining it like this fails to extract, must be inlined below.
+  // let comb = MS.lincomb alpha beta;
+  let comb_r : (real -> real -> real) =
+    (MS.lincomb (alpha_r) (beta_r));
+  lincomb_approx2 alpha beta (alpha_r) (beta_r);
+
+  mmcomb_gpu_tiled_approx
+    mmcomb_gpu_approx
+    tile
+    #et #_ #_
+    (MS.lincomb alpha beta) comb_r
+    #rows #shared #cols
+    #(repA _ _) #(repB _ _) #(repC _ _)
+    #(cA.map _ _) #(cB.map _ _) #(cC.map _ _)
+    gA gB gC
+    rA rB rC;
+
+  ()
+}
+
 inline_for_extraction noextract
 let specialize_as_matmul_to_type_and_reprs_cpu
   (#size_req : _)

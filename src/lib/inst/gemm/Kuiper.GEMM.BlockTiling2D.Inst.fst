@@ -83,7 +83,7 @@ fn spec
   assert pure (aligned_strided_row_major (chunk et)
                 (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
 
-  P.mmcomb_gpu
+  P.mmcomb_gpu_exact
     (fun o n -> mul beta o `add` mul alpha n)
     #rows #shared #cols
     gA #eA gB #eB gC #eC

@@ -154,6 +154,44 @@ type fixed_repr_gemm_gpu_ty
       (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
       (on gpu_loc (gC |-> MS.gemm alpha beta mc0 ma mb)))
 
+(* Approximate GEMM GPU type: postcondition approximates real-valued gemm. *)
+unfold
+inline_for_extraction
+type fixed_repr_gemm_gpu_approx_ty
+  (et : Type0) {| scalar et, real_like et |}
+  (size_req : size_req_t)
+  (repA repB repC : mrepr)
+  {| crepr repA, crepr repB, crepr repC |}
+=
+  (alpha : et) ->
+  (beta : et) ->
+  (alpha_r : real) ->
+  (beta_r : real) ->
+  (#rows : szp) ->
+  (#shared : szp) ->
+  (#cols : szp) ->
+  (gA : gpu_matrix et (repA rows shared) { is_global_matrix gA }) ->
+  (gB : gpu_matrix et (repB shared cols) { is_global_matrix gB }) ->
+  (gC : gpu_matrix et (repC rows cols) { is_global_matrix gC }) ->
+  (#ma : ematrix et rows shared) ->
+  (#mb : ematrix et shared cols) ->
+  (#mc0 : ematrix et rows cols) ->
+  (rA : ematrix real rows shared) ->
+  (rB : ematrix real shared cols) ->
+  (rC : ematrix real rows cols) ->
+  stt unit
+    (requires
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
+      (pure (size_req rows shared cols) **
+       pure (ma %~ rA /\ mb %~ rB /\ mc0 %~ rC /\
+             alpha %~ alpha_r /\ beta %~ beta_r) **
+       on gpu_loc (gC |-> mc0)))
+    (ensures fun _ ->
+      (cpu ** on gpu_loc (gA |-> ma) ** on gpu_loc (gB |-> mb)) **
+      (exists* (mc' : ematrix et rows cols).
+        on gpu_loc (gC |-> mc') **
+        pure (mc' %~ MS.gemm (alpha_r) (beta_r) rC rA rB)))
+
 unfold
 inline_for_extraction
 type fixed_repr_mmcomb_gpu_ty
@@ -240,6 +278,19 @@ val specialize_tiled_approx_gpu
   (repA repB repC : mrepr)
   {| crepr repA, crepr repB, crepr repC |}
   : fixed_repr_mmcomb_gpu_approx_ty et
+      (fun rows shared cols ->
+        size_req (rows / tile) (shared / tile) (cols / tile) tile)
+      repA repB repC
+
+inline_for_extraction noextract
+val specialize_tiled_approx_gemm_gpu
+  (#size_req : tiled_size_req_t)
+  (mmcomb_gpu_approx : tiled_matmulcomb_gpu_approx_ty size_req)
+  (tile : valid_tile)
+  (et : Type0) {| scalar et |} {| real_like et |}
+  (repA repB repC : mrepr)
+  {| crepr repA, crepr repB, crepr repC |}
+  : fixed_repr_gemm_gpu_approx_ty et
       (fun rows shared cols ->
         size_req (rows / tile) (shared / tile) (cols / tile) tile)
       repA repB repC

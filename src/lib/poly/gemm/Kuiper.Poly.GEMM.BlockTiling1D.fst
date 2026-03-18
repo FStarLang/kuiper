@@ -19,7 +19,6 @@ open Kuiper.Matrix {
 open Kuiper.Matrix.Tiling
 
 module MS = Kuiper.Spec.GEMM
-module MU = Kuiper.Poly.GEMM.Util
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
