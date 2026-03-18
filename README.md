@@ -95,6 +95,30 @@ examples that require them. This script is probably not very robust.  Please
 file an issue if it does not work as expected.  You can edit `.configure.output`
 manually if need be.
 
+### Project Structure
+
+Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides
+the DSL primitives: arrays, barriers, atomics, shared memory, tensor cores, and
+separation-logic combinators. Supporting libraries handle matrix data structures
+and layouts (`data/`), pure functional specifications (`spec/`), array views
+(`views/`), and ghost utilities (`ghost/`). Example kernels live in
+`src/examples/`.
+
+Some kernels are written in highly-polymorphic style and later instantiated.
+Modules in `src/lib/poly/` are polymorphic over an element type `et` and perhaps
+layouts, tile sizes, etc.  Modules in `src/lib/inst/` are instantiations that
+bind `et` to concrete types; these are what actually get extracted to CUDA.
+
+Some kernel have a large number of instantiations, so we generate them via a
+`.fst.sh` script. Any file with this extension gets run and piped into the
+proper `.fst`.
+
+Also:
+- `extraction/`: contains the F* extraction plugin
+- `include/`: C/CUDA headers, needed to compile Kuiper code
+- `test/`: CUDA test drivers with expected-output files
+- `dist/`: a CUDA snapshot of the verified kernels
+
 ### Run the Benchmarks
 (UPDATE)
 To run the benchmarks and test the compiled kernels, execute the provided script:
