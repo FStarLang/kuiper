@@ -89,7 +89,7 @@ let cudaMemcpyDeviceToHost = EQualified ([], "cudaMemcpyDeviceToHost")
 let cudaMemcpyHostToDevice = EQualified ([], "cudaMemcpyHostToDevice")
 let cudaMemcpyDeviceToDevice = EQualified ([], "cudaMemcpyDeviceToDevice")
 
-let get_record_field fname (e:mlexpr) : mlexpr =
+let get_record_field fname (e:mlexpr) : ML mlexpr =
   let assoc' k v =
     match List.assoc k v with
     | Some r -> r
@@ -99,11 +99,11 @@ let get_record_field fname (e:mlexpr) : mlexpr =
   | MLE_Record (_, _, flds) -> assoc' fname flds
   | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
 
-let get_sizet (e : mlexpr) : mlexpr = get_record_field "size" e
+let get_sizet (e : mlexpr) : ML mlexpr = get_record_field "size" e
 // repeated names get a numeric prefix, and we have both strided_row_major and strided_col_major
-let get_strided_row_major_offset (e : mlexpr) : mlexpr =
+let get_strided_row_major_offset (e : mlexpr) : ML mlexpr =
   try get_record_field "offset" e with | _ -> get_record_field "offset1" e
-let get_strided_row_major_stride (e : mlexpr) : mlexpr =
+let get_strided_row_major_stride (e : mlexpr) : ML mlexpr =
   try get_record_field "stride" e with | _ -> get_record_field "stride1" e
 
 let _MUST (e : expr) : expr =
@@ -127,7 +127,7 @@ let rec takeWhile f xs =
     else
       ([], xs)
 
-let get_one_binder (e:mlexpr) : mlbinder & mlexpr =
+let get_one_binder (e:mlexpr) : ML (mlbinder & mlexpr) =
   match e.expr with
   | MLE_Fun ([b], body) -> b, body
   | MLE_Fun (b::bs, body) ->
@@ -148,7 +148,7 @@ let eta (e : mlexpr) : mlexpr =
   let e'' = with_ty e.mlty <| MLE_App (e', [ml_unit]) in
   e''
 
-let hoist (g : env) (e : mlexpr) : mlexpr =
+let hoist (g : env) (e : mlexpr) : ML mlexpr =
   let e0 = e in
   // let e = remove_trailing_units e in // ???
   let e = eta e in
@@ -202,7 +202,7 @@ let hoist (g : env) (e : mlexpr) : mlexpr =
 
 (* Returns (possibly) the size of each element and length of array.
 The type of the array has already been erased, we cannot get it here. *)
-let parse_shmem_desc (e : mlexpr) : option (mlexpr & mlexpr) =
+let parse_shmem_desc (e : mlexpr) : ML (option (mlexpr & mlexpr)) =
   let open FStarC.Class.Monad in
   match e.expr with
   | MLE_CTor (fv, [_ty; sized; len]) when string_of_mlpath fv = "Kuiper.SHMem.SHArray" ->
@@ -212,7 +212,7 @@ let parse_shmem_desc (e : mlexpr) : option (mlexpr & mlexpr) =
     Format.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
     None
 
-let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
+let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
   let open FStarC.Class.Monad in
   let assoc' k v =
     match List.assoc k v with
@@ -247,8 +247,8 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
         // |> (fun x -> MLE_App (x, [ml_unit]))
       in
       (* returns the tuple + total size *)
-      let mk_c_sh (desc : list (mlexpr & mlexpr)) : mlexpr & mlexpr =
-        let rec aux (off : mlexpr) (desc : list (mlexpr & mlexpr)) : mlexpr & mlexpr =
+      let mk_c_sh (desc : list (mlexpr & mlexpr)) : ML (mlexpr & mlexpr) =
+        let rec aux (off : mlexpr) (desc : list (mlexpr & mlexpr)) : ML (mlexpr & mlexpr) =
           match desc with
           | [] -> intlit 123, off
           | (e_sz, len) :: desc' ->
@@ -288,7 +288,7 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
       //     drop_last_n_args head (n - List.length args)
       //   | _ -> failwith ("launch_kernel: not enough arguments: " ^ show e)
       // in
-      let apply_lam (f : mlexpr) (v : mlexpr) : mlexpr =
+      let apply_lam (f : mlexpr) (v : mlexpr) : ML mlexpr =
         let b, body = get_one_binder f in
         ml_subst body b.mlbinder_name v
       in
@@ -335,7 +335,7 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : option mlexpr =
     with_ty ml_unit_ty <|
     MLE_Seq [assert_shmem_size; shmem_setup; e']
 
-let kpr_translate_alloc_fragment cb et knd m n k layout =
+let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     let knd =
       match cta knd with
       | Some ("Kuiper.TensorCore.Base.FragA",     [], []) -> EQualified ([], "wmma::matrix_a")

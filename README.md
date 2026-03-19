@@ -79,7 +79,7 @@ opam install batteries zarith stdint yojson dune menhir menhirLib pprint sedlex 
 
 ### Building
 
-Kuiper includes F*, karamel, and Pulse as submodules. The top-level makefile
+Kuiper includes F* and karamel as submodules. The top-level makefile
 drives their build, so you shouldn't have to interact with them, except for the
 occasional `git submodule update` if you update Kuiper.
 

@@ -1,13 +1,9 @@
 {
-  "fstar_exe": "../FStar/bin/fstar.exe",
+  "fstar_exe": "../inst/bin/fstar.exe",
   "options": [
     "--query_cache",
     "--lax",
-    "--MLish",
-    "--MLish_effect", "FStarC.Effect",
     "--with_fstarc"
   ],
-  "include_dirs": [
-    "../FStar/src"
-  ]
+  "include_dirs": [ ]
 }

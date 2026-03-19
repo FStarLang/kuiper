@@ -8,11 +8,6 @@
 	url = ../karamel
 	branch = gpu
 	depth = 1
-[submodule "pulse"]
-	path = pulse
-	url = ../pulse
-	branch = gpu
-	depth = 1
 [submodule "bench/SGEMM_CUDA"]
 	path = bench/SGEMM_CUDA
 	url = https://github.com/siboehm/SGEMM_CUDA

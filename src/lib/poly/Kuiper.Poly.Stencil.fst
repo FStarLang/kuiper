@@ -52,7 +52,7 @@ let kpost
   M.gpu_matrix_pts_to_cell gOut (tid / cols) (tid % cols)
     (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn (tid / cols) (tid % cols))
 
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 15"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -169,7 +169,6 @@ fn setup
 
 }
 
-#push-options "--z3rlimit 80"
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
@@ -206,6 +205,8 @@ fn teardown
   forevery_factor (rows *^ cols) rows cols _;
 
   (* Simplify arithmetic expressions. *)
+  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) / cols == r));
+  assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
       M.gpu_matrix_pts_to_cell gOut ((r * cols + c) / cols) ((r * cols + c) % cols)
@@ -232,7 +233,6 @@ fn teardown
 
   M.gpu_matrix_implode gOut;
 }
-#pop-options
 
 inline_for_extraction noextract
 let kdesc

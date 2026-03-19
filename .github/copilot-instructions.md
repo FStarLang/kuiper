@@ -6,10 +6,10 @@ For detailed guidance on writing, reviewing, and debugging Kuiper kernel code, s
 
 ## Build & Verify
 
-The project uses Make. Three git submodules (`FStar`, `karamel`, `pulse`) must be initialized first, all on their `gpu` branches.
+The project uses Make. Two git submodules (`FStar`, `karamel`) must be initialized first, both on their `gpu` branches.
 
 ```bash
-# First-time setup: build F*, Karamel, and Pulse
+# First-time setup: build F* and Karamel
 make prepare
 
 # Full build: verify all modules, extract to CUDA, compile with nvcc (if available)
@@ -85,11 +85,10 @@ make lint-c         # indent test/*.cu files
 
 ### Submodules
 
-All on their `gpu` branches — these are forked/branched versions with GPU-specific extensions:
+Both on their `gpu` branches — these are forked/branched versions with GPU-specific extensions:
 
-- `FStar/` — F\* compiler and standard library
+- `FStar/` — F\* compiler, standard library, and Pulse separation logic framework
 - `karamel/` — KreMLin compiler (F\* → C/CUDA)
-- `pulse/` — Pulse separation logic framework
 
 ## Key Conventions
 

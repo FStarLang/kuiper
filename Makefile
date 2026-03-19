@@ -112,12 +112,10 @@ kuiper-src.tar.gz:
 	# Archive submodules and concatenate them
 	git -C FStar   archive --prefix=FStar/   HEAD -o ../fstar.tar
 	git -C karamel archive --prefix=karamel/ HEAD -o ../karamel.tar
-	git -C pulse   archive --prefix=pulse/   HEAD -o ../pulse.tar
 	tar --concatenate --file=kuiper-src.tar fstar.tar
 	tar --concatenate --file=kuiper-src.tar karamel.tar
-	tar --concatenate --file=kuiper-src.tar pulse.tar
 	gzip kuiper-src.tar
-	rm -f fstar.tar karamel.tar pulse.tar kuiper-src.tar
+	rm -f fstar.tar karamel.tar kuiper-src.tar
 
 .PHONY: bench-package
 bench-package: kuiper-bench.tar.gz

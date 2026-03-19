@@ -22,7 +22,7 @@ let from_subtiles_id
   ()
 #pop-options
 
-#push-options "--z3rlimit 40 --fuel 0 --ifuel 0 --split_queries always"
+#push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 3"
 #restart-solver
 let tiles_from_subtiles_id
   (#et : _)

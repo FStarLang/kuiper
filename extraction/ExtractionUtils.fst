@@ -50,7 +50,7 @@ let hta (e : mlexpr) : option (string & list mlty & list mlexpr) =
   | _ -> None
 
 (* similar, but for a constructor at the head *)
-let cta (e : mlexpr) : option (string & list mlty & list mlexpr) =
+let cta (e : mlexpr) : ML (option (string & list mlty & list mlexpr)) =
   let h, tyargs, args = xta e in
   match h.expr with
   | MLE_CTor (p, args') ->
@@ -67,7 +67,7 @@ let type_hta (e : mlty) : option (string & list mlty) =
 
 (* Substitutes the variable [v] in the expression [e] with the expression [e'].
    i.e e[v := e']. *)
-let rec ml_visit (pre post : mlexpr -> mlexpr) (e : mlexpr) : mlexpr =
+let rec ml_visit (pre post : mlexpr -> ML mlexpr) (e : mlexpr) : ML mlexpr =
   let e = pre e in
   let e =
     match e.expr with
@@ -140,7 +140,7 @@ let rec ml_visit (pre post : mlexpr -> mlexpr) (e : mlexpr) : mlexpr =
 
 (* Substitutes the variable [v] in the expression [e] with the expression [e'].
    i.e e[v := e']. *)
-let ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : mlexpr =
+let ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : ML mlexpr =
   let subst1 (e : mlexpr) : mlexpr =
     match e.expr with
     | MLE_Var v' when v = v' -> e'
@@ -148,7 +148,7 @@ let ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : mlexpr =
   in
   ml_visit subst1 id e
 
-let collapse_tuple_proj (e : mlexpr) : mlexpr =
+let collapse_tuple_proj (e : mlexpr) : ML mlexpr =
   let subst1 (e0 : mlexpr) : mlexpr =
     match e0.expr with
     | MLE_App ({ expr = MLE_TApp ({ expr = MLE_Name f }, _) }, [e]) when string_of_mlpath f = "FStar.Pervasives.Native.fst" -> (
@@ -172,8 +172,8 @@ let collapse_tuple_proj (e : mlexpr) : mlexpr =
 // This stage is essential to allow to match on shared memory descriptors
 // like: let (ar1, (ar2, _)) = sh in ...
 // Otherwise karamel complains about a cast into Top remaining.
-let collapse_tuple_matches (e : mlexpr) : mlexpr =
-  let rec subst1 (e0 : mlexpr) : mlexpr =
+let collapse_tuple_matches (e : mlexpr) : ML mlexpr =
+  let rec subst1 (e0 : mlexpr) : ML mlexpr =
     match e0.expr with
     | MLE_Let ((NonRec, [{ mllb_name = v; mllb_def = def; }]), body) -> (
       let is_var v e =
@@ -215,7 +215,7 @@ let is_lid (s:string) (e : mlexpr) : bool =
   | MLE_Var v -> v = s
   | _ -> false
 
-let rec mlexpr_as_list (e : mlexpr) : option (list mlexpr) =
+let rec mlexpr_as_list (e : mlexpr) : ML (option (list mlexpr)) =
   let open FStarC.Class.Monad in
   match e.expr with
   | MLE_CTor (fv, []) when string_of_mlpath fv = "Prims.Nil" ->
@@ -227,7 +227,7 @@ let rec mlexpr_as_list (e : mlexpr) : option (list mlexpr) =
     Format.print1 "Not a list: %s\n" (mlexpr_to_string e);
     None
 
-let intlit (i : int) : mlexpr =
+let intlit (i : int) : ML mlexpr =
   with_ty ml_int_ty <| MLE_Const (MLC_Int (show i, None))
 
 let ml_uint8      = MLTY_Named ([], (["FStar"; "UInt8"], "t"))
@@ -243,7 +243,7 @@ let sizet_mul x y =
   let fv = with_ty ml_unit_ty <| MLE_Name (["FStar"; "SizeT"], "mul") in
   with_ty ml_sizet <| MLE_App (fv, [x; y])
 
-let sizet_lit (i : int) : mlexpr =
+let sizet_lit (i : int) : ML mlexpr =
   let mk = with_ty ml_int_ty <| MLE_Name (["FStar"; "SizeT"], "uint_to_t") in
   with_ty ml_sizet <| MLE_App (mk, [intlit i])
 
@@ -270,8 +270,8 @@ let head_and_args (e : mlexpr) : mlexpr & list mlexpr =
   in
   aux [] e
 
-let rec freevars_of_mlexpr (e : mlexpr) : list (string & mlty) =
-  let remove (ks : list string) (vs : list (string & mlty)) : list (string & mlty) =
+let rec freevars_of_mlexpr (e : mlexpr) : ML (list (string & mlty)) =
+  let remove (ks : list string) (vs : list (string & mlty)) : ML (list (string & mlty)) =
     List.filter (fun (v, _) -> not (List.existsb (fun k -> v = k) ks)) vs
   in
   match e.expr with
@@ -296,7 +296,7 @@ let rec freevars_of_mlexpr (e : mlexpr) : list (string & mlty) =
   | MLE_Match (e, branches) ->
     let freevars_branch branch =
       let (p, _, e2) = branch in
-      let rec pat_bound (p:mlpattern) : list string =
+      let rec pat_bound (p:mlpattern) : ML (list string) =
         match p with
         | MLP_Var v -> [v]
         | MLP_CTor (_, args) -> List.collect pat_bound args

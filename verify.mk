@@ -45,8 +45,6 @@ FStar/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 karamel/Makefile:
 	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
-pulse/Makefile:
-	$(error $@ not found${newline}Run `git submodule init && git submodule update` if you haven't)
 
 .fstar.src.touch: .force
 	[ -f $@ ] || touch $@
@@ -70,18 +68,8 @@ pulse/Makefile:
 	@touch .krml.src.touch # building will change files
 	@touch $@
 
-.pulse.src.touch: .force
-	[ -f $@ ] || touch $@
-	find pulse -type f -newer $@ -exec touch $@ \; -quit
-
-.pulse.touch: .fstar.touch .pulse.src.touch pulse/Makefile
-	@echo PULSE
-	$(MAKE) -C pulse FSTAR_EXE=$(FSTAR_EXE) ADMIT=1 plugin
-	@touch .pulse.src.touch # building will change files
-	@touch $@
-
 .PHONY: prepare
-prepare: .fstar.touch .krml.touch .pulse.touch
+prepare: .fstar.touch .krml.touch
 
 AUTOGEN_SCRIPTS := $(shell find src -name '*.fst.sh')
 AUTOGEND := $(patsubst %.fst.sh,%.fst,$(AUTOGEN_SCRIPTS))
@@ -108,7 +96,6 @@ OTHERFLAGS += $O
 
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
-FSTAR_FLAGS += --cmi
 FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
 FSTAR_FLAGS += --z3version 4.13.3
@@ -129,9 +116,6 @@ FSTAR_FLAGS += $(FSTAR_DEBUG)
 # abspath is important so the fstar.sh script can be run from anywhere
 FSTAR = $(FSTAR_EXE)							\
 	$(SIL)								\
-	--include $(abspath pulse/build/ocaml/installed/lib/pulse)	\
-	--include $(abspath pulse/lib/common)				\
-	--include $(abspath pulse/lib/pulse)				\
 	--include $(abspath src)					\
 	$(FSTAR_FLAGS)
 
@@ -170,9 +154,7 @@ ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),echo-fstar)
 ifneq ($(MAKECMDGOALS),echo-krml)
 ifneq ($(MAKECMDGOALS),.fstar.touch)
-ifneq ($(MAKECMDGOALS),.pulse.touch)
 include .depend
-endif
 endif
 endif
 endif
@@ -190,14 +172,9 @@ TENSORCORE_CHECKED_FILES := $(foreach f,$(MY_CHECKED_FILES),$(if $(findstring Te
 MINIMAL_CHECKED_FILES := $(filter-out $(TENSORCORE_CHECKED_FILES),$(MY_CHECKED_FILES))
 verify-minimal: $(MINIMAL_CHECKED_FILES)
 
-# Ignore some warnings from the Pulse library, it's out of scope for us.
-# Also admit queries, we just want a quick build and it's supposed to be
-# checked green by Pulse.
-PULSE_LIB_FLAGS := --admit_smt_queries true --warn_error -288
-
-$(CACHEDIR)/%.checked: | .fstar.touch .pulse.touch
+$(CACHEDIR)/%.checked: | .fstar.touch
 	@$(call msg,"CHECK")
-	$(Q)$(FSTAR) $(if $(findstring pulse/,$<),$(PULSE_LIB_FLAGS)) --already_cached '*' -c $< -o $@
+	$(Q)$(FSTAR) --already_cached '*' -c $< -o $@
 	@touch -c $@
 
 # Without .cmxs extension
@@ -215,9 +192,7 @@ echo-fstar:
 echo-krml:
 	@echo $(KRML)
 
-# NB: The dependency analysis needs to parse the files, so it needs
-# the Pulse plugin
-.depend: $(ROOTS) .fstar.touch .pulse.touch
+.depend: $(ROOTS) .fstar.touch
 	$(call msg,"DEPEND",$@)
 	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@.tmp
 	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.

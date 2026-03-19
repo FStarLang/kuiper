@@ -11,7 +11,7 @@ open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 60"
 
 inline_for_extraction noextract
 fn specialize_gpu
