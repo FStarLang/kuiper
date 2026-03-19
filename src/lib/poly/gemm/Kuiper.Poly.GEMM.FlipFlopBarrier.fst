@@ -293,3 +293,71 @@ fn barrier_p_to_q_transform
     }
   }
 }
+
+#push-options "--fuel 2"
+ghost
+fn fold_barrier_p_odd
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (#l1 : mlayout bm bk)
+  (#l2 : mlayout bk bn)
+  (m1 : gpu_matrix et l1)
+  (m2 : gpu_matrix et l2)
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (mrow : nat{mrow == bid / (cols/bn)})
+  (mcol : nat{mcol == bid % (cols/bn)})
+  (bkIdx : natlt (shared / bk))
+  (tid : natlt nthr)
+  requires
+    own_strided_chunks m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr tid **
+    own_strided_chunks m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr tid
+  ensures
+    barrier_p eA eB m1 m2 nthr bid (2 * bkIdx + 1) tid
+{
+  rewrite
+    own_strided_chunks m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr tid **
+    own_strided_chunks m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr tid
+  as
+    barrier_p eA eB m1 m2 nthr bid (2 * bkIdx + 1) tid;
+}
+#pop-options
+
+#push-options "--fuel 2"
+ghost
+fn unfold_barrier_q_odd
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (#l1 : mlayout bm bk)
+  (#l2 : mlayout bk bn)
+  (m1 : gpu_matrix et l1)
+  (m2 : gpu_matrix et l2)
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (mrow : nat{mrow == bid / (cols/bn)})
+  (mcol : nat{mcol == bid % (cols/bn)})
+  (bkIdx : natlt (shared / bk))
+  (tid : natlt nthr)
+  requires
+    barrier_q eA eB m1 m2 nthr bid (2 * bkIdx + 1) tid
+  ensures
+    bp_sharing m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr **
+    bp_sharing m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr
+{
+  rewrite
+    barrier_q eA eB m1 m2 nthr bid (2 * bkIdx + 1) tid
+  as
+    bp_sharing m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr **
+    bp_sharing m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr;
+}
+#pop-options

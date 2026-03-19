@@ -309,6 +309,7 @@ fn bring_2cols
 
 #restart-solver // try to work around Z3 crash
 
+#push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (tile : valid_tile)
@@ -483,6 +484,7 @@ fn kf
       assume pure (v %~ MS.gemm_single comb_r rA rB rC (bid / mcols * tile + ii) (bid % mcols * tile + tid));
     };
 }
+#pop-options
 
 ghost
 fn setup
@@ -672,7 +674,7 @@ fn block_teardown
   gpu_live_c_shmems_gather_underspec sh #1.0R #tile;
 }
 
-#push-options "--z3rlimit 160"
+#push-options "--z3rlimit 160 --fuel 1 --ifuel 1"
 ghost
 fn teardown
   (tile : valid_tile)

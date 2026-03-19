@@ -499,7 +499,7 @@ fn subproducts1d
 
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
-#push-options "--z3rlimit 50"
+#push-options "--z3rlimit 50 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
@@ -940,7 +940,7 @@ fn block_setup
   forevery_rw_size (bm/tm * bn) (bm/^tm *^ bn);
 }
 
-#push-options "--z3rlimit 120"
+#push-options "--z3rlimit 120 --fuel 1 --ifuel 1"
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -1010,7 +1010,7 @@ fn block_teardown
 }
 #pop-options
 
-#push-options "--z3rlimit 160"
+#push-options "--z3rlimit 160 --fuel 1 --ifuel 1"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}

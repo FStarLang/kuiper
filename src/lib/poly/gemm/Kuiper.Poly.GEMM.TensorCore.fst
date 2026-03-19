@@ -273,6 +273,7 @@ fn epilogue
   ()
 }
 
+#push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
@@ -403,13 +404,9 @@ fn kf
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    #set-options "--z3rlimit 80 --retry 3" {
-      rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
-              own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
-          as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
-      rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-          as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
-    };
+    FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
+    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
+        as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
@@ -417,13 +414,9 @@ fn kf
     assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure ((2 * !bkIdx + 1) / 2 == !bkIdx));
-    #set-options "--z3rlimit 80 --retry 3" {
-      rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
-           as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
-      rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-           as FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
-              FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
-    };
+    rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
+         as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+    FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -454,6 +447,7 @@ fn kf
   fold_c_shmems sh #(1.0R /. nthr) (`%shmems_desc);
   ()
 }
+#pop-options
 
 ghost
 fn setup
@@ -710,6 +704,7 @@ fn block_teardown
   gpu_live_c_shmems_gather_underspec sh #1.0R #nthr;
 }
 
+#push-options "--fuel 1 --ifuel 1"
 ghost
 fn teardown
   (#et_ab #et_c : Type0)
@@ -875,6 +870,7 @@ fn teardown
   assert pure (SZ.fits (mlayout_size lC));
   gpu_matrix_untile_underspec gC (SZ.v bm) (SZ.v bn);
 }
+#pop-options
 
 let kpre_block_sendable
   (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
