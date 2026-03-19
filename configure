@@ -41,7 +41,7 @@ EOF
 
   #177: variable "f" was declared but never referenced
   echo "# Testing nvcc compilation..."
-  if ! nvcc -diag-suppress 177 -c $f -o /dev/null ; then
+  if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
     echo "# NVCC test file failed to build, configuring to stop after code generation."
     KUIPER_HAVE_NVCC=0
   else
@@ -64,7 +64,7 @@ EOF
 
   #177: variable "f" was declared but never referenced
   echo "# Checking for tensor cores in nvcc..."
-  if ! nvcc -diag-suppress 177 -c $f -o /dev/null ; then
+  if ! nvcc -arch=native -diag-suppress 177 -c $f -o /dev/null ; then
     echo "# Tensor core test file failed to build, assuming no tensor cores."
     KUIPER_CFG_TENSORCORES=0
   else
@@ -91,5 +91,7 @@ vv () {
   done
 }
 
-rm -f $out
+if [ "$out" != /dev/stdout ]; then
+  rm -f "$out"
+fi
 vv KUIPER_HAVE_NVCC KUIPER_CFG_TENSORCORES
