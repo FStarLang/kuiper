@@ -35,14 +35,20 @@ include the relevant Kuiper header files in `include/`.
 
 ### devcontainer (codespace)
 
-To set up:
-```
-git submodule init
-git submodule update
+The easiest way to get started is via the devcontainer. Open the repository in a
+GitHub Codespace or in VS Code with the Dev Containers extension. The container
+includes OCaml, OPAM, and Z3 pre-installed.
+
+Once the container starts, submodules are fetched automatically. You then need to
+build F\* and Karamel:
+
+```bash
 eval $(opam env)
+make prepare       # builds F* and Karamel (~10 min with -j)
 ```
 
-TODO: check if extension works.
+The [F\* VS Code extension](https://github.com/FStarLang/fstar-vscode-assistant/)
+is included. Use `Ctrl+.` to verify the file at the cursor position.
 
 ### Requirements
 - OCaml 5.3.0, OPAM, and some packages
@@ -50,7 +56,9 @@ TODO: check if extension works.
 - NVCC (if you wish to _compile_ the kernels)
 - An Nvidia GPU (if you wish to _run_ the kernels)
 
-First, clone the Kuiper repository with submodules included:
+### Manual Setup
+
+First, clone the Kuiper repository with submodules:
 ```bash
 git clone https://github.com/FStarLang/kuiper
 cd kuiper
@@ -79,21 +87,46 @@ opam install batteries zarith stdint yojson dune menhir menhirLib pprint sedlex 
 
 ### Building
 
-Kuiper includes F* and karamel as submodules. The top-level makefile
-drives their build, so you shouldn't have to interact with them, except for the
-occasional `git submodule update` if you update Kuiper.
+Kuiper includes F\* and Karamel as submodules. First, build them:
 
-Running `make` (use parallelism if possible) will build the submodules, verify
-every file in `src/`, build the extraction plugin, extract all examples into
-CUDA files, and build the test drivers. All build artifacts go into `obj/`.
-Running `make test` will run the tests and fail if any of them fails.
+```bash
+eval $(opam env)
+make prepare       # builds F* and Karamel (~10 min with -j)
+```
+
+Then build Kuiper itself:
+
+```bash
+make -j$(nproc)    # verify all files, extract to CUDA, compile tests
+```
+
+This will verify every file in `src/`, build the extraction plugin, extract all
+examples into CUDA files, and (if `nvcc` is available) build the test drivers.
+All build artifacts go into `obj/`. On a modern machine (e.g., AMD 7950X with
+`-j32`), verification takes roughly 10 minutes wall-clock.
 
 There is a simple `./configure` script that detects if nvcc is installed, and
-whether it supports tensor cores.  If nvcc is not installed, `make test` will
-not run any tests. If tensor cores are not enabled, `make test` will skip the
-examples that require them. This script is probably not very robust.  Please
-file an issue if it does not work as expected.  You can edit `.configure.output`
-manually if need be.
+whether it supports tensor cores.  If nvcc is not installed, `make` will stop
+after code generation. If tensor cores are not enabled, tensor core examples
+will be skipped. You can edit `.configure.output` manually if need be.
+
+Other useful targets:
+
+| Target | Description |
+|---|---|
+| `make verify` | Verify only (no extraction or compilation) |
+| `make minimal` | Verify + extract without TensorCore modules |
+| `make test` | Run tests and compare against expected output |
+| `make accept` | Accept current test output as new expected |
+| `make dist` | Update the `dist/` snapshot from freshly extracted code |
+| `make lint` | Run C and F\* linters |
+| `make list-admits` | Find any `admit`/`assume`/`magic` in source |
+| `make wc` | Line counts for F\* source and generated CUDA |
+
+To verify a single file:
+```bash
+./fstar.sh src/path/to/Module.fst
+```
 
 ### Project Structure
 
@@ -101,15 +134,14 @@ Kuiper source lives under `src/`. The core library (`src/lib/kuiper/`) provides
 the DSL primitives: arrays, barriers, atomics, shared memory, tensor cores, and
 separation-logic combinators. Supporting libraries handle matrix data structures
 and layouts (`data/`), pure functional specifications (`spec/`), array views
-(`views/`), and ghost utilities (`ghost/`). Example kernels live in
-`src/examples/`.
+(`views/`), and ghost utilities (`ghost/`).
 
 Some kernels are written in highly-polymorphic style and later instantiated.
 Modules in `src/lib/poly/` are polymorphic over an element type `et` and perhaps
 layouts, tile sizes, etc.  Modules in `src/lib/inst/` are instantiations that
 bind `et` to concrete types; these are what actually get extracted to CUDA.
 
-Some kernel have a large number of instantiations, so we generate them via a
+Some kernels have a large number of instantiations, so we generate them via a
 `.fst.sh` script. Any file with this extension gets run and piped into the
 proper `.fst`.
 
@@ -118,11 +150,4 @@ Also:
 - `include/`: C/CUDA headers, needed to compile Kuiper code
 - `test/`: CUDA test drivers with expected-output files
 - `dist/`: a CUDA snapshot of the verified kernels
-
-### Run the Benchmarks
-(UPDATE)
-To run the benchmarks and test the compiled kernels, execute the provided script:
-```bash
-./scripts/bench.sh
-```
-This will run the benchmarks and provide performance and correctness outputs for the compiled code.
+- `bench/`, `handwritten-bench/`: benchmarking infrastructure

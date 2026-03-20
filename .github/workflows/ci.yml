@@ -16,12 +16,16 @@ on:
         type: boolean
         default: false
 
+# When updating this tag, also update .devcontainer/devcontainer.json
+# and advance.yml.
+env:
+  CONTAINER_IMAGE: mtzguido/pulse-cuda-devcontainer:latest
+
 jobs:
-  build:
-    # NB: we need the runner to have a working CUDA setup (toolkit + driver)
+  verify:
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer
+      image: ${{ env.CONTAINER_IMAGE }}
       options: --gpus all
     defaults:
       run:
@@ -95,29 +99,31 @@ jobs:
           path: inst
           key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
 
-      - name: Run CI Makefile rule
+      - name: Verify and extract
         run: |
           eval $(opam env)
-          make -kj$(nproc) -Otarget ci
+          make -kj$(nproc) -Otarget verify extract-all
 
       - name: Make bench-package
         run: |
           eval $(opam env)
           make -kj$(nproc) -Otarget bench-package
 
-      - name: Make artifact with bench-package
+      - name: Upload bench-package
         uses: actions/upload-artifact@v4
         with:
           name: kuiper-bench
           path: kuiper-bench.tar.gz
 
-      - name: Make artifact with output
+      - name: Upload CUDA output
         if: ${{ always () }}
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: output
-          path: obj/*.cu
+          path: |
+            obj/*.cu
+            obj/*.h
 
       - name: Spit out all CUDA files into action log
         if: ${{ always () }}
@@ -128,7 +134,7 @@ jobs:
             echo "::endgroup::"
           done || true
 
-      - name: Make artifact with failed state
+      - name: Upload failed state
         if: ${{ always () && inputs.debug }}
         uses: actions/upload-artifact@v4
         continue-on-error: true
@@ -137,11 +143,69 @@ jobs:
           include-hidden-files: true
           path: '**'
 
-  bench:
-    needs: build
+  test:
+    needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer
+      image: ${{ env.CONTAINER_IMAGE }}
+      options: --gpus all
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: find . -delete
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Download bench-package
+        uses: actions/download-artifact@v4
+        with:
+          name: kuiper-bench
+
+      - run: tar xzf kuiper-bench.tar.gz
+
+      - name: Build and test
+        working-directory: kuiper-bench
+        run: |
+          make -kj$(nproc) -Otarget build-all test
+
+  check-dist:
+    needs: verify
+    runs-on: [self-hosted, linux, X64, cuda]
+    container:
+      image: ${{ env.CONTAINER_IMAGE }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: find . -delete
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Download CUDA output
+        uses: actions/download-artifact@v4
+        with:
+          name: output
+          path: obj
+
+      - name: Check dist/ is up to date
+        run: |
+          # Ignore the BUILD_INFO metadata file
+          diff_output=$(diff -ru --exclude=BUILD_INFO dist/ obj/ 2>&1) || true
+          if [ -n "$diff_output" ]; then
+            echo "::warning::dist/ is out of date. Run 'make dist' and commit the changes."
+            echo "$diff_output" | head -100
+          else
+            echo "dist/ is up to date."
+          fi
+
+  bench:
+    needs: verify
+    runs-on: [self-hosted, linux, X64, cuda]
+    container:
+      image: ${{ env.CONTAINER_IMAGE }}
       options: --gpus all
     defaults:
       run:
@@ -157,13 +221,14 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Download artifacts
+      - name: Download bench-package
         uses: actions/download-artifact@v4
         with:
           name: kuiper-bench
 
       - run: tar xzf kuiper-bench.tar.gz
 
-      - working-directory: kuiper-bench
+      - name: Run benchmarks
+        working-directory: kuiper-bench
         run: |
           make -kj$(nproc) -Otarget
