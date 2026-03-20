@@ -18,19 +18,19 @@ type is_ac_w (#t:Type) (f: t -> t -> t) = {
 inline_for_extraction noextract
 type reduce_ty
   (et : Type0) {| scalar et |} {| d : has_atomic_add et |} =
-  (ac : is_ac_w d.pure_op) ->
-  (n : szp{n < max_blocks}) ->
-  (a : gpu_array et n { is_global_array a }) ->
-  (#v_a : erased (seq et)) ->
-  stt et
-  (requires
+  fn (ac : is_ac_w d.pure_op)
+     (n : szp{n < max_blocks})
+     (a : gpu_array et n { is_global_array a })
+     (#v_a : erased (seq et))
+  requires
     cpu **
     on gpu_loc (a |-> v_a) **
-    pure (SZ.v n > 0 /\ SZ.v n <= 1024))
-  (ensures fun r ->
+    pure (SZ.v n > 0 /\ SZ.v n <= 1024)
+  returns r : et
+  ensures
     cpu **
     on gpu_loc (a |-> v_a) **
-    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a))
+    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 
 inline_for_extraction noextract
 val reduce

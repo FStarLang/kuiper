@@ -54,22 +54,17 @@ fn adapt_kmn_kf
   (#nblk #nthr : erased nat)
   #kpre
   #kpost
-  (f : (
-    bid : szlt nblk ->
-    tid : szlt nthr ->
-    unit ->
-    stt unit
-      (requires
-         gpu **
-         kpre bid tid **
-         thread_id nthr tid **
-         block_id nblk bid)
-      (ensures fun _ ->
-         gpu **
-         kpost bid tid **
-         thread_id nthr tid **
-         block_id nblk bid)
-  ))
+  (fn f (bid : szlt nblk) (tid : szlt nthr) ()
+    requires
+      gpu **
+      kpre bid tid **
+      thread_id nthr tid **
+      block_id nblk bid
+    ensures
+      gpu **
+      kpost bid tid **
+      thread_id nthr tid **
+      block_id nblk bid)
   (_ : c_shmems [])
   (bid : szlt nblk)
   (tid : szlt nthr)
@@ -342,7 +337,7 @@ fn km1_as_kmn_block_teardown
 inline_for_extraction noextract
 fn frame_2
   (e #p0 #p1 #q0 #q1 #r0 #r1 : slprop)
-  (f : unit -> stt unit (requires p0 ** q0 ** r0) (fun _ -> p1 ** q1 ** r1))
+  (fn f () requires p0 ** q0 ** r0 ensures p1 ** q1 ** r1)
   ()
   norewrite
   requires p0 ** q0 ** e ** r0

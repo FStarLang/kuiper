@@ -28,9 +28,8 @@ fn launch_kernel_1
   (#pre : slprop)
   (#post : slprop)
   {| is_send_across gpu_of pre, is_send_across gpu_of post |}
-  (k : unit ->
-         stt unit (requires gpu ** pre)
-                  (ensures fun _ -> gpu ** post))
+  (fn k () requires gpu ** pre
+            ensures gpu ** post)
   requires
     cpu **
     on gpu_loc pre

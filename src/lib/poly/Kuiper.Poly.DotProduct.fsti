@@ -24,27 +24,25 @@ let sum
 
 inline_for_extraction noextract
 type dotprod_ty
-  (et:Type0) {| scalar et, real_like et |}
-  : Type
-  =
-  (lena : szp{SZ.v lena <= max_threads}) ->
-  (a1 : vec et) ->
-  (a2 : vec et) ->
-  (v1 : erased (seq et)) ->
-  (v2 : erased (seq et)) ->
-  (vr1 : erased (seq real)) ->
-  (vr2 : erased (seq real) {seq_approximates v1 vr1 /\ seq_approximates v2 vr2}) ->
-  (#_: squash (len v1 == SZ.v lena /\ len v2 == SZ.v lena)) ->
-  stt et
-  (requires
+  (et:Type0) {| scalar et, real_like et |} =
+  fn (lena : szp{SZ.v lena <= max_threads})
+     (a1 : vec et)
+     (a2 : vec et)
+     (v1 : erased (seq et))
+     (v2 : erased (seq et))
+     (vr1 : erased (seq real))
+     (vr2 : erased (seq real) {seq_approximates v1 vr1 /\ seq_approximates v2 vr2})
+     (#_: squash (len v1 == SZ.v lena /\ len v2 == SZ.v lena))
+  requires
     cpu **
     a1 |-> v1 **
-    a2 |-> v2)
-  (ensures fun (dp : et) ->
+    a2 |-> v2
+  returns dp : et
+  ensures
     (cpu **
     a1 |-> v1 **
     a2 |-> v2) **
-    pure (dp `approximates` sum (pmul vr1 vr2)))
+    pure (dp `approximates` sum (pmul vr1 vr2))
 
 inline_for_extraction noextract
 val dotprod
