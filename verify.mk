@@ -11,7 +11,7 @@ minimal: build-minimal
 .PHONY: .force
 .force:
 
-.configure.output: ./configure $(which nvcc)
+.configure.output: ./configure $(shell which nvcc 2>/dev/null)
 	./configure $@
 
 include .configure.output
