@@ -891,36 +891,23 @@ fn kf
     assert pure((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
 
-    #set-options "--z3rlimit 100 --retry 3" {
-    // Silly intermediate step
-    rewrite (exists* em1. FB.bp_sharing sA em1 nthr) **
-            (exists* em2. FB.bp_sharing sB em2 nthr)
-         as (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
     rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
          as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
-    };
 
     B.barrier_wait ();
 
-    // Again silly intermediate step
     rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
-    rewrite (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid
-         as live_strided_chunks sA nthr tid **
-            live_strided_chunks sB nthr tid;
+    FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    #set-options "--z3rlimit 100 --retry 3" {
-    // Silly intermediate step
-    rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
-            own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
-         as (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
+    FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
     rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid
          as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
-    };
 
     B.barrier_wait ();
 
@@ -931,9 +918,7 @@ fn kf
     assert pure (even (2 * !bkIdx + 2));
     rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid;
-    rewrite (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx + 1) tid
-         as FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
-            FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
+    FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;

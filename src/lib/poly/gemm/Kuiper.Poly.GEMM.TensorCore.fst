@@ -385,9 +385,7 @@ fn kf
     even_2x !bkIdx;
     assert pure ((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
-    rewrite (exists* em1. FB.bp_sharing sA em1 nthr) **
-            (exists* em2. FB.bp_sharing sB em2 nthr)
-         as (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
     rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
          as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
 
@@ -395,10 +393,7 @@ fn kf
 
     rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
-
-    rewrite (FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid)
-         as live_strided_chunks sA nthr tid **
-            live_strided_chunks sB nthr tid;
+    FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol nthr tid;
 

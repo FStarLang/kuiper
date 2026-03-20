@@ -885,21 +885,15 @@ fn kf
         (exists* (x : ematrix _ _ _). FB.bp_sharing sB x nthr)
   {
     even_2x !bkIdx;
-    #set-options "--z3rlimit 60" {
-      rewrite (exists* emA. FB.bp_sharing sA emA nthr) **
-              (exists* emB. FB.bp_sharing sB emB nthr)
-          as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid;
-      rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid
-          as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx) tid;
-    };
+    FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
+    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx) tid
+         as (FB.contract eA eB slA slB sarA sarB nthr bid).rin (2 * !bkIdx) tid;
 
     B.barrier_wait ();
 
     rewrite (FB.contract eA eB slA slB sarA sarB nthr bid).rout (2 * !bkIdx) tid
          as (FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid);
-    rewrite (FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx) tid)
-         as live_strided_chunks sA nthr tid **
-            live_strided_chunks sB nthr tid;
+    FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^tm*^(bn/^tn)) tid;
 

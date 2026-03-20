@@ -216,3 +216,50 @@ fn unfold_barrier_q_odd
   ensures
     bp_sharing m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr **
     bp_sharing m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr
+
+(* Per-thread helpers for even iterations. *)
+ghost
+fn fold_barrier_p_even
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (#l1 : mlayout bm bk)
+  (#l2 : mlayout bk bn)
+  (m1 : gpu_matrix et l1)
+  (m2 : gpu_matrix et l2)
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (bkIdx : natlt (shared / bk))
+  (tid : natlt nthr)
+  requires
+    (exists* em1. bp_sharing m1 em1 nthr) **
+    (exists* em2. bp_sharing m2 em2 nthr)
+  ensures
+    barrier_p eA eB m1 m2 nthr bid (2 * bkIdx) tid
+
+ghost
+fn unfold_barrier_q_even
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #shared #cols : pos)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (#l1 : mlayout bm bk)
+  (#l2 : mlayout bk bn)
+  (m1 : gpu_matrix et l1)
+  (m2 : gpu_matrix et l2)
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (bkIdx : natlt (shared / bk))
+  (tid : natlt nthr)
+  requires
+    barrier_q eA eB m1 m2 nthr bid (2 * bkIdx) tid
+  ensures
+    live_strided_chunks m1 nthr tid **
+    live_strided_chunks m2 nthr tid
