@@ -940,7 +940,7 @@ fn block_setup
   forevery_rw_size (bm/tm * bn) (bm/^tm *^ bn);
 }
 
-#push-options "--z3rlimit 120 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 80 --fuel 1 --ifuel 1"
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -1010,7 +1010,7 @@ fn block_teardown
 }
 #pop-options
 
-#push-options "--z3rlimit 160 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 120 --fuel 1 --ifuel 1"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -1343,7 +1343,7 @@ let block_post_gpu_sendable
 = magic()
 #pop-options
 
-#push-options "--fuel 2 --ifuel 2 --z3rlimit_factor 10 --z3refresh"
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
 #restart-solver
 inline_for_extraction noextract
 let mk_kernel
