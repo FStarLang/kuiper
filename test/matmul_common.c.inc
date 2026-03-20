@@ -22,7 +22,7 @@ cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
     // Accumulate in double to avoid precision loss from repeated
     // rounding to cet (especially when cet is half).
     // Note: tensor cores accumulate internally in FP32.
-    double *acc = (double *) calloc(rows * cols, sizeof(double));
+    double *acc = (double *)calloc(rows * cols, sizeof(double));
     int i, j, k;
     for (i = 0; i < rows; i++) {
         for (k = 0; k < shared; k++) {
@@ -93,15 +93,18 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
                         progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
-                    fprintf(stderr, ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu cells)\n",
-                            max_rel * 100.0, nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
+                    fprintf(stderr,
+                            ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu cells)\n",
+                            max_rel * 100.0,
+                            nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
                     free(m1);
                     exit(1);
                 }
             }
         }
     }
-    fprintf(stderr, ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu cells)\n",
+    fprintf(stderr,
+            ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu cells)\n",
             max_rel * 100.0, nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
     free(m1);
 }
