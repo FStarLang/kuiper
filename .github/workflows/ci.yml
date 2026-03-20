@@ -18,14 +18,11 @@ on:
 
 # When updating this tag, also update .devcontainer/devcontainer.json
 # and advance.yml.
-env:
-  CONTAINER_IMAGE: mtzguido/pulse-cuda-devcontainer:latest
-
 jobs:
   verify:
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: ${{ env.CONTAINER_IMAGE }}
+      image: mtzguido/pulse-cuda-devcontainer:latest
       options: --gpus all
     defaults:
       run:
@@ -147,7 +144,7 @@ jobs:
     needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: ${{ env.CONTAINER_IMAGE }}
+      image: mtzguido/pulse-cuda-devcontainer:latest
       options: --gpus all
     defaults:
       run:
@@ -174,7 +171,7 @@ jobs:
     needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: ${{ env.CONTAINER_IMAGE }}
+      image: mtzguido/pulse-cuda-devcontainer:latest
     defaults:
       run:
         shell: bash
@@ -205,7 +202,7 @@ jobs:
     needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: ${{ env.CONTAINER_IMAGE }}
+      image: mtzguido/pulse-cuda-devcontainer:latest
       options: --gpus all
     defaults:
       run:
