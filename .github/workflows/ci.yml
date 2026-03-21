@@ -99,7 +99,7 @@ jobs:
       - name: Verify and extract
         run: |
           eval $(opam env)
-          make -kj$(nproc) -Otarget verify extract-all
+          make -kj$(nproc) -Otarget -f verify.mk all
 
       - name: Make bench-package
         run: |
@@ -165,7 +165,7 @@ jobs:
       - name: Build and test
         working-directory: kuiper-bench
         run: |
-          make -kj$(nproc) -Otarget build-all test
+          make -kj$(nproc) -Otarget
 
   check-dist:
     needs: verify
