@@ -38,9 +38,10 @@ RUN wget -nv https://github.com/Z3Prover/z3/releases/download/z3-4.13.3/z3-4.13.
  && cp z3-4.13.3-x64-glibc-2.35/bin/z3 /usr/local/bin/z3-4.13.3 \
  && rm -r z3-4.13.3-*
 
-# Reuse the ubuntu user (UID=1000) for devcontainer compatibility
-ARG USER=ubuntu
-RUN echo "$USER ALL=NOPASSWD: ALL" >> /etc/sudoers
+# Create vscode user (UID=1000) for devcontainer compatibility
+ARG USER=vscode
+RUN useradd -m -s /bin/bash -u 1000 $USER \
+ && echo "$USER ALL=NOPASSWD: ALL" >> /etc/sudoers
 USER $USER
 ENV HOME /home/$USER
 WORKDIR $HOME
