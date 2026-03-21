@@ -58,7 +58,7 @@ let rec mem_slice
     (ensures fun r -> forall i. a <= i /\ i < b /\ x == s @! i ==> r)
 =
   if a < b
-    then (s @! a) = x || mem_slice x s (a + 1) b
+    then s @! a = x || mem_slice x s (a + 1) b
     else false
 
 let rec index_mem_slice
@@ -70,7 +70,7 @@ let rec index_mem_slice
     (ensures (fun i -> a <= i /\ i < b /\ s @! i == x))
     (decreases (b - a))
 =
-  if (s @! a) = x
+  if s @! a = x
     then a
     else index_mem_slice x s (a + 1) b
 
@@ -114,11 +114,10 @@ unfold
 let pure_smatrix_pts_to
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
-  (#[Tactics.exact (`1.0R)] f : perm)
+  (#nnz : nat)
   (e : ematrix et rows cols)
-  (v_elems   : lseq et m.nnz)
-  (v_col_ind : lseq sz m.nnz)
+  (v_elems   : lseq et nnz)
+  (v_col_ind : lseq sz nnz)
   (v_row_off : lseq sz (rows + 1))
   : prop
 =
@@ -143,7 +142,7 @@ let smatrix_pts_to'
   m.elems   |-> Frac f v_elems **
   m.col_ind |-> Frac f v_col_ind **
   m.row_off |-> Frac f v_row_off **
-  pure (pure_smatrix_pts_to m e v_elems v_col_ind v_row_off)
+  pure (pure_smatrix_pts_to e v_elems v_col_ind v_row_off)
 
 
 
@@ -161,7 +160,7 @@ let smatrix_pts_to
     m.elems   |-> Frac f v_elems **
     m.col_ind |-> Frac f v_col_ind **
     m.row_off |-> Frac f v_row_off **
-    pure (pure_smatrix_pts_to m e v_elems v_col_ind v_row_off)
+    pure (pure_smatrix_pts_to e v_elems v_col_ind v_row_off)
 
 
 ghost
@@ -387,14 +386,6 @@ open Pulse.Lib.Trade
 open Kuiper.Seq.Common
 #set-options "--debug SMTFail --split_queries always"
 
-let cong_gpu_array
-  (#a : Type u#0)
-  (#n : erased nat)
-  (u v : gpu_array a n)
-: Lemma (requires base_address u == base_address v) (ensures u == v)
-= admit()
-
-
 // TODO k tiene que ser mayor a 0? tiene que ser menor a n?
 let gpu_array_take 
   (#a : Type u#0)
@@ -450,6 +441,23 @@ fn gpu_array_paste
   admit()
 }
 
+ghost
+fn gpu_array_paste'
+  (#a : Type u#0) {| sized a |}
+  (#n : nat)
+  (arr : gpu_array a n)
+  (#[Tactics.exact (`1.0R)] f : perm)
+  (k : szle n)
+  (#s : lseq a k) (#t : lseq a (n - k))
+  requires
+    gpu_array_take arr k |-> Frac f s **
+    gpu_array_drop arr k |-> Frac f t
+  ensures
+    arr |-> Frac f (Seq.append s t) 
+{
+  admit()
+}
+
 let matrix_row
   (#a:Type0)
   (#rows #cols : nat)
@@ -484,7 +492,91 @@ let smatrix_row
   (requires valid_smatrix rows cols (cast_pos col_ind) (cast_pos row_off))
   (ensures fun _ -> True)
 =
-  sarray et ((row_off @! (i + 1)) - (row_off @! i))
+  sarray et cols
+
+
+let seq_offset_at
+  (#n : nat)
+  (off : lseq sz (n + 1))
+  (h : nat)
+  (i : natlt n)
+: Ghost (szlt h)
+    (requires sorted (cast_pos off) /\ in_bounds 0 h (cast_pos off))
+    (ensures fun _ -> true)
+=
+  bounded_from_sorted_in_bounds 0 h (cast_pos off);
+  (off @! i + 1) -^ (off @! i)
+
+let rec mem_slice_lemma
+  (#et : eqtype)
+  (x : et) (s : seq et)
+  (a b : nat {a <= b /\ b <= len s})
+  : Lemma
+    (requires mem_slice x s a b)
+    (ensures Seq.mem x (Seq.slice s a b))
+    (decreases (b - a))
+=
+  if a < b && s @! a <> x
+    then mem_slice_lemma x s (a + 1) b
+    else ()
+
+let rec index_mem_slice_lemma
+  (#et : eqtype)
+  (x : et) (s : seq et)
+  (a b : nat {a <= b /\ b <= len s})
+  : Lemma
+    (requires mem_slice x s a b /\ Seq.mem x (Seq.slice s a b))
+    (ensures
+      s @! index_mem_slice x s a b ==
+      Seq.slice s a b @! Seq.index_mem x (Seq.slice s a b)
+    )
+    (decreases (b - a))
+= 
+  if a < b && s @! a <> x
+    then index_mem_slice_lemma x s (a + 1) b
+    else ()
+
+
+
+let unsparse_row_lemma
+  (#et:Type0) {| scalar et |}
+  (#nnz rows cols : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz)
+  (row_off : lseq nat (rows + 1))
+  (i : natlt rows)
+  : Lemma
+    (requires valid_smatrix rows cols col_ind row_off)
+    (ensures
+      matrix_row (smatrix_unsparse rows cols elems col_ind row_off) i == 
+      unsparse
+        ((row_off @! i + 1) - (row_off @! i)) cols
+        (Seq.slice elems (row_off @! i) (row_off @! i + 1))
+        (Seq.slice col_ind (row_off @! i) (row_off @! i + 1))
+    )
+=
+  let m = smatrix_unsparse rows cols elems col_ind row_off in
+  let row = matrix_row m i in
+
+  let ri = row_off @! i in
+  let re = row_off @! (i + 1) in
+
+  let selems = Seq.slice elems ri re in
+  let spos = Seq.slice col_ind ri re in
+  let s = unsparse (re - ri) cols selems spos in
+
+  introduce forall (j : natlt cols).
+    row @! j == s @! j
+  with (
+    if mem_slice j col_ind ri re
+      then (
+        mem_slice_lemma j col_ind ri re;
+        index_mem_slice_lemma j col_ind ri re;
+        ()
+      )
+      else ()
+  );
+  assert row `Seq.equal` s
 
 
 fn smatrix_extract
@@ -493,41 +585,30 @@ fn smatrix_extract
   (#rows #cols : szp)
   (m : smatrix et (SZ.v rows) (SZ.v cols))
   (#[Tactics.exact (`1.0R)] f : perm)
-  (v_elems   : lseq et m.nnz)
-  (v_col_ind : lseq sz m.nnz)
-  (v_row_off : lseq sz (rows + 1))
   (e : ematrix et rows cols)
   (i : szlt rows)
-  (#_ : pure_smatrix_pts_to m e v_elems v_col_ind v_row_off)
   requires
-    smatrix_pts_to' m #f v_elems v_col_ind v_row_off e
+    m |-> Frac f e
   returns
-    v : smatrix_row rows cols m.nnz v_elems v_col_ind v_row_off i
+    v : sarray et (SZ.v cols)
   ensures
-    sarray_pts_to v #f (matrix_row e i) **
-    (sarray_pts_to v #f (matrix_row e i) @==>
-    smatrix_pts_to' m #f v_elems v_col_ind v_row_off e)
+    v |-> Frac f (matrix_row e i) **
+    (v |-> Frac f (matrix_row e i) @==> m |-> Frac f e)
 
 {
+  
+  unfold smatrix_pts_to m #f e;
+
+  //with (v_elems : lseq _ m.nnz). assert m.elems |-> Frac f v_elems;
+  with (v_elems : seq _). assert m.elems |-> Frac f v_elems;
+  with (v_col_ind : seq sz).  assert m.col_ind |-> Frac f v_col_ind;
+  with (v_row_off : seq sz). assert m.row_off |-> Frac f v_row_off;
+
   let ri : sz = gpu_array_read m.row_off i; 
   let i' : sz = i +^ 1sz;
   // por que falla esto?
   //let re : sz = gpu_array_read m.row_off (i +^ 1sz); 
   let re : sz = gpu_array_read m.row_off i';
-
-  //let fst_elems : gpu_array et ri =
-    //gpu_array_take m.elems ri;
-  //let row_elems : gpu_array et (re - ri) =
-    //gpu_array_take (gpu_array_drop m.elems ri) (re -^ ri);
-  //let lst_elems : gpu_array et (m.nnz - re)
-    //= gpu_array_drop m.elems re;
-
-  //let fst_pos : gpu_array sz ri =
-    //gpu_array_take m.col_ind ri;
-  //let row_pos : gpu_array sz (re - ri) =
-    //gpu_array_take (gpu_array_drop m.col_ind ri) (re -^ ri);
-  //let lst_pos : gpu_array sz (m.nnz - re)
-    //= gpu_array_drop m.col_ind re;
 
   gpu_array_cut m.elems #f ri;
   gpu_array_cut (gpu_array_drop m.elems ri) #f (re -^ ri);
@@ -547,12 +628,19 @@ fn smatrix_extract
 
   let v_row_elems : erased (seq et) = seq_take (re - ri) (seq_drop ri v_elems);
   assert srow.elems |-> Frac f v_row_elems;
+  assert pure (Seq.equal v_row_elems (Seq.slice v_elems ri re));
 
   let v_row_pos : erased (seq sz) = seq_take (re - ri) (seq_drop ri v_col_ind);
   assert srow.pos |-> Frac f v_row_pos;
+  assert pure (Seq.equal v_row_pos (Seq.slice v_col_ind ri re));
 
-  assert pure (valid_pos cols (cast_pos #(re - ri) v_row_pos));
-  assume pure (
+  unsparse_row_lemma rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off) i;
+  assert pure (
+    Seq.equal
+      (cast_pos v_row_pos <: lseq nat (re - ri))
+      (Seq.slice (cast_pos v_col_ind) ri re)
+  ); 
+  assert pure (
     unsparse (re - ri) cols v_row_elems (cast_pos v_row_pos) ==
     matrix_row e i
   );
@@ -560,46 +648,44 @@ fn smatrix_extract
   fold sarray_pts_to' srow #f (matrix_row e i);
   fold sarray_pts_to srow #f (matrix_row e i);
 
-  //let fst_elems : erased (lseq et ri) = seq_take ri v_elems;
-  //assert gpu_array_take m.elems ri |-> Frac f fst_elems;
-  //let lst_elems : erased (lseq et (m.nnz -^ re)) = seq_drop (re -^ ri) (seq_drop ri v_elems);
-  //assert gpu_array_drop (gpu_array_drop m.elems ri) ri |-> Frac f lst_elems;
-
-  //let fst_pos : erased (lseq sz ri) = seq_take ri v_col_ind;
-  //assert gpu_array_take m.col_ind ri |-> Frac f fst_pos;
-  //let lst_pos : erased (lseq sz (m.nnz -^ re)) = seq_drop (re -^ ri) (seq_drop ri v_col_ind);
-  //admit();
   intro
-    (sarray_pts_to srow #f (matrix_row e i) @==>
-    smatrix_pts_to' m #f v_elems v_col_ind v_row_off e)
+    (srow |-> Frac f (matrix_row e i) @==> m |-> Frac f e)
     #(
       gpu_array_take m.elems ri |-> Frac f (seq_take (v ri) v_elems) **
       gpu_array_drop (gpu_array_drop m.elems ri) (re -^ ri) |->
         Frac f (seq_drop (re - ri) (seq_drop ri v_elems)) **
       gpu_array_take m.col_ind ri |-> Frac f (seq_take (v ri) v_col_ind) **
       gpu_array_drop (gpu_array_drop m.col_ind ri) (re -^ ri) |->
-        Frac f (seq_drop (re - ri) (seq_drop ri v_col_ind))
+        Frac f (seq_drop (re - ri) (seq_drop ri v_col_ind)) **
+      m.row_off |-> Frac f v_row_off
     ) // incluir todo el contexto aca
     fn _ {
       unfold sarray_pts_to srow #f (matrix_row e i);
       unfold sarray_pts_to' srow #f (matrix_row e i);
 
-      assume srow.elems |-> Frac f (seq_take (re -^ ri) (seq_drop ri v_elems));
-      assume srow.pos |-> Frac f (seq_take (re -^ ri) (seq_drop ri v_col_ind));
+      with (v_elems' : seq _). assert srow.elems |-> Frac f v_elems';
+      with (v_col_ind' : seq sz). assert srow.pos |-> Frac f v_col_ind';
 
       rewrite each srow.elems as (gpu_array_take (gpu_array_drop m.elems ri) (re -^ ri));
       rewrite each srow.pos as (gpu_array_take (gpu_array_drop m.col_ind ri) (re -^ ri));
       rewrite each srow.nnz as (re -^ ri);
 
-      gpu_array_paste (gpu_array_drop m.elems ri) #f (re -^ ri);
-      gpu_array_paste (gpu_array_drop m.col_ind ri) #f (re -^ ri);
+      //rewrite each (m.nnz - ri - (re - ri)) as (m.nnz -^ re);
+      gpu_array_paste' (gpu_array_drop m.elems ri) #f (re -^ ri); //#(seq_drop ri v_elems);
+      gpu_array_paste' (gpu_array_drop m.col_ind ri) #f (re -^ ri); //#(seq_drop ri v_elems);
+
+      gpu_array_paste' m.elems #f ri;
+      gpu_array_paste' m.col_ind #f ri;
+
+      // resta probar que si m1|r|m2 |-> e = e1|v|e2
+      // y r' |-> v
+      // entonces m1|r'|m2 |-> e
 
       admit();
 
-      gpu_array_paste (gpu_array_take m.elems ri) #f re;
-      gpu_array_paste m.col_ind #f ri;
       fold smatrix_pts_to' m #f v_elems v_col_ind v_row_off e;
+      fold smatrix_pts_to m #f e;
     };
 
-  admit();
+  srow;
 }
