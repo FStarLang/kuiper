@@ -905,6 +905,24 @@ fn forevery_map_extra
     forall+ (x:a). p2 x
 
 ghost
+fn forevery_flatten3'
+  (#a #b #c : Type0)
+  (f : a & b & c -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c). f (x, y, z)
+  ensures
+    forall+ (xyz : a & b & c). f xyz
+
+ghost
+fn forevery_unflatten3'
+  (#a #b #c : Type0)
+  (f : a & b & c -> slprop)
+  requires
+    forall+ (xyz : a & b & c). f xyz
+  ensures
+    forall+ (x:a) (y:b) (z:c). f (x, y, z)
+
+ghost
 fn forevery_flatten4'
   (#a #b #c #d : Type0)
   (f : a & b & c & d -> slprop)
