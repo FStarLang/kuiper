@@ -169,9 +169,7 @@ jobs:
 
   check-dist:
     needs: verify
-    runs-on: [self-hosted, linux, X64, cuda]
-    container:
-      image: mtzguido/pulse-cuda-devcontainer:latest
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
