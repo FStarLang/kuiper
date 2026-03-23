@@ -57,6 +57,7 @@ watch:
 clean:
 	rm -f .plugin.touch
 	rm -rf obj/
+	rm -rf inst/
 
 clean-modules:
 	git submodule foreach git clean -dXf
