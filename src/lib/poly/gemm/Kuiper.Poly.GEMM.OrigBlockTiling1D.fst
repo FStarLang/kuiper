@@ -10,7 +10,6 @@ open Kuiper.EMatrix
 open Kuiper.Matrix { gpu_matrix }
 open Kuiper.Matrix.Reprs.Type
 
-module B = Kuiper.Barrier
 module M = Kuiper.Matrix
 module MU = Kuiper.Poly.GEMM.Util
 module R = Kuiper.Matrix.Reprs
