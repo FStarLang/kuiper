@@ -412,11 +412,10 @@ fn gpu_matrix_read
   (j : sz{SZ.v j < cols})
   (#f : perm)
   (#em : ematrix et rows cols)
-  requires
-    gpu_matrix_pts_to gm #f em
+  preserves
+    gm |-> Frac f em
   returns v : et
   ensures
-    gpu_matrix_pts_to gm #f em **
     pure (v == macc em i j)
 {
   unfold gpu_matrix_pts_to gm #f em;
@@ -436,7 +435,7 @@ fn gpu_matrix_write
   (v : et)
   (#em : ematrix et rows cols)
   requires
-    gpu_matrix_pts_to gm em
+    gm |-> em
   ensures
     gpu_matrix_pts_to gm (mupd em i j v)
 {

@@ -320,11 +320,10 @@ fn gpu_matrix_read
   (j : szlt cols)
   (#f : perm)
   (#em : ematrix et rows cols)
-  requires
-    gpu_matrix_pts_to gm #f em
+  preserves
+    gm |-> Frac f em
   returns v : et
   ensures
-    gpu_matrix_pts_to gm #f em **
     pure (v == macc em i j)
 
 inline_for_extraction noextract
@@ -338,9 +337,9 @@ fn gpu_matrix_write
   (v : et)
   (#em : ematrix et rows cols)
   requires
-    gpu_matrix_pts_to gm em
+    gm |-> em
   ensures
-    gpu_matrix_pts_to gm (mupd em i j v)
+    gm |-> mupd em i j v
 
 (* Ownership over a single cell. *)
 val gpu_matrix_pts_to_cell

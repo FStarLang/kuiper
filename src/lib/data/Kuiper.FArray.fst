@@ -43,6 +43,51 @@ instance is_send_across_global_farray
   : is_send_across gpu_of (farray_pts_to a #f s)
   = solve
 
+ghost
+fn farray_pts_to_ref
+  (#et : Type) (#len : nat) (#l : flayout len)
+  (a : farray et l)
+  (#f : perm) (#s : erased (lseq et len))
+  preserves a |-> Frac f s
+  ensures pure (SZ.fits (flayout_size l))
+{
+  unfold farray_pts_to a #f s;
+  A.varray_pts_to_ref a;
+  fold farray_pts_to a #f s;
+}
+
+ghost
+fn farray_share_n
+  (#et : Type0) (#len : nat) (#l : flayout len)
+  (a : farray et l) (k : pos)
+  (#f : perm) (#s : lseq et len)
+  requires a |-> Frac f s
+  ensures  forall+ (_:natlt k). a |-> Frac (f /. k) s
+{
+  unfold farray_pts_to a #f s;
+  A.varray_share_n a k;
+  forevery_map
+    (fun (i:natlt k) -> A.varray_pts_to a #(f /. k) s)
+    (fun (i:natlt k) -> farray_pts_to a #(f /. k) s)
+    fn i { fold farray_pts_to a #(f /. k) s };
+}
+
+ghost
+fn farray_gather_n
+  (#et : Type0) (#len : nat) (#l : flayout len)
+  (a : farray et l) (k : pos)
+  (#f : perm) (#s : lseq et len)
+  requires forall+ (_:natlt k). a |-> Frac (f /. k) s
+  ensures  a |-> Frac f s
+{
+  forevery_map
+    (fun (i:natlt k) -> farray_pts_to a #(f /. k) s)
+    (fun (i:natlt k) -> A.varray_pts_to a #(f /. k) s)
+    fn i { unfold farray_pts_to a #(f /. k) s };
+  A.varray_gather_n a k;
+  fold farray_pts_to a #f s;
+}
+
 inline_for_extraction noextract
 fn farray_read
   (#et : Type0)

@@ -88,57 +88,73 @@ let aview3_from_mlayout3
 (* ============ TYPE ============ *)
 
 inline_for_extraction noextract
-val gpu_array3 (et:Type0) (#d0 #d1 #d2 : nat) (l : mlayout3 d0 d1 d2) : Type0
+val gpu_matrix3 (et:Type0) (#d0 #d1 #d2 : nat) (l : mlayout3 d0 d1 d2) : Type0
 
-val is_global_array3 (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2) (a : gpu_array3 et l) : prop
+val is_global_matrix3 (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2) (a : gpu_matrix3 et l) : prop
 
 inline_for_extraction noextract
-val from_array3
+val from_array
   (#et : Type0) (#d0 #d1 #d2 : erased nat)
   (l : mlayout3 d0 d1 d2)
   (a : gpu_array et (mlayout3_size l))
-  : gpu_array3 et l
+  : gpu_matrix3 et l
 
 inline_for_extraction noextract
-val core3
+val core
   (#et : Type0) (#d0 #d1 #d2 : erased nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   : gpu_array et (mlayout3_size l)
 
-val lem_core3_from_array3
+val lem_core_from_array
   (#et : Type) (#d0 #d1 #d2 : erased nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l)
-  : Lemma (ensures from_array3 l (core3 a) == a
-                   /\ (is_global_array (core3 a) <==> is_global_array3 a))
-          [SMTPat (core3 a)]
+  (a : gpu_matrix3 et l)
+  : Lemma (ensures from_array l (core a) == a
+                   /\ (is_global_array (core a) <==> is_global_matrix3 a))
+          [SMTPat (core a)]
 
-val lem_from_array3_core3
+val lem_from_array_core
   (#et : Type) (#d0 #d1 #d2 : erased nat)
   (l : mlayout3 d0 d1 d2)
   (p : gpu_array et (mlayout3_size l))
-  : Lemma (ensures core3 (from_array3 l p) == p
-                   /\ (is_global_array3 (from_array3 l p) <==> is_global_array p))
-          [SMTPat (from_array3 l p)]
+  : Lemma (ensures core (from_array l p) == p
+                   /\ (is_global_matrix3 (from_array l p) <==> is_global_array p))
+          [SMTPat (from_array l p)]
 
-val gpu_array3_pts_to
+val gpu_matrix3_pts_to
   (#et:Type) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  ([@@@mkey] a : gpu_array3 et l)
+  ([@@@mkey] a : gpu_matrix3 et l)
   (#[T.exact (`1.0R)] f : perm)
   (v : earray3 et d0 d1 d2)
   : slprop
 
 instance
-val is_send_across_global_array3
+val is_send_across_global_matrix3
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l { is_global_array3 a })
+  (a : gpu_matrix3 et l { is_global_matrix3 a })
   (#f : perm) (v : earray3 et d0 d1 d2)
-  : is_send_across gpu_of (gpu_array3_pts_to a #f v)
+  : is_send_across gpu_of (gpu_matrix3_pts_to a #f v)
 
 unfold
-instance has_pts_to_array3 (et : Type) (d0 d1 d2 : erased nat) (l : _)
-  : has_pts_to (gpu_array3 et l) (earray3 et d0 d1 d2) = {
-  pts_to = gpu_array3_pts_to;
+instance has_pts_to_matrix3 (et : Type) (d0 d1 d2 : erased nat) (l : _)
+  : has_pts_to (gpu_matrix3 et l) (earray3 et d0 d1 d2) = {
+  pts_to = gpu_matrix3_pts_to;
 }
+
+ghost
+fn gpu_matrix3_share_n
+  (#et : Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
+  (a : gpu_matrix3 et l) (k : pos)
+  (#f : perm) (#v : earray3 et d0 d1 d2)
+  requires a |-> Frac f v
+  ensures  forall+ (_:natlt k). a |-> Frac (f /. k) v
+
+ghost
+fn gpu_matrix3_gather_n
+  (#et : Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
+  (a : gpu_matrix3 et l) (k : pos)
+  (#f : perm) (#v : earray3 et d0 d1 d2)
+  requires forall+ (_:natlt k). a |-> Frac (f /. k) v
+  ensures  a |-> Frac f v
 
 (* ============ CONCRETE VIEW INSTANCE ============ *)
 
@@ -172,11 +188,11 @@ instance cview3_from_clayout3
 (* ============ READ / WRITE ============ *)
 
 inline_for_extraction noextract
-fn gpu_array3_read
+fn gpu_matrix3_read
   (#et:Type0)
   (#d0 #d1 #d2 : erased nat)
   (#l : mlayout3 d0 d1 d2) {| clayout3 l |}
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   (i : szlt d0) (j : szlt d1) (k : szlt d2)
   (#f : perm)
   (#v : erased (earray3 et d0 d1 d2))
@@ -185,11 +201,11 @@ fn gpu_array3_read
   ensures pure (r == acc3 v i j k)
 
 inline_for_extraction noextract
-fn gpu_array3_write
+fn gpu_matrix3_write
   (#et:Type0)
   (#d0 #d1 #d2 : erased nat)
   (#l : mlayout3 d0 d1 d2) {| clayout3 l |}
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   (i : szlt d0) (j : szlt d1) (k : szlt d2)
   (r : et)
   (#v : erased (earray3 et d0 d1 d2))
@@ -199,50 +215,50 @@ fn gpu_array3_write
 
 (* ============ CELL-LEVEL OPERATIONS ============ *)
 
-val gpu_array3_pts_to_cell
+val gpu_matrix3_pts_to_cell
   (#et:Type) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  ([@@@mkey] a : gpu_array3 et l)
+  ([@@@mkey] a : gpu_matrix3 et l)
   (#[T.exact (`1.0R)] f : perm)
   ([@@@mkey] i : natlt d0) ([@@@mkey] j : natlt d1) ([@@@mkey] k : natlt d2)
   (v : et)
   : slprop
 
-val gpu_array3_pts_to_cell_eq
+val gpu_matrix3_pts_to_cell_eq
   (#et:Type) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   (i : natlt d0) (j : natlt d1) (k : natlt d2)
   (f : perm) (v : et)
-  : Lemma (gpu_array3_pts_to_cell a #f i j k v
+  : Lemma (gpu_matrix3_pts_to_cell a #f i j k v
            ==
-           gpu_pts_to_cell (core3 a) #f (l.map3.f (i, j, k)) v)
+           gpu_pts_to_cell (core a) #f (l.map3.f (i, j, k)) v)
 
 ghost
-fn gpu_array3_explode
+fn gpu_matrix3_explode
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   (#f : perm) (#v : earray3 et d0 d1 d2)
   requires a |-> Frac f v
   ensures
     forall+ (i : natlt d0) (j : natlt d1) (k : natlt d2).
-      gpu_array3_pts_to_cell a #f i j k (acc3 v i j k)
+      gpu_matrix3_pts_to_cell a #f i j k (acc3 v i j k)
 
 ghost
-fn gpu_array3_implode
+fn gpu_matrix3_implode
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   (#f : perm) (#v : earray3 et d0 d1 d2)
   requires
     pure (SZ.fits (mlayout3_size l))
   requires
     forall+ (i : natlt d0) (j : natlt d1) (k : natlt d2).
-      gpu_array3_pts_to_cell a #f i j k (acc3 v i j k)
+      gpu_matrix3_pts_to_cell a #f i j k (acc3 v i j k)
   ensures
     a |-> Frac f v
 
 ghost
-fn gpu_array3_pts_to_ref
+fn gpu_matrix3_pts_to_ref
   (#et:Type) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l)
+  (a : gpu_matrix3 et l)
   (#f : perm) (#v : erased (earray3 et d0 d1 d2))
   preserves a |-> Frac f v
   ensures pure (SZ.fits (mlayout3_size l))
@@ -263,7 +279,7 @@ let earray3_slice0 (#et:Type) (#d0 #d1 #d2 : nat)
 
 val slice0_matrix
   (#et : Type) (#d0 #d1 #d2 : erased nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (i : enatlt d0)
+  (a : gpu_matrix3 et l) (i : enatlt d0)
   : gpu_matrix et (slice0_mlayout l i)
 
 (* Fix index 1: slice at j, get a matrix over (d0, d2). *)
@@ -280,7 +296,7 @@ let earray3_slice1 (#et:Type) (#d0 #d1 #d2 : nat)
 
 val slice1_matrix
   (#et : Type) (#d0 #d1 #d2 : erased nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (j : enatlt d1)
+  (a : gpu_matrix3 et l) (j : enatlt d1)
   : gpu_matrix et (slice1_mlayout l j)
 
 (* Fix index 2: slice at k, get a matrix over (d0, d1). *)
@@ -297,7 +313,7 @@ let earray3_slice2 (#et:Type) (#d0 #d1 #d2 : nat)
 
 val slice2_matrix
   (#et : Type) (#d0 #d1 #d2 : erased nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (k : enatlt d2)
+  (a : gpu_matrix3 et l) (k : enatlt d2)
   : gpu_matrix et (slice2_mlayout l k)
 
 (* ============ SLICE EXTRACTION WITH OWNERSHIP ============ *)
@@ -305,9 +321,9 @@ val slice2_matrix
 open Pulse.Lib.Trade
 
 ghost
-fn gpu_array3_extract_slice0
+fn gpu_matrix3_extract_slice0
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (i : enatlt d0)
+  (a : gpu_matrix3 et l) (i : enatlt d0)
   (#v : earray3 et d0 d1 d2) (#f : perm)
   requires a |-> Frac f v
   ensures
@@ -316,9 +332,9 @@ fn gpu_array3_extract_slice0
       (a |-> Frac f v)
 
 ghost
-fn gpu_array3_restore_slice0
+fn gpu_matrix3_restore_slice0
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (i : enatlt d0)
+  (a : gpu_matrix3 et l) (i : enatlt d0)
   (#v : earray3 et d0 d1 d2) (#f : perm)
   requires
     factored
@@ -327,9 +343,9 @@ fn gpu_array3_restore_slice0
   ensures a |-> Frac f v
 
 ghost
-fn gpu_array3_extract_slice1
+fn gpu_matrix3_extract_slice1
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (j : enatlt d1)
+  (a : gpu_matrix3 et l) (j : enatlt d1)
   (#v : earray3 et d0 d1 d2) (#f : perm)
   requires a |-> Frac f v
   ensures
@@ -338,9 +354,9 @@ fn gpu_array3_extract_slice1
       (a |-> Frac f v)
 
 ghost
-fn gpu_array3_restore_slice1
+fn gpu_matrix3_restore_slice1
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (j : enatlt d1)
+  (a : gpu_matrix3 et l) (j : enatlt d1)
   (#v : earray3 et d0 d1 d2) (#f : perm)
   requires
     factored
@@ -349,9 +365,9 @@ fn gpu_array3_restore_slice1
   ensures a |-> Frac f v
 
 ghost
-fn gpu_array3_extract_slice2
+fn gpu_matrix3_extract_slice2
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (k : enatlt d2)
+  (a : gpu_matrix3 et l) (k : enatlt d2)
   (#v : earray3 et d0 d1 d2) (#f : perm)
   requires a |-> Frac f v
   ensures
@@ -360,9 +376,9 @@ fn gpu_array3_extract_slice2
       (a |-> Frac f v)
 
 ghost
-fn gpu_array3_restore_slice2
+fn gpu_matrix3_restore_slice2
   (#et:Type0) (#d0 #d1 #d2 : nat) (#l : mlayout3 d0 d1 d2)
-  (a : gpu_array3 et l) (k : enatlt d2)
+  (a : gpu_matrix3 et l) (k : enatlt d2)
   (#v : earray3 et d0 d1 d2) (#f : perm)
   requires
     factored

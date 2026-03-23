@@ -98,6 +98,30 @@ instance has_pts_to_farray (et : Type) (len : erased nat) (l : _)
   pts_to = farray_pts_to;
 }
 
+ghost
+fn farray_pts_to_ref
+  (#et : Type) (#len : nat) (#l : flayout len)
+  (a : farray et l)
+  (#f : perm) (#s : erased (lseq et len))
+  preserves a |-> Frac f s
+  ensures pure (SZ.fits (flayout_size l))
+
+ghost
+fn farray_share_n
+  (#et : Type0) (#len : nat) (#l : flayout len)
+  (a : farray et l) (k : pos)
+  (#f : perm) (#s : lseq et len)
+  requires a |-> Frac f s
+  ensures  forall+ (_:natlt k). a |-> Frac (f /. k) s
+
+ghost
+fn farray_gather_n
+  (#et : Type0) (#len : nat) (#l : flayout len)
+  (a : farray et l) (k : pos)
+  (#f : perm) (#s : lseq et len)
+  requires forall+ (_:natlt k). a |-> Frac (f /. k) s
+  ensures  a |-> Frac f s
+
 (* ============ CONCRETE VIEW INSTANCE ============ *)
 
 inline_for_extraction noextract
