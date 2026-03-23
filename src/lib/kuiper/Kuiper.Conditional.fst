@@ -149,7 +149,7 @@ fn split (b: bool) (p1 p2: slprop)
 // MAP
 
 ghost
-fn if_map (#b: bool) (#p #q: slprop) (ghost fn f () requires p ensures q)
+fn if_map (#b: bool) (#p #q: slprop) (f : ghost fn () requires p ensures q)
   requires if_ b p
   ensures  if_ b q
 {

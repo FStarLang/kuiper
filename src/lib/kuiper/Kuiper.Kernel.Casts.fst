@@ -54,7 +54,7 @@ fn adapt_kmn_kf
   (#nblk #nthr : erased nat)
   #kpre
   #kpost
-  (fn f (bid : szlt nblk) (tid : szlt nthr) ()
+  (f : fn (bid : szlt nblk) (tid : szlt nthr) ()
     requires
       gpu **
       kpre bid tid **
@@ -337,7 +337,7 @@ fn km1_as_kmn_block_teardown
 inline_for_extraction noextract
 fn frame_2
   (e #p0 #p1 #q0 #q1 #r0 #r1 : slprop)
-  (fn f () requires p0 ** q0 ** r0 ensures p1 ** q1 ** r1)
+  (f : fn () requires p0 ** q0 ** r0 ensures p1 ** q1 ** r1)
   ()
   norewrite
   requires p0 ** q0 ** e ** r0

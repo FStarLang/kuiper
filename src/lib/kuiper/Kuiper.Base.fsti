@@ -120,7 +120,7 @@ fn get_bdim ()
   ensures   pure (SZ.v x == 'nthr)
 
 ghost
-fn map_loc (loc:loc_id) (#p #q:slprop) (ghost fn f () requires p ensures q)
+fn map_loc (loc:loc_id) (#p #q:slprop) (f : ghost fn () requires p ensures q)
 requires on loc p
 ensures on loc q
 {
