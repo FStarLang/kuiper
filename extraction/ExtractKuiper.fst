@@ -556,10 +556,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
     let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
-    let dst_off = mul_by_sz (cb dst_off) in
+    let dst_off = cb dst_off in (* element offset, not byte offset *)
     let dst_ga = cb dst_ga in
     let dst_ga = EBufSub (dst_ga, dst_off) in
-    let src_off = mul_by_sz (cb src_off) in
+    let src_off = cb src_off in (* element offset, not byte offset *)
     let src_a = cb src_a in
     let src_a = EBufSub (src_a, src_off) in
     let bytesize : expr = mul_by_sz (cb cnt) in
@@ -574,10 +574,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
         [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = cb <| get_sizet sz in
     let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
-    let dst_off = mul_by_sz (cb dst_off) in
+    let dst_off = cb dst_off in (* element offset, not byte offset *)
     let dst_ga = cb dst_a in
     let dst_ga = EBufSub (dst_ga, dst_off) in
-    let src_off = mul_by_sz (cb src_off) in
+    let src_off = cb src_off in (* element offset, not byte offset *)
     let src_a = cb src_ga in
     let src_a = EBufSub (src_a, src_off) in
     let bytesize : expr = mul_by_sz (cb cnt) in
