@@ -384,7 +384,7 @@ fn smatrix_gather_n
 open Kuiper.Sparse.Array
 open Pulse.Lib.Trade
 open Kuiper.Seq.Common
-#set-options "--debug SMTFail --split_queries always"
+(* #set-options "--debug SMTFail --split_queries always" *)
 
 // TODO k tiene que ser mayor a 0? tiene que ser menor a n?
 let gpu_array_take 

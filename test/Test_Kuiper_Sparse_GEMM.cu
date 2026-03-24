@@ -9,7 +9,7 @@ const char *progname = __FILE__;
 
 #define N 128
 
-typedef Kuiper_Sparse_smatrix__uint32_t smatrix_t;
+typedef Kuiper_Sparse_Matrix_smatrix__uint32_t smatrix_t;
 
 uint32_t *mk_dense_matrix()
 {
@@ -49,9 +49,9 @@ smatrix_t sparsify_matrix(uint32_t *M)
     }
     assert(idx == nnz);
 
-    Kuiper_Sparse_smatrix__uint32_t smat;
-    smat.nnz1 = nnz;
-    smat.elems1 = elems;
+    Kuiper_Sparse_Matrix_smatrix__uint32_t smat;
+    smat.nnz = nnz;
+    smat.elems = elems;
     smat.col_ind = col_ind;
     smat.row_off = row_off;
 
@@ -91,15 +91,15 @@ int main(int argc, char **argv)
     uint32_t *CD = (uint32_t *) calloc(N * N, sizeof CD[0]);
 
     smatrix_t dA;
-    dA.nnz1 = A.nnz1;
-    dA.elems1 = (uint32_t *) kpr_wait_alloc(sizeof dA.elems1[0], A.nnz1);
-    dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0], A.nnz1);
+    dA.nnz = A.nnz;
+    dA.elems = (uint32_t *) kpr_wait_alloc(sizeof dA.elems[0], A.nnz);
+    dA.col_ind = (uint32_t *) kpr_wait_alloc(sizeof dA.col_ind[0], A.nnz);
     dA.row_off = (uint32_t *) kpr_wait_alloc(sizeof dA.row_off[0], N + 1);
 
-    cudaMemcpy(dA.elems1, A.elems1,
-               sizeof A.elems1[0] * A.nnz1, cudaMemcpyHostToDevice);
+    cudaMemcpy(dA.elems, A.elems,
+               sizeof A.elems[0] * A.nnz, cudaMemcpyHostToDevice);
     cudaMemcpy(dA.col_ind, A.col_ind,
-               sizeof A.col_ind[0] * A.nnz1, cudaMemcpyHostToDevice);
+               sizeof A.col_ind[0] * A.nnz, cudaMemcpyHostToDevice);
     cudaMemcpy(dA.row_off, A.row_off,
                sizeof A.row_off[0] * (N + 1), cudaMemcpyHostToDevice);
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     uint32_t *C = (uint32_t *) calloc(N * N, sizeof C[0]);
     cudaMemcpy(C, dC, sizeof C[0] * N * N, cudaMemcpyDeviceToHost);
 
-    cudaFree(dA.elems1);
+    cudaFree(dA.elems);
     cudaFree(dA.col_ind);
     cudaFree(dA.row_off);
     cudaFree(dB);
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 
     free(B);
     free(C);
-    free(A.elems1);
+    free(A.elems);
     free(A.col_ind);
     free(A.row_off);
     free(AD);

@@ -1,7 +1,7 @@
 module Kuiper.Sparse.SPMM
 
 //#set-options "--z3rlimit 20"
-#set-options "--debug SMTFail --split_queries always"
+(* #set-options "--debug SMTFail --split_queries always" *)
 
 #lang-pulse
 
@@ -45,13 +45,15 @@ let matrix_live_cell
   : slprop
   = exists* v. M.gpu_matrix_pts_to_cell gm i j v
 
+inline_for_extraction noextract
 type parameters = {
   rows : szp;
   shared : szp;
   cols : szp;
   blockItemsK : szp;
   blockItemsX : szp;
-  blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX})
+  blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX});
+  blockChunks : (k : szp {SZ.v k == blockItemsX / blockWidth}); // Ver nota abajo
 }
 
 (* Shadow lseq to make it erased. *)
@@ -70,35 +72,35 @@ let size_req (p : parameters) =
     nblocks p <= max_blocks /\
     p.blockWidth <= max_threads
 
-let sz_nblocks (p : parameters{size_req p}) : szle max_blocks
-=  p.rows *^ (p.cols /^ p.blockItemsX)
+inline_for_extraction noextract
+let sz_nblocks (p : parameters{size_req p}) : szle max_blocks =
+  p.rows *^ (p.cols /^ p.blockItemsX)
 
-let sz_nthreads (p : parameters{size_req p}) : (nt : szp {nt <= max_threads})
-= p.blockWidth
+inline_for_extraction noextract
+let sz_nthreads (p : parameters{size_req p}) : (nt : szp {nt <= max_threads}) =
+  p.blockWidth
 
 let brow (p : parameters) (bid : natlt (nblocks p))
   : GTot (natlt p.rows)
   //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
   = bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
 
+inline_for_extraction noextract
 let brow_ (p : parameters) (bid : szlt (nblocks p))
-: Pure sz
-  (requires fits (p.cols + p.blockItemsX))
-  (ensures fun m -> SZ.v m == brow p bid)
-  //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+  (#_ : squash (fits (p.cols + p.blockItemsX)))
+  : Tot (m : sz {SZ.v m == brow p bid})
   =
-  assume fits (p.cols + p.blockItemsX);
   bid /^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)
 
 let bcol (p : parameters) (bid : natlt (nblocks p))
   : GTot (natlt p.cols)
   = (bid % ((p.cols + p.blockItemsX - 1) / p.blockItemsX)) * p.blockItemsX
 
+inline_for_extraction noextract
 let bcol_ (p : parameters) (bid : szlt (nblocks p))
-: Pure sz
-  (requires fits (p.cols + p.blockItemsX))
-  (ensures fun n -> SZ.v n == bcol p bid)
-=
+  (#_ : squash (fits (p.cols + p.blockItemsX)))
+  : Tot (n : sz {SZ.v n == bcol p bid})
+  =
   (bid %^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)) *^ p.blockItemsX
 
 // MAYBE definir threadItemsX?
@@ -136,19 +138,16 @@ let well_formed
   // esta es rara
   fits (p.cols + p.blockItemsX)
 
-noextract
 let block_lemma whole block k
   : Lemma (requires block /? whole /\ k * block < whole)
           (ensures k * block + block <= whole)
   = ()
 
-noextract
 let block_lemma_off whole block k off
   : Lemma (requires block /? whole /\ k * block < whole /\ off < block)
           (ensures k * block + off < whole)
   = ()
 
-noextract
 let barrier_p_odd
   (#et : Type0)
   (p : parameters)
@@ -199,7 +198,6 @@ let barrier_p
       forall+ (k : natlt(p.blockItemsK /^ p.blockWidth)).
         barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re (it / 2) tid k
 
-noextract
 let barrier_q_even
   (#et : Type0)
   (p : parameters)
@@ -215,7 +213,6 @@ let barrier_q_even
   array_live_cell elems_tile (k * p.blockWidth + tid) **
   array_live_cell col_ind_tile (k * p.blockWidth + tid)
 
-noextract
 let barrier_q_odd
   (#et : Type0)
   (p : parameters)
@@ -410,10 +407,10 @@ let kpost
   live (fst (snd sh)) #(1.0R /. p.blockWidth)
 
 // TODO tal vez usar esta definicion desde arriba
-let divup (n : nat) (d : pos) = ((n + d - 1) / d)
+let divup (n : nat) (d : pos) : GTot nat = ((n + d - 1) / d)
 
-let divup_factor (n : nat) (d : pos)
-= (i : natlt (divup n d) & (j : natlt d {i * d + j < n }))
+let divup_factor (n : nat) (d : pos) =
+  (i : natlt (divup n d) & (j : natlt d {i * d + j < n }))
 
 let bij_divup_factor (n : nat) (d : pos)
 : Kuiper.Bijection.bijection (natlt n) (divup_factor n d)
@@ -1192,6 +1189,7 @@ fn barrier_q_unfold_odd
   ();
 }
 
+#push-options "--z3rlimit 20"
 ghost
 fn barrier_q_unfold_odd_residue
   (#et : Type0)
@@ -1233,6 +1231,7 @@ fn barrier_q_unfold_odd_residue
 
   ();
 }
+#pop-options
 
 open Kuiper.Bijection
 
@@ -1456,14 +1455,14 @@ fn sparse_load
 let between_coerce_down
   (#i #j #j' : nat{i < j' /\ j' <= j})
   (k : between i j{k < j'})
-: between i j'
+: GTot (between i j')
 = k
 
 unfold
 let between_coerce_up
   (#i #j #i' : nat{i <= i' /\ i' < j})
   (k : between i j{i' <= k})
-: between i' j
+: GTot (between i' j)
 = k
 
 let between_restrict_shift_down (i j j' : nat { i < j' /\ j' <= j }) (p: between i j' -> slprop) =
@@ -1591,8 +1590,8 @@ fn forevery_rw_type_ref
   forevery_rw_type (x : a{p x}) (x : b{p x}) f;
 }
 
-let between_to_natlt (#m #n : nat{m <= n}) (a : between m n) : natlt (n - m) = a - m
-let natlt_to_between (#m #n : nat{m <= n}) (a : natlt (n - m)) : between m n = a + m
+let between_to_natlt (#m #n : nat{m <= n}) (a : between m n) : GTot (natlt (n - m)) = a - m
+let natlt_to_between (#m #n : nat{m <= n}) (a : natlt (n - m)) : GTot (between m n) = a + m
 
 let bij_between_natlt (m n : nat{m <= n})
 : bijection (between m n) (natlt (n - m))
@@ -2237,7 +2236,11 @@ fn kf
   let ri = gpu_array_read gA.row_off m_idx;
   let re = gpu_array_read gA.row_off (m_idx +^ 1sz);
 
-  let mut out = [| zero #et #_; (p.blockItemsX /^ p.blockWidth) |];
+  (* GM: Nota: no podemos tener una expresión de división como la
+  longitud del array, porque sería un VLA. Por eso agregué un argumento
+  al kernel (p.blockChunks) que tiene un refinamiento que asegura que
+  es igual (p.blockItemsK / p.blockWidth). *)
+  let mut out = [| zero #et #_; p.blockChunks |];
 
   let mut nnz : sz = re -^ ri;
   let mut idx = 0sz;
@@ -2360,6 +2363,7 @@ let kdesc
   barrier_contract = (fun bid ptrs ->
     barrier_contract p elems col_ind row_off
       (fst ptrs) (fst (snd ptrs)) bid);
+  barrier_count = (fun _bid -> 0);
   barrier_ok = (fun bid ptrs -> magic());
 
   shmems_desc = shmems_desc et p;
@@ -2425,10 +2429,13 @@ fn spmm
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  let params = { rows; shared; cols; blockItemsK; blockItemsX; blockWidth };
+  let [@@@inline_let] params = {
+    rows; shared; cols; blockItemsK; blockItemsX; blockWidth;
+    blockChunks = blockItemsX /^ blockWidth;
+  };
   assume pure (well_formed params #gA.nnz col_ind row_off);
-  // que raro
-  let pf_size_req : squash (size_req params) = ();
+  // que raro, arreglar
+  assume pure (size_req params);
   launch_sync (
     kdesc #et #_ params #lB #lC #cB #cC
       gA gB gC elems col_ind row_off eA
