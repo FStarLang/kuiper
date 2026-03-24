@@ -268,13 +268,11 @@ fn gpu_matrix_read
   (j : szlt bcols)
   (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
-  requires
+  preserves
     gpu **
     gpu_matrix_pts_to gm #f em
   returns v : et
   ensures
-    gpu **
-    gpu_matrix_pts_to gm #f em **
     pure (v == macc em bi bj i j)
 
 inline_for_extraction noextract
@@ -289,11 +287,10 @@ fn gpu_matrix_write
   (j : szlt bcols)
   (v : et)
   (#em : _)
+  preserves gpu
   requires
-    gpu **
     gpu_matrix_pts_to gm em
   ensures
-    gpu **
     gpu_matrix_pts_to gm (mupd em bi bj i j v)
 
 (* Ownership over a single cell. *)
