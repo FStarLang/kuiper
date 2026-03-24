@@ -69,9 +69,14 @@ EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
 EXTRACT += src/examples/Kuiper.Example2.fst
 
+NOEXTRACT :=
+NOEXTRACT += src/examples/Kuiper.Sparse.SPMM.fst
+
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
 INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
 EXTRACT := $(filter-out $(INST_MODULES),$(EXTRACT))
+
+EXTRACT := $(filter-out $(NOEXTRACT),$(EXTRACT))
 
 extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT)))))
 extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
