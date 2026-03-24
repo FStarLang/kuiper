@@ -7,8 +7,6 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.FArray
 open Pulse.Lib.Trade
-module A = Kuiper.VArray
-module SZ = Kuiper.SizeT
 module FA = Kuiper.FArray
 
 (* ============ DEFINITIONS ============ *)

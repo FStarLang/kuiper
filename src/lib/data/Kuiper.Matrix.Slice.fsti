@@ -9,7 +9,6 @@ open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
 open Kuiper.FArray
 open Pulse.Lib.Trade
-module SZ = Kuiper.SizeT
 
 (* ============ COLUMN ============ *)
 
