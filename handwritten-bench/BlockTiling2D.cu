@@ -46,7 +46,7 @@ void blocktiling2d(
     // thread local cache
     float_t rAcol[TM];
     float_t rBrow[TN];
-    float_t rchProd[TM][TN];
+    float_t rchProd[TM][TN] = {0};
 
     uint32_t num_n_tiles = cols / BN;
     // for each block, jump to beginning of tile row in gA
