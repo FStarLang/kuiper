@@ -8,7 +8,6 @@ open Kuiper.Epoch
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
 include Kuiper.Kernel.Casts
-open FStar.Tactics.Typeclasses
 open Pulse.Lib.Pledge
 
 inline_for_extraction noextract

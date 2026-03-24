@@ -7,7 +7,6 @@ open Kuiper.Base
 open Kuiper.SizeT
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
-open FStar.Tactics.Typeclasses
 
 (* A model for launch_kernel_sync *)
 

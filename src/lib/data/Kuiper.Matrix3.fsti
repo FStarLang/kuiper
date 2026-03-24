@@ -10,11 +10,11 @@ open Kuiper.Injection
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix
+open FStar.Tactics.Typeclasses { no_method }
 module A = Kuiper.VArray
 module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
-open FStar.Tactics.Typeclasses
 
 (* ============ LAYOUT ============ *)
 

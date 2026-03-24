@@ -6,6 +6,7 @@ open Kuiper.Base
 open Kuiper.Kernel.Base
 open Kuiper.Epoch
 open Pulse.Lib.Pledge
+open FStar.Tactics.Typeclasses { solve }
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync

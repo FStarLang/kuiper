@@ -4,7 +4,7 @@ module Kuiper.Matrix.Reprs.Type
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.Injection
-open FStar.Tactics.Typeclasses
+open FStar.Tactics.Typeclasses { no_method }
 module SZ = Kuiper.SizeT
 
 [@@erasable]

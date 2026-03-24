@@ -6,11 +6,11 @@ module Kuiper.FArray
 
 open Kuiper
 open Kuiper.Injection
+open FStar.Tactics.Typeclasses { no_method }
 module A = Kuiper.VArray
 module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
-open FStar.Tactics.Typeclasses
 
 (* ============ LAYOUT ============ *)
 

@@ -4,7 +4,6 @@ module Kuiper.Enumerable
 open Kuiper.Common
 open Kuiper.Bijection
 open Kuiper.Injection
-open FStar.Tactics.Typeclasses
 
 [@@erasable]
 class enumerable (a:Type) = {
