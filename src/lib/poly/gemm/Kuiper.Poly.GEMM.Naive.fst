@@ -3,6 +3,7 @@ module Kuiper.Poly.GEMM.Naive
 #lang-pulse
 
 open Kuiper
+open Kuiper.Approximates
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
@@ -225,12 +226,6 @@ fn teardown
       M.gpu_matrix_pts_to_cell gC r c (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
     ()
-    // MS.lemma_matmul_index eA eB r c;
-    // ^has smtpat now
-    (* If it doesn't have an SMTPat, we should just be able to call it,
-    but we currently require an extra ;() to make pure elimination kick
-    in (I think). *)
-    // () (* BUG! Should not be needed. *)
   };
   forevery_map_2 #(natlt rows) #(natlt cols)
     (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
@@ -280,7 +275,7 @@ let kdesc
 }
 
 inline_for_extraction noextract
-fn mmcomb_gpu
+fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
@@ -308,4 +303,44 @@ fn mmcomb_gpu
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 {
   launch_sync (kdesc comb gA #fA gB #fB gC #eA #eB #eC);
+}
+
+inline_for_extraction noextract
+fn mmcomb_gpu_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
+  (#rows #shared #cols : szp)
+  (#lA : full_mlayout rows shared)
+  (#lB : full_mlayout shared cols)
+  (#lC : full_mlayout rows cols)
+  {| clayout lA, clayout lB, clayout lC |}
+  (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
+  (#fA : perm)
+  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
+  (#fB : perm)
+  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
+  (#eA : ematrix et rows shared)
+  (#eB : ematrix et shared cols)
+  (#eC : ematrix et rows cols)
+  (rA : ematrix real rows shared)
+  (rB : ematrix real shared cols)
+  (rC : ematrix real rows cols)
+  norewrite
+  preserves
+    cpu **
+    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (gB |-> Frac fB eB)
+  requires
+    pure (rows * cols <= max_blocks) **
+    pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
+    on gpu_loc (gC |-> eC)
+  ensures
+    exists* (eC' : ematrix et rows cols).
+      on gpu_loc (gC |-> eC') **
+      pure (eC' %~ MS.mmcomb comb_r rC rA rB)
+{
+  mmcomb_gpu_exact comb gA gB gC;
+  MU.mmcomb_approx_real comb comb_r eC eA eB rA rB rC;
+  ()
 }

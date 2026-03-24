@@ -16,12 +16,13 @@ on:
         type: boolean
         default: false
 
+# When updating this tag, also update .devcontainer/devcontainer.json
+# and advance.yml.
 jobs:
-  build:
-    # NB: we need the runner to have a working CUDA setup (toolkit + driver)
+  verify:
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer
+      image: mtzguido/pulse-cuda-devcontainer:latest
       options: --gpus all
     defaults:
       run:
@@ -45,9 +46,6 @@ jobs:
       # FIXME: env or path gets broken
       # - uses: mtzguido/set-opam-env@master
 
-      # If these fail, stop right now.
-      - run: which z3-4.8.5
-
       - run: sudo apt-get install -y indent
 
       - name: Get submodules
@@ -70,9 +68,6 @@ jobs:
           cd FStar
           C=$(git rev-parse HEAD)
           echo "FSTARCOMMIT=$C" >>"$GITHUB_OUTPUT"
-          cd ../pulse
-          C=$(git rev-parse HEAD)
-          echo "PULSECOMMIT=$C" >>"$GITHUB_OUTPUT"
 
       - name: Try fetch cached F*
         id: fstarcache
@@ -101,56 +96,31 @@ jobs:
           path: inst
           key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
 
-      - name: Try fetch cached Pulse plugin
-        id: pulsecache
-        if: ${{ inputs.nocache != true && github.event_name != 'schedule' }}
-        uses: actions/cache/restore@v4
-        with:
-          path: pulse/build/ocaml/installed/lib/pulse/pulse.cmxs
-          key: pulse-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}-${{steps.fstarcommit.outputs.PULSECOMMIT}}
-
-      - name: Fake Pulse plugin touchfile
-        if: ${{ steps.pulsecache.outputs.cache-hit == 'true' }}
-        run: |
-          touch .pulse.src.touch
-          touch .pulse.touch
-
-      - name: Build Pulse plugin
-        if: ${{ steps.pulsecache.outputs.cache-hit != 'true' }}
+      - name: Verify and extract
         run: |
           eval $(opam env)
-          make -j$(nproc) -f verify.mk .pulse.touch
-
-      - name: Save Pulse plugin
-        uses: actions/cache/save@v4
-        if: ${{ steps.pulsecache.outputs.cache-hit != 'true' }}
-        with:
-          path: pulse/build/ocaml/installed/lib/pulse/pulse.cmxs
-          key: pulse-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}-${{steps.fstarcommit.outputs.PULSECOMMIT}}
-
-      - name: Run CI Makefile rule
-        run: |
-          eval $(opam env)
-          make -kj$(nproc) -Otarget ci
+          make -kj$(nproc) -Otarget -f verify.mk all
 
       - name: Make bench-package
         run: |
           eval $(opam env)
           make -kj$(nproc) -Otarget bench-package
 
-      - name: Make artifact with bench-package
-        uses: actions/upload-artifact@master
+      - name: Upload bench-package
+        uses: actions/upload-artifact@v4
         with:
           name: kuiper-bench
-          path: kuiper-bench.tgz
+          path: kuiper-bench.tar.gz
 
-      - name: Make artifact with output
+      - name: Upload CUDA output
         if: ${{ always () }}
         continue-on-error: true
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
           name: output
-          path: obj/*.cu
+          path: |
+            obj/*.cu
+            obj/*.h
 
       - name: Spit out all CUDA files into action log
         if: ${{ always () }}
@@ -161,20 +131,76 @@ jobs:
             echo "::endgroup::"
           done || true
 
-      - name: Make artifact with failed state
+      - name: Upload failed state
         if: ${{ always () && inputs.debug }}
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
           name: all
           include-hidden-files: true
           path: '**'
 
-  bench:
-    needs: build
+  test:
+    needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
-      image: mtzguido/pulse-cuda-devcontainer
+      image: mtzguido/pulse-cuda-devcontainer:latest
+      options: --gpus all
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: find . -delete
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Download bench-package
+        uses: actions/download-artifact@v4
+        with:
+          name: kuiper-bench
+
+      - run: tar xzf kuiper-bench.tar.gz
+
+      - name: Build and test
+        working-directory: kuiper-bench
+        run: |
+          make -kj$(nproc) -Otarget
+
+  check-dist:
+    needs: verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: find . -delete
+
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Download CUDA output
+        uses: actions/download-artifact@v4
+        with:
+          name: output
+          path: obj
+
+      - name: Check dist/ is up to date
+        run: |
+          # Ignore the BUILD_INFO metadata file
+          diff_output=$(diff -ru --exclude=BUILD_INFO dist/ obj/ 2>&1) || true
+          if [ -n "$diff_output" ]; then
+            echo "::warning::dist/ is out of date. Run 'make dist' and commit the changes."
+            echo "$diff_output" | head -100
+          else
+            echo "dist/ is up to date."
+          fi
+
+  bench:
+    needs: verify
+    runs-on: [self-hosted, linux, X64, cuda]
+    container:
+      image: mtzguido/pulse-cuda-devcontainer:latest
       options: --gpus all
     defaults:
       run:
@@ -190,13 +216,14 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
-      - name: Download artifacts
-        uses: actions/download-artifact@master
+      - name: Download bench-package
+        uses: actions/download-artifact@v4
         with:
           name: kuiper-bench
 
-      - run: tar xzf kuiper-bench.tgz
+      - run: tar xzf kuiper-bench.tar.gz
 
-      - working-directory: kuiper-bench
+      - name: Run benchmarks
+        working-directory: kuiper-bench
         run: |
           make -kj$(nproc) -Otarget

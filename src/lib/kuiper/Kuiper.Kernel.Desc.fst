@@ -36,6 +36,7 @@ type kernel_desc (full_pre full_post : slprop) = {
 
   (* Barrier contract + proof, for every block. *)
   barrier_contract : bid:natlt nblk -> ptrs:c_shmems shmems_desc -> B.contract nthr;
+  barrier_count    : bid:natlt nblk -> GTot nat;
   barrier_ok       : bid:natlt nblk -> ptrs:c_shmems shmems_desc -> B.barrier_transform (barrier_contract bid ptrs);
 
   f : (
@@ -52,14 +53,13 @@ type kernel_desc (full_pre full_post : slprop) = {
          B.barrier_tok (barrier_contract bid sh) **
          B.barrier_state 0
          )
-      // Note: can drop barrier_tok (ok...) and barrier_state (maybe not ok,
-      // would maybe be nice to have a barrier_count for each block and enforce
-      // it here?)
       (ensures fun _ ->
          gpu **
          kpost sh bid tid **
          thread_id nthr tid **
-         block_id nblk bid)
+         block_id nblk bid **
+         B.barrier_tok (barrier_contract bid sh) **
+         B.barrier_state (barrier_count bid))
   );
 
   frame : slprop;

@@ -40,7 +40,7 @@ unfold
 let mbarrier_tok (n : nat) (p : rpm_t n) : slprop =
   B.barrier_tok #n (mbarrier_contract p)
 
-val mbarrier_transform 
+val mbarrier_transform
   (#n : nat)
   (p : rpm_t n)
   : B.barrier_transform #n (mbarrier_contract p)

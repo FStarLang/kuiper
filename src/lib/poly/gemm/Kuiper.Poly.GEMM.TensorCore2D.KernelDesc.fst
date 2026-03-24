@@ -29,10 +29,7 @@ open Kuiper.VArray { varray, varray_pts_to, varray_pts_to_cell }
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
 
-module B = Kuiper.Barrier
-module R = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
-module FB = Kuiper.Poly.GEMM.FlipFlopBarrier
 
 let bid_of_ij
   (rows cols : nat)
@@ -718,7 +715,7 @@ let tiles_approx_lemma
   ()
 #pop-options
 
-#push-options "--z3rlimit 80" // the function below is pretty terribly performant
+#push-options "--z3rlimit 100" // the function below is pretty terribly performant
 ghost
 fn reconstruct_from_warp_approx
   (#et_ab #et_c : Type0)

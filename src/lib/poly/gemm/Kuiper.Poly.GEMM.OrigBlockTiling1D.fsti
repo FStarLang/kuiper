@@ -3,16 +3,18 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D
 #lang-pulse
 
 open Kuiper
+open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-module MS = Kuiper.Spec.GEMM
+module MU = Kuiper.Poly.GEMM.Util
 
 inline_for_extraction noextract
-fn mmcomb_gpu
-  (#et : Type0) {| scalar et |}
+fn mmcomb_gpu_approx
+  (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
   (bm bn bk : szp)
   (#mrows #mshared #mcols : szp)
   (tm : szp{tm /?+ bm})
@@ -39,4 +41,6 @@ fn mmcomb_gpu
     pure (bm/tm * bn <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
-    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
+    (exists* (eC' : ematrix et _ _).
+      on gpu_loc (gC |-> eC') **
+      pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB)))

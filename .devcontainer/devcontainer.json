@@ -11,9 +11,9 @@
   "remoteEnv": {
   },
   // Runs only once when container is prepared
-  "onCreateCommand": ".devcontainer/setup.sh",
+  "onCreateCommand": "git submodule init && git submodule update --depth 1",
   // Runs periodically and/or when content of repo changes
   "updateContentCommand": "",
   // These run only when the container is assigned to a user
-  "postCreateCommand": "",
+  "postCreateCommand": "echo '\\n⚠️  Run `make prepare -j$(nproc)` to build F* and Karamel.\\n'",
 }

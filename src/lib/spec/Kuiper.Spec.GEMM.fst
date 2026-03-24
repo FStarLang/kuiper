@@ -1,5 +1,20 @@
 module Kuiper.Spec.GEMM
 
+let lincomb_approx2
+  (#et:Type) {| scalar et, real_like et |}
+  (alpha beta : et) (alpha_r beta_r : real)
+  : Lemma (requires alpha %~ alpha_r /\ beta %~ beta_r)
+          (ensures approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))
+          [SMTPat (approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))]
+  = let aux (x:et) (y:et) (r:real) (s:real) :
+      Lemma (requires x %~ r /\ y %~ s)
+            (ensures lincomb alpha beta x y %~ lincomb alpha_r beta_r r s) =
+      a_mul beta x beta_r r;
+      a_mul alpha y alpha_r s;
+      a_add (mul beta x) (mul alpha y) (beta_r *. r) (alpha_r *. s)
+    in
+    Classical.forall_intro_4 (fun x y r -> Classical.move_requires (aux x y r))
+
 let rec __gmatmul_single
   (#t1 #t2 #t3 : Type)
   (z : t3)

@@ -8,7 +8,6 @@ open Kuiper.Epoch
 include Kuiper.Kernel.Base
 include Kuiper.Kernel.Desc
 include Kuiper.Kernel.Casts
-open FStar.Tactics.Typeclasses
 open Pulse.Lib.Pledge
 
 inline_for_extraction noextract
@@ -28,9 +27,8 @@ fn launch_kernel_1
   (#pre : slprop)
   (#post : slprop)
   {| is_send_across gpu_of pre, is_send_across gpu_of post |}
-  (k : unit ->
-         stt unit (requires gpu ** pre)
-                  (ensures fun _ -> gpu ** post))
+  (k : fn () requires gpu ** pre
+            ensures gpu ** post)
   requires
     cpu **
     on gpu_loc pre

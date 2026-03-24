@@ -1,7 +1,9 @@
 module Kuiper.Kernel.Sync
-#lang-pulse
-open Pulse.Lib.Pervasives
 friend Kuiper.Array.Core // for gpu_array_alloc_vis, gpu_array_free_gen
+
+#lang-pulse
+
+open Pulse.Lib.Pervasives
 
 module Par = Pulse.Lib.Par
 
@@ -108,7 +110,6 @@ ensures
     let tloc = thread_id_loc bid tid;
     thread_id_loc_lemma bid tid;
     unfold (block_id k.nblk bid);
-    loc_dup _;
     fold (block_id k.nblk bid);
     Kuiper.Kernel.Par.par
       #(k.kpre sh bid tid)
@@ -117,25 +118,41 @@ ensures
       #(block_id k.nblk bid ** forall+ (i : natlt tid). k.kpost sh bid (natlt_coerce i))
       block_of tloc
       fn _ {
-        loc_dup tloc;
         fold (thread_id k.nthr tid);
-        loc_dup tloc;
         fold (block_id k.nblk bid);
-        loc_dup tloc;
         fold gpu;
-  admit();
+        // Assume the barrier state
+        assume Kuiper.Barrier.barrier_state 0;
+        assume Kuiper.Barrier.barrier_tok (k.barrier_contract bid sh);
         Mkkernel_desc?.f k sh bid tid ();
-        drop_ gpu; // from the loc_dup above
-        drop_ (block_id _ _); // from the loc_dup above
-        drop_ (thread_id _ _); // from the loc_dup above
+        drop_ gpu;
+        drop_ (block_id _ _);
+        drop_ (thread_id _ _);
+        // Drop barrier state
+        drop_ (Kuiper.Barrier.barrier_tok _);
+        drop_ (Kuiper.Barrier.barrier_state _);
       }
       fn _ {
         run_block_threads k bid sh tid
       };
-    drop_ (loc _); // from the loc_dup above
     rewrite each (v tid) as (upto - 1);
     forevery_natlt_push upto (fun (i: natlt upto) -> k.kpost sh bid (natlt_coerce i));
   }
+}
+
+// Helper to avoid ambiguity below.
+noextract
+fn free_c_shmems'
+  (#bid : int)
+  (d : list SH.shmem_desc)
+  (res : SH.c_shmems d)
+  preserves block_id 'x bid
+  requires SH.live_c_shmems res
+  requires pure (SH.c_shmems_inv res)
+{
+  unfold block_id 'x bid;
+  free_c_shmems _ d res;
+  fold block_id 'x bid;
 }
 
 noextract
@@ -154,14 +171,11 @@ ensures
   unfold (block_id k.nblk bid);
   let sh = alloc_c_shmems _ k.shmems_desc;
   fold (block_id k.nblk bid);
-  admit();
-  // assume (can_create_barrier k.nthr);
   let _ : unit = Mkkernel_desc?.block_setup k sh bid ();
   run_block_threads k bid sh k.nthr;
   Mkkernel_desc?.block_teardown k sh bid ();
-  unfold (block_id k.nblk bid);
-  free_c_shmems _ _ sh;
-  fold (block_id k.nblk bid);
+  free_c_shmems' _ sh;
+  ()
 }
 
 noextract
@@ -188,7 +202,6 @@ ensures
     let bloc = block_id_loc bid;
     block_id_loc_lemma bid;
     unfold gpu;
-    loc_dup _;
     fold gpu;
     Kuiper.Kernel.Par.par
       #(k.block_pre bid)
@@ -197,15 +210,13 @@ ensures
       #(gpu ** forall+ (i : natlt bid). k.block_post (natlt_coerce i))
       gpu_of bloc
       fn _ {
-        loc_dup bloc;
         fold (block_id k.nblk bid);
         run_block k bid;
-        drop_ (block_id _ _); // from the loc_dup above
+        drop_ (block_id _ _);
       }
       fn _ {
         run_blocks k bid
       };
-    drop_ (loc _); // from the loc_dup above
     rewrite each (v bid) as (upto - 1);
     forevery_natlt_push upto (fun (i: natlt upto) -> k.block_post (natlt_coerce i));
   }
@@ -229,13 +240,12 @@ fn launch_kernel_full_sync
     (on gpu_loc full_pre)
     (fun _ -> on gpu_loc full_post)
     fn _ {
-      loc_dup _;
       fold gpu;
       on_elim full_pre;
       Mkkernel_desc?.setup k ();
       run_blocks k k.nblk;
       Mkkernel_desc?.teardown k ();
       on_intro full_post;
-      drop_ gpu; // from loc_dup
+      drop_ gpu;
     };
 }

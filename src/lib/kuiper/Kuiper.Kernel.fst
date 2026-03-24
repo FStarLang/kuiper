@@ -6,6 +6,7 @@ open Kuiper.Base
 open Kuiper.Kernel.Base
 open Kuiper.Epoch
 open Pulse.Lib.Pledge
+open FStar.Tactics.Typeclasses { solve }
 
 inline_for_extraction noextract
 fn launch_kernel_full_sync
@@ -62,7 +63,7 @@ fn launch_kernel_1
   (#pre : slprop)
   (#post : slprop)
   {| is_send_across gpu_of pre, is_send_across gpu_of post |}
-  (k : unit -> stt unit (gpu ** pre) (fun _ -> gpu ** post))
+  (k : fn () requires gpu ** pre ensures gpu ** post)
   requires
     cpu **
     on gpu_loc pre

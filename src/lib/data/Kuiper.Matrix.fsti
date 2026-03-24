@@ -111,7 +111,7 @@ fn gpu_matrix_pts_to_ref
   (#f : perm)
   (#em : ematrix et rows cols)
   preserves
-    gpu_matrix_pts_to g #f em
+    g |-> Frac f em
   ensures
     pure (SZ.fits (mlayout_size l))
 
@@ -320,11 +320,10 @@ fn gpu_matrix_read
   (j : szlt cols)
   (#f : perm)
   (#em : ematrix et rows cols)
-  requires
-    gpu_matrix_pts_to gm #f em
+  preserves
+    gm |-> Frac f em
   returns v : et
   ensures
-    gpu_matrix_pts_to gm #f em **
     pure (v == macc em i j)
 
 inline_for_extraction noextract
@@ -338,9 +337,9 @@ fn gpu_matrix_write
   (v : et)
   (#em : ematrix et rows cols)
   requires
-    gpu_matrix_pts_to gm em
+    gm |-> em
   ensures
-    gpu_matrix_pts_to gm (mupd em i j v)
+    gm |-> mupd em i j v
 
 (* Ownership over a single cell. *)
 val gpu_matrix_pts_to_cell
@@ -393,11 +392,10 @@ fn gpu_matrix_read_cell
   (j : sz{SZ.v j < cols})
   (#f : perm)
   (#v0 : erased et)
-  requires
+  preserves
     gpu_matrix_pts_to_cell gm #f i j v0
   returns v : et
   ensures
-    gpu_matrix_pts_to_cell gm #f i j v **
     pure (v == v0)
 
 inline_for_extraction noextract

@@ -23,7 +23,7 @@ fn launch_kernel_full
   ensures
     pledge0 (epoch_done e) (on gpu_loc full_post)
 {
-  admit()
+  admit(); // Intentional, model
 }
 
 noextract
@@ -36,4 +36,6 @@ fn sync_device () (#e:epoch_t)
     epoch_done e **
     epoch_live e' **
     pure (e' >= e)
-{ admit() }
+{
+  admit(); // Intentional model
+}

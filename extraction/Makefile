@@ -1,8 +1,9 @@
 # This makefile is not great and will repeat some work by checking ulib modules.
 
-FSTAR_EXE ?= ../FStar/out/bin/fstar.exe
-PULSE_ROOT ?= ../pulse
-include $(PULSE_ROOT)/mk/locate.mk
+FSTAR_EXE ?= ../inst/bin/fstar.exe
+FSTAR_ROOT ?= ../FStar
+PULSE_ROOT ?= ../FStar/pulse
+# ^ should not be required
 
 TAG := extraction
 SRC := .
@@ -12,7 +13,7 @@ CODEGEN := PluginNoLib
 ROOTS := $(shell find $(SRC) -name '*.fst' -o -name '*.fsti')
 FSTAR_OPTIONS += --with_fstarc
 EXTRACT += --extract '-*,+ExtractKuiper,+ExtractionUtils'
-FSTAR_OPTIONS += --lax --MLish --MLish_effect FStarC.Effect
+FSTAR_OPTIONS += --lax
 FSTAR_OPTIONS += --warn_error -328 # spurious warn about let rec
 
 OTHERFLAGS += --already_cached 'Prims,FStarC'

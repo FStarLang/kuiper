@@ -4,7 +4,7 @@ module Kuiper.Matrix.Reprs.Type
 open Kuiper
 open Kuiper.Bijection
 open Kuiper.Injection
-open FStar.Tactics.Typeclasses
+open FStar.Tactics.Typeclasses { no_method }
 module SZ = Kuiper.SizeT
 
 [@@erasable]
@@ -26,6 +26,9 @@ let full_mlayout (rows cols : nat) =
 
 let mlayout_size (#rows #cols : nat) (l : mlayout rows cols) : GTot nat =
   l.len
+
+let mlayout_vsize (#rows #cols : nat) (_l : mlayout rows cols) : GTot nat =
+  rows * cols
 
 inline_for_extraction
 type mrepr = rows:nat -> cols:nat -> full_mlayout rows cols

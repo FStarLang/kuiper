@@ -541,3 +541,89 @@ fn gpu_matrix_extract_tile_ro'
     factored
       (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)
+
+(* Explode a matrix into tiled per-cell ownership.
+   Combines explode + factor + subcell_to_cell in one step.
+
+   Input: gm |-> em (full matrix ownership)
+   Output: forall+ tr tc i j. subtile_cell(tr, tc, i, j) with value macc em (tr*trows+i) (tc*tcols+j)
+*)
+ghost
+fn gpu_matrix_explode_tiled
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (#em : ematrix et rows cols)
+  requires
+    gm |-> em
+  ensures
+    forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+            (i : natlt trows) (j : natlt tcols).
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+        (macc em (tr * trows + i) (tc * tcols + j))
+
+(* Implode a tiled per-cell ownership back to full matrix.
+   Reverse of gpu_matrix_explode_tiled.
+
+   Input: forall+ tr tc i j. subtile_cell(tr, tc, i, j) with value val_fn(tr, tc, i, j)
+   Output: gm |-> em' where macc em' (tr*trows+i) (tc*tcols+j) == val_fn(tr, tc, i, j)
+*)
+ghost
+fn gpu_matrix_implode_tiled
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (val_fn : natlt (rows / trows) -> natlt (cols / tcols) -> natlt trows -> natlt tcols -> GTot et)
+  requires
+    pure (SZ.fits (mlayout_size l))
+  requires
+    forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+            (i : natlt trows) (j : natlt tcols).
+      gpu_matrix_pts_to_cell (gpu_matrix_subtile gm trows tcols tr tc) i j
+        (val_fn tr tc i j)
+  ensures
+    gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
+      val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
+
+#push-options "--z3rlimit 40"
+(* Combinator for teardown of approximate kernels.
+   Collects per-cell existentials into a matrix-level existential,
+   and transforms per-cell approximation facts into matrix-level approximation.
+
+   Usage: After separating gA/gB, call this on the remaining forall+ of cells
+   to get a single existential matrix that approximates the spec. *)
+ghost
+fn gpu_matrix_collect_approx_tiled
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (#l : mlayout rows cols)
+  (gm : gpu_matrix et l)
+  (trows : pos { trows /? rows })
+  (tcols : pos { tcols /? cols })
+  (ntr : nat { ntr == rows / trows })
+  (ntc : nat { ntc == cols / tcols })
+  (spec_fn : natlt rows -> natlt cols -> et -> prop)
+  requires
+    pure (SZ.fits (mlayout_size l))
+  requires
+    forall+ (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)).
+      exists* (v : et).
+        gpu_matrix_pts_to_cell
+          (gpu_matrix_subtile gm trows tcols (bid / ntc) (bid % ntc))
+          (tid / tcols) (tid % tcols) v **
+        pure (spec_fn ((bid / ntc) * trows + (tid / tcols))
+                      ((bid % ntc) * tcols + (tid % tcols)) v)
+  returns vf : (natlt (ntr * ntc) -> natlt (trows * tcols) -> GTot et)
+  ensures
+    gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
+      vf ((row / trows) * ntc + (col / tcols)) ((row % trows) * tcols + (col % tcols))) **
+    pure (forall (row : natlt rows) (col : natlt cols).
+      spec_fn row col
+        (vf ((row / trows) * ntc + (col / tcols)) ((row % trows) * tcols + (col % tcols))))
+#pop-options

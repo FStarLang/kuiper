@@ -4,7 +4,7 @@ module Kuiper.Poly.GEMM.TensorCore
 
 open Kuiper
 
-#set-options "--z3rlimit 40"
+#set-options "--z3rlimit 80"
 
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Float16
@@ -121,14 +121,14 @@ let kpre
   (tn : szp{tn /?+ bn})
   (tk : szp{tk /?+ bk})
   (fA fB : perm)
+  (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt (bm/tm*(bn/tn)*warp_size))
+  (tid : natlt nthr)
   : slprop
   =
   kpre1 gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid **
-  (exists* (x : seq _). gpu_pts_to_array (fst sh)       #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x) **
-  (exists* (x : seq _). gpu_pts_to_array (fst (snd sh)) #(1.0R /. (bm/tm*(bn/tn)*warp_size)) x)
+  live_c_shmems sh #(1.0R /. nthr)
 
 unfold
 let kpost
@@ -149,14 +149,14 @@ let kpost
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (fA fB : perm)
+  (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
   (sh : c_shmems (shmems_desc et_ab bm bn bk))
   (bid : natlt (rows/bm * (cols/bn)))
-  (tid : natlt (bm/tm*(bn/tn)*warp_size))
+  (tid : natlt nthr)
   : slprop
   =
   kpost1 gA eA gB eB gC bm bn tm tn fA fB bid tid **
-  exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x **
-  exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm*(bn/tn)*warp_size)) x
+  live_c_shmems sh #(1.0R /. nthr)
 
 inline_for_extraction noextract
 fn subproducts_tc
@@ -273,6 +273,7 @@ fn epilogue
   ()
 }
 
+#push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)
@@ -311,17 +312,20 @@ fn kf
   ()
   requires
     gpu **
-    kpre gA eA gB eB gC bm bn bk tm tn tk fA fB sh bid tid **
+    kpre gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
     block_id (rows/bm * (cols/bn)) bid **
     B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state 0
   ensures
     gpu **
-    kpost gA eA gB eB gC bm bn bk tm tn fA fB sh bid tid **
+    kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid **
     thread_id (bm/tm * (bn/tn) * warp_size) tid **
-    block_id (rows/bm * (cols/bn)) bid
+    block_id (rows/bm * (cols/bn)) bid **
+    B.barrier_tok (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) (fst sh) (fst (snd sh)) nthr bid) **
+    B.barrier_state (2 * (shared / bk))
 {
+  unfold_c_shmems sh #(1.0R /. nthr) (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
 
   gpu_matrix_pts_to_ref gA;
@@ -371,7 +375,7 @@ fn kf
     invariant
       live bkIdx ** pure (!bkIdx <= num_k_tiles)
     invariant
-      live aFrag ** live bFrag ** live accumFrag 
+      live aFrag ** live bFrag ** live accumFrag
     invariant
       (exists* em1. FB.bp_sharing sA em1 nthr) **
       (exists* em2. FB.bp_sharing sB em2 nthr)
@@ -381,9 +385,7 @@ fn kf
     even_2x !bkIdx;
     assert pure ((2 * !bkIdx % 2 = 0) == true);
     assert pure (even (2 * !bkIdx));
-    rewrite (exists* em1. FB.bp_sharing sA em1 nthr) **
-            (exists* em2. FB.bp_sharing sB em2 nthr)
-         as (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid;
+    FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
     rewrite (FB.barrier_p eA eB sA sB nthr bid) (2 * !bkIdx) tid
          as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx) tid;
 
@@ -391,30 +393,15 @@ fn kf
 
     rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx) tid
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
-    assert pure (even (2 * !bkIdx));
-    assert pure (2 * !bkIdx >= 2 * shared / bk == false);
-
-    // WHY isn't this obvious?
-    assume (pure (
-               (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid
-            ==
-              live_strided_chunks sA nthr tid **
-              live_strided_chunks sB nthr tid));
-    rewrite (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid
-         as live_strided_chunks sA nthr tid **
-            live_strided_chunks sB nthr tid;
+    FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
     copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol nthr tid;
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    #set-options "--z3rlimit 40 --retry 3" {
-      rewrite own_strided_chunks sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr tid **
-              own_strided_chunks sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr tid
-          as FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
-      rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-          as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
-    };
+    FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
+    rewrite FB.barrier_p eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
+        as (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rin (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
@@ -422,13 +409,9 @@ fn kf
     assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
     assert (pure (even (2 * !bkIdx + 2)));
     assert (pure ((2 * !bkIdx + 1) / 2 == !bkIdx));
-    #set-options "--z3rlimit 40 --retry 3" {
-      rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
-           as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
-      rewrite FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid
-           as FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr **
-              FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
-    };
+    rewrite (FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn) sarA sarB nthr bid).rout (2 * !bkIdx + 1) tid
+         as FB.barrier_q eA eB sA sB nthr bid (2 * !bkIdx + 1) tid;
+    FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
@@ -454,13 +437,12 @@ fn kf
   gpu_matrix_concr sA; rewrite each core sA as sarA;
   gpu_matrix_concr sB; rewrite each core sB as sarB;
 
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state _);
-
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
+  fold_c_shmems sh #(1.0R /. nthr) (`%shmems_desc);
   ()
 }
+#pop-options
 
 ghost
 fn setup
@@ -488,6 +470,11 @@ fn setup
   (tk : szp{tk /?+ bk})
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
   (nthr : szp{SZ.v nthr == bm/tm * (bn/tn) * warp_size})
+  (#_ : squash (SZ.fits (rows * shared) /\ SZ.fits (shared * cols)))
+  (#_ : squash (valid_frag_et_dims et_ab FragA tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
+  (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
+  (#_ : squash (valid_frag_et_comb et_ab et_c))
   (fA fB : perm)
   ()
   norewrite
@@ -501,7 +488,120 @@ fn setup
       kpre1 (*comb*) gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid) **
     emp (* frame *)
 {
-  admit();
+  let n_total = rows/tm * (cols/tn) * warp_size;
+  let nblk_val = rows/bm * (cols/bn);
+  let nthr_val = bm/tm * (bn/tn) * warp_size;
+
+  (* Step 1: Share gA/gB *)
+  gpu_matrix_share_n gA n_total;
+  gpu_matrix_share_n gB n_total;
+
+  (* Step 2: Tile gC at block level *)
+  gpu_matrix_tile gC (SZ.v bm) (SZ.v bn);
+  forevery_unfactor' nblk_val (rows/bm) (cols/bn)
+    (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
+      gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc |->
+        Frac 1.0R (ematrix_subtile eC (SZ.v bm) (SZ.v bn) br bc));
+
+  (* Step 3: Per block, create warp tiles shared across warp lanes *)
+  ghost
+  fn create_warp_tiles_shared
+    (#et : Type0) {| scalar et |}
+    (#bm_ #bn_ : nat)
+    (#l : mlayout bm_ bn_)
+    ([@@@mkey] gm : gpu_matrix et l)
+    (#f : perm)
+    (#em : ematrix et bm_ bn_)
+    (tm_ : nat{tm_ > 0 /\ tm_ /? bm_})
+    (tn_ : nat{tn_ > 0 /\ tn_ /? bn_})
+    (n : nat{n == bm_/tm_ * (bn_/tn_) * warp_size})
+  requires
+    gm |-> Frac f em
+  ensures
+    forall+ (trc : natlt n).
+      warp_tile gm tm_ tn_ (trc/warp_size)
+        |-> Frac (f /. warp_size)
+      (ematrix_subtile em tm_ tn_
+        (warp_tile_idx_rows bm_ bn_ tm_ tn_ (trc/warp_size))
+        (warp_tile_idx_cols bm_ bn_ tm_ tn_ (trc/warp_size)))
+  {
+    gpu_matrix_tile gm tm_ tn_;
+    forevery_unfactor' (bm_/tm_ * (bn_/tn_)) (bm_/tm_) (bn_/tn_) _;
+
+    forevery_map
+      (fun (trc : natlt (bm_/tm_ * (bn_/tn_))) ->
+        gpu_matrix_subtile gm tm_ tn_ (trc/(bn_/tn_)) (trc%(bn_/tn_))
+          |-> Frac f (ematrix_subtile em tm_ tn_ (trc/(bn_/tn_)) (trc%(bn_/tn_))))
+      (fun trc ->
+        forall+ (_lid: natlt warp_size).
+          gpu_matrix_subtile gm tm_ tn_ (trc/(bn_/tn_)) (trc%(bn_/tn_))
+            |-> Frac (f /. warp_size) (ematrix_subtile em tm_ tn_ (trc/(bn_/tn_)) (trc%(bn_/tn_))))
+      fn trc { gpu_matrix_share_n _ warp_size };
+    forevery_unfactor' n (bm_/tm_ * (bn_/tn_)) 32 _;
+    ();
+  };
+
+  forevery_map
+    (fun (bid : natlt nblk_val) ->
+      gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn))
+        |-> Frac 1.0R
+      (ematrix_subtile eC bm bn (bid/(cols/bn)) (bid%(cols/bn))))
+    _
+    (fun bid ->
+      create_warp_tiles_shared
+        (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+        (SZ.v tm)
+        (SZ.v tn)
+        nthr_val);
+
+  (* Step 4: Factor gA/gB to 2D *)
+  (* Divisibility chain: n_total == nblk_val * nthr_val *)
+  assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
+  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
+  assert pure (rows/tm == (bm/tm) * (rows/bm));
+  assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
+  assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
+  assert pure (cols/tn == (bn/tn) * (cols/bn));
+  assert pure (n_total == nblk_val * nthr_val);
+
+  forevery_factor n_total nblk_val nthr_val
+    (fun _ -> gA |-> Frac (fA /. n_total) eA);
+  forevery_factor n_total nblk_val nthr_val
+    (fun _ -> gB |-> Frac (fB /. n_total) eB);
+
+  (* Step 5: Zip gA/gB with gC *)
+  forevery_zip_2 #(natlt nblk_val) #(natlt nthr_val)
+    (fun _bid -> fun _tid -> gB |-> Frac (fB /. n_total) eB)
+    (fun (bid : natlt nblk_val) -> fun (tid : natlt nthr_val) ->
+      warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)
+        |-> Frac (1.0R /. warp_size)
+      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)))
+        (SZ.v tm) (SZ.v tn)
+        (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))
+        (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))));
+  forevery_zip_2 #(natlt nblk_val) #(natlt nthr_val)
+    (fun _bid -> fun _tid -> gA |-> Frac (fA /. n_total) eA)
+    _;
+
+  (* Step 6: Fold into kpre1 *)
+  forevery_map_2
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gA |-> Frac (fA /. n_total) eA **
+      gB |-> Frac (fB /. n_total) eB **
+      warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)
+        |-> Frac (1.0R /. warp_size)
+      (ematrix_subtile (ematrix_subtile eC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)))
+        (SZ.v tm) (SZ.v tn)
+        (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))
+        (warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (SZ.v tm) (SZ.v tn) (tid/warp_size))))
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      kpre1 gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid)
+    fn bid tid {
+      fold live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)) #(1.0R /. warp_size);
+      fold live_warp_tile #et_c;
+    };
+
+  forevery_rw_size2 nblk_val (SZ.v nblk) nthr_val (SZ.v nthr);
 }
 
 ghost
@@ -541,10 +641,16 @@ fn block_setup
       kpre1 (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid)
   ensures
     (forall+ (tid : natlt nthr).
-      kpre (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB sh bid tid) **
+      kpre (* comb *) gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid) **
     emp (* frame *)
 {
-  admit();
+  (* Share shmem across threads *)
+  gpu_live_c_shmems_share_underspec sh #1.0R #nthr;
+
+  (* Consolidate permissions under a single forall+ *)
+  forevery_zip #(natlt nthr)
+    (fun tid -> kpre1 gA eA gB eB gC bm bn bk tm tn tk fA fB bid tid) _;
+  ()
 }
 
 ghost
@@ -578,16 +684,22 @@ fn block_teardown
   norewrite
   requires
     (forall+ (tid : natlt nthr).
-      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn fA fB sh bid tid) **
+      kpost (* comb *) gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid) **
     emp (* frame *)
   ensures
     live_c_shmems sh **
     (forall+ (tid : natlt nthr).
       kpost1 (* comb *) gA eA gB eB gC bm bn tm tn fA fB bid tid)
 {
-  admit();
+  forevery_unzip #(natlt nthr)
+    (fun tid -> kpost1 gA eA gB eB gC bm bn tm tn fA fB bid tid)
+    _;
+
+  (* Restore and give back ownership of shared memory arrays. *)
+  gpu_live_c_shmems_gather_underspec sh #1.0R #nthr;
 }
 
+#push-options "--fuel 1 --ifuel 1"
 ghost
 fn teardown
   (#et_ab #et_c : Type0)
@@ -607,6 +719,7 @@ fn teardown
   (bk : szp{bk /?+ shared})
   (#_: squash (SZ.fits (rows * cols)))
   (#_: squash (SZ.fits (bm * bn)))
+  (#_: squash (SZ.fits (mlayout_size lC)))
   (tm : szp{tm /?+ bm})
   (tn : szp{tn /?+ bn})
   (nblk : szp{SZ.v nblk == rows/bm * (cols/bn)})
@@ -626,15 +739,186 @@ fn teardown
     (exists* eC'. gC |-> eC')
     // (gC |-> MS.mmcomb comb eC eA eB)
 {
-  // forevery_flatten #(natlt2 mrows mcols) #_ #(natlt tile)
-  //   (fun bid tid -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
-  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
-  // forevery_unzip #(natlt2 mrows mcols & natlt tile) _ _;
-  // forevery_tostar #(natlt2 mrows mcols & natlt tile) (fun _tid -> m4_pts_to gA #(1.0R /. mlayout_size lC) eA);
+  let nblk_val = rows/bm * (cols/bn);
+  let nthr_val = bm/tm * (bn/tn) * warp_size;
 
-    // (fun (bid, tid) -> kpost1 comb tile gA gB gC eA eB 1.0R bid tid);
-  admit();
+  (* Step 1: Rewrite sizes *)
+  forevery_rw_size2 (SZ.v nblk) nblk_val (SZ.v nthr) nthr_val;
+
+  (* Step 2: Unzip kpost1 into gA, gB, live_warp_tile *)
+  forevery_unzip_2
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gA |-> Frac (fA /. (rows/tm * (cols/tn) * warp_size)) eA)
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB **
+      live_warp_tile gC bm bn tm tn bid (tid/warp_size));
+  forevery_unzip_2
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB)
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      live_warp_tile gC bm bn tm tn bid (tid/warp_size));
+
+  (* Step 3: Divisibility chain for flatten *)
+  assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
+  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
+  assert pure (rows/tm == (bm/tm) * (rows/bm));
+  assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
+  assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
+  assert pure (cols/tn == (bn/tn) * (cols/bn));
+  assert pure (rows/tm * (cols/tn) * warp_size == nblk_val * nthr_val);
+
+  (* Step 4: Flatten gA/gB from 2D to 1D and gather *)
+  forevery_unfactor' (rows/tm * (cols/tn) * warp_size) nblk_val nthr_val
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gA |-> Frac (fA /. (rows/tm * (cols/tn) * warp_size)) eA);
+  gpu_matrix_gather_n gA (rows/tm * (cols/tn) * warp_size);
+
+  forevery_unfactor' (rows/tm * (cols/tn) * warp_size) nblk_val nthr_val
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      gB |-> Frac (fB /. (rows/tm * (cols/tn) * warp_size)) eB);
+  gpu_matrix_gather_n gB (rows/tm * (cols/tn) * warp_size);
+
+  (* Step 5: Handle gC *)
+  (* 5a: Unfold live_warp_tile *)
+  forevery_map_2
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      live_warp_tile gC bm bn tm tn bid (tid/warp_size))
+    (fun (bid : natlt nblk_val) (tid : natlt nthr_val) ->
+      live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)) #(1.0R /. warp_size))
+    fn bid tid { unfold live_warp_tile #et_c };
+
+  (* 5b: Factor tid into (wid, lane) per block *)
+  forevery_map
+    (fun (bid : natlt nblk_val) ->
+      forall+ (tid : natlt nthr_val).
+        live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (tid/warp_size)) #(1.0R /. warp_size))
+    (fun (bid : natlt nblk_val) ->
+      forall+ (wid : natlt (bm/tm * (bn/tn))) (lane : natlt warp_size).
+        live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) #(1.0R /. warp_size))
+    fn bid {
+      forevery_factor' nthr_val (bm/tm * (bn/tn)) warp_size
+        (fun (wid : natlt (bm/tm * (bn/tn))) (lane : natlt warp_size) ->
+          live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) #(1.0R /. warp_size));
+    };
+
+  (* 5c: Gather within each warp *)
+  forevery_map_2
+    (fun (bid : natlt nblk_val) (wid : natlt (bm/tm * (bn/tn))) ->
+      forall+ (lane : natlt warp_size).
+        live (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) #(1.0R /. warp_size))
+    (fun (bid : natlt nblk_val) (wid : natlt (bm/tm * (bn/tn))) ->
+      exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+        warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid |-> Frac 1.0R em)
+    fn bid wid {
+      gpu_matrix_gather_n_underspec (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid) warp_size;
+    };
+
+  (* 5d: Per block, rewrite warp_tile → subtile, factor, and untile *)
+  forevery_map
+    (fun (bid : natlt nblk_val) ->
+      forall+ (wid : natlt (bm/tm * (bn/tn))).
+        exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+          warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid |-> Frac 1.0R em)
+    (fun (bid : natlt nblk_val) ->
+      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+        block_tile gC (SZ.v bm) (SZ.v bn) bid |-> Frac 1.0R em)
+    fn bid {
+      forevery_map
+        (fun (wid : natlt (bm/tm * (bn/tn))) ->
+          exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+            warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid |-> Frac 1.0R em)
+        (fun (wid : natlt (bm/tm * (bn/tn))) ->
+          exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+            gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (wid/(bn/tn)) (wid%(bn/tn)) |-> Frac 1.0R em)
+        fn wid {
+          rewrite each
+            (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wid)
+          as
+            (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) (wid/(bn/tn)) (wid%(bn/tn)));
+        };
+      forevery_factor' (bm/tm * (bn/tn)) (bm/tm) (bn/tn)
+        (fun (wr : natlt (bm/tm)) (wc : natlt (bn/tn)) ->
+          exists* (em : ematrix et_c (SZ.v tm) (SZ.v tn)).
+            gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn) wr wc |-> Frac 1.0R em);
+      assert pure (SZ.fits (mlayout_size lC));
+      gpu_matrix_untile_underspec (block_tile gC (SZ.v bm) (SZ.v bn) bid) (SZ.v tm) (SZ.v tn);
+    };
+
+  (* 5e: Rewrite block_tile → subtile, factor, and untile *)
+  forevery_map
+    (fun (bid : natlt nblk_val) ->
+      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+        block_tile gC (SZ.v bm) (SZ.v bn) bid |-> Frac 1.0R em)
+    (fun (bid : natlt nblk_val) ->
+      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)) |-> Frac 1.0R em)
+    fn bid {
+      rewrite each
+        (block_tile gC (SZ.v bm) (SZ.v bn) bid)
+      as
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid/(cols/bn)) (bid%(cols/bn)));
+    };
+  forevery_factor' nblk_val (rows/bm) (cols/bn)
+    (fun (br : natlt (rows/bm)) (bc : natlt (cols/bn)) ->
+      exists* (em : ematrix et_c (SZ.v bm) (SZ.v bn)).
+        gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) br bc |-> Frac 1.0R em);
+  assert pure (SZ.fits (mlayout_size lC));
+  gpu_matrix_untile_underspec gC (SZ.v bm) (SZ.v bn);
 }
+#pop-options
+
+let kpre_block_sendable
+  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
+  (eA : ematrix et_ab rows shared)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
+  (eB : ematrix et_ab shared cols)
+  (gC : gpu_matrix et_c lC { is_global_matrix gC })
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (tk : szp{tk /?+ bk})
+  (fA fB : perm)
+  (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
+  (sh : c_shmems (shmems_desc et_ab bm bn bk))
+  (_: squash (c_shmems_inv sh))
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
+: is_send_across block_of (kpre gA eA gB eB gC bm bn bk tm tn tk fA fB nthr sh bid tid)
+= solve
+
+let kpost_block_sendable
+  (#et_ab #et_c : Type0) {| scalar et_ab, scalar et_c |}
+  (#rows #shared #cols : szp)
+  (#lA : mlayout rows shared)
+  (#lB : mlayout shared cols)
+  (#lC : mlayout rows cols)
+  (gA : gpu_matrix et_ab lA { is_global_matrix gA })
+  (eA : ematrix et_ab rows shared)
+  (gB : gpu_matrix et_ab lB { is_global_matrix gB })
+  (eB : ematrix et_ab shared cols)
+  (gC : gpu_matrix et_c lC { is_global_matrix gC })
+  (bm : szp{bm /?+ rows})
+  (bn : szp{bn /?+ cols})
+  (bk : szp{bk /?+ shared})
+  (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
+  (tm : szp{tm /?+ bm})
+  (tn : szp{tn /?+ bn})
+  (fA fB : perm)
+  (nthr : nat{nthr == bm/tm*(bn/tn)*warp_size})
+  (sh : c_shmems (shmems_desc et_ab bm bn bk))
+  (_: squash (c_shmems_inv sh))
+  (bid : natlt (rows/bm * (cols/bn)))
+  (tid : natlt nthr)
+: is_send_across block_of (kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr sh bid tid)
+= solve
 
 inline_for_extraction noextract
 let mk_kernel
@@ -681,7 +965,9 @@ let mk_kernel
   (#_ : squash (SZ.fits (bm*bk + nthr-1)))
   (#_ : squash (SZ.fits (bk*bn + nthr-1)))
   (#_ : squash (nblk <= max_blocks))
-  (#_ : squash (nthr <= max_threads))
+  (#_ : squash (nthr <= max_threads /\
+                SZ.fits (rows * shared) /\
+                SZ.fits (shared * cols)))
   ()
   : kernel_desc
       (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
@@ -692,6 +978,7 @@ let mk_kernel
 
   barrier_contract = (fun bid ptrs -> FB.contract eA eB (R.row_major bm bk) (R.row_major bk bn)
                                         (fst ptrs) (fst (snd ptrs)) nthr bid);
+  barrier_count    = (fun _bid -> 2 * (SZ.v shared / SZ.v bk));
   barrier_ok = (fun bid ptrs -> FB.barrier_p_to_q_transform eA eB (R.row_major bm bk) (R.row_major bk bn)
                                         (fst ptrs) (fst (snd ptrs)) nthr bid);
 
@@ -708,13 +995,13 @@ let mk_kernel
   block_setup    = block_setup gA eA gB eB gC eC bm bn bk tm tn tk nblk nthr fA fB;
   block_teardown = block_teardown gA eA gB eB gC eC bm bn bk tm tn nblk nthr fA fB ;
 
-  kpre      = kpre  gA eA gB eB gC bm bn bk tm tn tk fA fB;
-  kpost     = kpost gA eA gB eB gC bm bn bk tm tn fA fB;
+  kpre      = kpre  gA eA gB eB gC bm bn bk tm tn tk fA fB nthr;
+  kpost     = kpost gA eA gB eB gC bm bn bk tm tn fA fB nthr;
 
   f = kf gA #eA gB #eB gC bm bn bk tm tn tk nthr #() #() #() #() #fA #fB;
 
   block_pre_sendable=solve;
   block_post_sendable=solve;
-  kpre_sendable=magic();
-  kpost_sendable=magic()
+  kpre_sendable = kpre_block_sendable gA eA gB eB gC bm bn bk tm tn tk fA fB nthr;
+  kpost_sendable = kpost_block_sendable gA eA gB eB gC bm bn bk tm tn fA fB nthr
 }

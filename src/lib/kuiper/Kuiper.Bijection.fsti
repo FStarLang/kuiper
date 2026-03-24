@@ -315,4 +315,22 @@ instance nb_prod (a1 a2 b1 b2 : Type) (nb1 : natural_bijection a1 b1)
   _bij = bij_prod nb1._bij nb2._bij;
 }
 
+let bij_prod3 (#a1 #a2 #a3 #b1 #b2 #b3 : Type)
+  (ab1 : a1 =~ b1) (ab2 : a2 =~ b2) (ab3 : a3 =~ b3)
+  : (a1 & a2 & a3 =~ b1 & b2 & b3) =
+{
+  ff = (fun (x1, x2, x3) -> (ab1.ff x1, ab2.ff x2, ab3.ff x3));
+  gg = (fun (y1, y2, y3) -> (ab1.gg y1, ab2.gg y2, ab3.gg y3));
+  ff_gg = (fun (y1, y2, y3) -> ab1.ff_gg y1; ab2.ff_gg y2; ab3.ff_gg y3);
+  gg_ff = (fun (x1, x2, x3) -> ab1.gg_ff x1; ab2.gg_ff x2; ab3.gg_ff x3);
+}
+
+instance nb_prod3 (a1 a2 a3 b1 b2 b3 : Type)
+  (nb1 : natural_bijection a1 b1)
+  (nb2 : natural_bijection a2 b2)
+  (nb3 : natural_bijection a3 b3)
+  : natural_bijection (a1 & a2 & a3) (b1 & b2 & b3) = {
+  _bij = bij_prod3 nb1._bij nb2._bij nb3._bij;
+}
+
 let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d._bij

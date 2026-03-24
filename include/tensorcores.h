@@ -4,7 +4,7 @@
 #include <mma.h>
 using namespace nvcuda;
 
-// Some hacky macros to work around not being able to emit fragment types
+// Some macros to work around not being able to emit fragment types
 // directly during karamel extraction.
 #define kpr_fragment(...)                         wmma::fragment<__VA_ARGS__>
 #define KPR_INIT(ty)                              (ty){0}

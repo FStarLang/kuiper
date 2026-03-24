@@ -1,7 +1,7 @@
 module Kuiper.Matrix.Vectorized
-#lang-pulse
-
 friend Kuiper.Matrix
+
+#lang-pulse
 
 open Kuiper.Matrix.Common
 
@@ -166,6 +166,7 @@ fn get_slice
   ();
 }
 
+#push-options "--z3rlimit 20"
 ghost
 fn __unget_slice_step
   (#et:Type0) {| sized et, has_vec_cpy et |}
@@ -186,7 +187,7 @@ fn __unget_slice_step
       (Seq.init_ghost (k + 1) (fun x -> macc em i (j + x))));
   gpu_slice_split (core gm) #f #(Seq.init_ghost k (fun x -> macc em i (j + x))) #(seq![macc em i (j + k)]) _ (cell_of_pos l i j + k) _;
   strided_row_major_contiguous l i j (j + k);
-  #set-options "--z3refresh --fuel 0 --ifuel 0 --z3rlimit_factor 2" { assert pure (j + k < cols) }  ;
+  assert pure (j + k < cols);
   assert pure (cell_of_pos l i (j + k) == cell_of_pos l i j + k);
   rewrite
     gpu_pts_to_cell (core gm) #f (cell_of_pos l i j + k) (macc em i (j + k))
@@ -203,9 +204,9 @@ fn __unget_slice_step
 
   fold get_slice_inv gm i j f em k;
 
-
   ();
 }
+#pop-options
 
 ghost
 fn rec __unget_slice

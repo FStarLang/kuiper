@@ -19,16 +19,24 @@ double et2double(et v)
 // for tensor core operations assume the accumulator's type for inputs as well
 cet *cpu_mul(size_t rows, size_t shared, size_t cols, et *m1, et *m2)
 {
-    cet *m3 = (cet *) calloc(rows * cols, sizeof(cet));
+    // Accumulate in double to avoid precision loss from repeated
+    // rounding to cet (especially when cet is half).
+    // Note: tensor cores accumulate internally in FP32.
+    double *acc = (double *)calloc(rows * cols, sizeof(double));
     int i, j, k;
     for (i = 0; i < rows; i++) {
         for (k = 0; k < shared; k++) {
             for (j = 0; j < cols; j++) {
-                m3[i * cols + j] +=
+                acc[i * cols + j] +=
                     et2double(m1[i * shared + k]) * et2double(m2[k * cols + j]);
             }
         }
     }
+    cet *m3 = (cet *) malloc(rows * cols * sizeof(cet));
+    for (size_t n = 0; n < rows * cols; n++) {
+        m3[n] = acc[n];
+    }
+    free(acc);
     return m3;
 }
 
@@ -52,6 +60,9 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
     fprintf(stderr, "Checking result...\n");
     int nerrs = 0;
     int i, j;
+    double max_rel = 0.0;
+    double sum_rel = 0.0;
+    size_t nrel = 0;
     cet *m1 = (cet *) calloc(sizeof(cet), rows * cols);
     MUST(cudaMemcpy
          (m1, m1_gpu, rows * cols * sizeof(cet), cudaMemcpyDeviceToHost));
@@ -61,6 +72,13 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
             double vm2 = et2double(m2[i * cols + j]);
 
             double diff = vm1 - vm2;
+            if (vm2 != 0.0) {
+                double rel = fabs(diff / vm2);
+                if (rel > max_rel)
+                    max_rel = rel;
+                sum_rel += rel;
+                nrel++;
+            }
             bool ok = vm1 == vm2;
 #ifndef EXACT
             /* Check, also, if the relative error is less than TOLERANCE */
@@ -75,13 +93,18 @@ void cmp(size_t rows, size_t cols, cet *m1_gpu, cet *m2)
                         progname, i, j, vm1, vm2);
                 nerrs++;
                 if (nerrs >= 10) {
+                    fprintf(stderr,
+                            ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu cells)\n",
+                            max_rel * 100.0,
+                            nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
                     free(m1);
-                    // printf("# of errors: %d\n", nerrs);
                     exit(1);
                 }
             }
         }
     }
-    // printf("# of errors: %d\n", nerrs);
+    fprintf(stderr,
+            ">> max relative error: %.4f%%, avg relative error: %.4f%% (%zu cells)\n",
+            max_rel * 100.0, nrel > 0 ? sum_rel / nrel * 100.0 : 0.0, nrel);
     free(m1);
 }

@@ -3,7 +3,6 @@ module Kuiper.Enumerable
 #lang-pulse
 open Kuiper.Common
 open Kuiper.Bijection
-open FStar.Tactics.Typeclasses
 
 let to_of_pat (#a:Type) {| d:enumerable a |} (x : natlt (cardinal a #_))
   : Lemma (to_nat (of_nat x) == x)

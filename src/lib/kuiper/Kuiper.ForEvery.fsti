@@ -905,6 +905,24 @@ fn forevery_map_extra
     forall+ (x:a). p2 x
 
 ghost
+fn forevery_flatten3'
+  (#a #b #c : Type0)
+  (f : a & b & c -> slprop)
+  requires
+    forall+ (x:a) (y:b) (z:c). f (x, y, z)
+  ensures
+    forall+ (xyz : a & b & c). f xyz
+
+ghost
+fn forevery_unflatten3'
+  (#a #b #c : Type0)
+  (f : a & b & c -> slprop)
+  requires
+    forall+ (xyz : a & b & c). f xyz
+  ensures
+    forall+ (x:a) (y:b) (z:c). f (x, y, z)
+
+ghost
 fn forevery_flatten4'
   (#a #b #c #d : Type0)
   (f : a & b & c & d -> slprop)
@@ -1042,3 +1060,57 @@ fn forevery_extract_pure_2
     forall+ (x:a) (y:b). p x y
   ensures
     pure (forall (x:a) (y:b). q x y)
+
+ghost
+fn forevery_rw_size4
+  (n1 : nat)
+  (n2 : nat{n1 == n2})
+  (n3 : nat)
+  (n4 : nat{n3 == n4})
+  (n5 : nat)
+  (n6 : nat{n5 == n6})
+  (n7 : nat)
+  (n8 : nat{n7 == n8})
+  (#p : natlt n1 -> natlt n3 -> natlt n5 -> natlt n7 -> slprop)
+  requires
+    forall+ (i : natlt n1) (j : natlt n3) (k : natlt n5) (l : natlt n7). p i j k l
+  ensures
+    forall+ (i : natlt n2) (j : natlt n4) (k : natlt n6) (l : natlt n8). p i j k l
+
+(* === New combinators for 4-way quantifiers === *)
+
+(* Swap middle two quantifiers in a 4-nested quantifier:
+   forall+ a b c d. P a b c d  -->  forall+ a c b d. P a b c d *)
+ghost
+fn forevery_swap_mid_4
+  (#a #b #c #d : Type0)
+  (p : a -> b -> c -> d -> slprop)
+  requires
+    forall+ (w:a) (x:b) (y:c) (z:d). p w x y z
+  ensures
+    forall+ (w:a) (y:c) (x:b) (z:d). p w x y z
+
+(* 3-way zip for 2-argument predicates *)
+ghost
+fn forevery_zip3_2
+  (#a #b : Type0)
+  (p1 p2 p3 : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p1 x y
+  requires
+    forall+ (x:a) (y:b). p2 x y
+  requires
+    forall+ (x:a) (y:b). p3 x y
+  ensures
+    forall+ (x:a) (y:b). p1 x y ** p2 x y ** p3 x y
+
+(* Extensionality for 4-argument predicates *)
+ghost
+fn forevery_ext_4
+  (#a #b #c #d : Type0)
+  (f : a -> b -> c -> d -> slprop)
+  (g : a -> b -> c -> d -> slprop { forall w x y z. f w x y z == g w x y z })
+  requires
+    forall+ (w:a) (x:b) (y:c) (z:d). f w x y z
+  ensures
+    forall+ (w:a) (x:b) (y:c) (z:d). g w x y z

@@ -276,6 +276,27 @@ fn iteration
   }
 }
 
+(* Number of barrier calls in the reduction loop: smallest k s.t. pow2 k >= nth *)
+let hreduce_barrier_count (nth : pos) : GTot nat = log2 (2 * nth - 1)
+
+(* If pow2 k <= n < pow2 (k+1), then log2 n = k. *)
+private let rec log2_range (n:pos) (k:nat)
+  : Lemma (requires pow2 k <= n /\ n < pow2 (k+1))
+          (ensures log2 n == k)
+          (decreases k)
+= if k = 0 then ()
+  else begin
+    FStar.Math.Lemmas.lemma_div_le (pow2 k) n 2;
+    log2_range (n/2) (k-1)
+  end
+
+(* The smallest k with pow2 k >= nth equals log2 (2*nth - 1). *)
+private let log2_hreduce (nth:pos) (it:nat)
+  : Lemma (requires pow2 it >= nth /\ (it == 0 \/ pow2 (it - 1) < nth))
+          (ensures it == log2 (2 * nth - 1))
+= if it = 0 then ()
+  else log2_range (2 * nth - 1) it
+
 inline_for_extraction noextract
 fn kf
   (#et:Type0) {| scalar et, real_like et |}
@@ -295,7 +316,9 @@ fn kf
   ensures
     gpu **
     kpost nth a s vr tid **
-    thread_id nth tid
+    thread_id nth tid **
+    mbarrier_tok nth (barrier_matrix nth a s vr) **
+    B.barrier_state (hreduce_barrier_count nth)
 {
   (* Reduction *)
   let mut n : szlt 32 = 0sz;
@@ -312,14 +335,24 @@ fn kf
       exists* (it : szlt 32).
         n |-> it **
         B.barrier_state it **
-        if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr)
+        if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr) **
+        pure (v it > 0 ==> pow2 (v it - 1) < v nth)
   {
     iteration nth a s vr tid !n;
     n := !n +^ 1sz;
   };
 
-  drop_ (mbarrier_tok nth (barrier_matrix nth a s vr));
-  drop_ (B.barrier_state _);
+  with it. assert (B.barrier_state it);
+
+  // After loop exit: pow2 it >= nth, and tid < nth, so div_pow2 it tid <==> tid = 0
+  FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
+  rewrite
+    (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr))
+  as
+    (if_ (op_Equality #nat tid 0) (gpu_pts_to_slice_sum a 0 nth s vr));
+
+  log2_hreduce (v nth) it;
+  rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
   ()
 }
@@ -420,6 +453,7 @@ let kernel
   nthr = lena;
 
   barrier_contract = mbarrier_contract (barrier_matrix lena a va vr);
+  barrier_count    = hreduce_barrier_count lena;
   barrier_ok       = mbarrier_transform (barrier_matrix lena a va vr);
 
   f = kf lena a #va #vr;

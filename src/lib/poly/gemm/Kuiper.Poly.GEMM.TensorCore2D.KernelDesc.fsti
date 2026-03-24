@@ -16,10 +16,7 @@ open Kuiper.Poly.GEMM.Copy.Vec
 open Kuiper.Poly.GEMM.Tiled.Common.Vec
 
 module MS = Kuiper.Spec.GEMM
-module R  = Kuiper.Matrix.Reprs
 module SZ = Kuiper.SizeT
-module FlipFlopBarrier = Kuiper.Poly.GEMM.FlipFlopBarrier
-module B = Kuiper.Barrier
 
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
@@ -174,46 +171,6 @@ let kpre
   =
   kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   live_c_shmems sh #(recip nthr)
-
-// #push-options "--z3rlimit_factor 4 --split_queries no --fuel 0 --ifuel 0 --query_stats"
-// instance kpre_block_sendable
-//   (#et_ab #et_c : Type0)
-//   (_: scalar et_ab)
-//   (v : has_vec_cpy et_ab)
-//   (_: scalar et_c)
-//   (_:real_like et_ab)
-//   (_:real_like et_c)
-//   (#rows #shared #cols : szp)
-//   (#lA : mlayout rows shared)
-//   (#lB : mlayout shared cols)
-//   (#lC : mlayout rows cols)
-//   (gA : gpu_matrix et_ab lA { is_global_matrix gA })
-//   (eA : ematrix et_ab rows shared)
-//   (gB : gpu_matrix et_ab lB { is_global_matrix gB })
-//   (eB : ematrix et_ab shared cols)
-//   (gC : gpu_matrix et_c lC { is_global_matrix gC })
-//   (eC : ematrix et_c rows cols)
-//   (bm bn bk
-//    tm tn tk
-//    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-//   (#_ : squash (bm /?+ rows))
-//   (#_ : squash (bk /?+ shared))
-//   (#_ : squash (bn /?+ cols))
-//   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-//   (fA fB : perm)
-//   (rA : ematrix real rows shared)
-//   (rB : ematrix real shared cols)
-//   (rC : ematrix real rows cols)
-//   (nblk: SZ.t { SZ.v nblk == (rows/bm * (cols/bn)) })
-//   (nthr: SZ.t { SZ.v nthr == (bm/(wm*tm)*(bn/(wn*tn))*warp_size) })
-//   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-//   (pf : c_shmems_inv sh)
-//   (i : natlt nblk)
-//   (j : natlt nthr)
-// : is_send_across block_of
-//   (kpre gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC (SZ.v nthr) sh i j)
-// = solve //checking to see that it is provable
-// #pop-options
 
 ghost
 fn setup
@@ -448,47 +405,6 @@ let kpost
   =
   kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
   live_c_shmems sh #(recip nthr)
-
-// #push-options "--z3rlimit_factor 4 --split_queries no --fuel 0 --ifuel 0 --query_stats"
-// #restart-solver
-// instance kpost_block_sendable
-//   (#et_ab #et_c : Type0)
-//   (_: scalar et_ab)
-//   (v : has_vec_cpy et_ab)
-//   (_: scalar et_c)
-//   (_:real_like et_ab)
-//   (_:real_like et_c)
-//   (#rows #shared #cols : szp)
-//   (#lA : mlayout rows shared)
-//   (#lB : mlayout shared cols)
-//   (#lC : mlayout rows cols)
-//   (gA : gpu_matrix et_ab lA { is_global_matrix gA })
-//   (eA : ematrix et_ab rows shared)
-//   (gB : gpu_matrix et_ab lB { is_global_matrix gB })
-//   (eB : ematrix et_ab shared cols)
-//   (gC : gpu_matrix et_c lC { is_global_matrix gC })
-//   (eC : ematrix et_c rows cols)
-//   (bm bn bk
-//    tm tn tk
-//    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
-//   (#_ : squash (bm /?+ rows))
-//   (#_ : squash (bk /?+ shared))
-//   (#_ : squash (bn /?+ cols))
-//   (#_ : squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-//   (fA fB : perm)
-//   (rA : ematrix real rows shared)
-//   (rB : ematrix real shared cols)
-//   (rC : ematrix real rows cols)
-//   (nblk: SZ.t { SZ.v nblk == (rows/bm * (cols/bn)) })
-//   (nthr: SZ.t { SZ.v nthr == (bm/(wm*tm)*(bn/(wn*tn))*warp_size) })
-//   (sh : c_shmems (shmems_desc et_ab bm bn bk))
-//   (pf : c_shmems_inv sh)
-//   (i : natlt nblk)
-//   (j : natlt nthr)
-// : is_send_across block_of
-//   (kpost gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC (SZ.v nthr) sh i j)
-// = solve //this takes forever! not sure  it helps to prove it here, rather than letting it be proven in place at the kernel desc
-// #pop-options
 
 ghost
 fn block_teardown

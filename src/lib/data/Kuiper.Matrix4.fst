@@ -30,7 +30,8 @@ let clayout4_imap
 
 (* This is only between abstract indices and concrete indices.
    Nothing here depends on the *actual* layout. *)
-#push-options "--split_queries always --retry 5 --z3rlimit 20" // flaky
+#push-options "--z3rlimit 20"
+[@@"core"]
 inline_for_extraction noextract
 let clayout4_bij
   (#mrows #mcols #brows #bcols : nat)
@@ -57,11 +58,8 @@ let clayout4_bij
 }
 #pop-options
 
-// FIXME: The VC for this definition is huge. It's incredible
-// we can actually print it out and solve it. Try to make
-// sense of it and report bug in F*.
-#push-options "--z3rlimit 50 --split_queries always --fuel 0 --ifuel 1"
-#restart-solver
+#push-options "--z3rlimit 40 --split_queries always"
+[@@"core"]
 inline_for_extraction noextract
 instance cview_from_clayout4
   (et : Type)
@@ -265,6 +263,7 @@ fn gpu_matrix_free
     on gpu_loc (gm |-> em)
   ensures emp
 {
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   A.varray_free gm;
 }
 
@@ -332,13 +331,11 @@ fn gpu_matrix_read
   (j : szlt bcols)
   (#f : perm)
   (#em : ematrix4 et mrows mcols brows bcols)
-  requires
+  preserves
     gpu **
     gpu_matrix_pts_to gm #f em
   returns v : et
   ensures
-    gpu **
-    gpu_matrix_pts_to gm #f em **
     pure (v == macc em bi bj i j)
 {
   unfold gpu_matrix_pts_to gm #f em;
@@ -359,11 +356,10 @@ fn gpu_matrix_write
   (j : szlt bcols)
   (v : et)
   (#em : ematrix4 et mrows mcols brows bcols)
+  preserves gpu
   requires
-    gpu **
     gpu_matrix_pts_to gm em
   ensures
-    gpu **
     gpu_matrix_pts_to gm (mupd em bi bj i j v)
 {
   unfold gpu_matrix_pts_to gm em;
@@ -565,7 +561,7 @@ fn gpu_matrix_from_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   assert (pure (SZ.fits (mlayout_size l)));
-  // unfold gpu_matrix_pts_to gm #1.0R em;
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_from_array #_ #_ sz gm a;
   from_seq_rel l s;
@@ -597,6 +593,7 @@ fn gpu_matrix_to_array
 {
   Pulse.Lib.Vec.pts_to_len a;
   open FStar.SizeT;
+  rewrite on gpu_loc (gpu_matrix_pts_to gm em) as on gpu_loc (A.varray_pts_to gm em);
   let sz = (mrows *^ brows) *^ (mcols *^ bcols);
   A.varray_to_array #_ #_ sz a gm;
   to_seq_rel l em;

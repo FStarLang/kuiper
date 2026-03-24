@@ -2,7 +2,6 @@ module Kuiper.AtomicOps
 
 #lang-pulse
 
-open FStar.Tactics.Typeclasses
 open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Class.PtsTo

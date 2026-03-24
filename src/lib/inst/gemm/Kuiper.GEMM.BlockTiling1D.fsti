@@ -2,70 +2,85 @@ module Kuiper.GEMM.BlockTiling1D
 
 #lang-pulse
 open Kuiper
+open Kuiper.Approximates
 open Kuiper.Poly.GEMMCPU
 open Kuiper.Poly.GEMMGPU.Type { valid_tile }
 open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
 
-(* NOTE: no dynamic tile version as that would imply the use of a
-   stack-allocated variable-length array, and NVCC complains
-   (karamel warns too). *)
-
-// Pretty hideous. But this must match the pure resource in the precondition of
-// the kernel exactly. Should we make it a squashed argument instead, to take
-// advantage of subtyping?
 inline_for_extraction noextract
 let size_req tile : size_req_t =
   fun rows shared cols ->
     (rows / tile) * (cols / tile) <= max_blocks /\
     tile * tile <= max_threads
 
-(* Specialized to tile=32 *)
+(* CPU approximate matmul — tile=32 *)
 
-val matmul_f32_tile32_rrr : fixed_repr_matmul_cpu_ty f32 (size_req 32) RM RM RM
-val matmul_f64_tile32_rrr : fixed_repr_matmul_cpu_ty f64 (size_req 32) RM RM RM
-val matmul_u32_tile32_rrr : fixed_repr_matmul_cpu_ty u32 (size_req 32) RM RM RM
-val matmul_u64_tile32_rrr : fixed_repr_matmul_cpu_ty u64 (size_req 32) RM RM RM
+val matmul_f32_tile32_rrr : fixed_repr_matmul_cpu_approx_ty f32 (size_req 32) RM RM RM
+val matmul_f64_tile32_rrr : fixed_repr_matmul_cpu_approx_ty f64 (size_req 32) RM RM RM
+val matmul_u32_tile32_rrr : fixed_repr_matmul_cpu_approx_ty u32 (size_req 32) RM RM RM
+val matmul_u64_tile32_rrr : fixed_repr_matmul_cpu_approx_ty u64 (size_req 32) RM RM RM
 
-val matmul_f32_tile32_ccc : fixed_repr_matmul_cpu_ty f32 (size_req 32) CM CM CM
-val matmul_f64_tile32_ccc : fixed_repr_matmul_cpu_ty f64 (size_req 32) CM CM CM
-val matmul_u32_tile32_ccc : fixed_repr_matmul_cpu_ty u32 (size_req 32) CM CM CM
-val matmul_u64_tile32_ccc : fixed_repr_matmul_cpu_ty u64 (size_req 32) CM CM CM
+val matmul_f32_tile32_ccc : fixed_repr_matmul_cpu_approx_ty f32 (size_req 32) CM CM CM
+val matmul_f64_tile32_ccc : fixed_repr_matmul_cpu_approx_ty f64 (size_req 32) CM CM CM
+val matmul_u32_tile32_ccc : fixed_repr_matmul_cpu_approx_ty u32 (size_req 32) CM CM CM
+val matmul_u64_tile32_ccc : fixed_repr_matmul_cpu_approx_ty u64 (size_req 32) CM CM CM
 
-(* Specialized to tile=16 *)
+(* CPU approximate matmul — tile=16 *)
 
-val matmul_f32_tile16_rrr : fixed_repr_matmul_cpu_ty f32 (size_req 16) RM RM RM
-val matmul_f64_tile16_rrr : fixed_repr_matmul_cpu_ty f64 (size_req 16) RM RM RM
-val matmul_u32_tile16_rrr : fixed_repr_matmul_cpu_ty u32 (size_req 16) RM RM RM
-val matmul_u64_tile16_rrr : fixed_repr_matmul_cpu_ty u64 (size_req 16) RM RM RM
+val matmul_f32_tile16_rrr : fixed_repr_matmul_cpu_approx_ty f32 (size_req 16) RM RM RM
+val matmul_f64_tile16_rrr : fixed_repr_matmul_cpu_approx_ty f64 (size_req 16) RM RM RM
+val matmul_u32_tile16_rrr : fixed_repr_matmul_cpu_approx_ty u32 (size_req 16) RM RM RM
+val matmul_u64_tile16_rrr : fixed_repr_matmul_cpu_approx_ty u64 (size_req 16) RM RM RM
 
-val matmul_f32_tile16_ccc : fixed_repr_matmul_cpu_ty f32 (size_req 16) CM CM CM
-val matmul_f64_tile16_ccc : fixed_repr_matmul_cpu_ty f64 (size_req 16) CM CM CM
-val matmul_u32_tile16_ccc : fixed_repr_matmul_cpu_ty u32 (size_req 16) CM CM CM
-val matmul_u64_tile16_ccc : fixed_repr_matmul_cpu_ty u64 (size_req 16) CM CM CM
+val matmul_f32_tile16_ccc : fixed_repr_matmul_cpu_approx_ty f32 (size_req 16) CM CM CM
+val matmul_f64_tile16_ccc : fixed_repr_matmul_cpu_approx_ty f64 (size_req 16) CM CM CM
+val matmul_u32_tile16_ccc : fixed_repr_matmul_cpu_approx_ty u32 (size_req 16) CM CM CM
+val matmul_u64_tile16_ccc : fixed_repr_matmul_cpu_approx_ty u64 (size_req 16) CM CM CM
 
+(* GPU-side approximate matmul — tile=32 *)
 
-(* Below are GPU-side versions: they take live GPU pointers and do not memcpy. *)
+val g_matmul_f32_tile32_rrr : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 32) RM RM RM
+val g_matmul_f64_tile32_rrr : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 32) RM RM RM
+val g_matmul_u32_tile32_rrr : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req 32) RM RM RM
+val g_matmul_u64_tile32_rrr : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req 32) RM RM RM
 
-(* Specialized to tile=32 *)
+val g_matmul_f32_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 32) CM CM CM
+val g_matmul_f64_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 32) CM CM CM
+val g_matmul_u32_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req 32) CM CM CM
+val g_matmul_u64_tile32_ccc : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req 32) CM CM CM
 
-val g_matmul_f32_tile32_rrr : fixed_repr_mmcomb_gpu_ty f32 (size_req 32) RM RM RM
-val g_matmul_f64_tile32_rrr : fixed_repr_mmcomb_gpu_ty f64 (size_req 32) RM RM RM
-val g_matmul_u32_tile32_rrr : fixed_repr_mmcomb_gpu_ty u32 (size_req 32) RM RM RM
-val g_matmul_u64_tile32_rrr : fixed_repr_mmcomb_gpu_ty u64 (size_req 32) RM RM RM
+(* GPU-side approximate matmul — tile=16 *)
 
-val g_matmul_f32_tile32_ccc : fixed_repr_mmcomb_gpu_ty f32 (size_req 32) CM CM CM
-val g_matmul_f64_tile32_ccc : fixed_repr_mmcomb_gpu_ty f64 (size_req 32) CM CM CM
-val g_matmul_u32_tile32_ccc : fixed_repr_mmcomb_gpu_ty u32 (size_req 32) CM CM CM
-val g_matmul_u64_tile32_ccc : fixed_repr_mmcomb_gpu_ty u64 (size_req 32) CM CM CM
+val g_matmul_f32_tile16_rrr : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 16) RM RM RM
+val g_matmul_f64_tile16_rrr : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 16) RM RM RM
+val g_matmul_u32_tile16_rrr : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req 16) RM RM RM
+val g_matmul_u64_tile16_rrr : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req 16) RM RM RM
 
-(* Specialized to tile=16 *)
+val g_matmul_f32_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty f32 (size_req 16) CM CM CM
+val g_matmul_f64_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty f64 (size_req 16) CM CM CM
+val g_matmul_u32_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty u32 (size_req 16) CM CM CM
+val g_matmul_u64_tile16_ccc : fixed_repr_mmcomb_gpu_approx_ty u64 (size_req 16) CM CM CM
 
-val g_matmul_f32_tile16_rrr : fixed_repr_mmcomb_gpu_ty f32 (size_req 16) RM RM RM
-val g_matmul_f64_tile16_rrr : fixed_repr_mmcomb_gpu_ty f64 (size_req 16) RM RM RM
-val g_matmul_u32_tile16_rrr : fixed_repr_mmcomb_gpu_ty u32 (size_req 16) RM RM RM
-val g_matmul_u64_tile16_rrr : fixed_repr_mmcomb_gpu_ty u64 (size_req 16) RM RM RM
+(* GPU-side approximate GEMM — tile=32 *)
 
-val g_matmul_f32_tile16_ccc : fixed_repr_mmcomb_gpu_ty f32 (size_req 16) CM CM CM
-val g_matmul_f64_tile16_ccc : fixed_repr_mmcomb_gpu_ty f64 (size_req 16) CM CM CM
-val g_matmul_u32_tile16_ccc : fixed_repr_mmcomb_gpu_ty u32 (size_req 16) CM CM CM
-val g_matmul_u64_tile16_ccc : fixed_repr_mmcomb_gpu_ty u64 (size_req 16) CM CM CM
+val g_gemm_f32_tile32_rrr : fixed_repr_gemm_gpu_approx_ty f32 (size_req 32) RM RM RM
+val g_gemm_f64_tile32_rrr : fixed_repr_gemm_gpu_approx_ty f64 (size_req 32) RM RM RM
+val g_gemm_u32_tile32_rrr : fixed_repr_gemm_gpu_approx_ty u32 (size_req 32) RM RM RM
+val g_gemm_u64_tile32_rrr : fixed_repr_gemm_gpu_approx_ty u64 (size_req 32) RM RM RM
+
+val g_gemm_f32_tile32_ccc : fixed_repr_gemm_gpu_approx_ty f32 (size_req 32) CM CM CM
+val g_gemm_f64_tile32_ccc : fixed_repr_gemm_gpu_approx_ty f64 (size_req 32) CM CM CM
+val g_gemm_u32_tile32_ccc : fixed_repr_gemm_gpu_approx_ty u32 (size_req 32) CM CM CM
+val g_gemm_u64_tile32_ccc : fixed_repr_gemm_gpu_approx_ty u64 (size_req 32) CM CM CM
+
+(* GPU-side approximate GEMM — tile=16 *)
+
+val g_gemm_f32_tile16_rrr : fixed_repr_gemm_gpu_approx_ty f32 (size_req 16) RM RM RM
+val g_gemm_f64_tile16_rrr : fixed_repr_gemm_gpu_approx_ty f64 (size_req 16) RM RM RM
+val g_gemm_u32_tile16_rrr : fixed_repr_gemm_gpu_approx_ty u32 (size_req 16) RM RM RM
+val g_gemm_u64_tile16_rrr : fixed_repr_gemm_gpu_approx_ty u64 (size_req 16) RM RM RM
+
+val g_gemm_f32_tile16_ccc : fixed_repr_gemm_gpu_approx_ty f32 (size_req 16) CM CM CM
+val g_gemm_f64_tile16_ccc : fixed_repr_gemm_gpu_approx_ty f64 (size_req 16) CM CM CM
+val g_gemm_u32_tile16_ccc : fixed_repr_gemm_gpu_approx_ty u32 (size_req 16) CM CM CM
+val g_gemm_u64_tile16_ccc : fixed_repr_gemm_gpu_approx_ty u64 (size_req 16) CM CM CM

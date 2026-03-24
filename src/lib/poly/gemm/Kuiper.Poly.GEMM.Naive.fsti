@@ -9,7 +9,12 @@ open Kuiper
 open Kuiper.Poly.GEMMGPU.Type
 
 inline_for_extraction noextract
-val mmcomb_gpu :
+val mmcomb_gpu_exact :
   matmulcomb_gpu_ty
+    (fun rows shared cols -> rows * cols <= max_blocks)
+
+inline_for_extraction noextract
+val mmcomb_gpu_approx :
+  matmulcomb_gpu_approx_ty
     (fun rows shared cols -> rows * cols <= max_blocks)
 

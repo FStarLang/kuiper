@@ -54,22 +54,17 @@ fn adapt_kmn_kf
   (#nblk #nthr : erased nat)
   #kpre
   #kpost
-  (f : (
-    bid : szlt nblk ->
-    tid : szlt nthr ->
-    unit ->
-    stt unit
-      (requires
-         gpu **
-         kpre bid tid **
-         thread_id nthr tid **
-         block_id nblk bid)
-      (ensures fun _ ->
-         gpu **
-         kpost bid tid **
-         thread_id nthr tid **
-         block_id nblk bid)
-  ))
+  (f : fn (bid : szlt nblk) (tid : szlt nthr) ()
+    requires
+      gpu **
+      kpre bid tid **
+      thread_id nthr tid **
+      block_id nblk bid
+    ensures
+      gpu **
+      kpost bid tid **
+      thread_id nthr tid **
+      block_id nblk bid)
   (_ : c_shmems [])
   (bid : szlt nblk)
   (tid : szlt nthr)
@@ -85,10 +80,10 @@ fn adapt_kmn_kf
     gpu **
     kpost bid tid **
     thread_id nthr tid **
-    block_id nblk bid
+    block_id nblk bid **
+    B.barrier_tok (B.empty_contract nthr) **
+    B.barrier_state 0
 {
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state _);
   f bid tid ();
 }
 
@@ -104,6 +99,7 @@ let kmn_as_kfull
   nthr=k.nthr;
 
   barrier_contract = (fun _bid _ptrs -> B.empty_contract k.nthr);
+  barrier_count    = (fun _bid -> 0);
   barrier_ok       = (fun _bid _ptrs -> B.empty_barrier_transform k.nthr);
 
   shmems_desc = [];
@@ -341,7 +337,7 @@ fn km1_as_kmn_block_teardown
 inline_for_extraction noextract
 fn frame_2
   (e #p0 #p1 #q0 #q1 #r0 #r1 : slprop)
-  (f : unit -> stt unit (requires p0 ** q0 ** r0) (fun _ -> p1 ** q1 ** r1))
+  (f : fn () requires p0 ** q0 ** r0 ensures p1 ** q1 ** r1)
   ()
   norewrite
   requires p0 ** q0 ** e ** r0
@@ -547,11 +543,83 @@ fn adapt_k1nb_kf
     gpu **
     k.kpost tid **
     thread_id k.nthr tid **
-    block_id 1sz _bid
+    block_id 1sz _bid **
+    B.barrier_tok k.barrier_contract **
+    B.barrier_state k.barrier_count
 {
   let f = k.f;
   f tid ();
   ()
+}
+
+ghost
+fn k1nb_as_kfull_setup
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  ()
+  norewrite
+  requires
+    full_pre
+  ensures
+    (forall+ (bid: natlt 1sz). full_pre) **
+    emp
+{
+  forevery_singleton_intro #(natlt 1sz) (fun _ -> full_pre);
+}
+
+ghost
+fn k1nb_as_kfull_teardown
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  ()
+  norewrite
+  requires
+    (forall+ (bid: natlt 1sz). full_post) **
+    emp
+  ensures
+    full_post
+{
+  forevery_singleton_elim #(natlt 1sz) (fun _ -> full_post);
+}
+
+ghost
+fn k1nb_as_kfull_block_setup
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  (sh : c_shmems [])
+  (bid: natlt 1sz)
+  ()
+  norewrite
+  requires
+    live_c_shmems sh **
+    full_pre
+  ensures
+    (forall+ (i : natlt k.nthr). k.kpre i) **
+    k.frame
+{
+  rewrite (live_c_shmems sh) as emp;
+  let f = k.block_setup;
+  f ();
+}
+
+ghost
+fn k1nb_as_kfull_block_teardown
+  (#full_pre #full_post : slprop)
+  (k : kernel_desc_1_n_barr full_pre full_post)
+  (sh : c_shmems [])
+  (bid: natlt 1sz)
+  ()
+  norewrite
+  requires
+    (forall+ (i : natlt k.nthr). k.kpost i) **
+    k.frame
+  ensures
+    live_c_shmems sh **
+    full_post
+{
+  let f = k.block_teardown;
+  f ();
+  rewrite emp as (live_c_shmems sh);
 }
 
 [@@coercion]
@@ -570,6 +638,7 @@ let k1nb_as_kfull
     shmems_desc = [];
 
     barrier_contract = (fun _bid _ptrs -> k.barrier_contract);
+    barrier_count    = (fun _bid -> k.barrier_count);
     barrier_ok       = (fun _bid _ptrs -> k.barrier_ok);
 
     frame = emp;
@@ -578,18 +647,18 @@ let k1nb_as_kfull
     block_post  = (fun _ -> full_post);
     block_frame = (fun _ptrs _bid -> k.frame);
 
-    setup    = magic();
-    teardown = magic();
+    setup    = k1nb_as_kfull_setup k;
+    teardown = k1nb_as_kfull_teardown k;
 
     kpre  = (fun _ptrs _bid -> k.kpre);
     kpost = (fun _ptrs _bid -> k.kpost);
 
-    block_setup = magic(); // (fun _ -> k.block_setup ());
-    block_teardown = magic(); // (fun _ -> k.block_teardown ());
+    block_setup = k1nb_as_kfull_block_setup k;
+    block_teardown = k1nb_as_kfull_block_teardown k;
 
     f = adapt_k1nb_kf k;
     block_pre_sendable = (fun _ -> k.full_pre_sendable);
     block_post_sendable = (fun _ -> k.full_post_sendable);
-    kpre_sendable = magic();
-    kpost_sendable = magic();
+    kpre_sendable = (fun _ _ _ -> k.kpre_sendable);
+    kpost_sendable = (fun _ _ _ -> k.kpost_sendable);
   } <: kernel_desc full_pre full_post

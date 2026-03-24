@@ -3,7 +3,6 @@ module Kuiper.Matrix.Reprs.Type
 
 open Kuiper
 open Kuiper.Bijection
-open FStar.Tactics.Typeclasses
 module SZ = Kuiper.SizeT
 
 let full_layout_size_lt #rows #cols (l : mlayout rows cols)

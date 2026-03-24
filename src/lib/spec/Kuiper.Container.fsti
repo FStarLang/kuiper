@@ -3,9 +3,9 @@ module Kuiper.Container
 open FStar.FunctionalExtensionality { (^->>), (^->) }
 open FStar.Ghost
 open FStar.Seq
-open FStar.Tactics.Typeclasses
 open Kuiper
 open Kuiper.Bijection
+open FStar.Tactics.Typeclasses { fundeps }
 
 module F = FStar.FunctionalExtensionality
 

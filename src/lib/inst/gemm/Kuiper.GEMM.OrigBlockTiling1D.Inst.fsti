@@ -2,22 +2,22 @@ module Kuiper.GEMM.OrigBlockTiling1D.Inst
 
 #lang-pulse
 open Kuiper
-open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
+open Kuiper.Approximates
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
 
 module M = Kuiper.Matrix
-module MS = Kuiper.Spec.GEMM
+module MU = Kuiper.Poly.GEMM.Util
 
 inline_for_extraction noextract
 fn spec
   (bm bn bk : szp)
   (tm : szp{tm /?+ bm /\ (bm/tm * bn <= max_threads)})
-  (et : Type0) {| scalar et |}
+  (et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
   (rA rB rC : mrepr)
-  {| crepr rA , crepr rB , crepr rC |}
+  {| cA : crepr rA, cB : crepr rB, cC :  crepr rC |}
   (rows shared cols : szp)
   (#_: squash ((bm/tm * bn) == bm * bk /\ (bm/tm * bn) == bn * bk))
   (gA : M.gpu_matrix et (rA rows shared) { M.is_global_matrix gA })
@@ -38,4 +38,6 @@ fn spec
     pure (bm/tm * bn <= max_threads) **
     on gpu_loc (gC |-> eC)
   ensures
-    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
+    exists* (eC' : ematrix et _ _).
+      on gpu_loc (gC |-> eC') **
+      pure (eC' `ematrix_approximates` MU.real_mmcomb comb_r eC eA eB)

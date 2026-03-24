@@ -4,6 +4,7 @@ module Kuiper.Spec.GEMM
 provide any weak approximate spec. *)
 
 open Kuiper
+open Kuiper.Approximates
 open Kuiper.EMatrix
 open Kuiper.Matrix.Tiling
 
@@ -18,6 +19,13 @@ let lincomb
   (* x is the old value, y is the new computed value *)
   : et
   = add (mul beta x) (mul alpha y)
+
+val lincomb_approx2
+  (#et:Type) {| scalar et, real_like et |}
+  (alpha beta : et) (alpha_r beta_r : real)
+  : Lemma (requires alpha %~ alpha_r /\ beta %~ beta_r)
+          (ensures approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))
+          [SMTPat (approx2 (lincomb alpha beta) (lincomb alpha_r beta_r))]
 
 (* These functions defined a matmul over potentially
 different types, which is useful to state a matmul

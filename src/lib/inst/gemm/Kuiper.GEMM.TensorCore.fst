@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Matrix.Reprs
 open Kuiper.GEMM.TensorCore.Inst
 
-let g_gemm_f16_f16_64x64x16_16x16x16 = specialize_gpu half half 64sz 64sz 16sz 16sz 16sz 16sz 
+let g_gemm_f16_f16_64x64x16_16x16x16 = specialize_gpu half half 64sz 64sz 16sz 16sz 16sz 16sz
 
 let g_gemm_f16_f16_32x32x32_32x8x16 = specialize_gpu half half 32sz 32sz 32sz 32sz 8sz 16sz
 let g_gemm_f16_f16_32x32x32_8x32x16 = specialize_gpu half half 32sz 32sz 32sz 8sz 32sz 16sz

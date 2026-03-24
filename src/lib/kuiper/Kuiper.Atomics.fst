@@ -2,7 +2,6 @@ module Kuiper.Atomics
 
 #lang-pulse
 
-open FStar.Tactics.Typeclasses
 open FStar.Ghost
 open Pulse.Lib.Core
 open Pulse.Class.PtsTo
@@ -10,6 +9,7 @@ open Kuiper.Base
 open Kuiper.Ref
 open Kuiper.IntAliases
 open Kuiper.AtomicOps
+open FStar.Tactics.Typeclasses { no_method }
 
 inline_for_extraction
 class has_atomic_add (t:Type) = {

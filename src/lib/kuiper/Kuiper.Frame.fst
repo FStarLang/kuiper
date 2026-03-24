@@ -6,7 +6,7 @@ open Pulse
 
 inline_for_extraction noextract
 fn frame_right1 (fr1 : slprop) (#p #q :slprop)
-  (f : unit -> stt unit p (fun _ -> q))
+  (f : fn () requires p ensures q)
   norewrite
   requires p ** fr1
   ensures  q ** fr1
@@ -14,7 +14,7 @@ fn frame_right1 (fr1 : slprop) (#p #q :slprop)
 
 inline_for_extraction noextract
 fn frame_right2 (fr1 fr2 : slprop) (#p #q :slprop)
-  (f : unit -> stt unit p (fun _ -> q))
+  (f : fn () requires p ensures q)
   norewrite
   requires p ** fr1 ** fr2
   ensures  q ** fr1 ** fr2
@@ -22,7 +22,7 @@ fn frame_right2 (fr1 fr2 : slprop) (#p #q :slprop)
 
 inline_for_extraction noextract
 fn frame_right3 (fr1 fr2 fr3 : slprop) (#p #q :slprop)
-  (f : unit -> stt unit p (fun _ -> q))
+  (f : fn () requires p ensures q)
   norewrite
   requires p ** fr1 ** fr2 ** fr3
   ensures  q ** fr1 ** fr2 ** fr3
@@ -30,7 +30,7 @@ fn frame_right3 (fr1 fr2 fr3 : slprop) (#p #q :slprop)
 
 inline_for_extraction noextract
 fn frame_right4 (fr1 fr2 fr3 fr4 : slprop) (#p #q :slprop)
-  (f : unit -> stt unit p (fun _ -> q))
+  (f : fn () requires p ensures q)
   norewrite
   requires p ** fr1 ** fr2 ** fr3 ** fr4
   ensures  q ** fr1 ** fr2 ** fr3 ** fr4
@@ -38,7 +38,7 @@ fn frame_right4 (fr1 fr2 fr3 fr4 : slprop) (#p #q :slprop)
 
 inline_for_extraction noextract
 fn frame_2left (fr : slprop) (#p1 #p2 #q1 #q2 :slprop)
-  (f : unit -> stt unit (p1 ** p2) (fun _ -> q1 ** q2))
+  (f : fn () requires p1 ** p2 ensures q1 ** q2)
   norewrite
   requires p1 ** p2 ** fr
   ensures  q1 ** q2 ** fr
@@ -46,7 +46,7 @@ fn frame_2left (fr : slprop) (#p1 #p2 #q1 #q2 :slprop)
 
 inline_for_extraction noextract
 fn frame_3left (fr : slprop) (#p1 #p2 #p3 #q1 #q2 #q3 :slprop)
-  (f : unit -> stt unit (p1 ** p2 ** p3) (fun _ -> q1 ** q2 ** q3))
+  (f : fn () requires p1 ** p2 ** p3 ensures q1 ** q2 ** q3)
   norewrite
   requires p1 ** p2 ** p3 ** fr
   ensures  q1 ** q2 ** q3 ** fr
