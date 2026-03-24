@@ -482,11 +482,10 @@ fn gpu_matrix_read_cell
   (j : szlt cols)
   (#f : perm)
   (#v0 : erased et)
-  requires
+  preserves
     gpu_matrix_pts_to_cell gm #f i j v0
   returns v : et
   ensures
-    gpu_matrix_pts_to_cell gm #f i j v **
     pure (v == v0)
 {
   unfold gpu_matrix_pts_to_cell gm #f i j v0;
