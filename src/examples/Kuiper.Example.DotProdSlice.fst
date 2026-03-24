@@ -7,7 +7,7 @@ module Kuiper.Example.DotProdSlice
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
+open Kuiper.Matrix.Reprs
 open Kuiper.FArray
 open Kuiper.Matrix.Slice
 module M  = Kuiper.Matrix
@@ -114,4 +114,29 @@ fn matmul_dotprod_via_slice
 
   seq_dotprod_is_matmul_single eA eB (SZ.v i) (SZ.v j) shared;
   res
+}
+
+#set-options "--debug SMTFail --split_queries always"
+
+fn matmul_dotprod_via_slice_f32
+  (rows shared cols : SZ.t)
+  (gA : M.gpu_matrix f32 (row_major rows shared))
+  (gB : M.gpu_matrix f32 (row_major shared cols))
+  (eA : ematrix f32 rows shared)
+  (eB : ematrix f32 shared cols)
+  (i : szlt rows)
+  (j : szlt cols)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  returns
+    res : f32
+  ensures
+    pure (res == MS.matmul_single eA eB i j)
+{
+  M.gpu_matrix_pts_to_ref gA;
+  M.gpu_matrix_pts_to_ref gB;
+  matmul_dotprod_via_slice gA gB i j;
 }
