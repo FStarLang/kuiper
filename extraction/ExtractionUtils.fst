@@ -148,6 +148,11 @@ let ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : ML mlexpr =
   in
   ml_visit subst1 id e
 
+let rec ml_subst_many (e : mlexpr) (vs : list mlident) (es : list mlexpr) : ML mlexpr =
+  match vs, es with
+  | v :: vs', e' :: es' -> ml_subst_many (ml_subst e v e') vs' es'
+  | _ -> e
+
 let collapse_tuple_proj (e : mlexpr) : ML mlexpr =
   let subst1 (e0 : mlexpr) : mlexpr =
     match e0.expr with
@@ -208,6 +213,42 @@ let collapse_tuple_matches (e : mlexpr) : ML mlexpr =
   in
   ml_visit id subst1 e
 
+
+let collapse_record_proj (e : mlexpr) : ML mlexpr =
+  let subst1 (e0 : mlexpr) : ML mlexpr =
+    match e0.expr with
+    | MLE_Proj (e, (_, f)) -> (
+      let e = unmagic e in
+      match e.expr with
+      | MLE_Record (_, _, fields) ->
+        (match List.assoc f fields with
+         | Some v -> v
+         | None -> e0)
+      | _ -> e0
+    )
+    (* Also collapse match on a record literal via a record pattern:
+         match {f1=e1; f2=e2; ...} with | {f1=v1; f2=v2; ...} -> body
+       becomes body[v1:=e1, v2:=e2, ...] *)
+    | MLE_Match (sc, [(MLP_Record (_, field_pats), None, body)]) -> (
+      let sc = unmagic sc in
+      match sc.expr with
+      | MLE_Record (_, _, fields) ->
+        let field_map = fields in
+        let rec go (e : mlexpr) (fps : list (mlsymbol & mlpattern)) : ML mlexpr =
+          match fps with
+          | [] -> e
+          | (fname, MLP_Var v) :: rest ->
+            (match List.assoc fname field_map with
+             | Some fval -> go (ml_subst e v fval) rest
+             | None -> go e rest)
+          | _ :: rest -> go e rest
+        in
+        go body field_pats
+      | _ -> e0
+    )
+    | _ -> e0
+  in
+  ml_visit id subst1 e
 
 let is_lid (s:string) (e : mlexpr) : bool =
   match e.expr with

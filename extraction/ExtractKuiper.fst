@@ -148,6 +148,80 @@ let eta (e : mlexpr) : mlexpr =
   let e'' = with_ty e.mlty <| MLE_App (e', [ml_unit]) in
   e''
 
+(* Registry mapping record type paths to their field definitions.
+   Populated by kpr_translate_type_decl when record type declarations are encountered. *)
+let record_fields_registry : ref (list (string & list (mlsymbol & mlty))) = mk_ref []
+
+(* Look up record fields for a named type. First checks the registry (populated
+   by translate_type_decl), then falls back to reconstructing from the F* TC
+   environment. The fallback is needed because some record types (e.g. those
+   marked noextract, or in modules where the type decl is dropped) never reach
+   translate_type_decl. *)
+let lookup_record_fields (g : env) (mpath : mlpath) : ML (option (list (mlsymbol & mlty))) =
+  match List.assoc (string_of_mlpath mpath) !record_fields_registry with
+  | Some fields -> Some fields
+  | None ->
+    (* Fallback: reconstruct from the TC environment *)
+    let open FStarC.Ident in
+    let open FStarC.Syntax.Syntax in
+    let lid = lid_of_path (fst mpath @ [snd mpath]) FStarC.Range.dummyRange in
+    let tcenv = UEnv.tcenv_of_uenv g.uenv in
+    match FStarC.TypeChecker.Env.lookup_sigelt tcenv lid with
+    | Some se -> (
+      match List.tryFind (function RecordType _ -> true | _ -> false) se.sigquals with
+      | Some (RecordType (_, field_ids)) -> (
+        let (_, ctor_lids) = FStarC.TypeChecker.Env.datacons_of_typ tcenv lid in
+        match ctor_lids with
+        | [ctor_lid] ->
+          let (_, ctor_typ) = FStarC.TypeChecker.Env.lookup_datacon tcenv ctor_lid in
+          let mlt = ML.Term.term_as_mlty g.uenv ctor_typ in
+          let mlt = ML.Util.eraseTypeDeep (ML.Util.udelta_unfold g.uenv) mlt in
+          let field_tys = ML.Util.argTypes mlt in
+          if List.length field_ids = List.length field_tys
+          then (
+            let fields = List.map2 (fun id ty ->
+              (string_of_id id, ty)) field_ids field_tys in
+            (* Cache for future lookups *)
+            record_fields_registry := (string_of_mlpath mpath, fields) :: !record_fields_registry;
+            Some fields
+          ) else None
+        | _ -> None
+      )
+      | _ -> None
+    )
+    | None -> None
+
+(* Explode record-typed free variables into individual field variables.
+   Returns (new_fvs, substituted_body, call_args). *)
+let rec explode_fvs (g : env) (fvs : list (string & mlty)) (e : mlexpr) :
+    ML (list (string & mlty) & mlexpr & list mlexpr) =
+  match fvs with
+  | [] -> ([], e, [])
+  | (v, t) :: rest ->
+    match t with
+    | MLTY_Named ([], path) -> (
+      match lookup_record_fields g path with
+      | Some fields ->
+        if !dbg then
+          Format.print2 "KPR hoist: exploding %s (type %s) into fields\n" v (string_of_mlpath path);
+        let new_fvs = List.map (fun (f, ft) -> (v ^ "__" ^ f, ft)) fields in
+        let record_expr = with_ty t <| MLE_Record (fst path, snd path,
+          List.map (fun (f, ft) -> (f, with_ty ft <| MLE_Var (v ^ "__" ^ f))) fields) in
+        let e' = ml_subst e v record_expr in
+        let proj_args = List.map (fun (f, ft) ->
+          with_ty ft <| MLE_Proj (with_ty t <| MLE_Var v, (fst path, f))) fields in
+        let (rest_fvs, e'', rest_args) = explode_fvs g rest e' in
+        (new_fvs @ rest_fvs, e'', proj_args @ rest_args)
+      | None ->
+        if !dbg then
+          Format.print2 "KPR hoist: fv %s has named type %s but NOT in record registry\n" v (string_of_mlpath path);
+        let (rest_fvs, e', rest_args) = explode_fvs g rest e in
+        ((v, t) :: rest_fvs, e', (with_ty t <| MLE_Var v) :: rest_args)
+    )
+    | _ ->
+      let (rest_fvs, e', rest_args) = explode_fvs g rest e in
+      ((v, t) :: rest_fvs, e', (with_ty t <| MLE_Var v) :: rest_args)
+
 let hoist (g : env) (e : mlexpr) : ML mlexpr =
   let e0 = e in
   // let e = remove_trailing_units e in // ???
@@ -172,6 +246,9 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
       text "fvs =" ^/^ pp fvs;
     ];
   // Format.print1_warning "fvs = %s\n" (show fvs);
+  (* Explode record-typed free variables into individual fields *)
+  let (fvs, e, call_args) = explode_fvs g fvs e in
+  let e = collapse_record_proj e in
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
   ctr := !ctr + 1;
@@ -190,7 +267,7 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
   translate_decl_accum := !translate_decl_accum @ [decl];
 
   let nm = with_ty ml_unit_ty <| MLE_Name ([], fresh) in
-  let call = MLE_App (nm, List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs ) in
+  let call = MLE_App (nm, call_args) in
   let e' = {e with expr = call} in
   if !dbg then (
     Format.print3_warning
@@ -702,8 +779,46 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
                EApp (EOp (Add, fake_SizeT), [ EBound 0; EConstant (fake_SizeT, "1") ])),
              EApp (cb_v f, [EBound 0])))
 
+  | "Kuiper.For.for_loop'", [], [ lo; hi; _pre; _post; _frame; f ] ->
+    let env_v = extend env "i" in
+    let cb_v = translate_expr env_v in
+    let v_binder : binder = {
+      name = "i";
+      typ = TInt fake_SizeT;
+      mut = true;
+      meta = [];
+    } in
+    ELet (v_binder, cb lo,
+      EGFor (EUnit,
+             EApp (EOp (Lt, fake_SizeT), [ EBound 0; cb_v hi ]),
+             EAssign (EBound 0,
+               EApp (EOp (Add, fake_SizeT), [ EBound 0; EConstant (fake_SizeT, "1") ])),
+             EApp (cb_v f, [EBound 0])))
+
   | _ -> raise NotSupportedByKrmlExtension
+
+(* Observe record type declarations and store their field info in the registry.
+   Always falls through to the default handler. *)
+let kpr_translate_type_decl : translate_type_decl_t = fun env td ->
+  (if !dbg then
+    Format.print3 "KPR translate_type_decl: %s.%s (defn=%s)\n"
+      (String.concat "." env.module_name) td.tydecl_name
+      (match td.tydecl_defn with
+       | Some (MLTD_Record _) -> "Record"
+       | Some (MLTD_Abbrev _) -> "Abbrev"
+       | Some (MLTD_DType _)  -> "DType"
+       | None                  -> "None");
+   match td.tydecl_defn with
+   | Some (MLTD_Record fields) ->
+     let type_path = string_of_mlpath (env.module_name, td.tydecl_name) in
+     if !dbg then
+       Format.print2 "KPR record registry: registering %s (%s fields)\n" type_path (show (List.length fields));
+     if None? (List.assoc type_path !record_fields_registry) then
+       record_fields_registry := (type_path, fields) :: !record_fields_registry
+   | _ -> ());
+  raise NotSupportedByKrmlExtension
 
 let _ =
   register_pre_translate_type_without_decay kpr_translate_type_without_decay;
+  register_pre_translate_type_decl kpr_translate_type_decl;
   register_pre_translate_expr kpr_translate_expr
