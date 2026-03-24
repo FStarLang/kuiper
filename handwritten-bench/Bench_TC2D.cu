@@ -10,9 +10,10 @@
 #define tile_sizes   
 #define tc_tile_sizes
 #define regch_sizes  
-#define GEMM_ALPHA   0.7
-#define GEMM_BETA    0.3
-#define TOLERANCE 0.20f
+// Must be 1,0, since TensorCore2D.cu assumes that
+#define GEMM_ALPHA   1
+#define GEMM_BETA    0
+#define TOLERANCE    0.02f
 #define PREARGS                 //128,128,32,
 
 #include "tensor_core_gemm_alpha_beta_1_driver.c.inc"
