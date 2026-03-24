@@ -371,7 +371,7 @@ fn teardown
   gpu_matrix_gather_n gB n_threads;
 
   (* Step 5: Collect gC cells back into matrix *)
-  let _vf = gpu_matrix_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
+  let _ = gpu_matrix_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
     (SZ.v mrows) (SZ.v mcols)
     (fun (row : natlt (mrows * tile)) (col : natlt (mcols * tile)) (v : et) ->
       v %~ MS.gemm_single comb_r rA rB rC row col);

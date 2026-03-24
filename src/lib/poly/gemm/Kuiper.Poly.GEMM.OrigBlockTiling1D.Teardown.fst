@@ -54,7 +54,6 @@ fn block_teardown
     (forall+ (tid : natlt (bm/^tm *^ bn)).
       kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
 {
-  admit();
   // Bridge from SizeT-based to nat-based size
   forevery_rw_size (bm/^tm *^ bn) (bm/tm * bn);
 
@@ -297,7 +296,7 @@ fn teardown
     };
 
   (* Step 7: Collect cells back into matrix *)
-  let _vf = gpu_matrix_collect_approx_tiled gC (SZ.v bm) (SZ.v bn)
+  let _ = gpu_matrix_collect_approx_tiled gC (SZ.v bm) (SZ.v bn)
     mrows mcols
     (fun (row : natlt (mrows * bm)) (col : natlt (mcols * bn)) (v : et) ->
       v %~ MU.real_gemm_single comb_r eA eB eC row col);

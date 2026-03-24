@@ -174,7 +174,6 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
   // Format.print1_warning "fvs = %s\n" (show fvs);
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
-  let arr_t = List.fold_right mkarr (List.map snd fvs) (mkarr ml_unit_ty et) in
   ctr := !ctr + 1;
 
   let bs =  List.map mk_binder fvs @ [extra_unit_binder] in
