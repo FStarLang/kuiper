@@ -27,7 +27,7 @@ let unsparse
   (#et:Type0) {| scalar et |}
   (nnz l : nat)
   (elems : lseq et nnz)
-  (pos   : lseq nat nnz{valid_pos l pos})
+  (pos   : lseq nat nnz)
   : GTot (lseq et l)
 =
   let open FStar.Seq in
@@ -36,6 +36,7 @@ let unsparse
       then elems @! index_mem i pos
       else zero
 
+// MAYBE unfold
 let sarray_pts_to'
   (#et:Type0) {| d : scalar et |} (#l : nat)
   (a : sarray et l)
