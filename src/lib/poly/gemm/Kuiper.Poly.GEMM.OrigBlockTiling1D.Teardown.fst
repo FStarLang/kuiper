@@ -17,7 +17,7 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Defs
 
-#push-options "--z3rlimit 80 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 120 --fuel 1 --ifuel 1"
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
