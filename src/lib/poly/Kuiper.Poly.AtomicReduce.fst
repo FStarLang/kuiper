@@ -9,7 +9,29 @@ open Kuiper.Atomics
 
 module SZ = Kuiper.SizeT
 module W = Pulse.Lib.WithPure
+module CInv = Pulse.Lib.CancellableInvariant
 
+(* These should go somewhere in the library *)
+ghost
+fn bring (p : slprop)
+  preserves gpu
+  requires  on gpu_loc p
+  ensures   p
+{
+  admit();
+}
+
+ghost
+fn putback (p : slprop)
+  preserves gpu
+  requires  p
+  ensures   on gpu_loc p
+{
+  admit();
+}
+
+(* Relating a sequence of erased bools to v_r. Essentially, v_r containts
+exaclty the contributions of the indices i where v_done @! i is true. *)
 let rec contributions
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn : nat)
@@ -30,74 +52,134 @@ let rec contributions
     else
       contributions nn tl_done tl v_r acc
 
+let inv_p'
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (nn: nat)
+  (a: gpu_array et nn)
+  (v_a: seq et)
+  (#_ : squash (len v_a == nn))
+  (r: gpu_ref et)
+  (done: seq (gref bool) {len done == nn})
+  (v_done: seq bool {len v_done == nn})
+  (v_r : et)
+  : slprop
+=
+  on gpu_loc (r |-> v_r) **
+  (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (v_done @! i)) **
+  pure (contributions nn v_done v_a v_r zero)
+
+instance placeless_inv_p'
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (nn: nat)
+  (a: gpu_array et nn)
+  (v_a: seq et)
+  (#_ : squash (len v_a == nn))
+  (r: gpu_ref et)
+  (done: seq (gref bool) {len done == nn})
+  (v_done: seq bool {len v_done == nn})
+  (v_r : et)
+  : placeless (inv_p' nn a v_a r done v_done v_r)
+  = solve
+
+(* Invariant. The reference r (on GPU) contains a value that is
+exactly the contributions expected. *)
 let inv_p
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
   (a: gpu_array et nn)
   (v_a: seq et)
+  (#_ : squash (len v_a == nn))
   (r: gpu_ref et)
   (done: seq (gref bool))
+  (#_ : squash (len done == nn))
 =
-  // pure (len done == nn) **
-  exists* (v_done:
-    seq bool {len v_done >= len done /\ len v_done >= len v_a})
-    v_r.
-    ((r |-> v_r) **
-    (forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (v_done @! i))) **
-    pure (contributions nn v_done v_a v_r zero)
+  exists*
+    (v_done: seq bool {len v_done == nn})
+    (v_r : et).
+    inv_p' nn a v_a r done v_done v_r
+
+instance placeless_inv_p
+  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
+  (nn: nat)
+  (a: gpu_array et nn)
+  (v_a: seq et)
+  (#_ : squash (len v_a == nn))
+  (r: gpu_ref et)
+  (done: seq (gref bool))
+  (#_ : squash (len done == nn))
+  (v_a': seq et)
+  (v_r : et)
+  : placeless (inv_p nn a v_a r done)
+  = solve
+
+(* Permission for thread i out of n threads.
+   Split by recursive halving: thread 0 gets p/2,
+   remaining n-1 threads share the other p/2. *)
+let rec tperm (n : nat{n > 0}) (i : nat{i < n}) (p : perm)
+  : Tot perm (decreases n)
+=
+  if n = 1 then p
+  else if i = 0 then p /. 2.0R
+  else tperm (n-1) (i-1) (p /. 2.0R)
 
 unfold
 let kpre
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn: nat)
-  (a : gpu_array et nn)
-  (v_a : seq et)
-  (r : gpu_ref et)
-  (done : seq (gref bool){len done == Ghost.reveal nn})
-  (i:iname)
+  (a: gpu_array et nn)
+  (v_a: seq et)
+  (#_ : squash (len v_a == nn))
+  (r: gpu_ref et)
+  (done: seq (gref bool) {len done == nn})
+  (c: CInv.cinv)
   (tid : natlt nn)
 =
   (done @! tid) |-> Frac 0.5R false **
   (a |-> Frac (1.0R /. nn) v_a) **
-  inv i (inv_p nn a v_a r done)
+  inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p nn a v_a r done)) **
+  CInv.active c (tperm nn tid 1.0R) **
+  pure (len v_a == nn)
 
 unfold
 let kpost
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (nn: nat)
   (a : gpu_array et nn)
-  (v_a : seq et)
+  (v_a: seq et)
+  (#_ : squash (len v_a == nn))
   (r : gpu_ref et)
   (done : seq (gref bool){len done == Ghost.reveal nn})
-  (i:iname)
+  (c: CInv.cinv)
   (tid : natlt nn)
 =
   (done @! tid) |-> Frac 0.5R true **
-  (a |-> Frac (1.0R /. nn) v_a)
+  (a |-> Frac (1.0R /. nn) v_a) **
+  CInv.active c (tperm nn tid 1.0R)
 
 ghost
 fn forevery_ghost_upd_lemma
-  (done : seq (gref bool))
-  (v_done : seq bool{len v_done >= len done})
-  (tid : nat{tid < len done})
+  (nn : nat)
+  (done : seq (gref bool) {len done == nn})
+  (v_done : seq bool {len v_done == nn})
+  (tid : nat{tid < nn})
   requires
-    (forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (v_done @! i)) **
+    (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (v_done @! i)) **
     (done @! tid) |-> Frac 0.5R false
   ensures
-    (forall+ (i : natlt (len done)). (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i)) **
+    (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i)) **
     (done @! tid) |-> Frac 0.5R true **
     pure (v_done @! tid == false)
 {
   forevery_extract'
     tid
-    (fun (i : natlt (len done)) -> (done @! i) |-> Frac 0.5R (v_done @! i));
+    (fun (i : natlt nn) -> (done @! i) |-> Frac 0.5R (v_done @! i));
 
   Pulse.Lib.GhostReference.gather (done @! tid);
   Pulse.Lib.GhostReference.write (done @! tid) true;
   Pulse.Lib.GhostReference.share (done @! tid);
 
   Pulse.Lib.Forall.elim_forall
-    (fun (i : natlt (len done)) -> (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i));
+    (fun (i : natlt nn) -> (done @! i) |-> Frac 0.5R (Seq.upd v_done tid true @! i));
 
   rewrite ((done @! tid) |-> Frac 0.5R true)
       as  ((done @! tid) |-> Frac 0.5R (Seq.upd v_done tid true @! tid));
@@ -213,46 +295,52 @@ fn kf
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
   (#nn: SZ.t)
-  (a : gpu_global_array et (SZ.v nn))
-  (#v_a : erased (seq et))
+  (a: gpu_array et nn)
+  (#v_a: erased (seq et))
+  (#_ : squash (len v_a == nn))
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == SZ.v nn})
-  (i : iname)
+  (c : CInv.cinv)
   (bid : szlt (SZ.v nn))
   ()
   requires
     gpu **
-    kpre (SZ.v nn) a v_a r done i bid **
+    kpre (SZ.v nn) a v_a r done c bid **
     block_id (SZ.v nn) bid
   ensures
     gpu **
-    kpost (SZ.v nn) a v_a r done i bid **
+    kpost (SZ.v nn) a v_a r done c bid **
     block_id (SZ.v nn) bid
 {
-  assume (pure (len v_a == SZ.v nn));
-  // later_credit_buy 1;
-  (* Read array at idx *)
+  (* Read our value *)
   let v = gpu_array_read a bid;
-  (* Fetch and add into result cell. *)
-  //  admit();
-  with_invariants unit emp_inames i (inv_p (SZ.v nn) a v_a r done)
-    (gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
-     block_id (SZ.v nn) (SZ.v bid) **
-     gpu **
-     Pulse.Lib.GhostReference.pts_to (Seq.Base.index done (SZ.v bid)) #0.5R false)
+
+  (* Atomically add it to result, marking our contribution as done. *)
+  with_invariants unit emp_inames (CInv.iname_of c)
+    (CInv.cinv_vp c (inv_p (SZ.v nn) a v_a r done))
+    (gpu **
+     (done @! bid) |-> Frac 0.5R false **
+     gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
+     CInv.active c (tperm (SZ.v nn) bid 1.0R))
     (fun _ ->
-      gpu **
-      (done @! bid) |-> Frac 0.5R true **
-       gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
-      block_id (SZ.v nn) bid)
+     gpu **
+     (done @! bid) |-> Frac 0.5R true **
+     gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
+     CInv.active c (tperm (SZ.v nn) bid 1.0R))
   fn _
   {
-    // later_elim _;
+    CInv.unpack_cinv_vp c;
     is_ac_from_ac_w ac;
-    unfold (inv_p (SZ.v nn) a v_a r done);
+    unfold inv_p nn a v_a r done;
+    unfold inv_p' nn a v_a r done;
+    with v_r. assert on gpu_loc (r |-> v_r);
+    bring (r |-> v_r);
     let _ = atomic_add r v;
-    forevery_ghost_upd_lemma done _ _;
-    fold (inv_p (SZ.v nn) a v_a r done);
+    putback (r |-> (d.pure_op v v_r));
+    forevery_ghost_upd_lemma nn done _ _;
+    fold inv_p' nn a v_a r done _ _;
+    fold inv_p nn a v_a r done;
+    CInv.pack_cinv_vp c;
   }
 }
 
@@ -278,29 +366,6 @@ let rec contributions_all_done
     contributions_all_done ac nn (Seq.tail v_done) (Seq.tail v_a) v_r (d.pure_op (Seq.head v_a) acc)
   end
 
-ghost
-fn done_lemma
-  (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (ac : is_ac_w d.pure_op)
-  (nn: szp)
-  (a : gpu_array et nn)
-  (r : gpu_ref et)
-  (done : erased (seq (gref bool)){len done == SZ.v nn})
-  (i : iname)
-  (#v_a : erased (seq et))
-  requires
-    forall+ (tid : natlt nn). kpost nn a v_a r done i tid
-  ensures
-    (a |-> v_a) **
-    (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
-{
-  forevery_unzip _ _;
-  gpu_slice_gather a 0 (SZ.v nn) (SZ.v nn) #1.0R #v_a;
-  (* Blocked: invariant cancellation not yet in Pulse — can't permanently
-     extract r |-> v_r from inv i (inv_p ...). *)
-  admit();
-}
-
 private
 let rec contributions_init
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
@@ -319,109 +384,177 @@ let rec contributions_init
     contributions_init nn (Seq.tail v_done) (Seq.tail v_a)
   end
 
+#set-options "--debug SMTFail --split_queries always"
+
 ghost
-fn setup0
-  (#et : Type0) {| scalar et, d : has_atomic_add et |}
-  (n : sz{SZ.v n > 0})
-  (a : gpu_array et n)
-  (#v_a : erased (seq et))
-  (r : gpu_ref et)
-  requires
-    (a |-> v_a) **
-    (r |-> zero #et) **
-    pure (SZ.v n <= 1024 /\ len v_a == SZ.v n)
-  returns
-    i_done : iname & erased (seq (gref bool))
-  ensures
-    (match i_done with | (i, done) ->
-      W.with_pure (len done == SZ.v n) (fun _ ->
-       (forall+ (tid : natlt n).
-        kpre (SZ.v n) a v_a r done i tid)
-    ))
+fn rec allocate_ref_seq (n : nat)
+  returns s : erased (lseq (gref bool) n)
+  ensures (forall+ (i : natlt n). (s @! i) |-> false)
+  decreases n
 {
-  (* Allocate n ghost refs, all false *)
-  let done : erased (seq (gref bool)) =
-    admit(); (* ghost ref allocation — need Seq.init_ghost of GhostReference.alloc *)
-
-  assume (len done == SZ.v n);
-
-  (* Share each ghost ref into two halves:
-     forall+ tid. (done @! tid) |-> false
-       ==> forall+ tid. (done @! tid) |-> Frac 0.5R false
-        ** forall+ tid. (done @! tid) |-> Frac 0.5R false *)
-  assume (forall+ (tid : natlt (SZ.v n)). (done @! tid) |-> Frac 0.5R false);
-  assume (forall+ (i0 : natlt (len done)). (done @! i0) |-> Frac 0.5R false);
-
-  (* Build the initial inv_p content and create the invariant *)
-  contributions_init (SZ.v n) (Seq.init_ghost (SZ.v n) (fun _ -> false)) (reveal v_a);
-  assume (inv_p (SZ.v n) a v_a r done);
-  let i = new_invariant (inv_p (SZ.v n) a v_a r done);
-
-  (* Share the array into n fractions *)
-  gpu_slice_share a 0 (SZ.v n) (SZ.v n) #1.0R;
-
-  (* Duplicate the invariant into each branch of the forall+ *)
-  forevery_zip _ _;
-  forevery_map_extra
-    (inv i (inv_p (SZ.v n) a v_a r done))
-    _
-    (fun (tid:natlt (SZ.v n)) ->
-      (done @! tid) |-> Frac 0.5R false **
-      (a |-> Frac (1.0R /. SZ.v n) v_a) **
-      inv i (inv_p (SZ.v n) a v_a r done))
-    fn tid { dup_inv i (inv_p (SZ.v n) a v_a r done) };
-
-  W.intro_with_pure (len done == SZ.v n) _ ();
-  (i, done)
+  if (n = 0) {
+    let s = Seq.empty #(gref bool);
+    forevery_intro_empty (fun (i : natlt n) -> (s @! i) |-> false);
+    s
+  } else {
+    let tail = allocate_ref_seq (n - 1);
+    let r = Pulse.Lib.GhostReference.alloc false;
+    let s = Seq.cons r tail;
+    rewrite r |-> false as (s @! 0) |-> false;
+    forevery_map
+      (fun (i : natlt (n-1)) -> (tail @! i) |-> false)
+      (fun (i : natlt (n-1)) -> (s @! (i+1)) |-> false)
+      fn i {
+        rewrite each (tail @! i) as (s @! (i+1));
+        ();
+      };
+    assert (s @! 0) |-> false;
+    assert forall+ (i : natlt (n-1)). (s @! (i+1)) |-> false;
+    forevery_natlt_push_shift n (fun (i : natlt n) -> (s @! i) |-> false);
+    s
+  }
 }
 
+ghost
+fn allocate_ref_seq' (n : nat)
+  returns s : erased (seq (gref bool))
+  ensures W.with_pure (len s == n)
+            (fun _ -> forall+ (i : natlt n). (s @! i) |-> false)
+{
+  let s = allocate_ref_seq n;
+  Ghost.hide (Ghost.reveal s)
+}
+
+(* Split active c p into n per-thread fractions via recursive halving. *)
+ghost
+fn rec share_active_n (#p:perm) (c : CInv.cinv) (n : nat{n > 0})
+  requires CInv.active c p
+  ensures forall+ (i : natlt n). CInv.active c (tperm n i p)
+  decreases n
+{
+  if (n = 1) {
+    rewrite CInv.active c p
+        as  CInv.active c (tperm n 0 p);
+    forevery_singleton_intro'
+      (fun (i : natlt n) -> CInv.active c (tperm n i p)) (0 <: natlt n);
+  } else {
+    CInv.share c;
+    share_active_n c (n-1);
+    forevery_map
+      (fun (i : natlt (n-1)) -> CInv.active c (tperm (n-1) i (p /. 2.0R)))
+      (fun (i : natlt (n-1)) -> CInv.active c (tperm n (i+1) p))
+      fn i {
+        rewrite CInv.active c (tperm (n-1) i (p /. 2.0R))
+            as  CInv.active c (tperm n (i+1) p);
+      };
+    rewrite CInv.active c (p /. 2.0R)
+        as  CInv.active c (tperm n 0 p);
+    forevery_natlt_push_shift n
+      (fun (i : natlt n) -> CInv.active c (tperm n i p));
+  }
+}
+
+(* Gather n per-thread active fractions back into a single active c p. *)
+ghost
+fn rec gather_active_n (#p:perm) (c : CInv.cinv) (n : nat{n > 0})
+  requires forall+ (i : natlt n). CInv.active c (tperm n i p)
+  ensures CInv.active c p
+  decreases n
+{
+  if (n = 1) {
+    forevery_singleton_elim'
+      (fun (i : natlt n) -> CInv.active c (tperm n i p)) (0 <: natlt n);
+    rewrite CInv.active c (tperm n 0 p)
+        as  CInv.active c p;
+  } else {
+    forevery_natlt_pop_shift n
+      (fun (i : natlt n) -> CInv.active c (tperm n i p));
+    rewrite CInv.active c (tperm n 0 p)
+        as  CInv.active c (p /. 2.0R);
+    forevery_map
+      (fun (i : natlt (n-1)) -> CInv.active c (tperm n (i+1) p))
+      (fun (i : natlt (n-1)) -> CInv.active c (tperm (n-1) i (p /. 2.0R)))
+      fn i {
+        rewrite CInv.active c (tperm n (i+1) p)
+            as  CInv.active c (tperm (n-1) i (p /. 2.0R));
+      };
+    gather_active_n c (n-1);
+    CInv.gather c;
+    rewrite CInv.active c (p /. 2.0R +. p /. 2.0R)
+        as  CInv.active c p;
+  }
+}
+
+(* Setup: receives ghost ref halves, cancellable invariant, and active permission
+   (allocated on CPU), splits array and active ownership, and distributes into
+   per-block preconditions. *)
 ghost
 fn setup
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
-  (n : sz{SZ.v n > 0})
-  (a : gpu_array et n)
+  (n : szp{n < max_blocks})
+  (a : gpu_array et n { is_global_array a })
   (#v_a : erased (seq et))
+  (#_ : squash (len v_a == n))
   (r : gpu_ref et)
   (done : seq (gref bool){len done == SZ.v n})
-  (i : iname)
+  (c : CInv.cinv)
   ()
   norewrite
   requires
-    a |-> v_a **
-    inv i (inv_p (SZ.v n) a v_a r done)
+    (a |-> v_a) **
+    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false) **
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+    CInv.active c 1.0R **
+    pure (len v_a == SZ.v n)
   ensures
-    (forall+ (bid : natlt n). kpre n a v_a r done i bid) **
-    inv i (inv_p (SZ.v n) a v_a r done)
+    (forall+ (bid : natlt n). kpre (SZ.v n) a v_a r done c bid) **
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done))
 {
-  (* Ghost ref allocation/sharing and invariant creation — assumed.
-     Real proof: alloc ghost refs, share into halves, fold inv_p
-     (consuming r |-> zero + ghost halves + contributions_init pure),
-     then new_invariant. *)
-  assume (forall+ (tid : natlt (SZ.v n)). (done @! tid) |-> Frac 0.5R false);
-  assume (inv i (inv_p (SZ.v n) a v_a r done));
-
-  (* Share the array into n fractions — proved *)
+  (* Share the array into n fractions *)
   gpu_slice_share a 0 (SZ.v n) (SZ.v n) #1.0R;
 
-  (* Zip ghost halves with array fractions — proved *)
+  (* Split active permission into n per-thread fractions *)
+  share_active_n c (SZ.v n);
+
+  (* Zip ghost halves with array fractions *)
   forevery_zip
     (fun (tid:natlt (SZ.v n)) -> (done @! tid) |-> Frac 0.5R false)
     (fun (tid:natlt (SZ.v n)) -> a |-> Frac (1.0R /. SZ.v n) v_a);
 
-  (* Duplicate invariant into each forall+ element — proved *)
-  forevery_map_extra
-    (inv i (inv_p (SZ.v n) a v_a r done))
+  (* Zip (ghost+array) with active fractions *)
+  forevery_zip
     (fun (tid:natlt (SZ.v n)) ->
       (done @! tid) |-> Frac 0.5R false **
       (a |-> Frac (1.0R /. SZ.v n) v_a))
+    (fun (tid:natlt (SZ.v n)) -> CInv.active c (tperm (SZ.v n) tid 1.0R));
+
+  forevery_push_pure _ (len v_a == SZ.v n);
+
+  (* Duplicate invariant into each forall+ element *)
+  forevery_map_extra
+    (inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)))
+    (fun (tid:natlt (SZ.v n)) ->
+      (((done @! tid) |-> Frac 0.5R false **
+       (a |-> Frac (1.0R /. SZ.v n) v_a)) **
+       CInv.active c (tperm (SZ.v n) tid 1.0R)) **
+      pure (len v_a == SZ.v n))
     (fun (tid:natlt (SZ.v n)) ->
       (done @! tid) |-> Frac 0.5R false **
       (a |-> Frac (1.0R /. SZ.v n) v_a) **
-      inv i (inv_p (SZ.v n) a v_a r done))
-    fn tid { dup_inv i (inv_p (SZ.v n) a v_a r done) };
+      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+      CInv.active c (tperm (SZ.v n) tid 1.0R) **
+      pure (len v_a == SZ.v n))
+    fn tid {
+      dup_inv (CInv.iname_of c)
+              (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done))
+    };
+
+  ();
 }
 
+(* Teardown: gathers array fractions, active fractions, and collects ghost ref
+   halves (now true). Returns full active permission. *)
 ghost
 fn teardown
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
@@ -429,22 +562,44 @@ fn teardown
   (n : szp{n < max_blocks})
   (a : gpu_array et n { is_global_array a })
   (#v_a : seq et)
+  (#_ : squash (len v_a == n))
   (r : gpu_ref et)
   (done : seq (gref bool){len done == SZ.v n})
-  (i : iname)
+  (c : CInv.cinv)
   ()
   norewrite
   requires
-    (forall+ (bid : natlt n). kpost n a v_a r done i bid) **
-    inv i (inv_p (SZ.v n) a v_a r done)
+    (forall+ (bid : natlt n). kpost (SZ.v n) a v_a r done c bid) **
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done))
   ensures
-    a |-> v_a **
-    r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a
+    (a |-> v_a) **
+    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true) **
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+    CInv.active c 1.0R
 {
-  done_lemma ac n a r done i #v_a;
-  ()
+  (* Unzip done from (array ** active) *)
+  forevery_unzip
+    (fun (bid:natlt (SZ.v n)) -> (done @! bid) |-> Frac 0.5R true)
+    (fun (bid:natlt (SZ.v n)) ->
+      (a |-> Frac (1.0R /. SZ.v n) v_a) **
+      CInv.active c (tperm (SZ.v n) bid 1.0R));
+
+  (* Unzip array from active *)
+  forevery_unzip
+    (fun (bid:natlt (SZ.v n)) -> a |-> Frac (1.0R /. SZ.v n) v_a)
+    (fun (bid:natlt (SZ.v n)) -> CInv.active c (tperm (SZ.v n) bid 1.0R));
+
+  (* Gather array fractions *)
+  gpu_slice_gather a 0 (SZ.v n) (SZ.v n) #1.0R #v_a;
+
+  (* Gather active fractions *)
+  gather_active_n c (SZ.v n);
 }
 
+(* Kernel descriptor: the kernel receives the cancellable invariant, ghost ref
+   halves, and active permission. Each thread flips its ghost ref to true via
+   atomic_add under the invariant. The full_post returns everything needed
+   to cancel the invariant and recover the result. *)
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
@@ -452,26 +607,35 @@ let kdesc
   (n : szp{n < max_blocks})
   (a : gpu_array et n { is_global_array a })
   (#v_a : erased (seq et))
+  (#_ : squash (len v_a == SZ.v n))
   (r : gpu_ref et)
-  (#r0 : erased et)
-  (done : erased (seq (gref bool)){len done == SZ.v n})
-  (i : iname)
+  (done : erased (seq (gref bool)))
+  (#_ : squash (len done == SZ.v n))
+  (c : CInv.cinv)
 : kernel_desc
     ((a |-> v_a) **
-      inv i (inv_p (SZ.v n) a v_a r done))
+      (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false) **
+      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+      CInv.active c 1.0R **
+      pure (len v_a == SZ.v n))
     ((a |-> v_a) **
-      (r |-> Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a))
+      (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true) **
+      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+      CInv.active c 1.0R)
  = {
   nblk     = n;
-  f        = kf ac a #v_a r done i;
-  setup    = setup    ac n a #v_a r done i;
-  teardown = teardown ac n a #v_a r done i;
-  kpre     = kpre  n a v_a r done i;
-  kpost    = kpost n a v_a r done i;
-  frame    = inv i (inv_p (SZ.v n) a v_a r done);
+  f        = kf ac a #v_a r done c;
+  setup    = setup ac n a #v_a r done c;
+  teardown = teardown ac n a #v_a r done c;
+  kpre     = kpre  (SZ.v n) a v_a r done c;
+  kpost    = kpost (SZ.v n) a v_a r done c;
+  frame    = inv (CInv.iname_of c)
+                 (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done));
   kpre_sendable  = solve;
   kpost_sendable = solve;
 } <: kernel_desc_m_1 _ _
+
+#set-options "--print_implicits"
 
 inline_for_extraction noextract
 fn reduce
@@ -491,43 +655,110 @@ fn reduce
     on gpu_loc (a |-> v_a) **
     pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
+  map_loc gpu_loc
+    #(a |-> v_a)
+    #(a |-> v_a ** pure (len v_a == SZ.v n))
+    fn () {
+      gpu_pts_to_slice_ref a 0 n;
+    };
+
   let mut r : et = zero;
   let gr = gpu_alloc0 #et ();
   Kuiper.Ref.gpu_memcpy_host_to_device #et #_ gr r;
 
-  with v. assert (pts_to r v);
-  assert (pure (v == zero));
+  (* --- CPU-side invariant setup --- *)
 
-  assert (pure (n < max_blocks));
+  (* Allocate n ghost refs, all false *)
+  let done = allocate_ref_seq' (SZ.v n);
 
-  // let i_done = setup n a gr;
-  // let i = (i_done)._1;
-  // let done : erased (seq (gref bool)) = hide (reveal (i_done._2));
-  // rewrite each i_done as (i, done) by (tadmit());
-  // New fancy syntax, does not extract
-  // let Mktuple2 i done = setup n a gr;
-  // The problem is essentially https://github.com/FStarLang/pulse/issues/93.
-  // The match is over a (Pulse) non-informative type, a pair of iname and erased (seq (gref bool)).
-  // It gets erased to unit, but the patterns do not, so the match is ill-typed and krml complains.
+  let falses : erased (seq bool) = Seq.init_ghost (SZ.v n) (fun _ -> false);
 
-  // W.elim_with_pure (len done == SZ.v n) _;
+  (* Share each ghost ref into two halves *)
+  forevery_map
+    #(natlt (SZ.v n))
+    (fun i -> (done @! i) |-> false)
+    (fun i -> (done @! i) |-> Frac 0.5R false ** (done @! i) |-> Frac 0.5R (falses @! i))
+    fn i {
+      Pulse.Lib.GhostReference.share (done @! i);
+      ();
+    };
+  forevery_unzip _ _;
 
-  let done = magic #(erased (seq (gref bool))) ();
-  let i    = magic #iname ();
-  assume (pure (len done == SZ.v n));
-  assume (on gpu_loc (inv i (inv_p (SZ.v n) a v_a gr done)));
-  drop_ (on gpu_loc (gr |-> zero #et)); // SHOULD NOT BE HERE, only here until we solve ambig problem from having duplicated permissions to r
-  launch_sync (kdesc ac n a #v_a gr #(zero #et) done i);
+  (* Establish the initial contributions predicate *)
+  contributions_init (SZ.v n) falses (reveal v_a);
 
-  // launch_kernel_n_blocks n
-  //   #(kpre  (SZ.v n) a v_a gr done i)
-  //   #(kpost (SZ.v n) a v_a gr done i)
-  //   (fun tid -> k (hide n) a gr done i v_a tid);
+  fold inv_p' n a v_a gr done falses zero;
+  fold inv_p n a v_a gr done;
 
-  // forevery_tostar #(natlt (SZ.v n))
-  //   (kpost (SZ.v n) a v_a gr done i);
+  (* Create a cancellable invariant instead of a plain one *)
+  let c = CInv.new_cancellable_invariant (inv_p (SZ.v n) a v_a gr done);
 
-  // teardown n a #f #v_a gr i done;
+  (* Move resources to GPU *)
+  placeless_on_intro
+    (inv (CInv.iname_of c)
+         (CInv.cinv_vp c (inv_p (SZ.v n) a v_a #() gr done #())))
+    gpu_loc;
+
+  placeless_on_intro
+    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false)
+    gpu_loc;
+
+  placeless_on_intro
+    (CInv.active c 1.0R)
+    gpu_loc;
+
+  (* --- Launch kernel --- *)
+  launch_sync (kdesc ac n a #v_a gr done c);
+
+  (* Bring back from GPU *)
+  placeless_on_elim
+    (inv (CInv.iname_of c)
+         (CInv.cinv_vp c (inv_p (SZ.v n) a v_a #() gr done #())))
+    gpu_loc;
+
+  placeless_on_elim
+    (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true)
+    gpu_loc;
+
+  placeless_on_elim
+    (CInv.active c 1.0R)
+    gpu_loc;
+
+  (* Cancel the invariant to recover the protected value *)
+  later_credit_buy 1;
+  CInv.cancel c;
+
+  (* At this point, we have inv_p, which means 'done' (with perm 0.5) points to
+  a sequence of values related to the contributions into v_r. But we know these
+  values are all true via the kernel post. *)
+  unfold inv_p (SZ.v n) a v_a gr done;
+  with v_done v_r.
+    unfold inv_p' (SZ.v n) a v_a gr done v_done v_r;
+  assert
+    (forall+ (i : natlt (SZ.v n)). (done @! i) |-> Frac 0.5R true) **
+    (forall+ (i : natlt (SZ.v n)). (done @! i) |-> Frac 0.5R (v_done @! i));
+
+  forevery_zip
+    (fun (i : natlt (SZ.v n)) -> (done @! i) |-> Frac 0.5R true)
+    (fun (i : natlt (SZ.v n)) -> (done @! i) |-> Frac 0.5R (v_done @! i));
+  forevery_map
+    (fun (i : natlt (SZ.v n)) -> ((done @! i) |-> Frac 0.5R true) **
+                               ((done @! i) |-> Frac 0.5R (v_done @! i)))
+    (fun (i : natlt (SZ.v n)) -> ((done @! i) |-> true) ** pure (v_done @! i == true))
+    fn i {
+      Pulse.Lib.GhostReference.gather (done @! i);
+    };
+  forevery_extract_pure
+    (fun (i : natlt (SZ.v n)) -> (done @! i) |-> true ** pure (v_done @! i == true))
+    (fun (i : natlt (SZ.v n)) -> (v_done @! i) == true)
+    fn _ {};
+
+  assert pure (contributions n v_done v_a v_r zero);
+  contributions_all_done ac n v_done v_a v_r zero;
+  assert pure (v_r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a);
+
+  (* Drop ghost state *)
+  drop_ (forall+ (i : natlt (SZ.v n)). (done @! i) |-> true ** pure (v_done @! i == true));
 
   Kuiper.Ref.gpu_memcpy_device_to_host r gr #_ #_ #_;
 
@@ -536,13 +767,3 @@ fn reduce
   let v = !r;
   v
 }
-
-
-(*
-1. Let-binding a tuple, or any pattern really
-2. Easily returning multiple things, writing specs over the exploded components
-3-  refinements have to match exactly
-4- err locations
-4.1-  in particular when function type does not match fsti
-5- jonas' coerce_eq bug
-*)
