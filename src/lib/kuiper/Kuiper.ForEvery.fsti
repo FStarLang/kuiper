@@ -1114,3 +1114,12 @@ fn forevery_ext_4
     forall+ (w:a) (x:b) (y:c) (z:d). f w x y z
   ensures
     forall+ (w:a) (x:b) (y:c) (z:d). g w x y z
+
+ghost
+fn forevery_push_pure
+  (#a:Type0) (p : a -> slprop)
+  (q : prop)
+  requires
+    pure q ** (forall+ (x:a). p x)
+  ensures
+    forall+ (x:a). p x ** pure q
