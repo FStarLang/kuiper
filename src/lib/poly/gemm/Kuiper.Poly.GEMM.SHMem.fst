@@ -450,6 +450,7 @@ fn kf
     invariant
       (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. (tile * tile)) x) **
       (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. (tile * tile)) x)
+    decreases (mshared - !bk)
   {
     let vbk = !bk;
     gpu_matrix_extract_tile_ro gA tile tile mrow vbk;

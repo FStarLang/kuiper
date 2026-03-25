@@ -204,6 +204,7 @@ fn subproducts_tc
       live bFrag **
       live accumFrag **
       live dotIdx
+    decreases (bk/^tk - !dotIdx)
   {
     let a_tile = gpu_matrix_extract_tile_ro' gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
     let b_tile = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
@@ -381,6 +382,7 @@ fn kf
       (exists* em2. FB.bp_sharing sB em2 nthr)
     invariant
       B.barrier_state (2 * !bkIdx)
+    decreases (num_k_tiles - !bkIdx)
   {
     even_2x !bkIdx;
     assert pure ((2 * !bkIdx % 2 = 0) == true);

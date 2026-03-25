@@ -282,6 +282,7 @@ fn bring_2cols
   let mut i = 0sz;
   while (SZ.(!i <^ tile))
     invariant live i
+    decreases (tile - !i)
   {
     let vi = !i;
 
@@ -387,6 +388,7 @@ fn kf
     invariant
         (exists* (x : ematrix _ _ _). sa1 |-> Frac (1.0R /. tile) x) **
         (exists* (x : ematrix _ _ _). sa2 |-> Frac (1.0R /. tile) x)
+    decreases (mshared - !bk)
   {
     pts_to_len sums;
     let vbk = !bk;
@@ -434,6 +436,7 @@ fn kf
   Pulse.Lib.Array.pts_to_len sums;
   while (SZ.(!row <^ tile))
     invariant live row ** live sums
+    decreases (tile - !row)
   {
     Pulse.Lib.Array.pts_to_len sums;
     forevery_extract #(natlt tile) (!row) _;

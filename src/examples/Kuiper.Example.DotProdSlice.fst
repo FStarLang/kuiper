@@ -48,6 +48,7 @@ fn farray_dotprod
       exists* (vk : SZ.t{vk <= len}).
         k |-> vk **
         sum |-> seq_dotprod sA sB vk
+    decreases (len - !k)
   {
     sum := !sum `add` mul (farray_read a !k) (farray_read b !k);
     k := SZ.add !k 1sz;

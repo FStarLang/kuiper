@@ -458,6 +458,7 @@ fn subproducts2d
               v_d @! idx ==
                 __gms (vrchProd @! idx) eA eB
                   (tm * arow + idx / tn) (tn * bcol + idx % tn) !dotIdx))
+    decreases (bk - !dotIdx)
   {
     (* register caches *)
     let mut rAcol : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
@@ -470,6 +471,7 @@ fn subproducts2d
         rAcol |-> vrAcol **
         pure (forall (k : natlt (!j0)).
                 vrAcol @! k == macc eA (tm * arow + k) !dotIdx)
+      decreases (tm - !j0)
     {
       pts_to_len rAcol;
       let va = gpu_matrix_read gA (tm *^ arow +^ !j0) !dotIdx;
@@ -488,6 +490,7 @@ fn subproducts2d
         rBrow |-> vrBrow **
         pure (forall (k : natlt (!j1)).
                 vrBrow @! k == macc eB !dotIdx (tn * bcol + k))
+      decreases (tn - !j1)
     {
       pts_to_len rBrow;
       let vb = gpu_matrix_read gB !dotIdx (tn *^ bcol +^ !j1);
@@ -512,6 +515,7 @@ fn subproducts2d
                   (if idx < !resIdxM * tn
                    then add (v_cur @! idx) (mul (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))
                    else v_cur @! idx)))
+      decreases (tm - !resIdxM)
     {
       let mut resIdxN = 0sz;
       while (!resIdxN <^ tn)
@@ -524,6 +528,7 @@ fn subproducts2d
                     (if idx < !resIdxM * tn + !resIdxN
                      then add (v_cur @! idx) (mul (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))
                      else v_cur @! idx)))
+        decreases (tn - !resIdxN)
       {
         pts_to_len rAcol;
         pts_to_len rBrow;
@@ -730,6 +735,7 @@ fn epilogue
           (if i < !resIdxM
            then comb (macc eC_tile i j) (vrch @! (i * tn + j))
            else macc eC_tile i j))
+    decreases (tm - !resIdxM)
   {
     let mut resIdxN = 0sz;
     while (!resIdxN <^ tn)
@@ -741,6 +747,7 @@ fn epilogue
             (if i * tn + j < !resIdxM * tn + !resIdxN
              then comb (macc eC_tile i j) (vrch @! (i * tn + j))
              else macc eC_tile i j))
+      decreases (tn - !resIdxN)
     {
       open Pulse.Lib.Array;
       pts_to_len rchProd;
@@ -883,6 +890,7 @@ fn kf
     invariant B.barrier_state (2 * !bkIdx) **
         (exists* (x : ematrix _ _ _). FB.bp_sharing sA x nthr) **
         (exists* (x : ematrix _ _ _). FB.bp_sharing sB x nthr)
+    decreases (num_k_tiles - !bkIdx)
   {
     even_2x !bkIdx;
     FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;

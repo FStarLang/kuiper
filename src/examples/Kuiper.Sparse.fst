@@ -536,6 +536,7 @@ fn smatrix_id
   while (!i <^ m.nnz)
     invariant
       m |-> e ** live i
+    decreases (m.nnz - !i)
   {
     unfold smatrix_pts_to m e;
 

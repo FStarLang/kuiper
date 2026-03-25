@@ -32,13 +32,12 @@ fn k_reduce
 
   while (SZ.(!i <^ size))
     invariant live i ** live r
+    decreases (size - !i)
   {
-    let vi = !i;
     gpu_pts_to_ref a;
-    let v = gpu_array_read a vi;
-    let vr = !r;
-    let vr' = add vr v;
-    r := vr';
+    r := add !r (gpu_array_read a !i);
+    i := !i +^ 1sz;
+    ()
   };
   !r
 }

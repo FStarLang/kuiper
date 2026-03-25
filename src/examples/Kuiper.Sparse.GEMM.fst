@@ -181,6 +181,7 @@ fn matmul_dotprod
         !dp == __dprod v_elems (cast_pos v_ind) eB ri re j !k
       )
 
+    decreases (re - !k)
   {
     let x = gpu_array_read gA.elems !k;
     let c = gpu_array_read gA.col_ind !k;

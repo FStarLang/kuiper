@@ -36,6 +36,7 @@ fn smatrix_sdmm
   while (!i <^ rows)
     invariant live i ** pure (!i <= rows)
     invariant live gC
+    decreases (rows - !i)
   {
     let ri = gpu_array_read gA.row_off !i;
     let re = gpu_array_read gA.row_off (!i +^ 1sz);
@@ -44,6 +45,7 @@ fn smatrix_sdmm
     while((!j <^ cols))
       invariant live j ** pure (!j <= cols)
       invariant live gC
+      decreases (cols - !j)
     {
       let mut dp : et = zero;
 
@@ -52,6 +54,7 @@ fn smatrix_sdmm
       while (!k <^ re)
         invariant
             live dp ** live k
+        decreases (re - !k)
       {
         let x = gpu_array_read gA.elems !k;
         let c = gpu_array_read gA.col_ind !k;

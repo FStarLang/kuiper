@@ -39,6 +39,7 @@ fn cp_matrix
         i |-> vi **
         live_strided_chunks dst nthr tid **
         pure (vi < mlen + nthr)
+    decreases (mlen + nthr - !i)
   {
     let v = gpu_matrix_read src (!i /^ cols) (!i %^ cols);
 
@@ -79,6 +80,7 @@ fn cp_matrix
 
     Math.Lemmas.modulo_addition_lemma !i nthr 1;
     i := !i +^ nthr;
+    ()
   };
 
   ()

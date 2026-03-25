@@ -261,6 +261,7 @@ fn sarray_product_dense
           dprod v_elems (seq_project pos t)
         )
       )
+    decreases (a.nnz - !i)
   {
     let p = gpu_array_read a.pos !i;
     let x = gpu_array_read a.elems !i;
@@ -308,11 +309,13 @@ fn sarray_product_quadratic
   let mut i = 0sz;
   while (!i <^ a.nnz)
     invariant live i ** live dp
+    decreases (a.nnz - !i)
   {
     let mut j = 0sz;
     let p_a = gpu_array_read a.pos !i;
     while (!j <^ b.nnz)
       invariant live j ** live dp
+      decreases (b.nnz - !j)
     {
       let p_b = gpu_array_read b.pos !j;
       if (p_a = p_b) {
@@ -364,6 +367,7 @@ fn sarray_product
   while (!i <^ a.nnz && !j <^ b.nnz)
     invariant live i ** live j
     invariant live dp
+    decreases (a.nnz - !i + (b.nnz - !j))
   {
     // estas lecturas podrian hacerse una sola vez
     let p_a = gpu_array_read a.pos !i;

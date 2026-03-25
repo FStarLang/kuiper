@@ -20,6 +20,7 @@ fn sarray_id
   let mut i = 0sz;
   while (!i <^ a.nnz)
     invariant a |-> s0 ** live i
+    decreases (a.nnz - !i)
   {
     unfold sarray_pts_to a s0;
     unfold sarray_pts_to' a s0;
@@ -96,6 +97,7 @@ fn sarray_scale
           forall (j : nat{j < a.nnz}).
             (j <  i_v ==> index v_elems' j == k `mul` index v_elems j) /\
             (j >= i_v ==> index v_elems' j == index v_elems j)))
+    decreases (a.nnz - !i)
   {
     let v = gpu_array_read a.elems !i;
     gpu_array_write a.elems !i (k `mul` v);

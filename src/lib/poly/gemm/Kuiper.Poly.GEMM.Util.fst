@@ -44,6 +44,7 @@ fn matmul_dotprod
       exists* (vk : SZ.t{vk <= shared}).
         k |-> vk **
         sum |-> MS.__matmul_single eA eB i j vk
+    decreases (shared - !k)
   {
     let v1 = M.gpu_matrix_read gA i !k;
     let v2 = M.gpu_matrix_read gB !k j;
@@ -407,6 +408,7 @@ fn matmul_tiled_dotprod'
         bk |-> vbk **
         sum |-> sumv **
         pure (v_approximates sumv (__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * tile)))
+    decreases (shared - !bk)
   {
     let vbk = !bk;
     assert (pure (bi  < (rows   * tile) / tile));
@@ -497,6 +499,7 @@ fn matmul_tiled_dotprod_real
         sum |-> sumv **
         pure (eA %~ rA /\ eB %~ rB) **
         pure (v_approximates sumv (MS.__gmatmul_single 0.0R ( *. ) ( +. ) rA rB grow gcol (SZ.v vbk * tile)))
+    decreases (shared - !bk)
   {
     let vbk = !bk;
     assert (pure (bi  < (rows   * tile) / tile));
@@ -580,6 +583,7 @@ fn subproduct_cols
   let mut sk : sz = 0sz;
   while (SZ.(!sk <^ tile))
     invariant live sk ** live acc
+    decreases (tile - !sk)
   {
     pts_to_len acc;
     let mut i = 0sz;
@@ -589,6 +593,7 @@ fn subproduct_cols
     let v2 = M.gpu_matrix_read m2 !sk j;
     while (SZ.(!i <^ tile))
       invariant live i ** live acc
+      decreases (tile - !i)
     {
       let v1 = M.gpu_matrix_read m1 !i !sk;
 

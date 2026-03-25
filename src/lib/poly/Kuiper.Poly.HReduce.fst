@@ -337,6 +337,7 @@ fn kf
         B.barrier_state it **
         if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr) **
         pure (v it > 0 ==> pow2 (v it - 1) < v nth)
+    decreases (2 * nth - spow2 !n)
   {
     iteration nth a s vr tid !n;
     n := !n +^ 1sz;

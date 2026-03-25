@@ -184,6 +184,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
      invariant live i ** live a
      invariant exists* (s:seq et). a1 |-> s ** pure (len s == size)
      invariant exists* (s:seq et). a2 |-> s ** pure (len s == size)
+     decreases (m_size - !i)
   {
     let v = !i;
     let va = !a;
@@ -213,6 +214,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   let mut psum : et = zero;
   while (SZ.(!i <^ m_size))
    invariant live i ** live psum
+   decreases (m_size - !i)
   {
     let vi = !i;
     let ri = ar.(vi);
