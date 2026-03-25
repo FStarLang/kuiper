@@ -56,8 +56,10 @@ jobs:
           make -skj$(nproc) dist
           # Did something change?
           git add dist # must rest!
+          git reset dist/BUILD_INFO # ignore build info changes
           if ! git diff --quiet --cached dist; then
             echo DISTCHANGE=1 >>$GITHUB_ENV
+            git add dist/BUILD_INFO # but commit them if we're updating...
           else
             echo DISTCHANGE=0 >>$GITHUB_ENV
           fi
@@ -67,14 +69,14 @@ jobs:
         if: ${{ env.MOVED == '1' && env.DISTCHANGE == '0' }}
         run: |
           # Use the token so we can push to these repos.
-          for dir in FStar karamel pulse; do
+          for dir in FStar karamel; do
             pushd $dir
             echo "in $(pwd)"
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
             echo R=$R
             echo before
             git remote -v
-            git remote set-url origin https://${{secrets.ADVANCE_GH_TOKEN}}@github.com/$R
+            git remote set-url origin https://${{secrets.KUIPER_ADVANCE_GH_TOKEN}}@github.com/$R
             echo after
             git remote -v
             popd
@@ -83,15 +85,12 @@ jobs:
 
       - name: Push submodule commits to remotes and open PR
         if: ${{ env.MOVED == '1' && env.DISTCHANGE == '1' }}
-        env:
-          # Needed for `gh pr` to authenticate (default GITHUB_TOKEN may lack permissions).
-          GH_TOKEN: ${{ secrets.ADVANCE_GH_TOKEN }}
         run: |
           # Push submodule commits so the SHAs are reachable when the PR is merged.
           for dir in FStar karamel; do
             pushd $dir
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
-            git remote set-url origin https://${{ secrets.ADVANCE_GH_TOKEN }}@github.com/$R
+            git remote set-url origin https://${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}@github.com/$R
             git push -f origin HEAD:refs/heads/advance/kuiper
             popd
           done
