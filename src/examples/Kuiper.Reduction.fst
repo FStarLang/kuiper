@@ -30,7 +30,7 @@ fn k_reduce
   let mut i = 0sz;
   let mut r : tt = zero #tt #d;
 
-  while (SZ.(!i <^ size))
+  while (!i <^ size)
     invariant live i ** live r
     decreases (size - !i)
   {

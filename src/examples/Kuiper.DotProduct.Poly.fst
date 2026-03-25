@@ -180,7 +180,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
   let mut i = 0sz;
   let mut a : et = zero;
 
-  while (SZ.(!i <^ m_size))
+  while (!i <^ m_size)
      invariant live i ** live a
      invariant exists* (s:seq et). a1 |-> s ** pure (len s == size)
      invariant exists* (s:seq et). a2 |-> s ** pure (len s == size)
@@ -212,7 +212,7 @@ fn main (#et:Type0) {| scalar et |} (_:unit)
 
   i := 0sz;
   let mut psum : et = zero;
-  while (SZ.(!i <^ m_size))
+  while (!i <^ m_size)
    invariant live i ** live psum
    decreases (m_size - !i)
   {

@@ -280,7 +280,7 @@ fn bring_2cols
     own_1_col sa2 tid
 {
   let mut i = 0sz;
-  while (SZ.(!i <^ tile))
+  while (!i <^ tile)
     invariant live i
     decreases (tile - !i)
   {
@@ -382,7 +382,7 @@ fn kf
   let mut sums : Pulse.Lib.Array.array et = [| zero ; tile |];
   let mut bk  : sz = 0sz;
 
-  while (let vbk = !bk; SZ.(vbk <^ mshared))
+  while (!bk <^ mshared)
     invariant live sums
     invariant live bk ** pure (!bk <= mshared) ** B.barrier_state (2 * !bk)
     invariant
@@ -434,7 +434,7 @@ fn kf
 
   let mut row : sz = 0sz;
   Pulse.Lib.Array.pts_to_len sums;
-  while (SZ.(!row <^ tile))
+  while (!row <^ tile)
     invariant live row ** live sums
     decreases (tile - !row)
   {

@@ -39,7 +39,7 @@ fn matmul_dotprod
   let mut k : sz = 0sz;
   let mut sum : et = zero;
 
-  while (SZ.(!k <^ shared))
+  while (!k <^ shared)
     invariant
       exists* (vk : SZ.t{vk <= shared}).
         k |-> vk **
@@ -402,7 +402,7 @@ fn matmul_tiled_dotprod'
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-  while (SZ.(!bk <^ shared))
+  while (!bk <^ shared)
     invariant
       exists* (vbk : SZ.t{vbk <= shared}) sumv.
         bk |-> vbk **
@@ -492,7 +492,7 @@ fn matmul_tiled_dotprod_real
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-  while (SZ.(!bk <^ shared))
+  while (!bk <^ shared)
     invariant
       exists* (vbk : SZ.t{vbk <= shared}) sumv.
         bk |-> vbk **
@@ -581,7 +581,7 @@ fn subproduct_cols
 {
   pts_to_len acc;
   let mut sk : sz = 0sz;
-  while (SZ.(!sk <^ tile))
+  while (!sk <^ tile)
     invariant live sk ** live acc
     decreases (tile - !sk)
   {
@@ -591,7 +591,7 @@ fn subproduct_cols
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
     let v2 = M.gpu_matrix_read m2 !sk j;
-    while (SZ.(!i <^ tile))
+    while (!i <^ tile)
       invariant live i ** live acc
       decreases (tile - !i)
     {

@@ -31,7 +31,7 @@ fn cp_matrix
   let mlen = rows *^ cols;
 
   let mut i : sz = tid;
-  while (SZ.(!i <^ mlen))
+  while (!i <^ mlen)
     invariant
       exists* (vi : sz).
         pure (vi >= tid) **

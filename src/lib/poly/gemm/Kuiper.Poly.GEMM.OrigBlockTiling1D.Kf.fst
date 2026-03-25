@@ -105,7 +105,7 @@ fn subproducts1d
   {
     let tmpB = M.gpu_matrix_read gB !dotIdx bcol;
     let mut resIdx = 0sz;
-    while (SZ.(!resIdx <^ tm))
+    while (!resIdx <^ tm)
       invariant live resIdx ** pure (!resIdx <= tm)
       invariant live rch1d
       decreases (tm - !resIdx)

@@ -42,7 +42,7 @@ fn smatrix_sdmm
     let re = gpu_array_read gA.row_off (!i +^ 1sz);
 
     let mut j = 0sz;
-    while((!j <^ cols))
+    while (!j <^ cols)
       invariant live j ** pure (!j <= cols)
       invariant live gC
       decreases (cols - !j)

@@ -198,7 +198,7 @@ fn subproducts_tc
   gpu_matrix_pts_to_ref gB;
 
   let mut dotIdx : sz = 0sz;
-  while (SZ.(!dotIdx <^ (bk/^tk)))
+  while (!dotIdx <^ (bk/^tk))
     invariant
       live aFrag **
       live bFrag **

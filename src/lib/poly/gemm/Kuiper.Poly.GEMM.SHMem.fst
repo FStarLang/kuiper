@@ -440,7 +440,7 @@ fn kf
   (* Introduce the pure approximation facts from the squash parameter *)
   assert pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC);
 
-  while (SZ.(!bk <^ mshared))
+  while (!bk <^ mshared)
     invariant
       exists* (vbk : SZ.t{vbk <= mshared}) sumv.
         bk |-> vbk **
