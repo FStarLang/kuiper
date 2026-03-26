@@ -125,7 +125,8 @@ fn subproducts1d
 
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
-#push-options "--z3rlimit 150 --ifuel 1"
+#restart-solver
+#push-options "--z3rlimit 200 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
