@@ -613,19 +613,13 @@ inline_for_extraction noextract
 fn reduce
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
-  (n : szp {n < max_blocks})
+  (n : szp{n < max_blocks})
   (a : gpu_array et n { is_global_array a })
   (#v_a : erased (seq et))
-  requires
-    cpu **
-    on gpu_loc (a |-> v_a) **
-    pure (SZ.v n > 0 /\ SZ.v n <= 1024)
-  returns
-    r : et
-  ensures
-    cpu **
-    on gpu_loc (a |-> v_a) **
-    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
+  norewrite (* needed to match spec in fsti... they do not get elaborated *)
+  preserves cpu ** on gpu_loc (a |-> v_a)
+  returns   r : et
+  ensures   pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
   map_loc gpu_loc
     #(a |-> v_a)
