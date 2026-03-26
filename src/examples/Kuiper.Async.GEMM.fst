@@ -2,7 +2,7 @@ module Kuiper.Async.GEMM
 
 #lang-pulse
 
-(* This computes (A*B)*(C*D) calling the first two asynchronously. *)
+(* This computes (A*B)*(C*D) calling A*B and C*D asynchronously. *)
 
 open Kuiper
 open Pulse.Lib.Pledge

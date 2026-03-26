@@ -831,7 +831,6 @@ fn varray_join2
   from_array (sum_aview vw1 vw2) (core al)
 }
 
-// TODO: remove?
 ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
@@ -857,7 +856,6 @@ fn varray_share_n
     }
 }
 
-// TODO: remove?
 ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)

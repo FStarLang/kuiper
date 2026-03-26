@@ -29,7 +29,7 @@ fn arr_read_1
 {
   gpu_pts_to_ref_located a; (* automate *)
   let ca = Pulse.Lib.Vec.alloc init 1sz;
-  (* FIXME: Need to give lenght of ca?!? *)
+  (* FIXME: Need to give length of ca?!? *)
   gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz a 0sz 1sz;
   let x = ca.(0sz);
   Pulse.Lib.Vec.free ca;
