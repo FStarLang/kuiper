@@ -68,19 +68,6 @@ let inv_p'
   (forall+ (i : natlt nn). (done @! i) |-> Frac 0.5R (v_done @! i)) **
   pure (contributions nn v_done v_a v_r zero)
 
-instance placeless_inv_p'
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (nn: nat)
-  (a: gpu_array et nn)
-  (v_a: seq et)
-  (#_ : squash (len v_a == nn))
-  (r: gpu_ref et)
-  (done: seq (gref bool) {len done == nn})
-  (v_done: seq bool {len v_done == nn})
-  (v_r : et)
-  : placeless (inv_p' nn a v_a r done v_done v_r)
-  = solve
-
 (* Invariant. The reference r (on GPU) contains a value that is
 exactly the contributions expected. *)
 let inv_p
@@ -97,20 +84,6 @@ let inv_p
     (v_done: seq bool {len v_done == nn})
     (v_r : et).
     inv_p' nn a v_a r done v_done v_r
-
-instance placeless_inv_p
-  (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
-  (nn: nat)
-  (a: gpu_array et nn)
-  (v_a: seq et)
-  (#_ : squash (len v_a == nn))
-  (r: gpu_ref et)
-  (done: seq (gref bool))
-  (#_ : squash (len done == nn))
-  (v_a': seq et)
-  (v_r : et)
-  : placeless (inv_p nn a v_a r done)
-  = solve
 
 (* Permission for thread i out of n threads.
    Split by recursive halving: thread 0 gets p/2,
@@ -187,7 +160,6 @@ fn forevery_ghost_upd_lemma
   Pulse.Lib.Trade.elim_trade _ _;
 }
 
-private
 let tail_upd_0 (#a:Type) (s:seq a{Seq.length s > 0}) (v:a)
   : Lemma (Seq.tail (Seq.upd s 0 v) == Seq.tail s)
 = let s' = Seq.upd s 0 v in
@@ -203,7 +175,6 @@ let tail_upd_0 (#a:Type) (s:seq a{Seq.length s > 0}) (v:a)
   FStar.Classical.forall_intro aux;
   Seq.lemma_eq_intro t1 t2
 
-private
 let tail_upd_succ (#a:Type) (s:seq a{Seq.length s > 0}) (n:nat{n > 0 /\ n < Seq.length s}) (v:a)
   : Lemma (Seq.tail (Seq.upd s n v) == Seq.upd (Seq.tail s) (n - 1) v)
 = let s' = Seq.upd s n v in
@@ -224,7 +195,6 @@ let tail_upd_succ (#a:Type) (s:seq a{Seq.length s > 0}) (n:nat{n > 0 /\ n < Seq.
   FStar.Classical.forall_intro aux;
   Seq.lemma_eq_intro t1 t2
 
-private
 let rec contributions_shift
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
@@ -271,13 +241,11 @@ let rec contributions_lemma
       contributions_lemma ac nn (Seq.tail v_done) (Seq.tail v_a) v_r acc (tid - 1)
   end
 
-private
 let is_ac_from_ac_w (#t:Type) (#f: t -> t -> t) (ac : is_ac_w f)
   : Lemma (is_ac f)
 = FStar.Classical.forall_intro_2 (fun x y -> ac.comm x y);
   FStar.Classical.forall_intro_3 (fun x y z -> ac.assoc x y z)
 
-private
 let contributions_lemma_smt
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
@@ -344,7 +312,6 @@ fn kf
   }
 }
 
-private
 let rec contributions_all_done
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (ac : is_ac_w d.pure_op)
@@ -366,7 +333,6 @@ let rec contributions_all_done
     contributions_all_done ac nn (Seq.tail v_done) (Seq.tail v_a) v_r (d.pure_op (Seq.head v_a) acc)
   end
 
-private
 let rec contributions_init
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn : nat) (v_done : seq bool) (v_a : seq et{len v_done >= len v_a})
@@ -383,8 +349,6 @@ let rec contributions_init
     FStar.Classical.forall_intro aux;
     contributions_init nn (Seq.tail v_done) (Seq.tail v_a)
   end
-
-#set-options "--debug SMTFail --split_queries always"
 
 ghost
 fn rec allocate_ref_seq (n : nat)
@@ -634,8 +598,6 @@ let kdesc
   kpre_sendable  = solve;
   kpost_sendable = solve;
 } <: kernel_desc_m_1 _ _
-
-#set-options "--print_implicits"
 
 inline_for_extraction noextract
 fn reduce
