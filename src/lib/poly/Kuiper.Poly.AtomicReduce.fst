@@ -65,7 +65,6 @@ let rec contributions
 let inv_p'
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
-  (a: gpu_array et nn)
   (v_a: seq et)
   (#_ : squash (len v_a == nn))
   (r: gpu_ref et)
@@ -83,7 +82,6 @@ exactly the contributions expected. *)
 let inv_p
   (#et : Type0) {| scalar et |} {| d : has_atomic_add et |}
   (nn: nat)
-  (a: gpu_array et nn)
   (v_a: seq et)
   (#_ : squash (len v_a == nn))
   (r: gpu_ref et)
@@ -93,7 +91,7 @@ let inv_p
   exists*
     (v_done: seq bool {len v_done == nn})
     (v_r : et).
-    inv_p' nn a v_a r done v_done v_r
+    inv_p' nn v_a r done v_done v_r
 
 (* Permission for thread i out of n threads.
    Split by recursive halving: thread 0 gets p/2,
@@ -119,7 +117,7 @@ let kpre
 =
   (done @! tid) |-> Frac 0.5R false **
   (a |-> Frac (1.0R /. nn) v_a) **
-  inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p nn a v_a r done)) **
+  inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p nn v_a r done)) **
   CInv.active c (tperm nn tid 1.0R) **
   pure (len v_a == nn)
 
@@ -295,7 +293,7 @@ fn kf
 
   (* Atomically add it to result, marking our contribution as done. *)
   with_invariants unit emp_inames (CInv.iname_of c)
-    (CInv.cinv_vp c (inv_p (SZ.v nn) a v_a r done))
+    (CInv.cinv_vp c (inv_p (SZ.v nn) v_a r done))
     (gpu **
      (done @! bid) |-> Frac 0.5R false **
      gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
@@ -309,15 +307,15 @@ fn kf
   {
     CInv.unpack_cinv_vp c;
     is_ac_from_ac_w ac;
-    unfold inv_p nn a v_a r done;
-    unfold inv_p' nn a v_a r done;
+    unfold inv_p nn v_a r done;
+    unfold inv_p' nn v_a r done;
     with v_r. assert on gpu_loc (r |-> v_r);
     bring (r |-> v_r);
     let _ = atomic_add r v;
     putback (r |-> (d.pure_op v v_r));
     forevery_ghost_upd_lemma nn done _ _;
-    fold inv_p' nn a v_a r done _ _;
-    fold inv_p nn a v_a r done;
+    fold inv_p' nn v_a r done _ _;
+    fold inv_p nn v_a r done;
     CInv.pack_cinv_vp c;
   }
 }
@@ -478,12 +476,12 @@ fn setup
   requires
     (a |-> v_a) **
     (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false) **
-    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
     CInv.active c 1.0R **
     pure (len v_a == SZ.v n)
   ensures
     (forall+ (bid : natlt n). kpre (SZ.v n) a v_a r done c bid) **
-    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done))
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
 {
   (* Share the array into n fractions *)
   gpu_slice_share a 0 (SZ.v n) (SZ.v n) #1.0R;
@@ -507,7 +505,7 @@ fn setup
 
   (* Duplicate invariant into each forall+ element *)
   forevery_map_extra
-    (inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)))
+    (inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)))
     (fun (tid:natlt (SZ.v n)) ->
       (((done @! tid) |-> Frac 0.5R false **
        (a |-> Frac (1.0R /. SZ.v n) v_a)) **
@@ -516,12 +514,12 @@ fn setup
     (fun (tid:natlt (SZ.v n)) ->
       (done @! tid) |-> Frac 0.5R false **
       (a |-> Frac (1.0R /. SZ.v n) v_a) **
-      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
       CInv.active c (tperm (SZ.v n) tid 1.0R) **
       pure (len v_a == SZ.v n))
     fn tid {
       dup_inv (CInv.iname_of c)
-              (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done))
+              (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
     };
 
   ();
@@ -544,11 +542,11 @@ fn teardown
   norewrite
   requires
     (forall+ (bid : natlt n). kpost (SZ.v n) a v_a r done c bid) **
-    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done))
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
   ensures
     (a |-> v_a) **
     (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true) **
-    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+    inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
     CInv.active c 1.0R
 {
   (* Unzip done from (array ** active) *)
@@ -589,12 +587,12 @@ let kdesc
 : kernel_desc
     ((a |-> v_a) **
       (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R false) **
-      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
       CInv.active c 1.0R **
       pure (len v_a == SZ.v n))
     ((a |-> v_a) **
       (forall+ (tid : natlt n). (done @! tid) |-> Frac 0.5R true) **
-      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done)) **
+      inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done)) **
       CInv.active c 1.0R)
  = {
   nblk     = n;
@@ -604,7 +602,7 @@ let kdesc
   kpre     = kpre  (SZ.v n) a v_a r done c;
   kpost    = kpost (SZ.v n) a v_a r done c;
   frame    = inv (CInv.iname_of c)
-                 (CInv.cinv_vp c (inv_p (SZ.v n) a v_a r done));
+                 (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done));
   kpre_sendable  = solve;
   kpost_sendable = solve;
 } <: kernel_desc_m_1 _ _
@@ -653,16 +651,16 @@ fn reduce
   (* Establish the initial contributions predicate *)
   contributions_init (SZ.v n) falses (reveal v_a);
 
-  fold inv_p' n a v_a gr done falses zero;
-  fold inv_p n a v_a gr done;
+  fold inv_p' n v_a gr done falses zero;
+  fold inv_p n v_a gr done;
 
   (* Create a cancellable invariant instead of a plain one *)
-  let c = CInv.new_cancellable_invariant (inv_p (SZ.v n) a v_a gr done);
+  let c = CInv.new_cancellable_invariant (inv_p (SZ.v n) v_a gr done);
 
   (* Move resources to GPU *)
   placeless_on_intro
     (inv (CInv.iname_of c)
-         (CInv.cinv_vp c (inv_p (SZ.v n) a v_a #() gr done #())))
+         (CInv.cinv_vp c (inv_p (SZ.v n) v_a #() gr done #())))
     gpu_loc;
 
   placeless_on_intro
@@ -679,7 +677,7 @@ fn reduce
   (* Bring back from GPU *)
   placeless_on_elim
     (inv (CInv.iname_of c)
-         (CInv.cinv_vp c (inv_p (SZ.v n) a v_a #() gr done #())))
+         (CInv.cinv_vp c (inv_p (SZ.v n) v_a #() gr done #())))
     gpu_loc;
 
   placeless_on_elim
@@ -697,9 +695,9 @@ fn reduce
   (* At this point, we have inv_p, which means 'done' (with perm 0.5) points to
   a sequence of values related to the contributions into v_r. But we know these
   values are all true via the kernel post. *)
-  unfold inv_p (SZ.v n) a v_a gr done;
+  unfold inv_p (SZ.v n) v_a gr done;
   with v_done v_r.
-    unfold inv_p' (SZ.v n) a v_a gr done v_done v_r;
+    unfold inv_p' (SZ.v n) v_a gr done v_done v_r;
   assert
     (forall+ (i : natlt (SZ.v n)). (done @! i) |-> Frac 0.5R true) **
     (forall+ (i : natlt (SZ.v n)). (done @! i) |-> Frac 0.5R (v_done @! i));
