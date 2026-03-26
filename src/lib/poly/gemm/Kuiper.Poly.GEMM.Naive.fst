@@ -254,7 +254,7 @@ let kdesc
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
   (#_ : squash (rows * cols <= max_blocks))
-  : kernel_desc_m_1
+  : kernel_desc
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 = {
@@ -271,8 +271,7 @@ let kdesc
   f = kf comb gA gB gC;
   kpre_sendable=solve;
   kpost_sendable=solve;
-
-}
+} <: kernel_desc_m_1 _ _
 
 inline_for_extraction noextract
 fn mmcomb_gpu_exact
