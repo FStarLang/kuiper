@@ -7,7 +7,6 @@ module Kuiper.Poly.AtomicReduce
 open Kuiper
 open Kuiper.Atomics
 
-module SZ = Kuiper.SizeT
 
 noeq
 type is_ac_w (#t:Type) (f: t -> t -> t) = {
