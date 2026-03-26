@@ -18,7 +18,12 @@ fn bring (p : slprop)
   requires  on gpu_loc p
   ensures   p
 {
-  admit();
+  unfold gpu;
+  with l. assert (loc l);
+  gpu_of_idem l;
+  rewrite (on gpu_loc p) as (on l p);
+  on_elim p;
+  fold gpu;
 }
 
 ghost
@@ -27,7 +32,12 @@ fn putback (p : slprop)
   requires  p
   ensures   on gpu_loc p
 {
-  admit();
+  unfold gpu;
+  with l. assert (loc l);
+  gpu_of_idem l;
+  on_intro p;
+  rewrite (on l p) as (on gpu_loc p);
+  fold gpu;
 }
 
 (* Relating a sequence of erased bools to v_r. Essentially, v_r containts
