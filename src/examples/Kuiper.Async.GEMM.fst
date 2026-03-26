@@ -37,13 +37,14 @@ fn main (a b c d r : gpu_matrix f32 (row_major 1024 1024))
   requires  on gpu_loc (r |-> eR)
   ensures   on gpu_loc (r |-> MS.matmul (MS.matmul eA eB) (MS.matmul eC eD))
 {
-  (* Allocate swap matrices. *)
-  let s1 = gpu_matrix_alloc0 #f32 1024sz 1024sz (row_major 1024 1024);
-  let s2 = gpu_matrix_alloc0 #f32 1024sz 1024sz (row_major 1024 1024);
-
-  (* Compute A*B -> s1 and C*D -> s2 in parallel. *)
   let e1 = get_epoch ();
+
+  (* Begin computing A*B -> s1 *)
+  let s1 = gpu_matrix_alloc0 #f32 1024sz 1024sz (row_major 1024 1024);
   launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz a b s1);
+
+  (* Begin computing C*D -> s2 *)
+  let s2 = gpu_matrix_alloc0 #f32 1024sz 1024sz (row_major 1024 1024);
   launch (N.kdesc #f32 (fun _ n -> n) #1024sz #1024sz #1024sz c d s2);
 
   (* Synchronize *)

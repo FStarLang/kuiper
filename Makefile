@@ -100,10 +100,16 @@ list-admits:
 
 .PHONY: wc
 wc:
-	echo F*:
+	echo All F*:
 	find src/ \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 	echo CUDA:
 	find dist/ -name '*.cu' -exec cat {} \+ | grep '[^ ]' | wc -l
+	echo Examples only:
+	find src/examples/ \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
+	echo GEMMs in polymorphic form:
+	find src/lib/poly/gemm \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
+	echo Data views:
+	find src/lib/data \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 
 .PHONY: src-package
 src-package: kuiper-src.tar.gz
