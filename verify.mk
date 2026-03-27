@@ -32,11 +32,11 @@ endif
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
-KRML_HOME := $(CURDIR)/karamel
+KRML_EXE  := $(CURDIR)/inst/bin/krml
 FSTAR_EXE := $(CURDIR)/inst/bin/fstar.exe
 
 export FSTAR_EXE
-export KRML_HOME
+export KRML_EXE
 
 # Hack to print a newline in the $(error ...)
 define newline
@@ -67,7 +67,9 @@ karamel/Makefile:
 .krml.touch: .krml.src.touch karamel/Makefile
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
+	@# Cannot really build a full karamel with fstar2
 	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel ADMIT=1 minimal
+	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel PREFIX=$(CURDIR)/inst _install
 	@touch .krml.src.touch # building will change files
 	@touch $@
 
@@ -143,7 +145,7 @@ KRML_FLAGS += -warn-error @6 # VLA
 KRML_FLAGS += -warn-error -2@4-10@18
 KRML_FLAGS += $(KOTHERFLAGS)
 
-KRML := $(KRML_HOME)/krml $(KRML_FLAGS)
+KRML := $(KRML_EXE) $(KRML_FLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
