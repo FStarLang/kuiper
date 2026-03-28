@@ -117,8 +117,6 @@ fn matmul_dotprod_via_slice
   res
 }
 
-#set-options "--debug SMTFail --split_queries always"
-
 fn matmul_dotprod_via_slice_f32
   (rows shared cols : SZ.t)
   (gA : M.gpu_matrix f32 (row_major rows shared))

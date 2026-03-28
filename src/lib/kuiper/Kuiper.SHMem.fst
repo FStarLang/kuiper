@@ -156,7 +156,6 @@ ensures live_c_shmems c #f
   as (live_c_shmems c #f);
 }
 
-#push-options "--print_implicits"
 let d_ty d : Type0 = let SHArray ty _ = d in ty
 let d_ty_sized d : Kuiper.Sized.sized (d_ty d) = let SHArray _ #s _ = d in s
 let d_len d : SZ.t = let SHArray _ len = d in len

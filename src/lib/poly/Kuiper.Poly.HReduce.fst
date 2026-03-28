@@ -153,7 +153,6 @@ let kpost
   : slprop =
     if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s vr)
 
-// #push-options "--print_implicits"
 inline_for_extraction
 fn iteration
   (#et:Type0) {| scalar et, real_like et |}
