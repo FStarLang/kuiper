@@ -24,7 +24,7 @@ let ( @~> ) a b = injection a b
 
 let mk_injection
   (#a #b : _)
-  (f : a -> b)
+  (f : a -> GTot b)
   (is_inj : (x:_ -> y:_ -> squash (f x == f y ==> x == y)))
   : (a @~> b) =
   Mkinjection f is_inj
