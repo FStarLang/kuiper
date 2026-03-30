@@ -5,42 +5,11 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.Chest
+include Kuiper.TensorLayout
 open FStar.Tactics.Typeclasses { no_method }
 module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
-
-[@@erasable]
-noeq
-type tlayout (#r : erased nat) (d : idesc r) = {
-  (* Underlying length of base array (Kuiper.Array) *)
-  ulen : nat;
-  (* Injection from (abstract) index space into base array. *)
-  imap : abs d @~> natlt ulen;
-}
-
-(* Alias for .ulen *)
-let tlayout_size (#d : idesc 'r) (l : tlayout d) : GTot nat = l.ulen
-
-inline_for_extraction
-class ctlayout (#r : erased nat) (#d : idesc r) (l : tlayout d) = {
-  [@@@no_method]
-  culen : (x : SZ.t { SZ.v x == l.ulen });
-
-  [@@@no_method]
-  cimap : i:conc d -> r:SZ.t{SZ.v r == l.imap.f ((abs_conc_bij d).gg i)};
-}
-
-let tensor_aview (et : Type) (#r : nat) (#d : idesc r) (l : tlayout d)
-  : V.aview et (chest d et)
-  = {
-      iview = {
-        len = l.ulen;
-        ait = abs d;
-        step = { imap = l.imap; };
-      };
-      ctn = solve;
-    }
 
 inline_for_extraction noextract
 val tensor (et : Type0) (#r : nat) (#d : idesc r) (l : tlayout d) : Type0
