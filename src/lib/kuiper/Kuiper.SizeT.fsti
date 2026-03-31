@@ -27,15 +27,15 @@ module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-unfold type sz  = FStar.SizeT.t
-unfold type szp = x:sz{FStar.SizeT.v x > 0}
+type sz  = FStar.SizeT.t
+type szp = x:sz{FStar.SizeT.v x > 0}
 // Note: making this argument int instead of nat prevents
 // queries about non-negativity from appearing in the well-formedness
 // of types.
-unfold type szlt (n:int) = i:sz{SZ.v i <  n}
-unfold type szle (n:int) = i:sz{SZ.v i <= n}
+type szlt (n:int) = i:sz{SZ.v i <  n}
+type szle (n:int) = i:sz{SZ.v i <= n}
 
-unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
+type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
 (* Throughout this repo we would like to assume a 64bit machine, and use
    size_t for array indices and whatnot, BUT, size_t has very poor

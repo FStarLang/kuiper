@@ -91,6 +91,7 @@ let kpost
 
 
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
@@ -180,6 +181,7 @@ fn kf
   fold (kpost comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid);
   ()
 }
+#pop-options
 
 #push-options "--z3rlimit 20"
 ghost
