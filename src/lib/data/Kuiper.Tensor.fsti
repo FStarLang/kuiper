@@ -7,7 +7,6 @@ open Kuiper.Index
 open Kuiper.Chest
 include Kuiper.TensorLayout
 open FStar.Tactics.Typeclasses { no_method }
-module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
