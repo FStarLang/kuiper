@@ -40,51 +40,26 @@ let tensor_aview (et : Type) (#r : nat) (#d : idesc r) (l : tlayout d)
       ctn = solve;
     }
 
-(* First attempt at constructing tensor layouts. *)
-
-let f_grouped_by (#n:nat)
-  (#d : idesc n)
-  (i : natlt n)
-  (sub : abs (modulo_i i d) @~> natlt (sizeof (modulo_i i d)))
-  : (abs d @~> natlt (sizeof d))
-  =
-  mk_injection #(abs d) #(natlt (sizeof d))
-    (fun (idx : abs d) ->
-      let maj, min = (abs_bring_forward_bij i d).ff idx in
-      let sub_i : natlt (sizeof (modulo_i i d)) = sub.f min in
-      let offset = maj * sizeof (modulo_i i d) in
-      offset + sub_i)
-    (fun _ _ -> ())
-
 let lunit : (abs INil @~> natlt 1) =
   mk_injection #(abs INil) #(natlt 1) (fun () -> 0) ez
 
-let row_major (m n : nat) : (abs (ICons m <| ICons n INil) @~> natlt (m*n)) =
-  f_grouped_by #2 #(ICons m <| ICons n INil) 0 <|
-  f_grouped_by #1 #(ICons n INil)            0 <|
-  lunit
+(* Constructing tensor layouts. *)
 
-let col_major (m n : nat) : (abs (ICons m <| ICons n INil) @~> natlt (m*n)) =
-  f_grouped_by #2 #(ICons m <| ICons n INil) 1 <|
-  f_grouped_by #1 #(ICons m INil)            0 <|
-  lunit
+type layout_f_for (#n:nat) (d : idesc n) =
+  abs d @~> natlt (sizeof d)
 
-let batched_row_major (r m n : nat) :
-  (abs (ICons r <| ICons m <| ICons n INil) @~> natlt (r*m*n))
-=
-  f_grouped_by #_ #(ICons r <| ICons m <| ICons n INil) 0 <|
-  f_grouped_by #_ #(ICons m <| ICons n INil)            0 <|
-  f_grouped_by #_ #(ICons n INil)                       0 <|
-  lunit
+let pack (#n:nat) (#d:idesc n) (f : layout_f_for d) : tlayout d =
+  let ulen = sizeof d in
+  let imap = f in
+  { ulen; imap }
 
-(* Second attempt at constructing tensor layouts. *)
-
+#push-options "--z3rlimit 20"
 let g_grouped_by (#n:nat)
   (i : natlt (n+1))
-  (k : nat)
+  (k : nat{SizeT.fits k})
   (#d : idesc n)
-  (sub : abs d @~> natlt (sizeof d))
-  : (abs (insert_i i k d) @~> natlt (sizeof (insert_i i k d)))
+  (sub : layout_f_for d)
+  : layout_f_for (insert_i i k d)
   =
   mk_injection #(abs (insert_i i k d)) #(natlt (sizeof (insert_i i k d)))
     (fun (idx : abs (insert_i i k d)) ->
@@ -93,25 +68,67 @@ let g_grouped_by (#n:nat)
       let sub_i : natlt (sizeof d) = sub.f min in
       let offset = maj * sizeof d in
       offset + sub_i)
-    (fun idx1 idx2 ->
-      let maj1, min1 = (abs_bring_forward_bij i (insert_i i k d)).ff idx1 in
-      let maj2, min2 = (abs_bring_forward_bij i (insert_i i k d)).ff idx2 in
-      ())
+    (fun _ _ -> ())
+#pop-options
 
-let row_major' (m n : nat) : (abs (ICons m <| ICons n INil) @~> natlt (m*n)) =
+let row_major' (m n : SZ.t) : tlayout (ICons m <| ICons n INil) =
+  pack <|
   g_grouped_by 0 m  <|
   g_grouped_by 0 n  <|
   lunit
 
-let col_major' (m n : nat) : (abs (ICons m <| ICons n INil) @~> natlt (m*n)) =
+let col_major' (m n : SZ.t) : tlayout (ICons m <| ICons n INil) =
+  pack <|
   g_grouped_by 1 n <|
   g_grouped_by 0 m <|
   lunit
 
-let batched_row_major' (r m n : nat) :
-  (abs (ICons r <| ICons m <| ICons n INil) @~> natlt (r*m*n))
-=
+let batched_row_major' (r m n : SZ.t) : tlayout (ICons r <| ICons m <| ICons n INil) =
+  pack <|
   g_grouped_by 0 r <|
   g_grouped_by 0 m <|
   g_grouped_by 0 n <|
   lunit
+
+let batched_col_major' (r m n : SZ.t) : tlayout (ICons r <| ICons m <| ICons n INil) =
+  pack <|
+  g_grouped_by 0 r <|
+  g_grouped_by 1 n <|
+  g_grouped_by 0 m <|
+  lunit
+
+(* Another approach, with worse type inference. *)
+
+// #push-options "--z3rlimit 20"
+// let f_grouped_by (#n:nat)
+//   (#d : idesc n)
+//   (i : natlt n)
+//   (sub : abs (modulo_i i d) @~> natlt (sizeof (modulo_i i d)))
+//   : (abs d @~> natlt (sizeof d))
+//   =
+//   mk_injection #(abs d) #(natlt (sizeof d))
+//     (fun (idx : abs d) ->
+//       let maj, min = (abs_bring_forward_bij i d).ff idx in
+//       let sub_i : natlt (sizeof (modulo_i i d)) = sub.f min in
+//       let offset = maj * sizeof (modulo_i i d) in
+//       offset + sub_i)
+//     (fun _ _ -> ())
+// #pop-options
+
+// let row_major (m n : nat) : (abs (ICons m <| ICons n INil) @~> natlt (m*n)) =
+//   f_grouped_by #2 #(ICons m <| ICons n INil) 0 <|
+//   f_grouped_by #1 #(ICons n INil)            0 <|
+//   lunit
+
+// let col_major (m n : nat) : (abs (ICons m <| ICons n INil) @~> natlt (m*n)) =
+//   f_grouped_by #2 #(ICons m <| ICons n INil) 1 <|
+//   f_grouped_by #1 #(ICons m INil)            0 <|
+//   lunit
+
+// let batched_row_major (r m n : nat) :
+//   (abs (ICons r <| ICons m <| ICons n INil) @~> natlt (r*m*n))
+// =
+//   f_grouped_by #_ #(ICons r <| ICons m <| ICons n INil) 0 <|
+//   f_grouped_by #_ #(ICons m <| ICons n INil)            0 <|
+//   f_grouped_by #_ #(ICons n INil)                       0 <|
+//   lunit

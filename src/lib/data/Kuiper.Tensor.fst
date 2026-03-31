@@ -2,6 +2,7 @@ module Kuiper.Tensor
 #lang-pulse
 
 open Kuiper
+open Kuiper.Index
 module A = Kuiper.VArray
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2

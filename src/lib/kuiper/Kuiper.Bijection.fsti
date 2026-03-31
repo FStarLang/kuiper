@@ -281,6 +281,26 @@ noeq type cbij (a b: Type) = {
 inline_for_extraction
 let (==~) = cbij
 
+let cbij_self (a:Type) : (a ==~ a) = {
+  bij = bij_self _;
+  cff = id;
+  cgg = id;
+}
+
+let cbij_prod (#a #b #c #d : Type) (ab : a ==~ b) (cd : c ==~ d) : (a & c ==~ b & d) =
+{
+  bij = bij_prod ab.bij cd.bij;
+  cff = (fun (x, y) -> (ab.cff x, cd.cff y));
+  cgg = (fun (x, y) -> (ab.cgg x, cd.cgg y));
+}
+
+let cbij_comp (#a #b #c : Type) (ab : a ==~ b) (bc : b ==~ c) : (a ==~ c) =
+{
+  bij = bij_comp ab.bij bc.bij;
+  cff = (fun x -> bc.cff (ab.cff x));
+  cgg = (fun x -> ab.cgg (bc.cgg x));
+}
+
 inline_for_extraction noextract
 let fin_size_t_cbij (n:nat{SZ.fits n}) : (natlt n ==~ szlt n) =
   {
@@ -334,3 +354,20 @@ instance nb_prod3 (a1 a2 a3 b1 b2 b3 : Type)
 }
 
 let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d._bij
+
+let bij_push_tuple3 (#a #b #c : _) :
+  ((a & (b & c)) =~ (b & (a & c))) =
+{
+  ff = (fun (x, (y, z)) -> (y, (x, z)));
+  gg = (fun (y, (x, z)) -> (x, (y, z)));
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
+let cbij_push_tuple3 (#a #b #c : _) :
+  ((a & (b & c)) ==~ (b & (a & c))) =
+{
+  bij = bij_push_tuple3;
+  cff = (fun (x, (y, z)) -> (y, (x, z)));
+  cgg = (fun (y, (x, z)) -> (x, (y, z)));
+}

@@ -208,3 +208,103 @@ fn tensor_implode
       tensor_pts_to_cell a #f i (acc s i)
   ensures
     a |-> Frac f s
+
+let tlayout_slice_imap
+  (#n:nat) (d : idesc n) (l : tlayout d)
+  (i : natlt n) (j : natlt (d @! i))
+  (idx : abs (modulo_i i d))
+  : GTot (natlt l.ulen) =
+    let idx' = (abs_bring_forward_bij i d).gg (j, idx) in
+    l.imap.f idx'
+
+(* Generic extraction of slices *)
+
+let tlayout_slice
+  (#n:nat) (d : idesc n) (l : tlayout d)
+  (i : natlt n) (j : natlt (d @! i)) // Fixing the ith-dimension to j
+  : tlayout (modulo_i i d) =
+  {
+    ulen = l.ulen;
+    imap = {
+      f = tlayout_slice_imap d l i j;
+      is_inj = (fun x y -> ());
+    };
+  }
+
+inline_for_extraction noextract
+let ctlayout_slice_cimap
+  (#n:nat) (d : idesc n) (l : tlayout d)
+  {| c : ctlayout l |}
+  (i : szlt n) (j : szlt (d @! i))
+  (idx : conc (modulo_i i d))
+  : Tot (x : szlt l.ulen{SZ.v x == tlayout_slice_imap d l i j (up idx)}) =
+    let idx' = (c_conc_bring_forward_bij i d).cgg (j, idx) in
+    let res = c.cimap idx' in
+    calc (==) {
+      SZ.v res;
+      == {}
+      SZ.v (c.cimap ((c_conc_bring_forward_bij i d).cgg (j, idx)));
+      == {}
+      l.imap.f ((abs_conc_bij d).gg ((c_conc_bring_forward_bij i d).cgg (j, idx)));
+      == {}
+      l.imap.f (up ((c_conc_bring_forward_bij i d).cgg (j, idx)));
+      == { bring_forward_commute2 i d j idx }
+      l.imap.f ((abs_bring_forward_bij i d).gg (SZ.v j, up idx));
+      == {}
+      tlayout_slice_imap d l i j (up idx);
+    };
+    res
+
+inline_for_extraction noextract
+instance ctlayout_slice
+  (#n:nat) (d : idesc n) (l : tlayout d)
+  {| c : ctlayout l |}
+  (i : szlt n) (j : szlt (d @! i))
+  : ctlayout (tlayout_slice d l i j) = 
+  {
+    culen = c.culen;
+    cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
+  }
+
+// let ematrix_col (#et:Type) (#rows #cols : nat)
+//   (em : ematrix et rows cols) (j : natlt cols)
+//   : GTot (lseq et rows)
+//   = Seq.init_ghost rows (fun (i : natlt rows) -> macc em i j)
+
+// inline_for_extraction noextract
+// val col_farray
+//   (#et : Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
+//   (gm : gpu_matrix et l) (j : enatlt cols)
+//   : farray et (col_flayout l j)
+
+// ghost
+// fn gpu_matrix_extract_col
+//   (#et:Type0)
+//   (#rows #cols : nat)
+//   (#l : mlayout rows cols)
+//   (gm : gpu_matrix et l)
+//   (j : natlt cols)
+//   (#em : ematrix et rows cols)
+//   (#f : perm)
+//   requires
+//     gm |-> Frac f em
+//   ensures
+//     factored
+//       (col_farray gm j |-> Frac f (ematrix_col em j))
+//       (gm |-> Frac f em)
+
+// ghost
+// fn gpu_matrix_restore_col
+//   (#et:Type0)
+//   (#rows #cols : nat)
+//   (#l : mlayout rows cols)
+//   (gm : gpu_matrix et l)
+//   (j : natlt cols)
+//   (#em : ematrix et rows cols)
+//   (#f : perm)
+//   requires
+//     factored
+//       (col_farray gm j |-> Frac f (ematrix_col em j))
+//       (gm |-> Frac f em)
+//   ensures
+//     gm |-> Frac f em

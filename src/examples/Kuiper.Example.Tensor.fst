@@ -7,15 +7,18 @@ open Kuiper.Index
 open Kuiper.Injection
 module SZ = Kuiper.SizeT
 
+inline_for_extraction noextract
+type snat = x:nat{SizeT.fits x}
+
 let desc m n : idesc 2 =
   ICons m (ICons n INil)
 
-let m2_rm_inj (m n : nat) : (abs (desc m n) @~> natlt (m*n)) =
+let m2_rm_inj (m n : snat) : (abs (desc m n) @~> natlt (m*n)) =
   mk_injection #(abs (desc m n)) #(natlt (m*n))
     (fun (i, (j, ())) -> i*n + j)
     ez
 
-let m2_rm_layout (m n : nat) : tlayout #2 (ICons m (ICons n INil)) = {
+let m2_rm_layout (m n : snat) : tlayout #2 (ICons m (ICons n INil)) = {
   ulen = m*n;
   imap = m2_rm_inj m n;
 }
@@ -42,12 +45,15 @@ fn test0 (m : tensor u32 (m2_rm_layout 10 20))
   ()
 }
 
+// Should not be needed, maybe Kuiper.concrete can solve this eventually
+inline_for_extraction noextract
+instance _crutch : ctlayout (m2_rm_layout 10 20) = blah 10sz 20sz
+
 fn test1 (m : tensor u32 (m2_rm_layout 10 20))
   preserves m |-> 's
   returns u32
 {
-  assume pure False; // fixme, cannot prove type equality with recursion below
-  let v = tensor_read #_ #_ #_ #_ #(blah 10sz 20sz) m ((1sz <: szlt 10), ((2sz <: szlt 20), ()));
+  let v = tensor_read m ((1sz <: szlt 10), ((2sz <: szlt 20), ()));
   v
 }
 
@@ -55,7 +61,6 @@ fn test2 (m : tensor u32 (m2_rm_layout 10 20))
   requires m |-> 's
   ensures m |-> Kuiper.Chest.upd 's ((1 <: natlt 10), ((2 <: natlt 20), ())) 42ul
 {
-  assume pure False; // fixme, cannot prove type equality with recursion below
-  tensor_write #_ #_ #_ #_ #(blah 10sz 20sz) m ((1sz <: szlt 10), ((2sz <: szlt 20), ())) 42ul;
+  tensor_write m ((1sz <: szlt 10), ((2sz <: szlt 20), ())) 42ul;
   ()
 }
