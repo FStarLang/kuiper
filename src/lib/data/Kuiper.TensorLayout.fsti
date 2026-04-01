@@ -25,6 +25,7 @@ class ctlayout (#r : erased nat) (#d : idesc r) (l : tlayout d) = {
   [@@@no_method]
   culen : (x : SZ.t { SZ.v x == l.ulen });
 
+  [@@@no_method]
   all_fit : squash (all_fit d);
 
   [@@@no_method]
