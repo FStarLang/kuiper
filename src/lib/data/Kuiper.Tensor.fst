@@ -166,8 +166,6 @@ fn tensor_write
   fold tensor_pts_to a;
 }
 
-(* ============ CELL-LEVEL OPERATIONS ============ *)
-
 let tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
@@ -236,4 +234,48 @@ fn tensor_implode
   forevery_rw_type _ (tensor_aview et l).iview.ait _;
   A.varray_implode a;
   fold tensor_pts_to a #f s;
+}
+
+inline_for_extraction noextract
+let sliceof
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  : tensor et (tlayout_slice d l i j)
+  = from_array (tlayout_slice d l i j) (core a)
+
+ghost
+fn tensor_extract_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (#f : perm) (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    factored
+      (sliceof a i j |-> Frac f (chest_slice i j s))
+      (a |-> Frac f s)
+{
+  admit();
+}
+
+(* TODO: allow RW. *)
+ghost
+fn tensor_restore_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (#f : perm) (#s : chest d et)
+  requires
+    factored
+      (sliceof a i j |-> Frac f (chest_slice i j s))
+      (a |-> Frac f s)
+  ensures
+    a |-> Frac f s
+{
+  admit();
 }

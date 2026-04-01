@@ -209,6 +209,9 @@ fn tensor_implode
   ensures
     a |-> Frac f s
 
+(* Generic extraction of slices *)
+
+// Move some of this to TensorLayout.
 let tlayout_slice_imap
   (#n:nat) (d : idesc n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i))
@@ -216,8 +219,6 @@ let tlayout_slice_imap
   : GTot (natlt l.ulen) =
     let idx' = (abs_bring_forward_bij i d).gg (j, idx) in
     l.imap.f idx'
-
-(* Generic extraction of slices *)
 
 let tlayout_slice
   (#n:nat) (d : idesc n) (l : tlayout d)
@@ -266,45 +267,47 @@ instance ctlayout_slice
     cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
   }
 
-// let ematrix_col (#et:Type) (#rows #cols : nat)
-//   (em : ematrix et rows cols) (j : natlt cols)
-//   : GTot (lseq et rows)
-//   = Seq.init_ghost rows (fun (i : natlt rows) -> macc em i j)
+inline_for_extraction noextract
+val sliceof
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  : tensor et (tlayout_slice d l i j)
 
-// inline_for_extraction noextract
-// val col_farray
-//   (#et : Type) (#rows #cols : erased nat) (#l : mlayout rows cols)
-//   (gm : gpu_matrix et l) (j : enatlt cols)
-//   : farray et (col_flayout l j)
+let chest_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (i : natlt r) (j : natlt (d @! i))
+  (s : chest d et)
+  : chest (modulo_i i d) et
+  = mk _ (fun (idx : abs (modulo_i i d)) ->
+            acc s ((abs_bring_forward_bij i d).gg (j, idx)))
 
-// ghost
-// fn gpu_matrix_extract_col
-//   (#et:Type0)
-//   (#rows #cols : nat)
-//   (#l : mlayout rows cols)
-//   (gm : gpu_matrix et l)
-//   (j : natlt cols)
-//   (#em : ematrix et rows cols)
-//   (#f : perm)
-//   requires
-//     gm |-> Frac f em
-//   ensures
-//     factored
-//       (col_farray gm j |-> Frac f (ematrix_col em j))
-//       (gm |-> Frac f em)
+ghost
+fn tensor_extract_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (#f : perm) (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    factored
+      (sliceof a i j |-> Frac f (chest_slice i j s))
+      (a |-> Frac f s)
 
-// ghost
-// fn gpu_matrix_restore_col
-//   (#et:Type0)
-//   (#rows #cols : nat)
-//   (#l : mlayout rows cols)
-//   (gm : gpu_matrix et l)
-//   (j : natlt cols)
-//   (#em : ematrix et rows cols)
-//   (#f : perm)
-//   requires
-//     factored
-//       (col_farray gm j |-> Frac f (ematrix_col em j))
-//       (gm |-> Frac f em)
-//   ensures
-//     gm |-> Frac f em
+(* TODO: allow RW. *)
+ghost
+fn tensor_restore_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (#f : perm) (#s : chest d et)
+  requires
+    factored
+      (sliceof a i j |-> Frac f (chest_slice i j s))
+      (a |-> Frac f s)
+  ensures
+    a |-> Frac f s
