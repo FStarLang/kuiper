@@ -25,8 +25,10 @@ class ctlayout (#r : erased nat) (#d : idesc r) (l : tlayout d) = {
   [@@@no_method]
   culen : (x : SZ.t { SZ.v x == l.ulen });
 
+  all_fit : squash (all_fit d);
+
   [@@@no_method]
-  cimap : i:conc d -> r:SZ.t{SZ.v r == l.imap.f ((abs_conc_bij d).gg i)};
+  cimap : i:conc d -> r:SZ.t{SZ.v r == l.imap.f (up i)};
 }
 
 let tensor_aview (et : Type) (#r : nat) (#d : idesc r) (l : tlayout d)

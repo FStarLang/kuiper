@@ -5,7 +5,7 @@ open Kuiper.Common
 open Kuiper.SizeT
 
 let rec up_down #n (#d : idesc n) (v : abs d) :
-  Lemma (up (down v) == v)
+  Lemma (ensures all_fit d ==> up (down v) == v)
         [SMTPat (up (down v))]
 =
   match d with
@@ -15,7 +15,7 @@ let rec up_down #n (#d : idesc n) (v : abs d) :
     up_down is
 
 let rec down_up #n (#d : idesc n) (v : conc d) :
-  Lemma (down (up v) == v)
+  Lemma (ensures all_fit d ==> down (up v) == v)
         [SMTPat (down (up v))]
 =
   match d with
@@ -66,7 +66,7 @@ let rec insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat{SizeT.fits k}) (d 
       | ICons t ts -> insert_size_lemma (i-1) k ts
 #pop-options
 
-let rec bring_forward_commute (#n:nat) (i : natlt n) (d : idesc n)
+let rec bring_forward_commute (#n:nat) (i : natlt n) (d : idesc n{all_fit d})
   (idx : abs d)
   : Lemma (down2 i d ((abs_bring_forward_bij i d).ff idx) ==
           (conc_bring_forward_bij i d).ff (down idx))

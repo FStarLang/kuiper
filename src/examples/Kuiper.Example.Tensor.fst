@@ -37,6 +37,7 @@ instance blah (m n : SZ.t{SZ.fits (m*n)}) : ctlayout (m2_rm_layout m n) =
   let open Kuiper.SizeT in
   {
     culen = m *^ n;
+    all_fit = ();
     cimap = (fun i -> cimap m n i);
   }
 

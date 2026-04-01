@@ -120,6 +120,19 @@ let cimap
   : conc d -> szlt l.ulen
   = c.cimap
 
+let cimap_inj
+  (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (c : ctlayout l)
+  (x y : conc d)
+  : Lemma (requires cimap c x == cimap c y)
+          (ensures x == y)
+          [SMTPat (cimap c x); SMTPat (cimap c y)]
+          // ^ Bad pattern probably, used below.
+  = down_up x;
+    down_up y;
+    ()
+
 inline_for_extraction noextract
 instance ctensor_ciview
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -152,7 +165,7 @@ fn tensor_read
   returns
     v : et
   ensures
-    pure (v == acc s ((abs_conc_bij d).gg i))
+    pure (v == acc s (up i))
 
 inline_for_extraction noextract
 fn tensor_write
@@ -165,7 +178,7 @@ fn tensor_write
   requires
     a |-> s
   ensures
-    a |-> upd s ((abs_conc_bij d).gg i) v
+    a |-> upd s (up i) v
 
 val tensor_pts_to_cell
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -247,8 +260,6 @@ let ctlayout_slice_cimap
       == {}
       SZ.v (c.cimap ((c_conc_bring_forward_bij i d).cgg (j, idx)));
       == {}
-      l.imap.f ((abs_conc_bij d).gg ((c_conc_bring_forward_bij i d).cgg (j, idx)));
-      == {}
       l.imap.f (up ((c_conc_bring_forward_bij i d).cgg (j, idx)));
       == { bring_forward_commute2 i d j idx }
       l.imap.f ((abs_bring_forward_bij i d).gg (SZ.v j, up idx));
@@ -265,6 +276,7 @@ instance ctlayout_slice
   : ctlayout (tlayout_slice d l i j) =
   {
     culen = c.culen;
+    all_fit = ();
     cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
   }
 

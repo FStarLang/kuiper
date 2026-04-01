@@ -140,7 +140,7 @@ fn tensor_read
   returns
     v : et
   ensures
-    pure (v == acc s ((abs_conc_bij d).gg i))
+    pure (v == acc s (up i))
 {
   unfold tensor_pts_to a #f s;
   let v = A.varray_read a i;
@@ -159,7 +159,7 @@ fn tensor_write
   requires
     a |-> s
   ensures
-    a |-> upd s ((abs_conc_bij d).gg i) v
+    a |-> upd s (up i) v
 {
   unfold tensor_pts_to a s;
   A.varray_write a i v;
