@@ -12,6 +12,7 @@ open Kuiper.Sized
 open Kuiper.SizeT
 open Kuiper.Seq.Common
 open Kuiper.Common
+open Kuiper.PtsTo
 open Kuiper.ForEvery
 open Kuiper.Divides { (/?+) }
 open Kuiper.ArrayCoreAssumptions
@@ -121,6 +122,13 @@ instance has_pts_to_gpu_arr (a:Type) (sz : _) :
   has_pts_to (gpu_array a sz) (Seq.seq a) =
 {
   pts_to = gpu_pts_to_array;
+}
+
+[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+instance cell_pts_to (#a : Type) (#len : nat)
+  : has_pts_to (cell (gpu_array a len) nat) a
+= {
+  pts_to = (fun (Cell ar i) #f v -> gpu_pts_to_cell ar #f i v);
 }
 
 ghost

@@ -189,11 +189,18 @@ val tensor_pts_to_cell
   (v : et)
   : slprop
 
+[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+instance cell_pts_to (#et : Type) (#r : nat) (#d : idesc r) (#l : tlayout d)
+  : has_pts_to (cell (tensor et l) (abs d)) et
+= {
+  pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
+}
+
 val tensor_pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
-  : Lemma (tensor_pts_to_cell a #f i v
+  : Lemma (Cell a i |-> Frac f v
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f i) v)
 
@@ -208,7 +215,7 @@ fn tensor_explode
     a |-> Frac f s
   ensures
     forall+ (i : abs d).
-      tensor_pts_to_cell a #f i (acc s i)
+      Cell a i |-> Frac f (acc s i)
 
 ghost
 fn tensor_implode
@@ -219,7 +226,7 @@ fn tensor_implode
   (#s : chest d et)
   requires
     forall+ (i : abs d).
-      tensor_pts_to_cell a #f i (acc s i)
+      Cell a i |-> Frac f (acc s i)
   ensures
     a |-> Frac f s
 
@@ -295,10 +302,10 @@ val tensor_slice_cell_eq
   (a : tensor et l)
   (i : natlt r) (j : natlt (d @! i))
   (k : abs (modulo_i i d)) (f : perm) (v : et)
-  : Lemma (tensor_pts_to_cell (sliceof a i j) #f k v
+  : Lemma (Cell (sliceof a i j) k |-> Frac f v
            ==
-           tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) v)
-           [SMTPat (tensor_pts_to_cell (sliceof a i j) #f k v)]
+           Cell a ((abs_bring_forward_bij i d).gg (j, k)) |-> Frac f v)
+           [SMTPat (Cell (sliceof a i j) k |-> Frac f v)]
 #pop-options
 
 let chest_slice
