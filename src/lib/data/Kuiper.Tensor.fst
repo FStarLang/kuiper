@@ -245,6 +245,19 @@ let sliceof
   : tensor et (tlayout_slice d l i j)
   = from_array (tlayout_slice d l i j) (core a)
 
+let tensor_slice_cell_eq
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (k : abs (modulo_i i d)) (f : perm) (v : et)
+  : Lemma (tensor_pts_to_cell (sliceof a i j) #f k v
+           ==
+           tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) v)
+  = tensor_pts_to_cell_eq (sliceof a i j) k f v;
+    tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f v;
+    ()
+
 ghost
 fn tensor_extract_slice
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -259,7 +272,84 @@ fn tensor_extract_slice
       (sliceof a i j |-> Frac f (chest_slice i j s))
       (a |-> Frac f s)
 {
-  admit();
+  tensor_pts_to_ref a;
+  tensor_explode a;
+
+  forevery_iso (abs_bring_forward_bij i d)
+    (fun (idx : abs d) -> tensor_pts_to_cell a #f idx (acc s idx));
+
+  forevery_unflatten'
+    (fun (jk : natlt (d @! i) & abs (modulo_i i d)) ->
+      tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg jk) (acc s ((abs_bring_forward_bij i d).gg jk)));
+
+  forevery_extract_if_eqtype j
+    (fun (j' : natlt (d @! i)) ->
+      forall+ (k : abs (modulo_i i d)).
+        tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k))));
+
+  ghost
+  fn to_slice_cell (k : abs (modulo_i i d))
+    requires tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
+    ensures  tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k)
+  {
+    tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f (acc s ((abs_bring_forward_bij i d).gg (j, k)));
+    rewrite tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
+         as gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)));
+    // chest_slice_acc i j s k;
+    tensor_pts_to_cell_eq (sliceof a i j) k f (acc (chest_slice i j s) k);
+    rewrite gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
+         as tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k);
+  };
+  forevery_map _ _ to_slice_cell;
+
+  tensor_implode (sliceof a i j);
+
+  ghost
+  fn restore ()
+    norewrite
+    requires
+      (forall+ (j' : natlt (d @! i)).
+        if op_Equality #(natlt (d @! i)) j' j then emp
+        else forall+ (k : abs (modulo_i i d)).
+          tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k))))
+    requires
+      sliceof a i j |-> Frac f (chest_slice i j s)
+    ensures
+      a |-> Frac f s
+  {
+    tensor_explode (sliceof a i j);
+
+    ghost
+    fn from_slice_cell (k : abs (modulo_i i d))
+      requires tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k)
+      ensures  tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
+    {
+      // chest_slice_acc i j s k;
+      tensor_pts_to_cell_eq (sliceof a i j) k f (acc (chest_slice i j s) k);
+      rewrite tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k)
+           as gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)));
+      tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f (acc s ((abs_bring_forward_bij i d).gg (j, k)));
+      rewrite gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
+           as tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)));
+    };
+    forevery_map _ _ from_slice_cell;
+
+    forevery_unextract_if_eqtype j
+      (fun (j' : natlt (d @! i)) ->
+        forall+ (k : abs (modulo_i i d)).
+          tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k))));
+
+    forevery_flatten'
+      (fun (jk : natlt (d @! i) & abs (modulo_i i d)) ->
+        tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg jk) (acc s ((abs_bring_forward_bij i d).gg jk)));
+
+    forevery_iso_back (abs_bring_forward_bij i d)
+      (fun (idx : abs d) -> tensor_pts_to_cell a #f idx (acc s idx));
+
+    tensor_implode a;
+  };
+
+  Pulse.Lib.Trade.intro_trade _ _ _ restore;
 }
 
 (* TODO: allow RW. *)
@@ -277,5 +367,6 @@ fn tensor_restore_slice
   ensures
     a |-> Frac f s
 {
-  admit();
+  unfold factored _ _;
+  ambig_trade_elim ();
 }

@@ -275,6 +275,19 @@ val sliceof
   (i : natlt r) (j : natlt (d @! i))
   : tensor et (tlayout_slice d l i j)
 
+#push-options "--warn_error -271" // implicit subtraction in pattern, OK
+val tensor_slice_cell_eq
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (k : abs (modulo_i i d)) (f : perm) (v : et)
+  : Lemma (tensor_pts_to_cell (sliceof a i j) #f k v
+           ==
+           tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) v)
+           [SMTPat (tensor_pts_to_cell (sliceof a i j) #f k v)]
+#pop-options
+
 let chest_slice
   (#et : Type0) (#r : nat) (#d : idesc r)
   (i : natlt r) (j : natlt (d @! i))
