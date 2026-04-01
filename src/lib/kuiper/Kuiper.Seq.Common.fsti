@@ -30,6 +30,10 @@ let ( @+ ) (#a:Type) (s1 s2 : seq a) : seq a = Seq.append s1 s2
 let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
   Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
 
+let lseq_upd (#a:Type) (#n:nat) (s : lseq a n) (i : nat { i < n }) (v : a)
+  : GTot (lseq a n)
+  = Seq.upd s i v
+
 let rec seq_fold_left (#a #b : Type) (f: b -> a -> b) (acc: b) (v: seq a)
   : GTot b (decreases length v)
   = match view_seq v with

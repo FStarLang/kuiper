@@ -127,8 +127,6 @@ let cimap_inj
   (x y : conc d)
   : Lemma (requires cimap c x == cimap c y)
           (ensures x == y)
-          [SMTPat (cimap c x); SMTPat (cimap c y)]
-          // ^ Bad pattern probably, used below.
   = down_up x;
     down_up y;
     ()
@@ -146,7 +144,7 @@ instance ctensor_ciview
     bij = abs_conc_bij d;
   };
   step = {
-    cimap = mk_cinj (cimap c);
+    cimap = mk_cinj (cimap c) #(fun _ _ -> Classical.forall_intro_2 (fun x -> Classical.move_requires (cimap_inj c x)));
     (* ^ Using c.cimap directly fails *)
     compat = ez;
   };
