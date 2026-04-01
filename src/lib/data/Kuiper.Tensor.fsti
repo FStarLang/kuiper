@@ -7,6 +7,7 @@ open Kuiper.Index
 open Kuiper.Chest
 include Kuiper.TensorLayout
 open FStar.Tactics.Typeclasses { no_method }
+open Pulse.Lib.Trade
 module SZ = Kuiper.SizeT
 module T = FStar.Tactics.V2
 
@@ -261,7 +262,7 @@ instance ctlayout_slice
   (#n:nat) (d : idesc n) (l : tlayout d)
   {| c : ctlayout l |}
   (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice d l i j) = 
+  : ctlayout (tlayout_slice d l i j) =
   {
     culen = c.culen;
     cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
@@ -296,8 +297,32 @@ let chest_slice
   = mk _ (fun (idx : abs (modulo_i i d)) ->
             acc s ((abs_bring_forward_bij i d).gg (j, idx)))
 
+let chest_update_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (i : natlt r) (j : natlt (d @! i))
+  (s : chest d et) (s' : chest (modulo_i i d) et)
+  : chest d et
+  = mk _ (fun (idx : abs d) ->
+            let (j', k) = (abs_bring_forward_bij i d).ff idx in
+            if j' = j then acc s' k else acc s idx)
+
 ghost
 fn tensor_extract_slice
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (#f : perm) (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    sliceof a i j |-> Frac f (chest_slice i j s) **
+    (forall* (s' : chest (modulo_i i d) et).
+      sliceof a i j |-> Frac f s' @==>
+      a |-> Frac f (chest_update_slice i j s s'))
+
+ghost
+fn tensor_extract_slice_ro
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
@@ -310,7 +335,6 @@ fn tensor_extract_slice
       (sliceof a i j |-> Frac f (chest_slice i j s))
       (a |-> Frac f s)
 
-(* TODO: allow RW. *)
 ghost
 fn tensor_restore_slice
   (#et : Type0) (#r : nat) (#d : idesc r)

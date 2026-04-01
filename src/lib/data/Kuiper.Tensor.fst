@@ -268,10 +268,13 @@ fn tensor_extract_slice
   requires
     a |-> Frac f s
   ensures
-    factored
-      (sliceof a i j |-> Frac f (chest_slice i j s))
-      (a |-> Frac f s)
+    sliceof a i j |-> Frac f (chest_slice i j s) **
+    (forall* (s' : chest (modulo_i i d) et).
+      sliceof a i j |-> Frac f s' @==>
+      a |-> Frac f (chest_update_slice i j s s'))
 {
+  (* This proof is terrible. It may be easier by filtering the type of the
+  forall+ with a refinement instead of using an if within it. *)
   tensor_pts_to_ref a;
   tensor_explode a;
 
@@ -295,7 +298,6 @@ fn tensor_extract_slice
     tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f (acc s ((abs_bring_forward_bij i d).gg (j, k)));
     rewrite tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
          as gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)));
-    // chest_slice_acc i j s k;
     tensor_pts_to_cell_eq (sliceof a i j) k f (acc (chest_slice i j s) k);
     rewrite gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
          as tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k);
@@ -305,54 +307,148 @@ fn tensor_extract_slice
   tensor_implode (sliceof a i j);
 
   ghost
-  fn restore ()
-    norewrite
+  fn restore' (s' : chest (modulo_i i d) et)
     requires
-      (forall+ (j' : natlt (d @! i)).
-        if op_Equality #(natlt (d @! i)) j' j then emp
-        else forall+ (k : abs (modulo_i i d)).
-          tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k))))
-    requires
-      sliceof a i j |-> Frac f (chest_slice i j s)
-    ensures
-      a |-> Frac f s
+      forall+ (j' : natlt (d @! i)). (
+        if op_Equality #(natlt (d @! i)) j' j
+        then emp
+        else
+          forall+ (k : abs (modulo_i i d)).
+            tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k)))
+      )
+     ensures
+       sliceof a i j |-> Frac f s' @==> a |-> Frac f (chest_update_slice i j s s')
   {
-    tensor_explode (sliceof a i j);
-
     ghost
-    fn from_slice_cell (k : abs (modulo_i i d))
-      requires tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k)
-      ensures  tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
+    fn restore ()
+      norewrite
+      requires
+        forall+ (j' : natlt (d @! i)). (
+          if op_Equality #(natlt (d @! i)) j' j
+          then emp
+          else
+            forall+ (k : abs (modulo_i i d)).
+              tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k)))
+        )
+      requires
+        sliceof a i j |-> Frac f s'
+      ensures
+        a |-> Frac f (chest_update_slice i j s s')
     {
-      // chest_slice_acc i j s k;
-      tensor_pts_to_cell_eq (sliceof a i j) k f (acc (chest_slice i j s) k);
-      rewrite tensor_pts_to_cell (sliceof a i j) #f k (acc (chest_slice i j s) k)
-           as gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)));
-      tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f (acc s ((abs_bring_forward_bij i d).gg (j, k)));
-      rewrite gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc s ((abs_bring_forward_bij i d).gg (j, k)))
-           as tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc s ((abs_bring_forward_bij i d).gg (j, k)));
+      let new_s = chest_update_slice i j s s';
+      (* Rewrite the "frame" to make them point to the updated chest
+      chest_update_slice i j s s' instead of s. All of them are outside the
+      actual modified slice, so this is trivial. *)
+      ghost fn rw1 (j' : natlt (d @! i))
+        requires (
+          if op_Equality #(natlt (d @! i)) j' j
+          then emp
+          else
+            forall+ (k : abs (modulo_i i d)).
+              tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k)))
+        )
+        ensures (
+          if op_Equality #(natlt (d @! i)) j' j
+          then emp
+          else
+            forall+ (k : abs (modulo_i i d)).
+              tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc new_s ((abs_bring_forward_bij i d).gg (j', k)))
+        )
+      {
+        if (j = j') {
+          rewrite each op_Equality #(natlt (d @! i)) j' j as true;
+          rewrite emp as
+            (if op_Equality #(natlt (d @! i)) j' j
+             then emp
+             else
+               forall+ (k : abs (modulo_i i d)).
+                 tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc new_s ((abs_bring_forward_bij i d).gg (j', k))));
+          ()
+        } else {
+          rewrite each op_Equality #(natlt (d @! i)) j' j as false;
+          forevery_map
+            (fun (k : abs (modulo_i i d)) ->
+              tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k))))
+            (fun (k : abs (modulo_i i d)) ->
+              tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc new_s ((abs_bring_forward_bij i d).gg (j', k))))
+            fn _ {};
+
+          rewrite
+            forall+ (k : abs (modulo_i i d)).
+              tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc new_s ((abs_bring_forward_bij i d).gg (j', k)))
+          as
+            (if op_Equality #(natlt (d @! i)) j' j
+             then emp
+             else
+               forall+ (k : abs (modulo_i i d)).
+                 tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc new_s ((abs_bring_forward_bij i d).gg (j', k))));
+          ();
+        }
+      };
+      forevery_map _ _ rw1;
+
+      (* Now, bring the cells of sliceof a i j back to cells of a, and rewrite
+      them to point to a part of new_s. *)
+
+      tensor_explode (sliceof a i j);
+      ghost
+      fn from_slice_cell (k : abs (modulo_i i d))
+        requires
+          tensor_pts_to_cell (sliceof a i j) #f k (acc s' k)
+        ensures
+          tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc new_s ((abs_bring_forward_bij i d).gg (j, k)))
+      {
+        tensor_pts_to_cell_eq (sliceof a i j) k f (acc s' k);
+        rewrite tensor_pts_to_cell (sliceof a i j) #f k (acc s' k)
+            as gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc new_s ((abs_bring_forward_bij i d).gg (j, k)));
+        tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f (acc new_s ((abs_bring_forward_bij i d).gg (j, k)));
+        rewrite gpu_pts_to_cell (core a) #f (l.imap.f ((abs_bring_forward_bij i d).gg (j, k))) (acc new_s ((abs_bring_forward_bij i d).gg (j, k)))
+            as tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j, k)) (acc new_s ((abs_bring_forward_bij i d).gg (j, k)));
+      };
+      forevery_map _ _ from_slice_cell;
+
+      (* Combine the two forall+, implode. *)
+
+      forevery_unextract_if_eqtype j
+        (fun (j' : natlt (d @! i)) ->
+          forall+ (k : abs (modulo_i i d)).
+            tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc new_s ((abs_bring_forward_bij i d).gg (j', k))));
+
+      forevery_flatten'
+        (fun (jk : natlt (d @! i) & abs (modulo_i i d)) ->
+          tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg jk) (acc new_s ((abs_bring_forward_bij i d).gg jk)));
+
+      forevery_iso_back (abs_bring_forward_bij i d)
+        (fun (idx : abs d) -> tensor_pts_to_cell a #f idx (acc new_s idx));
+
+      tensor_implode a;
     };
-    forevery_map _ _ from_slice_cell;
-
-    forevery_unextract_if_eqtype j
-      (fun (j' : natlt (d @! i)) ->
-        forall+ (k : abs (modulo_i i d)).
-          tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg (j', k)) (acc s ((abs_bring_forward_bij i d).gg (j', k))));
-
-    forevery_flatten'
-      (fun (jk : natlt (d @! i) & abs (modulo_i i d)) ->
-        tensor_pts_to_cell a #f ((abs_bring_forward_bij i d).gg jk) (acc s ((abs_bring_forward_bij i d).gg jk)));
-
-    forevery_iso_back (abs_bring_forward_bij i d)
-      (fun (idx : abs d) -> tensor_pts_to_cell a #f idx (acc s idx));
-
-    tensor_implode a;
+    Pulse.Lib.Trade.intro_trade _ _ _ restore;
   };
-
-  Pulse.Lib.Trade.intro_trade _ _ _ restore;
+  Pulse.Lib.Forall.intro_forall _ restore';
 }
 
-(* TODO: allow RW. *)
+ghost
+fn tensor_extract_slice_ro
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : natlt r) (j : natlt (d @! i))
+  (#f : perm) (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    factored
+      (sliceof a i j |-> Frac f (chest_slice i j s))
+      (a |-> Frac f s)
+{
+  (* Use the RW version, and immediately eliminate the forall*. *)
+  tensor_extract_slice a i j;
+  Pulse.Lib.Forall.elim_forall (chest_slice i j s);
+  assert pure (Kuiper.Chest.equal (chest_update_slice i j s (chest_slice i j s)) s);
+  rewrite each chest_update_slice i j s (chest_slice i j s) as s;
+}
+
 ghost
 fn tensor_restore_slice
   (#et : Type0) (#r : nat) (#d : idesc r)

@@ -136,7 +136,7 @@ let rec c_conc_bring_forward_bij (#n : Ghost.erased nat) (i : szlt n) (d : idesc
     |                                         |
    down                                  down x down
     |                                         |
-    v                                         v 
+    v                                         v
    conc d --conc_bring_forward--> szlt (d @! i) & conc (modulo_i i d)
 *)
 let down2 (#n:nat) (i : natlt n) (d : idesc n)
