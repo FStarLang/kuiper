@@ -11,11 +11,18 @@ module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
+let ait (d0 d1 d2 : nat) = natlt d0 & natlt d1 & natlt d2
+
+let raw_cit = sz & sz & sz
+
+let cit_fits (d0 d1 d2 : nat) (idx : raw_cit) : prop =
+  pi_3_0 idx < d0 /\ pi_3_1 idx < d1 /\ pi_3_2 idx < d2
+
 [@@erasable]
 noeq
 type layout (d0 d1 d2 : nat) = {
   ulen : nat;
-  imap : (natlt d0 & natlt d1 & natlt d2 @~> natlt ulen);
+  imap : ait d0 d1 d2 @~> natlt ulen;
 }
 
 let layout_size (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : GTot nat = l.ulen
@@ -41,7 +48,7 @@ let aview (et : Type) (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2)
   = {
       iview = {
         len = l.ulen;
-        ait = (natlt d0 & natlt d1 & natlt d2);
+        ait = ait d0 d1 d2;
         step = { imap = l.imap; };
       };
       ctn = solve;
@@ -173,9 +180,7 @@ fn read
   (#d0 #d1 #d2 : erased nat)
   (#l : layout d0 d1 d2) {| clayout l |}
   (a : t et l)
-  (i : szlt d0)
-  (j : szlt d1)
-  (k : szlt d2)
+  (ijk : raw_cit{cit_fits d0 d1 d2 ijk})
   (#f : perm)
   (#s : erased (EMatrix3.t et d0 d1 d2))
   preserves
@@ -183,7 +188,7 @@ fn read
   returns
     v : et
   ensures
-    pure (v == EMatrix3.macc s i j k)
+    pure (v == EMatrix3.macc s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk))
 
 inline_for_extraction noextract
 fn write
@@ -191,34 +196,32 @@ fn write
   (#d0 #d1 #d2 : erased nat)
   (#l : layout d0 d1 d2) {| clayout l |}
   (a : t et l)
-  (i : szlt d0)
-  (j : szlt d1)
-  (k : szlt d2)
+  (ijk : raw_cit{cit_fits d0 d1 d2 ijk})
   (v : et)
   (#s : erased (EMatrix3.t et d0 d1 d2))
   requires
     a |-> s
   ensures
-    a |-> (EMatrix3.mupd s i j k v)
+    a |-> EMatrix3.mupd s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk) v
 
 val pts_to_cell
   (#et : Type) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
   ([@@@mkey] a : t et l)
   (#[Tac.exact (`1.0R)] f : perm)
-  ([@@@mkey] ijk : natlt d0 & natlt d1 & natlt d2)
+  ([@@@mkey] ijk : ait d0 d1 d2)
   (v : et)
   : slprop
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
-  : has_pts_to (cell (t et l) (natlt d0 & natlt d1 & natlt d2)) et
+  : has_pts_to (cell (t et l) (ait d0 d1 d2)) et
 = {
   pts_to = (fun (Cell ar ijk) #f v -> pts_to_cell ar #f ijk v);
 }
 
 val pts_to_cell_eq
   (#et : Type) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
-  (a : t et l) (ijk : natlt d0 & natlt d1 & natlt d2) (f : perm) (v : et)
+  (a : t et l) (ijk : ait d0 d1 d2) (f : perm) (v : et)
   : Lemma (Cell a ijk |-> Frac f v
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f ijk) v)
@@ -231,7 +234,7 @@ fn explode
   (#s : EMatrix3.t et d0 d1 d2)
   requires a |-> Frac f s
   ensures
-    forall+ (ijk : natlt d0 & natlt d1 & natlt d2).
+    forall+ (ijk : ait d0 d1 d2).
       Cell a ijk |-> Frac f (EMatrix3.macc s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk))
 
 ghost
@@ -243,7 +246,7 @@ fn implode
   requires
     pure (SZ.fits (layout_size l))
   requires
-    forall+ (ijk : natlt d0 & natlt d1 & natlt d2).
+    forall+ (ijk : ait d0 d1 d2).
       Cell a ijk |-> Frac f (EMatrix3.macc s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk))
   ensures
     a |-> Frac f s
