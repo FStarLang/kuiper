@@ -164,8 +164,7 @@ fn read
     pure (v == Seq.index s i)
 {
   unfold pts_to a #f s;
-  let idx = (i, ());
-  let v = T.tensor_read a idx;
+  let v = T.tensor_read a (i, ());
   fold pts_to a #f s;
   v
 }
