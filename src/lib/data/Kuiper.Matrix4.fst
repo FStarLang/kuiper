@@ -58,6 +58,37 @@ let clayout4_bij
 }
 #pop-options
 
+#push-options "--z3rlimit 20 --fuel 0 --ifuel 0"
+let clayout4_imap_inj
+  (#mrows #mcols #brows #bcols : erased nat)
+  (#l : mlayout4 mrows mcols brows bcols)
+  (c : clayout4 l)
+  (idx1 idx2 : cit l)
+  : squash (clayout4_imap c idx1 == clayout4_imap c idx2 ==> idx1 == idx2)
+  = let (bi1, bj1, i1, j1) = idx1 in
+    let (bi2, bj2, i2, j2) = idx2 in
+    introduce clayout4_imap c idx1 == clayout4_imap c idx2 ==> idx1 == idx2
+    with _. (
+      // clayout4_imap uses c_to (s_undivmod ...) (s_undivmod ...)
+      // c_to i j  has  SZ.v result == l.map.f (SZ.v i, SZ.v j)
+      // So equal outputs imply equal l.map.f inputs (since SZ.v is injective on SZ.t)
+      // By l.map injectivity, the nat-level inputs are equal
+      // By s_divmod_inv_2, the original SZ.t tuples are equal
+      let r1 = SZ.v (s_undivmod c.c_brows (bi1, i1)) in
+      let c1 = SZ.v (s_undivmod c.c_bcols (bj1, j1)) in
+      let r2 = SZ.v (s_undivmod c.c_brows (bi2, i2)) in
+      let c2 = SZ.v (s_undivmod c.c_bcols (bj2, j2)) in
+      l.map.is_inj (r1, c1) (r2, c2);
+      // Now we have: (r1, c1) == (r2, c2), i.e. the s_undivmod values are equal
+      // By s_divmod_inv_2 (SMT patterns), s_divmod inverts s_undivmod
+      // so (bi1, i1) == (bi2, i2) and (bj1, j1) == (bj2, j2)
+      s_divmod_inv_2 c.c_brows (bi1, i1);
+      s_divmod_inv_2 c.c_brows (bi2, i2);
+      s_divmod_inv_2 c.c_bcols (bj1, j1);
+      s_divmod_inv_2 c.c_bcols (bj2, j2)
+    )
+#pop-options
+
 #push-options "--z3rlimit 80 --split_queries always"
 [@@"core"]
 inline_for_extraction noextract
@@ -68,6 +99,7 @@ instance cview_from_clayout4
   (#l : mlayout4 mrows mcols brows bcols)
   (c : clayout4 l)
   : IView.ciview (aview_from_mlayout et l).iview =
+  let _ = full_layout_size l in
 {
   clen = c.parent.m_rows *^ c.parent.m_cols;
 
@@ -77,7 +109,7 @@ instance cview_from_clayout4
   };
 
   step = {
-    cimap = mk_cinj (clayout4_imap c) #(fun idx1 idx2 -> ());
+    cimap = mk_cinj #_ #(szlt (l.len)) (clayout4_imap c) #(clayout4_imap_inj c);
     compat = ez;
   };
 }

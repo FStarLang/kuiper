@@ -121,6 +121,8 @@ fn setup
                    ((bid % mcols) * bn + (tid % bn))));
 
   (* Step 6: Bridge to SizeT and match kpre1 *)
+  assert pure (SZ.v (mrows `SZ.mul` mcols) == mrows * mcols);
+  assert pure (SZ.v (bm /^ tm *^ bn) == bm/tm * bn);
   forevery_rw_size2
     (mrows * mcols) (mrows *^ mcols)
     (bm/tm * bn) (bm /^ tm *^ bn);

@@ -83,6 +83,18 @@ fn spec
   assert pure (aligned_strided_row_major (chunk et)
                 (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
 
+  // Prove rows/bm * (cols/bn) <= max_blocks from rows * cols <= max_blocks
+  // Since bm >= 1 and bn >= 1: rows/bm <= rows and cols/bn <= cols
+  FStar.Math.Lemmas.lemma_div_mod (SZ.v rows) (SZ.v bm);
+  FStar.Math.Lemmas.nat_over_pos_is_nat (SZ.v rows) (SZ.v bm);
+  FStar.Math.Lemmas.lemma_div_mod (SZ.v cols) (SZ.v bn);
+  FStar.Math.Lemmas.nat_over_pos_is_nat (SZ.v cols) (SZ.v bn);
+  assert pure (SZ.v rows / SZ.v bm <= SZ.v rows);
+  assert pure (SZ.v cols / SZ.v bn <= SZ.v cols);
+  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v cols / SZ.v bn) (SZ.v rows / SZ.v bm) (SZ.v rows);
+  FStar.Math.Lemmas.lemma_mult_le_left (SZ.v rows) (SZ.v cols / SZ.v bn) (SZ.v cols);
+  assert pure (SZ.v rows / SZ.v bm * (SZ.v cols / SZ.v bn) <= SZ.v rows * SZ.v cols);
+
   P.mmcomb_gpu_exact
     (fun o n -> mul beta o `add` mul alpha n)
     #rows #shared #cols
