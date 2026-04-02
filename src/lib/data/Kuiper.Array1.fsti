@@ -29,7 +29,9 @@ class clayout (#len : erased nat) (l : layout len) = {
   all_fit : squash (SZ.fits len);
 
   [@@@no_method]
-  cimap : i:SZ.t{i < len} -> r:SZ.t{SZ.v r == l.imap.f (SZ.v i)};
+  cimap :
+    i:szlt len ->
+    r:SZ.t{SZ.v r == l.imap.f (SZ.v i)};
 }
 
 let aview (et : Type) (#len : nat) (l : layout len)

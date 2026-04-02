@@ -8,12 +8,12 @@ module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
-let tr_layout (#len : nat) (l : layout len) : tlayout (ICons len INil) = {
+let tr_layout (#len : nat) (l : layout len) : tlayout (len @| INil) = {
   ulen = l.ulen;
   imap = mk_injection (fun (i, ()) -> l.imap.f i) ez;
 }
 
-let abs_bij (#len : nat) : (abs (ICons len INil) =~ natlt len) =
+let abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
   {
     ff = (fun (i, ()) -> i);
     gg = (fun i -> (i, ()));
@@ -21,8 +21,8 @@ let abs_bij (#len : nat) : (abs (ICons len INil) =~ natlt len) =
     gg_ff = ez;
   }
 
-let tr_val (#et : Type) (#len : nat) (s : lseq et len) : chest (ICons len INil) et =
-  Chest.mk (ICons len INil) (fun (i, ()) -> s @! i)
+let tr_val (#et : Type) (#len : nat) (s : lseq et len) : chest (len @| INil) et =
+  Chest.mk (len @| INil) (fun (i, ()) -> s @! i)
 
 inline_for_extraction noextract
 instance clayout_to_tlayout (#len : erased nat) (#l : layout len)
@@ -31,7 +31,7 @@ instance clayout_to_tlayout (#len : erased nat) (#l : layout len)
 {
   culen   = c.culen;
   all_fit = ();
-  cimap   = (fun (idx : conc (ICons len INil)) ->
+  cimap   = (fun (idx : conc (len @| INil)) ->
               match idx with
               | (i, ()) -> c.cimap i);
 }
@@ -239,7 +239,7 @@ fn implode
     a |-> Frac f s
 {
   forevery_iso (bij_sym abs_bij) _;
-  forevery_ext _ (fun (i : abs (ICons len INil)) -> Cell a i |-> Frac f (acc (tr_val s) i));
+  forevery_ext _ (fun (i : abs (len @| INil)) -> Cell a i |-> Frac f (acc (tr_val s) i));
   T.tensor_implode a;
   fold pts_to a #f s;
 }

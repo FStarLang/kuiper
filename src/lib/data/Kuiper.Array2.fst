@@ -9,12 +9,19 @@ module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
-let tr_layout (#rows #cols : nat) (l : layout rows cols) : tlayout (ICons rows (ICons cols INil)) = {
+let desc (rows cols : nat) : idesc 2 =
+  rows @| cols @| INil
+
+let adapt_idx (#rows #cols : nat) (idx : abs (desc rows cols)) : natlt rows & natlt cols =
+  match idx with
+  | (i, (j, ())) -> (i, j)
+
+let tr_layout (#rows #cols : nat) (l : layout rows cols) : tlayout (rows @| ICons cols INil) = {
   ulen = l.ulen;
-  imap = mk_injection (fun (i, (j, ())) -> l.imap.f (i, j)) ez;
+  imap = mk_injection (fun idx -> l.imap.f (adapt_idx idx)) ez;
 }
 
-let abs_bij (#rows #cols : nat) : (abs (ICons rows (ICons cols INil)) =~ (natlt rows & natlt cols)) =
+let abs_bij (#rows #cols : nat) : (abs (desc rows cols) =~ (natlt rows & natlt cols)) =
   {
     ff = (fun (i, (j, ())) -> (i, j));
     gg = (fun (i, j) -> (i, (j, ())));
@@ -22,8 +29,9 @@ let abs_bij (#rows #cols : nat) : (abs (ICons rows (ICons cols INil)) =~ (natlt 
     gg_ff = ez;
   }
 
-let tr_val (#et : Type) (#rows #cols : nat) (s : ematrix et rows cols) : chest (ICons rows (ICons cols INil)) et =
-  Chest.mk (ICons rows (ICons cols INil)) (fun (i, (j, ())) -> macc s i j)
+let tr_val (#et : Type) (#rows #cols : nat) (s : ematrix et rows cols)
+  : chest (desc rows cols) et
+  = Chest.mk (desc rows cols) (fun (i, (j, ())) -> EMatrix.macc s i j)
 
 inline_for_extraction noextract
 instance clayout_to_tlayout (#rows #cols : erased nat) (#l : layout rows cols)
@@ -32,7 +40,7 @@ instance clayout_to_tlayout (#rows #cols : erased nat) (#l : layout rows cols)
 {
   culen   = c.culen;
   all_fit = ();
-  cimap   = (fun (idx : conc (ICons rows (ICons cols INil))) ->
+  cimap   = (fun (idx : conc (desc rows cols)) ->
               match idx with
               | (i, (j, ())) -> c.cimap i j);
 }
@@ -242,7 +250,7 @@ fn implode
     a |-> Frac f s
 {
   forevery_iso (bij_sym abs_bij) _;
-  forevery_ext _ (fun (i : abs (ICons rows (ICons cols INil))) -> Cell a i |-> Frac f (acc (tr_val s) i));
+  forevery_ext _ (fun (i : abs (desc rows cols)) -> Cell a i |-> Frac f (acc (tr_val s) i));
   T.tensor_implode a;
   fold pts_to a #f s;
 }

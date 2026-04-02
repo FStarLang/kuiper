@@ -371,3 +371,12 @@ let cbij_push_tuple3 (#a #b #c : _) :
   cff = (fun (x, (y, z)) -> (y, (x, z)));
   cgg = (fun (y, (x, z)) -> (x, (y, z)));
 }
+
+let bij_tuple_nest (#a #b #c : _) :
+  (a & b & c =~ (a & (b & c))) =
+{
+  ff = (fun (x, y, z) -> (x, (y, z)));
+  gg = (fun (x, (y, z)) -> (x, y, z));
+  ff_gg = ez;
+  gg_ff = ez;
+}

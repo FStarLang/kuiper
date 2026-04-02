@@ -31,7 +31,10 @@ class clayout (#rows #cols : erased nat) (l : layout rows cols) = {
   all_fit : squash (SZ.fits rows /\ SZ.fits cols);
 
   [@@@no_method]
-  cimap : i:SZ.t{i < rows} -> j:SZ.t{j < cols} -> r:SZ.t{SZ.v r == l.imap.f (SZ.v i, SZ.v j)};
+  cimap :
+    i:szlt rows  ->
+    j:szlt cols  ->
+    r:SZ.t{SZ.v r == l.imap.f (SZ.v i, SZ.v j)};
 }
 
 let aview (et : Type) (#rows #cols : nat) (l : layout rows cols)
