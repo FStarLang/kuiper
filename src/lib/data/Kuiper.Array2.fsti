@@ -13,11 +13,18 @@ module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
+let ait (rows cols : nat) = natlt rows & natlt cols
+
+let raw_cit = sz & sz
+
+let cit_fits (rows cols : nat) (idx : raw_cit) : prop =
+  pi_2_0 idx < rows /\ pi_2_1 idx < cols
+
 [@@erasable]
 noeq
 type layout (rows cols : nat) = {
   ulen : nat;
-  imap : ((natlt rows & natlt cols) @~> natlt ulen);
+  imap : ait rows cols @~> natlt ulen;
 }
 
 let layout_size (#rows #cols : nat) (l : layout rows cols) : GTot nat = l.ulen
@@ -42,7 +49,7 @@ let aview (et : Type) (#rows #cols : nat) (l : layout rows cols)
   = {
       iview = {
         len = l.ulen;
-        ait = natlt rows & natlt cols;
+        ait = ait rows cols;
         step = { imap = l.imap; };
       };
       ctn = solve;
@@ -173,8 +180,7 @@ fn read
   (#rows #cols : erased nat)
   (#l : layout rows cols) {| clayout l |}
   (a : t et l)
-  (i : szlt rows)
-  (j : szlt cols)
+  (ij : raw_cit{cit_fits rows cols ij})
   (#f : perm)
   (#s : erased (ematrix et rows cols))
   preserves
@@ -182,7 +188,7 @@ fn read
   returns
     v : et
   ensures
-    pure (v == macc s i j)
+    pure (v == macc s (pi_2_0 ij) (pi_2_1 ij))
 
 inline_for_extraction noextract
 fn write
@@ -190,33 +196,32 @@ fn write
   (#rows #cols : erased nat)
   (#l : layout rows cols) {| clayout l |}
   (a : t et l)
-  (i : szlt rows)
-  (j : szlt cols)
+  (ij : raw_cit{cit_fits rows cols ij})
   (v : et)
   (#s : erased (ematrix et rows cols))
   requires
     a |-> s
   ensures
-    a |-> (mupd s i j v <: ematrix et rows cols)
+    a |-> mupd s (pi_2_0 ij) (pi_2_1 ij) v
 
 val pts_to_cell
   (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
   ([@@@mkey] a : t et l)
   (#[Tac.exact (`1.0R)] f : perm)
-  ([@@@mkey] ij : natlt rows & natlt cols)
+  ([@@@mkey] ij : ait rows cols)
   (v : et)
   : slprop
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
-  : has_pts_to (cell (t et l) (natlt rows & natlt cols)) et
+  : has_pts_to (cell (t et l) (ait rows cols)) et
 = {
   pts_to = (fun (Cell ar ij) #f v -> pts_to_cell ar #f ij v);
 }
 
 val pts_to_cell_eq
   (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
-  (a : t et l) (ij : natlt rows & natlt cols) (f : perm) (v : et)
+  (a : t et l) (ij : ait rows cols) (f : perm) (v : et)
   : Lemma (Cell a ij |-> Frac f v
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f ij) v)
@@ -229,7 +234,7 @@ fn explode
   (#s : ematrix et rows cols)
   requires a |-> Frac f s
   ensures
-    forall+ (ij : natlt rows & natlt cols).
+    forall+ (ij : ait rows cols).
       Cell a ij |-> Frac f (macc s (fst ij) (snd ij))
 
 ghost
@@ -241,7 +246,28 @@ fn implode
   requires
     pure (SZ.fits (layout_size l))
   requires
-    forall+ (ij : natlt rows & natlt cols).
+    forall+ (ij : ait rows cols).
       Cell a ij |-> Frac f (macc s (fst ij) (snd ij))
   ensures
     a |-> Frac f s
+
+(* Syntax, in lieu of a typeclass *)
+unfold let op_Array_Access
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (#l : layout rows cols) {| clayout l |}
+  (a : t et l)
+  (ij : raw_cit{cit_fits rows cols ij})
+  (#f : perm)
+  (#s : erased (ematrix et rows cols))
+  = read #et #rows #cols #l a ij #f #s
+
+unfold let op_Array_Assignment
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (#l : layout rows cols) {| clayout l |}
+  (a : t et l)
+  (ij : raw_cit{cit_fits rows cols ij})
+  (v : et)
+  (#s : erased (ematrix et rows cols))
+  = write #et #rows #cols #l a ij v #s

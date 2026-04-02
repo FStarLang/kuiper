@@ -33,7 +33,7 @@ fn test1 (m : array1 u32 (layout 100))
   preserves m |-> 's
   returns u32
 {
-  let v = Array1.read m 1sz;
+  let v = Array1.(m.(1sz));
   v
 }
 
@@ -42,6 +42,6 @@ fn test2 (m : array1 u32 (layout 100))
   // ensures  m |-> Kuiper.Chest.upd 's ((1 <: natlt 10), ((2 <: natlt 20), ())) 42ul
   ensures  m |-> Kuiper.Seq.Common.lseq_upd 's (1 <: natlt 100) 42ul
 {
-  Array1.write m 1sz 42ul;
+  Array1.(m.(1sz) <- 42ul);
   ()
 }

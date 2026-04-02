@@ -35,7 +35,7 @@ fn test1 (m : array2 u32 (layout 10 10))
   preserves m |-> 's
   returns u32
 {
-  let v = Array2.read m 1sz 2sz;
+  let v = Array2.(m.(1sz, 2sz));
   v
 }
 
@@ -43,6 +43,6 @@ fn test2 (m : array2 u32 (layout 10 10))
   requires m |-> 's
   ensures  m |-> (mupd 's (1 <: natlt 10) (2 <: natlt 10) 42ul <: ematrix u32 10 10)
 {
-  Array2.write m 1sz 2sz 42ul;
+  Array2.(m.(1sz, 2sz) <- 42ul);
   ()
 }

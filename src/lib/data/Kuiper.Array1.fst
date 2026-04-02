@@ -13,7 +13,7 @@ let tr_layout (#len : nat) (l : layout len) : tlayout (len @| INil) = {
   imap = mk_injection (fun (i, ()) -> l.imap.f i) ez;
 }
 
-let abs_bij (#len : nat) : (abs (len @| INil) =~ natlt len) =
+let abs_bij (#len : nat) : (abs (len @| INil) =~ ait len) =
   {
     ff = (fun (i, ()) -> i);
     gg = (fun i -> (i, ()));
@@ -148,12 +148,16 @@ fn gather_n
 }
 
 inline_for_extraction noextract
+let adapt_cit_back (len : erased nat) (idx : raw_cit{cit_fits len idx}) : conc (len @| INil) =
+  (idx, ())
+
+inline_for_extraction noextract
 fn read
   (#et : Type0)
   (#len : erased nat)
   (#l : layout len) {| clayout l |}
   (a : t et l)
-  (i : szlt len)
+  (i : raw_cit{cit_fits len i})
   (#f : perm)
   (#s : erased (lseq et len))
   preserves
@@ -164,7 +168,7 @@ fn read
     pure (v == Seq.index s i)
 {
   unfold pts_to a #f s;
-  let v = T.tensor_read a (i, ());
+  let v = T.tensor_read a (adapt_cit_back len i);
   fold pts_to a #f s;
   v
 }
@@ -175,14 +179,16 @@ fn write
   (#len : erased nat)
   (#l : layout len) {| clayout l |}
   (a : t et l)
-  (i : szlt len)
+  (i : raw_cit{cit_fits len i})
   (v : et)
   (#s : erased (lseq et len))
-  requires a |-> s
-  ensures  a |-> (Seq.upd s i v <: lseq et len)
+  requires
+    a |-> s
+  ensures
+    a |-> (Seq.upd s i v <: lseq et len)
 {
   unfold pts_to a s;
-  T.tensor_write a (i, ()) v;
+  T.tensor_write a (adapt_cit_back len i) v;
   with cs'. assert T.tensor_pts_to a cs';
   assert pure (Chest.equal cs' (tr_val (Seq.upd s i v)));
   fold pts_to a (Seq.upd s i v);
@@ -193,14 +199,14 @@ let pts_to_cell
   (#et : Type) (#len : nat) (#l : layout len)
   ([@@@mkey] a : t et l)
   (#[Tac.exact (`1.0R)] f : perm)
-  ([@@@mkey] i : natlt len)
+  ([@@@mkey] i : ait len)
   (v : et)
   : slprop
   = T.tensor_pts_to_cell a #f (i, ()) v
 
 let pts_to_cell_eq
   (#et : Type) (#len : nat) (#l : layout len)
-  (a : t et l) (i : natlt len) (f : perm) (v : et)
+  (a : t et l) (i : ait len) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f i v
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f i) v)
@@ -214,13 +220,13 @@ fn explode
   (#s : lseq et len)
   requires a |-> Frac f s
   ensures
-    forall+ (i : natlt len).
+    forall+ (i : ait len).
       Cell a i |-> Frac f (Seq.index s i)
 {
   unfold pts_to a #f s;
   T.tensor_explode a;
   forevery_iso abs_bij _;
-  forevery_ext _ (fun (i : natlt len) -> Cell a i |-> Frac f (Seq.index s i));
+  forevery_ext _ (fun (i : ait len) -> Cell a i |-> Frac f (Seq.index s i));
   ()
 }
 
@@ -233,7 +239,7 @@ fn implode
   requires
     pure (SZ.fits (layout_size l))
   requires
-    forall+ (i : natlt len).
+    forall+ (i : ait len).
       Cell a i |-> Frac f (Seq.index s i)
   ensures
     a |-> Frac f s

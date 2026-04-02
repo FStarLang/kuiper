@@ -11,11 +11,18 @@ module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
+let ait (len : nat) = natlt len
+
+let raw_cit = sz
+
+let cit_fits (len : nat) (idx : raw_cit) : prop =
+  idx < len
+
 [@@erasable]
 noeq
 type layout (len : nat) = {
   ulen : nat;
-  imap : (natlt len @~> natlt ulen);
+  imap : ait len @~> natlt ulen;
 }
 
 let layout_size (#len : nat) (l : layout len) : GTot nat = l.ulen
@@ -39,7 +46,7 @@ let aview (et : Type) (#len : nat) (l : layout len)
   = {
       iview = {
         len = l.ulen;
-        ait = natlt len;
+        ait = ait len;
         step = { imap = l.imap; };
       };
       ctn = solve;
@@ -170,7 +177,7 @@ fn read
   (#len : erased nat)
   (#l : layout len) {| clayout l |}
   (a : t et l)
-  (i : szlt len)
+  (i : raw_cit{cit_fits len i})
   (#f : perm)
   (#s : erased (lseq et len))
   preserves
@@ -186,7 +193,7 @@ fn write
   (#len : erased nat)
   (#l : layout len) {| clayout l |}
   (a : t et l)
-  (i : szlt len)
+  (i : raw_cit{cit_fits len i})
   (v : et)
   (#s : erased (lseq et len))
   requires
@@ -198,20 +205,20 @@ val pts_to_cell
   (#et : Type) (#len : nat) (#l : layout len)
   ([@@@mkey] a : t et l)
   (#[Tac.exact (`1.0R)] f : perm)
-  ([@@@mkey] i : natlt len)
+  ([@@@mkey] i : ait len)
   (v : et)
   : slprop
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#len : nat) (#l : layout len)
-  : has_pts_to (cell (t et l) (natlt len)) et
+  : has_pts_to (cell (t et l) (ait len)) et
 = {
   pts_to = (fun (Cell ar i) #f v -> pts_to_cell ar #f i v);
 }
 
 val pts_to_cell_eq
   (#et : Type) (#len : nat) (#l : layout len)
-  (a : t et l) (i : natlt len) (f : perm) (v : et)
+  (a : t et l) (i : ait len) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f i) v)
@@ -224,7 +231,7 @@ fn explode
   (#s : lseq et len)
   requires a |-> Frac f s
   ensures
-    forall+ (i : natlt len).
+    forall+ (i : ait len).
       Cell a i |-> Frac f (Seq.index s i)
 
 ghost
@@ -236,7 +243,28 @@ fn implode
   requires
     pure (SZ.fits (layout_size l))
   requires
-    forall+ (i : natlt len).
+    forall+ (i : ait len).
       Cell a i |-> Frac f (Seq.index s i)
   ensures
     a |-> Frac f s
+
+(* Syntax, in lieu of a typeclass *)
+unfold let op_Array_Access
+  (#et : Type0)
+  (#len : erased nat)
+  (#l : layout len) {| clayout l |}
+  (a : t et l)
+  (i : raw_cit{cit_fits len i})
+  (#f : perm)
+  (#s : erased (lseq et len))
+  = read #et #len #l a i #f #s
+
+unfold let op_Array_Assignment
+  (#et : Type0)
+  (#len : erased nat)
+  (#l : layout len) {| clayout l |}
+  (a : t et l)
+  (i : raw_cit{cit_fits len i})
+  (v : et)
+  (#s : erased (lseq et len))
+  = write #et #len #l a i v #s

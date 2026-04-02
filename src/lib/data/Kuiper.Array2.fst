@@ -12,16 +12,25 @@ module Tac = FStar.Tactics.V2
 let desc (rows cols : nat) : idesc 2 =
   rows @| cols @| INil
 
-let adapt_idx (#rows #cols : nat) (idx : abs (desc rows cols)) : natlt rows & natlt cols =
+let adapt_idx (#rows #cols : nat) (idx : abs (desc rows cols)) : ait rows cols =
   match idx with
   | (i, (j, ())) -> (i, j)
+
+let adapt_idx_back (#rows #cols : nat) (idx : ait rows cols) : abs (desc rows cols) =
+  match idx with
+  | (i, j) -> (i, (j, ()))
+
+inline_for_extraction noextract
+let adapt_cit_back (rows cols : erased nat) (idx : raw_cit{cit_fits rows cols idx}) : conc (desc rows cols) =
+  match idx with
+  | (i, j) -> (i, (j, ()))
 
 let tr_layout (#rows #cols : nat) (l : layout rows cols) : tlayout (rows @| ICons cols INil) = {
   ulen = l.ulen;
   imap = mk_injection (fun idx -> l.imap.f (adapt_idx idx)) ez;
 }
 
-let abs_bij (#rows #cols : nat) : (abs (desc rows cols) =~ (natlt rows & natlt cols)) =
+let abs_bij (#rows #cols : nat) : (abs (desc rows cols) =~ (ait rows cols)) =
   {
     ff = (fun (i, (j, ())) -> (i, j));
     gg = (fun (i, j) -> (i, (j, ())));
@@ -162,8 +171,7 @@ fn read
   (#rows #cols : erased nat)
   (#l : layout rows cols) {| clayout l |}
   (a : t et l)
-  (i : szlt rows)
-  (j : szlt cols)
+  (idx : raw_cit{cit_fits rows cols idx})
   (#f : perm)
   (#s : erased (ematrix et rows cols))
   preserves
@@ -171,10 +179,10 @@ fn read
   returns
     v : et
   ensures
-    pure (v == macc s i j)
+    pure (v == macc s (pi_2_0 idx) (pi_2_1 idx))
 {
   unfold pts_to a #f s;
-  let v = T.tensor_read a (i, (j, ()));
+  let v = T.tensor_read a (adapt_cit_back rows cols idx);
   fold pts_to a #f s;
   v
 }
@@ -185,18 +193,19 @@ fn write
   (#rows #cols : erased nat)
   (#l : layout rows cols) {| clayout l |}
   (a : t et l)
-  (i : szlt rows)
-  (j : szlt cols)
+  (idx : raw_cit{cit_fits rows cols idx})
   (v : et)
   (#s : erased (ematrix et rows cols))
-  requires a |-> s
-  ensures  a |-> (mupd s i j v <: ematrix et rows cols)
+  requires
+    a |-> s
+  ensures
+    a |-> mupd s (pi_2_0 idx) (pi_2_1 idx) v
 {
   unfold pts_to a s;
-  T.tensor_write a (i, (j, ())) v;
+  T.tensor_write a (adapt_cit_back rows cols idx) v;
   with cs'. assert T.tensor_pts_to a cs';
-  assert pure (Chest.equal cs' (tr_val (mupd s i j v)));
-  fold pts_to a (mupd s i j v);
+  assert pure (Chest.equal cs' (tr_val (mupd s (pi_2_0 idx) (pi_2_1 idx) v)));
+  fold pts_to a (mupd s (pi_2_0 idx) (pi_2_1 idx) v);
   ()
 }
 
@@ -204,18 +213,18 @@ let pts_to_cell
   (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
   ([@@@mkey] a : t et l)
   (#[Tac.exact (`1.0R)] f : perm)
-  ([@@@mkey] ij : natlt rows & natlt cols)
+  ([@@@mkey] ij : ait rows cols)
   (v : et)
   : slprop
-  = T.tensor_pts_to_cell a #f (fst ij, (snd ij, ())) v
+  = T.tensor_pts_to_cell a #f (adapt_idx_back ij) v
 
 let pts_to_cell_eq
   (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
-  (a : t et l) (ij : natlt rows & natlt cols) (f : perm) (v : et)
+  (a : t et l) (ij : ait rows cols) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f ij v
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f ij) v)
-  = T.tensor_pts_to_cell_eq a (fst ij, (snd ij, ())) f v
+  = T.tensor_pts_to_cell_eq a (adapt_idx_back ij) f v
 
 ghost
 fn explode
@@ -225,13 +234,13 @@ fn explode
   (#s : ematrix et rows cols)
   requires a |-> Frac f s
   ensures
-    forall+ (ij : natlt rows & natlt cols).
+    forall+ (ij : ait rows cols).
       Cell a ij |-> Frac f (macc s (fst ij) (snd ij))
 {
   unfold pts_to a #f s;
   T.tensor_explode a;
   forevery_iso abs_bij _;
-  forevery_ext _ (fun (ij : natlt rows & natlt cols) -> Cell a ij |-> Frac f (macc s (fst ij) (snd ij)));
+  forevery_ext _ (fun (ij : ait rows cols) -> Cell a ij |-> Frac f (macc s (fst ij) (snd ij)));
   ()
 }
 
@@ -244,7 +253,7 @@ fn implode
   requires
     pure (SZ.fits (layout_size l))
   requires
-    forall+ (ij : natlt rows & natlt cols).
+    forall+ (ij : ait rows cols).
       Cell a ij |-> Frac f (macc s (fst ij) (snd ij))
   ensures
     a |-> Frac f s
