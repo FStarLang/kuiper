@@ -250,3 +250,24 @@ fn implode
       Cell a ijk |-> Frac f (EMatrix3.macc s (pi_3_0 ijk) (pi_3_1 ijk) (pi_3_2 ijk))
   ensures
     a |-> Frac f s
+
+(* Syntax, in lieu of a typeclass *)
+unfold let op_Array_Access
+  (#et : Type0)
+  (#d0 #d1 #d2 : erased nat)
+  (#l : layout d0 d1 d2) {| clayout l |}
+  (a : t et l)
+  (ijk : raw_cit{cit_fits d0 d1 d2 ijk})
+  (#f : perm)
+  (#s : erased (EMatrix3.t et d0 d1 d2))
+  = read #et #d0 #d1 #d2 #l a ijk #f #s
+
+unfold let op_Array_Assignment
+  (#et : Type0)
+  (#d0 #d1 #d2 : erased nat)
+  (#l : layout d0 d1 d2) {| clayout l |}
+  (a : t et l)
+  (ijk : raw_cit{cit_fits d0 d1 d2 ijk})
+  (v : et)
+  (#s : erased (EMatrix3.t et d0 d1 d2))
+  = write #et #d0 #d1 #d2 #l a ijk v #s

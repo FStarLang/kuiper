@@ -34,7 +34,7 @@ fn test1 (m : array3 u32 (layout 10 10 10))
   preserves m |-> 's
   returns u32
 {
-  let v = Array3.read m (1sz, 2sz, 3sz);
+  let v = Array3.(m.(1sz, 2sz, 3sz));
   v
 }
 
@@ -42,6 +42,6 @@ fn test2 (m : array3 u32 (layout 10 10 10))
   requires m |-> 's
   ensures  m |-> Kuiper.EMatrix3.mupd 's 1 2 3 42ul
 {
-  Array3.write m (1sz, 2sz, 3sz) 42ul;
+  Array3.(m.(1sz, 2sz, 3sz) <- 42ul);
   ()
 }
