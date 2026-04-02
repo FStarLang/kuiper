@@ -3,6 +3,10 @@ module Kuiper.Matrix.Casts
 
 open Kuiper
 
+// This should be restored to show how to cast a matrix into a tiled view via
+// concr/abs. But there is also a better API.
+
+(*
 module EM = Kuiper.EMatrix
 module M  = Kuiper.Matrix
 module M4 = Kuiper.Matrix4
