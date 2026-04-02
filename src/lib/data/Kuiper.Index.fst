@@ -35,7 +35,7 @@ let rec insert_modulo (#n:nat) (i : natlt n) (d : idesc n)
       | 0 -> ()
       | i -> insert_modulo (i-1) ts
 
-let rec modulo_insert (#n:nat) (i : natlt (n+1)) (k : nat{SizeT.fits k}) (d : idesc n)
+let rec modulo_insert (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
   : Lemma (ensures modulo_i i (insert_i i k d) == d)
           [SMTPat (modulo_i i (insert_i i k d))]
   = match i with

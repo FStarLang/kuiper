@@ -2,77 +2,120 @@ module Kuiper.EMatrix4
 #lang-pulse
 
 open Kuiper
-module M = Kuiper.EMatrix
+open Kuiper.Container
+open Kuiper.Approximates
+open FStar.FunctionalExtensionality { (^->>) }
+module F = FStar.FunctionalExtensionality
 
-(* An "erased" matrix, for specification purposes only *)
+[@@erasable]
+noeq
+type ematrix4 (et:Type) (d0 d1 d2 d3 : nat) =
+  | M : f:(natlt d0 & natlt d1 & natlt d2 & natlt d3 ^->> et)
+     -> ematrix4 et d0 d1 d2 d3
 
-type ematrix4 (et:Type) (mrows mcols brows bcols : nat) =
-  M.ematrix et
-    (mrows * brows)
-    (mcols * bcols)
+unfold let t = ematrix4
 
-let mkM (#et:Type) (#mrows #mcols #brows #bcols : nat)
-  (f : natlt mrows -> natlt mcols -> natlt brows -> natlt bcols -> GTot et)
-  : ematrix4 et mrows mcols brows bcols
-  = M.mkM <| fun i j -> f (i / brows) (j / bcols) (i % brows) (j % bcols)
+let mkM (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (f : natlt d0 -> natlt d1 -> natlt d2 -> natlt d3 -> GTot et)
+  : ematrix4 et d0 d1 d2 d3
+  = M <| F.on_g _ <| fun (i, j, k, l) -> f i j k l
 
-let macc (#et:Type) (#mrows #mcols #brows #bcols : nat)
-  (m : ematrix4 et mrows mcols brows bcols)
-  (bi : natlt mrows)
-  (bj : natlt mcols)
-  (i  : natlt brows)
-  (j  : natlt bcols)
+let const_matrix (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (v:et)
+  : ematrix4 et d0 d1 d2 d3
+  = mkM fun _ _ _ _ -> v
+
+let macc (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3)
+  (i : natlt d0)
+  (j : natlt d1)
+  (k : natlt d2)
+  (l : natlt d3)
   : GTot et
-  = M.macc m (bi * brows + i) (bj * bcols + j)
+  = m.f (i, j, k, l)
 
-let mupd (#et:Type) (#mrows #mcols #brows #bcols : nat)
-  (m : ematrix4 et mrows mcols brows bcols)
-  (bi : natlt mrows)
-  (bj : natlt mcols)
-  (i  : natlt brows)
-  (j  : natlt bcols)
+let mupd (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3)
+  (i : natlt d0)
+  (j : natlt d1)
+  (k : natlt d2)
+  (l : natlt d3)
   (v : et)
-  : ematrix4 et mrows mcols brows bcols
-  = M.mupd m (bi * brows + i) (bj * bcols + j) v
+  : ematrix4 et d0 d1 d2 d3
+  = mkM fun i' j' k' l' ->
+      if i' = i && j' = j && k' = k && l' = l
+      then v
+      else m.f (i', j', k', l')
 
-val mupd_lem_pat (#et:Type) (#mrows #mcols #brows #bcols : nat)
-  (m : ematrix4 et mrows mcols brows bcols)
-  (bi : natlt mrows)
-  (bj : natlt mcols)
-  (i  : natlt brows)
-  (j  : natlt bcols)
-  (v : et)
-  : Lemma (mupd m bi bj i j v == M.mupd m (bi * brows + i) (bj * bcols + j) v)
-          [SMTPat (mupd m bi bj i j v)]
+val macc_pat (#et :Type) (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3)
+  (i : natlt d0)
+  (j : natlt d1)
+  (k : natlt d2)
+  (l : natlt d3)
+  : Lemma (macc m i j k l == m.f (i, j, k, l))
+          [SMTPat (m.f (i, j, k, l))]
 
-val macc_pat (#et :Type) (#mrows #mcols #brows #bcols : nat)
-  (m : ematrix4 et mrows mcols brows bcols)
-  (bi : natlt mrows)
-  (bj : natlt mcols)
-  (i  : natlt brows)
-  (j  : natlt bcols)
-  : Lemma (macc m bi bj i j == m.f (bi * brows + i, bj * bcols + j))
-          [SMTPat (macc m bi bj i j)]
+let matrix_comb (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (f : binop et)
+  (m1 m2 : ematrix4 et d0 d1 d2 d3)
+  : ematrix4 et d0 d1 d2 d3
+  = mkM fun i j k l -> f (macc m1 i j k l) (macc m2 i j k l)
 
-let mtranspose (#et:Type) (#mrows #mcols #brows #bcols : nat)
-  (m : ematrix4 et mrows brows mcols bcols)
-  : ematrix4 et mcols bcols mrows brows
-  = mkM fun bi i bj j -> macc m bj j bi i
+val equal (#et #d0 #d1 #d2 #d3 : _) (m1 m2 : ematrix4 et d0 d1 d2 d3) : prop
 
-val equal
-  (#et #mrows #mcols #brows #bcols : _)
-  (m1 m2 : ematrix4 et mrows mcols brows bcols) : prop
-
-val lemma_equal_intro
-  (#et #mrows #mcols #brows #bcols : _)
-  (m1 m2 : ematrix4 et mrows mcols brows bcols)
-  : Lemma (requires forall bi bj i j. macc m1 bi bj i j == macc m2 bi bj i j)
+val lemma_equal_intro (#et #d0 #d1 #d2 #d3 : _)
+  (m1 m2 : ematrix4 et d0 d1 d2 d3)
+  : Lemma (requires forall (i:natlt d0) (j:natlt d1) (k:natlt d2) (l:natlt d3). macc m1 i j k l == macc m2 i j k l)
           (ensures equal m1 m2)
           [SMTPat (equal m1 m2)]
 
-val ematrix_ext
-  (#et #mrows #mcols #brows #bcols : _)
-  (m1 m2 : ematrix4 et mrows mcols brows bcols)
+val ext #et #d0 #d1 #d2 #d3
+  (m1 m2 : ematrix4 et d0 d1 d2 d3)
   : Lemma (requires equal m1 m2)
           (ensures m1 == m2)
           [SMTPat (equal m1 m2)]
+
+let ematrix_approximates #et
+  {| scalar et, Kuiper.Approximates.real_like et |}
+  #d0 #d1 #d2 #d3
+  (m1 : ematrix4 et d0 d1 d2 d3)
+  (m2 : ematrix4 real d0 d1 d2 d3)
+  : prop
+  = forall (i:natlt d0) (j:natlt d1) (k:natlt d2) (l:natlt d3).
+      macc m1 i j k l %~ macc m2 i j k l
+
+instance ematrix_can_approximate
+  (#et : Type0) {| scalar et, real_like et |}
+  (#d0 #d1 #d2 #d3 : nat)
+  : can_approximate (ematrix4 et d0 d1 d2 d3) (ematrix4 real d0 d1 d2 d3) =
+{
+  approximates = ematrix_approximates;
+}
+
+let to_real_matrix (#et : Type0)
+  {| scalar et, real_like et |}
+  (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3)
+  : GTot (ematrix4 real d0 d1 d2 d3)
+  = mkM fun i j k l -> to_real (macc m i j k l)
+
+val lemma_to_real_matrix_approximates (#et : Type0)
+  {| scalar et, d : real_like et |}
+  (#d0 #d1 #d2 #d3 : nat)
+  (m : ematrix4 et d0 d1 d2 d3)
+  : Lemma (ensures m %~ to_real_matrix m)
+          [SMTPat (to_real_matrix m)]
+
+instance ematrix_is_container
+  (et:Type) (#d0 #d1 #d2 #d3 : nat)
+  : container (ematrix4 et d0 d1 d2 d3) (natlt d0 & natlt d1 & natlt d2 & natlt d3) et
+= {
+    acc = (fun m (i, j, k, l) -> macc m i j k l);
+    upd = (fun m (i, j, k, l) x -> mupd m i j k l x);
+    l1 = ez;
+    l2 = ez;
+    ext = (fun c1 c2 _ -> assert (equal c1 c2));
+    from_fun = (fun f -> mkM fun i j k l -> f (i, j, k, l));
+    from_fun_ok = ez;
+  }

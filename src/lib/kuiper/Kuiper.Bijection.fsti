@@ -345,12 +345,31 @@ let bij_prod3 (#a1 #a2 #a3 #b1 #b2 #b3 : Type)
   gg_ff = (fun (x1, x2, x3) -> ab1.gg_ff x1; ab2.gg_ff x2; ab3.gg_ff x3);
 }
 
+let bij_prod4 (#a1 #a2 #a3 #a4 #b1 #b2 #b3 #b4 : Type)
+  (ab1 : a1 =~ b1) (ab2 : a2 =~ b2) (ab3 : a3 =~ b3) (ab4 : a4 =~ b4)
+  : (a1 & a2 & a3 & a4 =~ b1 & b2 & b3 & b4) =
+{
+  ff = (fun (x1, x2, x3, x4) -> (ab1.ff x1, ab2.ff x2, ab3.ff x3, ab4.ff x4));
+  gg = (fun (y1, y2, y3, y4) -> (ab1.gg y1, ab2.gg y2, ab3.gg y3, ab4.gg y4));
+  ff_gg = (fun (y1, y2, y3, y4) -> ab1.ff_gg y1; ab2.ff_gg y2; ab3.ff_gg y3; ab4.ff_gg y4);
+  gg_ff = (fun (x1, x2, x3, x4) -> ab1.gg_ff x1; ab2.gg_ff x2; ab3.gg_ff x3; ab4.gg_ff x4);
+}
+
 instance nb_prod3 (a1 a2 a3 b1 b2 b3 : Type)
   (nb1 : natural_bijection a1 b1)
   (nb2 : natural_bijection a2 b2)
   (nb3 : natural_bijection a3 b3)
   : natural_bijection (a1 & a2 & a3) (b1 & b2 & b3) = {
   _bij = bij_prod3 nb1._bij nb2._bij nb3._bij;
+}
+
+instance nb_prod4 (a1 a2 a3 a4 b1 b2 b3 b4 : Type)
+  (nb1 : natural_bijection a1 b1)
+  (nb2 : natural_bijection a2 b2)
+  (nb3 : natural_bijection a3 b3)
+  (nb4 : natural_bijection a4 b4)
+  : natural_bijection (a1 & a2 & a3 & a4) (b1 & b2 & b3 & b4) = {
+  _bij = bij_prod4 nb1._bij nb2._bij nb3._bij nb4._bij;
 }
 
 let natural (#a #b : Type) {| d : natural_bijection a b |} : bijection a b = d._bij
@@ -372,11 +391,20 @@ let cbij_push_tuple3 (#a #b #c : _) :
   cgg = (fun (y, (x, z)) -> (x, (y, z)));
 }
 
-let bij_tuple_nest (#a #b #c : _) :
+let bij_tuple3_nest (#a #b #c : _) :
   (a & b & c =~ (a & (b & c))) =
 {
   ff = (fun (x, y, z) -> (x, (y, z)));
   gg = (fun (x, (y, z)) -> (x, y, z));
+  ff_gg = ez;
+  gg_ff = ez;
+}
+
+let bij_tuple4_nest (#a #b #c #d : _) :
+  (a & b & c & d =~ (a & (b & c & d))) =
+{
+  ff = (fun (x, y, z, w) -> (x, (y, z, w)));
+  gg = (fun (x, (y, z, w)) -> (x, y, z, w));
   ff_gg = ez;
   gg_ff = ez;
 }

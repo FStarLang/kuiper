@@ -146,7 +146,7 @@ val insert_modulo (#n:nat) (i : natlt n) (d : idesc n)
   : Lemma (insert_i #(n-1) i (d @! i) (modulo_i i d) == d)
           [SMTPat (insert_i #(n-1) i (d @! i) (modulo_i i d))]
 
-val modulo_insert (#n:nat) (i : natlt (n+1)) (k : nat{SZ.fits k}) (d : idesc n)
+val modulo_insert (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
   : Lemma (ensures modulo_i i (insert_i i k d) == d)
           [SMTPat (modulo_i i (insert_i i k d))]
 

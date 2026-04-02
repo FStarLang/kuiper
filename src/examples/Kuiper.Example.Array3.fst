@@ -10,7 +10,7 @@ module SZ = Kuiper.SizeT
 
 let layout (d0 d1 d2 : nat) : layout d0 d1 d2 = {
   ulen = d0 * (d1 * d2);
-  imap = inj_bij (bij_tuple_nest `bij_comp` bij_prod (bij_self _) bij_nat_prod `bij_comp` bij_nat_prod); // row major
+  imap = inj_bij (bij_tuple3_nest `bij_comp` bij_prod (bij_self _) bij_nat_prod `bij_comp` bij_nat_prod); // row major
 }
 
 inline_for_extraction noextract
