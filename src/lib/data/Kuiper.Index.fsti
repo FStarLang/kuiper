@@ -13,6 +13,8 @@ type idesc : nat -> Type =
   | INil : idesc 0
   | ICons : #n:nat -> w:nat -> tl:(idesc n) -> idesc (n+1)
 
+unfold let ( @| ) (#n:nat) = ICons #n
+
 let tail (#n:pos) (d : idesc n) : idesc (n-1) =
   match d with
   | ICons _ tl -> tl

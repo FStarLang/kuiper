@@ -11,7 +11,7 @@ inline_for_extraction noextract
 type snat = x:nat{SizeT.fits x}
 
 let desc m n : idesc 2 =
-  ICons m (ICons n INil)
+  m @| n @| INil
 
 let m2_rm_inj (m n : snat) : (abs (desc m n) @~> natlt (m*n)) =
   mk_injection #(abs (desc m n)) #(natlt (m*n))
