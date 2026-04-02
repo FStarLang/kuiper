@@ -457,6 +457,7 @@ fn matmul_tiled_dotprod'
   !sum
 }
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn matmul_tiled_dotprod_real
   (#et : Type0) {| scalar et, real_like et |}
@@ -552,6 +553,7 @@ fn matmul_tiled_dotprod_real
 
   !sum
 }
+#pop-options
 
 (* Used by SHMEM, Blocktiling1D *)
 inline_for_extraction noextract

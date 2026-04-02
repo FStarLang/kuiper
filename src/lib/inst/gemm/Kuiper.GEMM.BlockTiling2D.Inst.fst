@@ -12,7 +12,7 @@ module MS = Kuiper.Spec.GEMM
 module P = Kuiper.Poly.GEMM.BlockTiling2D
 module SZ = Kuiper.SizeT
 
-#set-options "--z3rlimit 60"
+#set-options "--z3rlimit 80"
 
 inline_for_extraction noextract
 fn spec
