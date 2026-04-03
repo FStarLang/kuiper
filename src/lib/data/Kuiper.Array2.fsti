@@ -136,14 +136,6 @@ fn gather_n
     a |-> Frac f s
 
 inline_for_extraction noextract
-let clayout_imap
-  (#rows #cols : erased nat)
-  (#l : layout rows cols)
-  (c : clayout l)
-  : (szlt rows & szlt cols) -> szlt l.ulen
-  = fun (i, j) -> c.cimap i j
-
-inline_for_extraction noextract
 fn read
   (#et : Type0)
   (#rows #cols : erased nat)
