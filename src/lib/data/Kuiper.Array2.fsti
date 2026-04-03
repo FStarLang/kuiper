@@ -9,7 +9,6 @@ open Kuiper.Index
 open Kuiper.EMatrix
 open Kuiper.Matrix.Common
 open FStar.Tactics.Typeclasses { no_method }
-module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -43,17 +42,6 @@ class clayout (#rows #cols : erased nat) (l : layout rows cols) = {
     j:szlt cols  ->
     r:SZ.t{SZ.v r == l.imap.f (SZ.v i, SZ.v j)};
 }
-
-let aview (et : Type) (#rows #cols : nat) (l : layout rows cols)
-  : V.aview et (ematrix et rows cols)
-  = {
-      iview = {
-        len = l.ulen;
-        ait = ait rows cols;
-        step = { imap = l.imap; };
-      };
-      ctn = solve;
-    }
 
 inline_for_extraction noextract
 val t (et : Type0) (#rows #cols : nat) (l : layout rows cols) : Type0
@@ -154,25 +142,6 @@ let clayout_imap
   (c : clayout l)
   : (szlt rows & szlt cols) -> szlt l.ulen
   = fun (i, j) -> c.cimap i j
-
-inline_for_extraction noextract
-instance cfarray_ciview
-  (et : Type)
-  (#rows #cols : erased nat)
-  (l : layout rows cols)
-  (c : clayout l)
-  : Kuiper.IView.ciview (aview et l).iview =
-{
-  clen = c.culen;
-  sch = {
-    cit = szlt rows & szlt cols;
-    bij = Kuiper.Bijection.natural;
-  };
-  step = {
-    cimap = mk_cinj (clayout_imap c);
-    compat = ez;
-  };
-}
 
 inline_for_extraction noextract
 fn read

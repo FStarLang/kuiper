@@ -8,7 +8,6 @@ open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.EMatrix4
 open FStar.Tactics.Typeclasses { no_method }
-module V = Kuiper.View
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -44,17 +43,6 @@ class clayout (#d0 #d1 #d2 #d3 : erased nat) (l : layout d0 d1 d2 d3) = {
     m:szlt d3 ->
     r:SZ.t{SZ.v r == l.imap.f (SZ.v i, SZ.v j, SZ.v k, SZ.v m)};
 }
-
-let aview (et : Type) (#d0 #d1 #d2 #d3 : nat) (l : layout d0 d1 d2 d3)
-  : V.aview et (EMatrix4.t et d0 d1 d2 d3)
-  = {
-      iview = {
-        len = l.ulen;
-        ait = ait d0 d1 d2 d3;
-        step = { imap = l.imap; };
-      };
-      ctn = solve;
-    }
 
 inline_for_extraction noextract
 val t (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout d0 d1 d2 d3) : Type0
@@ -155,26 +143,6 @@ let clayout_imap
   (c : clayout l)
   : (szlt d0 & szlt d1 & szlt d2 & szlt d3 -> szlt c.culen)
   = fun (i, j, k, m) -> c.cimap i j k m
-
-// This need not be exposed.
-inline_for_extraction noextract
-instance cfarray_ciview
-  (et : Type)
-  (#d0 #d1 #d2 #d3 : erased nat)
-  (l : layout d0 d1 d2 d3)
-  (c : clayout l)
-  : Kuiper.IView.ciview (aview et l).iview =
-{
-  clen = c.culen;
-  sch = {
-    cit = (szlt d0 & szlt d1 & szlt d2 & szlt d3);
-    bij = Kuiper.Bijection.natural;
-  };
-  step = {
-    cimap = mk_cinj (clayout_imap c);
-    compat = ez;
-  };
-}
 
 inline_for_extraction noextract
 fn read
