@@ -15,6 +15,10 @@ type idesc : nat -> Type =
 
 unfold let ( @| ) (#n:nat) = ICons #n
 
+let head (#n:pos) (d : idesc n) : GTot nat =
+  match d with
+  | ICons hd _ -> hd
+
 let tail (#n:pos) (d : idesc n) : idesc (n-1) =
   match d with
   | ICons _ tl -> tl
@@ -112,6 +116,7 @@ val down_up #n (#d : idesc n) (v : conc d) :
         [SMTPat (down (up v))]
 
 (* Remove (fix) a given dimension *)
+[@@strict_on_arguments [2]]
 let rec modulo_i (#n:nat) (i : natlt n) (d : idesc n) : idesc (n-1) =
   (* Cannot match on d and i simultaneously *)
   match d with
@@ -134,6 +139,7 @@ let rec all_fit_modulo (#n:nat) (i : natlt n) (d : idesc n)
 #pop-options
 
 (* Insert a dimension. Note the n+1, one can insert at the very end. *)
+[@@strict_on_arguments [3]]
 let rec insert_i (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n) : idesc (n+1) =
   match i with
   | 0 -> ICons k d
@@ -178,15 +184,30 @@ let rec conc_bring_forward_bij (#n:nat) (i : natlt n) (d : idesc n)
       bij_push_tuple3 #(szlt (d @! 0))
 
 (* A computationally relevant version of the above, for use in cimap. *)
+[@@strict_on_arguments [2]]
 inline_for_extraction noextract
 let rec c_conc_bring_forward_bij (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
   : cb : (conc d ==~ szlt (d @! i) & conc (modulo_i i d)) { cb.bij == conc_bring_forward_bij i d }
-  = match i with
-    | 0sz -> cbij_self _
-    | _ ->
+  = if i = 0sz then
+      cbij_self _
+    else
       cbij_prod (cbij_self _) (c_conc_bring_forward_bij (i-^1sz) (ICons?.tl d))
       `cbij_comp`
       cbij_push_tuple3 #(szlt (d @! 0))
+
+(* A computationally relevant version of the above, for use in cimap. *)
+[@@strict_on_arguments []]
+inline_for_extraction noextract
+let rec c_bring_forward_ff (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
+  (idx : conc d) : szlt (d @! i) & conc (modulo_i i d)
+  = if i = 0sz then
+      idx
+    else
+      let dh : Ghost.erased nat = head d in
+      let dt = tail d in
+      let h, t = idx <: szlt dh & conc dt in
+      let x, t' = c_bring_forward_ff (i-^1sz) dt t in
+      x, (h, t')
 
 (*
    abs d --abs_bring_forward--> natlt (d @! i) & abs (modulo_i i d)

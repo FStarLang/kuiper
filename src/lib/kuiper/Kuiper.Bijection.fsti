@@ -278,15 +278,18 @@ noeq type cbij (a b: Type) = {
   cff: cff: (a -> b) { forall x. cff x == bij.ff x };
   cgg: cgg: (b -> a) { forall x. cgg x == bij.gg x };
 }
+
 inline_for_extraction
 let (==~) = cbij
 
+inline_for_extraction noextract
 let cbij_self (a:Type) : (a ==~ a) = {
   bij = bij_self _;
   cff = id;
   cgg = id;
 }
 
+inline_for_extraction noextract
 let cbij_prod (#a #b #c #d : Type) (ab : a ==~ b) (cd : c ==~ d) : (a & c ==~ b & d) =
 {
   bij = bij_prod ab.bij cd.bij;
@@ -294,6 +297,7 @@ let cbij_prod (#a #b #c #d : Type) (ab : a ==~ b) (cd : c ==~ d) : (a & c ==~ b 
   cgg = (fun (x, y) -> (ab.cgg x, cd.cgg y));
 }
 
+inline_for_extraction noextract
 let cbij_comp (#a #b #c : Type) (ab : a ==~ b) (bc : b ==~ c) : (a ==~ c) =
 {
   bij = bij_comp ab.bij bc.bij;
@@ -383,6 +387,7 @@ let bij_push_tuple3 (#a #b #c : _) :
   gg_ff = ez;
 }
 
+inline_for_extraction noextract
 let cbij_push_tuple3 (#a #b #c : _) :
   ((a & (b & c)) ==~ (b & (a & c))) =
 {
