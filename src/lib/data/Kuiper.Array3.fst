@@ -8,28 +8,10 @@ module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
-let desc (d0 d1 d2 : nat) : idesc 3 =
-  d0 @| d1 @| d2 @| INil
-
-let adapt_idx (#d0 #d1 #d2 : nat) (idx : abs (desc d0 d1 d2)) : ait d0 d1 d2 =
-  match idx with
-  | (i, (j, (k, ()))) -> (i, j, k)
-
-let adapt_idx_back (#d0 #d1 #d2 : nat) (idx : ait d0 d1 d2) : abs (desc d0 d1 d2) =
-  match idx with
-  | (i, j, k) -> (i, (j, (k, ())))
-
 inline_for_extraction noextract
 let adapt_cit_back (d0 d1 d2 : erased nat) (idx : raw_cit{cit_fits d0 d1 d2 idx}) : conc (desc d0 d1 d2) =
   match idx with
   | (i, j, k) -> (i, (j, (k, ())))
-
-#push-options "--ifuel 3" // sigh
-let tr_layout (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : tlayout (desc d0 d1 d2) = {
-  ulen = l.ulen;
-  imap = mk_injection (fun idx -> l.imap.f (adapt_idx idx)) ez;
-}
-#pop-options
 
 #push-options "--ifuel 3" // sigh
 let abs_bij (#d0 #d1 #d2 : nat) : (abs (desc d0 d1 d2) =~ (ait d0 d1 d2)) =
@@ -45,20 +27,8 @@ let tr_val (#et : Type) (#d0 #d1 #d2 : nat) (s : EMatrix3.t et d0 d1 d2)
   : chest (desc d0 d1 d2) et
   = Chest.mk (desc d0 d1 d2) (fun (i, (j, (k, ()))) -> EMatrix3.macc s i j k)
 
-inline_for_extraction noextract
-instance clayout_to_tlayout (#d0 #d1 #d2 : erased nat) (#l : layout d0 d1 d2)
-  (c : clayout l)
-  : ctlayout (tr_layout l) =
-{
-  culen   = c.culen;
-  all_fit = ();
-  cimap   = (fun (idx : conc (desc d0 d1 d2)) ->
-              match idx with
-              | (i, (j, (k, ()))) -> c.cimap i j k);
-}
-
 let t (et : Type0) (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : Type0 =
-  T.tensor et (tr_layout l)
+  T.tensor et l
 
 let is_global (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
   (a : t et l)
@@ -172,7 +142,7 @@ inline_for_extraction noextract
 fn read
   (#et : Type0)
   (#d0 #d1 #d2 : erased nat)
-  (#l : layout d0 d1 d2) {| clayout l |}
+  (#l : layout d0 d1 d2) {| ctlayout l |}
   (a : t et l)
   (idx : raw_cit{cit_fits d0 d1 d2 idx})
   (#f : perm)
@@ -195,7 +165,7 @@ inline_for_extraction noextract
 fn write
   (#et : Type0)
   (#d0 #d1 #d2 : erased nat)
-  (#l : layout d0 d1 d2) {| clayout l |}
+  (#l : layout d0 d1 d2) {| ctlayout l |}
   (a : t et l)
   (idx : raw_cit{cit_fits d0 d1 d2 idx})
   (v : et)
@@ -228,7 +198,7 @@ let pts_to_cell_eq
   (a : t et l) (ijk : ait d0 d1 d2) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f ijk v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f ijk) v)
+           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ijk)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back ijk) f v
 
 ghost

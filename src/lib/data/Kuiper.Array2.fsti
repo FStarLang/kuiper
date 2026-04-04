@@ -12,7 +12,18 @@ open FStar.Tactics.Typeclasses { no_method }
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
+let desc (rows cols : nat) : idesc 2 =
+  rows @| cols @| INil
+
 let ait (rows cols : nat) = natlt rows & natlt cols
+
+let adapt_idx (#rows #cols : nat) (idx : abs (desc rows cols)) : ait rows cols =
+  match idx with
+  | (i, (j, ())) -> (i, j)
+
+let adapt_idx_back (#rows #cols : nat) (idx : ait rows cols) : abs (desc rows cols) =
+  match idx with
+  | (i, j) -> (i, (j, ()))
 
 let raw_cit = sz & sz
 
@@ -20,28 +31,9 @@ let cit_fits (rows cols : nat) (idx : raw_cit) : prop =
   pi_2_0 idx < rows /\ pi_2_1 idx < cols
 
 [@@erasable]
-noeq
-type layout (rows cols : nat) = {
-  ulen : nat;
-  imap : ait rows cols @~> natlt ulen;
-}
+type layout (rows cols : nat) = tlayout (desc rows cols)
 
 let layout_size (#rows #cols : nat) (l : layout rows cols) : GTot nat = l.ulen
-
-inline_for_extraction noextract
-class clayout (#rows #cols : erased nat) (l : layout rows cols) = {
-  [@@@no_method]
-  culen : (x:SZ.t { SZ.v x == l.ulen });
-
-  [@@@no_method]
-  all_fit : squash (SZ.fits rows /\ SZ.fits cols);
-
-  [@@@no_method]
-  cimap :
-    i:szlt rows  ->
-    j:szlt cols  ->
-    r:SZ.t{SZ.v r == l.imap.f (SZ.v i, SZ.v j)};
-}
 
 inline_for_extraction noextract
 val t (et : Type0) (#rows #cols : nat) (l : layout rows cols) : Type0
@@ -139,7 +131,7 @@ inline_for_extraction noextract
 fn read
   (#et : Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| clayout l |}
+  (#l : layout rows cols) {| ctlayout l |}
   (a : t et l)
   (ij : raw_cit{cit_fits rows cols ij})
   (#f : perm)
@@ -155,7 +147,7 @@ inline_for_extraction noextract
 fn write
   (#et : Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| clayout l |}
+  (#l : layout rows cols) {| ctlayout l |}
   (a : t et l)
   (ij : raw_cit{cit_fits rows cols ij})
   (v : et)
@@ -185,7 +177,7 @@ val pts_to_cell_eq
   (a : t et l) (ij : ait rows cols) (f : perm) (v : et)
   : Lemma (Cell a ij |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f ij) v)
+           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
 
 ghost
 fn explode
@@ -213,20 +205,22 @@ fn implode
     a |-> Frac f s
 
 (* Syntax, in lieu of a typeclass *)
+inline_for_extraction noextract
 unfold let op_Array_Access
   (#et : Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| clayout l |}
+  (#l : layout rows cols) {| ctlayout l |}
   (a : t et l)
   (ij : raw_cit{cit_fits rows cols ij})
   (#f : perm)
   (#s : erased (ematrix et rows cols))
   = read #et #rows #cols #l a ij #f #s
 
+inline_for_extraction noextract
 unfold let op_Array_Assignment
   (#et : Type0)
   (#rows #cols : erased nat)
-  (#l : layout rows cols) {| clayout l |}
+  (#l : layout rows cols) {| ctlayout l |}
   (a : t et l)
   (ij : raw_cit{cit_fits rows cols ij})
   (v : et)

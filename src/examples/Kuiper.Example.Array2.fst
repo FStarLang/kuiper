@@ -6,21 +6,35 @@ open Kuiper.Array2
 module Array2 = Kuiper.Array2
 open Kuiper.Bijection
 open Kuiper.Injection
+open Kuiper.TensorLayout
+open Kuiper.Index
 open Kuiper.EMatrix
 module SZ = Kuiper.SizeT
+module Tac = FStar.Tactics.V2
 
-let layout (rows cols : nat) : layout rows cols = {
-  ulen = rows * cols;
-  imap = inj_bij bij_nat_prod; // row major
-}
+let layout (rows cols : nat) : layout rows cols =
+  pack <|
+  g_grouped_by 0 rows <|
+  g_grouped_by 0 cols <|
+  lunit
 
+// VERY brittle postprocessing to make sure we get a 1st-order function. Would
+// not be needed if strict_on_arguments worked properly on recursive functions
+// (it seems not to).
+[@@Tac.(postprocess_with (fun () ->
+           norm [iota; delta; zeta_full; zeta; primops];
+           trefl ()))]
 inline_for_extraction noextract
-instance blah (rows : SZ.t{SZ.fits rows}) (cols : SZ.t{SZ.fits cols /\ SZ.fits (SZ.v rows * SZ.v cols)}) : clayout (layout rows cols) =
-  {
-    culen = rows `SZ.mul` cols;
-    all_fit = ();
-    cimap = (fun i j -> i `SZ.mul` cols `SZ.add` j);
-  }
+instance blah
+  (rows : SZ.t{SZ.fits rows})
+  (cols : SZ.t{SZ.fits cols})
+  (#_ : squash (SZ.fits (rows * cols)))
+  : ctlayout (layout rows cols)
+  =
+  close _ <|
+  c_grouped_by 0sz _ #_ #{v = cols} <|
+  c_grouped_by 0sz _ #_ #{v = 1sz} <|
+  cunit
 
 fn test0 (m : array2 u32 (layout 3 5))
 {
@@ -29,7 +43,7 @@ fn test0 (m : array2 u32 (layout 3 5))
 
 // Should not be needed, maybe Kuiper.concrete can solve this eventually
 inline_for_extraction noextract
-instance _crutch : clayout (layout 10 10) = blah 10sz 10sz
+instance _crutch : ctlayout (layout 10 10) = blah 10sz 10sz
 
 fn test1 (m : array2 u32 (layout 10 10))
   preserves m |-> 's

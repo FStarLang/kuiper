@@ -8,12 +8,7 @@ module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
-let tr_layout (#len : nat) (l : layout len) : tlayout (len @| INil) = {
-  ulen = l.ulen;
-  imap = mk_injection (fun (i, ()) -> l.imap.f i) ez;
-}
-
-let abs_bij (#len : nat) : (abs (len @| INil) =~ ait len) =
+let abs_bij (#len : nat) : (abs (desc len) =~ ait len) =
   {
     ff = (fun (i, ()) -> i);
     gg = (fun i -> (i, ()));
@@ -21,23 +16,15 @@ let abs_bij (#len : nat) : (abs (len @| INil) =~ ait len) =
     gg_ff = ez;
   }
 
-let tr_val (#et : Type) (#len : nat) (s : lseq et len) : chest (len @| INil) et =
-  Chest.mk (len @| INil) (fun (i, ()) -> s @! i)
+let tr_val (#et : Type) (#len : nat) (s : lseq et len) : chest (desc len) et =
+  Chest.mk (desc len) (fun (i, ()) -> s @! i)
 
 inline_for_extraction noextract
-instance clayout_to_tlayout (#len : erased nat) (#l : layout len)
-  (c : clayout l)
-  : ctlayout (tr_layout l) =
-{
-  culen   = c.culen;
-  all_fit = ();
-  cimap   = (fun (idx : conc (len @| INil)) ->
-              match idx with
-              | (i, ()) -> c.cimap i);
-}
+let adapt_cit_back (len : erased nat) (idx : raw_cit{cit_fits len idx}) : conc (desc len) =
+  (idx, ())
 
 let t (et : Type0) (#len : nat) (l : layout len) : Type0 =
-  T.tensor et (tr_layout l)
+  T.tensor et l
 
 let is_global (#et : Type0) (#len : nat) (#l : layout len)
   (a : t et l)
@@ -148,14 +135,10 @@ fn gather_n
 }
 
 inline_for_extraction noextract
-let adapt_cit_back (len : erased nat) (idx : raw_cit{cit_fits len idx}) : conc (len @| INil) =
-  (idx, ())
-
-inline_for_extraction noextract
 fn read
   (#et : Type0)
   (#len : erased nat)
-  (#l : layout len) {| clayout l |}
+  (#l : layout len) {| ctlayout l |}
   (a : t et l)
   (i : raw_cit{cit_fits len i})
   (#f : perm)
@@ -177,7 +160,7 @@ inline_for_extraction noextract
 fn write
   (#et : Type0)
   (#len : erased nat)
-  (#l : layout len) {| clayout l |}
+  (#l : layout len) {| ctlayout l |}
   (a : t et l)
   (i : raw_cit{cit_fits len i})
   (v : et)
@@ -209,8 +192,8 @@ let pts_to_cell_eq
   (a : t et l) (i : ait len) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f i v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f i) v)
-  = T.tensor_pts_to_cell_eq a (i, ()) f v
+           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
+  = T.tensor_pts_to_cell_eq a (adapt_idx_back i) f v
 
 ghost
 fn explode
@@ -245,7 +228,7 @@ fn implode
     a |-> Frac f s
 {
   forevery_iso (bij_sym abs_bij) _;
-  forevery_ext _ (fun (i : abs (len @| INil)) -> Cell a i |-> Frac f (acc (tr_val s) i));
+  forevery_ext _ (fun (i : abs (desc len)) -> Cell a i |-> Frac f (acc (tr_val s) i));
   T.tensor_implode a;
   fold pts_to a #f s;
 }

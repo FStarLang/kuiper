@@ -10,7 +10,17 @@ open FStar.Tactics.Typeclasses { no_method }
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
+let desc (len : nat) : idesc 1 =
+  len @| INil
+
 let ait (len : nat) = natlt len
+
+let adapt_idx (#len : nat) (idx : abs (desc len)) : ait len =
+  match idx with
+  | (i, ()) -> i
+
+let adapt_idx_back (#len : nat) (idx : ait len) : abs (desc len) =
+  (idx, ())
 
 let raw_cit = sz
 
@@ -18,27 +28,9 @@ let cit_fits (len : nat) (idx : raw_cit) : prop =
   idx < len
 
 [@@erasable]
-noeq
-type layout (len : nat) = {
-  ulen : nat;
-  imap : ait len @~> natlt ulen;
-}
+type layout (len : nat) = tlayout (desc len)
 
 let layout_size (#len : nat) (l : layout len) : GTot nat = l.ulen
-
-inline_for_extraction noextract
-class clayout (#len : erased nat) (l : layout len) = {
-  [@@@no_method]
-  culen : (x:SZ.t { SZ.v x == l.ulen });
-
-  [@@@no_method]
-  all_fit : squash (SZ.fits len);
-
-  [@@@no_method]
-  cimap :
-    i:szlt len ->
-    r:SZ.t{SZ.v r == l.imap.f (SZ.v i)};
-}
 
 inline_for_extraction noextract
 val t (et : Type0) (#len : nat) (l : layout len) : Type0
@@ -136,7 +128,7 @@ inline_for_extraction noextract
 fn read
   (#et : Type0)
   (#len : erased nat)
-  (#l : layout len) {| clayout l |}
+  (#l : layout len) {| ctlayout l |}
   (a : t et l)
   (i : raw_cit{cit_fits len i})
   (#f : perm)
@@ -152,7 +144,7 @@ inline_for_extraction noextract
 fn write
   (#et : Type0)
   (#len : erased nat)
-  (#l : layout len) {| clayout l |}
+  (#l : layout len) {| ctlayout l |}
   (a : t et l)
   (i : raw_cit{cit_fits len i})
   (v : et)
@@ -182,7 +174,7 @@ val pts_to_cell_eq
   (a : t et l) (i : ait len) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f i) v)
+           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
 
 ghost
 fn explode
@@ -210,20 +202,22 @@ fn implode
     a |-> Frac f s
 
 (* Syntax, in lieu of a typeclass *)
+inline_for_extraction noextract
 unfold let op_Array_Access
   (#et : Type0)
   (#len : erased nat)
-  (#l : layout len) {| clayout l |}
+  (#l : layout len) {| ctlayout l |}
   (a : t et l)
   (i : raw_cit{cit_fits len i})
   (#f : perm)
   (#s : erased (lseq et len))
   = read #et #len #l a i #f #s
 
+inline_for_extraction noextract
 unfold let op_Array_Assignment
   (#et : Type0)
   (#len : erased nat)
-  (#l : layout len) {| clayout l |}
+  (#l : layout len) {| ctlayout l |}
   (a : t et l)
   (i : raw_cit{cit_fits len i})
   (v : et)
