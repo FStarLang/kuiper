@@ -56,6 +56,19 @@ let pack (#n:nat) (#d:idesc n) (f : layout_f_for d) : tlayout d =
   let imap = f in
   { ulen; imap }
 
+let g_grouped_by_f (#n:nat)
+  (i : natlt (n+1))
+  (k : nat)
+  (#d : idesc n)
+  (sub : layout_f_for d)
+  : abs (insert_i i k d) -> GTot (natlt (sizeof (insert_i i k d)))
+  = fun (idx : abs (insert_i i k d)) ->
+      modulo_insert i k d;
+      let maj, min = (abs_bring_forward_bij i (insert_i i k d)).ff idx in
+      let sub_i : natlt (sizeof d) = sub.f min in
+      let offset = maj * sizeof d in
+      offset + sub_i
+
 #push-options "--z3rlimit 20"
 let g_grouped_by (#n:nat)
   (i : natlt (n+1))
@@ -63,21 +76,16 @@ let g_grouped_by (#n:nat)
   (#d : idesc n)
   (sub : layout_f_for d)
   : layout_f_for (insert_i i k d)
-  =
-  mk_injection #(abs (insert_i i k d)) #(natlt (sizeof (insert_i i k d)))
-    (fun (idx : abs (insert_i i k d)) ->
-      modulo_insert i k d;
-      let maj, min = (abs_bring_forward_bij i (insert_i i k d)).ff idx in
-      let sub_i : natlt (sizeof d) = sub.f min in
-      let offset = maj * sizeof d in
-      offset + sub_i)
-    (fun _ _ -> ())
+  = {
+    f = g_grouped_by_f i k sub;
+    is_inj = ez;
+  }
 #pop-options
 
 let row_major' (m n : SZ.t) : tlayout (m @| n @| INil) =
   pack <|
-  g_grouped_by 0 m  <|
-  g_grouped_by 0 n  <|
+  g_grouped_by 0 m <|
+  g_grouped_by 0 n <|
   lunit
 
 let col_major' (m n : SZ.t) : tlayout (m @| n @| INil) =

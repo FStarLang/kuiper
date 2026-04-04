@@ -71,6 +71,53 @@ let cff (#a #b : _) (c : cbij a b) : (a -> b) =
   match c with | { cff } -> cff
 
 inline_for_extraction noextract
+let c_grouped_by_f
+  (#n: erased nat)
+  (i : szlt (n+1))
+  (k : erased nat)
+  (#d : idesc n)
+  {| cs : csizeof d |}
+  (#sub : layout_f_for d)
+  (c_sub : auto_cinj sub)
+  (idx:conc (insert_i i k d))
+  : szlt (sizeof (insert_i i k d))
+  = modulo_insert i k d;
+    let maj, min = c_bring_forward_ff i (insert_i i k d) idx in
+    let { ff } = c_sub in
+    let sub_i : szlt (sizeof d) = ff min in
+    assume (SZ.fits (maj * cs.v)); // Where will this come from?
+    let offset : SZ.t = maj *^ cs.v in
+    assume (SZ.fits (offset + sub_i)); // idem
+    let r = offset +^ sub_i in
+    r
+
+let lem_c_grouped_by_f_ok
+  (#n: erased nat)
+  (i : szlt (n+1))
+  (k : erased nat)
+  (#d : idesc n)
+  {| cs : csizeof d |}
+  (#sub : layout_f_for d)
+  (c_sub : auto_cinj sub)
+  (idx:conc (insert_i i k d))
+  : Lemma (SZ.v (c_grouped_by_f i k c_sub idx) == g_grouped_by_f i k sub (up idx))
+          [SMTPat (c_grouped_by_f i k c_sub idx)]
+  = let amaj, amin = (abs_bring_forward_bij i (insert_i i k d)).ff (up idx) in
+    let maj, min = c_bring_forward_ff i (insert_i i k d) idx in
+    assume (SZ.fits (maj * cs.v)); // Where will this come from?
+    lemma_c_bring_forward_ff_ok i (insert_i i k d) idx;
+    bring_forward_commute2 i (insert_i i k d) maj min;
+    assert (SZ.v maj == amaj);
+    // assume (up min == amin);
+    let asub_i : natlt (sizeof d) = sub.f amin in
+    let { ff } = c_sub in
+    let sub_i = ff min in
+    let aoffset = amaj * sizeof d in
+    assume (SZ.fits (aoffset + sub_i)); // Where will this come from?
+    let offset = maj *^ cs.v in
+    ()
+
+inline_for_extraction noextract
 instance c_grouped_by
   (#n: erased nat)
   (i : szlt (n+1))
@@ -81,15 +128,19 @@ instance c_grouped_by
   (c_sub : auto_cinj sub)
   : auto_cinj (g_grouped_by i k sub) =
   {
-    ff = (fun (idx : conc (insert_i i k d)) ->
-      modulo_insert i k d;
-      let maj, min = c_bring_forward_ff i (insert_i i k d) idx in
-      match c_sub with { ff } ->
-        let unfold sub_i : szlt (sizeof d) = ff min in
-        assume False; // FIXME
-        maj *^ cs.v +^ sub_i
-      );
+    ff = (fun idx -> c_grouped_by_f i k c_sub idx);
   }
+
+inline_for_extraction noextract
+instance c_grouped_by_concrete_i_0'
+  (#n: erased nat{n > 0})
+  (k : erased nat)
+  (#d : idesc (n-1))
+  {| cs : csizeof d |}
+  (#sub : layout_f_for d)
+  (c_sub : auto_cinj sub)
+  : auto_cinj #n (g_grouped_by #(n-1) 0 k sub) =
+  c_grouped_by 0sz k c_sub
 
 inline_for_extraction noextract
 instance close (#n : erased nat) (#d: idesc n) (f : layout_f_for d) (c_f : auto_cinj f)
@@ -117,11 +168,8 @@ instance blah
   : ctlayout (layout d0 d1 d2 d3)
   =
   close _ <|
-  c_grouped_by 0sz _ <|
-  c_grouped_by 0sz _ <|
-  c_grouped_by 0sz _ <|
-  c_grouped_by 0sz _ <|
-  cunit
+  c_grouped_by 0sz _ <| // need this one to get things going...
+  solve_debug
 
 fn test0 (m : array4 u32 (layout 3 5 4 2))
 {
