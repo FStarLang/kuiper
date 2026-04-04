@@ -50,6 +50,18 @@ instance csizeof_ICons
   }
 
 inline_for_extraction noextract
+instance csizeof_insert
+  (#n : pos)
+  (i : natlt n)
+  (d0 : SZ.t)
+  (#d1 : idesc (n-1))
+  (c_d1 : csizeof d1{SZ.fits (d0 * c_d1.v)})
+  : csizeof #n (insert_i #(n-1) i d0 d1) =
+  {
+    v = SZ.mul d0 c_d1.v;
+  }
+
+inline_for_extraction noextract
 instance cunit : auto_cinj lunit = {
   ff = (fun _ -> 0sz);
 }
@@ -70,11 +82,11 @@ instance c_grouped_by
   : auto_cinj (g_grouped_by i k sub) =
   {
     ff = (fun (idx : conc (insert_i i k d)) ->
-      match c_bring_forward_ff i (insert_i i k d) idx with
-      | maj, min ->
+      modulo_insert i k d;
+      let maj, min = c_bring_forward_ff i (insert_i i k d) idx in
       match c_sub with { ff } ->
         let unfold sub_i : szlt (sizeof d) = ff min in
-        assume False;
+        assume False; // FIXME
         maj *^ cs.v +^ sub_i
       );
   }
@@ -92,7 +104,7 @@ instance close (#n : erased nat) (#d: idesc n) (f : layout_f_for d) (c_f : auto_
 // VERY brittle postprocessing to make sure we get a 1st-order function. Would
 // not be needed if strict_on_arguments worked properly on recursive functions
 // (it seems not to).
-[@@ Tac.(postprocess_with (fun () ->
+[@@Tac.(postprocess_with (fun () ->
            norm [iota; delta; zeta_full; zeta; primops];
            trefl ()))]
 inline_for_extraction noextract
@@ -105,10 +117,10 @@ instance blah
   : ctlayout (layout d0 d1 d2 d3)
   =
   close _ <|
-  c_grouped_by 0sz _ #_ #{v = d1 *^ (d2 *^ d3)} <|
-  c_grouped_by 0sz _ #_ #{v = d2 *^ d3} <|
-  c_grouped_by 0sz _ #_ #{v = d3} <|
-  c_grouped_by 0sz _ #_ #{v = 1sz} <|
+  c_grouped_by 0sz _ <|
+  c_grouped_by 0sz _ <|
+  c_grouped_by 0sz _ <|
+  c_grouped_by 0sz _ <|
   cunit
 
 fn test0 (m : array4 u32 (layout 3 5 4 2))

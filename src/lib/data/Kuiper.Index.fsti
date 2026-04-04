@@ -209,6 +209,12 @@ let rec c_bring_forward_ff (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
       let x, t' = c_bring_forward_ff (i-^1sz) dt t in
       x, (h, t')
 
+val lemma_c_bring_forward_ff_ok
+  (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
+  (idx : conc d)
+  : Lemma (c_bring_forward_ff #n i d idx == (c_conc_bring_forward_bij #n i d).cff idx)
+          [SMTPat (c_bring_forward_ff #n i d idx)]
+
 (*
    abs d --abs_bring_forward--> natlt (d @! i) & abs (modulo_i i d)
     |                                         |

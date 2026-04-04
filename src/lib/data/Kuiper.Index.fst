@@ -66,6 +66,19 @@ let rec insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat{SizeT.fits k}) (d 
       | ICons t ts -> insert_size_lemma (i-1) k ts
 #pop-options
 
+let rec lemma_c_bring_forward_ff_ok
+  (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
+  (idx : conc d)
+  : Lemma (c_bring_forward_ff #n i d idx == (c_conc_bring_forward_bij #n i d).cff idx)
+          [SMTPat (c_bring_forward_ff #n i d idx)]
+  = if i = 0sz then
+      ()
+    else
+      let dh : Ghost.erased nat = head d in
+      let dt = tail d in
+      let h, t = idx <: szlt dh & conc dt in
+      lemma_c_bring_forward_ff_ok (i-^1sz) (tail d) t
+
 let rec bring_forward_commute (#n:nat) (i : natlt n) (d : idesc n{all_fit d})
   (idx : abs d)
   : Lemma (down2 i d ((abs_bring_forward_bij i d).ff idx) ==
