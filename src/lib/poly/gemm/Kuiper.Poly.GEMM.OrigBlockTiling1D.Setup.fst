@@ -121,9 +121,11 @@ fn setup
                    ((bid % mcols) * bn + (tid % bn))));
 
   (* Step 6: Bridge to SizeT and match kpre1 *)
-  forevery_rw_size2
-    (mrows * mcols) (mrows *^ mcols)
-    (bm/tm * bn) (bm /^ tm *^ bn);
+  #set-options "--z3rlimit 100" {
+    forevery_rw_size2
+      (mrows * mcols) (mrows *^ mcols)
+      (bm/tm * bn) (bm /^ tm *^ bn);
+  };
   forevery_map_2
     (fun (bid : natlt (mrows *^ mcols)) (tid : natlt (bm /^ tm *^ bn)) ->
       gA |-> Frac (fA /. n_threads) eA **
