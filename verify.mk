@@ -221,13 +221,7 @@ $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
-	$(Q)$(FSTAR) --codegen krml 						\
-		--load_cmxs $(PLUGIN)						\
-		--extract "-*" 							\
-		--extract "$(MOD)"						\
-		--extract "+Kuiper"						\
-		-o $@								\
-		$<
+	$(Q)$(FSTAR) --codegen krml --load_cmxs $(PLUGIN) --extract "-*,+$(MOD),+Kuiper" -o $@ $<
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
@@ -235,8 +229,7 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	# Output into prel/
-	$(KRML) -bundle "$(MOD)=*" \
-		-tmpdir $(OUTDIR)/pre/ $<
+	$(KRML) -bundle "$(MOD)=*" -tmpdir $(OUTDIR)/pre/ $<
 
 $(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
 	# Postprocess via sed and generate the actual target
