@@ -2,15 +2,17 @@
 #include <stdint.h>
 #include "Kuiper_HReduce.h"
 
+bool ok = true;
+
 /* It would be nicer to write a purely-Pulse test. */
-int main()
+
+void test(int siz)
 {
     float *a;
     float *ga;
-    const size_t siz = 1024;
 
-    a = (float *)malloc(siz * sizeof a[0]);
-    ga = (float *)KPR_GPU_ALLOC(sizeof ga[0], siz);
+    a = (float *) malloc(siz * sizeof a[0]);
+    ga = (float *) KPR_GPU_ALLOC(sizeof ga[0], siz);
 
     int i;
 
@@ -24,8 +26,22 @@ int main()
     MUST(cudaMemcpy(a, ga, siz * sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 
-    printf("%lf\n", a[0]);
+    printf("%f\n", a[0]);
+    if (a[0] != siz*(siz-1)/2)
+        ok = false;
     free(a);
+}
 
-    return 0;
+int main()
+{
+    test(510);
+    test(511);
+    test(512);
+    test(513);
+    test(514);
+    test(1022);
+    test(1023);
+    test(1024);
+
+    return !ok;
 }
