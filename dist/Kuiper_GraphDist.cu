@@ -9,8 +9,7 @@ bool Kuiper_GraphDist_uu___is_D(uint16_t projectee)
 
 __device__ static uint16_t add_(uint16_t x, uint16_t y)
 {
-    if ((uint32_t) x == 0U || !((uint32_t) y == 0U)
-        && (uint32_t) y < (uint32_t) x)
+    if (x == 0U || !(y == 0U) && y < x)
         return y;
     else
         return x;
@@ -18,7 +17,7 @@ __device__ static uint16_t add_(uint16_t x, uint16_t y)
 
 __device__ static uint16_t mult(uint16_t x, uint16_t y)
 {
-    if ((uint32_t) x == 0U || (uint32_t) y == 0U)
+    if (x == 0U || y == 0U)
         return 0U;
     else
         return (uint32_t) x + (uint32_t) y;
