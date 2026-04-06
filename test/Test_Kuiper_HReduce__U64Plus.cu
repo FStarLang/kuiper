@@ -28,7 +28,7 @@ void test(int siz)
     MUST(cudaFree(ga));
 
     printf("%" PRIu64 "\n", a[0]);
-    if (a[0] != siz*(siz-1)/2)
+    if (a[0] != siz * (siz - 1) / 2)
         ok = false;
     free(a);
 }

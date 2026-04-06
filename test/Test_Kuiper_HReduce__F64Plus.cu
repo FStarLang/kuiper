@@ -11,8 +11,8 @@ void test(int siz)
     double *a;
     double *ga;
 
-    a = (double *) malloc(siz * sizeof a[0]);
-    ga = (double *) KPR_GPU_ALLOC(sizeof ga[0], siz);
+    a = (double *)malloc(siz * sizeof a[0]);
+    ga = (double *)KPR_GPU_ALLOC(sizeof ga[0], siz);
 
     int i;
 
@@ -27,7 +27,7 @@ void test(int siz)
     MUST(cudaFree(ga));
 
     printf("%lf\n", a[0]);
-    if (a[0] != siz*(siz-1)/2)
+    if (a[0] != siz * (siz - 1) / 2)
         ok = false;
     free(a);
 }
