@@ -252,38 +252,11 @@ let tlayout_slice
   }
 
 inline_for_extraction noextract
-let ctlayout_slice_cimap
+instance val ctlayout_slice
   (#n:nat) (d : idesc n) (l : tlayout d)
   {| c : ctlayout l |}
   (i : szlt n) (j : szlt (d @! i))
-  (idx : conc (modulo_i i d))
-  : Tot (x : szlt l.ulen{SZ.v x == tlayout_slice_imap d l i j (up idx)}) =
-    let idx' = (c_conc_bring_forward_bij i d).cgg (j, idx) in
-    let res = c.cimap idx' in
-    calc (==) {
-      SZ.v res;
-      == {}
-      SZ.v (c.cimap ((c_conc_bring_forward_bij i d).cgg (j, idx)));
-      == {}
-      l.imap.f (up ((c_conc_bring_forward_bij i d).cgg (j, idx)));
-      == { bring_forward_commute2 i d j idx }
-      l.imap.f ((abs_bring_forward_bij i d).gg (SZ.v j, up idx));
-      == {}
-      tlayout_slice_imap d l i j (up idx);
-    };
-    res
-
-inline_for_extraction noextract
-instance ctlayout_slice
-  (#n:nat) (d : idesc n) (l : tlayout d)
-  {| c : ctlayout l |}
-  (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice d l i j) =
-  {
-    culen = c.culen;
-    all_fit = ();
-    cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
-  }
+  : ctlayout (tlayout_slice d l i j)
 
 inline_for_extraction noextract
 val sliceof
