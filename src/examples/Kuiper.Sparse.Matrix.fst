@@ -55,7 +55,7 @@ let rec mem_slice
   (a b : nat {a <= b /\ b <= len s})
   : Pure bool (decreases (b - a))
     (requires true)
-    (ensures fun r -> forall i. a <= i /\ i < b /\ x == s @! i ==> r)
+    (ensures fun r -> (exists i. a <= i /\ i < b /\ x == s @! i) <==> r)
 =
   if a < b
     then s @! a = x || mem_slice x s (a + 1) b
@@ -384,7 +384,7 @@ fn smatrix_gather_n
 open Kuiper.Sparse.Array
 open Pulse.Lib.Trade
 open Kuiper.Seq.Common
-(* #set-options "--debug SMTFail --split_queries always" *)
+#set-options "--debug SMTFail --split_queries always"
 
 // TODO k tiene que ser mayor a 0? tiene que ser menor a n?
 let gpu_array_take 
@@ -578,6 +578,93 @@ let unsparse_row_lemma
   );
   assert row `Seq.equal` s
 
+let smatrix_extract_lemma
+  (#et:Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (rows + 1))
+  (e : ematrix et rows cols)
+  (r : natlt rows)
+  (#row_nnz : nat)
+  (row_elems : lseq et row_nnz)
+  (row_pos : lseq sz row_nnz)
+: Lemma
+  (requires
+    pure_smatrix_pts_to e elems col_ind row_off /\
+    pure_sarray_pts_to cols (matrix_row e r) row_elems row_pos /\
+    row_nnz == (row_off @! r + 1) - (row_off @! r)
+  )
+  (ensures
+    pure_smatrix_pts_to #_ #_ #rows #cols #nnz e
+      (Seq.append (Seq.slice elems 0 (row_off @! r)) (Seq.append row_elems (Seq.slice elems (row_off @! r + 1) nnz)))
+      (Seq.append (Seq.slice col_ind 0 (row_off @! r)) (Seq.append row_pos (Seq.slice col_ind (row_off @! r + 1) nnz)))
+      row_off
+  )
+=
+  //e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
+  let ri = row_off @! r in
+  let re = row_off @! r + 1 in
+  let first_elems = Seq.slice elems 0 ri in
+  let last_elems = Seq.slice elems re nnz in
+  let first_col_ind = Seq.slice col_ind 0 ri in
+  let last_col_ind = Seq.slice col_ind re nnz in
+  let elems' = Seq.append first_elems (Seq.append row_elems last_elems) in
+  let col_ind' : lseq sz nnz = Seq.append first_col_ind (Seq.append row_pos last_col_ind) in
+  let e' = smatrix_unsparse rows cols elems' (cast_pos col_ind') (cast_pos row_off) in
+
+  assert valid_smatrix rows cols (cast_pos col_ind') (cast_pos row_off) ;
+
+    //if mem_slice j col_ind ri re
+      //then elems @! index_mem_slice j col_ind ri re
+      //else zero
+  introduce forall (i:natlt rows) (j:natlt cols). macc e i j == macc e' i j
+  with (
+    let ri' = row_off @! i in
+    let re' = row_off @! i + 1 in
+    if i < r
+      then (
+        assert (
+          forall (k : nat{ri' <= k /\ k < re'}).
+            (cast_pos col_ind') @! k == (cast_pos col_ind) @! k
+        );
+        if mem_slice j (cast_pos col_ind') ri' re'
+          then (
+            assert mem_slice j (cast_pos col_ind) ri' re';
+            assert
+              index_mem_slice j (cast_pos col_ind') ri' re' ==
+              index_mem_slice j (cast_pos col_ind) ri' re';
+            let k = index_mem_slice j (cast_pos col_ind) ri' re' in
+            let k' = index_mem_slice j (cast_pos col_ind') ri' re' in
+            admit()
+          )
+          else 
+            assert not (mem_slice j (cast_pos col_ind) ri' re')
+      )
+      else admit()
+    //if mem_slice j (cast_pos col_ind') ri' re'
+      //then admit()
+      //else (
+        //assert macc e' i j == zero;
+        //if i < r
+          //then (
+            //assert (
+              //forall (k : nat{ri' <= k /\ k < re'}).
+                //(cast_pos col_ind') @! k == (cast_pos col_ind) @! k
+            //);
+            ////assert ~ (exists (k : nat {ri' <= k /\ k < re'}). (cast_pos col_ind) @! k == j); 
+            //////assert (forall (k : natlt re). k < ri);
+            ////assert (forall (k : nat{ri' <= k /\ k < re'}). col_ind' @! k == col_ind @! k);
+            //assert not (mem_slice j (cast_pos col_ind) ri' re');
+            //()
+          //)
+          //else admit()
+      //)
+  );
+  assert e `equal` e';
+
+  ()
 
 fn smatrix_extract
   {| sized sz |} // que onda esto?
@@ -658,7 +745,7 @@ fn smatrix_extract
       gpu_array_drop (gpu_array_drop m.col_ind ri) (re -^ ri) |->
         Frac f (seq_drop (re - ri) (seq_drop ri v_col_ind)) **
       m.row_off |-> Frac f v_row_off
-    ) // incluir todo el contexto aca
+    )
     fn _ {
       unfold sarray_pts_to srow #f (matrix_row e i);
       unfold sarray_pts_to' srow #f (matrix_row e i);

@@ -36,6 +36,18 @@ let unsparse
       then elems @! index_mem i pos
       else zero
 
+unfold
+let pure_sarray_pts_to
+  (#et:Type0) {| d : scalar et |}
+  (l #nnz : nat)
+  (s : seq et)
+  (v_elems : lseq et nnz)
+  (v_pos   : lseq sz nnz)
+: prop
+=
+  valid_pos l (cast_pos #nnz v_pos <: lseq nat nnz)
+  /\ s == unsparse nnz l v_elems (cast_pos v_pos)
+
 // MAYBE unfold
 let sarray_pts_to'
   (#et:Type0) {| d : scalar et |} (#l : nat)
@@ -49,8 +61,7 @@ let sarray_pts_to'
     a.elems |-> Frac f v_elems **
     a.pos   |-> Frac f v_pos **
     pure (
-      valid_pos l (cast_pos #a.nnz v_pos <: lseq nat a.nnz)
-      /\ s == unsparse a.nnz l v_elems (cast_pos v_pos)
+      pure_sarray_pts_to l s v_elems v_pos
     )
 
 let sarray_pts_to
