@@ -205,7 +205,6 @@ instance has_pts_to_smatrix
   pts_to = smatrix_pts_to;
 }
 
-module T = FStar.Tactics.V2
 
 ghost
 fn smatrix_share_n'
@@ -246,7 +245,6 @@ fn smatrix_share_n'
 ghost
 fn smatrix_share_n
   (#et:Type0) {| scalar et |}
-  (#[T.exact (`0)]uid: int)
   (#rows #cols : nat)
   (m : smatrix et rows cols)
   (k : pos)
@@ -578,6 +576,7 @@ let unsparse_row_lemma
   );
   assert row `Seq.equal` s
 
+// TODO probablemente no nos interese probar esto
 let smatrix_extract_lemma
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
@@ -643,28 +642,46 @@ let smatrix_extract_lemma
             assert not (mem_slice j (cast_pos col_ind) ri' re')
       )
       else admit()
-    //if mem_slice j (cast_pos col_ind') ri' re'
-      //then admit()
-      //else (
-        //assert macc e' i j == zero;
-        //if i < r
-          //then (
-            //assert (
-              //forall (k : nat{ri' <= k /\ k < re'}).
-                //(cast_pos col_ind') @! k == (cast_pos col_ind) @! k
-            //);
-            ////assert ~ (exists (k : nat {ri' <= k /\ k < re'}). (cast_pos col_ind) @! k == j); 
-            //////assert (forall (k : natlt re). k < ri);
-            ////assert (forall (k : nat{ri' <= k /\ k < re'}). col_ind' @! k == col_ind @! k);
-            //assert not (mem_slice j (cast_pos col_ind) ri' re');
-            //()
-          //)
-          //else admit()
-      //)
   );
   assert e `equal` e';
 
   ()
+
+ghost
+fn gpu_array_share
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : seq a)
+  requires arr |-> Frac f v
+  ensures
+    arr |-> Frac (f /. 2) v **
+    arr |-> Frac (f /. 2) v
+{
+  gpu_slice_share arr 0 sz 2;
+  forevery_natlt_pop 2 _;
+  forevery_natlt_pop 1 _;
+  forevery_elim_empty _;
+}
+
+ghost
+fn gpu_array_gather
+  (#a:Type u#0)
+  (#sz:nat)
+  (arr : gpu_array a sz)
+  (#f : perm)
+  (#v : seq a)
+  requires
+    arr |-> Frac (f /. 2) v **
+    arr |-> Frac (f /. 2) v
+  ensures arr |-> Frac f v
+{
+  forevery_intro_empty #(natlt 0) (fun _ -> arr |-> Frac (f /. 2) v);
+  forevery_natlt_push_shift 1 _;
+  forevery_natlt_push_shift 2 _;
+  gpu_slice_gather arr 0 sz 2;
+}
 
 fn smatrix_extract
   {| sized sz |} // que onda esto?
@@ -679,8 +696,9 @@ fn smatrix_extract
   returns
     v : sarray et (SZ.v cols)
   ensures
-    v |-> Frac f (matrix_row e i) **
-    (v |-> Frac f (matrix_row e i) @==> m |-> Frac f e)
+    factored
+      (v |-> Frac (f /. 2) (matrix_row e i))
+      (m |-> Frac f e)
 
 {
   
@@ -732,11 +750,11 @@ fn smatrix_extract
     matrix_row e i
   );
 
-  fold sarray_pts_to' srow #f (matrix_row e i);
-  fold sarray_pts_to srow #f (matrix_row e i);
+  gpu_array_share srow.elems #f;
+  gpu_array_share srow.pos #f;
 
   intro
-    (srow |-> Frac f (matrix_row e i) @==> m |-> Frac f e)
+    (srow |-> Frac (f /. 2) (matrix_row e i) @==> m |-> Frac f e)
     #(
       gpu_array_take m.elems ri |-> Frac f (seq_take (v ri) v_elems) **
       gpu_array_drop (gpu_array_drop m.elems ri) (re -^ ri) |->
@@ -744,35 +762,33 @@ fn smatrix_extract
       gpu_array_take m.col_ind ri |-> Frac f (seq_take (v ri) v_col_ind) **
       gpu_array_drop (gpu_array_drop m.col_ind ri) (re -^ ri) |->
         Frac f (seq_drop (re - ri) (seq_drop ri v_col_ind)) **
-      m.row_off |-> Frac f v_row_off
+      m.row_off |-> Frac f v_row_off **
+      srow.elems |-> Frac (f /. 2) (Seq.slice v_elems ri re) **
+      srow.pos |-> Frac (f /. 2) (Seq.slice v_col_ind ri re)
     )
     fn _ {
-      unfold sarray_pts_to srow #f (matrix_row e i);
-      unfold sarray_pts_to' srow #f (matrix_row e i);
+      unfold sarray_pts_to srow #(f /. 2) (matrix_row e i);
 
-      with (v_elems' : seq _). assert srow.elems |-> Frac f v_elems';
-      with (v_col_ind' : seq sz). assert srow.pos |-> Frac f v_col_ind';
+      gpu_slice_pts_to_eq srow.elems 0 srow.nnz (f /. 2) #_ #(Seq.slice v_elems ri re);
+      gpu_slice_pts_to_eq srow.pos 0 srow.nnz (f /. 2) #_ #(Seq.slice v_col_ind ri re);
+
+      gpu_array_gather srow.elems;
+      gpu_array_gather srow.pos;
 
       rewrite each srow.elems as (gpu_array_take (gpu_array_drop m.elems ri) (re -^ ri));
       rewrite each srow.pos as (gpu_array_take (gpu_array_drop m.col_ind ri) (re -^ ri));
       rewrite each srow.nnz as (re -^ ri);
 
-      //rewrite each (m.nnz - ri - (re - ri)) as (m.nnz -^ re);
-      gpu_array_paste' (gpu_array_drop m.elems ri) #f (re -^ ri); //#(seq_drop ri v_elems);
-      gpu_array_paste' (gpu_array_drop m.col_ind ri) #f (re -^ ri); //#(seq_drop ri v_elems);
+      gpu_array_paste (gpu_array_drop m.elems ri) #f (re -^ ri); //#(seq_drop ri v_elems);
+      gpu_array_paste (gpu_array_drop m.col_ind ri) #f (re -^ ri); //#(seq_drop ri v_elems);
 
-      gpu_array_paste' m.elems #f ri;
-      gpu_array_paste' m.col_ind #f ri;
+      gpu_array_paste m.elems #f ri;
+      gpu_array_paste m.col_ind #f ri;
 
-      // resta probar que si m1|r|m2 |-> e = e1|v|e2
-      // y r' |-> v
-      // entonces m1|r'|m2 |-> e
-
-      admit();
-
-      fold smatrix_pts_to' m #f v_elems v_col_ind v_row_off e;
       fold smatrix_pts_to m #f e;
     };
+
+  fold sarray_pts_to srow #(f /. 2) (matrix_row e i);
 
   srow;
 }
