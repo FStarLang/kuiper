@@ -118,7 +118,7 @@ fn sarray_iterator_test
   with v_elems v_pos.
     assert sarray_pts_to' a s v_elems v_pos;
 
-  let mut it : sarray_iterator #et #l a = sarray_iterator_init a;
+  let mut it : sarray_iterator #et #l a = sarray_iterator_init a #_ #s;
 
   fold sarray_pts_to a s;
 
