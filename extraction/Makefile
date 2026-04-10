@@ -15,6 +15,7 @@ FSTAR_OPTIONS += --with_fstarc
 EXTRACT += --extract '-*,+ExtractKuiper,+ExtractionUtils'
 FSTAR_OPTIONS += --lax
 FSTAR_OPTIONS += --warn_error -328 # spurious warn about let rec
+FSTAR_OPTIONS += --warn_error -272 # top-level effects
 
 OTHERFLAGS += --already_cached 'Prims,FStarC'
 

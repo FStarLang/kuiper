@@ -3,6 +3,8 @@
   "options": [
     "--query_cache",
     "--lax",
+    "--warn_error", "-328",
+    "--warn_error", "-272",
     "--with_fstarc"
   ],
   "include_dirs": [ ]
