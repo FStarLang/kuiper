@@ -332,8 +332,15 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
       ]
   in
   let assert_shmem_size : mlexpr =
-    with_ty ml_unit_ty <|
-      MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
+    (* If smem_bytesz is zero, skip the check. Could later find a bigger
+    range on which to skip. *)
+    match smem_bytesz.expr with
+    | MLE_App ({expr = MLE_Name (["FStar"; "SizeT"], "uint_to_t")},
+               [{ expr = MLE_Const (MLC_Int ("0", _))}]) ->
+      ml_unit
+    | _ ->
+      with_ty ml_unit_ty <|
+        MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
   in
   let shmem_setup : mlexpr =
     let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
