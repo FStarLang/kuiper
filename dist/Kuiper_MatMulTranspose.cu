@@ -25,7 +25,6 @@ Kuiper_MatMulTranspose_matmul_transpose_gpu_f32_ff(uint32_t rows,
                                                    float *gA,
                                                    float *gB, float *gC)
 {
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, rows * cols, 1U, 0U, rows, shared, cols, gA, gB, gC);

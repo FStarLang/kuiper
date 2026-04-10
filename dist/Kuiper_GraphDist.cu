@@ -50,7 +50,6 @@ static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
 
 void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b)
 {
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, (size * size + 1023U) / 1024U, 1024U, 0U, size, a,

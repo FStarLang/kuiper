@@ -26,7 +26,6 @@ Kuiper_Stencil_stencil3x3_f32_add_rr(uint32_t rows, uint32_t cols, float *gIn,
                                      float *gOut)
 {
     uint32_t cols_sub2 = cols - 2U;
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, (rows - 2U) * cols_sub2, 1U, 0U, gIn, gOut,
@@ -60,7 +59,6 @@ Kuiper_Stencil_stencil3x3_i32_add_mul2_rc(uint32_t rows,
                                           uint32_t *gIn, uint32_t *gOut)
 {
     uint32_t cols_sub2 = cols - 2U;
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, (rows - 2U) * cols_sub2, 1U, 0U, rows, gIn, gOut,

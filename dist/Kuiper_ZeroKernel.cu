@@ -12,7 +12,6 @@ static void __hoisted_0(void)
 
 void Kuiper_ZeroKernel_test(void)
 {
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, 1U, 0U, 0U);

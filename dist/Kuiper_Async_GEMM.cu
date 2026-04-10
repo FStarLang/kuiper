@@ -49,17 +49,14 @@ static void __hoisted_2(float *r, float *s1, float *s2)
 void Kuiper_Async_GEMM_main(float *a, float *b, float *c1, float *d, float *r)
 {
     float *s1 = (float *)KPR_GPU_ALLOC(4U, 1048576U);
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, 1048576U, 1U, 0U, a, b, s1);
     float *s2 = (float *)KPR_GPU_ALLOC(4U, 1048576U);
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, 1048576U, 1U, 0U, c1, d, s2);
     MUST(cudaDeviceSynchronize());
-    KPR_SHMEM_FITS(0U);
     MUST(cudaFuncSetAttribute
          (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_2, 1048576U, 1U, 0U, r, s1, s2);
