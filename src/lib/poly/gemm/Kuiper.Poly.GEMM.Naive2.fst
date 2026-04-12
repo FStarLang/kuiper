@@ -1,6 +1,6 @@
 module Kuiper.Poly.GEMM.Naive2
 
-// friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)
+friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)
 
 #lang-pulse
 open Kuiper
@@ -132,8 +132,7 @@ fn setup
       kpre comb gA gB gC eA eB eC fA fB gid) **
     emp (* frame *)
 {
-  admit();
-  // Kuiper.Poly.GEMM.Naive.setup comb gA gB gC #eA #eB #eC ();
+  Kuiper.Poly.GEMM.Naive.setup comb gA gB gC #eA #eB #eC ();
 }
 
 ghost
@@ -164,8 +163,7 @@ fn teardown
     gB |-> Frac fB eB **
     gC |-> MS.mmcomb comb eC eA eB
 {
-  admit()
-  // Naive.teardown comb gA gB gC #eA #eB #eC ();
+  Naive.teardown comb gA gB gC #eA #eB #eC ();
 }
 
 inline_for_extraction noextract
