@@ -271,3 +271,37 @@ let abs_conc_bij (#n:nat) (d : idesc n{all_fit d})
     ff_gg = (fun (v : conc d) -> down_up v);
     gg_ff = (fun (v : abs d) -> up_down v);
   }
+
+(* Raw indices. These could be used to give Tensor an API
+where read/write take a raw tuple instead of a conc
+(a tuple of refined types) which could be nicer for inference
+given the lack of subtyping on tuples. *)
+
+(* Raw index type for a tensor, without any refinements. This
+is the type we use for read/write operations to prevents
+tuples of the wrong type. *)
+inline_for_extraction noextract
+let rec raw #n (i : idesc n) : Type0 =
+  match i with
+  | INil -> unit
+  | ICons h ts -> sz & raw ts
+
+let rec raw_fits #n (d : idesc n) (idx : raw d) : prop =
+  match d with
+  | INil -> True
+  | ICons t ts ->
+    let i, is = idx <: sz & raw ts in
+    i < t /\ raw_fits ts is
+
+// Hmmm... the naive definition would match on d, but it's erased.  It should
+// all be evaluated away during extraction, though, so maybe it could be a
+// non-erased type. But that seems like a limitation.  Cheat for now.
+let raw_to_conc (#n : Ghost.erased nat) (d : idesc n) (idx : raw d{raw_fits d idx})
+  : conc d =
+  admit();
+  coerce_eq () idx
+
+let conc_to_raw (#n : Ghost.erased nat) (d : idesc n) (idx : conc d)
+  : x : raw d {raw_fits d x} =
+  admit();
+  coerce_eq () idx
