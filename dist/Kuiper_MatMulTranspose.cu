@@ -33,8 +33,6 @@ Kuiper_MatMulTranspose_matmul_transpose_gpu_f32_ff(uint32_t m,
                                                    float *gA,
                                                    float *gB, float *gC)
 {
-    MUST(cudaFuncSetAttribute
-         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, m * n, 1U, 0U, m, n, k, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }

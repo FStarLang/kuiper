@@ -45,8 +45,6 @@ Kuiper_GEMM_Tiled_g_matmul_f32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, mm * nn, tile * tile, 0U, tile, n, k, gA, gB, gC, nn,
               kk);
     MUST(cudaDeviceSynchronize());
@@ -97,8 +95,6 @@ Kuiper_GEMM_Tiled_g_matmul_f64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, mm * nn, tile * tile, 0U, tile, n, k, gA, gB, gC, nn,
               kk);
     MUST(cudaDeviceSynchronize());
@@ -149,8 +145,6 @@ Kuiper_GEMM_Tiled_g_matmul_u32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_2, mm * nn, tile * tile, 0U, tile, n, k, gA, gB, gC, nn,
               kk);
     MUST(cudaDeviceSynchronize());
@@ -201,8 +195,6 @@ Kuiper_GEMM_Tiled_g_matmul_u64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_3, mm * nn, tile * tile, 0U, tile, n, k, gA, gB, gC, nn,
               kk);
     MUST(cudaDeviceSynchronize());
@@ -246,12 +238,9 @@ Kuiper_GEMM_Tiled_g_matmul_f32_tile32_rrr(uint32_t m,
                                           uint32_t k,
                                           float *gA, float *gB, float *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_4, mm * nn, 1024U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_4, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
+              k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -294,12 +283,9 @@ Kuiper_GEMM_Tiled_g_matmul_f64_tile32_rrr(uint32_t m,
                                           uint32_t k,
                                           double *gA, double *gB, double *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_5, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_5, mm * nn, 1024U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_5, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
+              k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -343,12 +329,9 @@ Kuiper_GEMM_Tiled_g_matmul_u32_tile32_rrr(uint32_t m,
                                           uint32_t *gA,
                                           uint32_t *gB, uint32_t *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_6, mm * nn, 1024U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_6, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
+              k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -392,12 +375,9 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile32_rrr(uint32_t m,
                                           uint64_t *gA,
                                           uint64_t *gB, uint64_t *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_7, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_7, mm * nn, 1024U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_7, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
+              k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -439,12 +419,9 @@ Kuiper_GEMM_Tiled_g_matmul_f32_tile16_rrr(uint32_t m,
                                           uint32_t k,
                                           float *gA, float *gB, float *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_8, mm * nn, 256U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_8, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
+              k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -487,12 +464,9 @@ Kuiper_GEMM_Tiled_g_matmul_f64_tile16_rrr(uint32_t m,
                                           uint32_t k,
                                           double *gA, double *gB, double *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_9, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_9, mm * nn, 256U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_9, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
+              k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -536,12 +510,9 @@ Kuiper_GEMM_Tiled_g_matmul_u32_tile16_rrr(uint32_t m,
                                           uint32_t *gA,
                                           uint32_t *gB, uint32_t *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_10, mm * nn, 256U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_10, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
+              k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -585,12 +556,9 @@ Kuiper_GEMM_Tiled_g_matmul_u64_tile16_rrr(uint32_t m,
                                           uint64_t *gA,
                                           uint64_t *gB, uint64_t *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_11, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_11, mm * nn, 256U, 0U, n, k, gA, gB, gC, nn, kk);
+    KPR_KCALL(__hoisted_11, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
+              k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -647,8 +615,6 @@ Kuiper_GEMM_Tiled_g_gemm_f32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_12, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_12, mm * nn, tile * tile, 0U, tile, alpha, beta, n, k,
               gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
@@ -707,8 +673,6 @@ Kuiper_GEMM_Tiled_g_gemm_f64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_13, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_13, mm * nn, tile * tile, 0U, tile, alpha, beta, n, k,
               gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
@@ -768,8 +732,6 @@ Kuiper_GEMM_Tiled_g_gemm_u32_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_14, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_14, mm * nn, tile * tile, 0U, tile, alpha, beta, n, k,
               gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
@@ -829,8 +791,6 @@ Kuiper_GEMM_Tiled_g_gemm_u64_rrr(uint32_t tile,
     uint32_t nn = n / tile;
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_15, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_15, mm * nn, tile * tile, 0U, tile, alpha, beta, n, k,
               gA, gB, gC, nn, kk);
     MUST(cudaDeviceSynchronize());
@@ -884,13 +844,9 @@ Kuiper_GEMM_Tiled_g_gemm_f32_tile32_rrr(float alpha,
                                         uint32_t k,
                                         float *gA, float *gB, float *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_16, mm * nn, 1024U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_16, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -942,13 +898,9 @@ Kuiper_GEMM_Tiled_g_gemm_f64_tile32_rrr(double alpha,
                                         uint32_t k,
                                         double *gA, double *gB, double *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_17, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_17, mm * nn, 1024U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_17, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1001,13 +953,9 @@ Kuiper_GEMM_Tiled_g_gemm_u32_tile32_rrr(uint32_t alpha,
                                         uint32_t *gA,
                                         uint32_t *gB, uint32_t *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_18, mm * nn, 1024U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_18, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1060,13 +1008,9 @@ Kuiper_GEMM_Tiled_g_gemm_u64_tile32_rrr(uint64_t alpha,
                                         uint64_t *gA,
                                         uint64_t *gB, uint64_t *gC)
 {
-    uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
-    uint32_t kk = k / 32U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_19, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_19, mm * nn, 1024U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_19, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 32U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1118,13 +1062,9 @@ Kuiper_GEMM_Tiled_g_gemm_f32_tile16_rrr(float alpha,
                                         uint32_t k,
                                         float *gA, float *gB, float *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_20, mm * nn, 256U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_20, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1176,13 +1116,9 @@ Kuiper_GEMM_Tiled_g_gemm_f64_tile16_rrr(double alpha,
                                         uint32_t k,
                                         double *gA, double *gB, double *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_21, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_21, mm * nn, 256U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_21, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1235,13 +1171,9 @@ Kuiper_GEMM_Tiled_g_gemm_u32_tile16_rrr(uint32_t alpha,
                                         uint32_t *gA,
                                         uint32_t *gB, uint32_t *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_22, mm * nn, 256U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_22, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 16U);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -1294,12 +1226,8 @@ Kuiper_GEMM_Tiled_g_gemm_u64_tile16_rrr(uint64_t alpha,
                                         uint64_t *gA,
                                         uint64_t *gB, uint64_t *gC)
 {
-    uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
-    uint32_t kk = k / 16U;
-    MUST(cudaFuncSetAttribute
-         (__hoisted_23, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
-    KPR_KCALL(__hoisted_23, mm * nn, 256U, 0U, alpha, beta, n, k, gA, gB, gC,
-              nn, kk);
+    KPR_KCALL(__hoisted_23, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
+              gC, nn, k / 16U);
     MUST(cudaDeviceSynchronize());
 }

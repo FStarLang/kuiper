@@ -29,8 +29,6 @@ Kuiper_Sparse_GEMM__gemm_u32_rr(uint32_t rows,
                                 uint32_t *gB, uint32_t *gC)
 {
     KRML_MAYBE_UNUSED_VAR(shared);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, (rows * cols + 1023U) / 1024U, 1024U, 0U, rows, cols,
               gA, gB, gC);
     MUST(cudaDeviceSynchronize());

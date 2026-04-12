@@ -24,8 +24,6 @@ Kuiper_GEMM_Naive2_g_matmul_f32_rrr(uint32_t m,
                                     uint32_t n,
                                     uint32_t k, float *gA, float *gB, float *gC)
 {
-    MUST(cudaFuncSetAttribute
-         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, (m * n + 1023U) / 1024U, 1024U, 0U, m, n, k, gA, gB,
               gC);
     MUST(cudaDeviceSynchronize());
@@ -55,8 +53,6 @@ Kuiper_GEMM_Naive2_g_matmul_f64_rrr(uint32_t m,
                                     uint32_t k,
                                     double *gA, double *gB, double *gC)
 {
-    MUST(cudaFuncSetAttribute
-         (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_1, (m * n + 1023U) / 1024U, 1024U, 0U, m, n, k, gA, gB,
               gC);
     MUST(cudaDeviceSynchronize());
@@ -87,8 +83,6 @@ Kuiper_GEMM_Naive2_g_matmul_u32_rrr(uint32_t m,
                                     uint32_t k,
                                     uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
-    MUST(cudaFuncSetAttribute
-         (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_2, (m * n + 1023U) / 1024U, 1024U, 0U, m, n, k, gA, gB,
               gC);
     MUST(cudaDeviceSynchronize());
@@ -119,8 +113,6 @@ Kuiper_GEMM_Naive2_g_matmul_u64_rrr(uint32_t m,
                                     uint32_t k,
                                     uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
-    MUST(cudaFuncSetAttribute
-         (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_3, (m * n + 1023U) / 1024U, 1024U, 0U, m, n, k, gA, gB,
               gC);
     MUST(cudaDeviceSynchronize());

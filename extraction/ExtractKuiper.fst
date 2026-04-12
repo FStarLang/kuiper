@@ -331,23 +331,31 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
         text "launch_kernel: not a record:" ^/^ pp kdesc
       ]
   in
-  let assert_shmem_size : mlexpr =
-    (* If smem_bytesz is zero, skip the check. Could later find a bigger
-    range on which to skip. *)
+  let shmem_is_nonzero : bool =
     match smem_bytesz.expr with
     | MLE_App ({expr = MLE_Name (["FStar"; "SizeT"], "uint_to_t")},
                [{ expr = MLE_Const (MLC_Int ("0", _))}]) ->
-      ml_unit
-    | _ ->
+      false
+    | _ -> true
+  in
+  let assert_shmem_size : mlexpr =
+    (* If smem_bytesz is zero, skip the check. Could later find a bigger
+    range on which to skip. *)
+    if shmem_is_nonzero then
       with_ty ml_unit_ty <|
         MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
+    else
+      ml_unit
   in
   let shmem_setup : mlexpr =
-    let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
-    let aa : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
-    _mlMUST <|
-      with_ty ml_unit_ty <|
-      MLE_App (kk, [ hd; aa; smem_bytesz ])
+    if shmem_is_nonzero then
+      let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
+      let aa : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
+      _mlMUST <|
+        with_ty ml_unit_ty <|
+        MLE_App (kk, [ hd; aa; smem_bytesz ])
+    else
+      ml_unit
   in
   let e' =
     let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
