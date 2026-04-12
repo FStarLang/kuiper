@@ -228,12 +228,8 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 	# Output into prel/
 	$(KRML) -bundle "$(MOD)=*" -tmpdir $(OUTDIR)/pre/ $<
 
-$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
+$(OUTDIR)/%: $(OUTDIR)/pre/% scripts/fixup.sed
 	# Postprocess via sed and generate the actual target
-	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
-
-$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
-	# Same. Though no code in here there are still empty lines and whatnot
 	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 
 include nvcc.mk
