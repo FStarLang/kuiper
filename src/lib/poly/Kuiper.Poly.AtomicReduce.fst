@@ -6,7 +6,11 @@ module Kuiper.Poly.AtomicReduce
 
 open Kuiper
 open Kuiper.Atomics
+open Kuiper.Tensor
+open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Layout.Alg
 
+module Array1 = Kuiper.Array1
 module SZ = Kuiper.SizeT
 module W = Pulse.Lib.WithPure
 module CInv = Pulse.Lib.CancellableInvariant
@@ -106,9 +110,10 @@ let rec tperm (n : nat{n > 0}) (i : nat{i < n}) (p : perm)
 unfold
 let kpre
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (nn: nat)
-  (a: gpu_array et nn)
-  (v_a: seq et)
+  (a: array1 et (repr nn))
+  (v_a: lseq et nn)
   (#_ : squash (len v_a == nn))
   (r: gpu_ref et)
   (done: seq (gref bool) {len done == nn})
@@ -124,9 +129,10 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (nn: nat)
-  (a : gpu_array et nn)
-  (v_a: seq et)
+  (a : array1 et (repr nn))
+  (v_a: lseq et nn)
   (#_ : squash (len v_a == nn))
   (r : gpu_ref et)
   (done : seq (gref bool){len done == Ghost.reveal nn})
@@ -269,10 +275,11 @@ let contributions_lemma_smt
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (#nn: SZ.t)
-  (a: gpu_array et nn)
-  (#v_a: erased (seq et))
+  (a: array1 et (repr nn))
+  (#v_a: erased (lseq et nn))
   (#_ : squash (len v_a == nn))
   (r : gpu_ref et)
   (done : erased (seq (gref bool)){len done == SZ.v nn})
@@ -289,19 +296,19 @@ fn kf
     block_id (SZ.v nn) bid
 {
   (* Read our value *)
-  let v = gpu_array_read a bid;
+  let v = Array1.(a.(bid));
 
   (* Atomically add it to result, marking our contribution as done. *)
   with_invariants unit emp_inames (CInv.iname_of c)
     (CInv.cinv_vp c (inv_p (SZ.v nn) v_a r done))
     (gpu **
      (done @! bid) |-> Frac 0.5R false **
-     gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
+     a |-> Frac (1.0R /. SZ.v nn) v_a **
      CInv.active c (tperm (SZ.v nn) bid 1.0R))
     (fun _ ->
      gpu **
      (done @! bid) |-> Frac 0.5R true **
-     gpu_pts_to_slice a #(1.0R /. SZ.v nn) 0 (SZ.v nn) v_a **
+     a |-> Frac (1.0R /. SZ.v nn) v_a **
      CInv.active c (tperm (SZ.v nn) bid 1.0R))
   fn _
   {
@@ -463,10 +470,11 @@ fn rec gather_active_n (#p:perm) (c : CInv.cinv) (n : nat{n > 0})
 ghost
 fn setup
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n < max_blocks})
-  (a : gpu_array et n { is_global_array a })
-  (#v_a : erased (seq et))
+  (a : array1 et (repr n))
+  (#v_a : erased (lseq et n))
   (#_ : squash (len v_a == n))
   (r : gpu_ref et)
   (done : seq (gref bool){len done == SZ.v n})
@@ -484,7 +492,7 @@ fn setup
     inv (CInv.iname_of c) (CInv.cinv_vp c (inv_p (SZ.v n) v_a r done))
 {
   (* Share the array into n fractions *)
-  gpu_slice_share a 0 (SZ.v n) (SZ.v n) #1.0R;
+  Array1.share_n a n;
 
   (* Split active permission into n per-thread fractions *)
   share_active_n c (SZ.v n);
@@ -530,10 +538,11 @@ fn setup
 ghost
 fn teardown
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n < max_blocks})
-  (a : gpu_array et n { is_global_array a })
-  (#v_a : seq et)
+  (a : array1 et (repr n))
+  (#v_a : erased (lseq et n))
   (#_ : squash (len v_a == n))
   (r : gpu_ref et)
   (done : seq (gref bool){len done == SZ.v n})
@@ -562,7 +571,7 @@ fn teardown
     (fun (bid:natlt (SZ.v n)) -> CInv.active c (tperm (SZ.v n) bid 1.0R));
 
   (* Gather array fractions *)
-  gpu_slice_gather a 0 (SZ.v n) (SZ.v n) #1.0R #v_a;
+  Array1.gather_n a n;
 
   (* Gather active fractions *)
   gather_active_n c (SZ.v n);
@@ -575,10 +584,11 @@ fn teardown
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n < max_blocks})
-  (a : gpu_array et n { is_global_array a })
-  (#v_a : erased (seq et))
+  (a : array1 et (repr n) { Array1.is_global a })
+  (#v_a : erased (lseq et n))
   (#_ : squash (len v_a == SZ.v n))
   (r : gpu_ref et)
   (done : erased (seq (gref bool)))
@@ -610,10 +620,11 @@ let kdesc
 inline_for_extraction noextract
 fn reduce
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
+  (#r : (l:nat -> layout l)) {| (l:sz -> ctlayout (r l)) |}
   (ac : is_ac_w d.pure_op)
   (n : szp{n < max_blocks})
-  (a : gpu_array et n { is_global_array a })
-  (#v_a : erased (seq et))
+  (a : array1 et (r n) { Array1.is_global a })
+  (#v_a : erased (lseq et n))
   norewrite (* needed to match spec in fsti... they do not get elaborated *)
   preserves cpu ** on gpu_loc (a |-> v_a)
   returns   r : et
@@ -623,7 +634,7 @@ fn reduce
     #(a |-> v_a)
     #(a |-> v_a ** pure (len v_a == SZ.v n))
     fn () {
-      gpu_pts_to_slice_ref a 0 n;
+      Array1.pts_to_ref a;
     };
 
   let mut r : et = zero;

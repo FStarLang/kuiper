@@ -41,6 +41,11 @@ val major_on (#n:nat)
 
 (* Some examples *)
 
+let l1_forward (m : nat) : tlayout (m @| INil) =
+  pack <|
+  major_on 0 m <|
+  lunit
+
 // FIXME: SZ.t -> nat ?
 let l2_row_major (m n : nat) : tlayout (m @| n @| INil) =
   pack <|
@@ -147,6 +152,17 @@ instance c_major_on_i_0'
 module T = Kuiper.Tensor
 
 // This should just work from instances in Tensor.Layout.Alg
+
+inline_for_extraction noextract
+instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
+  {
+    culen = magic(); // SZ.mul m n;
+    // ^ big cheat, maybe this field should go away
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array1.desc m)) ->
+              match idx with
+              | (i, ()) -> i);
+  }
 
 inline_for_extraction noextract
 instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) : T.ctlayout (l2_row_major m n) =

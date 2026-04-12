@@ -6,7 +6,6 @@ open Kuiper.Tensor
 open Kuiper.Index
 open Kuiper.Injection
 open Kuiper.Tensor.Layout.Alg
-module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 type snat = x:nat{SizeT.fits x}

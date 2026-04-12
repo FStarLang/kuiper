@@ -186,7 +186,7 @@ let to_seq_rel (#et:Type) (#rows #cols : nat)
         Seq.init_ghost (rows * cols) (fun x ->
           let (i, (j, ())) = Kuiper.Injection.inverse_f l.imap x in
           macc s i j) @! i;
-      } 
+      }
     in
     assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
 
