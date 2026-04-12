@@ -30,21 +30,16 @@ __global__
 static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < size * size) {
+        uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / size;
+        uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % size;
         uint32_t k = 0U;
         uint16_t sum = 0U;
         for (; k < size; k++) {
-            uint16_t vsum = sum;
-            sum =
-                add_(vsum,
-                     mult(a
-                          [(1024U * blockIdx.x + threadIdx.x) / size * size +
-                           k],
-                          a[k * size +
-                            (1024U * blockIdx.x + threadIdx.x) % size]));
+            uint16_t __anf4 = sum;
+            sum = add_(__anf4, mult(a[trow * size + k], a[k * size + tcol]));
         }
         uint16_t s = sum;
-        b[1024U * blockIdx.x + threadIdx.x] =
-            add_(b[1024U * blockIdx.x + threadIdx.x], s);
+        b[trow * size + tcol] = add_(b[trow * size + tcol], s);
     }
 }
 
