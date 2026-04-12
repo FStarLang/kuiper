@@ -29,7 +29,7 @@ let t (et : Type0) (#len : nat) (l : layout len) : Type0 =
 let is_global (#et : Type0) (#len : nat) (#l : layout len)
   (a : t et l)
   : prop =
-  T.is_global_tensor a
+  T.is_global a
 
 let from_array
   (#et : Type0) (#len : erased nat)

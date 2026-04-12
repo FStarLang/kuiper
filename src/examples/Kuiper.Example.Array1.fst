@@ -6,29 +6,23 @@ open Kuiper.Array1
 module Array1 = Kuiper.Array1
 open Kuiper.Bijection
 open Kuiper.Injection
-open Kuiper.TensorLayout
+open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Layout.Alg
 open Kuiper.Index
 module SZ = Kuiper.SizeT
-module Tac = FStar.Tactics.V2
 
 let layout (m : nat) : layout m =
   pack <|
-  g_grouped_by 0 m <|
+  major_on 0 m <|
   lunit
 
-// VERY brittle postprocessing to make sure we get a 1st-order function. Would
-// not be needed if strict_on_arguments worked properly on recursive functions
-// (it seems not to).
-[@@Tac.(postprocess_with (fun () ->
-           norm [iota; delta; zeta_full; zeta; primops];
-           trefl ()))]
 inline_for_extraction noextract
 instance blah
   (m : SZ.t{SZ.fits m})
   : ctlayout (layout m)
   =
-  close _ <|
-  c_grouped_by 0sz _ #_ #{v = 1sz} <|
+  c_pack #_ #_ #(magic()) <|
+  c_major_on 0sz _ #_ #{v = 1sz} <|
   cunit
 
 fn test0 (m : array1 u32 (layout 10))

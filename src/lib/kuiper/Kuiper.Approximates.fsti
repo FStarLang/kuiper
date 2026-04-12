@@ -17,6 +17,7 @@ open Kuiper.Seq.Common
 
 (* This class provides some syntactic sugar to use the %~ operator
    on scalars, sequences, matrices, etc. *)
+[@@Tactics.Typeclasses.fundeps[1]] // OK?
 class can_approximate (c m : Type) = {
   approximates : c -> m -> prop;
 }
@@ -103,3 +104,11 @@ let approx2
   : prop
   = forall x y r s.
       x %~ r /\ y %~ s ==> f x y %~ g r s
+
+(* Could we use this instead of approx2? *)
+// instance approx_function_can_approximate
+//   (dom1 dom2 cod1 cod2 : Type)
+//   {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
+//   : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
+//   approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
+// }

@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.Chest
-include Kuiper.TensorLayout
+include Kuiper.Tensor.Layout
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
 module SZ = Kuiper.SizeT
@@ -14,21 +14,21 @@ module T = FStar.Tactics.V2
 inline_for_extraction noextract
 val tensor (et : Type0) (#r : nat) (#d : idesc r) (l : tlayout d) : Type0
 
-val is_global_tensor
+val is_global
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l) : prop
 
 inline_for_extraction noextract
 val from_array
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (l : tlayout d)
   (a : gpu_array et (tlayout_size l))
   : tensor et l
 
 inline_for_extraction noextract
 val core
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
   : gpu_array et (tlayout_size l)
@@ -51,8 +51,8 @@ val lem_is_global_iff_core
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  : Lemma (ensures is_global_tensor a <==> is_global_array (core a))
-          [SMTPat (is_global_tensor a)]
+  : Lemma (ensures is_global a <==> is_global_array (core a))
+          [SMTPat (is_global a)]
 
 val tensor_pts_to
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -66,7 +66,7 @@ instance
 val is_send_across_global_tensor
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (a : tensor et l { is_global_tensor a })
+  (a : tensor et l { is_global a })
   (#f : perm) (s : chest d et)
   : is_send_across gpu_of (tensor_pts_to a #f s)
 
@@ -78,6 +78,36 @@ instance has_pts_to_tensor
   pts_to = tensor_pts_to;
 }
 
+(* This is slightly odd, the user needs to give the total size
+instead of each dimension. *)
+inline_for_extraction noextract
+fn alloc0
+  (#et:Type) {| sized et |}
+  (#r : nat) (#d : idesc r)
+  (s : szp{SZ.v s == sizeof d})
+  (l : tlayout d { is_full l })
+  preserves
+    cpu
+  returns
+    p : tensor et l
+  ensures
+    exists* em. on gpu_loc (p |-> em)
+  ensures
+    pure (is_global p)
+
+inline_for_extraction noextract
+fn free
+  (#et:Type)
+  (#r : nat) (#d : idesc r)
+  (#l : tlayout d { is_full l })
+  (p : tensor et l)
+  (#em : chest d et)
+  preserves
+    cpu
+  requires
+    on gpu_loc (p |-> em)
+  ensures emp
+
 ghost
 fn tensor_pts_to_ref
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -88,6 +118,59 @@ fn tensor_pts_to_ref
     a |-> Frac f s
   ensures
     pure (SZ.fits (tlayout_size l))
+
+ghost
+fn tensor_pts_to_eq
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#f1 f2 : perm)
+  (#s1 #s2 : chest d et)
+  requires
+    tensor_pts_to a #f1 s1 **
+    tensor_pts_to a #f2 s2
+  ensures
+    tensor_pts_to a #f1 s2 **
+    tensor_pts_to a #f2 s2
+
+ghost
+fn tensor_concr
+  (#et:Type)
+  (#r : nat) (#d : idesc r)
+  (#l : tlayout d { is_full l })
+  (g : tensor et l)
+  (#s : chest d et)
+  (#f : perm)
+  requires
+    g |-> Frac f s
+  ensures
+    core g |-> Frac f (to_seq l s)
+
+ghost
+fn tensor_abs
+  (#et:Type)
+  (#r : nat) (#d : idesc r)
+  (l : tlayout d { is_full l })
+  (p : gpu_array et (tlayout_size l))
+  (#f : perm)
+  (#s : chest d et)
+  requires
+    p |-> Frac f (to_seq l s)
+  ensures
+    from_array l p |-> Frac f s
+
+ghost
+fn tensor_abs'
+  (#et:Type)
+  (#r : nat) (#d : idesc r)
+  (l : tlayout d { is_full l })
+  (p : gpu_array et (tlayout_size l))
+  (#f : perm)
+  (#s : lseq et (tlayout_size l))
+  requires
+    p |-> Frac f s
+  ensures
+    from_array l p |-> Frac f (from_seq l s)
 
 ghost
 fn tensor_share_n
@@ -228,9 +311,37 @@ fn tensor_implode
   ensures
     a |-> Frac f s
 
+inline_for_extraction noextract
+fn tensor_read_cell
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d) {| ctlayout l |}
+  (a : tensor et l)
+  (i : conc d)
+  (#f : perm)
+  (#s : erased et)
+  preserves
+    Cell a (up i) |-> Frac f s
+  returns
+    v : et
+  ensures
+    pure (v == s)
+
+inline_for_extraction noextract
+fn tensor_write_cell
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d) {| ctlayout l |}
+  (a : tensor et l)
+  (i : conc d)
+  (v : et)
+  (#s : erased et)
+  requires
+    Cell a (up i) |-> s
+  ensures
+    Cell a (up i) |-> v
+
 (* Generic extraction of slices *)
 
-// Move some of this to TensorLayout.
+// Move some of this to Tensor.Layout.
 let tlayout_slice_imap
   (#n:nat) (d : idesc n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i))
@@ -239,8 +350,9 @@ let tlayout_slice_imap
     let idx' = (abs_bring_forward_bij i d).gg (j, idx) in
     l.imap.f idx'
 
+// FIXME: make d implicit
 let tlayout_slice
-  (#n:nat) (d : idesc n) (l : tlayout d)
+  (#n : erased nat) (d : idesc n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i)) // Fixing the ith-dimension to j
   : tlayout (modulo_i i d) =
   {
@@ -253,17 +365,17 @@ let tlayout_slice
 
 inline_for_extraction noextract
 instance val ctlayout_slice
-  (#n:nat) (d : idesc n) (l : tlayout d)
-  {| c : ctlayout l |}
+  (#n : erased nat) (d : idesc n) (l : tlayout d)
+  {| ctlayout l |}
   (i : szlt n) (j : szlt (d @! i))
   : ctlayout (tlayout_slice d l i j)
 
 inline_for_extraction noextract
 val sliceof
-  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  (i : natlt r) (j : natlt (d @! i))
+  (i : erased nat{i < r}) (j : erased nat{j < d @! i})
   : tensor et (tlayout_slice d l i j)
 
 #push-options "--warn_error -271" // implicit subtraction in pattern, OK

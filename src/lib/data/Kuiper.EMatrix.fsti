@@ -118,3 +118,43 @@ instance ematrix_is_container
     from_fun = (fun f -> mkM fun i j -> f (i, j));
     from_fun_ok = ez;
   }
+
+let ematrix_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  : GTot (lseq et cols)
+  = Seq.init_ghost cols (fun j -> macc em i j)
+
+let ematrix_col
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (j : natlt cols)
+  : GTot (lseq et rows)
+  = Seq.init_ghost rows (fun i -> macc em i j)
+
+let ematrix_upd_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (new_row : lseq et cols)
+  : ematrix et rows cols
+  = mkM fun i' j ->
+      if i' = i
+      then Seq.index new_row j
+      else macc em i' j
+
+let ematrix_upd_col
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (j : natlt cols)
+  (new_col : lseq et rows)
+  : ematrix et rows cols
+  = mkM fun i j' ->
+      if j' = j
+      then Seq.index new_col i
+      else macc em i j'

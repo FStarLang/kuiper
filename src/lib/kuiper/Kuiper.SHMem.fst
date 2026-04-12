@@ -42,7 +42,6 @@ let c_shmem (d : shmem_desc) : Type0 =
   | SHArray ty len -> gpu_array ty len
    //would be nice to just add as is_block_array refinement here, but it messes with typeclass resolution
 
-inline_for_extraction
 let rec c_shmems (d : list shmem_desc) : Type0 =
   match d with
   | [] -> int // This could (and should) be unit, but karamel extraction gets confused with it

@@ -580,34 +580,4 @@ fn subproduct_cols
     exists* acc'.
       pure (Seq.length acc' == tile) **
       (acc |-> acc')
-{
-  pts_to_len acc;
-  let mut sk : sz = 0sz;
-  while (!sk <^ tile)
-    invariant live sk ** live acc
-    decreases (tile - !sk)
-  {
-    pts_to_len acc;
-    let mut i = 0sz;
-    (* We can read v2 out of the inner loop, this is extremely
-       important for performance. NVCC may realize this is invariant
-       across iterations and hoist it out, but don't rely on it. *)
-    let v2 = M.gpu_matrix_read m2 !sk j;
-    while (!i <^ tile)
-      invariant live i ** live acc
-      decreases (tile - !i)
-    {
-      let v1 = M.gpu_matrix_read m1 !i !sk;
 
-      open Pulse.Lib.Array;
-      pts_to_len acc;
-      let sum0 = acc.(!i);
-      let sum1 = sum0 `add` (v1 `mul` v2);
-      acc.(!i) <- sum1;
-      i := !i +^ 1sz;
-    };
-    pts_to_len acc;
-    sk := !sk +^ 1sz;
-  };
-  pts_to_len acc;
-}

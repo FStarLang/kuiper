@@ -48,7 +48,8 @@ let rec sizeof (#r : nat) (d : idesc r) : GTot nat =
   | ICons t ts -> t * sizeof ts
 
 (* Abstract index type for a tensor *)
-[@@strict_on_arguments [1]]
+// [@@strict_on_arguments [1]]
+inline_for_extraction noextract
 let rec abs #n (i : idesc n) : eqtype =
   match i with
   | INil -> unit
@@ -56,7 +57,8 @@ let rec abs #n (i : idesc n) : eqtype =
 
 (* Concrete index type for a tensor. This could also be eqtype, but I don't
 think that is needed and would be bad at runtime. *)
-[@@strict_on_arguments [1]]
+// [@@strict_on_arguments [1]]
+inline_for_extraction noextract
 let rec conc #n (i : idesc n) : Type0 =
   match i with
   | INil -> unit
@@ -160,7 +162,7 @@ val modulo_size_lemma (#n:nat) (i : natlt n) (d : idesc n)
   : Lemma (sizeof (modulo_i i d) * (d @! i) == sizeof d)
           [SMTPat (sizeof (modulo_i i d)); SMTPat (sizeof d)]
 
-val insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat{SZ.fits k}) (d : idesc n)
+val insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
   : Lemma (sizeof (insert_i i k d) == sizeof d * k)
           [SMTPat (sizeof (insert_i i k d)); SMTPat (sizeof d)]
 #pop-options
@@ -196,24 +198,43 @@ let rec c_conc_bring_forward_bij (#n : Ghost.erased nat) (i : szlt n) (d : idesc
       cbij_push_tuple3 #(szlt (d @! 0))
 
 (* A computationally relevant version of the above, for use in cimap. *)
-[@@strict_on_arguments []]
+[@@strict_on_arguments [1]]
 inline_for_extraction noextract
-let rec c_bring_forward_ff (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
+let rec c_bring_forward_ff (#n : Ghost.erased nat) (i : natlt n) (d : idesc n)
   (idx : conc d) : szlt (d @! i) & conc (modulo_i i d)
-  = if i = 0sz then
+  = if i = 0 then
       idx
     else
-      let dh : Ghost.erased nat = head d in
-      let dt = tail d in
-      let h, t = idx <: szlt dh & conc dt in
-      let x, t' = c_bring_forward_ff (i-^1sz) dt t in
+      let h, t = idx <: szlt (d @! 0) & conc (tail d) in
+      let x, t' = c_bring_forward_ff (i-1) (tail d) t in
       x, (h, t')
+
+(* Idem, for gg *)
+[@@strict_on_arguments [1]]
+inline_for_extraction noextract
+let rec c_bring_forward_gg (#n : Ghost.erased nat) (i : natlt n) (d : idesc n)
+  (h:  szlt (d @! i))
+  (t : conc (modulo_i i d))
+  : Tot (conc d)
+  = if i = 0 then
+      (h, t)
+    else
+      let unfold h2, t2 = t <: szlt (d @! 0) & conc (tail (modulo_i i d)) in
+      // [@@inline_let] let t' = c_bring_forward_gg #(n-1) (i-^1sz) (tail d) h t2 in
+      // (h2, t')
+      (h2, c_bring_forward_gg #(n-1) (i-1) (tail d) h t2)
 
 val lemma_c_bring_forward_ff_ok
   (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
   (idx : conc d)
   : Lemma (c_bring_forward_ff #n i d idx == (c_conc_bring_forward_bij #n i d).cff idx)
           [SMTPat (c_bring_forward_ff #n i d idx)]
+
+val lemma_c_bring_forward_gg_ok
+  (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
+  (h:  szlt (d @! i)) (t : conc (modulo_i i d))
+  : Lemma (c_bring_forward_gg #n i d h t == (c_conc_bring_forward_bij #n i d).cgg (h, t))
+          [SMTPat (c_bring_forward_gg #n i d h t)]
 
 (*
    abs d --abs_bring_forward--> natlt (d @! i) & abs (modulo_i i d)

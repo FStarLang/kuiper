@@ -3,9 +3,9 @@ module Kuiper.GraphDist
 #lang-pulse
 open Kuiper
 open Kuiper.Scalars
-module P = Kuiper.Poly.GEMM.Naive2 (* cannot use tiled ones without making dimensions a multiple of tile size *)
-module R = Kuiper.Matrix.Reprs
-module M = Kuiper.Matrix
+module P = Kuiper.Poly.GEMM.Naive2
+module M = Kuiper.Array2
+open Kuiper.Tensor.Layout.Alg
 open Kuiper.EMatrix { ematrix }
 
 // inline_for_extraction noextract
@@ -39,13 +39,11 @@ Every other number is a concrete distance. *)
 inline_for_extraction
 type dist = | D : v:u16 -> dist
 
-// [@@CPrologue "__device__"]
 inline_for_extraction noextract
 let mindist (x y : dist) : GTot dist =
   let open FStar.UInt16 in
   if x.v `lt` y.v then x else y
 
-// [@@CPrologue "__device__"]
 let add (x y : dist) : GTot dist =
   if UInt16.eq x.v 0us then y
   else if UInt16.eq y.v 0us then x
@@ -71,12 +69,47 @@ instance scalar_dist : scalar dist = {
   mul = mult;
 }
 
-// let mult_dist = P.mmcomb_gpu #dist #scalar_dist
+ghost
+fn m_share_2
+  (#et : Type)
+  (#m #n : nat)
+  (#l : M.layout m n)
+  (a : M.t et l)
+  (#em : ematrix et m n)
+  requires
+    a |-> em
+  ensures
+    a |-> Frac 0.5R em ** a |-> Frac 0.5R em
+{
+  M.share_n a 2;
+  forevery_natlt_pop _ _;
+  forevery_natlt_pop _ _;
+  forevery_elim_empty _;
+}
+
+ghost
+fn m_gather_2
+  (#et : Type)
+  (#m #n : nat)
+  (#l : M.layout m n)
+  (a : M.t et l)
+  (#em : ematrix et m n)
+  requires
+    a |-> Frac 0.5R em ** a |-> Frac 0.5R em
+  ensures
+    a |-> em
+{
+  forevery_intro_empty #(natlt 0) (fun _ -> a |-> Frac (1.0R /. 2) em);
+  forevery_natlt_push 1 _;
+  forevery_natlt_push 2 _;
+  M.gather_n a 2;
+  ()
+}
 
 fn matmul_dist_gpu
   (#size : szp)
-  (a : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix a })
-  (b : M.gpu_matrix dist (R.row_major size size) { M.is_global_matrix b })
+  (a : M.t dist (l2_row_major size size) { M.is_global a })
+  (b : M.t dist (l2_row_major size size) { M.is_global b })
   (#ea : ematrix dist size size)
   (#eb : ematrix dist size size)
   preserves
@@ -87,7 +120,7 @@ fn matmul_dist_gpu
   ensures
     exists* eb'. on gpu_loc (b |-> eb')
 {
-  map_loc gpu_loc (fun () -> M.gpu_matrix_share_2 a);
+  map_loc gpu_loc (fun () -> m_share_2 a);
   P.mmcomb_gpu_exact add' a a b;
-  map_loc gpu_loc (fun () -> M.gpu_matrix_gather_2 a);
+  map_loc gpu_loc (fun () -> m_gather_2 a);
 }

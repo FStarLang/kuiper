@@ -6,35 +6,29 @@ open Kuiper.Array2
 module Array2 = Kuiper.Array2
 open Kuiper.Bijection
 open Kuiper.Injection
-open Kuiper.TensorLayout
+open Kuiper.Tensor.Layout
+open Kuiper.Tensor.Layout.Alg
 open Kuiper.Index
 open Kuiper.EMatrix
 module SZ = Kuiper.SizeT
-module Tac = FStar.Tactics.V2
 
-let layout (rows cols : nat) : layout rows cols =
+let layout (d0 d1 : nat) : layout d0 d1 =
   pack <|
-  g_grouped_by 0 rows <|
-  g_grouped_by 0 cols <|
+  major_on 0 d0 <|
+  major_on 0 d1 <|
   lunit
 
-// VERY brittle postprocessing to make sure we get a 1st-order function. Would
-// not be needed if strict_on_arguments worked properly on recursive functions
-// (it seems not to).
-[@@Tac.(postprocess_with (fun () ->
-           norm [iota; delta; zeta_full; zeta; primops];
-           trefl ()))]
 inline_for_extraction noextract
 instance blah
-  (rows : SZ.t{SZ.fits rows})
-  (cols : SZ.t{SZ.fits cols})
-  (#_ : squash (SZ.fits (rows * cols)))
-  : ctlayout (layout rows cols)
+  (d0 : SZ.t{SZ.fits d0})
+  (d1 : SZ.t{SZ.fits d1})
+  (#_ : squash (SZ.fits (d0 * d1)))
+  : ctlayout (layout d0 d1)
   =
-  close _ <|
-  c_grouped_by 0sz _ #_ #{v = cols} <|
-  c_grouped_by 0sz _ #_ #{v = 1sz} <|
-  cunit
+  c_pack #_ #_ #(magic()) <|
+  c_major_on 0sz _ #_ #{v = d1} <|
+  c_major_on 0sz _ #_ #{v = 1sz} <|
+  solve
 
 fn test0 (m : array2 u32 (layout 3 5))
 {
@@ -55,7 +49,7 @@ fn test1 (m : array2 u32 (layout 10 10))
 
 fn test2 (m : array2 u32 (layout 10 10))
   requires m |-> 's
-  ensures  m |-> (mupd 's (1 <: natlt 10) (2 <: natlt 10) 42ul <: ematrix u32 10 10)
+  ensures  m |-> Kuiper.EMatrix.mupd 's 1 2 42ul
 {
   Array2.(m.(1sz, 2sz) <- 42ul);
   ()

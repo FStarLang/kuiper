@@ -55,7 +55,7 @@ let rec modulo_size_lemma (#n:nat) (i : natlt n) (d : idesc n)
       | 0 -> ()
       | i -> modulo_size_lemma (i-1) ts
 
-let rec insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat{SizeT.fits k}) (d : idesc n)
+let rec insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
   : Lemma (sizeof (insert_i i k d) == sizeof d * k)
           [SMTPat (sizeof (insert_i i k d)); SMTPat (sizeof d)]
   = match i with
@@ -78,6 +78,19 @@ let rec lemma_c_bring_forward_ff_ok
       let dt = tail d in
       let h, t = idx <: szlt dh & conc dt in
       lemma_c_bring_forward_ff_ok (i-^1sz) (tail d) t
+
+let rec lemma_c_bring_forward_gg_ok
+  (#n : Ghost.erased nat) (i : szlt n) (d : idesc n)
+  (h:  szlt (d @! i)) (t : conc (modulo_i i d))
+  : Lemma (c_bring_forward_gg #n i d h t == (c_conc_bring_forward_bij #n i d).cgg (h, t))
+          [SMTPat (c_bring_forward_gg #n i d h t)]
+  = if i = 0sz then
+      ()
+    else
+      let dh : Ghost.erased nat = head d in
+      let dt = tail d in
+      let hh, tt = t <: szlt (d @! 0) & conc (modulo_i (i-^1sz) dt) in
+      lemma_c_bring_forward_gg_ok (i-^1sz) (tail d) h tt
 
 let rec bring_forward_commute (#n:nat) (i : natlt n) (d : idesc n{all_fit d})
   (idx : abs d)

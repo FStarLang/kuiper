@@ -1,0 +1,77 @@
+module Kuiper.DotProd
+
+(* Matmul dot product implemented by extracting a row and column
+   as Array1's, then computing a dot product between them. *)
+
+#lang-pulse
+
+open Kuiper
+open Kuiper.Tensor { ctlayout }
+open Kuiper.EMatrix
+module MS = Kuiper.Spec.GEMM
+module Array1 = Kuiper.Array1
+
+(* A simple dot product spec over sequences.
+   FIXME: there are several definitions like these... unify. *)
+let rec seq_dotprod (#et : Type0) {| scalar et |}
+  (a b : lseq et 'n) (k : nat{k <= 'n})
+  : GTot et (decreases k)
+  = if k = 0 then zero
+    else add (seq_dotprod a b (k-1)) (mul (Seq.index a (k-1)) (Seq.index b (k-1)))
+
+(* Lemma: seq_dotprod over ematrix_row/ematrix_col equals matmul_single *)
+val seq_dotprod_is_matmul_single
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (eA : ematrix et rows shared) (eB : ematrix et shared cols)
+  (i : natlt rows) (j : natlt cols)
+  (k : nat{k <= shared})
+  : Lemma (ensures
+            seq_dotprod (ematrix_row eA i) (ematrix_col eB j) k
+            ==
+            MS.__matmul_single eA eB i j k)
+          [SMTPat (seq_dotprod (ematrix_row eA i) (ematrix_col eB j) k)]
+
+(* A generic dot product between two Array1.t of the same length. *)
+inline_for_extraction noextract
+fn dotprod
+  (#et : Type0) {| scalar et |}
+  (#len : sz)
+  (#lA #lB : Array1.layout len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : Array1.t et lA)
+  (b : Array1.t et lB)
+  (#sA #sB : erased (lseq et len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  returns
+    res : et
+  ensures
+    pure (res == seq_dotprod sA sB len)
+
+(* Specialized to compute a cell of a matmul by extracting the appropriate row
+and column as Array1's, then calling dotprod above. *)
+inline_for_extraction noextract
+fn matmul_dotprod
+  (#et : Type0) {| scalar et |}
+  (#m #n #k : sz)
+  (#lA : Array2.layout m k)
+  (#lB : Array2.layout k n)
+  {| ctlayout lA, ctlayout lB |}
+  (gA : Array2.t et lA)
+  (gB : Array2.t et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : ematrix et _ _)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  returns
+    res : et
+  ensures
+    pure (res == MS.matmul_single eA eB i j)

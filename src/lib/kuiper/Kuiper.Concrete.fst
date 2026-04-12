@@ -14,7 +14,12 @@ open FStar.Mul
 //   evidence = 42sz;
 // }
 
-(* Can this be a reasonable general solution? *)
+(* Can this be a reasonable general solution?
+Note: F* is not great with having a non-erased index here
+(e.g. see https://github.com/FStarLang/FStar/issues/3884).
+But if we can get away with it, it's way nicer to have
+a non-erased type here to prevent mismatches between
+erased int / erased nat / erased pos, etc. *)
 inline_for_extraction noextract
 class concrete_sz (n : int) = {
   x : (x : SZ.t {SZ.v x == reveal n});

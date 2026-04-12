@@ -34,12 +34,12 @@ let odd_view  et len : aview et _ = strided_view et len 2 1
 
 inline_for_extraction noextract
 instance _cview_strided
-   (#et : Type) (#len : erased nat{SZ.fits len})
+   (#et : Type) (#len : erased int{SZ.fits len})
    (sz_len : concrete_sz len)
    (stride : sz) (offset : szlt stride)
 : IView.ciview (strided_view et len stride offset).iview
 = {
-  clen = concr (hide (reveal len));
+  clen = concr len;
   sch = {
     cit  = szlt ((len + stride - 1 - offset) / stride);
     bij  = natural;
