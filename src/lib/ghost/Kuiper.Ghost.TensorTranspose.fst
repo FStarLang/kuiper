@@ -20,15 +20,14 @@ fn ghost_transpose1
   ensures
     row2col gA |-> mtranspose m
 {
-  // FIXME. Need concr/abs for tensors
-  admit();
-  // array2_concr gA;
-  // assert (pure (Seq.equal
-  //                 (to_seq (l2_row_major rows cols) m)
-  //                 (to_seq (l2_col_major cols rows) (mtranspose m))));
-  // rewrite core gA |-> to_seq (l2_row_major rows cols) m
-  //      as core gA |-> to_seq (l2_col_major cols rows) (mtranspose m);
-  // array2_abs (l2_col_major cols rows) (core gA);
+  array2_concr gA;
+  assume_ (pure (Seq.equal
+                  (to_seq (l2_row_major rows cols) m)
+                  (to_seq (l2_col_major cols rows) (mtranspose m))));
+  // FIXME: ^ should be obvious
+  rewrite core gA |-> to_seq (l2_row_major rows cols) m
+       as core gA |-> to_seq (l2_col_major cols rows) (mtranspose m);
+  array2_abs (l2_col_major cols rows) (core gA);
 }
 
 ghost
@@ -42,15 +41,14 @@ fn ghost_transpose2
   ensures
     col2row gA |-> mtranspose m
 {
-  // FIXME. Need concr/abs for tensors
-  admit();
-  // array2_concr gA;
-  // assert (pure (Seq.equal
-  //                 (to_seq (l2_col_major rows cols) m)
-  //                 (to_seq (l2_row_major cols rows) (mtranspose m))));
-  // rewrite core gA |-> to_seq (l2_col_major rows cols) m
-  //      as core gA |-> to_seq (l2_row_major cols rows) (mtranspose m);
-  // array2_abs (l2_row_major cols rows) (core gA);
+  array2_concr gA;
+  assume_ (pure (Seq.equal
+                  (to_seq (l2_col_major rows cols) m)
+                  (to_seq (l2_row_major cols rows) (mtranspose m))));
+  // FIXME: ^ should be obvious
+  rewrite core gA |-> to_seq (l2_col_major rows cols) m
+       as core gA |-> to_seq (l2_row_major cols rows) (mtranspose m);
+  array2_abs (l2_row_major cols rows) (core gA);
 }
 
 ghost
