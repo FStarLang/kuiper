@@ -153,3 +153,9 @@ test-bench-package: bench-package
 	cd _tmp && tar xzf ../kuiper-bench.tar.gz
 	$(MAKE) -C _tmp
 	rm -rf _tmp
+
+# Delegate
+.PHONY: .force
+.PRECIOUS: $(filter obj/%,$(MAKECMDGOALS))
+$(filter obj/%,$(MAKECMDGOALS)) &: .force
+	$(MAKE) -f verify.mk $(filter obj/%,$(MAKECMDGOALS))
