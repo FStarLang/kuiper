@@ -1,4 +1,5 @@
 module Kuiper.Array2
+friend Kuiper.Array1 // not ideal
 #lang-pulse
 
 open Kuiper
@@ -542,7 +543,45 @@ fn extract_row
       row a i |-> Frac f s' @==>
       a |-> Frac f (ematrix_upd_row s i s'))
 {
-  admit();
+  (* Very tedious proof for simply tweaking types and using some bijections. *)
+  unfold pts_to a #f s;
+  T.tensor_extract_slice a 0 i #f #(tr_val s);
+
+  assert pure (Chest.equal
+    (chest_slice 0 i (tr_val s))
+    (Array1.tr_val (ematrix_row s i)));
+  rewrite T.sliceof a 0 i |-> Frac f (chest_slice 0 i (tr_val s))
+       as row a i |-> Frac f (ematrix_row s i);
+
+  intro_forall
+    #_
+    #(fun (s' : lseq et cols) ->
+      row a i |-> Frac f s'
+      @==> a |-> Frac f (ematrix_upd_row s i s'))
+    (forall* (s' : chest (modulo_i 0 (desc rows cols)) et).
+      sliceof a 0 i |-> Frac f s'
+      @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
+    fn s' {
+      intro_trade
+        (row a i |-> Frac f s')
+        (a |-> Frac f (ematrix_upd_row s i s'))
+        (forall* (s' : chest (modulo_i 0 (desc rows cols)) et).
+              sliceof a 0 i |-> Frac f s'
+              @==> a |-> Frac f (chest_update_slice 0 i (tr_val s) s'))
+        fn _ {
+          assert pure (modulo_i 0 (desc rows cols) == Array1.desc cols);
+          let w : chest (modulo_i 0 (desc rows cols)) et = Array1.tr_val s';
+          elim_forall w;
+          rewrite Array1.pts_to (row a i) #f s'
+               as sliceof a 0 i |-> Frac f w;
+          elim_trade _ _;
+          rewrite each chest_update_slice 0 i (tr_val s) w
+               as tr_val (ematrix_upd_row s i s');
+          fold pts_to a #f (ematrix_upd_row s i s');
+          ();
+        };
+    };
+  ();
 }
 
 ghost
@@ -560,7 +599,9 @@ fn extract_row_ro
       (row a i |-> Frac f (ematrix_row s i))
       (a |-> Frac f s)
 {
-  admit();
+  extract_row a i;
+  elim_forall (ematrix_row s i);
+  assert pure (EMatrix.equal (ematrix_upd_row s i (ematrix_row s i)) s);
 }
 
 // Useful? This is just trade_elim
@@ -579,17 +620,8 @@ fn restore_row
   ensures
     a |-> Frac f s
 {
-  admit();
+  elim_trade _ _;
 }
-
-let col_layout
-  (#et : Type0)
-  (#rows #cols : erased nat)
-  (#l : layout rows cols)
-  (a : t et l)
-  (i : natlt cols)
-  : Array1.layout rows
-  = Tensor.tlayout_slice l 1 i
 
 let col
   (#et : Type0)
@@ -652,5 +684,5 @@ fn restore_col
   ensures
     a |-> Frac f s
 {
-  admit();
+  elim_trade _ _;
 }

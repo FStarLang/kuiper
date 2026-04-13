@@ -8,7 +8,7 @@ open Kuiper.Injection
 open Kuiper.Index
 open Kuiper.EMatrix
 open FStar.Tactics.Typeclasses { no_method }
-open Pulse.Lib.Trade { (@==>) }
+open Pulse.Lib.Trade
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
