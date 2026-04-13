@@ -290,7 +290,7 @@ let sum_aiview_fam
   step = {
     imap = {
       f = sum_aiview_fam_f n vws #_;
-      is_inj = (fun x y -> Classical.move_requires (sum_aiview_fam_is_inj n vws x) y);
+      is_inj = (fun x y -> sum_aiview_fam_is_inj n vws x y);
     };
   };
 }

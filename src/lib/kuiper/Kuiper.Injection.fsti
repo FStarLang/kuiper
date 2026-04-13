@@ -15,7 +15,7 @@ noeq
 type injection (a b : Type) = {
   f : a -> GTot b;
 
-  is_inj : x:_ -> y:_ -> squash (f x == f y ==> x == y);
+  is_inj : x:a -> y:a{f x == f y} -> squash (x == y);
 }
 
 // Terrible symbol, but F* is limited in operator support.
@@ -25,7 +25,7 @@ let ( @~> ) a b = injection a b
 let mk_injection
   (#a #b : _)
   (f : a -> GTot b)
-  (is_inj : (x:_ -> y:_ -> squash (f x == f y ==> x == y)))
+  (is_inj : (x:a -> y:a{f x == f y} -> squash (x == y)))
   : (a @~> b) =
   Mkinjection f is_inj
 
@@ -45,16 +45,10 @@ let inverse (#a #b : Type) (i : a @~> b) : (image_of i @~> a) = {
   is_inj = ez;
 }
 
-let is_injection (#a #b : Type) (i : a @~> b)
-: Lemma (forall x y. i.f x == i.f y ==> x == y)
-= introduce forall x y. i.f x == i.f y ==> x==y
-  with introduce i.f x == i.f y ==> x==y
-  with _. ( i.is_inj x y )
-
 let lem_pat (#a #b : _) (d : a @~> b) (x : a)
   : Lemma ((inverse d).f (d.f x) == x)
           [SMTPat (d.f x)]
-  = is_injection d
+  = d.is_inj ((inverse d).f (d.f x)) x
 
 // #push-options "--warn_error -288"
 // val lem_forall_pat (#a #b : _) (d : a @~> b)
