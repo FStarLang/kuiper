@@ -188,7 +188,6 @@ fn array2_untile'
           (macc em (tr * trows + i) (tc * tcols + j))
   {
     M.ilower (array2_subtile gm trows tcols tr tc);
-    drop_ (pure (SZ.fits (M.layout_size (subtile_layout l trows tcols tr tc))));
     forevery_map_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
@@ -437,7 +436,6 @@ fn array2_explode_tiled
           (macc em (tr * trows + i) (tc * tcols + j))
   {
     M.ilower (array2_subtile gm trows tcols tr tc);
-    drop_ (pure (SZ.fits (M.layout_size (subtile_layout l trows tcols tr tc))));
     forevery_ext_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
@@ -594,13 +592,7 @@ fn array2_collect_approx_tiled
       M.pts_to_cell
         (array2_subtile gm trows tcols tr tc)
         ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid))
-    fn bid tid {
-      let tr = bid / ntc;
-      let tc = bid % ntc;
-      let i = tid / tcols;
-      let j = tid % tcols;
-      drop_ (pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)));
-    };
+    fn bid tid { () };
 
   (* Step 4: Factor to 4D *)
   forevery_factor_2

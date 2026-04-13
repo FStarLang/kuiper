@@ -866,13 +866,7 @@ fn gpu_matrix_collect_approx_tiled
       gpu_matrix_pts_to_cell
         (gpu_matrix_subtile gm trows tcols tr tc)
         i j (vf bid tid))
-    fn bid tid {
-      let tr = bid / ntc;
-      let tc = bid % ntc;
-      let i = tid / tcols;
-      let j = tid % tcols;
-      drop_ (pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)));
-    };
+    fn bid tid { () };
 
   (* Step 4: Factor to 4D *)
   forevery_factor_2
