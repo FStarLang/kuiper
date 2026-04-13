@@ -156,8 +156,7 @@ module T = Kuiper.Tensor
 inline_for_extraction noextract
 instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
   {
-    culen = magic(); // SZ.mul m n;
-    // ^ big cheat, maybe this field should go away
+    ulen_fits = ();
     all_fit = ();
     cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array1.desc m)) ->
               match idx with
@@ -167,8 +166,7 @@ instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
 inline_for_extraction noextract
 instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) : T.ctlayout (l2_row_major m n) =
   {
-    culen = magic(); // SZ.mul m n;
-    // ^ big cheat, maybe this field should go away
+    ulen_fits = ();
     all_fit = ();
     cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array2.desc m n)) ->
               match idx with
@@ -178,8 +176,7 @@ instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) 
 inline_for_extraction noextract
 instance c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)}) : T.ctlayout (l2_col_major m n) =
   {
-    culen = magic(); // SZ.mul m n;
-    // ^ big cheat, maybe this field should go away
+    ulen_fits = ();
     all_fit = ();
     cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array2.desc m n)) ->
               match idx with

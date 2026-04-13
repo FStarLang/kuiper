@@ -45,13 +45,9 @@ let odd_view et (len : nat) : aview et (lseq et (len / 2)) = {
   ctn = solve;
 }
 
-(* Somehow generate these automatically for constants? *)
 inline_for_extraction noextract
-instance concrete_sz_100 : concrete_sz 100 = { x = 100sz }
-
-inline_for_extraction noextract
-instance _cview_even #et (len : erased nat) (sz_len : concrete_sz len) : IView.ciview (even_view et len).iview = {
-  clen = concr' sz_len;
+instance _cview_even #et (len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview = {
+  len_fits = ();
   sch = {
     cit  = szlt ((len + 1) / 2);
     bij  = natural;
@@ -63,8 +59,8 @@ instance _cview_even #et (len : erased nat) (sz_len : concrete_sz len) : IView.c
 }
 
 inline_for_extraction noextract
-instance _cview_odd #et (len : erased nat) (sz_len : concrete_sz len) : IView.ciview (odd_view et len).iview = {
-  clen = concr' sz_len;
+instance _cview_odd #et (len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview = {
+  len_fits = ();
   sch = {
     cit  = szlt (len / 2);
     bij  = natural;
@@ -82,7 +78,7 @@ fn foo_even (a : varray (even_view u32 100))
   returns   u32
 {
   // Actually reads index 20 (see generated code)
-  varray_read #_ #_ #_ #(_cview_even #_ _ solve) a 10sz;
+  varray_read #_ #_ #_ #(_cview_even #_ _) a 10sz;
   // Bad tc resolution due to the different shape
   // of the lengths in lseq. The one for a gets simplified
   // to 50, which does not unify with (?u+1)/2 in the instance.
@@ -96,7 +92,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   ensures  a |-> v0
 {
   // Actually reads index 21 (see generated code)
-  varray_read #_ #_ #_ #(_cview_odd #_ _ solve) a 10sz;
+  varray_read #_ #_ #_ #(_cview_odd #_ _) a 10sz;
 }
 
 fn foo_odd_modify (a : varray (odd_view u32 100))
@@ -106,5 +102,5 @@ fn foo_odd_modify (a : varray (odd_view u32 100))
   ensures  a |-> (Seq.upd v0 10 42ul <: lseq u32 50)
 {
   // Actually writes into index 21 (see generated code)
-  varray_write #_ #_ #_ #(_cview_odd #_ _ solve) a 10sz 42ul;
+  varray_write #_ #_ #_ #(_cview_odd #_ _) a 10sz 42ul;
 }

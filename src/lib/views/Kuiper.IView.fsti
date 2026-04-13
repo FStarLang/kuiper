@@ -112,7 +112,7 @@ inline_for_extraction noextract
 class ciview (avw : aiview) =
 {
   [@@@no_method]
-  clen : (clen : SZ.t {SZ.v clen == avw.len});
+  len_fits : squash (SZ.fits avw.len);
 
   [@@@no_method]
   sch  : ciview_schema avw.ait;
@@ -123,7 +123,7 @@ class ciview (avw : aiview) =
 
 inline_for_extraction noextract
 instance concrete_raw_view (#len : nat{SZ.fits len}) : ciview (raw_view #len) = {
-  clen = SZ.uint_to_t len; // weird
+  len_fits = ();
   sch  = raw_ciview_schema len;
   step = {
     cimap  = cinj_id;

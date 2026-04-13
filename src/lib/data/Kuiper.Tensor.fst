@@ -427,7 +427,7 @@ instance ctlayout_slice
   (i : szlt n) (j : szlt (d @! i))
   : ctlayout (tlayout_slice d l i j) =
   {
-    culen = c.culen;
+    ulen_fits = ();
     all_fit = ();
     cimap = (fun idx -> ctlayout_slice_cimap d l i j idx);
   }

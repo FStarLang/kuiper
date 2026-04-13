@@ -18,6 +18,7 @@ module SZ = Kuiper.SizeT
 include Kuiper.EMatrix.Tiling
 
 #restart-solver
+#push-options "--split_queries always --z3rlimit 20"
 inline_for_extraction noextract
 let c_subtile_layout2
   (#rows #cols : erased nat)
@@ -30,7 +31,7 @@ let c_subtile_layout2
   {| concrete_sz trows, concrete_sz tcols, concrete_sz tr, concrete_sz tc |}
   : ctlayout (subtile_layout l trows tcols tr tc)
   = {
-      culen = magic();
+      ulen_fits = ();
       all_fit = ();
       cimap = (fun (x : conc (desc trows tcols)) ->
                 match x with | (i, (j, ())) ->
@@ -40,6 +41,7 @@ let c_subtile_layout2
                     ())) in
                 cc.cimap x');
   }
+#pop-options
 
 (* FIXME. The definition above works just fine. But, if we remove this
 indirection (and presumably have the val on the fsti ascribe it), the

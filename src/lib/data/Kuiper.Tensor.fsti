@@ -221,7 +221,7 @@ instance ctensor_ciview
   (c : ctlayout l)
   : Kuiper.IView.ciview (tensor_aview et l).iview =
 {
-  clen = c.culen;
+  len_fits = ();
   sch = {
     cit = conc d;
     bij = abs_conc_bij d;

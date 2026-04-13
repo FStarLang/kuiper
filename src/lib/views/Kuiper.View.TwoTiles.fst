@@ -39,10 +39,7 @@ instance ciview_2tile2
   (tile : valid_tile)
   : ciview (aview_2tile2 et tile).iview =
   (*neat *)
-  Kuiper.View.Concat.cview_concat
-    _ solve
-    _ solve
-    ()
+  Kuiper.View.Concat.cview_concat solve solve ()
 
 (**************)
 

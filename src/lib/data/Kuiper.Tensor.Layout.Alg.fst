@@ -96,7 +96,7 @@ instance c_pack (#n : erased nat) (#d: idesc n)
   (#_ : squash (all_fit d))
   : ctlayout (pack f) =
   {
-    culen   = culen.v;
+    ulen_fits = ();
     all_fit = ();
     cimap   = (fun x -> c_f.ff x);
   }

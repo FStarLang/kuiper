@@ -45,8 +45,7 @@ let tlayout_size (#d : idesc 'r) (l : tlayout d) : GTot nat = l.ulen
 
 inline_for_extraction
 class ctlayout (#r : erased nat) (#d : idesc r) (l : tlayout d) = {
-  [@@@no_method]
-  culen : (x : SZ.t { SZ.v x == l.ulen });
+  ulen_fits : squash (SZ.fits l.ulen);
 
   [@@@no_method]
   all_fit : squash (all_fit d);
