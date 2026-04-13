@@ -28,6 +28,12 @@ let tr_val (#et : Type) (#d0 #d1 #d2 #d3 : nat) (s : EMatrix4.t et d0 d1 d2 d3)
   : chest (desc d0 d1 d2 d3) et
   = Chest.mk (desc d0 d1 d2 d3) (fun (i, (j, (k, (l, ())))) -> EMatrix4.macc s i j k l)
 
+let to_from (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (l : full_layout d0 d1 d2 d3) (s : lseq et (d0 * d1 * d2 * d3))
+  : Lemma (ensures to_seq l (from_seq l s) == s)
+          [SMTPat (to_seq l (from_seq l s))]
+  = assert (Seq.equal (to_seq l (from_seq l s)) s)
+
 let t (et : Type0) (#d0 #d1 #d2 #d3 : nat) (l : layout d0 d1 d2 d3) : Type0 =
   T.tensor et l
 

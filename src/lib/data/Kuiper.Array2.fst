@@ -34,7 +34,8 @@ let to_from (#et:Type) (#m #n : nat)
   (l : full_layout m n) (s : lseq et (m * n))
   : Lemma (ensures to_seq l (from_seq l s) == s)
           [SMTPat (to_seq l (from_seq l s))]
-  = let aux (i : natlt (m * n)) : Lemma (to_seq l (from_seq l s) @! i == s @! i) =
+  = // Why is this needed? The same proof in Array4 just works
+    let aux (i : natlt (m * n)) : Lemma (to_seq l (from_seq l s) @! i == s @! i) =
       ()
     in
     Classical.forall_intro aux;
@@ -176,7 +177,7 @@ let to_seq_rel (#et:Type) (#rows #cols : nat)
     assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
 
 ghost
-fn concr
+fn lower
   (#et:Type)
   (#rows #cols : nat)
   (#l : layout rows cols { is_full l })
@@ -196,7 +197,7 @@ fn concr
 }
 
 ghost
-fn abs
+fn raise
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
@@ -218,7 +219,7 @@ fn abs
 }
 
 ghost
-fn abs'
+fn raise'
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
@@ -231,7 +232,7 @@ fn abs'
     from_array l p |-> Frac f (from_seq l s)
 {
   rewrite each s as to_seq l (from_seq l s);
-  abs l p;
+  raise l p;
 }
 
 ghost

@@ -3,9 +3,6 @@ module Kuiper.Matrix.Casts
 
 open Kuiper
 
-// This should be restored to show how to cast a matrix into a tiled view via
-// concr/abs. But there is also a better API.
-
 module EM = Kuiper.EMatrix
 module A2 = Kuiper.Array2
 module A4 = Kuiper.Array4
@@ -72,8 +69,8 @@ fn m2_to_m4
     pure (A4.core gA4 == A2.core gA)
 {
   (* Very roundabout way to do this. *)
-  A2.concr gA;
-  A4.abs' (l2_to_l4 lA) (A2.core gA);
+  A2.lower gA;
+  A4.raise' (l2_to_l4 lA) (A2.core gA);
   let r = A4.from_array (l2_to_l4 lA) (A2.core gA);
   assert rewrites_to r (A4.from_array (l2_to_l4 lA) (A2.core gA));
   assert pure (Kuiper.EMatrix4.equal
@@ -102,8 +99,8 @@ fn m4_to_m2
     pure (A4.core gA4 == A2.core gA)
 {
   (* Very roundabout way to do this. *)
-  A4.concr gA4;
-  A2.abs' (l4_to_l2 lA4) (A4.core gA4);
+  A4.lower gA4;
+  A2.raise' (l4_to_l2 lA4) (A4.core gA4);
   let r = A2.from_array (l4_to_l2 lA4) (A4.core gA4);
   assert rewrites_to r (A2.from_array (l4_to_l2 lA4) (A4.core gA4));
   assert pure (Kuiper.EMatrix.equal

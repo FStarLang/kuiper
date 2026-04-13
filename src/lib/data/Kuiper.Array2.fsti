@@ -172,7 +172,7 @@ fn pts_to_ref
     pure (SZ.fits (layout_size l))
 
 ghost
-fn concr
+fn lower
   (#et:Type)
   (#rows #cols : nat)
   (#l : layout rows cols { is_full l })
@@ -185,7 +185,7 @@ fn concr
     core g |-> Frac f (to_seq l s)
 
 ghost
-fn abs
+fn raise
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
@@ -198,7 +198,7 @@ fn abs
     from_array l p |-> Frac f s
 
 ghost
-fn abs'
+fn raise'
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
