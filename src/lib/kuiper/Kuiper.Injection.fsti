@@ -34,9 +34,11 @@ let ( |~> ) (#a #b : Type) (x : a) (i : a `injection` b) : GTot b = i.f x
 
 let image_of (#a #b: Type) (i: a @~> b) : Type = FStar.Functions.image_of i.f
 
-let inverse_f (#a #b : Type) (i : a @~> b) (y : image_of i) : GTot a =
-  FStar.IndefiniteDescription.indefinite_description_ghost a
-    (fun (x:a) -> i.f x == y)
+val inverse_f (#a #b : Type) (i : a @~> b) (y : image_of i) : GTot a
+
+val inverse_lem (#a #b : Type) (i : a @~> b) (y : image_of i)
+  : Lemma (ensures i.f (inverse_f i y) == y)
+          [SMTPat (inverse_f i y)]
 
 (* An injection can be inverted, but this requires choice. *)
 let inverse (#a #b : Type) (i : a @~> b) : (image_of i @~> a) = {

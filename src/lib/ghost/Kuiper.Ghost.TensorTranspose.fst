@@ -9,6 +9,22 @@ open Kuiper.Tensor.Layout.Alg
 
 open Kuiper.Injection
 
+
+// Not great that we need these helpers.
+#push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
+let lem_imap_swap_rc (#rows #cols : nat) (rc : natlt rows & (natlt cols & unit))
+  : Lemma ((l2_row_major rows cols).imap.f rc ==
+           (l2_col_major cols rows).imap.f (rc._2._1, (rc._1, ())))
+          [SMTPat ((l2_row_major rows cols).imap.f rc)]
+  = ()
+
+let lem_imap_swap_cr (#rows #cols : nat) (rc : natlt rows & (natlt cols & unit))
+  : Lemma ((l2_col_major rows cols).imap.f rc ==
+           (l2_row_major cols rows).imap.f (rc._2._1, (rc._1, ())))
+          [SMTPat ((l2_col_major rows cols).imap.f rc)]
+  = ()
+#pop-options
+
 ghost
 fn ghost_transpose1
   (#et:Type)
@@ -21,10 +37,9 @@ fn ghost_transpose1
     row2col gA |-> mtranspose m
 {
   lower gA;
-  assume_ (pure (Seq.equal
+  assert (pure (Seq.equal
                   (to_seq (l2_row_major rows cols) m)
                   (to_seq (l2_col_major cols rows) (mtranspose m))));
-  // FIXME: ^ should be obvious
   rewrite core gA |-> to_seq (l2_row_major rows cols) m
        as core gA |-> to_seq (l2_col_major cols rows) (mtranspose m);
   raise (l2_col_major cols rows) (core gA);
@@ -42,10 +57,9 @@ fn ghost_transpose2
     col2row gA |-> mtranspose m
 {
   lower gA;
-  assume_ (pure (Seq.equal
+  assert (pure (Seq.equal
                   (to_seq (l2_col_major rows cols) m)
                   (to_seq (l2_row_major cols rows) (mtranspose m))));
-  // FIXME: ^ should be obvious
   rewrite core gA |-> to_seq (l2_col_major rows cols) m
        as core gA |-> to_seq (l2_row_major cols rows) (mtranspose m);
   raise (l2_row_major cols rows) (core gA);
