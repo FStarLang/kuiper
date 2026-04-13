@@ -101,6 +101,7 @@ let cell_convert_eq
     M.pts_to_cell_eq (array2_subtile gm trows tcols tr tc) (i, j) f v;
     ()
 
+#push-options "--z3rlimit 80 --split_queries always"
 ghost
 fn array2_tile
   (#et:Type0)
@@ -119,9 +120,51 @@ fn array2_tile
       (tc : natlt (cols / tcols)).
         array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 {
-  admit();
+  M.pts_to_ref gm;
+  M.explode gm;
+  forevery_unflatten'
+    (fun (ij : M.ait rows cols) ->
+      Cell gm ij |-> Frac f (macc em (fst ij) (snd ij)));
+  forevery_factor_2 rows (rows / trows) trows
+    cols (cols / tcols) tcols
+    _;
+  forevery_mid_flip _;
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      forall+ (i : natlt trows) (j : natlt tcols).
+        M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols)) (macc em (tr * trows + i) (tc * tcols + j))
+    ensures
+      array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
+  {
+    forevery_map_2
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols))
+          (macc em (tr * trows + i) (tc * tcols + j)))
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
+          (macc (ematrix_subtile em trows tcols tr tc) i j))
+      fn i j {
+        cell_convert_eq gm trows tcols tr tc i j f
+          (macc em (tr * trows + i) (tc * tcols + j));
+        rewrite
+          M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols))
+            (macc em (tr * trows + i) (tc * tcols + j))
+        as
+          M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
+            (macc (ematrix_subtile em trows tcols tr tc) i j);
+      };
+    forevery_flatten'
+      (fun (ij : M.ait trows tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f ij
+          (macc (ematrix_subtile em trows tcols tr tc) (fst ij) (snd ij)));
+    M.implode (array2_subtile gm trows tcols tr tc);
+  };
+  forevery_map_2 _ _ aux;
 }
+#pop-options
 
+#push-options "--z3rlimit 40 --split_queries always"
 ghost
 fn array2_untile'
   (#et:Type0)
@@ -142,8 +185,53 @@ fn array2_untile'
   ensures
     gm |-> Frac f (ematrix_from_tiles trows tcols tf)
 {
-  admit();
+  let em = ematrix_from_tiles trows tcols tf;
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      array2_subtile gm trows tcols tr tc |-> Frac f (tf tr tc)
+    ensures
+      forall+ (i : natlt trows) (j : natlt tcols).
+        M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols))
+          (macc em (tr * trows + i) (tc * tcols + j))
+  {
+    M.explode (array2_subtile gm trows tcols tr tc);
+    forevery_unflatten'
+      (fun (ij : M.ait trows tcols) ->
+        Cell (array2_subtile gm trows tcols tr tc) ij |-> Frac f (macc (tf tr tc) (fst ij) (snd ij)));
+    forevery_map_2
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
+          (macc (tf tr tc) i j))
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols))
+          (macc em (tr * trows + i) (tc * tcols + j)))
+      fn i j {
+        cell_convert_eq gm trows tcols tr tc i j f (macc (tf tr tc) i j);
+        assert pure ((tr * trows + i) / trows == tr);
+        assert pure ((tc * tcols + j) / tcols == tc);
+        assert pure ((tr * trows + i) % trows == i);
+        assert pure ((tc * tcols + j) % tcols == j);
+        assert pure (macc em (tr * trows + i) (tc * tcols + j) == macc (tf tr tc) i j);
+        rewrite
+          M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
+            (macc (tf tr tc) i j)
+        as
+          M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols))
+            (macc em (tr * trows + i) (tc * tcols + j));
+      };
+  };
+  forevery_map_2 _ _ aux;
+  forevery_mid_flip _;
+  forevery_unfactor_2 rows (rows / trows) trows
+    cols (cols / tcols) tcols
+    (fun i j -> M.pts_to_cell gm #f (i, j) (macc em i j));
+  forevery_flatten'
+    (fun (ij : M.ait rows cols) ->
+      M.pts_to_cell gm #f ij (macc em (fst ij) (snd ij)));
+  M.implode gm;
 }
+#pop-options
 
 ghost
 fn array2_untile
@@ -165,9 +253,13 @@ fn array2_untile
   ensures
     gm |-> Frac f em
 {
-  admit();
+  array2_untile' gm trows tcols _;
+  from_subtiles_id em trows tcols;
+  rewrite each ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
+            as em;
 }
 
+#push-options "--z3rlimit 40 --split_queries always"
 ghost
 fn array2_extract_tile
   (#et:Type0)
@@ -188,8 +280,64 @@ fn array2_extract_tile
       array2_subtile gm trows tcols tr tc |-> Frac f tm' @==>
       gm |-> Frac f (update_tile em trows tcols tr tc tm'))
 {
-  admit();
+  M.pts_to_ref gm;
+  array2_tile gm trows tcols;
+  forevery_flatten _;
+  forevery_remove _ (tr, tc);
+  ghost
+  fn aux (tm' : ematrix et trows tcols)
+    requires
+      forall+
+        (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ).
+          array2_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em trows tcols (fst tr'tc') (snd tr'tc'))
+    ensures
+      array2_subtile gm trows tcols tr tc |-> Frac f tm' @==>
+      gm |-> Frac f (update_tile em trows tcols tr tc tm')
+  {
+    let em' = update_tile em trows tcols tr tc tm';
+    assert pure (forall (tc' : natlt (cols / tcols)) (tr' : natlt (rows / trows)).
+      tc =!= tc' \/ tr =!= tr' ==>
+        (ematrix_subtile em trows tcols tr' tc'
+         ==
+         ematrix_subtile em' trows tcols tr' tc')
+    );
+    forevery_ext
+      (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ) ->
+        array2_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em trows tcols (fst tr'tc') (snd tr'tc')))
+      (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ) ->
+        array2_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em' trows tcols (fst tr'tc') (snd tr'tc')));
+    ghost
+    fn aux ()
+      requires
+        forall+
+        (tr'tc' : natlt (rows / trows) & natlt (cols / tcols) { tr'tc' =!= (tr, tc) } ).
+          array2_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em' trows tcols (fst tr'tc') (snd tr'tc'))
+      requires
+        array2_subtile gm trows tcols tr tc |-> Frac f tm'
+      ensures
+        gm |-> Frac f (update_tile em trows tcols tr tc tm')
+    {
+      assert pure (ematrix_subtile em' trows tcols tr tc == tm');
+      rewrite
+        array2_subtile gm trows tcols tr tc |-> Frac f tm'
+      as
+        array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em' trows tcols tr tc);
+      forevery_insert
+        #(natlt (rows / trows) & natlt (cols / tcols))
+        #(fun tr'tc' -> tr'tc' =!= (tr, tc))
+        (fun (tr'tc' : natlt (rows / trows) & natlt (cols / tcols)) ->
+          array2_subtile gm trows tcols (fst tr'tc') (snd tr'tc') |-> Frac f (ematrix_subtile em' trows tcols (fst tr'tc') (snd tr'tc')))
+        (tr, tc);
+      forevery_unrefine _;
+      forevery_unflatten' _;
+      array2_untile gm trows tcols #em';
+      ()
+    };
+    Pulse.Lib.Trade.intro_trade _ _ _ aux;
+  };
+  Pulse.Lib.Forall.intro_forall _ aux;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn array2_extract_tile_st
@@ -237,7 +385,10 @@ fn array2_extract_tile_ro
       (array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)
 {
-  admit();
+  array2_extract_tile gm trows tcols tr tc;
+  Pulse.Lib.Forall.elim_forall (ematrix_subtile em trows tcols tr tc);
+  rewrite each (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))
+    as em;
 }
 
 inline_for_extraction noextract
@@ -288,7 +439,30 @@ fn array2_explode_tiled
       M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
         (macc em (tr * trows + i) (tc * tcols + j))
 {
-  admit();
+  array2_tile gm trows tcols;
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      array2_subtile gm trows tcols tr tc |-> ematrix_subtile em trows tcols tr tc
+    ensures
+      forall+ (i : natlt trows) (j : natlt tcols).
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+          (macc em (tr * trows + i) (tc * tcols + j))
+  {
+    M.explode (array2_subtile gm trows tcols tr tc);
+    forevery_unflatten'
+      (fun (ij : M.ait trows tcols) ->
+        Cell (array2_subtile gm trows tcols tr tc) ij |->
+          macc (ematrix_subtile em trows tcols tr tc) (fst ij) (snd ij));
+    forevery_ext_2
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+          (macc (ematrix_subtile em trows tcols tr tc) i j))
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+          (macc em (tr * trows + i) (tc * tcols + j)));
+  };
+  forevery_map_2 _ _ aux;
 }
 
 (* Implode a tiled per-cell ownership back to full matrix.
@@ -317,7 +491,37 @@ fn array2_implode_tiled
     gm |-> mkM (fun (row : natlt rows) (col : natlt cols) ->
       val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
 {
-  admit();
+  let em' = mkM (fun (row : natlt rows) (col : natlt cols) ->
+    val_fn (row / trows) (col / tcols) (row % trows) (col % tcols));
+
+  ghost
+  fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
+    requires
+      forall+ (i : natlt trows) (j : natlt tcols).
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+          (val_fn tr tc i j)
+    ensures
+      array2_subtile gm trows tcols tr tc |-> ematrix_subtile em' trows tcols tr tc
+  {
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tr * trows + i) / trows == tr);
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tc * tcols + j) / tcols == tc);
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tr * trows + i) % trows == i);
+    assert pure (forall (i:natlt trows) (j:natlt tcols). (tc * tcols + j) % tcols == j);
+    forevery_ext_2
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+          (val_fn tr tc i j))
+      (fun (i:natlt trows) (j:natlt tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
+          (macc (ematrix_subtile em' trows tcols tr tc) i j));
+    forevery_flatten'
+      (fun (ij : M.ait trows tcols) ->
+        M.pts_to_cell (array2_subtile gm trows tcols tr tc) ij
+          (macc (ematrix_subtile em' trows tcols tr tc) (fst ij) (snd ij)));
+    M.implode (array2_subtile gm trows tcols tr tc);
+  };
+  forevery_map_2 _ _ aux;
+  array2_untile gm trows tcols;
 }
 
 #push-options "--z3rlimit 40"
@@ -358,6 +562,106 @@ fn array2_collect_approx_tiled
       spec_fn row col
         (vf ((row / trows) * ntc + (col / tcols)) ((row % trows) * tcols + (col % tcols))))
 {
-  admit();
+  (* Step 1: Collect the existential witnesses using 2D forevery_exists *)
+  let vf = forevery_exists_2
+    (fun (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)) (v : et) ->
+      let tr = bid / ntc in
+      let tc = bid % ntc in
+      let i = tid / tcols in
+      let j = tid % tcols in
+      M.pts_to_cell
+        (array2_subtile gm trows tcols tr tc)
+        ((i <: natlt trows), (j <: natlt tcols)) v **
+      pure (spec_fn (tr * trows + i) (tc * tcols + j) v));
+
+  (* Step 2: Extract pure facts *)
+  forevery_extract_pure_2
+    #(natlt (ntr * ntc)) #(natlt (trows * tcols))
+    (fun bid tid ->
+      let tr = bid / ntc in
+      let tc = bid % ntc in
+      let i = tid / tcols in
+      let j = tid % tcols in
+      M.pts_to_cell
+        (array2_subtile gm trows tcols tr tc)
+        ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid) **
+      pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)))
+    (fun bid tid ->
+      let tr = bid / ntc in
+      let tc = bid % ntc in
+      let i = tid / tcols in
+      let j = tid % tcols in
+      spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid))
+    fn bid tid { (); };
+
+  (* Step 3: Drop pures *)
+  forevery_map_2
+    #(natlt (ntr * ntc)) #(natlt (trows * tcols))
+    (fun bid tid ->
+      let tr = bid / ntc in
+      let tc = bid % ntc in
+      let i = tid / tcols in
+      let j = tid % tcols in
+      M.pts_to_cell
+        (array2_subtile gm trows tcols tr tc)
+        ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid) **
+      pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)))
+    (fun bid tid ->
+      let tr = bid / ntc in
+      let tc = bid % ntc in
+      let i = tid / tcols in
+      let j = tid % tcols in
+      M.pts_to_cell
+        (array2_subtile gm trows tcols tr tc)
+        ((i <: natlt trows), (j <: natlt tcols)) (vf bid tid))
+    fn bid tid {
+      let tr = bid / ntc;
+      let tc = bid % ntc;
+      let i = tid / tcols;
+      let j = tid % tcols;
+      drop_ (pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)));
+    };
+
+  (* Step 4: Factor to 4D *)
+  forevery_factor_2
+    (ntr * ntc) ntr ntc
+    (trows * tcols) trows tcols
+    (fun (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)) ->
+      M.pts_to_cell
+        (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
+        ((tid / tcols <: natlt trows), (tid % tcols <: natlt tcols)) (vf bid tid));
+
+  (* Simplify div/mod *)
+  assert pure (forall (tr:natlt ntr) (tc:natlt ntc). (tr * ntc + tc) / ntc == tr /\ (tr * ntc + tc) % ntc == tc);
+  assert pure (forall (i:natlt trows) (j:natlt tcols). (i * tcols + j) / tcols == i /\ (i * tcols + j) % tcols == j);
+
+  forevery_ext_4
+    (fun (tr:natlt ntr) (tc:natlt ntc) (i:natlt trows) (j:natlt tcols) ->
+      let bid = tr * ntc + tc in let tid = i * tcols + j in
+      M.pts_to_cell
+        (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
+        ((tid / tcols <: natlt trows), (tid % tcols <: natlt tcols)) (vf bid tid))
+    (fun (tr:natlt ntr) (tc:natlt ntc) (i:natlt trows) (j:natlt tcols) ->
+      M.pts_to_cell
+        (array2_subtile gm trows tcols tr tc)
+        ((i <: natlt trows), (j <: natlt tcols)) (vf (tr * ntc + tc) (i * tcols + j)));
+
+  (* Step 5: Rewrite sizes for implode_tiled *)
+  forevery_rw_size4 ntr (rows / trows) ntc (cols / tcols) trows trows tcols tcols;
+
+  (* Step 6: Implode tiled *)
+  array2_implode_tiled gm trows tcols
+    (fun (tr:natlt (rows / trows)) (tc:natlt (cols / tcols)) (i:natlt trows) (j:natlt tcols) ->
+      vf (tr * ntc + tc) (i * tcols + j));
+
+  (* Prove the pure postcondition *)
+  assert pure (forall (row : natlt rows) (col : natlt cols).
+    let tr = row / trows in
+    let tc = col / tcols in
+    let i = row % trows in
+    let j = col % tcols in
+    spec_fn row col (vf (tr * ntc + tc) (i * tcols + j)));
+
+  vf
 }
 #pop-options
