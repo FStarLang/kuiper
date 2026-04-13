@@ -176,7 +176,7 @@ let to_seq_rel (#et:Type) (#rows #cols : nat)
     assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
 
 ghost
-fn array2_concr
+fn concr
   (#et:Type)
   (#rows #cols : nat)
   (#l : layout rows cols { is_full l })
@@ -196,7 +196,7 @@ fn array2_concr
 }
 
 ghost
-fn array2_abs
+fn abs
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
@@ -218,7 +218,7 @@ fn array2_abs
 }
 
 ghost
-fn array2_abs'
+fn abs'
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
@@ -231,7 +231,7 @@ fn array2_abs'
     from_array l p |-> Frac f (from_seq l s)
 {
   rewrite each s as to_seq l (from_seq l s);
-  array2_abs l p;
+  abs l p;
 }
 
 ghost

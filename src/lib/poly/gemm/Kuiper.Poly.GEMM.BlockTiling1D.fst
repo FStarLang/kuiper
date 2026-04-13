@@ -406,11 +406,11 @@ fn kf
   gpu_pts_to_ref ar1;
   gpu_pts_to_ref ar2;
 
-  M.array2_abs' slA ar1;
+  M.abs' slA ar1;
   let sa1 = M.from_array slA ar1;
   rewrite each M.from_array slA ar1 as sa1;
 
-  M.array2_abs' slB ar2;
+  M.abs' slB ar2;
   let sa2 = M.from_array slB ar2;
   rewrite each M.from_array slB ar2 as sa2;
 
@@ -500,8 +500,8 @@ fn kf
     Pulse.Lib.Trade.elim_trade _ _;
   };
 
-  M.array2_concr sa1; rewrite each M.core sa1 as ar1;
-  M.array2_concr sa2; rewrite each M.core sa2 as ar2;
+  M.concr sa1; rewrite each M.core sa1 as ar1;
+  M.concr sa2; rewrite each M.core sa2 as ar2;
 
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
