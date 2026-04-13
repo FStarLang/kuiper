@@ -358,6 +358,61 @@ fn tensor_implode
   fold tensor_pts_to a #f s;
 }
 
+ghost
+fn tensor_ilower
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (tlayout_size l)) **
+    (forall+ (i : abs d).
+      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+{
+  tensor_pts_to_ref a;
+  tensor_explode a;
+  forevery_map
+    (fun (i : abs d) -> Cell a i |-> Frac f (acc s i))
+    (fun (i : abs d) -> gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+    fn i {
+      tensor_pts_to_cell_eq a i f (acc s i);
+      rewrite
+        Cell a i |-> Frac f (acc s i)
+      as
+        gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i);
+    };
+}
+
+ghost
+fn tensor_iraise
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest d et)
+  requires
+    pure (SZ.fits (tlayout_size l)) **
+    (forall+ (i : abs d).
+      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+  ensures
+    a |-> Frac f s
+{
+  forevery_map
+    (fun (i : abs d) -> gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+    (fun (i : abs d) -> Cell a i |-> Frac f (acc s i))
+    fn i {
+      tensor_pts_to_cell_eq a i f (acc s i);
+      rewrite
+        gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i)
+      as
+        Cell a i |-> Frac f (acc s i);
+    };
+  tensor_implode a;
+}
+
 inline_for_extraction noextract
 fn tensor_read_cell
   (#et : Type0) (#r : nat) (#d : idesc r)

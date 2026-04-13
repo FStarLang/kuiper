@@ -120,11 +120,7 @@ fn array2_tile
       (tc : natlt (cols / tcols)).
         array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 {
-  M.pts_to_ref gm;
-  M.explode gm;
-  forevery_unflatten'
-    (fun (ij : M.ait rows cols) ->
-      Cell gm ij |-> Frac f (macc em (fst ij) (snd ij)));
+  M.ilower gm;
   forevery_factor_2 rows (rows / trows) trows
     cols (cols / tcols) tcols
     _;
@@ -154,11 +150,7 @@ fn array2_tile
           M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
             (macc (ematrix_subtile em trows tcols tr tc) i j);
       };
-    forevery_flatten'
-      (fun (ij : M.ait trows tcols) ->
-        M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f ij
-          (macc (ematrix_subtile em trows tcols tr tc) (fst ij) (snd ij)));
-    M.implode (array2_subtile gm trows tcols tr tc);
+    M.iraise (array2_subtile gm trows tcols tr tc);
   };
   forevery_map_2 _ _ aux;
 }
@@ -195,10 +187,8 @@ fn array2_untile'
         M.pts_to_cell gm #f ((tr * trows + i <: natlt rows), (tc * tcols + j <: natlt cols))
           (macc em (tr * trows + i) (tc * tcols + j))
   {
-    M.explode (array2_subtile gm trows tcols tr tc);
-    forevery_unflatten'
-      (fun (ij : M.ait trows tcols) ->
-        Cell (array2_subtile gm trows tcols tr tc) ij |-> Frac f (macc (tf tr tc) (fst ij) (snd ij)));
+    M.ilower (array2_subtile gm trows tcols tr tc);
+    drop_ (pure (SZ.fits (M.layout_size (subtile_layout l trows tcols tr tc))));
     forevery_map_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         M.pts_to_cell (array2_subtile gm trows tcols tr tc) #f (i, j)
@@ -226,10 +216,7 @@ fn array2_untile'
   forevery_unfactor_2 rows (rows / trows) trows
     cols (cols / tcols) tcols
     (fun i j -> M.pts_to_cell gm #f (i, j) (macc em i j));
-  forevery_flatten'
-    (fun (ij : M.ait rows cols) ->
-      M.pts_to_cell gm #f ij (macc em (fst ij) (snd ij)));
-  M.implode gm;
+  M.iraise gm;
 }
 #pop-options
 
@@ -449,11 +436,8 @@ fn array2_explode_tiled
         M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
           (macc em (tr * trows + i) (tc * tcols + j))
   {
-    M.explode (array2_subtile gm trows tcols tr tc);
-    forevery_unflatten'
-      (fun (ij : M.ait trows tcols) ->
-        Cell (array2_subtile gm trows tcols tr tc) ij |->
-          macc (ematrix_subtile em trows tcols tr tc) (fst ij) (snd ij));
+    M.ilower (array2_subtile gm trows tcols tr tc);
+    drop_ (pure (SZ.fits (M.layout_size (subtile_layout l trows tcols tr tc))));
     forevery_ext_2
       (fun (i:natlt trows) (j:natlt tcols) ->
         M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
@@ -514,11 +498,7 @@ fn array2_implode_tiled
       (fun (i:natlt trows) (j:natlt tcols) ->
         M.pts_to_cell (array2_subtile gm trows tcols tr tc) (i, j)
           (macc (ematrix_subtile em' trows tcols tr tc) i j));
-    forevery_flatten'
-      (fun (ij : M.ait trows tcols) ->
-        M.pts_to_cell (array2_subtile gm trows tcols tr tc) ij
-          (macc (ematrix_subtile em' trows tcols tr tc) (fst ij) (snd ij)));
-    M.implode (array2_subtile gm trows tcols tr tc);
+    M.iraise (array2_subtile gm trows tcols tr tc);
   };
   forevery_map_2 _ _ aux;
   array2_untile gm trows tcols;

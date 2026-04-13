@@ -331,6 +331,32 @@ fn implode
   ensures
     a |-> Frac f s
 
+ghost
+fn ilower
+  (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l)
+  (#f : perm)
+  (#s : ematrix et rows cols)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (layout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      pts_to_cell a #f (r, c) (macc s r c))
+
+ghost
+fn iraise
+  (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l)
+  (#f : perm)
+  (#s : ematrix et rows cols)
+  requires
+    pure (SZ.fits (layout_size l)) **
+    (forall+ (r : natlt rows) (c : natlt cols).
+      pts_to_cell a #f (r, c) (macc s r c))
+  ensures
+    a |-> Frac f s
+
 inline_for_extraction noextract
 fn read_cell
   (#et : Type0)

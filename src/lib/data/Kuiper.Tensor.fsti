@@ -313,6 +313,34 @@ fn tensor_implode
   ensures
     a |-> Frac f s
 
+ghost
+fn tensor_ilower
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest d et)
+  requires
+    a |-> Frac f s
+  ensures
+    pure (SZ.fits (tlayout_size l)) **
+    (forall+ (i : abs d).
+      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+
+ghost
+fn tensor_iraise
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (#f : perm)
+  (#s : chest d et)
+  requires
+    pure (SZ.fits (tlayout_size l)) **
+    (forall+ (i : abs d).
+      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+  ensures
+    a |-> Frac f s
+
 inline_for_extraction noextract
 fn tensor_read_cell
   (#et : Type0) (#r : nat) (#d : idesc r)
