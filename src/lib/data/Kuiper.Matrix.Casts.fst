@@ -3,7 +3,6 @@ module Kuiper.Matrix.Casts
 
 open Kuiper
 
-module EM = Kuiper.EMatrix
 module A2 = Kuiper.Array2
 module A4 = Kuiper.Array4
 open Kuiper.EMatrix
