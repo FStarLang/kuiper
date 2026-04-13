@@ -25,7 +25,7 @@ instance blah
   (#_ : squash (SZ.fits (d0 * d1)))
   : ctlayout (layout d0 d1)
   =
-  c_pack #_ #_ #(magic()) <|
+  c_pack <|
   c_major_on 0sz _ #_ #{v = d1} <|
   c_major_on 0sz _ #_ #{v = 1sz} <|
   solve

@@ -64,6 +64,15 @@ let rec insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
       match d with
       | INil -> assert false
       | ICons t ts -> insert_size_lemma (i-1) k ts
+let rec insert_at_lemma (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
+  : Lemma (insert_i i k d @! i == k)
+          [SMTPat (insert_i i k d @! i)]
+  = match i with
+    | 0 -> ()
+    | i ->
+      match d with
+      | INil -> assert false
+      | ICons t ts -> insert_at_lemma (i-1) k ts
 #pop-options
 
 let rec lemma_c_bring_forward_ff_ok

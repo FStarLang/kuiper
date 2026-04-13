@@ -28,7 +28,7 @@ instance blah
   (#_ : squash (SZ.fits (d0 * d1 * d2 * d3) /\ SZ.fits (d1 * d2 * d3) /\ SZ.fits (d2 * d3)))
   : ctlayout (layout d0 d1 d2 d3)
   =
-  c_pack #_ #_ #(magic()) <|
+  c_pack #_ #_ <|
   c_major_on 0sz _ #_ #{v = d1 *^ (d2 *^ d3)} <|
   c_major_on 0sz _ #_ #{v = d2 *^ d3} <|
   c_major_on 0sz _ #_ #{v = d3} <|

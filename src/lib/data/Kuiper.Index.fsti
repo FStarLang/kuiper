@@ -165,6 +165,10 @@ val modulo_size_lemma (#n:nat) (i : natlt n) (d : idesc n)
 val insert_size_lemma (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
   : Lemma (sizeof (insert_i i k d) == sizeof d * k)
           [SMTPat (sizeof (insert_i i k d)); SMTPat (sizeof d)]
+
+val insert_at_lemma (#n:nat) (i : natlt (n+1)) (k : nat) (d : idesc n)
+  : Lemma (insert_i i k d @! i == k)
+          [SMTPat (insert_i i k d @! i)]
 #pop-options
 
 let rec abs_bring_forward_bij (#n:nat) (i : natlt n) (d : idesc n)

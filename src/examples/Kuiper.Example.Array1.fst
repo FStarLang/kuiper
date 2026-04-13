@@ -21,7 +21,7 @@ instance blah
   (m : SZ.t{SZ.fits m})
   : ctlayout (layout m)
   =
-  c_pack #_ #_ #(magic()) <|
+  c_pack #_ #_ <|
   c_major_on 0sz _ #_ #{v = 1sz} <|
   cunit
 

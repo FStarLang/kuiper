@@ -73,7 +73,8 @@ let l3_batched_col_major (r m n : nat) : tlayout (r @| m @| n @| INil) =
   major_on 0 m <|
   lunit
 
-(* Constructing a concrete size for a given description. *)
+(* Constructing a concrete size for a given description.
+TODO: use concrete_sz. *)
 inline_for_extraction noextract
 class csizeof (#n : erased nat) (d : idesc n) =
   {
@@ -121,6 +122,7 @@ instance val c_major_on
   (#d : idesc n)
   {| cs : csizeof d |}
   (#sub : layout_f_for d)
+  (#_ : squash (SZ.fits (k * sizeof d)))
   (c_sub : auto_cinj sub)
   : auto_cinj (major_on i k sub)
 
@@ -128,8 +130,8 @@ instance val c_major_on
 injection.  FIXME: this does not seem to work. *)
 inline_for_extraction noextract
 instance val c_pack (#n : erased nat) (#d: idesc n)
-  {| csizeof d |}
   (#f : layout_f_for d) (c_f : auto_cinj f)
+  (#_ : squash (SZ.fits (sizeof d)))
   (#_ : squash (all_fit d))
   : ctlayout (pack f)
 
@@ -141,12 +143,10 @@ instance c_major_on_i_0'
   (#d : idesc (n-1))
   {| cs : csizeof d |}
   (#sub : layout_f_for d)
+  (#_ : squash (SZ.fits (k * sizeof d)))
   (c_sub : auto_cinj sub)
   : auto_cinj #n (major_on #(n-1) 0 k sub) =
   c_major_on 0sz k c_sub
-
-
-
 
 #push-options "--z3rlimit 40"
 module T = Kuiper.Tensor
