@@ -431,7 +431,7 @@ let row_layout
   (a : t et l)
   (i : erased nat{i < rows})
   : Array1.layout cols
-  = Tensor.tlayout_slice (desc rows cols) l 0 i
+  = Tensor.tlayout_slice l 0 i
 
 inline_for_extraction noextract
 val row
@@ -496,7 +496,7 @@ let col_layout
   (a : t et l)
   (i : erased nat{i < cols})
   : Array1.layout rows
-  = Tensor.tlayout_slice (desc rows cols) l 1 i
+  = Tensor.tlayout_slice l 1 i
 
 inline_for_extraction noextract
 val col

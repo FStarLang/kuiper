@@ -422,10 +422,10 @@ let ctlayout_slice_cimap
 
 inline_for_extraction noextract
 instance ctlayout_slice
-  (#n : erased nat) (d : idesc n) (l : tlayout d)
+  (#n : erased nat) (#d : idesc n) (l : tlayout d)
   {| c : ctlayout l |}
   (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice d l i j) =
+  : ctlayout (tlayout_slice l i j) =
   {
     ulen_fits = ();
     all_fit = ();
@@ -438,8 +438,8 @@ let sliceof
   (#l : tlayout d)
   (a : tensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
-  : tensor et (tlayout_slice d l i j)
-  = from_array (tlayout_slice d l i j) (core a)
+  : tensor et (tlayout_slice l i j)
+  = from_array (tlayout_slice l i j) (core a)
 
 let tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)

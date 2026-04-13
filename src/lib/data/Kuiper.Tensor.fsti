@@ -350,9 +350,8 @@ let tlayout_slice_imap
     let idx' = (abs_bring_forward_bij i d).gg (j, idx) in
     l.imap.f idx'
 
-// FIXME: make d implicit
 let tlayout_slice
-  (#n : erased nat) (d : idesc n) (l : tlayout d)
+  (#n : erased nat) (#d : idesc n) (l : tlayout d)
   (i : natlt n) (j : natlt (d @! i)) // Fixing the ith-dimension to j
   : tlayout (modulo_i i d) =
   {
@@ -365,10 +364,10 @@ let tlayout_slice
 
 inline_for_extraction noextract
 instance val ctlayout_slice
-  (#n : erased nat) (d : idesc n) (l : tlayout d)
+  (#n : erased nat) (#d : idesc n) (l : tlayout d)
   {| ctlayout l |}
   (i : szlt n) (j : szlt (d @! i))
-  : ctlayout (tlayout_slice d l i j)
+  : ctlayout (tlayout_slice l i j)
 
 inline_for_extraction noextract
 val sliceof
@@ -376,7 +375,7 @@ val sliceof
   (#l : tlayout d)
   (a : tensor et l)
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
-  : tensor et (tlayout_slice d l i j)
+  : tensor et (tlayout_slice l i j)
 
 #push-options "--warn_error -271" // implicit subtraction in pattern, OK
 val tensor_slice_cell_eq

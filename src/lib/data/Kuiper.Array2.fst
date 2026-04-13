@@ -589,7 +589,7 @@ let col_layout
   (a : t et l)
   (i : natlt cols)
   : Array1.layout rows
-  = Tensor.tlayout_slice (desc rows cols) l 1 i
+  = Tensor.tlayout_slice l 1 i
 
 let col
   (#et : Type0)

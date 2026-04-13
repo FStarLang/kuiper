@@ -87,15 +87,7 @@ fn kf
   let trow = gid /^ cols; assert (rewrites_to trow (gid /^ cols));
   let tcol = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
 
-  M.extract_row_ro gA trow;
-  M.extract_col_ro gB tcol;
-
-  let s = Kuiper.DotProd.dotprod #_ #_ #shared #_ #_
-           #(T.ctlayout_slice _ lA #cA 0sz trow) #(T.ctlayout_slice _ lB #cB 1sz tcol)
-           (M.row gA (SZ.v trow)) (M.col gB (SZ.v tcol));
-
-  M.restore_row gA trow;
-  M.restore_col gB tcol;
+  let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
   let v0 = M.read_cell' gC trow tcol;
   let v1 = comb v0 s;

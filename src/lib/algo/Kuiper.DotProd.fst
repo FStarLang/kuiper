@@ -89,8 +89,8 @@ fn matmul_dotprod
   Array2.extract_col_ro gB j;
 
   let s = dotprod #_ #_ #_ #_ #_
-           #(Kuiper.Tensor.ctlayout_slice _ _ 0sz i) // should not be needed
-           #(Kuiper.Tensor.ctlayout_slice _ _ 1sz j) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
            (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j));
 
   Array2.restore_row gA i;
