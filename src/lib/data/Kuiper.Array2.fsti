@@ -446,7 +446,7 @@ ghost
 fn extract_row
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt rows)
   (#f : perm) (#s : ematrix et rows cols)

@@ -531,7 +531,7 @@ ghost
 fn extract_row
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt rows)
   (#f : perm) (#s : ematrix et rows cols)
@@ -588,7 +588,7 @@ ghost
 fn extract_row_ro
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt rows)
   (#f : perm) (#s : ematrix et rows cols)
@@ -609,7 +609,7 @@ ghost
 fn restore_row
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt rows)
   (#f : perm) (#s : ematrix et rows cols)
@@ -636,7 +636,7 @@ ghost
 fn extract_col
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt cols)
   (#f : perm) (#s : ematrix et rows cols)
@@ -692,7 +692,7 @@ ghost
 fn extract_col_ro
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt cols)
   (#f : perm) (#s : ematrix et rows cols)
@@ -712,7 +712,7 @@ ghost
 fn restore_col
   (#et : Type0)
   (#rows #cols : nat)
-  (#l : layout rows cols) {| ctlayout l |}
+  (#l : layout rows cols)
   (a : t et l)
   (i : natlt cols)
   (#f : perm) (#s : ematrix et rows cols)
