@@ -306,6 +306,8 @@ fn tensor_implode
   (#f : perm)
   (#s : chest d et)
   requires
+    pure (SZ.fits (tlayout_size l))
+  requires
     forall+ (i : abs d).
       Cell a i |-> Frac f (acc s i)
   ensures
