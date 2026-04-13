@@ -8,6 +8,8 @@ module A4 = Kuiper.Array4
 open Kuiper.EMatrix
 open Kuiper.EMatrix4
 
+// TODO: define this by composing a bijection with the l.imap injection
+#push-options "--z3rlimit 20 --retry 3"
 let l2_to_l4 (#m #n : nat) (#mm #nn : pos) (l : A2.layout (m * mm) (n * nn)) : A4.layout m n mm nn = {
   ulen = l.ulen;
   imap =
@@ -22,33 +24,46 @@ let l2_to_l4 (#m #n : nat) (#mm #nn : pos) (l : A2.layout (m * mm) (n * nn)) : A
         l.imap.f (i, (j, ())))
       (fun (i1, (j1, (k1, (o1, ()))))
            (i2, (j2, (k2, (o2, ())))) ->
+           l.imap.is_inj (i1 * mm + k1, (j1 * nn + o1, ())) (i2 * mm + k2, (j2 * nn + o2, ()));
            ())
 }
+#pop-options
 
 let em2_to_em4 (#et : Type0) (#m #n #mm #nn : nat) (e : ematrix et (m * mm) (n * nn)) : ematrix4 et m n mm nn =
   Kuiper.EMatrix4.mkM (fun i j k o -> Kuiper.EMatrix.macc e (i * mm + k) (j * nn + o))
 
+#push-options "--z3rlimit 20 --retry 3"
 let l4_to_l2 (#m #n : nat) (#mm #nn : pos) (l : A4.layout m n mm nn) : A2.layout (m * mm) (n * nn) = {
   ulen = l.ulen;
   imap =
     Kuiper.Injection.mk_injection #(natlt (m * mm) & (natlt (n * nn) & unit))
-      (fun (i, (j, ())) ->
-        let i : natlt m = i / mm in
-        let j : natlt n = j / nn in
-        let k : natlt mm = i % mm in
-        let o : natlt nn = j % nn in
+      (fun (x, (y, ())) ->
+        let i : natlt m = x / mm in
+        let j : natlt n = y / nn in
+        let k : natlt mm = x % mm in
+        let o : natlt nn = y % nn in
         l.imap.f (i, (j, (k, (o, ())))))
-      (fun (i1, (j1, ()))
-           (i2, (j2, ())) ->
-           admit())
+      (fun (x1, (y1, ()))
+           (x2, (y2, ())) ->
+           let i1 : natlt m = x1 / mm in
+           let j1 : natlt n = y1 / nn in
+           let k1 : natlt mm = x1 % mm in
+           let o1 : natlt nn = y1 % nn in
+           let i2 : natlt m = x2 / mm in
+           let j2 : natlt n = y2 / nn in
+           let k2 : natlt mm = x2 % mm in
+           let o2 : natlt nn = y2 % nn in
+           l.imap.is_inj (i1, (j1, (k1, (o1, ())))) (i2, (j2, (k2, (o2, ()))));
+           ())
 }
+#pop-options
 
 let em4_to_em2 (#et : Type0) (#m #n #mm #nn : nat) (e : ematrix4 et m n mm nn) : ematrix et (m * mm) (n * nn) =
-  Kuiper.EMatrix.mkM (fun i j ->
-    let i : natlt m = i / mm in
-    let j : natlt n = j / nn in
-    let k : natlt mm = i % mm in
-    let o : natlt nn = j % nn in
+  Kuiper.EMatrix.mkM (fun x y ->
+    let i : natlt m = x / mm in
+    let j : natlt n = y / nn in
+    let k : natlt mm = x % mm in
+    let o : natlt nn = y % nn in
     Kuiper.EMatrix4.macc e i j k o)
 
 inline_for_extraction noextract
