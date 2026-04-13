@@ -35,15 +35,7 @@ let to_from (#et:Type) (#m #n : nat)
   : Lemma (ensures to_seq l (from_seq l s) == s)
           [SMTPat (to_seq l (from_seq l s))]
   = let aux (i : natlt (m * n)) : Lemma (to_seq l (from_seq l s) @! i == s @! i) =
-      (* This proof should really be automatic. *)
-      calc (==) {
-        to_seq l (from_seq l s) @! i;
-        == {}
-        // Just mentioning this term below makes the proof work.
-        Seq.init_ghost (m * n) (fun x ->
-          let (i, (j, ())) = Kuiper.Injection.inverse_f l.imap x in
-          macc (from_seq l s) i j) @! i;
-      }
+      ()
     in
     Classical.forall_intro aux;
     assert (Seq.equal (to_seq l (from_seq l s)) s)
@@ -179,14 +171,7 @@ let to_seq_rel (#et:Type) (#rows #cols : nat)
   (l : full_layout rows cols) (s : ematrix et rows cols)
   : Lemma (to_seq l s == T.to_seq l (tr_val s))
   = let aux (i : natlt (rows * cols)) : Lemma (to_seq l s @! i == T.to_seq l (tr_val s) @! i) =
-      calc (==) {
-        to_seq l s @! i;
-        == {}
-        // Just mentioning this term below makes the proof work.
-        Seq.init_ghost (rows * cols) (fun x ->
-          let (i, (j, ())) = Kuiper.Injection.inverse_f l.imap x in
-          macc s i j) @! i;
-      }
+      ()
     in
     assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
 

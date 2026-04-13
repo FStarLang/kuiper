@@ -51,8 +51,17 @@ let to_seq (#et:Type) (#m #n : nat)
   (s : ematrix et m n)
   : GTot (lseq et (m * n))
   = Seq.init_ghost (m * n) (fun i ->
-      let (i, (j, ())) = Kuiper.Injection.inverse_f l.imap i in
-      macc s i j)
+      let x = Kuiper.Injection.inverse_f l.imap i in
+      macc s x._1 x._2._1)
+
+// Odd that this seems to help.
+let to_seq_helper (#et:Type) (#m #n : nat)
+  (l : full_layout m n)
+  (s : ematrix et m n)
+  (i : natlt (m * n))
+  : Lemma (to_seq l s `Seq.index` i == (let x = Kuiper.Injection.inverse_f l.imap i in macc s x._1 x._2._1))
+          [SMTPat (to_seq l s `Seq.index` i)]
+  = ()
 
 val to_from (#et:Type) (#m #n : nat)
   (l : full_layout m n) (s : lseq et (m * n))
