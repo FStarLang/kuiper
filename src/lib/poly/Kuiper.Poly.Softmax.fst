@@ -40,7 +40,7 @@ fn arr_read_1
 ghost
 fn explode_setup
   (#et : Type0)
-  (lena : szp { lena < max_blocks })
+  (lena : szp { lena <= max_blocks })
   (a : gpu_array et lena)
   (#s: erased (Seq.seq et) { Seq.length s == SZ.v lena })
   ()
@@ -57,7 +57,7 @@ ghost
 fn explode_teardown
   (#et : Type0)
   (f : et -> et)
-  (lena : szp { lena < max_blocks })
+  (lena : szp { lena <= max_blocks })
   (a : gpu_array et lena)
   (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
   ()
@@ -114,7 +114,7 @@ inline_for_extraction noextract
 let kmap
   (#et : Type0)
   (f: et -> et)
-  (lena : szp{ lena < max_blocks })
+  (lena : szp{ lena <= max_blocks })
   (a : gpu_array et lena { is_global_array a })
   (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
 : kernel_desc
@@ -173,13 +173,19 @@ let softmax_approx
 inline_for_extraction noextract
 fn softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lena : szp { 0 < SZ.v lena /\ lena < max_threads })
+  (#lena : szp { 0 < SZ.v lena /\ lena <= max_threads })
   (a : gpu_array et lena { is_global_array a })
   (#s: erased (Seq.seq et))
   (#r: erased (Seq.seq real)  { Seq.length r == SizeT.v lena /\ (s<:seq et) %~ r /\ lena > 0 })
-  preserves cpu
-  requires on gpu_loc (a |-> s) ** pure (lena <= max_blocks)
-  ensures  (exists* s'. on gpu_loc (a |-> s') ** pure (s' %~ softmax_real r))
+  preserves
+    cpu
+  requires
+    on gpu_loc (a |-> s) **
+    pure (lena <= max_blocks)
+  ensures (
+    exists* (v':seq et).
+      on gpu_loc (a |-> v') **
+      pure (v' %~ softmax_real r))
 {
   gpu_pts_to_ref_located a; (* recall length, automate *)
 
@@ -207,13 +213,19 @@ fn softmax_gpu
 inline_for_extraction noextract
 fn softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lena : szp { lena < max_threads })
+  (#lena : szp { lena <= max_threads })
   (a : Vec.lvec et lena)
   (#s : erased (Seq.seq et))
   (#r : erased (Seq.seq real) { Seq.length r == SizeT.v lena /\ s %~ r /\ lena > 0 })
-  preserves cpu
-  requires (a |-> s) ** pure (lena <= max_blocks)
-  ensures  (exists* s'. a |-> s' ** pure (s' %~ softmax_real r))
+  preserves
+    cpu
+  requires
+    a |-> s **
+    pure (lena <= max_blocks)
+  ensures (
+    exists* (v':seq et).
+      a |-> v' **
+      pure (v' %~ softmax_real r))
 {
   let ga = Array.gpu_array_alloc #et lena;
   Array.gpu_memcpy_host_to_device ga a lena;

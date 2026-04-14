@@ -472,7 +472,7 @@ fn setup
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
-  (n : szp{n < max_blocks})
+  (n : szp{n <= max_blocks})
   (a : array1 et (repr n))
   (#v_a : erased (lseq et n))
   (#_ : squash (len v_a == n))
@@ -540,7 +540,7 @@ fn teardown
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
-  (n : szp{n < max_blocks})
+  (n : szp{n <= max_blocks})
   (a : array1 et (repr n))
   (#v_a : erased (lseq et n))
   (#_ : squash (len v_a == n))
@@ -586,7 +586,7 @@ let kdesc
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#repr : (l:nat -> layout l)) {| (l:sz -> ctlayout (repr l)) |}
   (ac : is_ac_w d.pure_op)
-  (n : szp{n < max_blocks})
+  (n : szp{n <= max_blocks})
   (a : array1 et (repr n) { Array1.is_global a })
   (#v_a : erased (lseq et n))
   (#_ : squash (len v_a == SZ.v n))
@@ -622,13 +622,16 @@ fn reduce
   (#et : Type0) {| scalar et, d : has_atomic_add et |}
   (#r : (l:nat -> layout l)) {| (l:sz -> ctlayout (r l)) |}
   (ac : is_ac_w d.pure_op)
-  (n : szp{n < max_blocks})
+  (n : szp{n <= max_blocks})
   (a : array1 et (r n) { Array1.is_global a })
   (#v_a : erased (lseq et n))
   norewrite (* needed to match spec in fsti... they do not get elaborated *)
-  preserves cpu ** on gpu_loc (a |-> v_a)
-  returns   r : et
-  ensures   pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
+  preserves
+    cpu ** on gpu_loc (a |-> v_a)
+  returns
+    r : et
+  ensures
+    pure (r == Kuiper.Seq.Common.seq_fold_left d.pure_op zero v_a)
 {
   map_loc gpu_loc
     #(a |-> v_a)

@@ -394,7 +394,7 @@ fn unfactor_array
 ghost
 fn block_setup
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
+  (lena : szp { lena <= max_threads })
   (a : gpu_array et lena)
   (#va : seq et)
   (#vr : seq real { va %~ vr })
@@ -413,7 +413,7 @@ fn block_setup
 ghost
 fn block_teardown
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
+  (lena : szp { lena <= max_threads })
   (a : gpu_array et lena)
   (#va : seq et)
   (#vr : seq real { va %~ vr })
@@ -441,7 +441,7 @@ fn block_teardown
 inline_for_extraction noextract
 let kernel
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
+  (lena : szp { lena <= max_threads })
   (a : gpu_array et lena { is_global_array a })
   (#va : erased (seq et))
   (#vr : erased (seq real) { va %~ vr })
@@ -472,15 +472,15 @@ let kernel
 inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
+  (lena : szp { lena <= max_threads })
   (a : gpu_array et lena { is_global_array a })
   (#va : erased (seq et))
   (#vr : erased (seq real) { va %~ vr })
+  preserves
+    cpu
   requires
-    cpu **
     on gpu_loc (a |-> va)
   ensures
-    cpu **
     (exists* (va' : seq et{Seq.length va' > 0}).
       on gpu_loc (a |-> va') **
       pure ((va' @! 0) `approximates` seq_fold_left (+.) 0.0R vr))
