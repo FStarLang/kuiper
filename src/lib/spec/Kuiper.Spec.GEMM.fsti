@@ -6,7 +6,7 @@ provide any weak approximate spec. *)
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.EMatrix
-open Kuiper.Matrix.Tiling
+open Kuiper.EMatrix.Tiling
 
 inline_for_extraction noextract
 let comb2 (#et:Type) (x y : et) : et = y
