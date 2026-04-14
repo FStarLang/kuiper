@@ -16,6 +16,8 @@ noeq
 type chest (#r : nat) (d : idesc r) (et : Type) =
   | M : f:(abs d ^->> et) -> chest d et
 
+unfold let t (#r:nat) (d : idesc r) (et : Type) = chest d et
+
 let mk (#r : nat) (d : idesc r) (#et : Type)
   (f : abs d -> GTot et)
   : chest d et
