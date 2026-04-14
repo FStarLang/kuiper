@@ -17,7 +17,8 @@ module SZ = Kuiper.SizeT
 
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Defs
 
-#push-options "--z3rlimit 120 --fuel 1 --ifuel 1"
+// split_queries: the combined queries time out and get auto-split anyway
+#push-options "--z3rlimit 120 --fuel 1 --ifuel 1 --split_queries always"
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -86,7 +87,8 @@ fn block_teardown
 }
 #pop-options
 
-#push-options "--z3rlimit 120 --fuel 1 --ifuel 1"
+// split_queries: the combined queries time out and get auto-split anyway
+#push-options "--z3rlimit 120 --fuel 1 --ifuel 1 --split_queries always"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
