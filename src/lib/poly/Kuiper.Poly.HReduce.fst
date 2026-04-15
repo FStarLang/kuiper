@@ -12,38 +12,6 @@ module U32 = FStar.UInt32
 module RPM = Kuiper.Barrier.RPM
 module B = Kuiper.Barrier
 
-[@@CPrologue "__device__"]
-noextract inline_for_extraction
-let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 s} =
-  (* Computing 2^s by 1<<s *)
-  SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s))
-
-[@@CPrologue "__device__"]
-noextract inline_for_extraction
-let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
-  // SZ.rem tid (spow2 i) = 0sz
-  sizet_and tid SZ.(spow2 i -^ 1sz) = 0sz
-
-let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
-  Lemma (sdiv_pow2 i tid == div_pow2 i tid)
-        [SMTPat (sdiv_pow2 i tid)]
-= sizet_and_div_pow2 tid (spow2 i) i;
-  calc (==) {
-    SZ.v (SZ.rem tid (spow2 i));
-    == {}
-    SZ.v tid - ((SZ.v tid / SZ.v (spow2 i)) * SZ.v (spow2 i));
-    == { FStar.Math.Lemmas.euclidean_division_definition (SZ.v tid) (SZ.v (spow2 i)) }
-    SZ.v tid % SZ.v (spow2 i);
-    == {}
-    SZ.v tid % pow2 (SZ.v i);
-}
-
-[@@CPrologue "__device__"]
-noextract inline_for_extraction
-let smin (a b : sz): sz =
-  let open FStar.SizeT in
-  if a <^ b then a else b
-
 (* Ownership of array r between i and j. The first value of that slice
 is the reduction of all the values in the (original) slice v. *)
 unfold
