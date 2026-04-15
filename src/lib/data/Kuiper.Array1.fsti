@@ -13,6 +13,12 @@ module Tac = FStar.Tactics.V2
 let desc (len : nat) : idesc 1 =
   len @| INil
 
+// Even if this is trivial, it seems to help in some contexts.
+let sizeof_desc (rows : nat)
+  : Lemma (sizeof (desc rows) == rows)
+          [SMTPat (sizeof (desc rows))]
+  = ()
+
 let ait (len : nat) = natlt len
 
 let adapt_idx (#len : nat) (idx : abs (desc len)) : ait len =
@@ -30,7 +36,24 @@ let cit_fits (len : nat) (idx : raw_cit) : prop =
 [@@erasable]
 type layout (len : nat) = tlayout (desc len)
 
+type full_layout (len : nat) = l : layout len { is_full l }
+
 let layout_size (#len : nat) (l : layout len) : GTot nat = l.ulen
+
+(* From an underlying sequence to the viewed one. *)
+let from_seq (#et:Type) (#len : nat) (l : full_layout len) (s : lseq et len)
+  : GTot (lseq et len)
+  = Seq.init_ghost len (fun i -> Seq.index s (l.imap.f (adapt_idx_back i)))
+
+let to_seq (#et:Type) (#len : nat) (l : full_layout len) (s : lseq et len)
+  : GTot (lseq et len)
+  = Seq.init_ghost len (fun i ->
+      let x = Kuiper.Injection.inverse_f l.imap i in
+      Seq.index s x._1)
+
+val to_from (#et:Type) (#len : nat) (l : full_layout len) (s : lseq et len)
+  : Lemma (to_seq l (from_seq l s) == s)
+          [SMTPat (to_seq l (from_seq l s))]
 
 inline_for_extraction noextract
 val t (et : Type0) (#len : nat) (l : layout len) : Type0
@@ -93,6 +116,34 @@ unfold
 instance has_pts_to_inst (et : Type) (len : erased nat) (l : _)
   : has_pts_to (t et l) (lseq et len)
   = { pts_to }
+
+inline_for_extraction noextract
+fn alloc0
+  (#et:Type) {| sized et |}
+  (len : szp)
+  (l : layout len { is_full l })
+  preserves
+    cpu
+  returns
+    p : t et l
+  ensures
+    exists* em. on gpu_loc (p |-> em)
+  ensures
+    pure (is_global p)
+
+inline_for_extraction noextract
+fn free
+  (#et:Type)
+  (#len : erased nat)
+  (#l : layout len { is_full l })
+  (p : t et l)
+  (#em : erased (lseq et len))
+  preserves
+    cpu
+  requires
+    on gpu_loc (p |-> em)
+  ensures
+    emp
 
 ghost
 fn pts_to_ref
@@ -201,6 +252,34 @@ fn implode
   ensures
     a |-> Frac f s
 
+inline_for_extraction noextract
+fn read_cell
+  (#et : Type0) (#len : erased nat)
+  (#l : layout len ) {| ctlayout l |}
+  (a : t et l)
+  (i : raw_cit{cit_fits len i})
+  (#f : perm)
+  (#s : erased et)
+  preserves
+    Cell a (i <: natlt len) |-> Frac f s
+  returns
+    v : et
+  ensures
+    pure (v == s)
+
+inline_for_extraction noextract
+fn write_cell
+  (#et : Type0) (#len : erased nat)
+  (#l : layout len ) {| ctlayout l |}
+  (a : t et l)
+  (i : raw_cit{cit_fits len i})
+  (v : et)
+  (#s : erased et)
+  requires
+    Cell a (i <: natlt len) |-> s
+  ensures
+    Cell a (i <: natlt len) |-> v
+
 (* Syntax, in lieu of a typeclass *)
 inline_for_extraction noextract
 unfold let op_Array_Access
@@ -223,3 +302,66 @@ unfold let op_Array_Assignment
   (v : et)
   (#s : erased (lseq et len))
   = write #et #len #l a i v #s
+
+inline_for_extraction noextract
+fn memcpy_host_to_device
+  (#et:Type) {| sized et |} (#len : erased nat) (#l : full_layout len)
+  (dst : t et l) (src : vec et) (n : sz)
+  (#vsrc : erased (lseq et len))
+  (#vdst : erased (lseq et len))
+  preserves
+    cpu
+  preserves
+    src |-> vsrc
+  requires
+    pure (SZ.v n == len)
+  requires
+    on gpu_loc (dst |-> vdst)
+  ensures
+    on gpu_loc (dst |-> from_seq l vsrc)
+
+inline_for_extraction noextract
+fn memcpy_device_to_host'
+  (#et : Type u#0) {| sized et |}
+  (#dst_sz : erased nat)
+  (dst : vec et)
+  (dst_off : SZ.t)
+  (#src_sz : erased nat)
+  (src : t et (Kuiper.Tensor.Layout.Alg.l1_forward src_sz))
+  (src_off : SZ.t)
+  (cnt : SZ.t {
+    dst_off + cnt <= dst_sz /\
+          src_off + cnt <= src_sz
+  })
+  (#f : perm)
+  (#v : erased (lseq et src_sz))
+  (#gv : erased (lseq et dst_sz))
+  preserves
+    cpu **
+    on gpu_loc (src |-> Frac f v)
+  requires
+    dst |-> gv
+  ensures
+    exists* (s' : lseq et dst_sz).
+      dst |-> s' **
+      pure (s' == Kuiper.Seq.Common.seq_blit gv dst_off v src_off cnt)
+
+inline_for_extraction noextract
+fn memcpy_device_to_device
+  (#a:Type u#0)
+  {| sized a |}
+  (#sz : erased nat)
+  (#l : full_layout sz)
+  (dst : t a l)
+  (src : t a l)
+  (cnt : SZ.t)
+  (#f : perm)
+  (#vsrc #vdst : erased (lseq a sz))
+  preserves
+    cpu **
+    on gpu_loc (src |-> Frac f vsrc)
+  requires
+    on gpu_loc (dst |-> vdst) **
+    pure (SZ.v cnt == sz)
+  ensures
+    on gpu_loc (dst |-> vsrc)

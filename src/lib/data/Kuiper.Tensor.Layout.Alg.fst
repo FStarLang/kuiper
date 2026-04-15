@@ -1,7 +1,6 @@
 module Kuiper.Tensor.Layout.Alg
 
 (* Constructing tensor layouts algebraically. *)
-
 open Kuiper
 open Kuiper.Injection
 open Kuiper.Index

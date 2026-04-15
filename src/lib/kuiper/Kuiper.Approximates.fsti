@@ -64,6 +64,20 @@ instance seq_real_like_can_approximate (#a:Type) {| scalar a, real_like a |}
   approximates = seq_approximates;
 }
 
+instance lseq_lhs (#a #b : Type)
+  (d : can_approximate (seq a) b)
+  (len : erased nat)
+  : can_approximate (lseq a len) b = {
+  approximates = (fun (s: lseq a len) (m: b) -> approximates (s <: seq a) m);
+}
+
+instance lseq_rhs (#a #b : Type)
+  (d : can_approximate a (seq b))
+  (len : erased nat)
+  : can_approximate a (lseq b len) = {
+  approximates = (fun (s: a) (m: lseq b len) -> approximates s (m <: seq b));
+}
+
 let to_real_seq (#a:Type) {| scalar a, real_like a |}
   (s : seq a) : GTot (seq real)
   = Seq.init_ghost (Seq.length s) (fun i -> to_real (s @! i))

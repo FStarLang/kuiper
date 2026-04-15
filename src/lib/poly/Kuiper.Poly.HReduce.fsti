@@ -5,19 +5,23 @@ module Kuiper.Poly.HReduce
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.Seq.Common
+open Kuiper.Tensor { ctlayout }
+module Array1 = Kuiper.Array1
 
 inline_for_extraction noextract
 type reduce_ty (et : Type0) {| scalar et, real_like et |} =
-  fn (lena : szp { lena <= max_threads })
-     (a : gpu_array et lena { is_global_array a })
-     (#va : erased (seq et))
-     (#vr : erased (seq real){va %~ vr})
+  fn (len : szp { len <= max_threads })
+     (#l : Array1.layout len) {| ctlayout l |}
+     (a : Array1.t et l { Array1.is_global a })
+     (#va : erased (lseq et len))
+     (vr : erased (lseq real len))
   preserves
     cpu
   requires
-    on gpu_loc (a |-> va)
+    on gpu_loc (a |-> va) **
+    pure (va %~ vr)
   ensures (
-    exists* (va' : seq et{Seq.length va' > 0}).
+    exists* (va' : lseq et len).
       on gpu_loc (a |-> va') **
       pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr)
   )

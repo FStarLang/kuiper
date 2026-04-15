@@ -273,7 +273,7 @@ fn gpu_memcpy_device_to_host'
     cpu **
     on gpu_loc (src_garr |-> Frac f (v<:seq _))
   requires
-    (dst_arr |-> gv)
+    dst_arr |-> gv
   ensures
     exists* s'. dst_arr |-> s' **
     pure (s'==seq_blit gv dst_off v src_off cnt /\ Seq.length s' == reveal dst_sz)
@@ -292,14 +292,13 @@ fn gpu_memcpy_device_to_host
     cpu **
     on gpu_loc (src_garr |-> Frac f gv)
   requires
-    (dst_arr |-> v) **
+    dst_arr |-> v **
     pure (
       SZ.v cnt == sz /\
       (Pulse.Lib.Vec.length dst_arr == sz \/ Seq.length v == reveal sz))
   ensures
-    (dst_arr |-> gv) **
+    dst_arr |-> gv **
     pure (Seq.length gv == reveal sz)
-
 
 fn gpu_memcpy_device_to_device
   (#a:Type u#0)

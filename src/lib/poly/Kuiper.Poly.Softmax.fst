@@ -1,113 +1,134 @@
 module Kuiper.Poly.Softmax
 
+(* Much of this module is layout-polymorphic, but
+we fix to l1_forward at the end so we can use arr_read_1. This
+should not be the case once there are more flexible memcpy's. *)
+
 // This is a very naive implementation of softmax on the GPU,
 // which uses three separate kernels launches (exp, reduce, divide).
 // A fused version is possible.
 
 #lang-pulse
 open Kuiper
-module Array = Kuiper.Array
 (* ^ Why do I need this? Is it because Kuiper is a module and not a namespace? *)
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
 module KS = Kuiper.Seq.Common
 open Kuiper.Real
 open Kuiper.Approximates
+open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 
-(* From the CPU, read one element from a gpu array. *)
+(* From the CPU, read one element from a flat array1. *)
 inline_for_extraction noextract
 fn arr_read_1
   (#et : Type0) {| sized et |}
-  (init : et) // silly
   (#len : erased nat)
-  (a : gpu_array et len)
+  (a : Array1.t et (l1_forward len))
+  (i : szlt len)
   (#f : perm)
-  preserves cpu ** on gpu_loc (a |-> Frac f 'va)
-  requires pure (len > 0 /\ is_global_array a)
-  returns  x : et
-  ensures  pure (Seq.length 'va > 0 /\ x == Seq.head 'va)
+  (#va : erased (lseq et len))
+  preserves
+    cpu
+  preserves
+    on gpu_loc (a |-> Frac f va)
+  returns
+    x : et
+  ensures
+    pure (x == va @! i)
 {
-  gpu_pts_to_ref_located a; (* automate *)
-  let ca = Pulse.Lib.Vec.alloc init 1sz;
+  let ca = Pulse.Lib.Vec.alloc #et default 1sz;
+
+  (* Should prove *)
+  map_loc gpu_loc
+    #(a |-> Frac f va)
+    #(core a |-> Frac f va)
+    fn _ {
+      admit();
+    };
+
   (* FIXME: Need to give length of ca?!? *)
-  gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz a 0sz 1sz;
+  gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz (core a) i 1sz;
+
   let x = ca.(0sz);
   Pulse.Lib.Vec.free ca;
+
+  (* Should prove *)
+  map_loc gpu_loc
+    #(core a |-> Frac f va)
+    #(a |-> Frac f va)
+    fn _ {
+      admit();
+    };
+
   x;
 }
-
 
 ghost
 fn explode_setup
   (#et : Type0)
-  (lena : szp { lena <= max_blocks })
-  (a : gpu_array et lena)
-  (#s: erased (Seq.seq et) { Seq.length s == SZ.v lena })
+  (lena : nat)
+  (#l : Array1.layout lena)
+  (a : Array1.t et l)
+  (#s : erased (lseq et lena))
   ()
   norewrite
   requires
     (a |-> s)
   ensures
     (forall+ (bid : natlt lena).
-      gpu_pts_to_cell a bid (Seq.index s bid)) **
-    emp
-{ gpu_array_slice_1 a; }
+      Cell a bid |-> (Seq.index s bid)) **
+    pure (SZ.fits (layout_size l))
+{
+  Array1.pts_to_ref a;
+  Array1.explode a;
+}
 
 ghost
 fn explode_teardown
   (#et : Type0)
   (f : et -> et)
-  (lena : szp { lena <= max_blocks })
-  (a : gpu_array et lena)
-  (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
+  (lena : nat)
+  (#l : Array1.layout lena)
+  (a : Array1.t et l)
+  (#s : erased (lseq et lena))
   ()
   norewrite
   requires
     (forall+ (bid : natlt lena).
-      gpu_pts_to_cell a bid (f (s @! bid))) **
-    emp
+      Cell a bid |-> (f (s @! bid))) **
+    pure (SZ.fits (layout_size l))
   ensures
-    (a |-> (Kuiper.Seq.Common.seq_map f s))
+    a |-> (Kuiper.Seq.Common.seq_map f s <: lseq et lena)
 {
   forevery_map
-    (fun (i:natlt lena) -> gpu_pts_to_cell a i (f (s @! i)))
-    (fun (i:natlt lena) -> gpu_pts_to_cell a i ((KS.seq_map f s)@!i))
+    (fun (i:natlt lena) -> Cell a i |-> (f (s @! i)))
+    (fun (i:natlt lena) -> Cell a i |-> ((KS.seq_map f s)@!i))
     fn x { () };
-  gpu_array_unslice_1 a #_ #(KS.seq_map f s)
+  Array1.implode a;
 }
 
 inline_for_extraction noextract
 fn kf_map
   (#et : Type0)
+  (f : et -> et)
   (#lena : erased nat)
-  (#s : erased (Seq.seq et) { Seq.length s == lena })
-  (f: et -> et)
-  (a : gpu_array et lena)
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : Array1.t et l)
+  (#s : erased (lseq et lena) )
   (bid : szlt lena)
   ()
   requires
     gpu **
-    gpu_pts_to_cell a bid (s@!bid) **
+    Cell a (bid <: natlt lena) |-> (s@!bid) **
     block_id lena bid
   ensures
     gpu **
-    gpu_pts_to_cell a bid (f (s@!bid)) **
+    Cell a (bid <: natlt lena) |-> (f (s@!bid)) **
     block_id lena bid
 {
-  let i = bid; rewrite each _ as i;
-  assert (pure (i < lena));
-  assert (pure (SZ.v i == bid));
-  unfold (gpu_pts_to_cell a i _);
-  let x = gpu_array_read a i;
-  let ex = f x;
-  gpu_array_write a i ex;
-  (* a bit tedious to do this seq rewrite; would be nice to have a way to
-     instruct the solver to do an extensional equality on this argument *)
-  with ss. assert (gpu_pts_to_slice a (SZ.v i) (SZ.v i + 1) ss);
-  assert pure (Seq.equal ss (seq![ex]));
-  fold gpu_pts_to_cell a i ex;
-  rewrite each i as _;
-  ()
+  let x = Array1.read_cell a bid;
+  Array1.write_cell a bid (f x);
 }
 
 inline_for_extraction noextract
@@ -115,22 +136,24 @@ let kmap
   (#et : Type0)
   (f: et -> et)
   (lena : szp{ lena <= max_blocks })
-  (a : gpu_array et lena { is_global_array a })
-  (#s : erased (Seq.seq et) { Seq.length s == SZ.v lena })
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : Array1.t et l)
+  (#_ : squash (Array1.is_global a))
+  (#s : erased (lseq et lena))
 : kernel_desc
     (a |-> s)
-    (a |-> Kuiper.Seq.Common.seq_map f s) =
+    (a |-> (Kuiper.Seq.Common.seq_map f s <: lseq et lena)) =
 {
   nblk = lena;
   f = kf_map f a;
 
+  frame    = pure (SZ.fits (layout_size l));
   teardown = explode_teardown f lena a;
   setup    = explode_setup lena a;
-  kpre =  (fun (i:natlt lena) -> gpu_pts_to_cell a i (s@!i));
-  kpost = (fun (i:natlt lena) -> gpu_pts_to_cell a i (f (s@!i)));
-  frame = emp;
-  kpost_sendable=solve;
-  kpre_sendable=solve;
+  kpre =  (fun (i:natlt lena) -> Cell a i |-> (s@!i));
+  kpost = (fun (i:natlt lena) -> Cell a i |-> (f (s@!i)));
+  kpost_sendable = magic();
+  kpre_sendable  = magic();
 } <: kernel_desc_m_1 _ _
 
 let map_div_avg (#et:Type0) {| floating et |} (s:Seq.seq et) (avg:et) =
@@ -173,63 +196,65 @@ let softmax_approx
 inline_for_extraction noextract
 fn softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lena : szp { 0 < SZ.v lena /\ lena <= max_threads })
-  (a : gpu_array et lena { is_global_array a })
-  (#s: erased (Seq.seq et))
-  (#r: erased (Seq.seq real)  { Seq.length r == SizeT.v lena /\ (s<:seq et) %~ r /\ lena > 0 })
+  (#lena : szp)
+  (a : array1 et (l1_forward lena) { is_global a })
+  (#va: erased (lseq et lena))
+  (ra: erased (lseq real lena))
   preserves
     cpu
   requires
-    on gpu_loc (a |-> s) **
-    pure (lena <= max_blocks)
-  ensures (
-    exists* (v':seq et).
-      on gpu_loc (a |-> v') **
-      pure (v' %~ softmax_real r))
+    on gpu_loc (a |-> va) **
+    pure (lena <= max_threads) **
+    pure (va %~ ra)
+  ensures
+    exists* (va' : lseq et lena).
+      on gpu_loc (a |-> va') **
+      pure (va' %~ softmax_real ra)
 {
-  gpu_pts_to_ref_located a; (* recall length, automate *)
-
   (* Pointwise exponentiation. *)
-  launch_sync (kmap exp lena a #s);
+  launch_sync (kmap exp lena a);
 
   (* Compute average. Need swap space since hreduce trashes the input. *)
-  let a' = Array.gpu_array_alloc #et lena;
-  gpu_memcpy_device_to_device a' a lena;
+  let a' = Array1.alloc0 #et lena (l1_forward lena);
+  Array1.memcpy_device_to_device a' a lena;
 
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
 
-  Kuiper.Poly.HReduce.reduce lena a' #(KS.seq_map exp s) #(KS.seq_map rexp r);
-  let avg = arr_read_1 zero a';
-  gpu_array_free a';
+  Kuiper.Poly.HReduce.reduce lena a' #(KS.seq_map exp va) (KS.seq_map rexp ra);
+  with va'. assert on gpu_loc (a' |-> va');
+  let avg = arr_read_1 a' 0sz;
+  Array1.free a';
 
   (* Divide by average *)
   with s'. assert on gpu_loc (a |-> s');
-  launch_sync (kmap (fun x -> div x avg) lena a #s');
+  launch_sync (kmap (fun x -> div x avg) lena a);
 
-  softmax_approx s r;
+  softmax_approx va ra;
   ()
 }
 
 inline_for_extraction noextract
 fn softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lena : szp { lena <= max_threads })
+  (#lena : szp)
   (a : Vec.lvec et lena)
-  (#s : erased (Seq.seq et))
-  (#r : erased (Seq.seq real) { Seq.length r == SizeT.v lena /\ s %~ r /\ lena > 0 })
+  (#va : erased (lseq et lena))
+  (ra  : erased (lseq real lena))
   preserves
     cpu
   requires
-    a |-> s **
-    pure (lena <= max_blocks)
-  ensures (
-    exists* (v':seq et).
-      a |-> v' **
-      pure (v' %~ softmax_real r))
+    a |-> va **
+    pure (lena <= max_threads) **
+    pure (va %~ ra)
+  ensures
+    exists* (va' : lseq et lena).
+      a |-> va' **
+      pure (va' %~ softmax_real ra)
 {
-  let ga = Array.gpu_array_alloc #et lena;
-  Array.gpu_memcpy_host_to_device ga a lena;
-  softmax_gpu ga #_ #r;
-  gpu_memcpy_device_to_host a ga lena;
-  Array.gpu_array_free ga
+  let ga = Array1.alloc0 #et lena (l1_forward lena);
+  Array1.memcpy_host_to_device ga a lena;
+  softmax_gpu ga ra;
+  Array1.memcpy_device_to_host' a 0sz ga 0sz lena;
+  Array1.free ga;
+  ()
 }

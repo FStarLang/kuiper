@@ -7,7 +7,6 @@ open Kuiper.Injection
 open Kuiper.Index
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor.Layout
-
 type layout_f_for (#n:nat) (d : idesc n) =
   abs d @~> natlt (sizeof d)
 
@@ -158,7 +157,7 @@ instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array1.desc m)) ->
+    cimap = (fun (idx : Kuiper.Index.conc (m @| INil)) ->
               match idx with
               | (i, ()) -> i);
   }
@@ -168,7 +167,7 @@ instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) 
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array2.desc m n)) ->
+    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
               match idx with
               | (i, (j, ())) -> SZ.add (SZ.mul i n) j)
   }
@@ -178,7 +177,7 @@ instance c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)}) 
   {
     ulen_fits = ();
     all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (Kuiper.Array2.desc m n)) ->
+    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
               match idx with
               | (i, (j, ())) -> SZ.add (SZ.mul j m) i)
   }
