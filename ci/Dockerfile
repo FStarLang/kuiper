@@ -18,6 +18,8 @@ RUN apt-get update \
       wget \
       git \
       gnupg \
+      indent \
+      less \
       sudo \
       libgmp-dev \
       opam \
