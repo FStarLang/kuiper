@@ -261,8 +261,8 @@ fn forevery_rw_type
 ghost
 fn forevery_refine_ext'
   (#a: Type0)
-  (#f: a->prop)
-  (g: a->prop { forall x. f x <==> g x })
+  (#f g: a->prop)
+  (#_ : squash (forall x. f x <==> g x))
   (p: (x:a{f x} -> slprop))
   requires
     forall+ (x:a {f x}). p x
@@ -630,6 +630,26 @@ fn forevery_refine_join
       forevery_insert p x;
       forevery_refine_ext #a (fun z -> f z /\ (pred z \/ eq2 #(x:a{f x}) x z) \/ g z) p;
     };
+}
+
+ghost
+fn forevery_refine_join'
+  (#a:Type0)
+  (f g: a -> prop)
+  (p: (x:a{f x \/ g x}) -> slprop)
+  requires
+    forall+ (x:a{f x}). p x
+  requires
+    forall+ (x:a{g x}). p x
+  requires
+    pure (forall x. ~(f x /\ g x))
+  ensures
+    forall+ (x:a{f x \/ g x}). p x
+{
+  forevery_ext #(x:a{f x}) (fun x -> p x) (fun x -> when__ (f x \/ g x) (fun _ -> p x));
+  forevery_ext #(x:a{g x}) (fun x -> p x) (fun x -> when__ (f x \/ g x) (fun _ -> p x));
+  forevery_refine_join (fun x -> when__ (f x \/ g x) (fun _ -> p x)) f g;
+  forevery_ext #(x:a{f x \/ g x}) (fun x -> when__ (f x \/ g x) (fun _ -> p x)) (fun x -> p x);
 }
 
 ghost

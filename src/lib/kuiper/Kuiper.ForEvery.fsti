@@ -133,8 +133,8 @@ fn forevery_fill
 ghost
 fn forevery_refine_ext'
   (#a: Type0)
-  (#f: a->prop)
-  (g: a->prop { forall x. f x <==> g x })
+  (#f g: a->prop)
+  (#_ : squash (forall x. f x <==> g x))
   (p: (x:a{f x} -> slprop))
   requires
     forall+ (x:a {f x}). p x
@@ -182,6 +182,23 @@ fn forevery_refine_join
   (#a:Type0)
   (p: a -> slprop)
   (f g: a -> prop)
+  requires
+    forall+ (x:a{f x}). p x
+  requires
+    forall+ (x:a{g x}). p x
+  requires
+    pure (forall x. ~(f x /\ g x))
+  ensures
+    forall+ (x:a{f x \/ g x}). p x
+
+(* Like forevery_refine_join, but accepts a payload that is only defined
+   on the union of the two ranges. The output predicate h must be
+   equivalent to (f x \/ g x). *)
+ghost
+fn forevery_refine_join'
+  (#a:Type0)
+  (f g: a -> prop)
+  (p: (x:a{f x \/ g x}) -> slprop)
   requires
     forall+ (x:a{f x}). p x
   requires

@@ -25,6 +25,7 @@ let array1_pts_to_slice
   = forall+ (k : nat{i <= k /\ k < j}).
       Cell r (k <: natlt sz) |-> (s @! (k - i))
 
+#push-options "--z3rlimit 80"
 ghost
 fn array1_slice_concat
   (#et : Type0)
@@ -40,9 +41,36 @@ fn array1_slice_concat
   ensures
     array1_pts_to_slice r i k (s1 @+ s2)
 {
-  (* FIXME: implement. *)
-  admit();
+  unfold array1_pts_to_slice r i j s1;
+  unfold array1_pts_to_slice r j k s2;
+
+  let s = s1 @+ s2;
+
+  (* Rewrite each side to use s *)
+  forevery_ext
+    (fun (x:nat{i <= x /\ x < j}) -> Cell r (x <: natlt sz) |-> (s1 @! (x - i)))
+    (fun (x:nat{i <= x /\ x < j}) -> Cell r (x <: natlt sz) |-> (s @! (x - i)));
+  forevery_ext
+    (fun (x:nat{j <= x /\ x < k}) -> Cell r (x <: natlt sz) |-> (s2 @! (x - j)))
+    (fun (x:nat{j <= x /\ x < k}) -> Cell r (x <: natlt sz) |-> (s @! (x - i)));
+
+  (* Join *)
+  forevery_refine_join' #nat
+    (fun (x:nat) -> i <= x /\ x < j)
+    (fun (x:nat) -> j <= x /\ x < k)
+    (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
+      Cell r (x <: natlt sz) |-> (s @! (x - i)));
+
+  (* Simplify *)
+  forevery_refine_ext' #nat
+    #(fun (x:nat) -> (i <= x /\ x < j) \/ (j <= x /\ x < k))
+    (fun (x:nat) -> i <= x /\ x < k)
+    (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
+      Cell r (x <: natlt sz) |-> (s @! (x - i)));
+
+  fold array1_pts_to_slice r i k s;
 }
+#pop-options
 
 inline_for_extraction noextract
 fn array1_read_from_slice
