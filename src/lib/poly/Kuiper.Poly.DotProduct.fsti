@@ -4,7 +4,6 @@ module Kuiper.Poly.DotProduct
 
 open Kuiper
 open Kuiper.Approximates
-module SZ = Kuiper.SizeT
 
 (* pointwise mul of sequences *)
 let pmul

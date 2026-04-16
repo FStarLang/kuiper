@@ -5,7 +5,6 @@ open Kuiper
 open Kuiper.Approximates
 open Kuiper.Array1
 open Kuiper.Real { rexp }
-module Array1 = Kuiper.Array1
 module KS = Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 open Kuiper.Tensor.Layout.Alg { l1_forward }

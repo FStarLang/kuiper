@@ -9,6 +9,7 @@ should not be the case once there are more flexible memcpy's. *)
 // A fused version is possible.
 
 #lang-pulse
+module Array1 = Kuiper.Array1
 open Kuiper
 (* ^ Why do I need this? Is it because Kuiper is a module and not a namespace? *)
 module Vec = Pulse.Lib.Vec
