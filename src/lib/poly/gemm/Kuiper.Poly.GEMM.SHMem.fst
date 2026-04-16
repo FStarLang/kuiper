@@ -936,7 +936,7 @@ let kpre_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
 : is_send_across block_of (kpre comb comb_r tile slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= magic() // solve
+= solve
 
 let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -962,7 +962,7 @@ let kpost_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (tile * tile))
 : is_send_across block_of (kpost comb comb_r tile slA slB gA gB gC eA eB eC rA rB rC fA fB sh bid tid)
-= magic() // solve
+= solve
 
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -984,7 +984,7 @@ let block_pre_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt2 tile tile).
       kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid)
-= magic() // solve
+= solve
 
 let block_post_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -1009,7 +1009,7 @@ let block_post_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt2 tile tile).
       kpost1 comb comb_r tile gA gB gC eA eB eC rA rB rC fA fB bid tid)
-= magic() // solve
+= solve
 #pop-options
 
 inline_for_extraction noextract

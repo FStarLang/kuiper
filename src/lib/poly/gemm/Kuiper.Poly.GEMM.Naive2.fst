@@ -189,8 +189,8 @@ let kdesc
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
   f = kf comb gA gB gC #eA #eB #eC #fA #fB;
-  kpre_sendable=magic();
-  kpost_sendable=magic();
+  kpre_sendable  = solve;
+  kpost_sendable = solve;
 } <: kernel_desc_n _ _
 
 // FIXME: extraction of this function (in the inst module) is very slow, around

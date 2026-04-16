@@ -91,6 +91,16 @@ val is_send_across_global_iarray
   (v : (vw.ait -> GTot et))
   : is_send_across gpu_of (iarray_pts_to x #f v)
 
+instance
+val is_send_across_global_iarray_cell
+  (#et:Type0)
+  (#vw : aiview)
+  (a: iarray et vw { is_global_iarray a })
+  (#f : perm)
+  (i : vw.ait)
+  (v : et)
+  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+
 unfold
 instance has_pts_to (#et:Type0) (#vw : aiview)
   : has_pts_to (iarray et vw) (vw.ait -> GTot et) = {

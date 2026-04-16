@@ -285,6 +285,14 @@ val tensor_pts_to_cell_eq
            ==
            gpu_pts_to_cell (core a) #f (l.imap.f i) v)
 
+instance
+val is_send_across_global_tensor_cell
+  (#et : Type0) (#r : nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l { is_global a })
+  (#f : perm) (i : abs d) (v : et)
+  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+
 ghost
 fn tensor_explode
   (#et : Type0) (#r : nat) (#d : idesc r)

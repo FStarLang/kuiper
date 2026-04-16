@@ -384,6 +384,13 @@ let pts_to_cell_eq
            gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back ij) f v
 
+instance is_send_across_global_cell
+  (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l { is_global a })
+  (#f : perm) (ij : ait rows cols) (v : et)
+  : is_send_across gpu_of (pts_to_cell a #f ij v)
+  = solve
+
 ghost
 fn explode
   (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)

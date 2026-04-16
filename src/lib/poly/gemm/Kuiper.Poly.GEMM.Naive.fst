@@ -260,8 +260,8 @@ let kdesc
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
   f = kf comb gA gB gC;
-  kpre_sendable=magic();
-  kpost_sendable=magic();
+  kpre_sendable  = solve;
+  kpost_sendable = solve;
 } <: kernel_desc_m_1 _ _
 
 inline_for_extraction noextract

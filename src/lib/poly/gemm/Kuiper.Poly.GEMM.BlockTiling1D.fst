@@ -181,7 +181,7 @@ let kpre_block_sendable
   (i:natlt (m * n))
   (j:natlt tile)
 : is_send_across block_of (kpre comb tile slA slB gA gB gC eA eB fA fB sh i j)
-= magic() // solve
+= solve
 
 unfold
 let kpost
@@ -233,7 +233,45 @@ let kpost_block_sendable
   (i:natlt (m * n))
   (j:natlt tile)
 : is_send_across block_of (kpost comb comb_r tile slA slB gA gB gC eA eB rA rB rC fA fB sh i j)
-= magic() // solve
+= solve
+
+let block_pre_sendable
+  (#et : Type0) {| scalar et |}
+  (comb : binop et)
+  (#m #k #n : sz)
+  (tile : valid_tile)
+  (#lA : M.layout (m * tile) (k * tile))
+  (#lB : M.layout (k * tile) (n * tile))
+  (#lC : M.layout (m * tile) (n * tile))
+  (gA : array2 et lA { M.is_global gA })
+  (gB : array2 et lB { M.is_global gB })
+  (gC : array2 et lC { M.is_global gC })
+  (eA eB : ematrix _ _ _)
+  (fA fB : perm)
+  (bid : natlt (m * n))
+: is_send_across gpu_of (forall+ (tid : natlt tile). kpre1 comb tile gA gB gC eA eB fA fB bid tid)
+= solve
+
+let block_post_sendable
+  (#et : Type0) {| scalar et, real_like et |}
+  (comb : binop et)
+  (comb_r : binop real { approx2 comb comb_r })
+  (#m #k #n : sz)
+  (tile : valid_tile)
+  (#lA : M.layout (m * tile) (k * tile))
+  (#lB : M.layout (k * tile) (n * tile))
+  (#lC : M.layout (m * tile) (n * tile))
+  (gA : array2 et lA { M.is_global gA })
+  (gB : array2 et lB { M.is_global gB })
+  (gC : array2 et lC { M.is_global gC })
+  (eA eB : ematrix _ _ _)
+  (rA : ematrix real (m * tile) (k * tile))
+  (rB : ematrix real (k * tile) (n * tile))
+  (rC : ematrix real (m * tile) (n * tile))
+  (fA fB : perm)
+  (bid : natlt (m * n))
+: is_send_across gpu_of (forall+ (tid : natlt tile). kpost1 comb comb_r tile gA gB gC eA eB rA rB rC fA fB bid tid)
+= solve
 
 inline_for_extraction noextract
 fn bring_2cols
@@ -909,8 +947,8 @@ let mk_kernel
   f = kf tile slA slB comb comb_r gA gB gC rA rB rC () ;
   kpost_sendable = kpost_block_sendable comb comb_r tile slA slB gA gB gC eA eB rA rB rC fA fB;
   kpre_sendable = kpre_block_sendable comb tile slA slB gA gB gC eA eB fA fB;
-  block_post_sendable = magic();
-  block_pre_sendable = magic();
+  block_post_sendable = block_post_sendable comb comb_r tile gA gB gC eA eB rA rB rC fA fB;
+  block_pre_sendable = block_pre_sendable comb tile gA gB gC eA eB fA fB;
 }
 
 inline_for_extraction noextract
