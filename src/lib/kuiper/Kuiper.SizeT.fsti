@@ -81,7 +81,7 @@ val sizet_and (x y : SZ.t) : SZ.t
 This is very specialized. *)
 val sizet_and_div_pow2 (x:SZ.t) (y:SZ.t) (n:nat)
   : Lemma (requires SZ.v y == pow2 n)
-          (ensures SZ.v (sizet_and x SZ.(y -^ 1sz)) == SZ.v x % (pow2 n))
+          (ensures SZ.v (sizet_and x (y -^ 1sz)) == SZ.v x % (pow2 n))
 
 inline_for_extraction noextract
 let s_divmod (j:szp) (i:sz) : dm:(sz & szlt j){SZ.fits (dm._1 * j + dm._2)} =

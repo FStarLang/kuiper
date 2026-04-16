@@ -11,14 +11,32 @@ let sizet_to_u32 (x: SZ.t)
                (ensures fun r -> U32.v r == SZ.v x)
   = U32.uint_to_t (SZ.v x)
 
-(* This is extracted primitively, it must not be marked inline. *)
+(* This is extracted primitively, it must not be marked inline. The
+implementation here is just a model. *)
 let sizet_and (x y : SZ.t) : SZ.t =
-  magic ()
+  FStar.SizeT.uint_to_t <|
+  FStar.SizeT.v x `FStar.UInt.logand #32` FStar.SizeT.v y
+
+(* This should probably be in F*'s library *)
+let rec from_vec_zero (#n:nat) (vec : FStar.BitVector.bv_t n)
+  : Lemma (requires forall (i : nat{i < n}). Seq.index vec i = false)
+          (ensures UInt.from_vec #n vec = 0)
+  = if n = 0 then () else from_vec_zero #(n-1) (Seq.slice vec 0 (n-1))
 
 let sizet_and_div_pow2 (x:SZ.t) (y:SZ.t) (n:nat)
   : Lemma (requires SZ.v y == pow2 n)
-          (ensures SZ.v (sizet_and x SZ.(y -^ 1sz)) == SZ.v x % (pow2 n))
-  = admit() (* assumption, should prove it! *)
+          (ensures SZ.v (sizet_and x (y -^ 1sz)) == SZ.v x % (pow2 n))
+  = if n = 0 then (
+      (* jeez *)
+      calc (==) {
+        SZ.v (sizet_and x (y -^ 1sz));
+        == {}
+        FStar.SizeT.v x `FStar.UInt.logand #32` 0;
+        == { from_vec_zero #32 (UInt.to_vec #32 (FStar.SizeT.v x `FStar.UInt.logand #32` 0)) }
+        0;
+      }
+    ) else
+      FStar.UInt.logand_mask #32 (SZ.v x) n
 
 let s_divmod_inv_1 (j:szp) (i:sz)
   : Lemma (s_undivmod j (s_divmod j i) == i)
