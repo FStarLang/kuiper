@@ -153,8 +153,8 @@ let kmap
   setup    = explode_setup lena a;
   kpre =  (fun (i:natlt lena) -> Cell a i |-> (s@!i));
   kpost = (fun (i:natlt lena) -> Cell a i |-> (f (s@!i)));
-  kpost_sendable = magic();
-  kpre_sendable  = magic();
+  kpost_sendable = solve;
+  kpre_sendable  = solve;
 } <: kernel_desc_m_1 _ _
 
 let map_div_avg (#et:Type0) {| floating et |} (s:Seq.seq et) (avg:et) =

@@ -486,10 +486,10 @@ let kernel
     kpost = kpost lena a vr;
     frame = emp;
 
-    kpre_sendable      = magic();
-    kpost_sendable     = magic();
-    full_post_sendable = magic();
-    full_pre_sendable  = magic();
+    kpre_sendable      = solve;
+    kpost_sendable     = solve;
+    full_post_sendable = solve;
+    full_pre_sendable  = solve;
   }
 
 inline_for_extraction noextract

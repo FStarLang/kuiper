@@ -239,8 +239,8 @@ inline_for_extraction noextract
 let dp_kernel
   (#et:Type0) {| scalar et, real_like et |}
   (lena : szp{SZ.v lena <= max_threads})
-  (#l1 : Array1.layout lena) (ga1 : Array1.t et l1)
-  (#l2 : Array1.layout lena) (ga2 : Array1.t et l2)
+  (#l1 : Array1.layout lena) (ga1 : Array1.t et l1 { Array1.is_global ga1 })
+  (#l2 : Array1.layout lena) (ga2 : Array1.t et l2 { Array1.is_global ga2 })
   {| ctlayout l1, ctlayout l2 |}
   (#s1 #s2 : erased (lseq et lena))
   (vr1 vr2 : erased (lseq real lena) { s1 %~ vr1 /\ s2 %~ vr2 })
@@ -264,10 +264,10 @@ let dp_kernel
 
     frame = emp;
 
-    kpost_sendable     = magic();
-    kpre_sendable      = magic();
-    full_post_sendable = magic();
-    full_pre_sendable  = magic();
+    kpost_sendable     = solve;
+    kpre_sendable      = solve;
+    full_post_sendable = solve;
+    full_pre_sendable  = solve;
   } <: kernel_desc_1_n_barr _ _
 
 inline_for_extraction noextract
