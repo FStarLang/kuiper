@@ -1093,39 +1093,6 @@ fn forevery_iso_back
 }
 
 ghost
-fn forevery_permute
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    forall+ (x:a). p (bij.ff x)
-{
-  forevery_iso (bij_sym bij) p;
-}
-
-ghost
-fn forevery_permute_back
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p (bij.ff x)
-  ensures
-    forall+ (x:a). p x
-{
-  forevery_permute (bij_sym bij) _;
-  forevery_ext (fun x -> p (bij.ff ((bij_sym bij).ff x))) p;
-}
-
-// This fails in Pulse???
-let seq_extend_shift #n (m: nat { m >= n }) (p: natlt n -> slprop) =
-  forevery_refine_ext' #nat #(fun i -> i < n) (fun i -> i < m /\ i < n) (fun i -> p i)
-let seq_restrict_shift #n (m: nat { m >= n }) (p: natlt n -> slprop) =
-  forevery_refine_ext' #nat #(fun i -> i < m /\ i < n) (fun i -> i < n) (fun i -> p i)
-
-ghost
 fn forevery_natlt_extend
   (#n: nat)
   (m: nat { m >= n })
@@ -1135,7 +1102,7 @@ fn forevery_natlt_extend
   ensures
     forall+ (i: natlt m { i < n }). p (natlt_coerce i)
 {
-  seq_extend_shift m p;
+  forevery_refine_ext' #nat (fun i -> i < m /\ i < n) (fun i -> p i)
 }
 
 ghost
@@ -1148,7 +1115,7 @@ fn forevery_natlt_restrict
   ensures
     forall+ (i: natlt n). p i
 {
-  seq_restrict_shift m p;
+  forevery_refine_ext' #nat (fun i -> i < n) (fun i -> p i)
 }
 
 ghost

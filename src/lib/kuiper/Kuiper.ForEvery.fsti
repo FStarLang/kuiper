@@ -363,27 +363,6 @@ fn forevery_iso_back
   ensures
     forall+ (x:a). p x
 
-(* Normally not needed... *)
-ghost
-fn forevery_permute
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    forall+ (x:a). p (bij.ff x)
-
-ghost
-fn forevery_permute_back
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p (bij.ff x)
-  ensures
-    forall+ (x:a). p x
-
 // FIXME: without this, Pulse will not type-check calls to forevery_natlt_{extend,restrict}
 let natlt_coerce #m #n (i: natlt n { i < m }) : natlt m = i
 
