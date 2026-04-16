@@ -227,10 +227,17 @@ fn block_teardown
   with ss. assert HR.array1_pts_to_slice ga1 0 lena ss;
   unfold HR.array1_pts_to_slice ga1 0 lena ss;
 
-  (* Convert the type refinement for forall+ index *)
-  assert pure (forall (k:nat). 0 <= k /\ k < lena <==> k < lena);
-  assume pure ((k : nat{0 <= k /\ k < lena}) == Array1.ait lena);
-  forevery_rw_type (k : nat{0 <= k /\ k < lena}) (Array1.ait lena) _;
+  (* Convert the type refinement for forall+ index. Again, would prefer
+  to use refinement extensionality here but that fails. Work around with
+  a bijection. *)
+  let bij : Kuiper.Bijection.bijection (k:nat{0 <= k /\ k < lena}) (Array1.ait lena) =
+    Kuiper.Bijection.Mkbijection
+      #(k:nat{0 <= k /\ k < lena})
+      #(Array1.ait lena)
+      (fun k -> k)
+      (fun k -> k)
+      ez ez;
+  forevery_iso bij _;
   forevery_ext _ (fun (k : natlt lena) -> Cell (ga1 <: Array1.t et l1) k |-> (ss @! k));
   Array1.implode ga1;
 }
