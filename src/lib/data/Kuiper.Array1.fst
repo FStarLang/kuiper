@@ -37,6 +37,30 @@ let to_from (#et:Type) (#len : nat) (l : full_layout len) (s : lseq et len)
     assert (Seq.equal (to_seq l (from_seq l s)) s);
     ()
 
+let to_seq_rel (#et:Type) (#len : nat)
+  (l : full_layout len) (s : lseq et len)
+  : Lemma (to_seq l s == T.to_seq l (tr_val s))
+  = let aux (i : natlt len)
+      : Lemma (to_seq l s @! i == T.to_seq l (tr_val s) @! i) = ()
+    in
+    Classical.forall_intro aux;
+    assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
+
+let from_seq_l1_fwd (#et : Type) (#len : nat) (s : lseq et len)
+  : Lemma (from_seq (Kuiper.Tensor.Layout.Alg.l1_forward len) s == s)
+  = let l = Kuiper.Tensor.Layout.Alg.l1_forward len in
+    let aux (i : natlt len)
+      : Lemma (from_seq l s @! i == s @! i) = ()
+    in
+    Classical.forall_intro aux;
+    assert (Seq.equal (from_seq l s) s)
+
+let to_seq_l1_fwd (#et : Type) (#len : nat) (s : lseq et len)
+  : Lemma (to_seq (Kuiper.Tensor.Layout.Alg.l1_forward len) s == s)
+  = let l = Kuiper.Tensor.Layout.Alg.l1_forward len in
+    from_seq_l1_fwd #et #len s;
+    assert (to_seq l (from_seq l s) == s)
+
 let t (et : Type0) (#len : nat) (l : layout len) : Type0 =
   T.tensor et l
 
@@ -151,6 +175,62 @@ fn pts_to_ref
   unfold pts_to a #f s;
   T.tensor_pts_to_ref a;
   fold pts_to a #f s;
+}
+
+ghost
+fn lower
+  (#et : Type) (#len : nat)
+  (#l : full_layout len)
+  (a : t et l)
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    a |-> Frac f s
+  ensures
+    core a |-> Frac f (to_seq l s)
+{
+  unfold pts_to a #f s;
+  T.tensor_concr a;
+  to_seq_rel l s;
+  rewrite T.core a |-> Frac f (T.to_seq l (tr_val s))
+       as core a |-> Frac f (to_seq l s);
+}
+
+ghost
+fn raise
+  (#et : Type) (#len : nat)
+  (l : full_layout len)
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    p |-> Frac f (to_seq l s)
+  ensures
+    from_array l p |-> Frac f s
+{
+  to_seq_rel l s;
+  rewrite
+    p |-> Frac f (to_seq l s)
+  as
+    p |-> Frac f (T.to_seq l (tr_val s));
+  T.tensor_abs l p;
+  fold pts_to (from_array l p) #f s;
+}
+
+ghost
+fn raise'
+  (#et : Type) (#len : nat)
+  (l : full_layout len)
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    p |-> Frac f s
+  ensures
+    from_array l p |-> Frac f (from_seq l s)
+{
+  rewrite each s as to_seq l (from_seq l s);
+  raise l p;
 }
 
 ghost
@@ -344,19 +424,21 @@ fn memcpy_host_to_device
   ensures
     on gpu_loc (dst |-> from_seq l vsrc)
 {
-  (* Should be proven. *)
   map_loc gpu_loc
     #(dst |-> vdst)
     #(core dst |-> to_seq l vdst)
-    fn _ { admit(); };
+    fn _ { lower dst; };
 
   gpu_memcpy_host_to_device (core dst) src n;
 
-  (* Should be proven. *)
   map_loc gpu_loc
     #(core dst |-> vsrc)
     #(dst |-> from_seq l vsrc)
-    fn _ { admit(); };
+    fn _ {
+      raise' l (core dst);
+      rewrite (from_array l (core dst) |-> from_seq l vsrc)
+           as (dst |-> from_seq l vsrc);
+    };
   ();
 }
 
@@ -387,20 +469,29 @@ fn memcpy_device_to_host'
       dst_arr |-> s' **
       pure (s' == Kuiper.Seq.Common.seq_blit gv dst_off v src_off cnt)
 {
-  (* Should prove *)
+  let l = Kuiper.Tensor.Layout.Alg.l1_forward src_sz;
   map_loc gpu_loc
     #(src |-> Frac f v)
     #(core src |-> Frac f v)
-    fn _ { admit(); };
+    fn _ {
+      lower src;
+      to_seq_l1_fwd #a #src_sz v;
+      rewrite (core src |-> Frac f (to_seq l v))
+           as (core src |-> Frac f v);
+    };
 
   (* Bulk copy at the gpu_array level *)
   gpu_memcpy_device_to_host' #_ #_ #dst_sz dst_arr dst_off #_ (core src) src_off cnt;
 
-  (* Should prove *)
   map_loc gpu_loc
     #(core src |-> Frac f v)
     #(src |-> Frac f v)
-    fn _ { admit(); };
+    fn _ {
+      raise' l (core src);
+      from_seq_l1_fwd #a #src_sz v;
+      rewrite (from_array l (core src) |-> Frac f (from_seq l v))
+           as (src |-> Frac f v);
+    };
   ()
 }
 
@@ -424,26 +515,32 @@ fn memcpy_device_to_device
   ensures
     on gpu_loc (dst |-> vsrc)
 {
-  (* Should be proven. *)
   map_loc gpu_loc
     #(dst |-> vdst)
     #(core dst |-> to_seq l vdst)
-    fn _ { admit(); };
+    fn _ { lower dst; };
   map_loc gpu_loc
     #(src |-> Frac f vsrc)
     #(core src |-> Frac f (to_seq l vsrc))
-    fn _ { admit(); };
+    fn _ { lower src; };
 
   gpu_memcpy_device_to_device (core dst) (core src) cnt;
 
-  (* Should be proven. *)
   map_loc gpu_loc
     #(core src |-> Frac f (to_seq l vsrc))
     #(src |-> Frac f vsrc)
-    fn _ { admit(); };
+    fn _ {
+      raise l (core src);
+      rewrite (from_array l (core src) |-> Frac f vsrc)
+           as (src |-> Frac f vsrc);
+    };
   map_loc gpu_loc
     #(core dst |-> to_seq l vsrc)
     #(dst |-> vsrc)
-    fn _ { admit(); };
+    fn _ {
+      raise l (core dst);
+      rewrite (from_array l (core dst) |-> vsrc)
+           as (dst |-> vsrc);
+    };
   ();
 }

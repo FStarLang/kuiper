@@ -156,6 +156,42 @@ fn pts_to_ref
     pure (SZ.fits (layout_size l))
 
 ghost
+fn lower
+  (#et : Type) (#len : nat)
+  (#l : full_layout len)
+  (a : t et l)
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    a |-> Frac f s
+  ensures
+    core a |-> Frac f (to_seq l s)
+
+ghost
+fn raise
+  (#et : Type) (#len : nat)
+  (l : full_layout len)
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    p |-> Frac f (to_seq l s)
+  ensures
+    from_array l p |-> Frac f s
+
+ghost
+fn raise'
+  (#et : Type) (#len : nat)
+  (l : full_layout len)
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et len)
+  requires
+    p |-> Frac f s
+  ensures
+    from_array l p |-> Frac f (from_seq l s)
+
+ghost
 fn share_n
   (#et : Type0) (#len : nat) (#l : layout len)
   (a : t et l) (k : pos)
