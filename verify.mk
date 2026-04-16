@@ -108,6 +108,7 @@ OTHERFLAGS += $O
 
 FSTAR_FLAGS += --cache_dir $(CACHEDIR)
 FSTAR_FLAGS += --odir $(OUTDIR)
+FSTAR_FLAGS += --warn_error -291 # inspect_ln warnings, benign
 FSTAR_FLAGS += --cmi
 FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
