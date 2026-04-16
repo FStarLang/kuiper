@@ -49,7 +49,7 @@ The docker container starts a vscode server on port 8080.
   variants of the same kernels.)
 
   6. To check that everything works as expected, open a source file such as
-  `src/examples/Kuiper.Example.Simple.fst`.  Put the cursor at the end of the
+  `src/examples/Kuiper.Example1.fst`.  Put the cursor at the end of the
   file and press `ctrl+.`, this instructs F\* to verify the file until the
   cursor position (i.e., the whole file).  After a few seconds, you should see a
   green bar on the left of the file, indicating that the file has been
@@ -61,7 +61,7 @@ The docker container starts a vscode server on port 8080.
 
 Optional: We include a `fstar.sh` script that sets all the right options for F\*
 to verify a particular Kuiper file.  You can run `./fstar.sh
-src/examples/Kuiper.Example.Simple.fst` to verify a single file.
+src/examples/Kuiper.Example1.fst` to verify a single file.
 
 # Step-By-Step Instructions
 
