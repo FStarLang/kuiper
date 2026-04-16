@@ -552,10 +552,16 @@ fn reduce
       unfold array1_pts_to_slice_sum a 0 lena vr;
       with s. assert array1_pts_to_slice a 0 lena s;
       unfold array1_pts_to_slice a 0 lena s;
-      assert pure (forall (k:nat). 0 <= k /\ k < lena <==> k < lena);
-      // FStar.RefinementExtensionality.refext nat (fun (k:nat) -> 0 <= k /\ k < lena) (fun (k:nat) -> k < lena);
-      assume pure ((k : nat{0 <= k /\ k < lena}) == Array1.ait lena);
-      forevery_rw_type (k : nat{0 <= k /\ k < lena}) (Array1.ait lena) _;
+      (* I would prefer to rewrite the type with refinement extensionality,
+         but that does not seem to work. *)
+      let bij : Kuiper.Bijection.bijection (k:nat{0 <= k /\ k < lena}) (Array1.ait lena) =
+        Kuiper.Bijection.Mkbijection
+          #(k:nat{0 <= k /\ k < lena})
+          #(Array1.ait lena)
+          (fun k -> k)
+          (fun k -> k)
+          ez ez;
+      forevery_iso bij _;
       forevery_ext _ (fun (k : natlt lena) -> Cell (a <: Array1.t et l) k |-> (s @! k));
       Array1.implode a;
       ();
