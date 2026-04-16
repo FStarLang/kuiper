@@ -16,7 +16,7 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 
-open Kuiper.EMatrix { ematrix, macc, ematrix_approximates }
+open Kuiper.EMatrix { ematrix, macc, mkM, ematrix_approximates }
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -81,6 +81,185 @@ let barrier_contract
     rin  = barrier_p (M.from_array l1 ar1) (M.from_array l2 ar2);
     rout = barrier_q (M.from_array l1 ar1) (M.from_array l2 ar2);
   }
+
+(* ---- Barrier transform proof ---- *)
+
+(* Even → odd: distribute fractional whole-array ownership into per-column cells. *)
+ghost
+fn even_barrier_p_to_q
+  (#et : Type0)
+  (#tile : valid_tile)
+  (#l1 : M.layout tile tile) (m1 : array2 et l1)
+  (#l2 : M.layout tile tile) (m2 : array2 et l2)
+  (it : nat{even it})
+  (#_ : squash (SZ.fits (M.layout_size l1)))
+  (#_ : squash (SZ.fits (M.layout_size l2)))
+  requires
+    forall+ (tid : natlt tile). barrier_p m1 m2 it tid
+  ensures
+    forall+ (tid : natlt tile). barrier_q m1 m2 it tid
+{
+  assert pure (even it);
+  (* barrier_p even = frac shares; barrier_q even = own_1_col *)
+  forevery_map
+    (fun (tid : natlt tile) -> barrier_p m1 m2 it tid)
+    (fun (tid : natlt tile) ->
+      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. tile) x) **
+      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. tile) x))
+    fn tid {
+      rewrite barrier_p m1 m2 it tid
+           as (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. tile) x) **
+              (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. tile) x);
+    };
+  forevery_unzip _ _;
+  M.gather_n_underspec m1 tile;
+  M.gather_n_underspec m2 tile;
+  with em1. assert (m1 |-> em1);
+  with em2. assert (m2 |-> em2);
+  M.ilower m1;
+  M.ilower m2;
+  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> M.pts_to_cell m1 (r, c) (macc em1 r c));
+  forevery_commute (fun (r : natlt tile) (c : natlt tile) -> M.pts_to_cell m2 (r, c) (macc em2 r c));
+  forevery_map
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). M.pts_to_cell m1 (r, c) (macc em1 r c))
+    (fun (c : natlt tile) -> own_1_col m1 c)
+    fn c {
+      forevery_map
+        (fun (r : natlt tile) -> M.pts_to_cell m1 (r, c) (macc em1 r c))
+        (fun (r : natlt tile) -> exists* (x : et). Cell m1 (r, c) |-> x)
+        fn r { };
+      fold own_1_col m1 c;
+    };
+  forevery_map
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). M.pts_to_cell m2 (r, c) (macc em2 r c))
+    (fun (c : natlt tile) -> own_1_col m2 c)
+    fn c {
+      forevery_map
+        (fun (r : natlt tile) -> M.pts_to_cell m2 (r, c) (macc em2 r c))
+        (fun (r : natlt tile) -> exists* (x : et). Cell m2 (r, c) |-> x)
+        fn r { };
+      fold own_1_col m2 c;
+    };
+  forevery_zip
+    (fun (tid : natlt tile) -> own_1_col m1 tid)
+    (fun (tid : natlt tile) -> own_1_col m2 tid);
+  forevery_map
+    (fun (tid : natlt tile) -> own_1_col m1 tid ** own_1_col m2 tid)
+    (fun (tid : natlt tile) -> barrier_q m1 m2 it tid)
+    fn tid {
+      rewrite own_1_col m1 tid ** own_1_col m2 tid
+           as barrier_q m1 m2 it tid;
+    };
+}
+
+(* Odd → even: collect per-column cells back to fractional whole-array ownership. *)
+ghost
+fn odd_barrier_p_to_q
+  (#et : Type0)
+  (#tile : valid_tile)
+  (#l1 : M.layout tile tile) (m1 : array2 et l1)
+  (#l2 : M.layout tile tile) (m2 : array2 et l2)
+  (it : nat{odd it})
+  (#_ : squash (SZ.fits (M.layout_size l1)))
+  (#_ : squash (SZ.fits (M.layout_size l2)))
+  requires
+    forall+ (tid : natlt tile). barrier_p m1 m2 it tid
+  ensures
+    forall+ (tid : natlt tile). barrier_q m1 m2 it tid
+{
+  assert pure (odd it);
+  (* barrier_p odd = own_1_col; barrier_q odd = frac shares *)
+  forevery_map
+    (fun (tid : natlt tile) -> barrier_p m1 m2 it tid)
+    (fun (tid : natlt tile) -> own_1_col m1 tid ** own_1_col m2 tid)
+    fn tid {
+      rewrite barrier_p m1 m2 it tid
+           as own_1_col m1 tid ** own_1_col m2 tid;
+    };
+  forevery_unzip _ _;
+  (* Unfold own_1_col to nested forall+/exists *)
+  forevery_map
+    (fun (c : natlt tile) -> own_1_col m1 c)
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m1 (r, c) |-> x)
+    fn c { unfold own_1_col m1 c };
+  forevery_map
+    (fun (c : natlt tile) -> own_1_col m2 c)
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). exists* (x : et). Cell m2 (r, c) |-> x)
+    fn c { unfold own_1_col m2 c };
+  (* Commute: forall+ c r -> forall+ r c *)
+  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m1 (r, c) |-> x);
+  forevery_commute (fun (c : natlt tile) (r : natlt tile) -> exists* (x : et). Cell m2 (r, c) |-> x);
+  (* Extract witnesses *)
+  let f1 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m1 (r, c) |-> x);
+  let f2 = forevery_exists_2 (fun (r : natlt tile) (c : natlt tile) (x : et) -> Cell m2 (r, c) |-> x);
+  (* Construct ematrices from witness functions *)
+  let em1 : ematrix et tile tile = mkM f1;
+  let em2 : ematrix et tile tile = mkM f2;
+  (* Rewrite cells to use macc *)
+  forevery_map
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). Cell m1 (r, c) |-> f1 r c)
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). M.pts_to_cell m1 (r, c) (macc em1 r c))
+    fn r {
+      forevery_ext
+        (fun (c : natlt tile) -> Cell m1 (r, c) |-> f1 r c)
+        (fun (c : natlt tile) -> M.pts_to_cell m1 (r, c) (macc em1 r c));
+    };
+  forevery_map
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). Cell m2 (r, c) |-> f2 r c)
+    (fun (r : natlt tile) -> forall+ (c : natlt tile). M.pts_to_cell m2 (r, c) (macc em2 r c))
+    fn r {
+      forevery_ext
+        (fun (c : natlt tile) -> Cell m2 (r, c) |-> f2 r c)
+        (fun (c : natlt tile) -> M.pts_to_cell m2 (r, c) (macc em2 r c));
+    };
+  M.iraise m1;
+  M.iraise m2;
+  M.share_n m1 tile;
+  M.share_n m2 tile;
+  forevery_zip
+    (fun (_ : natlt tile) -> m1 |-> Frac (1.0R /. tile) em1) _;
+  forevery_map
+    (fun (tid : natlt tile) ->
+      m1 |-> Frac (1.0R /. tile) em1 **
+      m2 |-> Frac (1.0R /. tile) em2)
+    (fun (tid : natlt tile) ->
+      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. tile) x) **
+      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. tile) x))
+    fn tid { };
+  forevery_map
+    (fun (tid : natlt tile) ->
+      (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. tile) x) **
+      (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. tile) x))
+    (fun (tid : natlt tile) -> barrier_q m1 m2 it tid)
+    fn tid {
+      rewrite
+        (exists* (x : ematrix _ _ _). m1 |-> Frac (1.0R /. tile) x) **
+        (exists* (x : ematrix _ _ _). m2 |-> Frac (1.0R /. tile) x)
+      as
+        barrier_q m1 m2 it tid;
+    };
+}
+
+(* Both helpers have the same pre/postcondition shape (barrier_p → barrier_q),
+   so we can define the barrier_transform directly by case-splitting on even/odd.
+   We use a regular F* let to avoid Pulse's if/else effect promotion issue. *)
+#push-options "--z3rlimit 80"
+let barrier_p_to_q_transform
+  (#et : Type0)
+  (#tile : valid_tile)
+  (l1 l2 : M.full_layout tile tile)
+  (ar1 ar2 : gpu_array et (tile * tile))
+  (#_ : squash (SZ.fits (M.layout_size l1)))
+  (#_ : squash (SZ.fits (M.layout_size l2)))
+  : B.barrier_transform (barrier_contract tile l1 l2 ar1 ar2)
+  = let m1 = M.from_array l1 ar1 in
+    let m2 = M.from_array l2 ar2 in
+    fun (it : nat) ->
+      if even it then
+        even_barrier_p_to_q m1 m2 it
+      else
+        odd_barrier_p_to_q m1 m2 it
+#pop-options
 
 (* without shmem ownership *)
 unfold
@@ -927,7 +1106,7 @@ let mk_kernel
 
   barrier_contract = (fun bid ptrs -> barrier_contract tile slA slB (fst ptrs) (fst (snd ptrs)));
   barrier_count    = (fun _bid -> 2 * SZ.v k);
-  barrier_ok = magic();
+  barrier_ok = (fun _bid ptrs -> barrier_p_to_q_transform slA slB (fst ptrs) (fst (snd ptrs)));
 
   shmems_desc = shmems_desc et tile;
 
