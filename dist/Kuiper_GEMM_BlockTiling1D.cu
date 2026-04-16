@@ -16,14 +16,14 @@ __hoisted_0(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -75,14 +75,14 @@ __hoisted_1(uint32_t n,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -133,14 +133,14 @@ __hoisted_2(uint32_t n,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -191,14 +191,14 @@ __hoisted_3(uint32_t n,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -249,14 +249,14 @@ __hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -308,14 +308,14 @@ __hoisted_5(uint32_t n,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -366,14 +366,14 @@ __hoisted_6(uint32_t n,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -424,14 +424,14 @@ __hoisted_7(uint32_t n,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -485,14 +485,14 @@ __hoisted_8(float alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -551,14 +551,14 @@ __hoisted_9(double alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -617,14 +617,14 @@ __hoisted_10(uint32_t alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -683,14 +683,14 @@ __hoisted_11(uint64_t alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 32U; i0++) {
             sa1[i0 * 32U + threadIdx.x] =
-                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * vbk1 +
+                gA[(32U * (blockIdx.x / nn) + i0) * k + 32U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 32U + threadIdx.x] =
-                gB[(32U * vbk1 + i0) * n + 32U * (blockIdx.x % nn) +
+                gB[(32U * __anf0 + i0) * n + 32U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -750,14 +750,14 @@ __hoisted_12(float alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -816,14 +816,14 @@ __hoisted_13(double alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -882,14 +882,14 @@ __hoisted_14(uint32_t alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
@@ -948,14 +948,14 @@ __hoisted_15(uint64_t alpha,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         __syncthreads();
-        uint32_t vbk1 = bk;
+        uint32_t __anf0 = bk;
         uint32_t i0 = 0U;
         for (; i0 < 16U; i0++) {
             sa1[i0 * 16U + threadIdx.x] =
-                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * vbk1 +
+                gA[(16U * (blockIdx.x / nn) + i0) * k + 16U * __anf0 +
                    threadIdx.x];
             sa2[i0 * 16U + threadIdx.x] =
-                gB[(16U * vbk1 + i0) * n + 16U * (blockIdx.x % nn) +
+                gB[(16U * __anf0 + i0) * n + 16U * (blockIdx.x % nn) +
                    threadIdx.x];
         }
         __syncthreads();
