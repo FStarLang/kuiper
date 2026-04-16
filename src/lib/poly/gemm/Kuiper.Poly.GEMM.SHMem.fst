@@ -654,7 +654,7 @@ fn setup
       kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid) **
     emp (* frame *)
 {
-  admit();
+  ();
   (* Step 1: Share gA/gB, explode gC *)
   M.share_n gA ((mrows * tile) * (mcols * tile));
   M.share_n gB ((mrows * tile) * (mcols * tile));
@@ -670,13 +670,13 @@ fn setup
   assert pure (forall (brow:natlt tile) (bcol:natlt tile). (brow * tile + bcol) / tile == brow /\ (brow * tile + bcol) % tile == bcol);
   forevery_ext_4
     (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
-      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) (brow, bcol) (macc eC (mrow * tile + brow) (mcol * tile + bcol)))
+      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) mrow mcol) ((brow <: natlt tile), (bcol <: natlt tile)) (macc eC (mrow * tile + brow) (mcol * tile + bcol)))
     (fun (mrow:natlt mrows) (mcol:natlt mcols) (brow:natlt tile) (bcol:natlt tile) ->
       let bid = mrow * mcols + mcol in let tid = brow * tile + bcol in
-      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile, tid % tile)
+      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) ((tid / tile <: natlt tile), (tid % tile <: natlt tile))
         (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
   forevery_unfactor_2 (mrows * mcols) mrows mcols (SZ.v tile * SZ.v tile) (SZ.v tile) (SZ.v tile)
-    (fun bid tid -> M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile, tid % tile)
+    (fun bid tid -> M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) ((tid / tile <: natlt tile), (tid % tile <: natlt tile))
       (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
 
   (* Step 4: Zip gA, gB, gC *)
@@ -684,7 +684,7 @@ fn setup
     (fun (_ : natlt (mrows * mcols)) (_ : natlt (SZ.v tile * SZ.v tile)) -> gA |-> Frac (fA /. ((mrows * tile) * (mcols * tile))) eA)
     (fun (_ : natlt (mrows * mcols)) (_ : natlt (SZ.v tile * SZ.v tile)) -> gB |-> Frac (fB /. ((mrows * tile) * (mcols * tile))) eB)
     (fun (bid : natlt (mrows * mcols)) (tid : natlt (SZ.v tile * SZ.v tile)) ->
-      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile, tid % tile)
+      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) ((tid / tile <: natlt tile), (tid % tile <: natlt tile))
         (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))));
 
   (* Step 5: Bridge to natlt2 and match kpre1 *)
@@ -692,7 +692,7 @@ fn setup
   forevery_ext_2
     (fun (bid : natlt (SZ.v (mrows `SZ.mul` mcols))) (tid : natlt (SZ.v (tile `SZ.mul` tile))) ->
       gA |-> Frac (fA /. ((mrows * tile) * (mcols * tile))) eA ** gB |-> Frac (fB /. ((mrows * tile) * (mcols * tile))) eB **
-      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) (tid / tile, tid % tile)
+      M.pts_to_cell (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols)) ((tid / tile <: natlt tile), (tid % tile <: natlt tile))
         (macc eC ((bid / mcols) * tile + (tid / tile)) ((bid % mcols) * tile + (tid % tile))))
     (fun (bid : natlt2 mrows mcols) (tid : natlt2 tile tile) -> kpre1 comb comb_r tile gA gB gC eA eB eC fA fB bid tid);
   ();
@@ -834,7 +834,6 @@ fn teardown
       gC |-> eC' **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 {
-  admit();
   (* Step 1: Bridge natlt2 → natlt *)
   forevery_rw_size2
     (SZ.v (mrows *^ mcols)) (mrows * mcols)
@@ -856,7 +855,7 @@ fn teardown
       (exists* (v : et).
         M.pts_to_cell
           (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-          (tid / tile, tid % tile) v **
+          ((tid / tile <: natlt tile), (tid % tile <: natlt tile)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol)));
 
   (* Step 3: Unzip gA *)
@@ -874,7 +873,7 @@ fn teardown
       (exists* (v : et).
         M.pts_to_cell
           (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-          (tid / tile, tid % tile) v **
+          ((tid / tile <: natlt tile), (tid % tile <: natlt tile)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol)));
 
   (* Step 4: Unzip gB *)
@@ -891,7 +890,7 @@ fn teardown
       exists* (v : et).
         M.pts_to_cell
           (array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / mcols) (bid % mcols))
-          (tid / tile, tid % tile) v **
+          ((tid / tile <: natlt tile), (tid % tile <: natlt tile)) v **
         pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol));
 
   (* Step 5: Gather gA and gB *)
@@ -905,7 +904,8 @@ fn teardown
   M.gather_n gB ((mrows * tile) * (mcols * tile));
 
   (* Step 6: Collect gC cells back into matrix *)
-  admit(); // TODO: array2_collect_approx_tiled needs explicit pair index ascriptions
+  let vf = array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile) mrows mcols
+    (fun row col v -> v %~ MS.gemm_single comb_r rA rB rC row col);
   with eC'. assert (gC |-> eC');
   assert pure (eC' %~ MS.mmcomb comb_r rC rA rB);
   ();
@@ -1052,7 +1052,7 @@ let mk_kernel
 
   barrier_contract = (fun _bid ptrs -> shmem_contract tile eA eB _bid (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
   barrier_count    = (fun _bid -> 2 * SZ.v mshared);
-  barrier_ok = magic(); // TODO: barrier_p_to_q_cell_transform needs forevery_map fix for Array2 pair indexing
+  barrier_ok = (fun _bid ptrs -> barrier_p_to_q_cell_transform tile eA eB _bid (M.from_array slA (fst ptrs)) (M.from_array slB (fst (snd ptrs))));
 
   shmems_desc = shmems_desc et tile;
 
