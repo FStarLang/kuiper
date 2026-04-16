@@ -18,8 +18,6 @@ include FStar.SizeT {
   ( /^ ), ( %^ ), ( +^ ), ( -^ ), ( *^ ),
 }
 
-open FStar.Ghost
-open Pulse.Lib.Core
 open FStar.Mul
 open Kuiper.Divides
 open Kuiper.Math
@@ -63,12 +61,12 @@ let fits_ok (x:nat)
     assert_norm (pow2 32 == 0x100000000);
     FStar.SizeT.fits_u32_implies_fits x
 
-[@@coercion; pulse_unfold] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
-[@@coercion; pulse_unfold] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x
-[@@coercion; pulse_unfold] unfold let u64_to_nat    (x: U64.t) : GTot nat = U64.v x
-// [@@coercion; pulse_unfold] unfold let sizet_to_enat (x: SZ.t)  : erased nat = SZ.v x
-// [@@coercion; pulse_unfold] unfold let u32_to_enat   (x: U32.t) : erased nat = U32.v x
-// [@@coercion; pulse_unfold] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
+[@@coercion] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
+[@@coercion] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x
+[@@coercion] unfold let u64_to_nat    (x: U64.t) : GTot nat = U64.v x
+// [@@coercion] unfold let sizet_to_enat (x: SZ.t)  : erased nat = SZ.v x
+// [@@coercion] unfold let u32_to_enat   (x: U32.t) : erased nat = U32.v x
+// [@@coercion] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
 
 (* assumption, add to F*? *)
 val sizet_to_u32 (x: SZ.t)
