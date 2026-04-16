@@ -40,12 +40,14 @@ fn arr_read_1
 {
   let ca = Pulse.Lib.Vec.alloc #et default 1sz;
 
-  (* Should prove *)
   map_loc gpu_loc
     #(a |-> Frac f va)
     #(core a |-> Frac f va)
     fn _ {
-      admit();
+      Array1.lower a;
+      assert pure (Seq.equal (to_seq (l1_forward len) va) va);
+      rewrite core a |-> Frac f (to_seq (l1_forward len) va)
+           as core a |-> Frac f va;
     };
 
   (* FIXME: Need to give length of ca?!? *)
@@ -54,12 +56,14 @@ fn arr_read_1
   let x = ca.(0sz);
   Pulse.Lib.Vec.free ca;
 
-  (* Should prove *)
   map_loc gpu_loc
     #(core a |-> Frac f va)
     #(a |-> Frac f va)
     fn _ {
-      admit();
+      Array1.raise' (l1_forward len) (core a);
+      rewrite each from_array (l1_forward len) (core a) as a;
+      assert pure (Seq.equal (from_seq (l1_forward len) va) va);
+      ();
     };
 
   x;
