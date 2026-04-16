@@ -13,7 +13,6 @@ open Kuiper.Tensor.Tiling
 
 open Kuiper.Array2 { array2 }
 module M = Kuiper.Array2
-module B = Kuiper.Barrier
 module SZ = Kuiper.SizeT
 module CV = Kuiper.Poly.GEMM.Copy.Vec
 

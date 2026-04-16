@@ -10,7 +10,6 @@ open Kuiper.EMatrix
 open Kuiper.Array2 { array2, layout }
 open Kuiper.Array2.Strided
 module M = Kuiper.Array2
-module SZ = Kuiper.SizeT
 module T = Kuiper.Tensor
 
 inline_for_extraction noextract

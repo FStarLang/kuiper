@@ -6,9 +6,7 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.Array2 { array2, layout, full_layout, layout_size, adapt_idx_back }
 open Kuiper.Tensor.Layout.Alg
-module M = Kuiper.Array2
 module SZ = Kuiper.SizeT
-module T = Kuiper.Tensor.Layout
 open Kuiper.Tensor.Tiling { subtile_layout, tile_inj }
 
 (* Instance for l2_row_major: cell_of_pos = i * cols + j *)

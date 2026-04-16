@@ -10,9 +10,7 @@ open Kuiper
 open Kuiper.Injection
 open Kuiper.Array2 { array2, layout, full_layout, layout_size, adapt_idx_back }
 open FStar.Tactics.Typeclasses { no_method }
-module M = Kuiper.Array2
 module SZ = Kuiper.SizeT
-module T = Kuiper.Tensor.Layout
 
 let cell_of_pos (#rows #cols : nat)
   (l : layout rows cols) (i : natlt rows) (j : natlt cols) : GTot nat =

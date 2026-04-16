@@ -13,7 +13,6 @@ module M = Kuiper.Array2
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module GR = Pulse.Lib.GhostReference
-module CV = Kuiper.Poly.GEMM.Copy.Vec
 open Pulse.Lib.Trade { trade }
 
 let in_chunk_covers_all
