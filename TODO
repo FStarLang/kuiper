@@ -2,4 +2,4 @@
 - Related to above: reduce duplication in instantiations for Tiled/SHMem/BT1D
 - Expose instantiations in Kuiper.GEMM.Naive2.fsti, etc?
 - Make Kuiper.Concrete work on arbitrary constant nats
-- Softmax and HReduce could work over Array1
+- Try to reduce __anf variables in output CUDA
