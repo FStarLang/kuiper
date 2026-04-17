@@ -19,22 +19,42 @@ its extraction pipeline, and several examples. We provide three files:
 
 The docker container starts a vscode server on port 8080.
 
-  1. To run this container you first need to load it:
+  1. **Prerequisites:** If you want to use an NVIDIA GPU within the container
+  (needed for benchmarking and `make test`), install the [NVIDIA Container
+  Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+  The following should be enough for a Debian system:
+
+    ```
+    curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+      | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+      | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+      | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+    sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+    sudo nvidia-ctk runtime configure --runtime=docker
+    sudo systemctl restart docker
+    ```
+
+  2. To run this container you first need to load it:
 
     docker load < kuiper-pldi2026-docker.tar.gz
 
-  2. Then you can start it:
+  3. Then you can start it:
+
+    docker run --gpus all -p 127.0.0.1:8080:8080 -it kuiper-pldi2026
+
+  If you do not have an NVIDIA GPU, omit `--gpus all`:
 
     docker run -p 127.0.0.1:8080:8080 -it kuiper-pldi2026
 
-  3. You can now access the vscode server by opening http://localhost:8080 in
+  4. You can now access the vscode server by opening http://localhost:8080 in
   your browser. Note: if you run this command in a VS code terminal on a remote
   computer via SSH, VS code sets up a tunnel automatically so you can still open
   localhost.
 
-  4. Open a terminal inside vscode using the keyboard shortcut `` ctrl+` ``
+  5. Open a terminal inside vscode using the keyboard shortcut `` ctrl+` ``
 
-  5. Run `make -j$(nproc)`.  This will verify every Kuiper source file, build
+  6. Run `make -j$(nproc)`.  This will verify every Kuiper source file, build
   the extraction plugin, and extract the verified kernels to CUDA.  The
   F\*/Karamel/Pulse submodules are pre-built in the container; if you desire,
   you can run `make clean-full` to clean them.
@@ -48,7 +68,7 @@ The docker container starts a vscode server on port 8080.
   explicit that the large number of CUDA lines comes from extracting many
   variants of the same kernels.)
 
-  6. To check that everything works as expected, open a source file such as
+  7. To check that everything works as expected, open a source file such as
   `src/examples/Kuiper.Example1.fst`.  Put the cursor at the end of the
   file and press `ctrl+.`, this instructs F\* to verify the file until the
   cursor position (i.e., the whole file).  After a few seconds, you should see a
@@ -151,7 +171,7 @@ in `src/lib/spec/Kuiper.Spec.GEMM.fst`.
   Tiling: `src/lib/data/Kuiper.Matrix.Tiling.fst`.
   Vectorized access: `src/lib/data/Kuiper.Matrix.Vectorized.fst`.
 
-- s4.2 Approximate reasoning: 
+- s4.2 Approximate reasoning:
   `src/lib/kuiper/Kuiper.Approximates.fst` (main module),
   `src/lib/kuiper/Kuiper.Approximates.Base.fst` (class definition).
   Example integer instance: `src/lib/kuiper/Kuiper.Approximates.U32.fst`.
