@@ -11,8 +11,6 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Reprs
 
-// Nota: no implementa GEMM, implementa solo MM
-
 noextract
 let rec __dprod
   (#et : Type0) {| scalar et |}
