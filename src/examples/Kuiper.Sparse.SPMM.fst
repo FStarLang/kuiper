@@ -493,11 +493,11 @@ fn forevery_assoc_2
 
 let lem_div1 (n : nat) (d : pos) (r : natlt d)
 : Lemma (requires true) (ensures (n * d + r) / d == n)
-= ()
+= Math.Lemmas.lemma_div_plus r n d
 
 let lem_div2 (n : nat) (d : pos) (r : natlt d)
 : Lemma (requires true) (ensures (n * d + r) % d == r)
-= ()
+= Math.Lemmas.lemma_mod_plus r n d
 
 ghost
 fn forevery_refine_pred'
