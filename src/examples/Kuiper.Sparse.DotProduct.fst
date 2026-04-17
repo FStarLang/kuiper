@@ -153,6 +153,7 @@ fn sarray_product_dense
           !i <= a.nnz /\
           !dp = _sparse_dprod v_elems (cast_pos v_pos) t !i
         )
+    decreases (a.nnz - !i)
   {
     let p = gpu_array_read a.pos !i;
     let x = gpu_array_read a.elems !i;

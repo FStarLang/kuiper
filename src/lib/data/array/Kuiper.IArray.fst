@@ -66,16 +66,6 @@ let iarray_pts_to_cell
   : slprop
   = gpu_pts_to_cell (core a) #f (it_to_nat vw i) v
 
-instance is_send_across_iarray_pts_to_cell
-  (#et:Type0)
-  (#vw : aiview)
-  (a : iarray et vw { is_global_iarray a })
-  (#f : perm)
-  (i : vw.ait)
-  (v : et)
-  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
-  = solve
-
 let iarray_pts_to_cell_def
   (#et : Type)
   (#vw : aiview)
@@ -105,6 +95,16 @@ instance is_send_across_global_iarray
   (v : (vw.ait -> GTot et))
   : is_send_across gpu_of (iarray_pts_to x #f v)
   = Tactics.Typeclasses.solve
+
+instance is_send_across_global_iarray_cell
+  (#et:Type0)
+  (#vw : aiview)
+  (a : iarray et vw { is_global_iarray a })
+  (#f : perm)
+  (i : vw.ait)
+  (v : et)
+  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  = solve
 
 ghost
 fn iarray_pts_to_ref

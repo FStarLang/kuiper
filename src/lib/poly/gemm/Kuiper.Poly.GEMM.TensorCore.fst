@@ -198,12 +198,13 @@ fn subproducts_tc
   gpu_matrix_pts_to_ref gB;
 
   let mut dotIdx : sz = 0sz;
-  while (SZ.(!dotIdx <^ (bk/^tk)))
+  while (!dotIdx <^ (bk/^tk))
     invariant
       live aFrag **
       live bFrag **
       live accumFrag **
       live dotIdx
+    decreases (bk/^tk - !dotIdx)
   {
     let a_tile = gpu_matrix_extract_tile_ro' gA (SZ.v tm) (SZ.v tk) (SZ.v arow) (SZ.v !dotIdx);
     let b_tile = gpu_matrix_extract_tile_ro' gB (SZ.v tk) (SZ.v tn) (SZ.v !dotIdx) (SZ.v bcol);
@@ -381,6 +382,7 @@ fn kf
       (exists* em2. FB.bp_sharing sB em2 nthr)
     invariant
       B.barrier_state (2 * !bkIdx)
+    decreases (num_k_tiles - !bkIdx)
   {
     even_2x !bkIdx;
     assert pure ((2 * !bkIdx % 2 = 0) == true);
@@ -763,7 +765,7 @@ fn teardown
   assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
   assert pure (rows/tm == (bm/tm) * (rows/bm));
   assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
-  assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
+  // assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
   assert pure (cols/tn == (bn/tn) * (cols/bn));
   assert pure (rows/tm * (cols/tn) * warp_size == nblk_val * nthr_val);
 

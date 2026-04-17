@@ -39,11 +39,12 @@ fn matmul_dotprod
   let mut k : sz = 0sz;
   let mut sum : et = zero;
 
-  while (SZ.(!k <^ shared))
+  while (!k <^ shared)
     invariant
       exists* (vk : SZ.t{vk <= shared}).
         k |-> vk **
         sum |-> MS.__matmul_single eA eB i j vk
+    decreases (shared - !k)
   {
     let v1 = M.gpu_matrix_read gA i !k;
     let v2 = M.gpu_matrix_read gB !k j;
@@ -401,12 +402,13 @@ fn matmul_tiled_dotprod'
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-  while (SZ.(!bk <^ shared))
+  while (!bk <^ shared)
     invariant
       exists* (vbk : SZ.t{vbk <= shared}) sumv.
         bk |-> vbk **
         sum |-> sumv **
         pure (v_approximates sumv (__real_matmul_single_tiled eA eB grow gcol (SZ.v vbk * tile)))
+    decreases (shared - !bk)
   {
     let vbk = !bk;
     assert (pure (bi  < (rows   * tile) / tile));
@@ -455,6 +457,7 @@ fn matmul_tiled_dotprod'
   !sum
 }
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn matmul_tiled_dotprod_real
   (#et : Type0) {| scalar et, real_like et |}
@@ -490,13 +493,14 @@ fn matmul_tiled_dotprod_real
   let mut sum : et = zero;
   let mut bk  : sz = 0sz;
 
-  while (SZ.(!bk <^ shared))
+  while (!bk <^ shared)
     invariant
       exists* (vbk : SZ.t{vbk <= shared}) sumv.
         bk |-> vbk **
         sum |-> sumv **
         pure (eA %~ rA /\ eB %~ rB) **
         pure (v_approximates sumv (MS.__gmatmul_single 0.0R ( *. ) ( +. ) rA rB grow gcol (SZ.v vbk * tile)))
+    decreases (shared - !bk)
   {
     let vbk = !bk;
     assert (pure (bi  < (rows   * tile) / tile));
@@ -549,6 +553,7 @@ fn matmul_tiled_dotprod_real
 
   !sum
 }
+#pop-options
 
 (* Used by SHMEM, Blocktiling1D *)
 inline_for_extraction noextract
@@ -575,32 +580,4 @@ fn subproduct_cols
     exists* acc'.
       pure (Seq.length acc' == tile) **
       (acc |-> acc')
-{
-  pts_to_len acc;
-  let mut sk : sz = 0sz;
-  while (SZ.(!sk <^ tile))
-    invariant live sk ** live acc
-  {
-    pts_to_len acc;
-    let mut i = 0sz;
-    (* We can read v2 out of the inner loop, this is extremely
-       important for performance. NVCC may realize this is invariant
-       across iterations and hoist it out, but don't rely on it. *)
-    let v2 = M.gpu_matrix_read m2 !sk j;
-    while (SZ.(!i <^ tile))
-      invariant live i ** live acc
-    {
-      let v1 = M.gpu_matrix_read m1 !i !sk;
 
-      open Pulse.Lib.Array;
-      pts_to_len acc;
-      let sum0 = acc.(!i);
-      let sum1 = sum0 `add` (v1 `mul` v2);
-      acc.(!i) <- sum1;
-      i := !i +^ 1sz;
-    };
-    pts_to_len acc;
-    sk := !sk +^ 1sz;
-  };
-  pts_to_len acc;
-}

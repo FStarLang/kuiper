@@ -241,8 +241,6 @@ fn gpu_matrix_alloc0
   gm;
 }
 
-#set-options "--print_implicits"
-
 inline_for_extraction noextract
 fn gpu_matrix_free
   (#et:Type)

@@ -38,6 +38,20 @@ fn forevery_ext
     forall+ (x:a). g x
 
 ghost
+fn forevery_intro_pure (#a:Type0) (p: a -> prop)
+  requires
+    pure (forall x. p x)
+  ensures
+    forall+ x. pure (p x)
+
+ghost
+fn forevery_intro_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
+  requires
+    pure (forall x y. p x y)
+  ensures
+    forall+ (x:a) (y:b). pure (p x y)
+
+ghost
 fn forevery_intro_empty (#a:Type0) (p: a -> slprop)
   requires
     pure (forall (x:a). False)
@@ -119,8 +133,8 @@ fn forevery_fill
 ghost
 fn forevery_refine_ext'
   (#a: Type0)
-  (#f: a->prop)
-  (g: a->prop { forall x. f x <==> g x })
+  (#f g: a->prop)
+  (#_ : squash (forall x. f x <==> g x))
   (p: (x:a{f x} -> slprop))
   requires
     forall+ (x:a {f x}). p x
@@ -168,6 +182,23 @@ fn forevery_refine_join
   (#a:Type0)
   (p: a -> slprop)
   (f g: a -> prop)
+  requires
+    forall+ (x:a{f x}). p x
+  requires
+    forall+ (x:a{g x}). p x
+  requires
+    pure (forall x. ~(f x /\ g x))
+  ensures
+    forall+ (x:a{f x \/ g x}). p x
+
+(* Like forevery_refine_join, but accepts a payload that is only defined
+   on the union of the two ranges. The output predicate h must be
+   equivalent to (f x \/ g x). *)
+ghost
+fn forevery_refine_join'
+  (#a:Type0)
+  (f g: a -> prop)
+  (p: (x:a{f x \/ g x}) -> slprop)
   requires
     forall+ (x:a{f x}). p x
   requires
@@ -329,27 +360,6 @@ fn forevery_iso_back
   (p : a -> slprop)
   requires
     forall+ (y:b). p (bij.gg y)
-  ensures
-    forall+ (x:a). p x
-
-(* Normally not needed... *)
-ghost
-fn forevery_permute
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    forall+ (x:a). p (bij.ff x)
-
-ghost
-fn forevery_permute_back
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p (bij.ff x)
   ensures
     forall+ (x:a). p x
 
@@ -1104,6 +1114,22 @@ fn forevery_zip3_2
   ensures
     forall+ (x:a) (y:b). p1 x y ** p2 x y ** p3 x y
 
+(* 4-way zip for 2-argument predicates *)
+ghost
+fn forevery_zip4_2
+  (#a #b : Type0)
+  (p1 p2 p3 p4 : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p1 x y
+  requires
+    forall+ (x:a) (y:b). p2 x y
+  requires
+    forall+ (x:a) (y:b). p3 x y
+  requires
+    forall+ (x:a) (y:b). p4 x y
+  ensures
+    forall+ (x:a) (y:b). p1 x y ** p2 x y ** p3 x y ** p4 x y
+
 (* Extensionality for 4-argument predicates *)
 ghost
 fn forevery_ext_4
@@ -1114,3 +1140,12 @@ fn forevery_ext_4
     forall+ (w:a) (x:b) (y:c) (z:d). f w x y z
   ensures
     forall+ (w:a) (x:b) (y:c) (z:d). g w x y z
+
+ghost
+fn forevery_push_pure
+  (#a:Type0) (p : a -> slprop)
+  (q : prop)
+  requires
+    pure q ** (forall+ (x:a). p x)
+  ensures
+    forall+ (x:a). p x ** pure q

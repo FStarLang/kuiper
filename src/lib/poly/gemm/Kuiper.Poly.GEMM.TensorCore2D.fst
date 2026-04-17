@@ -106,6 +106,7 @@ ensures
           pure (Seq.length ems == wm /\ !i0 <= wm /\
             forall (i : natlt !i0).
               (ems @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx)))
+      decreases (wm - !i0)
     {
       // Guido: why is there a zero here? Can this really be right?
       // Guido: I see. tile_for_tc_a_tiles is a very rectangular tile with height equal to one tile.
@@ -164,6 +165,7 @@ ensures
           pure (Seq.length ems == wn /\ !i1 <= wn /\
             forall (i : natlt !i1).
               (ems @! i) %~ (ematrix_subtile rm tk tn dotIdx (bcol*wn+i))))
+      decreases (wn - !i1)
     {
       let b_tile = gpu_matrix_extract_tile_ro' tile_for_tc_b_tiles (SZ.v tk) (SZ.v tn) 0 (SZ.v !i1);
 
@@ -248,6 +250,7 @@ fn fragarray_mma
           forall (i : natlt wm) (j : natlt wn).
             (eAcc @! (i * wn + j)) %~
               (arrayfragments_fade tm tn tk wm wn i j !resIdxM 0 rA rB rAcc))
+    decreases (wm - !resIdxM)
   {
     let mut resIdxN = 0sz;
     while (!resIdxN <^ wn)
@@ -261,6 +264,7 @@ fn fragarray_mma
             forall (i : natlt wm) (j : natlt wn).
               (eAcc @! (i * wn + j)) %~
                 (arrayfragments_fade tm tn tk wm wn i j !resIdxM !resIdxN rA rB rAcc))
+      decreases (wn - !resIdxN)
     {
       with eAccs. assert accumFrags |-> eAccs;
 
@@ -387,6 +391,7 @@ fn subproducts_tc_2d
         fragarrayAcc_approximates wm wn accumFrags
           (__gmatmul_single rAcc matmul matplus
             (ematrix_tiled rA (wm*tm) tk) (ematrix_tiled rB tk (wn*tn)) arow bcol !dotIdx)
+    decreases (bk/^tk - !dotIdx)
   {
     populate_fragments_a bm bn bk tm tn tk wm wn aFrags gA rA arow !dotIdx;
     populate_fragments_b bm bn bk tm tn tk wm wn bFrags gB rB bcol !dotIdx;
@@ -528,6 +533,7 @@ fn epilogue
         warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
           pure (!i <= wm /\
             eWarpTile %~ (em_fade_tiles tm tn wm wn !i 0 rWarpTile rAcc))
+    decreases (wm - !i)
   {
     let mut j = 0sz;
     while (!j <^ wn)
@@ -537,6 +543,7 @@ fn epilogue
           warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile **
             pure (!i <= wm /\ !j <= wn /\
               eWarpTile %~ (em_fade_tiles tm tn wm wn !i !j rWarpTile rAcc))
+      decreases (wn - !j)
     {
       with eWarpTile. assert warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile;
       unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid eWarpTile;
@@ -611,6 +618,7 @@ ensures
           Seq.length eAcc == wm*wn /\ !fi <= wm*wn  /\
           forall (i : natlt !fi).
             (eAcc @! i) %~ (ematrix_subtile (const_matrix #_ #(wm*tm) #(wn*tn) 0.0R) tm tn (i/wn) (i%wn))))
+    decreases (wm*^wn - !fi)
   {
     array_fragment_pts_to_ref accumFrags;
     array_fragment_extract accumFrags !fi;
@@ -886,6 +894,7 @@ fn kf
       (exists* em1. FB.bp_sharing sA em1 nthr) **
       (exists* em2. FB.bp_sharing sB em2 nthr) **
       B.barrier_state (2 * !bkIdx)
+    decreases (num_k_tiles - !bkIdx)
   {
     even_2x !bkIdx;
     assert pure((2 * !bkIdx % 2 = 0) == true);

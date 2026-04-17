@@ -455,8 +455,6 @@ fn gpu_array_paste'
   admit()
 }
 
-open Kuiper.Matrix.Slice
-
 let rec mem_slice_lemma
   (#et : eqtype)
   (x : et) (s : seq et)

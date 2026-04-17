@@ -1,0 +1,5 @@
+- Restore types for common flavors of matmul?
+- Related to above: reduce duplication in instantiations for Tiled/SHMem/BT1D
+- Expose instantiations in Kuiper.GEMM.Naive2.fsti, etc?
+- Make Kuiper.Concrete work on arbitrary constant nats
+- Try to reduce __anf variables in output CUDA

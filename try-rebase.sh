@@ -10,7 +10,7 @@ for p in FStar karamel; do
 	fi
 
 	if [ $p == FStar ]; then
-		br=fstar2
+		br=master
 	elif [ $p == karamel ]; then
 		br=master
 	else

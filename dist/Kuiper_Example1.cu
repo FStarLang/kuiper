@@ -15,9 +15,6 @@ uint64_t Kuiper_Example1_main(void)
     uint64_t r = 1ULL;
     uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC(8U, 1U);
     MUST(cudaMemcpy(gr, &r, 8U, cudaMemcpyHostToDevice));
-    KPR_SHMEM_FITS(0U);
-    MUST(cudaFuncSetAttribute
-         (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 0U));
     KPR_KCALL(__hoisted_0, 1U, 1U, 0U, gr);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(&r, gr, 8U, cudaMemcpyDeviceToHost));

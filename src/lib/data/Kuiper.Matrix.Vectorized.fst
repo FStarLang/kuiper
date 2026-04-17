@@ -1,5 +1,4 @@
 module Kuiper.Matrix.Vectorized
-friend Kuiper.Matrix
 
 #lang-pulse
 

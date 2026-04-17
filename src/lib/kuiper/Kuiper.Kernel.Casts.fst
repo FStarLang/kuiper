@@ -55,16 +55,16 @@ fn adapt_kmn_kf
   #kpre
   #kpost
   (f : fn (bid : szlt nblk) (tid : szlt nthr) ()
-    requires
-      gpu **
-      kpre bid tid **
-      thread_id nthr tid **
-      block_id nblk bid
-    ensures
-      gpu **
-      kpost bid tid **
-      thread_id nthr tid **
-      block_id nblk bid)
+       requires
+         gpu **
+         kpre bid tid **
+         thread_id nthr tid **
+         block_id nblk bid
+       ensures
+         gpu **
+         kpost bid tid **
+         thread_id nthr tid **
+         block_id nblk bid)
   (_ : c_shmems [])
   (bid : szlt nblk)
   (tid : szlt nthr)
@@ -119,7 +119,7 @@ let kmn_as_kfull
   block_setup = kmn_as_kfull_block_setup k;
   block_teardown = kmn_as_kfull_block_teardown k;
 
-  f = adapt_kmn_kf k.f;
+  f = adapt_kmn_kf f;
 
   block_pre_sendable;
   block_post_sendable;

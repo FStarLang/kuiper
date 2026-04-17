@@ -11,109 +11,7 @@ open Kuiper.Matrix
 open Pulse.Lib.Trade
 module SZ = Kuiper.SizeT
 
-let ematrix_subtile
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : ematrix et trows tcols
-=
-  mkM fun i j ->
-    macc em (tr * trows + i) (tc * tcols + j)
-
-let ematrix_tiled
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  : ematrix (ematrix et trows tcols) (rows/trows) (cols/tcols)
-=
-  mkM fun i j -> ematrix_subtile em trows tcols i j
-
-let ematrix_from_tiles
-  (#et : _)
-  (#rows #cols : nat)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
-  : ematrix et rows cols
-=
-  mkM fun i j ->
-    macc (f (i / trows) (j / tcols)) (i % trows) (j % tcols)
-
-let update_tile
-  (#et : _)
-  (#rows #cols : nat)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  (tm : ematrix et trows tcols)
-  : ematrix et rows cols
-=
-  mkM fun i j ->
-    if i / trows = tr && j / tcols = tc then
-      macc tm (i % trows) (j % tcols)
-    else
-      macc em i j
-
-val from_subtiles_id
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  : Lemma (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
-           ==
-           em)
-          [SMTPat (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols))]
-
-val tiles_from_subtiles_id
-  (#et : _)
-  (#rows #cols : _)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : Lemma (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc
-           ==
-           f tr tc)
-           [SMTPat (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc)]
-
-val update_tile_self
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : Lemma (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)
-           ==
-           em)
-          [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
-
-val subtile_of_update_tile
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  (etile : ematrix et trows tcols)
-  (tr' : natlt (rows / trows))
-  (tc' : natlt (cols / tcols))
-  : Lemma (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc'
-           ==
-           (if tr = tr' && tc = tc' then etile else ematrix_subtile em trows tcols tr' tc'))
-          [SMTPat (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc')]
+include Kuiper.EMatrix.Tiling
 
 let tile_inj_f
   (#rows #cols : nat)
@@ -157,10 +55,10 @@ instance val strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -172,10 +70,10 @@ val lemma_subtile_strided_row_major_offset
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_row_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -192,10 +90,10 @@ val lemma_subtile_strided_row_major_stride
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_row_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -213,10 +111,10 @@ instance val strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -228,10 +126,10 @@ val lemma_subtile_strided_col_major_offset
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_col_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -248,10 +146,10 @@ val lemma_subtile_strided_col_major_stride
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_col_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -269,10 +167,10 @@ instance val c_subtile_layout
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| clayout l |}
-  (trows : erased pos {trows /? rows})
-  (tcols : erased pos {tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -286,8 +184,8 @@ val gpu_matrix_subtile
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (trows : erased nat {0 < trows /\ trows /? rows})
+  (tcols : erased nat {0 < tcols /\ tcols /? cols})
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   : Tot (gpu_matrix et (subtile_layout l trows tcols tr tc))
@@ -297,8 +195,8 @@ val gpu_matrix_subtile_base
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (trows : erased nat {0 < trows /\ trows /? rows})
+  (tcols : erased nat {0 < tcols /\ tcols /? cols})
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   : Lemma (
@@ -313,8 +211,8 @@ let is_gpu_matrix_subtile_global
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (#gm : gpu_matrix et l)
-  (#trows : erased nat {trows > 0 /\ trows /? rows})
-  (#tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (#trows : erased nat {0 < trows /\ trows /? rows})
+  (#tcols : erased nat {0 < tcols /\ tcols /? cols})
   (#tr : enatlt (rows / trows))
   (#tc : enatlt (cols / tcols))
 : Lemma
@@ -329,8 +227,8 @@ val cell_convert_eq
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (trows : erased nat {0 < trows /\ trows /? rows})
+  (tcols : erased nat {0 < tcols /\ tcols /? cols})
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   (i : natlt trows)
@@ -349,8 +247,8 @@ fn subcell_to_cell
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (trows : erased nat {0 < trows /\ trows /? rows})
+  (tcols : erased nat {0 < tcols /\ tcols /? cols})
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   (i : natlt trows)
@@ -368,8 +266,8 @@ fn cell_to_subcell
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
+  (trows : erased nat {0 < trows /\ trows /? rows})
+  (tcols : erased nat {0 < tcols /\ tcols /? cols})
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   (i : natlt trows)
@@ -485,8 +383,8 @@ fn gpu_matrix_extract_tile_st
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat { trows > 0 /\ trows /? rows })
-  (tcols : erased nat { tcols > 0 /\ tcols /? cols })
+  (trows : erased nat { 0 < trows /\ trows /? rows })
+  (tcols : erased nat { 0 < tcols /\ tcols /? cols })
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   (#em : ematrix et rows cols)
@@ -508,8 +406,8 @@ fn gpu_matrix_extract_tile_ro
   (#rows #cols : nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : nat { trows > 0 /\ trows /? rows })
-  (tcols : nat { tcols > 0 /\ tcols /? cols })
+  (trows : nat { 0 < trows /\ trows /? rows })
+  (tcols : nat { 0 < tcols /\ tcols /? cols })
   (tr : natlt (rows / trows))
   (tc : natlt (cols / tcols))
   (#em : ematrix et rows cols)
@@ -527,8 +425,8 @@ fn gpu_matrix_extract_tile_ro'
   (#rows #cols : erased nat)
   (#l : mlayout rows cols)
   (gm : gpu_matrix et l)
-  (trows : erased nat {trows > 0 /\ trows /? rows })
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols })
+  (trows : erased nat {0 < trows /\ trows /? rows })
+  (tcols : erased nat {0 < tcols /\ tcols /? cols })
   (tr : enatlt (rows / trows))
   (tc : enatlt (cols / tcols))
   (#em : ematrix et rows cols)

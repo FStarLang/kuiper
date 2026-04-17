@@ -30,22 +30,21 @@ let aview_concat
   ctn = solve;
 }
 
-// Note: maybe len1/len2 should be nats, and the relevant size_t
-// should come from the cview of each. I.e. having a cview
-// for an array implies you have a concrete value for its length.
 inline_for_extraction noextract
 instance cview_concat
   (#a:Type)
   (#st1 : Type)
   (#st2 : Type)
-  (vw1 : aview a st1)
-  (cw1 : cview vw1)
-  (vw2 : aview a st2)
-  (cw2 : cview vw2)
+  (#vw1 : aview a st1) (cw1 : cview vw1)
+  (#vw2 : aview a st2) (cw2 : cview vw2)
+  (* We need two extra things:
+     1. That the combined length fits a size_t
+     2. A concrete value for the left length, to implement the shift. *)
   (_ : squash (SZ.fits (len vw1 + len vw2)))
+  {| Kuiper.Concrete.concrete_sz (len vw1) |}
   : IView.ciview (aview_concat vw1 vw2).iview =
 {
-  clen = cw1.clen +^ cw2.clen;
+  len_fits = ();
 
   sch = {
     cit  = either cw1.sch.cit cw2.sch.cit;
@@ -54,18 +53,13 @@ instance cview_concat
 
   step = {
     cimap = (
-      assert (SZ.v cw1.clen == vw1.iview.len);
-      assert (SZ.v cw2.clen == vw2.iview.len);
       cinj_either cw1.step.cimap cw2.step.cimap
-              `cinj_comp` cinj_sz_sum (len vw1) (len vw2) cw1.clen
+              `cinj_comp` cinj_sz_sum (len vw1) (len vw2) (concr (len vw1))
     );
 
 
-    // Why is the cast needed?
-    compat = (fun i ->
-      let i : either vw1.iview.ait vw2.iview.ait = i in
-      match i with
-      | Inl x -> cw1.step.compat x
-      | Inr y -> cw2.step.compat y);
+    compat = (function
+              | Inl x -> cw1.step.compat x
+              | Inr y -> cw2.step.compat y);
   };
 }

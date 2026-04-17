@@ -27,7 +27,7 @@ fn main (_:unit)
 
   Kuiper.Ref.gpu_memcpy_host_to_device gr r;
   with v. assert on gpu_loc (gr |-> v);
-  launch_kernel_1 (fun () -> kf gr #v);
+  launch_kernel_1 (fun _ -> kf gr #v);
 
   Kuiper.Ref.gpu_memcpy_device_to_host r gr;
 

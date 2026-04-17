@@ -1,28 +1,28 @@
 module Kuiper.Poly.GEMM.Naive2
 
-#lang-pulse
+friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)
 
+#lang-pulse
 open Kuiper
 open Kuiper.Approximates
-module M  = Kuiper.Matrix
+module T = Kuiper.Tensor
+module M = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
 module MU = Kuiper.Poly.GEMM.Util
 module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
-friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)
 
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : nat)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  (gA : M.array2 et lA)
+  (gB : M.array2 et lB)
+  (gC : M.array2 et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
@@ -32,7 +32,7 @@ let kpre
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  M.gpu_matrix_pts_to_cell gC (gid / cols) (gid % cols)
+  M.pts_to_cell gC (gid / cols, gid % cols)
     (macc eC (gid / cols) (gid % cols))
 
 unfold
@@ -40,12 +40,12 @@ let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : nat)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  (gA : M.array2 et lA)
+  (gB : M.array2 et lB)
+  (gC : M.array2 et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
@@ -55,7 +55,7 @@ let kpost
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  M.gpu_matrix_pts_to_cell gC #1.0R (gid / cols) (gid % cols)
+  M.pts_to_cell gC (gid / cols, gid % cols)
     (MS.gemm_single comb eA eB eC (gid / cols) (gid % cols))
 
 inline_for_extraction noextract
@@ -63,13 +63,13 @@ fn kf
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : SZ.t)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  {| cA : T.ctlayout lA, cB : T.ctlayout lB, cC : T.ctlayout lC |}
+  (gA : M.array2 et lA)
+  (gB : M.array2 et lB)
+  (gC : M.array2 et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -84,30 +84,14 @@ fn kf
     gpu **
     kpost comb gA gB gC eA eB eC fA fB gid
 {
-  let trow, tcol = s_divmod cols gid;
-  with i0 j0 v0.
-    rewrite
-      M.gpu_matrix_pts_to_cell gC #1.0R i0 j0 v0
-    as
-      M.gpu_matrix_pts_to_cell gC #1.0R trow tcol v0;
+  let trow = gid /^ cols; assert (rewrites_to trow (gid /^ cols));
+  let tcol = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
 
-  assert (pure (trow < rows));
-  assert (pure (tcol < cols));
+  let s = Kuiper.DotProd.matmul_dotprod gA gB trow tcol;
 
-  let s = MU.matmul_dotprod gA gB trow tcol;
-  let v0 = M.gpu_matrix_read_cell gC trow tcol;
+  let v0 = M.read_cell' gC trow tcol;
   let v1 = comb v0 s;
-  M.gpu_matrix_write_cell gC trow tcol v1;
-
-  assert (pure (SZ.v trow == gid / cols));
-  assert (pure (SZ.v tcol == gid % cols));
-  rewrite
-    gA |-> Frac (fA /. (rows * cols)) eA **
-    gB |-> Frac (fB /. (rows * cols)) eB **
-    M.gpu_matrix_pts_to_cell gC trow tcol
-      (MS.gemm_single comb eA eB eC trow tcol)
-  as
-    kpost comb gA gB gC eA eB eC fA fB gid;
+  M.write_cell' gC trow tcol v1;
 
   ()
 }
@@ -117,15 +101,15 @@ fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA)
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : M.array2 et lA)
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.array2 et lB)
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.array2 et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -148,15 +132,15 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA)
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : M.array2 et lA)
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : M.array2 et lB)
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : M.array2 et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -178,26 +162,23 @@ inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-  (#fA : perm)
-  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-  (#fB : perm)
-  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
-  (#_ : squash (rows * cols <= max_blocks * max_threads))
-  : kernel_desc_n
+  (#m #n #k : szp)
+  (#lA : M.layout m k)
+  (#lB : M.layout k n)
+  (#lC : M.layout m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : M.array2 et lA { M.is_global gA })
+  (gB : M.array2 et lB { M.is_global gB })
+  (gC : M.array2 et lC { M.is_global gC })
+  (#eA #eB #eC : ematrix et _ _)
+  (#fA #fB : perm)
+  (#_ : squash (size_req m n k))
+  : kernel_desc
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> eC)
     (gA |-> Frac fA eA ** gB |-> Frac fB eB ** gC |-> MS.mmcomb comb eC eA eB)
 =
 {
-  nthr = rows *^ cols;
+  nthr = m *^ n;
 
   frame = emp;
 
@@ -208,9 +189,9 @@ let kdesc
   kpost = kpost comb gA gB gC eA eB eC fA fB;
 
   f = kf comb gA gB gC #eA #eB #eC #fA #fB;
-  kpre_sendable=solve;
-  kpost_sendable=solve;
-}
+  kpre_sendable  = solve;
+  kpost_sendable = solve;
+} <: kernel_desc_n _ _
 
 // FIXME: extraction of this function (in the inst module) is very slow, around
 // 1.5s for each one. This is *after* a lot of tweaking in the definition of the
@@ -220,26 +201,22 @@ inline_for_extraction noextract
 fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et |}
   (comb : binop et)
-  (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-  (#fA : perm)
-  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-  (#fB : perm)
-  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
+  (#m #n #k : szp)
+  (#lA : M.layout m k)
+  (#lB : M.layout k n)
+  (#lC : M.layout m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : M.array2 et lA { M.is_global gA })
+  (gB : M.array2 et lB { M.is_global gB })
+  (gC : M.array2 et lC { M.is_global gC })
+  (#eA #eB #eC : ematrix et _ _)
+  (#fA #fB : perm)
   norewrite
   preserves
     cpu **
-    on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (gB |-> Frac fB eB)
+    on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
-    pure (rows * cols <= max_blocks * max_threads) **
+    pure (size_req m n k) **
     on gpu_loc (gC |-> eC)
   ensures
     on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
@@ -252,33 +229,31 @@ fn mmcomb_gpu_approx
   (#et : Type0) {| scalar et, real_like et |}
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
-  (#rows #shared #cols : szp)
-  (#lA : full_mlayout rows shared)
-  (#lB : full_mlayout shared cols)
-  (#lC : full_mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
-  (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-  (#fA : perm)
-  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-  (#fB : perm)
-  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (#eC : ematrix et rows cols)
-  (rA : ematrix real rows shared)
-  (rB : ematrix real shared cols)
-  (rC : ematrix real rows cols)
+  (#m #n #k : szp)
+  (#lA : M.layout m k)
+  (#lB : M.layout k n)
+  (#lC : M.layout m n)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+  (gA : M.array2 et lA { M.is_global gA })
+  (gB : M.array2 et lB { M.is_global gB })
+  (gC : M.array2 et lC { M.is_global gC })
+  (#eA : ematrix et m k)
+  (#eB : ematrix et k n)
+  (#eC : ematrix et m n)
+  (rA : ematrix real m k)
+  (rB : ematrix real k n)
+  (rC : ematrix real m n)
+  (#fA #fB : perm)
   norewrite
   preserves
     cpu **
-    on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (gB |-> Frac fB eB)
+    on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
-    pure (rows * cols <= max_blocks * max_threads) **
+    pure (size_req m n k) **
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures
-    exists* (eC' : ematrix et rows cols).
+    exists* (eC' : ematrix et m n).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)
 {

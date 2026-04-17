@@ -40,11 +40,10 @@ let odd_view  et len : aview et _ = strided_view et len 2 1
 inline_for_extraction noextract
 instance _cview_strided
    (#et : Type) (#len : erased nat{SZ.fits len})
-   {| sz_len : concrete_sz len |}
    (stride : sz) (offset : szlt stride)
 : IView.ciview (strided_view et len stride offset).iview
 = {
-  clen = concr' sz_len;
+  len_fits = ();
   sch = {
     cit  = szlt ((len + stride - 1 - offset) / stride);
     bij  = natural;
@@ -58,33 +57,27 @@ instance _cview_strided
 #pop-options
 
 inline_for_extraction noextract
-instance _cview_even #et (#len : erased nat{SZ.fits len}) {| concrete_sz len |} : IView.ciview (even_view et len).iview =
+instance _cview_even #et (#len : erased nat{SZ.fits len}) : IView.ciview (even_view et len).iview =
   _cview_strided #et #len 2sz 0sz
 
 inline_for_extraction noextract
-instance _cview_odd #et (#len : erased nat{SZ.fits len}) {| concrete_sz len |} : IView.ciview (odd_view et len).iview =
+instance _cview_odd #et (#len : erased nat{SZ.fits len}) : IView.ciview (odd_view et len).iview =
   _cview_strided #et #len 2sz 1sz
 
-(* What is happening?!?! Why isn't this obvious? *)
 
-let _wat_even (#len : nat{SZ.fits len}) {| concrete_sz len |} :
+(* Sanity checks. *)
+let _wat_even (#len : nat{SZ.fits len}) :
   Lemma (reveal (_cview_even #u32 #len).sch.bij == fin_size_t_bij ((len + 2 - 1 - 0) / 2))
-        [SMTPat (_cview_even #u32 #len)]
-= assert_norm (reveal (_cview_even #u32 #len).sch.bij == fin_size_t_bij ((len + 2 - 1 - 0) / 2))
-
-let _wat_odd (#len : nat{SZ.fits len}) {| concrete_sz len |}:
+= ()
+let _wat_odd (#len : nat{SZ.fits len}) :
   Lemma (reveal (_cview_odd #u32 #len).sch.bij == fin_size_t_bij ((len + 2 - 1 - 1) / 2))
-        [SMTPat (_cview_odd #u32 #len)]
-= () // assert_norm (reveal (_cview_odd #u32 #len).bij == fin_size_t_bij ((len + 2 - 1 - 1) / 2))
+= ()
 
-let _sanity1 (#len : nat{SZ.fits len}) (x : szlt ((len + 1) / 2)) {| concrete_sz len |} : Lemma (ci_to_ai (even_view u32 len) x == SZ.v x)
+let _sanity1 (#len : nat{SZ.fits len}) (x : szlt ((len + 1) / 2)) : Lemma (ci_to_ai (even_view u32 len) x == SZ.v x)
   = ()
 
-let _sanity2 (#len : nat{SZ.fits len}) (x : szlt (len / 2)) {| concrete_sz len |}: Lemma (ci_to_ai (odd_view u32 len) x == SZ.v x)
+let _sanity2 (#len : nat{SZ.fits len}) (x : szlt (len / 2)) : Lemma (ci_to_ai (odd_view u32 len) x == SZ.v x)
   = ()
-
-inline_for_extraction noextract
-instance _ : concrete_sz 100 = { x = 100sz; }
 
 fn foo_even (a : varray (even_view u32 100))
   (#v0 : erased (lseq u32 50))
@@ -119,14 +112,7 @@ fn test (a : gpu_array u32 100)
   varray_abs' vw a;
   let va = from_array vw a;
 
-  let vl, vr = varray_split2
-    (even_view u32 100)
-    (odd_view u32 100)
-    (from_array vw a)
-    #_
-    #(from_seq vw v0) // ARGH, why do I have to provide this!?!??! terrible error otherwise
-    ;
-  // Note: that doesn't happen if we use split2_, the ghost version
+  let vl, vr = varray_split2 (even_view u32 100) (odd_view u32 100) (from_array vw a);
 
   let x = foo_even vl;
   let y = foo_odd vr;

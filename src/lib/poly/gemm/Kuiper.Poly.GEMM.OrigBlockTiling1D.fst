@@ -2,8 +2,6 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D
 
 #lang-pulse
 
-#set-options "--z3rlimit 30"
-
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.EMatrix
@@ -21,7 +19,13 @@ open Kuiper.Poly.GEMM.OrigBlockTiling1D.Kf
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Setup
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Teardown
 
-#push-options "--z3rlimit 80"
+(* The kpre/kpost should be rewritten for instances below to work.  Typeclass
+resolution is mistakenly trying to apply the global array instance for the shmem
+tiles. Rewriting to live_c_shmems should work... but the whole thing seems
+brittle. Typeclass resolution does not care about refinements when committing to
+instances.
+*)
+
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -74,9 +78,6 @@ let kpost_block_sendable
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpost comb comb_r tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
 = magic()
-#pop-options
-
-#push-options "--z3rlimit 80"
 
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et |}
@@ -123,7 +124,6 @@ let block_post_gpu_sendable
     (forall+ (tid : natlt (bm/tm * bn)).
       kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
 = magic()
-#pop-options
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
 #restart-solver

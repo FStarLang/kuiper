@@ -4,6 +4,7 @@ module Kuiper.EMatrix
 (* An "erased" matrix, for specification purposes only *)
 
 open Kuiper
+open Kuiper.Container
 open Kuiper.Approximates
 open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
@@ -104,3 +105,56 @@ val lemma_to_real_matrix_approximates (#et : Type0)
   (m : ematrix et rows cols)
   : Lemma (ensures m %~ to_real_matrix m)
           [SMTPat (to_real_matrix m)]
+
+instance ematrix_is_container
+  (et:Type) (#rows #cols : nat)
+  : container (ematrix et rows cols) (natlt rows & natlt cols) et
+= {
+    acc = (fun m (r,c) -> macc m r c);
+    upd = (fun m (i, j) x -> mupd m i j x);
+    l1 = ez;
+    l2 = ez;
+    ext = (fun c1 c2 _ -> assert (equal c1 c2));
+    from_fun = (fun f -> mkM fun i j -> f (i, j));
+    from_fun_ok = ez;
+  }
+
+let ematrix_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  : GTot (lseq et cols)
+  = Seq.init_ghost cols (fun j -> macc em i j)
+
+let ematrix_col
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (j : natlt cols)
+  : GTot (lseq et rows)
+  = Seq.init_ghost rows (fun i -> macc em i j)
+
+let ematrix_upd_row
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (i : natlt rows)
+  (new_row : lseq et cols)
+  : ematrix et rows cols
+  = mkM fun i' j ->
+      if i' = i
+      then Seq.index new_row j
+      else macc em i' j
+
+let ematrix_upd_col
+  (#et : Type0)
+  (#rows #cols : erased nat)
+  (em : ematrix et rows cols)
+  (j : natlt cols)
+  (new_col : lseq et rows)
+  : ematrix et rows cols
+  = mkM fun i j' ->
+      if j' = j
+      then Seq.index new_col i
+      else macc em i j'

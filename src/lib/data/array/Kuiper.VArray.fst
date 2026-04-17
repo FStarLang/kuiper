@@ -91,6 +91,17 @@ instance is_send_across_global_varray
   : is_send_across gpu_of (varray_pts_to x #f v)
   = solve
 
+instance is_send_across_global_varray_cell
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw { is_global_varray a })
+  (#f : perm)
+  (i : vw.iview.ait)
+  (v : et)
+  : is_send_across gpu_of (varray_pts_to_cell a #f i v)
+  = solve
+
 ghost
 fn varray_pts_to_ref
   (#t:Type0)
@@ -831,7 +842,6 @@ fn varray_join2
   from_array (sum_aview vw1 vw2) (core al)
 }
 
-// TODO: remove?
 ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
@@ -857,7 +867,6 @@ fn varray_share_n
     }
 }
 
-// TODO: remove?
 ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)

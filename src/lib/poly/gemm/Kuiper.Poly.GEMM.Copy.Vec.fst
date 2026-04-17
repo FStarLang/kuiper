@@ -575,6 +575,7 @@ fn cp_matrix_vec
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
       pure (GR.read git <= (rows*cols) / (nthr * chunk et)) **
       own_strided_chunks dst (em_fade edst esrc nthr (GR.read git)) nthr tid
+    decreases (mlen - !i)
   {
     assert pure (GR.read git < (rows*cols) / (chunk et * nthr));
     let vi = !i;
@@ -612,6 +613,7 @@ fn cp_matrix_vec
           pure (Kuiper.EMatrix.equal em'
             (em_fade' edst esrc nthr ite row col !k)
           )
+      decreases (chunk et - !k)
     {
       with em'. unfold own_strided_chunks dst em' nthr tid;
       with vk . assert (pts_to k vk);

@@ -80,8 +80,8 @@ let reverse_view (et:Type) (len:nat) : aview et (_reverse et len) =
   review_view (r_base_view et len) (bij__reverse et len)
 
 inline_for_extraction noextract
-instance cnormal_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_sz len |} : IView.ciview (normal_view et len).iview = {
-  clen = concr' sz_len;
+instance cnormal_view et (len : erased nat{SZ.fits len}) : IView.ciview (normal_view et len).iview = {
+  len_fits = ();
   sch = {
     cit      = szlt len;
     bij      = natural;
@@ -92,9 +92,11 @@ instance cnormal_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_sz
   };
 }
 
+(* This instance has an extra requirement: we need the length of the array
+to be concretizable, so we can compute the offset. *)
 inline_for_extraction noextract
 instance creverse_view et (len : erased nat{SZ.fits len}) {| sz_len : concrete_sz len |} : IView.ciview (reverse_view et len).iview = {
-  clen = concr' sz_len;
+  len_fits = ();
   sch = {
     cit      = szlt len;
     bij      = natural;

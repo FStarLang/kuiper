@@ -214,7 +214,7 @@ val __matmul_single_approx_real
     (ensures
       MS.__gmatmul_single zero mul add eA eB row col n
       %~
-      MS.__gmatmul_single #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col n)
+      MS.__gmatmul_single zero mul add rA rB row col n)
 
 (* mmcomb approximation over external real matrices:
    If eA %~ rA, eB %~ rB, eC %~ rC, and approx2 comb comb_r,
@@ -289,29 +289,3 @@ fn matmul_tiled_dotprod_real
     res : et
   ensures
     pure (res %~ MS.matmul_single rA rB (bi * tile + i) (bj * tile + j))
-
-(* Used by SHMEM, Blocktiling1D *)
-inline_for_extraction noextract
-fn subproduct_cols
-  (#et : Type0) {| scalar et |}
-  (tile : sz)
-  (acc : array et)
-  (#l1 : mlayout tile tile) {| clayout l1 |}
-  (#l2 : mlayout tile tile) {| clayout l2 |}
-  (m1 : M.gpu_matrix et l1)
-  (m2 : M.gpu_matrix et l2)
-  (j : szlt tile)
-  (#acc0 : erased (seq et))
-  (#v1 #v2 : ematrix et tile tile)
-  (#f : perm)
-  preserves
-    gpu **
-    m1 |-> Frac f v1 **
-    m2 |-> Frac f v2
-  requires
-    pure (Seq.length acc0 == tile) **
-    acc |-> acc0
-  ensures
-    exists* acc'.
-      pure (Seq.length acc' == tile) **
-      (acc |-> acc')

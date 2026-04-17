@@ -6,191 +6,260 @@ open Kuiper
 open Kuiper.Barrier.RPM
 open Kuiper.Math
 open Kuiper.Seq.Common
+open Kuiper.Tensor { ctlayout }
 
 module SZ = Kuiper.SizeT
-module U32 = FStar.UInt32
 module RPM = Kuiper.Barrier.RPM
 module B = Kuiper.Barrier
 
-[@@CPrologue "__device__"]
-noextract inline_for_extraction
-let spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 s} =
-  (* Computing 2^s by 1<<s *)
-  SZ.uint32_to_sizet (U32.shift_left 1ul (sizet_to_u32 s))
+(* Plain ownership of a slice of an Array1. *)
+let array1_pts_to_slice
+  (#et : Type0)
+  (#sz : nat)
+  (#l : Array1.layout sz)
+  ([@@@mkey] r : Array1.t et l)
+  ([@@@mkey]i
+   [@@@mkey]j : nat{i <= j /\ j <= sz})
+  (s : lseq et (j - i))
+  : slprop
+  = forall+ (k : nat{i <= k /\ k < j}).
+      Cell r (k <: natlt sz) |-> (s @! (k - i))
 
-[@@CPrologue "__device__"]
-noextract inline_for_extraction
-let sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool =
-  // SZ.rem tid (spow2 i) = 0sz
-  sizet_and tid SZ.(spow2 i -^ 1sz) = 0sz
+#push-options "--z3rlimit 80"
+ghost
+fn array1_slice_concat
+  (#et : Type0)
+  (#sz : nat)
+  (#l : Array1.layout sz)
+  (r : Array1.t et l)
+  (i j k : nat{i <= j /\ j <= k /\ k <= sz})
+  (#s1 : lseq et (j - i))
+  (#s2 : lseq et (k - j))
+  requires
+    array1_pts_to_slice r i j s1 **
+    array1_pts_to_slice r j k s2
+  ensures
+    array1_pts_to_slice r i k (s1 @+ s2)
+{
+  unfold array1_pts_to_slice r i j s1;
+  unfold array1_pts_to_slice r j k s2;
 
-let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
-  Lemma (sdiv_pow2 i tid == div_pow2 i tid)
-        [SMTPat (sdiv_pow2 i tid)]
-= sizet_and_div_pow2 tid (spow2 i) i;
-  calc (==) {
-    SZ.v (SZ.rem tid (spow2 i));
-    == {}
-    SZ.v tid - ((SZ.v tid / SZ.v (spow2 i)) * SZ.v (spow2 i));
-    == { FStar.Math.Lemmas.euclidean_division_definition (SZ.v tid) (SZ.v (spow2 i)) }
-    SZ.v tid % SZ.v (spow2 i);
-    == {}
-    SZ.v tid % pow2 (SZ.v i);
+  let s = s1 @+ s2;
+
+  (* Rewrite each side to use s *)
+  forevery_ext
+    (fun (x:nat{i <= x /\ x < j}) -> Cell r (x <: natlt sz) |-> (s1 @! (x - i)))
+    (fun (x:nat{i <= x /\ x < j}) -> Cell r (x <: natlt sz) |-> (s @! (x - i)));
+  forevery_ext
+    (fun (x:nat{j <= x /\ x < k}) -> Cell r (x <: natlt sz) |-> (s2 @! (x - j)))
+    (fun (x:nat{j <= x /\ x < k}) -> Cell r (x <: natlt sz) |-> (s @! (x - i)));
+
+  (* Join *)
+  forevery_refine_join' #nat
+    (fun (x:nat) -> i <= x /\ x < j)
+    (fun (x:nat) -> j <= x /\ x < k)
+    (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
+      Cell r (x <: natlt sz) |-> (s @! (x - i)));
+
+  (* Simplify *)
+  forevery_refine_ext' #nat
+    #(fun (x:nat) -> (i <= x /\ x < j) \/ (j <= x /\ x < k))
+    (fun (x:nat) -> i <= x /\ x < k)
+    (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
+      Cell r (x <: natlt sz) |-> (s @! (x - i)));
+
+  fold array1_pts_to_slice r i k s;
+}
+#pop-options
+
+inline_for_extraction noextract
+fn array1_read_from_slice
+  (#et : Type0)
+  (#len : erased nat)
+  (#l : Array1.layout len) {| ctlayout l |}
+  (r : Array1.t et l)
+  (#i #j : erased nat{i <= j /\ j <= len})
+  (idx : sz{i <= idx /\ idx < j})
+  (#s : erased (lseq et (j - i)))
+  preserves
+    array1_pts_to_slice r i j s
+  returns
+    v : et
+  ensures
+    pure (v == s @! (idx - i))
+{
+  unfold array1_pts_to_slice r i j s;
+  forevery_extract #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
+  let v = Array1.read_cell r idx;
+  Pulse.Lib.Trade.elim_trade _ _;
+  fold array1_pts_to_slice r i j s;
+  v
 }
 
-[@@CPrologue "__device__"]
-noextract inline_for_extraction
-let smin (a b : sz): sz =
-  let open FStar.SizeT in
-  if a <^ b then a else b
+inline_for_extraction noextract
+fn array1_write_to_slice
+  (#et : Type0)
+  (#len : erased nat)
+  (#l : Array1.layout len) {| ctlayout l |}
+  (r : Array1.t et l)
+  (#i #j : erased nat{i <= j /\ j <= len})
+  (idx : sz{i <= idx /\ idx < j})
+  (#s : erased (lseq et (j - i)))
+  (v : et)
+  requires
+    array1_pts_to_slice r i j s
+  ensures
+    array1_pts_to_slice r i j (Seq.upd s (idx - i) v)
+{
+  unfold array1_pts_to_slice r i j s;
+  forevery_extract' #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
+  Array1.write_cell r idx v;
+  let s' : erased (lseq et (j - i)) = Seq.upd s (idx - i) v;
+  Pulse.Lib.Forall.elim_forall
+    (fun (x:nat{i <= x /\ x < j}) ->
+      Cell r (x <: natlt len) |-> (s' @! (x - i)));
+  Pulse.Lib.Trade.elim_trade _ _;
+  fold array1_pts_to_slice r i j s';
+  rewrite each s' as Seq.upd s (idx - i) v;
+  ()
+}
 
 (* Ownership of array r between i and j. The first value of that slice
 is the reduction of all the values in the (original) slice v. *)
 unfold
-let gpu_pts_to_slice_sum_inner
+let array1_pts_to_slice_sum_inner
   (#et:Type0) {| scalar et, real_like et |}
-  (#sz:nat)
-  (r : gpu_array et sz)
-  (i j :nat)
-  (v : seq et)
-  (rr : seq Real.real { v %~ rr })
-  (s : seq et)
-: slprop
-= gpu_pts_to_slice r i j s
-  ** pure (i < j /\ j <= sz /\
-           len v = sz /\
-           len s = j - i /\
-           squash ((s @! 0) `approximates` real_seq_sum (Seq.slice rr i j))) // SQUASH VERY IMPORTANT!!
+  (#sz : nat)
+  (#l : Array1.layout sz)
+  (r : Array1.t et l)
+  (i j : nat{i < j /\ j <= sz})
+  (rr : lseq real sz)
+  (s : lseq et (j - i))
+  : slprop
+  = array1_pts_to_slice r i j s **
+    pure ((s @! 0) %~ real_seq_sum (Seq.slice rr i j))
 
-(* Not easy to mark this unfold as it has a lambda (in the exists) *)
-let gpu_pts_to_slice_sum
+let array1_pts_to_slice_sum
   (#et:Type0) {| scalar et, real_like et |}
-  (#sz:nat)
-  ([@@@mkey] r: gpu_array et sz)
+  (#sz : nat)
+  (#l : Array1.layout sz)
+  ([@@@mkey] r : Array1.t et l)
   ([@@@mkey] i : nat)
-  (j:nat)
-  (v: seq et)
-  (rr : seq Real.real { v %~ rr })
-: slprop
-= exists* s. gpu_pts_to_slice_sum_inner r i j v rr s
+  (j : nat{i < j /\ j <= sz})
+  (rr : lseq real sz)
+  : slprop
+  = exists* s. array1_pts_to_slice_sum_inner r i j rr s
 
 // Barrier
 
 unfold
 let barrier_matrix
   (#et:Type0) {| scalar et, real_like et |}
-  (nth : nat) (r : gpu_array et nth)
-  (v : seq et)
-  (vr : seq Real.real { v %~ vr })
-  (it from to : nat)
+  (nth : nat)
+  (#l : Array1.layout nth)
+  (r : Array1.t et l)
+  (vr : lseq real nth)
+  (it : nat)
+  (from to : natlt nth)
 : slprop
 =
   if_ (from = to + pow2 it)
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
-           (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) v vr))
+           (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr))
 
 ghost
 fn mk_barrier_pre
   (#et:Type0) {| scalar et, real_like et |}
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
-  (r : gpu_array et nth)
-  (vv : seq et)
-  (vr : seq Real.real { vv %~ vr })
-  (tid : sz{SZ.v tid < nth})
-  (it: sz{it < 31})
-  requires if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
-      (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)
-  ensures forall+ (i:natlt nth). barrier_matrix nth r vv vr it tid i
+  (nth : nat)
+  (#l : Array1.layout nth)
+  (r : Array1.t et l)
+  (vr : lseq real nth)
+  (tid : natlt nth)
+  (it: natlt 31)
+  requires
+    if_ (not (div_pow2 (it + 1) tid) && div_pow2 it tid)
+      (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr)
+  ensures
+    forall+ (i:natlt nth). barrier_matrix nth r vr it tid i
 {
   open FStar.SizeT;
-  if (tid >=^ spow2 it) {
+  if (tid >= pow2 it) {
     forevery_if_intro #(natlt nth) (tid - pow2 it) (fun i ->
       if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
-        (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr));
+        (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr));
     forevery_ext
       (fun (i:natlt nth) ->
-        if_ (op_Equality #(natlt (v nth)) i (tid - pow2 it))
+        if_ (op_Equality #(natlt nth) i (tid - pow2 it))
           (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
-            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)))
-      (fun (i:natlt nth) -> barrier_matrix nth r vv vr it tid i);
+            (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr)))
+      (fun (i:natlt nth) -> barrier_matrix nth r vr it tid i);
   } else {
-    FStar.Math.Lemmas.modulo_lemma tid (spow2 it);
-    FStar.Math.Lemmas.modulo_lemma 0 (spow2 (it +^ 1sz));
-    // assert (pure ((tid <: nat) <> 0 ==> not (div_pow2 it tid)));
-    // assert (pure ((tid <: nat) = 0 ==> (div_pow2 (it + 1) tid)));
-    if_rewrite_bool (op_Negation (div_pow2 (SZ.v it + 1) (SZ.v tid)) && div_pow2 (SZ.v it) (SZ.v tid)) false _;
     if_elim_false _;
-
     forevery_emp_intro (natlt nth);
     forevery_ext
       (fun (i:natlt nth) -> emp)
-      (fun (i:natlt nth) -> barrier_matrix nth r vv vr it tid i);
+      (fun (i:natlt nth) -> barrier_matrix nth r vr it tid i);
   }
 }
-
 
 unfold
 let kpre
   (#et:Type0) {| scalar et, real_like et |}
   (lena : nat)
-  (a : gpu_array et lena)
-  (s : seq et)
-  (vr : seq Real.real { s %~ vr })
+  (#l : Array1.layout lena)
+  (a : Array1.t et l)
+  (s : lseq et lena)
+  (vr : seq Real.real)
   (#_: squash (len s == lena))
   (tid : natlt lena)
-  : slprop =
-    gpu_pts_to_slice a tid (tid +1) seq![s @! tid]
+  : slprop
+  = array1_pts_to_slice a tid (tid +1) seq![s @! tid]
 
 unfold
 let kpost
   (#et:Type0) {| scalar et, real_like et |}
   (lena : nat)
-  (a : gpu_array et lena)
-  (s : seq et)
-  (vr : seq Real.real { s %~ vr })
-  (#_: squash (len s == lena))
+  (#l : Array1.layout lena)
+  (a : Array1.t et l)
+  (vr : lseq real lena)
   (tid : natlt lena)
-  : slprop =
-    if_ (tid = 0) (gpu_pts_to_slice_sum a 0 lena s vr)
+  : slprop
+  = if_ (tid = 0) (array1_pts_to_slice_sum a 0 lena vr)
 
-// #push-options "--print_implicits"
 inline_for_extraction
 fn iteration
   (#et:Type0) {| scalar et, real_like et |}
-  (nth : sz { 0 < SZ.v nth /\ SZ.v nth <= max_threads })
-  (r : gpu_array et nth)
-  (vv : erased (seq et))
-  (vr : erased (seq Real.real) { vv %~ vr })
-  (#_: squash (len vv == nth))
-  (tid : sz{SZ.v tid < nth})
-  (it: sz{it < 31})
+  (nth : szp { SZ.v nth <= max_threads })
+  (#l : Array1.layout nth) {| Kuiper.Tensor.ctlayout l |}
+  (r : Array1.t et l)
+  (vr : erased (lseq real nth))
+  (tid : szlt nth)
+  (it: szlt 31)
   preserves gpu
   preserves thread_id nth tid
-  preserves mbarrier_tok nth (barrier_matrix nth r vv vr)
+  preserves mbarrier_tok nth (barrier_matrix nth r vr)
   requires B.barrier_state it
-  requires if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr)
+  requires if_ (div_pow2 it tid) (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr)
   ensures  B.barrier_state (it + 1)
-  ensures  if_ (div_pow2 (it+1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vv vr)
+  ensures  if_ (div_pow2 (it+1) tid) (array1_pts_to_slice_sum r tid (min (tid + pow2 (it + 1)) nth) vr)
 {
-  assert (pure (len vv = nth));
-
   case_split (div_pow2 (it + 1) tid)
-    (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr));
+    (if_ (div_pow2 it tid) (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr));
   if_flatten #(div_pow2 (it + 1) tid);
   if_flatten #(not (div_pow2 (it + 1) tid));
 
   div_pow2_lemma it (it + 1) tid;
   rewrite (if_ (div_pow2 (it + 1) tid && div_pow2 it tid)
-            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr))
+            (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr))
       as (if_ (div_pow2 (it + 1) tid)
-            (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv vr));
+            (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr));
 
-  mk_barrier_pre nth r vv vr tid it;
-  fold RPM.row #nth (barrier_matrix nth r vv vr) it tid;
+  mk_barrier_pre nth r vr tid it;
+  fold RPM.row (barrier_matrix nth r vr) it tid;
   mbarrier_wait ();
-  unfold RPM.col #nth (barrier_matrix nth r vv vr) it tid;
+  unfold RPM.col (barrier_matrix nth r vr) it tid;
 
-  // combine (div_pow2 (it + 1) tid) (gpu_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
+  // combine (div_pow2 (it + 1) tid) (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vv) _;
 
   let nextid = FStar.SizeT.(tid +^ spow2 it);
 
@@ -198,43 +267,43 @@ fn iteration
   so there are no traces in the extracted C. *)
   let end_ : erased nat = hide (min (tid + 2 * pow2 it) nth);
 
-  if (FStar.SizeT.(nextid <^ nth)) {
+  if (nextid <^ nth) {
     forevery_ext
       (fun (from: natlt nth) ->
         if_ (op_Equality #int from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
-            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)))
+            (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)))
       (fun (from: natlt nth) ->
         if_ (op_Equality #(natlt nth) from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
-            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)));
+            (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)));
     forevery_if_elim #(natlt nth)
       (tid + pow2 it)
-      (fun (from: nat) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
-         (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr));
+      (fun (from: natlt nth) -> if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+         (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr));
 
-    let b = sdiv_pow2 (FStar.SizeT.(it +^ 1sz)) tid;
+    let b = sdiv_pow2 (it +^ 1sz) tid;
 
-    rewrite each (div_pow2 (SZ.v it + 1) (SZ.v tid)) as b;
+    rewrite each (div_pow2 (it + 1) (SZ.v tid)) as b;
 
     div_pow2_lemma_2 it tid;
     combine
       b
-      (gpu_pts_to_slice_sum r nextid (min (tid + pow2 it + pow2 it) nth) vv vr)
+      (array1_pts_to_slice_sum r nextid (min (tid + pow2 it + pow2 it) nth) vr)
       _;
 
     if b {
       assert (pure (div_pow2 (SZ.v it + 1) (SZ.v tid)));
       if_elim_true _;
 
-      (**)unfold (gpu_pts_to_slice_sum r nextid end_ vv vr);
-      (**)unfold (gpu_pts_to_slice_sum r tid nextid vv vr);
-      (**)gpu_slice_concat #et #(SZ.v nth) r tid nextid end_;
+      (**)unfold (array1_pts_to_slice_sum r nextid end_ vr);
+      (**)unfold (array1_pts_to_slice_sum r tid nextid vr);
+      (**)array1_slice_concat #et #nth r tid nextid end_;
 
-      let s1 = gpu_array_read r tid;
+      let s1 = array1_read_from_slice r tid;
       (**)assert (pure (s1 `approximates` real_seq_sum (Seq.slice vr tid nextid)));
 
-      let s2 = gpu_array_read r nextid;
+      let s2 = array1_read_from_slice r nextid;
       (**)assert (pure (s2 `approximates` real_seq_sum (Seq.slice vr nextid end_)));
 
       let s = add s1 s2;
@@ -244,29 +313,30 @@ fn iteration
       (**)real_seq_sum_append (Seq.slice vr tid nextid) (Seq.slice vr nextid end_);
       (**)assert (pure (s `approximates` real_seq_sum (Seq.slice vr tid end_)));
 
-      gpu_array_write r tid s;
+      // gpu_array_write r tid s;
+      array1_write_to_slice r tid s;
 
-      (**)with seq. assert (gpu_pts_to_slice r tid end_ seq);
-      (**)fold (gpu_pts_to_slice_sum r tid end_ vv vr);
-      (**)if_intro_true (gpu_pts_to_slice_sum r tid end_ vv vr);
+      (**)with seq. assert (array1_pts_to_slice r tid end_ seq);
+      (**)fold (array1_pts_to_slice_sum r tid end_ vr);
+      (**)if_intro_true (array1_pts_to_slice_sum r tid end_ vr);
       // Step below optional right now, but good practice?
       (**)rewrite
       (**)  if_ true
-      (**)      (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv) vr)
+      (**)      (array1_pts_to_slice_sum r (SZ.v tid) (reveal end_) vr)
       (**)as
       (**)  if_ (div_pow2 (SZ.v it + 1) (SZ.v tid))
-      (**)      (gpu_pts_to_slice_sum r (SZ.v tid) (reveal end_) (reveal vv) vr);
+      (**)      (array1_pts_to_slice_sum r (SZ.v tid) (reveal end_) vr);
     } else {
       (* no-op *)
       if_elim_false _;
-      if_intro_false (gpu_pts_to_slice_sum r tid end_ vv vr);
+      if_intro_false (array1_pts_to_slice_sum r tid end_ vr);
     }
   } else {
     forevery_map
       (fun (from: natlt nth) ->
         if_ (op_Equality #int from (tid + pow2 it))
           (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
-            (gpu_pts_to_slice_sum r from (min (from + pow2 it) nth) vv vr)))
+            (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)))
       (fun from -> emp)
       fn from {
         if_rewrite_bool (from = tid + pow2 it) false _;
@@ -301,44 +371,44 @@ inline_for_extraction noextract
 fn kf
   (#et:Type0) {| scalar et, real_like et |}
   (nth : szp { nth <= max_threads })
-  (a : gpu_array et nth)
-  (#s : erased (seq et))
-  (#vr : erased (seq real){ s %~ vr })
-  (#_ : squash (Seq.length s == nth))
+  (#l : Array1.layout nth) {| ctlayout l |}
+  (a : Array1.t et l)
+  (#s : erased (lseq et nth))
+  (vr : erased (lseq real nth){ s %~ vr })
   (tid : szlt nth)
   ()
   requires
     gpu **
     kpre nth a s vr tid **
     thread_id nth tid **
-    mbarrier_tok nth (barrier_matrix nth a s vr) **
+    mbarrier_tok nth (barrier_matrix nth a vr) **
     B.barrier_state 0
   ensures
     gpu **
-    kpost nth a s vr tid **
+    kpost nth a vr tid **
     thread_id nth tid **
-    mbarrier_tok nth (barrier_matrix nth a s vr) **
+    mbarrier_tok nth (barrier_matrix nth a vr) **
     B.barrier_state (hreduce_barrier_count nth)
 {
   (* Reduction *)
   let mut n : szlt 32 = 0sz;
 
-  (**)with ss. assert (gpu_pts_to_slice a tid (tid+1) ss);
+  (**)with ss. assert (array1_pts_to_slice a tid (tid+1) ss);
   assert (pure (Seq.slice s tid (tid+1) `Seq.equal` seq![ss @! 0])); // sucks
-  // (**)if_intro_true (exists* ss. gpu_pts_to_slice_sum_inner a tid (tid + 1) s ss);
-  (**)fold (gpu_pts_to_slice_sum a tid (tid + 1) s vr);
-  (**)if_intro_true (gpu_pts_to_slice_sum a tid (tid + 1) s vr);
+  (**)fold (array1_pts_to_slice_sum a tid (tid + 1) vr);
+  (**)if_intro_true (array1_pts_to_slice_sum a tid (tid + 1) vr);
 
   open FStar.SizeT;
   while (spow2 !n <^ nth)
     invariant
-      exists* (it : szlt 32).
-        n |-> it **
-        B.barrier_state it **
-        if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr) **
-        pure (v it > 0 ==> pow2 (v it - 1) < v nth)
+      live n **
+      B.barrier_state !n **
+      if_ (div_pow2 !n tid) (array1_pts_to_slice_sum a tid (min (tid + pow2 !n) nth) vr) **
+      pure (v !n > 0 ==> pow2 (v !n - 1) < v nth)
+    decreases (2 * nth - spow2 !n)
   {
-    iteration nth a s vr tid !n;
+    assert pure (Seq.length s == SZ.v nth);
+    iteration nth a vr tid !n;
     n := !n +^ 1sz;
   };
 
@@ -347,9 +417,9 @@ fn kf
   // After loop exit: pow2 it >= nth, and tid < nth, so div_pow2 it tid <==> tid = 0
   FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
   rewrite
-    (if_ (div_pow2 it tid) (gpu_pts_to_slice_sum a tid (min (tid + pow2 it) nth) s vr))
+    (if_ (div_pow2 it tid) (array1_pts_to_slice_sum a tid (min (tid + pow2 it) nth) vr))
   as
-    (if_ (op_Equality #nat tid 0) (gpu_pts_to_slice_sum a 0 nth s vr));
+    (if_ (op_Equality #nat tid 0) (array1_pts_to_slice_sum a 0 nth vr));
 
   log2_hreduce (v nth) it;
   rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
@@ -358,45 +428,12 @@ fn kf
 }
 
 ghost
-fn factor_array
-  (#et:Type0)
-  (len : pos)
-  (a : gpu_array et len)
-  (d1 d2 : nat)
-  (#va : seq et { Seq.length va == len /\ len == d1 * d2})
-  requires
-    a |-> va
-  ensures
-    forall+ (i1:natlt d1) (i2:natlt d2).
-      gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
-{
-  Kuiper.Array.gpu_array_slice_1 a;
-  forevery_factor len d1 d2 _;
-}
-
-ghost
-fn unfactor_array
-  (#et:Type0)
-  (len : pos)
-  (a : gpu_array et len)
-  (d1 d2 : nat)
-  (#va : seq et { Seq.length va == len /\ len == d1 * d2})
-  requires
-    forall+ (i1:natlt d1) (i2:natlt d2).
-      gpu_pts_to_slice a (i1 * d2 + i2) (i1 * d2 + i2 + 1) seq![va @! (i1 * d2 + i2)]
-  ensures
-    a |-> va
-{
-  forevery_unfactor len d1 d2 (fun i -> gpu_pts_to_slice a i (i+1) seq![va @! i]);
-  Kuiper.Array.gpu_array_unslice_1 a;
-}
-
-ghost
 fn block_setup
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
-  (a : gpu_array et lena)
-  (#va : seq et)
+  (lena : szp { lena <= max_threads })
+  (#l : Array1.layout lena)
+  (a : Array1.t et l)
+  (#va : lseq et lena)
   (#vr : seq real { va %~ vr })
   (#_ : squash (Seq.length va == SZ.v lena))
   ()
@@ -407,87 +444,127 @@ fn block_setup
     (forall+ (i : natlt lena). kpre lena a va vr i) **
     emp
 {
-  gpu_array_slice_1 a;
+  Array1.explode a;
+  forevery_map
+    (fun (i:natlt lena) -> Cell a i |-> (va @! i))
+    (fun (i:natlt lena) -> kpre lena a va vr i)
+    fn i {
+      forevery_singleton_intro'
+        #(x:nat{i <= x /\ x < i + 1})
+        (fun x -> Cell a (x <: natlt lena) |-> (seq![va @! i] @! (x - i)))
+        i;
+      fold array1_pts_to_slice a i (i + 1) seq![va @! i];
+      fold kpre lena a va vr i;
+    };
+  ()
 }
 
 ghost
 fn block_teardown
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
-  (a : gpu_array et lena)
-  (#va : seq et)
+  (lena : szp { lena <= max_threads })
+  (#l : Array1.layout lena)
+  (a : Array1.t et l)
+  (#va : lseq et lena)
   (#vr : seq real { va %~ vr })
-  (#_ : squash (Seq.length va == SZ.v lena))
   ()
   norewrite
   requires
-    (forall+ (i : natlt lena). kpost lena a va vr i) **
+    (forall+ (i : natlt lena). kpost lena a vr i) **
     emp
   ensures
-    gpu_pts_to_slice_sum a 0 lena va vr
+    array1_pts_to_slice_sum a 0 lena vr
 {
   // Adjust type of equality...
   forevery_map
     (fun (j:natlt lena) ->
-      if_ (j = 0) (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
+      if_ (j = 0) (array1_pts_to_slice_sum a 0 (SZ.v lena) vr))
     (fun (j:natlt lena) ->
-      if_ (op_Equality #(natlt lena) j 0) (gpu_pts_to_slice_sum a 0 (SZ.v lena) va vr))
+      if_ (op_Equality #(natlt lena) j 0) (array1_pts_to_slice_sum a 0 (SZ.v lena) vr))
     fn j {};
   forevery_if_elim #(natlt lena) 0 (fun (x: natlt lena) ->
-    gpu_pts_to_slice_sum a 0 (v lena) va vr);
+    array1_pts_to_slice_sum a 0 (v lena) vr);
 }
 
 
 inline_for_extraction noextract
 let kernel
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
-  (a : gpu_array et lena { is_global_array a })
-  (#va : erased (seq et))
-  (#vr : erased (seq real) { va %~ vr })
+  (lena : szp { lena <= max_threads })
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : Array1.t et l { Array1.is_global a })
+  (#va : erased (lseq et lena))
+  (#vr : erased (lseq real lena) { va %~ vr })
   (#_ : squash (Seq.length va == SZ.v lena))
-: kernel_desc_1_n_barr
-    (a |-> va)
-    (gpu_pts_to_slice_sum a 0 lena va vr)
-= {
-  nthr = lena;
+  : kernel_desc_1_n_barr
+      (a |-> va)
+      (array1_pts_to_slice_sum a 0 lena vr)
+  = {
+    nthr = lena;
 
-  barrier_contract = mbarrier_contract (barrier_matrix lena a va vr);
-  barrier_count    = hreduce_barrier_count lena;
-  barrier_ok       = mbarrier_transform (barrier_matrix lena a va vr);
+    barrier_contract = mbarrier_contract (barrier_matrix lena a vr);
+    barrier_count    = hreduce_barrier_count lena;
+    barrier_ok       = mbarrier_transform (barrier_matrix lena a vr);
 
-  f = kf lena a #va #vr;
+    f = kf lena a vr;
 
-  block_setup = block_setup lena a #va;
-  block_teardown = block_teardown lena a #va;
-  kpost = kpost lena a va vr;
-  kpre =  kpre lena a va vr;
-  frame = emp;
-  kpre_sendable=solve;
-  kpost_sendable=solve;
-  full_post_sendable=solve;
-  full_pre_sendable=solve
-}
+    block_setup = block_setup lena a #va;
+    block_teardown = block_teardown lena a #va;
+    kpre =  kpre lena a va vr;
+    kpost = kpost lena a vr;
+    frame = emp;
+
+    kpre_sendable      = solve;
+    kpost_sendable     = solve;
+    full_post_sendable = solve;
+    full_pre_sendable  = solve;
+  }
 
 inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena < max_threads })
-  (a : gpu_array et lena { is_global_array a })
-  (#va : erased (seq et))
-  (#vr : erased (seq real) { va %~ vr })
+  (lena : szp { lena <= max_threads })
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : Array1.t et l { Array1.is_global a })
+  (#va : erased (lseq et lena))
+  (vr : erased (lseq real lena))
+  preserves
+    cpu
   requires
-    cpu **
-    on gpu_loc (a |-> va)
+    on gpu_loc (a |-> va) **
+    pure (va %~ vr)
   ensures
-    cpu **
-    (exists* (va' : seq et{Seq.length va' > 0}).
+    (exists* (va' : lseq et lena).
       on gpu_loc (a |-> va') **
-      pure ((va' @! 0) `approximates` seq_fold_left (+.) 0.0R vr))
+      pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr))
 {
-  gpu_pts_to_ref_located a; (* recall length, automate *)
+  map_loc gpu_loc
+    #(a |-> va)
+    #(a |-> va ** pure (SZ.fits (Array1.layout_size l)))
+    fn _ { Array1.pts_to_ref a; };
   launch_sync (kernel lena a #va #vr);
-  reduce_with_steps
-    (on gpu_loc (gpu_pts_to_slice_sum a 0 lena va vr))
-    [delta_only [`%gpu_pts_to_slice_sum]];
+  map_loc gpu_loc
+    #(array1_pts_to_slice_sum a 0 lena vr)
+    #(exists* (va' : lseq et lena).
+        a |-> va' **
+        pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr))
+    fn _ {
+      unfold array1_pts_to_slice_sum a 0 lena vr;
+      with s. assert array1_pts_to_slice a 0 lena s;
+      unfold array1_pts_to_slice a 0 lena s;
+      (* I would prefer to rewrite the type with refinement extensionality,
+         but that does not seem to work. *)
+      let bij : Kuiper.Bijection.bijection (k:nat{0 <= k /\ k < lena}) (Array1.ait lena) =
+        Kuiper.Bijection.Mkbijection
+          #(k:nat{0 <= k /\ k < lena})
+          #(Array1.ait lena)
+          (fun k -> k)
+          (fun k -> k)
+          ez ez;
+      forevery_iso bij _;
+      forevery_ext _ (fun (k : natlt lena) -> Cell (a <: Array1.t et l) k |-> (s @! k));
+      Array1.implode a;
+      ();
+    };
+  ();
 }

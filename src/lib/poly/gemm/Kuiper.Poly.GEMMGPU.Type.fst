@@ -4,11 +4,10 @@ module Kuiper.Poly.GEMMGPU.Type
 
 open Kuiper
 open Kuiper.Approximates { real_like, approx2, (%~) }
-open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix { ematrix, matrix_comb }
-open Kuiper.Matrix.Reprs.Type
 module MS = Kuiper.Spec.GEMM
-module M  = Kuiper.Matrix
+module T = Kuiper.Tensor
+module M  = Kuiper.Array2
 
 (* Clearly, this depends on the algorithm involved and the GPU we
    we're working with. For now, just use this definition. *)
@@ -16,171 +15,120 @@ type valid_tile = tile:szp{tile * tile <= max_threads}
 
 (* Maybe make this szp -> szp -> szp -> bool? *)
 inline_for_extraction noextract
-type size_req_t = nat -> nat -> nat -> prop
+type size_req_t = m:nat -> n:nat -> k:nat -> prop
 inline_for_extraction noextract
-type tiled_size_req_t = nat -> nat -> nat -> nat ->prop
+type tiled_size_req_t = m:nat -> n:nat -> k:nat -> tile:nat -> prop
 
-unfold
-inline_for_extraction
-type matmulcomb_gpu_fixed_ty
-  (#et : Type0) {| scalar et |}
-  (comb : binop et)
-  (#rows : szp)
-  (#shared : szp)
-  (#cols : szp)
-  (lA : full_mlayout rows shared)
-  (lB : full_mlayout shared cols)
-  (lC : full_mlayout rows cols)
-  (size_req : prop)
-=
-  fn {| clayout lA |}
-     {| clayout lB |}
-     {| clayout lC |}
-     (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-     (#fA : perm)
-     (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-     (#fB : perm)
-     (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-     (#eA : ematrix et rows shared)
-     (#eB : ematrix et shared cols)
-     (#eC : ematrix et rows cols)
-  requires
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (pure size_req **
-     on gpu_loc (gC |-> eC))
-  ensures
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (on gpu_loc (gC |-> MS.mmcomb comb eC eA eB))
+// TODO: check if both unfold + inline_for_extraction are needed here, or if one suffices
 
-unfold
-inline_for_extraction
+(* Type for a simple GEMM over GPU data. *)
+unfold inline_for_extraction
 type matmulcomb_gpu_ty
   (size_req : size_req_t)
 =
-  (#et : Type0) -> {| scalar et |} ->
-  (comb : binop et) ->
-  (#rows : szp) ->
-  (#shared : szp) ->
-  (#cols : szp) ->
-  (#lA : full_mlayout rows shared) ->
-  (#lB : full_mlayout shared cols) ->
-  (#lC : full_mlayout rows cols) ->
-  matmulcomb_gpu_fixed_ty comb lA lB lC
-    (size_req rows shared cols)
+  fn (#et : Type0) {| scalar et |}
+     (comb : binop et)
+     (#m #n #k : szp)
+     (#lA : M.layout m k)
+     (#lB : M.layout k n)
+     (#lC : M.layout m n)
+     {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+     (gA : M.array2 et lA { M.is_global gA })
+     (gB : M.array2 et lB { M.is_global gB })
+     (gC : M.array2 et lC { M.is_global gC })
+     (#eA #eB #eC : ematrix et _ _)
+     (#fA #fB : perm)
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
+  requires
+    pure (size_req m n k) **
+    on gpu_loc (gC |-> eC)
+  ensures
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 
-unfold
-inline_for_extraction
+(* Like above, with approximate spec. *)
+unfold inline_for_extraction
 type matmulcomb_gpu_approx_ty
   (size_req : size_req_t)
 =
-  fn (#et : Type0) {| scalar et |} {| real_like et |}
+  fn (#et : Type0) {| scalar et, real_like et |}
      (comb : binop et)
-     (comb_r : binop real { approx2 comb comb_r })
-     (#rows : szp)
-     (#shared : szp)
-     (#cols : szp)
-     (#lA : full_mlayout rows shared)
-     (#lB : full_mlayout shared cols)
-     (#lC : full_mlayout rows cols)
-     {| clayout lA |}
-     {| clayout lB |}
-     {| clayout lC |}
-     (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-     (#fA : perm)
-     (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-     (#fB : perm)
-     (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-     (#eA : ematrix et rows shared)
-     (#eB : ematrix et shared cols)
-     (#eC : ematrix et rows cols)
-     (rA : ematrix real rows shared)
-     (rB : ematrix real shared cols)
-     (rC : ematrix real rows cols)
+     (comb_r : binop real { comb `approx2` comb_r })
+     (#m #n #k : szp)
+     (#lA : M.layout m k)
+     (#lB : M.layout k n)
+     (#lC : M.layout m n)
+     {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+     (gA : M.array2 et lA { M.is_global gA })
+     (gB : M.array2 et lB { M.is_global gB })
+     (gC : M.array2 et lC { M.is_global gC })
+     (#eA #eB #eC : ematrix et _ _)
+     (rA rB rC : ematrix real _ _)
+     (#fA #fB : perm)
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (pure (size_req rows shared cols) **
-     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
-     on gpu_loc (gC |-> eC))
-  ensures (
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (exists* (eC' : ematrix et rows cols).
+    pure (size_req m n k) **
+    pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
+    on gpu_loc (gC |-> eC)
+  ensures
+    (exists* (eC' : ematrix et m n).
       on gpu_loc (gC |-> eC') **
-      pure (eC' %~ MS.mmcomb comb_r rC rA rB)))
+      pure (eC' %~ MS.mmcomb comb_r rC rA rB))
 
-(* The type of GPU-side matmuls that only work over already
-tiled matrices. *)
-unfold
-inline_for_extraction
+(* A GEMM over tiled GPU data. *)
+unfold inline_for_extraction
 type tiled_matmulcomb_gpu_ty
   (size_req : tiled_size_req_t)
 =
   fn (tile : valid_tile)
      (#et : Type0) {| scalar et |}
      (comb : binop et)
-     (#mrows : szp)
-     (#mshared : szp)
-     (#mcols : szp)
-     (lA : mlayout (mrows   * tile) (mshared * tile))
-     (lB : mlayout (mshared * tile) (mcols   * tile))
-     (lC : mlayout (mrows   * tile) (mcols   * tile))
-     {| clayout lA |}
-     {| clayout lB |}
-     {| clayout lC |}
-     (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-     (#fA : perm)
-     (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-     (#fB : perm)
-     (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-     (#eA : ematrix _ _ _)
-     (#eB : ematrix _ _ _)
-     (#eC : ematrix _ _ _)
+     (#m #n #k : szp)
+     (#lA : M.layout (m * tile) (k * tile))
+     (#lB : M.layout (k * tile) (n * tile))
+     (#lC : M.layout (m * tile) (n * tile))
+     {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+     (gA : M.array2 et lA { M.is_global gA })
+     (gB : M.array2 et lB { M.is_global gB })
+     (gC : M.array2 et lC { M.is_global gC })
+     (#eA #eB #eC : ematrix _ _ _)
+     (#fA #fB : perm)
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (pure (size_req mrows mshared mcols tile) **
-     on gpu_loc (gC |-> eC))
+    pure (size_req m n k tile) **
+    on gpu_loc (gC |-> eC)
   ensures
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (on gpu_loc (gC |-> MS.mmcomb comb eC eA eB))
+    on gpu_loc (gC |-> MS.mmcomb comb eC eA eB)
 
-(* The type of GPU-side approximate matmuls over tiled matrices.
-   Takes external real matrices rA, rB, rC related by %~ to eA, eB, eC,
-   and a real-valued combiner comb_r approximating comb. *)
-unfold
-inline_for_extraction
+(* As above, with approximate spec. *)
+unfold inline_for_extraction
 type tiled_matmulcomb_gpu_approx_ty
   (size_req : tiled_size_req_t)
 =
   fn (tile : valid_tile)
-     (#et : Type0) {| scalar et |} {| real_like et |}
+     (#et : Type0) {| scalar et, real_like et |}
      (comb : binop et)
-     (comb_r : binop real { approx2 comb comb_r })
-     (#mrows : szp)
-     (#mshared : szp)
-     (#mcols : szp)
-     (lA : mlayout (mrows   * tile) (mshared * tile))
-     (lB : mlayout (mshared * tile) (mcols   * tile))
-     (lC : mlayout (mrows   * tile) (mcols   * tile))
-     {| clayout lA |}
-     {| clayout lB |}
-     {| clayout lC |}
-     (gA : M.gpu_matrix et lA { M.is_global_matrix gA })
-     (#fA : perm)
-     (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
-     (#fB : perm)
-     (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
-     (#eA : ematrix et (mrows * tile) (mshared * tile))
-     (#eB : ematrix et (mshared * tile) (mcols * tile))
-     (#eC : ematrix et (mrows * tile) (mcols * tile))
-     (rA : ematrix real (mrows * tile) (mshared * tile))
-     (rB : ematrix real (mshared * tile) (mcols * tile))
-     (rC : ematrix real (mrows * tile) (mcols * tile))
+     (comb_r : binop real { comb `approx2` comb_r })
+     (#m #n #k : szp)
+     (#lA : M.layout (m * tile) (k * tile))
+     (#lB : M.layout (k * tile) (n * tile))
+     (#lC : M.layout (m * tile) (n * tile))
+     {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
+     (gA : M.array2 et lA { M.is_global gA })
+     (gB : M.array2 et lB { M.is_global gB })
+     (gC : M.array2 et lC { M.is_global gC })
+     (rA rB rC : ematrix real _ _)
+     (#eA #eB #eC : ematrix _ _ _)
+     (#fA #fB : perm)
+  preserves
+    cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (pure (size_req mrows mshared mcols tile) **
-     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
-     on gpu_loc (gC |-> eC))
+    pure (size_req m n k tile) **
+    pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
+    on gpu_loc (gC |-> eC)
   ensures (
-    (cpu ** on gpu_loc (gA |-> Frac fA eA) ** on gpu_loc (gB |-> Frac fB eB)) **
-    (exists* (eC' : ematrix et (mrows * tile) (mcols * tile)).
+    (exists* (eC' : ematrix et (m * tile) (n * tile)).
       on gpu_loc (gC |-> eC') **
       pure (eC' %~ MS.mmcomb comb_r rC rA rB)))

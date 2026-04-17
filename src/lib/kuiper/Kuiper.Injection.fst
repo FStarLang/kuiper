@@ -1,5 +1,14 @@
 module Kuiper.Injection
 
+let inverse_f (#a #b : Type) (i : a @~> b) (y : image_of i) : GTot a =
+  FStar.IndefiniteDescription.indefinite_description_ghost a
+    (fun (x:a) -> i.f x == y)
+
+let inverse_lem (#a #b : Type) (i : a @~> b) (y : image_of i)
+  : Lemma (ensures i.f (inverse_f i y) == y)
+          [SMTPat (inverse_f i y)]
+  = ()
+
 let __inj_cardinal (n1 n2 : nat)
   (i : natlt n1 @~> natlt n2)
   : Lemma (ensures n1 <= n2)

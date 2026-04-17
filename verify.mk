@@ -11,6 +11,9 @@ minimal: build-minimal
 .PHONY: .force
 .force:
 
+test-handwritten:
+	$(MAKE) -C handwritten-bench run
+
 .configure.output: ./configure $(shell which nvcc 2>/dev/null)
 	./configure $@
 
@@ -29,11 +32,11 @@ endif
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
-KRML_HOME := $(CURDIR)/karamel
+KRML_EXE  := $(CURDIR)/inst/bin/krml
 FSTAR_EXE := $(CURDIR)/inst/bin/fstar.exe
 
 export FSTAR_EXE
-export KRML_HOME
+export KRML_EXE
 
 # Hack to print a newline in the $(error ...)
 define newline
@@ -64,7 +67,9 @@ karamel/Makefile:
 .krml.touch: .krml.src.touch karamel/Makefile
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
+	@# Cannot really build a full karamel with fstar2
 	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel ADMIT=1 minimal
+	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel PREFIX=$(CURDIR)/inst _install
 	@touch .krml.src.touch # building will change files
 	@touch $@
 
@@ -101,16 +106,13 @@ FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
 FSTAR_FLAGS += --z3version 4.13.3
 FSTAR_FLAGS += --ext kuiper
-FSTAR_FLAGS += --ext optimize_let_vc
 FSTAR_FLAGS += --ext __unrefine
-FSTAR_FLAGS += --ext context_pruning
 FSTAR_FLAGS += --ext no_krml_private
 # FSTAR_FLAGS += --ext core_phase2
 FSTAR_FLAGS += --warn_error -288 # using has_type (we only use it in SMT patterns)
 # FSTAR_FLAGS += --ext krml_inline_all
 # FSTAR_FLAGS += --error_contexts true
 FSTAR_FLAGS += --ext context_pruning_no_ambients
-FSTAR_FLAGS += --ext fly_deps
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
@@ -141,7 +143,7 @@ KRML_FLAGS += -warn-error @6 # VLA
 KRML_FLAGS += -warn-error -2@4-10@18
 KRML_FLAGS += $(KOTHERFLAGS)
 
-KRML := $(KRML_HOME)/krml $(KRML_FLAGS)
+KRML := $(KRML_EXE) $(KRML_FLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
@@ -217,13 +219,7 @@ $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
-	$(Q)$(FSTAR) --codegen krml 						\
-		--load_cmxs $(PLUGIN)						\
-		--extract "-*" 							\
-		--extract "$(MOD)"						\
-		--extract "+Kuiper"						\
-		-o $@								\
-		$<
+	$(Q)$(FSTAR) --codegen krml --load_cmxs $(PLUGIN) --extract "-*,+$(MOD),+Kuiper" -o $@ $<
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
@@ -231,15 +227,10 @@ $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	# Output into prel/
-	$(KRML) -bundle "$(MOD)=*" \
-		-tmpdir $(OUTDIR)/pre/ $<
+	$(KRML) -bundle "$(MOD)=*" -tmpdir $(OUTDIR)/pre/ $<
 
-$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
+$(OUTDIR)/%: $(OUTDIR)/pre/% scripts/fixup.sed
 	# Postprocess via sed and generate the actual target
-	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
-
-$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
-	# Same. Though no code in here there are still empty lines and whatnot
 	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 
 include nvcc.mk

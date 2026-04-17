@@ -3,12 +3,14 @@
 #include <inttypes.h>
 #include "Kuiper_HReduce.h"
 
+bool ok = true;
+
 /* It would be nicer to write a purely-Pulse test. */
-int main()
+
+void test(int siz)
 {
     uint64_t *a;
     uint64_t *ga;
-    const size_t siz = 1024;
 
     a = (uint64_t *) malloc(siz * sizeof a[0]);
     ga = (uint64_t *) KPR_GPU_ALLOC(sizeof ga[0], siz);
@@ -26,7 +28,21 @@ int main()
     MUST(cudaFree(ga));
 
     printf("%" PRIu64 "\n", a[0]);
+    if (a[0] != siz * (siz - 1) / 2)
+        ok = false;
     free(a);
+}
 
-    return 0;
+int main()
+{
+    test(510);
+    test(511);
+    test(512);
+    test(513);
+    test(514);
+    test(1022);
+    test(1023);
+    test(1024);
+
+    return !ok;
 }

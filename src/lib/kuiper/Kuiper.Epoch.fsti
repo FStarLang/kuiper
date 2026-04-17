@@ -10,7 +10,6 @@ val epoch_done (n:epoch_t) : slprop
 
 ghost
 fn get_epoch ()
-  requires emp
   returns e : epoch_t
   ensures epoch_live e
 

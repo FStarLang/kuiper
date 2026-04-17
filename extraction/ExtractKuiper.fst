@@ -44,6 +44,11 @@ instance _ : tagged mlexpr = {
 
 open ExtractionUtils
 
+let mlloc_to_range (l : mlloc) : Range.range =
+  let (line, file) = l in
+  let p = Range.mk_pos line 0 in
+  Range.mk_range file p p
+
 let zero_for_deref = EQualified (["C"], "_zero_for_deref")
 
 let deref e = EBufRead (e, zero_for_deref)
@@ -56,7 +61,6 @@ let rec drop n (lst : list 'a) : list 'a =
   | _ when n <= 0 -> lst
   | _ -> List.tl (drop (n - 1) lst)
 
-exception Failed of string
 
 let kpr_translate_type_without_decay : translate_type_without_decay_t = fun env t ->
   let cb = translate_type_without_decay env in
@@ -93,11 +97,17 @@ let get_record_field fname (e:mlexpr) : ML mlexpr =
   let assoc' k v =
     match List.assoc k v with
     | Some r -> r
-    | None -> failwith ("get_record_field: field not found: " ^ k ^ "  ---  " ^ show v)
+    | None ->
+      raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
+        text "get_record_field: field not found:" ^/^ text k ^/^ pp v
+      ]
   in
   match (unmagic e).expr with
   | MLE_Record (_, _, flds) -> assoc' fname flds
-  | _ -> raise (Failed ("Expected a single-field record for the size, got: " ^ show e))
+  | _ ->
+    raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
+      text "Expected a record for the size, got:" ^/^ pp e
+    ]
 
 let get_sizet (e : mlexpr) : ML mlexpr = get_record_field "size" e
 // repeated names get a numeric prefix, and we have both strided_row_major and strided_col_major
@@ -132,7 +142,10 @@ let get_one_binder (e:mlexpr) : ML (mlbinder & mlexpr) =
   | MLE_Fun ([b], body) -> b, body
   | MLE_Fun (b::bs, body) ->
     b, { e with expr = MLE_Fun (bs, body) } (* type is wrong, but it doesn't matter *)
-  | _ -> failwith ("launch_kernel: no binder for: " ^ show e)
+  | _ ->
+    raise_error0 Fatal_ExtractionUnsupported [
+      text "Expected a single binder in a lambda, got: " ^/^ pp e
+    ]
 
 let remove_trailing_units (e : mlexpr) : mlexpr =
   let hd, args = head_and_args e in
@@ -293,7 +306,10 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
   let assoc' k v =
     match List.assoc k v with
     | Some r -> r
-    | None -> failwith ("launch_kernel: field not found: " ^ k)
+    | None ->
+      raise_error (mlloc_to_range kdesc.loc) Fatal_ExtractionUnsupported [
+        text "launch_kernel: field not found:" ^/^ text k
+      ]
   in
   let! nblk, nthr, smem_bytesz, hd, rest_args =
     match kdesc.expr with
@@ -388,18 +404,35 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
       return (nblk, nthr, shmem_bytesz, hd, rest_args)
 
     | _ ->
-      failwith ("launch_kernel: not a record: " ^ show kdesc)
+      raise_error (mlloc_to_range kdesc.loc) Fatal_ExtractionUnsupported [
+        text "launch_kernel: not a record:" ^/^ pp kdesc
+      ]
+  in
+  let shmem_is_nonzero : bool =
+    match smem_bytesz.expr with
+    | MLE_App ({expr = MLE_Name (["FStar"; "SizeT"], "uint_to_t")},
+               [{ expr = MLE_Const (MLC_Int ("0", _))}]) ->
+      false
+    | _ -> true
   in
   let assert_shmem_size : mlexpr =
-    with_ty ml_unit_ty <|
-      MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
+    (* If smem_bytesz is zero, skip the check. Could later find a bigger
+    range on which to skip. *)
+    if shmem_is_nonzero then
+      with_ty ml_unit_ty <|
+        MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
+    else
+      ml_unit
   in
   let shmem_setup : mlexpr =
-    let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
-    let aa : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
-    _mlMUST <|
-      with_ty ml_unit_ty <|
-      MLE_App (kk, [ hd; aa; smem_bytesz ])
+    if shmem_is_nonzero then
+      let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
+      let aa : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
+      _mlMUST <|
+        with_ty ml_unit_ty <|
+        MLE_App (kk, [ hd; aa; smem_bytesz ])
+    else
+      ml_unit
   in
   let e' =
     let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
@@ -417,14 +450,18 @@ let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
       | Some ("Kuiper.TensorCore.Base.FragA",     [], []) -> EQualified ([], "wmma::matrix_a")
       | Some ("Kuiper.TensorCore.Base.FragB",     [], []) -> EQualified ([], "wmma::matrix_b")
       | Some ("Kuiper.TensorCore.Base.FragAcc",   [], []) -> EQualified ([], "wmma::accumulator")
-      | x -> raise (Failed <| "unexpected knd in __alloc_fragment: " ^ show (x, tag_of knd))
+      | x -> raise_error (mlloc_to_range knd.loc) Fatal_ExtractionUnsupported [
+        text "unexpected knd in __alloc_fragment:" ^/^ pp knd
+      ]
     in
     let layout : option expr =
       match cta layout with
       | Some ("Kuiper.TensorCore.Base.FragLRM",    [], []) -> Some <| EQualified ([], "wmma::row_major")
       | Some ("Kuiper.TensorCore.Base.FragLCM",    [], []) -> Some <| EQualified ([], "wmma::col_major")
       | Some ("Kuiper.TensorCore.Base.FragLAcc",   [], []) -> None
-      | x -> raise (Failed <| "unexpected layout in __alloc_fragment: " ^ show (x, tag_of layout))
+      | x -> raise_error (mlloc_to_range layout.loc) Fatal_ExtractionUnsupported [
+        text "unexpected layout in __alloc_fragment:" ^/^ pp layout
+      ]
     in
     let faketype =
       match et with
@@ -536,7 +573,9 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let fc = cb fc in
     EApp (EQualified ([], "wmma::mma_sync"), [ fc; fa; fb; fc ])
   | "Kuiper.TensorCore.Base.mma_sync'", targs, args ->
-    raise (Failed <| "unexpected types in mma_sync: " ^ show (targs, args))
+    raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
+      text "unexpected types in mma_sync:" ^/^ pp e
+    ]
 
   | "Kuiper.TensorCore.Base.mma_store", [et], [ m; n; k; fr; l; strided_l; gm; f0; m0 ] ->
     let fr = cb fr in
@@ -695,7 +734,9 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let src_arr = EBufSub (src_arr, src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
   | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh", _, _ ->
-    raise <| Failed <| "unexpected arguments to gpu_array_vec_cpy_dh: " ^ show x
+    raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
+      text "unexpected arguments to gpu_array_vec_cpy_dh:" ^/^ pp e
+    ]
 
   | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_hd",
     [ et ],
@@ -735,7 +776,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Kernel.Base.launch_kernel_full", [], [ _full_pre; _full_post; kdesc; _epoch ] ->
     begin match extract_kcall env kdesc with
     | Some e' -> cb e'
-    | None -> failwith "failed to translate kcall"
+    | None ->
+      raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
+        text "failed to translate kcall:" ^/^ pp e
+      ]
     end
 
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->

@@ -35,7 +35,7 @@ jobs:
 
       - run: find . -delete
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Fixup HOME (https://github.com/actions/runner/issues/863)
       - name: Setup HOME
@@ -50,8 +50,7 @@ jobs:
 
       - name: Get submodules
         run: |
-          git submodule init
-          git submodule update --depth 1
+          git submodule update --depth 1 --init --recursive
 
       - name: Check CUDA
         run: ./scripts/check-cuda.sh
@@ -72,7 +71,7 @@ jobs:
       - name: Try fetch cached F*
         id: fstarcache
         if: ${{ inputs.nocache != true && github.event_name != 'schedule' }}
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: inst
           key: fstar-${{ runner.os }}-${{ runner.arch }}-${{steps.fstarcommit.outputs.FSTARCOMMIT}}
@@ -90,7 +89,7 @@ jobs:
           make -j$(nproc) -f verify.mk .fstar.touch
 
       - name: Save F*
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         if: ${{ steps.fstarcache.outputs.cache-hit != 'true' }}
         with:
           path: inst
@@ -107,7 +106,7 @@ jobs:
           make -kj$(nproc) -Otarget bench-package
 
       - name: Upload bench-package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: kuiper-bench
           path: kuiper-bench.tar.gz
@@ -115,7 +114,7 @@ jobs:
       - name: Upload CUDA output
         if: ${{ always () }}
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: output
           path: |
@@ -133,7 +132,7 @@ jobs:
 
       - name: Upload failed state
         if: ${{ always () && inputs.debug }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         continue-on-error: true
         with:
           name: all
@@ -153,10 +152,10 @@ jobs:
       - run: find . -delete
 
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download bench-package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: kuiper-bench
 
@@ -177,10 +176,10 @@ jobs:
       - run: find . -delete
 
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download CUDA output
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: output
           path: obj
@@ -214,10 +213,10 @@ jobs:
       - run: find . -delete
 
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download bench-package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: kuiper-bench
 

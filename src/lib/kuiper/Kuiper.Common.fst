@@ -87,3 +87,25 @@ let rec max_n_lem (#n:pos) (f : natlt n -> GTot nat)
       assert (max_n f == f 0)
     else
       max_n_lem #(n-1) f
+
+(* Some projectors *)
+unfold let pi_2_0 (x, _) = x
+unfold let pi_2_1 (_, x) = x
+unfold let pi_3_0 (x, _, _) = x
+unfold let pi_3_1 (_, x, _) = x
+unfold let pi_3_2 (_, _, x) = x
+unfold let pi_4_0 (x, _, _, _) = x
+unfold let pi_4_1 (_, x, _, _) = x
+unfold let pi_4_2 (_, _, x, _) = x
+unfold let pi_4_3 (_, _, _, x) = x
+unfold let pi_5_0 (x, _, _, _, _) = x
+unfold let pi_5_1 (_, x, _, _, _) = x
+unfold let pi_5_2 (_, _, x, _, _) = x
+unfold let pi_5_3 (_, _, _, x, _) = x
+unfold let pi_5_4 (_, _, _, _, x) = x
+unfold let pi_6_0 (x, _, _, _, _, _) = x
+unfold let pi_6_1 (_, x, _, _, _, _) = x
+unfold let pi_6_2 (_, _, x, _, _, _) = x
+unfold let pi_6_3 (_, _, _, x, _, _) = x
+unfold let pi_6_4 (_, _, _, _, x, _) = x
+unfold let pi_6_5 (_, _, _, _, _, x) = x

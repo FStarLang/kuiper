@@ -8,73 +8,6 @@ open Kuiper.Matrix
 open Kuiper.Injection
 module SZ = Kuiper.SizeT
 
-#push-options "--z3rlimit 10"
-let from_subtiles_id
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  : Lemma (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)
-           ==
-           em)
-= assert (equal (ematrix_from_tiles trows tcols (ematrix_subtile em trows tcols)) em);
-  ()
-#pop-options
-
-#push-options "--z3rlimit 20 --fuel 0 --ifuel 0 --split_queries always --retry 3"
-#restart-solver
-let tiles_from_subtiles_id
-  (#et : _)
-  (#rows #cols : _)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (f : natlt (rows / trows) -> natlt (cols / tcols) -> ematrix et trows tcols)
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : Lemma (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc
-           ==
-           f tr tc)
-= assert (equal (ematrix_subtile (ematrix_from_tiles trows tcols f) trows tcols tr tc) (f tr tc));
-  ()
-#pop-options
-
-let update_tile_self
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  : Lemma (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)
-           ==
-           em)
-          [SMTPat (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc))]
-= assert (equal (update_tile em trows tcols tr tc (ematrix_subtile em trows tcols tr tc)) em)
-
-#push-options "--split_queries always"
-let subtile_of_update_tile
-  (#et : _)
-  (#rows #cols : _)
-  (em : ematrix et rows cols)
-  (trows : pos {trows /? rows})
-  (tcols : pos {tcols /? cols})
-  (tr : natlt (rows / trows))
-  (tc : natlt (cols / tcols))
-  (etile : ematrix et trows tcols)
-  (tr' : natlt (rows / trows))
-  (tc' : natlt (cols / tcols))
-  : Lemma (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc'
-           ==
-           (if tr = tr' && tc = tc' then etile else ematrix_subtile em trows tcols tr' tc'))
-          [SMTPat (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc')]
-  = if tr' = tr && tc' = tc then
-      assert (equal (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc') etile)
-    else
-      assert (equal (ematrix_subtile (update_tile em trows tcols tr tc etile) trows tcols tr' tc') (ematrix_subtile em trows tcols tr' tc'))
-#pop-options
-
 #push-options "--fuel 0 --ifuel 0 --split_queries always"
 inline_for_extraction noextract
 let strided_row_major_subtile_offset
@@ -129,10 +62,10 @@ instance strided_row_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_row_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -149,10 +82,10 @@ let lemma_subtile_strided_row_major_offset
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_row_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -170,10 +103,10 @@ let lemma_subtile_strided_row_major_stride
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_row_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -239,10 +172,10 @@ instance strided_col_major_subtile (#rows #cols : erased nat)
   (l : mlayout rows cols)
   (#_ : squash (SZ.fits (mlayout_size l)))
   {| sub : strided_col_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -259,10 +192,10 @@ let lemma_subtile_strided_col_major_offset
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_col_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -280,10 +213,10 @@ let lemma_subtile_strided_col_major_stride
   (#rows #cols : erased nat)
   (l : mlayout rows cols)
   {| sub : strided_col_major l |}
-  (trows : erased nat {trows > 0 /\ trows /? rows})
-  (tcols : erased nat {tcols > 0 /\ tcols /? cols})
-  (tr    : enatlt (rows / trows))
-  (tc    : enatlt (cols / tcols))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -301,10 +234,10 @@ inline_for_extraction noextract
 instance c_subtile_layout
   (#rows #cols : erased nat)
   (l : mlayout rows cols) {| c : clayout l |}
-  (trows : erased pos {trows /? rows})
-  (tcols : erased pos {tcols /? cols})
-  (tr    : (enatlt (rows / trows)))
-  (tc    : (enatlt (cols / tcols)))
+  (trows : erased int {0 < trows /\ trows /? rows})
+  (tcols : erased int {0 < tcols /\ tcols /? cols})
+  (tr    : erased int {0 <= tr /\ tr < rows / trows})
+  (tc    : erased int {0 <= tc /\ tc < cols / tcols})
   {| c_trows : concrete_sz trows,
      c_tcols : concrete_sz tcols,
      c_tr    : concrete_sz tr,
@@ -933,13 +866,7 @@ fn gpu_matrix_collect_approx_tiled
       gpu_matrix_pts_to_cell
         (gpu_matrix_subtile gm trows tcols tr tc)
         i j (vf bid tid))
-    fn bid tid {
-      let tr = bid / ntc;
-      let tc = bid % ntc;
-      let i = tid / tcols;
-      let j = tid % tcols;
-      drop_ (pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)));
-    };
+    fn bid tid { () };
 
   (* Step 4: Factor to 4D *)
   forevery_factor_2

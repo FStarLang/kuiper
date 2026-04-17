@@ -42,7 +42,6 @@ let c_shmem (d : shmem_desc) : Type0 =
   | SHArray ty len -> gpu_array ty len
    //would be nice to just add as is_block_array refinement here, but it messes with typeclass resolution
 
-inline_for_extraction
 let rec c_shmems (d : list shmem_desc) : Type0 =
   match d with
   | [] -> int // This could (and should) be unit, but karamel extraction gets confused with it
@@ -156,7 +155,6 @@ ensures live_c_shmems c #f
   as (live_c_shmems c #f);
 }
 
-#push-options "--print_implicits"
 let d_ty d : Type0 = let SHArray ty _ = d in ty
 let d_ty_sized d : Kuiper.Sized.sized (d_ty d) = let SHArray _ #s _ = d in s
 let d_len d : SZ.t = let SHArray _ len = d in len

@@ -1,5 +1,7 @@
 module Kuiper.Ghost.Transpose
 
+// To deleted when Kuiper.Matrix goes away, tensors are the new thing.
+
 #lang-pulse
 
 open Kuiper

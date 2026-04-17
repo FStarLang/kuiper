@@ -101,12 +101,14 @@ fn subproducts1d
   while (!dotIdx <^ bk)
     invariant live dotIdx ** pure (!dotIdx <= bk)
     invariant live rch1d
+    decreases (bk - !dotIdx)
   {
     let tmpB = M.gpu_matrix_read gB !dotIdx bcol;
     let mut resIdx = 0sz;
-    while (SZ.(!resIdx <^ tm))
+    while (!resIdx <^ tm)
       invariant live resIdx ** pure (!resIdx <= tm)
       invariant live rch1d
+      decreases (tm - !resIdx)
     {
       let va = M.gpu_matrix_read gA (arow *^ tm +^ !resIdx) !dotIdx;
 
@@ -123,7 +125,8 @@ fn subproducts1d
 
 // even 20 isn't evenough for the checking from the terminal
 //  (but enough for the vs code extension)
-#push-options "--z3rlimit 100 --ifuel 1"
+#restart-solver
+#push-options "--z3rlimit 200 --ifuel 1"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
@@ -199,6 +202,7 @@ fn kf
     invariant
       (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
       (exists* (x : ematrix _ _ _). sB |-> Frac (1.0R /. (bm/tm * bn)) x)
+    decreases (mshared - !bkIdx)
   {
     even_2x !bkIdx;
     rewrite (exists* (x : ematrix _ _ _). sA |-> Frac (1.0R /. (bm/tm * bn)) x) **
@@ -276,6 +280,7 @@ fn kf
   while (!resIdx <^ tm)
     invariant live resIdx ** pure (!resIdx <= tm)
     invariant live cache1d
+    decreases (tm - !resIdx)
   {
     Pulse.Lib.Array.pts_to_len cache1d;
     forevery_extract #(natlt tm) (SZ.v !resIdx) _;

@@ -51,7 +51,7 @@ The [F\* VS Code extension](https://github.com/FStarLang/fstar-vscode-assistant/
 is included. Use `Ctrl+.` to verify the file at the cursor position.
 
 ### Requirements
-- OCaml 5.3.0, OPAM, and some packages
+- OCaml 5.4.0, OPAM, and some packages. (Other OCaml versions may work, but this is the one we test, YMMV.)
 - Z3 version 4.13.3
 - NVCC (if you wish to _compile_ the kernels)
 - An Nvidia GPU (if you wish to _run_ the kernels)
@@ -74,11 +74,11 @@ otherwise, you can grab Z3 4.13.3 from [its
 releases](https://github.com/Z3Prover/z3/releases/tag/z3-4.13.3) and make it
 available in your PATH (as `z3` or `z3-4.13.3`).
 
-If you do not have OCaml 5.3.0 installed, you can run the following commands
+If you do not have OCaml 5.4.0 installed, you can run the following commands
 to set it up.
 ```
 sudo apt-get install opam
-opam init --compiler=5.3.0
+opam init --compiler=5.4.0
 ```
 Then make sure the necessary packages are installed:
 ```
@@ -91,7 +91,7 @@ Kuiper includes F\* and Karamel as submodules. First, build them:
 
 ```bash
 eval $(opam env)
-make prepare       # builds F* and Karamel (~10 min with -j)
+make prepare -j$(nproc)
 ```
 
 Then build Kuiper itself:

@@ -35,6 +35,7 @@ fn for_loop' (lo hi : SZ.t)
         (forall+ (x:between lo hi {x >= !i}). pre x) **
         (forall+ (x:between lo hi {x <  !i}). post x) **
         pure (lo <= SZ.v vi /\ SZ.v vi <= SZ.v hi)
+    decreases (hi - !i)
   {
     with vi. assert i |-> vi;
     forevery_remove' #(between lo hi) (fun x -> x >= vi) pre vi;

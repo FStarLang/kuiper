@@ -4,7 +4,6 @@ module Kuiper.Poly.DotProduct
 
 open Kuiper
 open Kuiper.Approximates
-module SZ = Kuiper.SizeT
 
 (* pointwise mul of sequences *)
 let pmul
@@ -25,24 +24,17 @@ let sum
 inline_for_extraction noextract
 type dotprod_ty
   (et:Type0) {| scalar et, real_like et |} =
-  fn (lena : szp{SZ.v lena <= max_threads})
+  fn (lena : szp{lena <= max_threads})
      (a1 : vec et)
      (a2 : vec et)
-     (v1 : erased (seq et))
-     (v2 : erased (seq et))
-     (vr1 : erased (seq real))
-     (vr2 : erased (seq real) {seq_approximates v1 vr1 /\ seq_approximates v2 vr2})
-     (#_: squash (len v1 == SZ.v lena /\ len v2 == SZ.v lena))
-  requires
-    cpu **
-    a1 |-> v1 **
-    a2 |-> v2
-  returns dp : et
+     (#v1 #v2 : erased (lseq et lena))
+     (vr1 vr2: erased (lseq real lena) { v1 %~ vr1 /\ v2 %~ vr2 })
+  preserves
+    cpu ** a1 |-> v1 ** a2 |-> v2
+  returns
+    dp : et
   ensures
-    (cpu **
-    a1 |-> v1 **
-    a2 |-> v2) **
-    pure (dp `approximates` sum (pmul vr1 vr2))
+    pure (dp %~ sum (pmul vr1 vr2))
 
 inline_for_extraction noextract
 val dotprod

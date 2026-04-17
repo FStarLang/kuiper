@@ -19,19 +19,6 @@ let to_seq (#et:Type) (#rows #cols : nat)
   : GTot (lseq et (rows * cols))
   = Seq.init_ghost (rows * cols) (fun i -> m.f (Kuiper.Injection.inverse_f l.map i))
 
-instance ematrix_is_container
-  (et:Type) (#rows #cols : nat)
-  : container (ematrix et rows cols) (natlt rows & natlt cols) et
-= {
-    acc = (fun m (r,c) -> macc m r c);
-    upd = (fun m (i, j) x -> mupd m i j x);
-    l1 = ez;
-    l2 = ez;
-    ext = (fun c1 c2 _ -> assert (Kuiper.EMatrix.equal c1 c2));
-    from_fun = (fun f -> mkM fun i j -> f (i, j));
-    from_fun_ok = ez;
-  }
-
 let aview_from_mlayout
   (et : Type) (#rows #cols : nat)
   (l : mlayout rows cols)

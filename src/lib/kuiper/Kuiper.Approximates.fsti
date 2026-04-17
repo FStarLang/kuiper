@@ -17,6 +17,7 @@ open Kuiper.Seq.Common
 
 (* This class provides some syntactic sugar to use the %~ operator
    on scalars, sequences, matrices, etc. *)
+[@@Tactics.Typeclasses.fundeps[1]] // OK?
 class can_approximate (c m : Type) = {
   approximates : c -> m -> prop;
 }
@@ -63,6 +64,20 @@ instance seq_real_like_can_approximate (#a:Type) {| scalar a, real_like a |}
   approximates = seq_approximates;
 }
 
+instance lseq_lhs (#a #b : Type)
+  (d : can_approximate (seq a) b)
+  (len : erased nat)
+  : can_approximate (lseq a len) b = {
+  approximates = (fun (s: lseq a len) (m: b) -> approximates (s <: seq a) m);
+}
+
+instance lseq_rhs (#a #b : Type)
+  (d : can_approximate a (seq b))
+  (len : erased nat)
+  : can_approximate a (lseq b len) = {
+  approximates = (fun (s: a) (m: lseq b len) -> approximates s (m <: seq b));
+}
+
 let to_real_seq (#a:Type) {| scalar a, real_like a |}
   (s : seq a) : GTot (seq real)
   = Seq.init_ghost (Seq.length s) (fun i -> to_real (s @! i))
@@ -103,3 +118,11 @@ let approx2
   : prop
   = forall x y r s.
       x %~ r /\ y %~ s ==> f x y %~ g r s
+
+(* Could we use this instead of approx2? *)
+// instance approx_function_can_approximate
+//   (dom1 dom2 cod1 cod2 : Type)
+//   {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
+//   : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
+//   approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
+// }

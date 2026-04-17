@@ -18,24 +18,23 @@ include FStar.SizeT {
   ( /^ ), ( %^ ), ( +^ ), ( -^ ), ( *^ ),
 }
 
-open FStar.Ghost
-open Pulse.Lib.Core
 open FStar.Mul
 open Kuiper.Divides
+open Kuiper.Math
 
 module SZ = FStar.SizeT
 module U32 = FStar.UInt32
 module U64 = FStar.UInt64
 
-unfold type sz  = FStar.SizeT.t
-unfold type szp = x:sz{FStar.SizeT.v x > 0}
+type sz  = FStar.SizeT.t
+type szp = x:sz{FStar.SizeT.v x > 0}
 // Note: making this argument int instead of nat prevents
 // queries about non-negativity from appearing in the well-formedness
 // of types.
-unfold type szlt (n:int) = i:sz{SZ.v i <  n}
-unfold type szle (n:int) = i:sz{SZ.v i <= n}
+type szlt (n:int) = i:sz{SZ.v i <  n}
+type szle (n:int) = i:sz{SZ.v i <= n}
 
-unfold type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
+type szpmultiple (k:pos) = x:szp{k /? SZ.v x}
 
 (* Throughout this repo we would like to assume a 64bit machine, and use
    size_t for array indices and whatnot, BUT, size_t has very poor
@@ -62,12 +61,12 @@ let fits_ok (x:nat)
     assert_norm (pow2 32 == 0x100000000);
     FStar.SizeT.fits_u32_implies_fits x
 
-[@@coercion; pulse_unfold] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
-[@@coercion; pulse_unfold] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x
-[@@coercion; pulse_unfold] unfold let u64_to_nat    (x: U64.t) : GTot nat = U64.v x
-// [@@coercion; pulse_unfold] unfold let sizet_to_enat (x: SZ.t)  : erased nat = SZ.v x
-// [@@coercion; pulse_unfold] unfold let u32_to_enat   (x: U32.t) : erased nat = U32.v x
-// [@@coercion; pulse_unfold] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
+[@@coercion] unfold let sizet_to_nat  (x: SZ.t)  : GTot nat = SZ.v x
+[@@coercion] unfold let u32_to_nat    (x: U32.t) : GTot nat = U32.v x
+[@@coercion] unfold let u64_to_nat    (x: U64.t) : GTot nat = U64.v x
+// [@@coercion] unfold let sizet_to_enat (x: SZ.t)  : erased nat = SZ.v x
+// [@@coercion] unfold let u32_to_enat   (x: U32.t) : erased nat = U32.v x
+// [@@coercion] unfold let u64_to_enat   (x: U64.t) : erased nat = U64.v x
 
 (* assumption, add to F*? *)
 val sizet_to_u32 (x: SZ.t)
@@ -80,12 +79,7 @@ val sizet_and (x y : SZ.t) : SZ.t
 This is very specialized. *)
 val sizet_and_div_pow2 (x:SZ.t) (y:SZ.t) (n:nat)
   : Lemma (requires SZ.v y == pow2 n)
-          (ensures SZ.v (sizet_and x SZ.(y -^ 1sz)) == SZ.v x % (pow2 n))
-
-(* This can be assumed to skip overflow checking locally. *)
-val sizet_does_not_overflow : prop
-
-val overflow_lem () : Lemma (sizet_does_not_overflow ==> (forall n. SZ.fits n))
+          (ensures SZ.v (sizet_and x (y -^ 1sz)) == SZ.v x % (pow2 n))
 
 inline_for_extraction noextract
 let s_divmod (j:szp) (i:sz) : dm:(sz & szlt j){SZ.fits (dm._1 * j + dm._2)} =
@@ -98,20 +92,13 @@ let s_undivmod (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)}) : sz =
   [@@inline_let] let (d, m) = dm in
   d *^ j +^ m
 
-let s_divmod_inv_1 (j:szp) (i:sz)
+val s_divmod_inv_1 (j:szp) (i:sz)
   : Lemma (s_undivmod j (s_divmod j i) == i)
           [SMTPat (s_undivmod j (s_divmod j i))]
-  = ()
 
-let s_divmod_inv_2 (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)})
+val s_divmod_inv_2 (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)})
   : Lemma (s_divmod j (s_undivmod j dm) == dm)
           [SMTPat (s_divmod j (s_undivmod j dm))]
-  = ()
-
-let three_fits (a b c : nat) : prop =
-  SZ.fits (a * b) /\
-  SZ.fits (b * c) /\
-  SZ.fits (a * c)
 
 inline_for_extraction noextract
 let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
@@ -119,7 +106,21 @@ let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
   (* Parenthesizing like such allows constant folding when y is a constant. *)
   (x +^ (y -^ 1sz)) `div` y
 
-let lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
+val lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
   : Lemma (SZ.v (sdivup x y) == divup (SZ.v x) (SZ.v y))
           [SMTPat (sdivup x y)]
-  = ()
+
+inline_for_extraction noextract
+val spow2 (s : sz{s < 32}) : r:sz{SZ.v r == pow2 s}
+
+inline_for_extraction noextract
+val sdiv_pow2 (i:sz{i < 32}) (tid: sz) : bool
+
+val sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
+  Lemma (sdiv_pow2 i tid == div_pow2 i tid)
+        [SMTPat (sdiv_pow2 i tid)]
+
+noextract inline_for_extraction
+let smin (a b : sz): sz =
+  let open FStar.SizeT in
+  if a <^ b then a else b

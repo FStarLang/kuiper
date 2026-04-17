@@ -103,6 +103,17 @@ val is_send_across_global_varray
   (v : st)
   : is_send_across gpu_of (varray_pts_to x #f v)
 
+instance
+val is_send_across_global_varray_cell
+  (#et:Type0)
+  (#st : Type0)
+  (#vw : aview et st)
+  (a : varray vw { is_global_varray a })
+  (#f : perm)
+  (i : vw.iview.ait)
+  (v : et)
+  : is_send_across gpu_of (varray_pts_to_cell a #f i v)
+
 unfold
 instance has_pts_to (#a:Type) (#st:Type) (#vw : aview a st)
   : has_pts_to (varray vw) st = {
@@ -493,7 +504,6 @@ fn varray_join2
     (a |-> Frac f (reveal v1, reveal v2)) **
     pure (core a == core al)
 
-// TODO: remove?
 ghost
 fn varray_share_n
   (#et : Type) (#st : Type)
@@ -507,7 +517,6 @@ fn varray_share_n
   ensures
     forall+ (_:natlt k). a |-> Frac (f /. k) v
 
-// TODO: remove?
 ghost
 fn varray_gather_n
   (#et : Type) (#st : Type)

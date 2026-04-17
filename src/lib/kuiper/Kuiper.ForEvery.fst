@@ -261,8 +261,8 @@ fn forevery_rw_type
 ghost
 fn forevery_refine_ext'
   (#a: Type0)
-  (#f: a->prop)
-  (g: a->prop { forall x. f x <==> g x })
+  (#f g: a->prop)
+  (#_ : squash (forall x. f x <==> g x))
   (p: (x:a{f x} -> slprop))
   requires
     forall+ (x:a {f x}). p x
@@ -630,6 +630,26 @@ fn forevery_refine_join
       forevery_insert p x;
       forevery_refine_ext #a (fun z -> f z /\ (pred z \/ eq2 #(x:a{f x}) x z) \/ g z) p;
     };
+}
+
+ghost
+fn forevery_refine_join'
+  (#a:Type0)
+  (f g: a -> prop)
+  (p: (x:a{f x \/ g x}) -> slprop)
+  requires
+    forall+ (x:a{f x}). p x
+  requires
+    forall+ (x:a{g x}). p x
+  requires
+    pure (forall x. ~(f x /\ g x))
+  ensures
+    forall+ (x:a{f x \/ g x}). p x
+{
+  forevery_ext #(x:a{f x}) (fun x -> p x) (fun x -> when__ (f x \/ g x) (fun _ -> p x));
+  forevery_ext #(x:a{g x}) (fun x -> p x) (fun x -> when__ (f x \/ g x) (fun _ -> p x));
+  forevery_refine_join (fun x -> when__ (f x \/ g x) (fun _ -> p x)) f g;
+  forevery_ext #(x:a{f x \/ g x}) (fun x -> when__ (f x \/ g x) (fun _ -> p x)) (fun x -> p x);
 }
 
 ghost
@@ -1073,39 +1093,6 @@ fn forevery_iso_back
 }
 
 ghost
-fn forevery_permute
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p x
-  ensures
-    forall+ (x:a). p (bij.ff x)
-{
-  forevery_iso (bij_sym bij) p;
-}
-
-ghost
-fn forevery_permute_back
-  (#a:Type0)
-  (bij : a =~ a)
-  (p : a -> slprop)
-  requires
-    forall+ (x:a). p (bij.ff x)
-  ensures
-    forall+ (x:a). p x
-{
-  forevery_permute (bij_sym bij) _;
-  forevery_ext (fun x -> p (bij.ff ((bij_sym bij).ff x))) p;
-}
-
-// This fails in Pulse???
-let seq_extend_shift #n (m: nat { m >= n }) (p: natlt n -> slprop) =
-  forevery_refine_ext' #nat #(fun i -> i < n) (fun i -> i < m /\ i < n) (fun i -> p i)
-let seq_restrict_shift #n (m: nat { m >= n }) (p: natlt n -> slprop) =
-  forevery_refine_ext' #nat #(fun i -> i < m /\ i < n) (fun i -> i < n) (fun i -> p i)
-
-ghost
 fn forevery_natlt_extend
   (#n: nat)
   (m: nat { m >= n })
@@ -1115,7 +1102,7 @@ fn forevery_natlt_extend
   ensures
     forall+ (i: natlt m { i < n }). p (natlt_coerce i)
 {
-  seq_extend_shift m p;
+  forevery_refine_ext' #nat (fun i -> i < m /\ i < n) (fun i -> p i)
 }
 
 ghost
@@ -1128,7 +1115,7 @@ fn forevery_natlt_restrict
   ensures
     forall+ (i: natlt n). p i
 {
-  seq_restrict_shift m p;
+  forevery_refine_ext' #nat (fun i -> i < n) (fun i -> p i)
 }
 
 ghost
@@ -2488,4 +2475,17 @@ fn forevery_ext_4
 {
   rewrite (forall+ (w:a) (x:b) (y:c) (z:d). f w x y z)
     as (forall+ (w:a) (x:b) (y:c) (z:d). g w x y z);
+}
+
+ghost
+fn forevery_push_pure
+  (#a:Type0) (p : a -> slprop)
+  (q : prop)
+  requires
+    pure q ** (forall+ (x:a). p x)
+  ensures
+    forall+ (x:a). p x ** pure q
+{
+  forevery_map p (fun x -> p x ** pure q)
+    fn x { }
 }

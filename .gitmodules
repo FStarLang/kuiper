@@ -1,12 +1,12 @@
 [submodule "FStar"]
 	path = FStar
 	url = ../FStar
-	branch = gpu
+	branch = kuiper
 	depth = 1
 [submodule "karamel"]
 	path = karamel
 	url = ../karamel
-	branch = gpu
+	branch = kuiper
 	depth = 1
 [submodule "bench/SGEMM_CUDA"]
 	path = bench/SGEMM_CUDA
