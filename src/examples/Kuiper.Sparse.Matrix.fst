@@ -462,9 +462,11 @@ let rec mem_slice_lemma
   (x : et) (s : seq et)
   (a b : nat {a <= b /\ b <= len s})
   : Lemma
-    (requires mem_slice x s a b)
-    (ensures Seq.mem x (Seq.slice s a b))
+    (ensures mem_slice x s a b <==> Seq.mem x (Seq.slice s a b))
     (decreases (b - a))
+    [SMTPatOr
+      [[SMTPat (mem_slice x s a b)];
+       [SMTPat (Seq.mem x (Seq.slice s a b))]]]
 =
   if a < b && s @! a <> x
     then mem_slice_lemma x s (a + 1) b

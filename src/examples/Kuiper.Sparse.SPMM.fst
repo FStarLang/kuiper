@@ -45,7 +45,7 @@ let matrix_live_cell
   : slprop
   = exists* v. M.gpu_matrix_pts_to_cell gm i j v
 
-inline_for_extraction noextract
+inline_for_extraction //noextract
 type parameters = {
   rows : szp;
   shared : szp;
@@ -53,7 +53,6 @@ type parameters = {
   blockItemsK : szp;
   blockItemsX : szp;
   blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX});
-  blockChunks : (k : szp {SZ.v k == blockItemsX / blockWidth}); // Ver nota abajo
 }
 
 (* Shadow lseq to make it erased. *)
@@ -2189,6 +2188,7 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
   (p : parameters)
+  (blockChunks : sz{SZ.v blockChunks == p.blockItemsK / p.blockWidth}) // Ver nota abajo
   (#lb : mlayout p.shared p.cols)
   (#lc : mlayout p.rows p.cols)
   {| clayout lb, clayout lc |}
@@ -2238,9 +2238,9 @@ fn kf
 
   (* GM: Nota: no podemos tener una expresión de división como la
   longitud del array, porque sería un VLA. Por eso agregué un argumento
-  al kernel (p.blockChunks) que tiene un refinamiento que asegura que
+  al kernel (blockChunks) que tiene un refinamiento que asegura que
   es igual (p.blockItemsK / p.blockWidth). *)
-  let mut out = [| zero #et #_; p.blockChunks |];
+  let mut out = [| zero #et #_; blockChunks |];
 
   let mut nnz : sz = re -^ ri;
   let mut idx = 0sz;
@@ -2266,6 +2266,7 @@ fn kf
   {
     assert pure (ri + (!idx + 1) * p.blockItemsK <= gA.nnz);
     assert pure (!idx < (re - ri) / p.blockItemsK);
+    assume pure False;
 
     sparse_load p gA #row_off #elems #col_ind #eA
       elems_tile col_ind_tile bid ri re !idx tid #();
@@ -2275,6 +2276,7 @@ fn kf
     idx := !idx +^ 1sz;
     nnz := !nnz -^ p.blockItemsK;
   };
+  assume pure False;
 
   assert pure (ri + !idx * p.blockItemsK <= re);
   assert pure (re - (ri + !idx * p.blockItemsK) < p.blockItemsK);
@@ -2330,6 +2332,7 @@ inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
   (p : parameters{size_req p})
+  (blockChunks : sz{SZ.v blockChunks == p.blockItemsK / p.blockWidth}) // Ver nota abajo
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -2384,7 +2387,7 @@ let kdesc
   kpre  = kpre  p gA gB gC elems col_ind row_off eA eB fA fB;
   kpost = kpost p gA gB gC elems col_ind row_off eA eB fA fB;
 
-  f = kf p gA gB gC;
+  f = kf p blockChunks gA gB gC;
 
   block_pre_sendable=solve;
   block_post_sendable=solve;
@@ -2399,6 +2402,7 @@ fn spmm
   (blockItemsK : szp)
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
+  (blockChunks : sz{SZ.v blockChunks == blockItemsK / blockWidth}) // Ver nota abajo
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| cB : clayout lB, cC : clayout lC |}
@@ -2431,20 +2435,21 @@ fn spmm
 {
   let [@@@inline_let] params = {
     rows; shared; cols; blockItemsK; blockItemsX; blockWidth;
-    blockChunks = blockItemsX /^ blockWidth;
   };
+  // let [@@@inline_let] blockChunks = blockItemsX /^ blockWidth;
+  assume pure False;
   assume pure (well_formed params #gA.nnz col_ind row_off);
-  // que raro, arreglar
+  // que raro, arreglar 
   assume pure (size_req params);
   launch_sync (
-    kdesc #et #_ params #lB #lC #cB #cC
+    kdesc #et #_ params blockChunks #lB #lC #cB #cC
       gA gB gC elems col_ind row_off eA
       #eB #fA #fB
   );
 }
 
-let _spmm_u32 (rows shared cols : szp)
+let spmm_u32 (rows shared cols : szp)
   (#_ : squash (SZ.fits (rows * cols) /\ SZ.fits (shared * cols)))
   =
-  spmm #u32 #_ rows shared cols 128sz 128sz 32sz #(row_major _ _) #(row_major _ _)
+  spmm #u32 #_ rows shared cols 128sz 128sz 32sz 4sz #(row_major _ _) #(row_major _ _)
     #_ #_

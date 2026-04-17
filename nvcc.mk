@@ -70,7 +70,6 @@ EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
 EXTRACT += src/examples/Kuiper.Example2.fst
 
 NOEXTRACT :=
-NOEXTRACT += src/examples/Kuiper.Sparse.SPMM.fst
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
 INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
