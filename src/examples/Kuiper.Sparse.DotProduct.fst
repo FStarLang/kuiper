@@ -189,3 +189,5 @@ let rec seq_fold_left_lemma
   if n = 1
     then ()
     else seq_fold_left_lemma f #(n - 1) (f acc (v @! 0)) (seq_drop 1 v)
+
+let sarray_product_dense_u32 #len = sarray_product_dense #u32 #_ #len
