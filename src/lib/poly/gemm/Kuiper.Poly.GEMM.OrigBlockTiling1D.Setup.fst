@@ -204,36 +204,13 @@ fn block_setup
   // Bridge from SizeT-based to nat-based size
   forevery_rw_size (bm/^tm *^ bn) (bm/tm * bn);
 
-  // Unfold live_c_shmems into individual shmem buffers
-  unfold_live_c_shmems_cons sh #1.0R;
-  unfold_live_c_shmems_cons (snd sh) #1.0R;
-  unfold_live_c_shmems_nil (snd (snd sh)) #1.0R;
-
-  // Share each buffer across all threads
-  gpu_live_c_shmem_share_underspec (fst sh) #1.0R #(bm/tm * bn);
-  gpu_live_c_shmem_share_underspec (fst (snd sh)) #1.0R #(bm/tm * bn);
-
-  // Unfold live_c_shmem into manual form (exists* x. arr |-> Frac ...)
-  forevery_map
-    (fun (_ : natlt (bm/tm * bn)) -> live_c_shmem (fst sh) #(1.0R /. (bm/tm * bn)))
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x)
-    fn _ { unfold_live_c_shmem (fst sh) #(1.0R /. (bm/tm * bn)) };
-  forevery_map
-    (fun (_ : natlt (bm/tm * bn)) -> live_c_shmem (fst (snd sh)) #(1.0R /. (bm/tm * bn)))
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x)
-    fn _ { unfold_live_c_shmem (fst (snd sh)) #(1.0R /. (bm/tm * bn)) };
-
-  // Zip the two shmem forall+ together
-  forevery_zip
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x)
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x);
+  // Share all shmem buffers across all threads
+  gpu_live_c_shmems_share_underspec sh #1.0R #(bm/tm * bn);
 
   // Zip with kpre1 to form kpre
   forevery_zip
     (fun (tid : natlt (bm/tm * bn)) -> kpre1 comb tm gA gB gC eA eB eC fA fB bid tid)
-    (fun (_ : natlt (bm/tm * bn)) ->
-      (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
-      (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x));
+    (fun (_ : natlt (bm/tm * bn)) -> live_c_shmems sh #(1.0R /. (bm/tm * bn)));
 
   // Bridge back from nat-based to SizeT-based size
   forevery_rw_size (bm/tm * bn) (bm/^tm *^ bn);

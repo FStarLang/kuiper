@@ -19,13 +19,7 @@ open Kuiper.Poly.GEMM.OrigBlockTiling1D.Kf
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Setup
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Teardown
 
-(* The kpre/kpost should be rewritten for instances below to work.  Typeclass
-resolution is mistakenly trying to apply the global array instance for the shmem
-tiles. Rewriting to live_c_shmems should work... but the whole thing seems
-brittle. Typeclass resolution does not care about refinements when committing to
-instances.
-*)
-
+#push-options "--z3rlimit 200"
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -50,7 +44,7 @@ let kpre_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpre comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= magic()
+= solve
 
 let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -77,7 +71,8 @@ let kpost_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpost comb comb_r tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= magic()
+= solve
+#pop-options
 
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et |}
@@ -160,7 +155,7 @@ let mk_kernel
           gC |-> eC' **
           pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB))))
 = {
-  nblk = mrows *^ mcols; //SZ.uint_to_t (SZ.v mrows * SZ.v mcols);
+  nblk = mrows *^ mcols;
   nthr = (bm /^ tm *^ bn);
 
   shmems_desc = shmems_desc et bm bn bk;
