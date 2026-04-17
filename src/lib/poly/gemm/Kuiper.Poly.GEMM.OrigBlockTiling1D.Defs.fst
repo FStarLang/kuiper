@@ -240,8 +240,7 @@ let kpre
   : slprop
   =
   kpre1 comb tm gA gB gC eA eB eC fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x)
+  live_c_shmems sh #(1.0R /. (bm/tm * bn))
 
 unfold
 let kpost
@@ -272,5 +271,4 @@ let kpost
   : slprop
   =
   kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid **
-  (exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x) **
-  (exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x)
+  live_c_shmems sh #(1.0R /. (bm/tm * bn))

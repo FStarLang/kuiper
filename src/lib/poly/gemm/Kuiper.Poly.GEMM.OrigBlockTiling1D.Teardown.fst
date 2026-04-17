@@ -58,29 +58,13 @@ fn block_teardown
   // Bridge from SizeT-based to nat-based size
   forevery_rw_size (bm/^tm *^ bn) (bm/tm * bn);
 
-  // Split kpost (= kpost1 ** shmemA ** shmemB) into three components
-  forevery_unzip3
+  // Split kpost (= kpost1 ** live_c_shmems) into two components
+  forevery_unzip
     (fun (tid : natlt (bm/tm * bn)) -> kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x)
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x);
+    (fun (_ : natlt (bm/tm * bn)) -> live_c_shmems sh #(1.0R /. (bm/tm * bn)));
 
-  // Fold each shmem buffer into live_c_shmem, then gather
-  forevery_map
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst sh |-> Frac (1.0R /. (bm/tm * bn)) x)
-    (fun (_ : natlt (bm/tm * bn)) -> live_c_shmem (fst sh) #(1.0R /. (bm/tm * bn)))
-    fn _ { fold_live_c_shmem (fst sh) #(1.0R /. (bm/tm * bn)) };
-  gpu_live_c_shmem_gather_underspec (fst sh) #1.0R #(bm/tm * bn);
-
-  forevery_map
-    (fun (_ : natlt (bm/tm * bn)) -> exists* (x : seq _). fst (snd sh) |-> Frac (1.0R /. (bm/tm * bn)) x)
-    (fun (_ : natlt (bm/tm * bn)) -> live_c_shmem (fst (snd sh)) #(1.0R /. (bm/tm * bn)))
-    fn _ { fold_live_c_shmem (fst (snd sh)) #(1.0R /. (bm/tm * bn)) };
-  gpu_live_c_shmem_gather_underspec (fst (snd sh)) #1.0R #(bm/tm * bn);
-
-  // Combine into live_c_shmems
-  fold_live_c_shmems_nil (snd (snd sh)) #1.0R;
-  fold_live_c_shmems_cons (snd sh) #1.0R;
-  fold_live_c_shmems_cons sh #1.0R;
+  // Gather shared memory
+  gpu_live_c_shmems_gather_underspec sh #1.0R #(bm/tm * bn);
 
   // Bridge back from nat-based to SizeT-based size
   forevery_rw_size (bm/tm * bn) (bm/^tm *^ bn);

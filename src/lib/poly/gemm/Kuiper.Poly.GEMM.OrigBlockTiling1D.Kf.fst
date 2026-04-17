@@ -171,6 +171,7 @@ fn kf
     B.barrier_tok (barrier_contract tm eA eB bid (M.from_array slA (fst sh)) (M.from_array slB (fst (snd sh)))) **
     B.barrier_state (2 * mshared)
 {
+  unfold_c_shmems sh #(1.0R /. (bm/tm * bn)) (`%shmems_desc);
   let (sarA, (sarB, _)) = sh;
 
   gpu_pts_to_ref sarA;
@@ -342,6 +343,8 @@ fn kf
 
   rewrite each sarA as fst sh;
   rewrite each sarB as fst (snd sh);
+
+  fold_c_shmems sh #(1.0R /. (bm/tm * bn)) (`%shmems_desc);
 
   ();
 }
