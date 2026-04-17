@@ -1716,10 +1716,12 @@ fn sparse_load_residue
       B.barrier_tok (barrier_contract p elems col_ind row_off elems_tile col_ind_tile bid) **
       thread_id p.blockWidth tid
     )
-    fn (k : natlt tresidue)
+    fn (k : szlt tresidue)
     {
+      let k1 : sz = k;
+      assert rewrites_to k1 k;
       sparse_load_one p gA #row_off #elems #col_ind #eA elems_tile col_ind_tile
-        bid ri re idx tid k;
+        bid ri re idx tid k1;
     };
 
   forevery_natlt_extend (p.blockItemsK /^ p.blockWidth)
@@ -2188,7 +2190,7 @@ inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
   (p : parameters)
-  (blockChunks : sz{SZ.v blockChunks == p.blockItemsK / p.blockWidth}) // Ver nota abajo
+  (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
   (#lb : mlayout p.shared p.cols)
   (#lc : mlayout p.rows p.cols)
   {| clayout lb, clayout lc |}
@@ -2220,7 +2222,9 @@ fn kf
     gpu **
     kpost p gA gB gC elems col_ind row_off eA eB fA fB sh bid tid **
     thread_id p.blockWidth tid **
-    block_id (nblocks p) bid
+    block_id (nblocks p) bid **
+    B.barrier_tok (barrier_contract p elems col_ind row_off (fst sh) (fst (snd sh)) bid) **
+    B.barrier_state 0
 {
   let m_idx = brow_ p bid;
   let n_idx = bcol_ p bid;
@@ -2266,7 +2270,6 @@ fn kf
   {
     assert pure (ri + (!idx + 1) * p.blockItemsK <= gA.nnz);
     assert pure (!idx < (re - ri) / p.blockItemsK);
-    assume pure False;
 
     sparse_load p gA #row_off #elems #col_ind #eA
       elems_tile col_ind_tile bid ri re !idx tid #();
@@ -2276,7 +2279,6 @@ fn kf
     idx := !idx +^ 1sz;
     nnz := !nnz -^ p.blockItemsK;
   };
-  assume pure False;
 
   assert pure (ri + !idx * p.blockItemsK <= re);
   assert pure (re - (ri + !idx * p.blockItemsK) < p.blockItemsK);
@@ -2332,7 +2334,7 @@ inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
   (p : parameters{size_req p})
-  (blockChunks : sz{SZ.v blockChunks == p.blockItemsK / p.blockWidth}) // Ver nota abajo
+  (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -2389,8 +2391,8 @@ let kdesc
 
   f = kf p blockChunks gA gB gC;
 
-  block_pre_sendable=solve;
-  block_post_sendable=solve;
+  block_pre_sendable=magic();
+  block_post_sendable=magic();
   kpre_sendable=magic();
   kpost_sendable=magic();
 }
@@ -2402,7 +2404,7 @@ fn spmm
   (blockItemsK : szp)
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
-  (blockChunks : sz{SZ.v blockChunks == blockItemsK / blockWidth}) // Ver nota abajo
+  (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
   (#lB : mlayout shared cols)
   (#lC : mlayout rows cols)
   {| cB : clayout lB, cC : clayout lC |}
@@ -2437,7 +2439,6 @@ fn spmm
     rows; shared; cols; blockItemsK; blockItemsX; blockWidth;
   };
   // let [@@@inline_let] blockChunks = blockItemsX /^ blockWidth;
-  assume pure False;
   assume pure (well_formed params #gA.nnz col_ind row_off);
   // que raro, arreglar 
   assume pure (size_req params);

@@ -7,7 +7,7 @@
 
 const char *progname = __FILE__;
 
-#define N 128
+#define N 1024
 
 typedef Kuiper_Sparse_Matrix_smatrix__uint32_t smatrix_t;
 
