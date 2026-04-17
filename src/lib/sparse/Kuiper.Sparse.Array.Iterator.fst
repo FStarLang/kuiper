@@ -4,7 +4,6 @@ module Kuiper.Sparse.Array.Iterator
 open Kuiper
 open Kuiper.Sparse.Common
 open Kuiper.Sparse.Array
-module SZ = FStar.SizeT
 
 // This is here to force extraction.
 let _ = 1ul

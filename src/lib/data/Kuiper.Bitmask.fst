@@ -11,7 +11,7 @@ let getBit (u : u32) (i : szlt 32sz) : bool
 = U32.shift_right u (SZ.sizet_to_u32 i) `U32.logand` 1ul = 1ul
 
 let setBit (u : u32) (i : szlt 32sz) : u32
-= u `U32.logor` U32.shift_left 1ul (SZ.sizet_to_u32 i) 
+= u `U32.logor` U32.shift_left 1ul (SZ.sizet_to_u32 i)
 
 let unsetBit (u : u32) (i : szlt 32sz) : u32
 = u `U32.logand` U32.lognot (U32.shift_left 1ul (SZ.sizet_to_u32 i))
@@ -84,7 +84,7 @@ let setBit_lemma_preserves (u : u32) (i j : szlt 32)
     (ensures UI.nth #32 (setBit u i) (31 - j) = UI.nth #32 u (31 - j))
 =
   shift_left_1_lemma_false i (31sz -^ j)
-  
+
 let unsetBit_lemma_ensures (u : u32) (i : szlt 32)
 : Lemma
     (requires true)
@@ -112,7 +112,7 @@ let core #n (BM a : bitmask n) = a
 
 let bitmask_pts_to (#n:_) (b:bitmask n) (p : GSet.set nat)
 : slprop
-= 
+=
   exists* (a : lseq u32 (bitmask_len n)).
     core b |-> a **
     pure (
@@ -139,7 +139,7 @@ let getBit_lemma_full_mask ()
 : Lemma
   (requires true)
   (ensures forall (i : szlt 32). getBit full_mask i == true)
-= 
+=
   introduce forall (i : szlt 32). getBit full_mask i == true
   with getBit_lemma full_mask i
 
@@ -161,7 +161,7 @@ fn init_full (n:nat) (a : larray u32 (bitmask_len n))
   getBit_lemma_full_mask ();
 
   fold bitmask_pts_to b full;
-  b 
+  b
 }
 
 fn get (#n:nat) (b:bitmask n) (i:sz) (#p : GSet.set nat)
@@ -195,7 +195,7 @@ let set_lemma_preserves (#n : nat) (a : lseq u32 (bitmask_len n)) (i : szlt n)
     getBit (Seq.upd a (i / 32) (setBit (a @! i / 32) (i %^ 32sz)) @! j / 32) (j %^ 32sz) ==
     getBit (a @! j / 32) (j %^ 32sz)
   )
-= 
+=
   introduce forall (j : szlt n). j <> i ==>
     getBit (Seq.upd a (i / 32) (setBit (a @! i / 32) (i %^ 32sz)) @! j / 32) (j %^ 32sz) ==
     getBit (a @! j / 32) (j %^ 32sz)
@@ -220,7 +220,7 @@ let unset_lemma_preserves (#n : nat) (a : lseq u32 (bitmask_len n)) (i : szlt n)
     getBit (Seq.upd a (i / 32) (unsetBit (a @! i / 32) (i %^ 32sz)) @! j / 32) (j %^ 32sz) ==
     getBit (a @! j / 32) (j %^ 32sz)
   )
-= 
+=
   introduce forall (j : szlt n). j <> i ==>
     getBit (Seq.upd a (i / 32) (unsetBit (a @! i / 32) (i %^ 32sz)) @! j / 32) (j %^ 32sz) ==
     getBit (a @! j / 32) (j %^ 32sz)
@@ -238,12 +238,12 @@ let unset_lemma_preserves (#n : nat) (a : lseq u32 (bitmask_len n)) (i : szlt n)
       )
       else Seq.lemma_index_upd2 a (i / 32) word' (j / 32)
   )
-  
+
 
 fn set (#n:nat) (b:bitmask n) (i:sz) (#p : GSet.set nat)
   requires  bitmask_pts_to b p
   requires  pure (i < n)
-  ensures   bitmask_pts_to b (add (SZ.v i) p) 
+  ensures   bitmask_pts_to b (add (SZ.v i) p)
 {
   unfold bitmask_pts_to;
 

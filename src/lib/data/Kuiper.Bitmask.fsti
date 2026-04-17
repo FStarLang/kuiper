@@ -48,7 +48,7 @@ let remove #a (x:a) (s: GSet.set a) : GSet.set a =
 fn set (#n:nat) (b:bitmask n) (i:sz) (#p : GSet.set nat)
   requires  bitmask_pts_to b p
   requires  pure (i < n)
-  ensures   bitmask_pts_to b (add (SizeT.v i) p) 
+  ensures   bitmask_pts_to b (add (SizeT.v i) p)
 
 fn unset (#n:nat) (b:bitmask n) (i:sz) (#p : GSet.set nat)
   requires  bitmask_pts_to b p

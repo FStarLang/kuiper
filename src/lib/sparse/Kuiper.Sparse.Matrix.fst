@@ -187,7 +187,7 @@ fn fold_smatrix
   (m : smatrix et rows cols)
   (#[Tactics.exact (`1.0R)] f : perm)
   (v_elems    : lseq et m.nnz)
-  (v_col_ind  : lseq sz m.nnz)      
+  (v_col_ind  : lseq sz m.nnz)
   (v_row_off  : lseq sz (rows + 1))
   (e : ematrix et rows cols)
   requires smatrix_pts_to' m v_elems v_col_ind v_row_off e
@@ -236,7 +236,7 @@ fn smatrix_share_n'
       gpu_pts_to_slice m.elems #(f /. k) 0 (SZ.v m.nnz) v_elems **
       gpu_pts_to_slice m.col_ind #(f /. k)0 (SZ.v m.nnz) v_col_ind **
       gpu_pts_to_slice m.row_off #(f /. k) 0 (rows + 1) v_row_off
-    ) 
+    )
     (fun _ -> smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
     fn _ {};
 
@@ -289,7 +289,7 @@ fn forevery_natlt_elim
 
   forall_natlt_elim n p;
 
-  forevery_map #(natlt n) (fun _ -> pure p) (fun _ -> emp) fn _ {}; 
+  forevery_map #(natlt n) (fun _ -> pure p) (fun _ -> emp) fn _ {};
   forevery_emp_elim _;
 
 }
@@ -384,21 +384,21 @@ open Pulse.Lib.Trade
 open Kuiper.Seq.Common
 
 // TODO k tiene que ser mayor a 0? tiene que ser menor a n?
-let gpu_array_take 
+let gpu_array_take
   (#a : Type u#0)
   (#n : erased nat)
   (arr : gpu_array a n)
-  (k : szle n) 
+  (k : szle n)
 : Pure (gpu_array a k)
   (requires true)
   (ensures fun v -> base_address v == base_address arr)
 = admit()
 
-let gpu_array_drop 
+let gpu_array_drop
   (#a : Type u#0)
   (#n : erased nat)
   (arr : gpu_array a n)
-  (k : szle n) 
+  (k : szle n)
 : Pure (gpu_array a (n - k))
   (requires true)
   (ensures fun v -> base_address v == base_address arr + k)
@@ -450,7 +450,7 @@ fn gpu_array_paste'
     gpu_array_take arr k |-> Frac f s **
     gpu_array_drop arr k |-> Frac f t
   ensures
-    arr |-> Frac f (Seq.append s t) 
+    arr |-> Frac f (Seq.append s t)
 {
   admit()
 }
@@ -481,7 +481,7 @@ let rec index_mem_slice_lemma
       Seq.slice s a b @! Seq.index_mem x (Seq.slice s a b)
     )
     (decreases (b - a))
-= 
+=
   if a < b && s @! a <> x
     then index_mem_slice_lemma x s (a + 1) b
     else ()
@@ -591,7 +591,7 @@ let smatrix_extract_lemma
             let k' = index_mem_slice j (cast_pos col_ind') ri' re' in
             admit()
           )
-          else 
+          else
             assert not (mem_slice j (cast_pos col_ind) ri' re')
       )
       else admit()
@@ -654,17 +654,17 @@ fn smatrix_extract
       (m |-> Frac f e)
 
 {
-  
+
   unfold smatrix_pts_to m #f e;
 
   with (v_elems : seq _). assert m.elems |-> Frac f v_elems;
   with (v_col_ind : seq sz).  assert m.col_ind |-> Frac f v_col_ind;
   with (v_row_off : seq sz). assert m.row_off |-> Frac f v_row_off;
 
-  let ri : sz = gpu_array_read m.row_off i; 
+  let ri : sz = gpu_array_read m.row_off i;
   let i' : sz = i +^ 1sz;
   // por que falla esto?
-  //let re : sz = gpu_array_read m.row_off (i +^ 1sz); 
+  //let re : sz = gpu_array_read m.row_off (i +^ 1sz);
   let re : sz = gpu_array_read m.row_off i';
 
   gpu_array_cut m.elems #f ri;
@@ -672,7 +672,7 @@ fn smatrix_extract
 
   gpu_array_cut m.col_ind #f ri;
   gpu_array_cut (gpu_array_drop m.col_ind ri) #f (re -^ ri);
-  
+
 
   let srow : sarray et (SZ.v cols) =  {
     nnz = (re -^ ri);
@@ -696,7 +696,7 @@ fn smatrix_extract
     Seq.equal
       (cast_pos v_row_pos <: lseq nat (re - ri))
       (Seq.slice (cast_pos v_col_ind) ri re)
-  ); 
+  );
 
   gpu_array_share srow.elems #f;
   gpu_array_share srow.pos #f;

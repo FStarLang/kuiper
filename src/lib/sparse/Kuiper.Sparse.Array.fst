@@ -139,7 +139,7 @@ fn sarray_share_n
   forevery_map #(natlt n)
     (fun _ ->
       gpu_pts_to_slice a.elems #(f /. n) 0 a.nnz v_elems **
-      gpu_pts_to_slice a.pos #(f /. n) 0 a.nnz v_pos) 
+      gpu_pts_to_slice a.pos #(f /. n) 0 a.nnz v_pos)
     (fun _ -> a |-> Frac (f /. n) s)
     fn _ { fold sarray_pts_to a #(f /. n) s };
 }
