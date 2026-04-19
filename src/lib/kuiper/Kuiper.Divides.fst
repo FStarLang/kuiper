@@ -1,6 +1,5 @@
 module Kuiper.Divides
 
-open FStar.Mul
 module M = FStar.Math.Lemmas
 
 let get_factor (x y : int)

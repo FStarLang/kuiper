@@ -3,3 +3,4 @@
 - Expose instantiations in Kuiper.GEMM.Naive2.fsti, etc?
 - Make Kuiper.Concrete work on arbitrary constant nats
 - Try to reduce __anf variables in output CUDA
+- Try newer Z3's to see if we can get rid of --retry, --z3refresh, etc.

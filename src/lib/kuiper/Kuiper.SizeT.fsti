@@ -18,7 +18,6 @@ include FStar.SizeT {
   ( /^ ), ( %^ ), ( +^ ), ( -^ ), ( *^ ),
 }
 
-open FStar.Mul
 open Kuiper.Divides
 open Kuiper.Math
 

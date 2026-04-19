@@ -294,7 +294,7 @@ fn barrier_p_to_q_transform
   }
 }
 
-#push-options "--fuel 2"
+#push-options "--fuel 2 --z3rlimit 20"
 ghost
 fn fold_barrier_p_odd
   (#et : Type0) {| sized et, has_vec_cpy et |}

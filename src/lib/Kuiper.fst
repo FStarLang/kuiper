@@ -1,7 +1,5 @@
 module Kuiper
 
-include FStar.Mul
-
 include FStar.FunctionalExtensionality { (^->>), (^->) }
 
 include Pulse

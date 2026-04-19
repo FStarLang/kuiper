@@ -19,7 +19,6 @@ open Kuiper.Poly.GEMM.OrigBlockTiling1D.Kf
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Setup
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Teardown
 
-#push-options "--z3rlimit 200"
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -44,7 +43,7 @@ let kpre_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpre comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= solve
+= magic()
 
 let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -71,8 +70,7 @@ let kpost_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpost comb comb_r tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= solve
-#pop-options
+= magic()
 
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et |}

@@ -1,5 +1,7 @@
 module Kuiper.SizeT
 
+module SZ = FStar.SizeT
+
 let fits_iff_u32 (x:nat)
   : Lemma (FStar.SizeT.fits x <==> FStar.UInt.fits x 32)
           [SMTPat (FStar.SizeT.fits x)]

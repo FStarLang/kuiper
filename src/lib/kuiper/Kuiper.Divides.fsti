@@ -1,7 +1,5 @@
 module Kuiper.Divides
 
-open FStar.Mul
-
 let divides (x y : int) : prop =
   exists (z:int). x * z == y
 

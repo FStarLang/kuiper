@@ -2,7 +2,7 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D.Kf
 
 #lang-pulse
 
-#set-options "--z3rlimit 30"
+#set-options "--z3rlimit 60"
 
 open Kuiper
 open Kuiper.Approximates
@@ -123,10 +123,9 @@ fn subproducts1d
   }
 }
 
-// even 20 isn't evenough for the checking from the terminal
-//  (but enough for the vs code extension)
 #restart-solver
-#push-options "--z3rlimit 200 --ifuel 1"
+#push-options "--ifuel 1 --retry 3"
+
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}

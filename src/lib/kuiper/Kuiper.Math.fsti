@@ -1,7 +1,5 @@
 module Kuiper.Math
 
-open FStar.Mul
-
 include Kuiper.Divides
 
 let even (n : int) : GTot bool = n % 2 = 0

@@ -4,7 +4,6 @@ open Kuiper.SizeT
 module SZ = Kuiper.SizeT
 open FStar.Ghost
 open FStar.SizeT
-open FStar.Mul
 
 // class concretizable_as (st mt : Type) (s : st) = {
 //   evidence : mt;

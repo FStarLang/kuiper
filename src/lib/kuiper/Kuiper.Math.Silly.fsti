@@ -3,8 +3,6 @@ module Kuiper.Math.Silly
 (* A collection of silly lemmas to deal with
 bad non-linear arithmetic in Z3. *)
 
-open FStar.Mul
-
 val lemma_nonneg_mul (x y : int)
   : Lemma (requires x >= 0 /\ y >= 0)
           (ensures x * y >= 0)

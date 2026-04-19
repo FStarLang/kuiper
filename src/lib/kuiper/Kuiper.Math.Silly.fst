@@ -1,6 +1,5 @@
 module Kuiper.Math.Silly
 
-open FStar.Mul
 open Kuiper.Common
 module M = FStar.Math.Lemmas
 

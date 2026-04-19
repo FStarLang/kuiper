@@ -18,7 +18,7 @@ module SZ = Kuiper.SizeT
 open Kuiper.Poly.GEMM.OrigBlockTiling1D.Defs
 
 // split_queries: the combined queries time out and get auto-split anyway
-#push-options "--z3rlimit 120 --fuel 1 --ifuel 1 --split_queries always"
+#push-options "--split_queries always --retry 3"
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et, real_like et |}
@@ -68,11 +68,13 @@ fn block_teardown
 
   // Bridge back from nat-based to SizeT-based size
   forevery_rw_size (bm/tm * bn) (bm/^tm *^ bn);
+
+  ();
 }
 #pop-options
 
 // split_queries: the combined queries time out and get auto-split anyway
-#push-options "--z3rlimit 120 --fuel 1 --ifuel 1 --split_queries always"
+#push-options "--split_queries always --retry 3"
 ghost
 fn teardown
   (#et : Type0) {| scalar et, real_like et |}
