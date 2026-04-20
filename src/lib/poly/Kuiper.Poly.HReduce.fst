@@ -271,7 +271,7 @@ fn iteration
     forevery_ext
       (fun (from: natlt nth) ->
         if_ (op_Equality #int from (tid + pow2 it))
-          (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+          (if_ (match not (div_pow2 (it + 1) from) with true -> div_pow2 it from | false -> false)
             (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)))
       (fun (from: natlt nth) ->
         if_ (op_Equality #(natlt nth) from (tid + pow2 it))
@@ -335,7 +335,7 @@ fn iteration
     forevery_map
       (fun (from: natlt nth) ->
         if_ (op_Equality #int from (tid + pow2 it))
-          (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
+          (if_ (match not (div_pow2 (it + 1) from) with true -> div_pow2 it from | false -> false)
             (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr)))
       (fun from -> emp)
       fn from {
