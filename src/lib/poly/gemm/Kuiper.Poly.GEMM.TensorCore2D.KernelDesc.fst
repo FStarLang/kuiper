@@ -861,6 +861,10 @@ fn reconstruct_from_warp_approx
             (fun tr tc -> emf bid ((tr * (bn/(wn*tn)) + tc) * 32))))
     fn bid {
       forevery_factor (nthr / warp_size) (bm/(wm*tm)) (bn/(wn*tn)) _;
+      assert pure (forall (tr : natlt (bm/(wm*tm))) (tc : natlt (bn/(wn*tn))).
+                    (tr * (bn/(wn*tn)) + tc) / (bn/(wn*tn))  == tr);
+      assert pure (forall (tr : natlt (bm/(wm*tm))) (tc : natlt (bn/(wn*tn))).
+                    (tr * (bn/(wn*tn)) + tc) % (bn/(wn*tn))  == tc);
       forevery_ext_2 #(natlt (bm/(wm*tm))) #(natlt (bn/(wn*tn)))
         (fun tr tc ->
           gpu_matrix_pts_to
@@ -873,7 +877,6 @@ fn reconstruct_from_warp_approx
             (gpu_matrix_subtile (block_tile gC (SZ.v bm) (SZ.v bn) bid)
               (wm*tm) (wn*tn)
               tr tc)
-            // (emf bid (tr * (bn/(wn*tn)) + tc)))
             (emf bid ((tr * (bn/(wn*tn)) + tc) * warp_size)))
         ;
       gpu_matrix_untile' (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn)
