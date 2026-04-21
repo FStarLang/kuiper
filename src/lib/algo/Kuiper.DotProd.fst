@@ -63,6 +63,59 @@ fn dotprod
 }
 
 inline_for_extraction noextract
+fn kahan_dotprod
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#len : sz)
+  (#lA #lB : Array1.layout len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : Array1.t et lA)
+  (b : Array1.t et lB)
+  (#sA #sB : erased (lseq et len))
+  (rA rB : erased (lseq real len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  requires
+    pure (sA %~ rA /\ sB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ seq_dotprod rA rB len)
+{
+  let mut k : szle len = 0sz;
+  let mut sum : et = zero;
+  let mut c : et = zero; // compensation
+
+  while (!k <^ len)
+    invariant live k
+    invariant live sum ** pure (!sum %~ seq_dotprod rA rB !k)
+    invariant live c ** pure (!c %~ 0.0R)
+    decreases (len - !k)
+  {
+    let y = mul (Array1.(a.(!k))) (Array1.(b.(!k)));
+    a_mul (Array1.(a.(!k))) (Array1.(b.(!k))) (rA @! !k) (rB @! !k);
+    assert pure (y %~ ((rA @! !k) *. (rB @! !k)));
+    let yc = y `sub` !c;
+    sub_approx y !c ((rA @! !k) *. (rB @! !k)) 0.0R;
+    assert pure (yc %~ ((rA @! !k) *. (rB @! !k)));
+    let t = !sum `add` yc;
+    a_add (!sum) yc (seq_dotprod rA rB !k) ((rA @! !k) *. (rB @! !k));
+    assert pure (t %~ (seq_dotprod rA rB (!k + 1)));
+    sub_approx t !sum (seq_dotprod rA rB (!k + 1)) (seq_dotprod rA rB !k);
+    assert pure (t `sub` !sum %~ ((rA @! !k) *. (rB @! !k)));
+    c := (t `sub` !sum) `sub` yc;
+    sub_approx (t `sub` !sum) yc ((rA @! !k) *. (rB @! !k)) ((rA @! !k) *. (rB @! !k));
+    assert pure (!c %~ 0.0R);
+    sum := t;
+    k   := !k +^ 1sz;
+    ()
+  };
+  !sum
+}
+
+inline_for_extraction noextract
 fn matmul_dotprod
   (#et : Type0) {| scalar et |}
   (#m #n #k : sz)
@@ -91,6 +144,46 @@ fn matmul_dotprod
            #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
            #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
            (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j));
+
+  Array2.restore_row gA i;
+  Array2.restore_col gB j;
+
+  s;
+}
+
+inline_for_extraction noextract
+fn matmul_kahan_dotprod
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#m #n #k : sz)
+  (#lA : Array2.layout m k)
+  (#lB : Array2.layout k n)
+  {| ctlayout lA, ctlayout lB |}
+  (gA : Array2.t et lA)
+  (gB : Array2.t et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : ematrix et _ _)
+  (rA rB : ematrix real _ _)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (eA %~ rA /\ eB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ MS.matmul_single rA rB i j)
+{
+  Array2.extract_row_ro gA i;
+  Array2.extract_col_ro gB j;
+
+  let s = kahan_dotprod #_ #_ #_ #_ #_ #_ #_
+           #(Kuiper.Tensor.ctlayout_slice _ 0sz i) // should not be needed
+           #(Kuiper.Tensor.ctlayout_slice _ 1sz j) // should not be needed
+           (Array2.row gA (SZ.v i)) (Array2.col gB (SZ.v j))
+           (ematrix_row rA i) (ematrix_col rB j);
 
   Array2.restore_row gA i;
   Array2.restore_col gB j;

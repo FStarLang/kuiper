@@ -8,6 +8,7 @@ module Kuiper.DotProd
 open Kuiper
 open Kuiper.Tensor { ctlayout }
 open Kuiper.EMatrix
+open Kuiper.Approximates
 module MS = Kuiper.Spec.GEMM
 module Array1 = Kuiper.Array1
 
@@ -52,6 +53,29 @@ fn dotprod
   ensures
     pure (res == seq_dotprod sA sB len)
 
+(* A generic dot product between two Array1.t of the same length. *)
+inline_for_extraction noextract
+fn kahan_dotprod
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#len : sz)
+  (#lA #lB : Array1.layout len)
+  {| ctlayout lA, ctlayout lB |}
+  (a : Array1.t et lA)
+  (b : Array1.t et lB)
+  (#sA #sB : erased (lseq et len))
+  (rA rB : erased (lseq real len))
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    a |-> Frac fA sA **
+    b |-> Frac fB sB
+  requires
+    pure (sA %~ rA /\ sB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ seq_dotprod rA rB len)
+
 (* Specialized to compute a cell of a matmul by extracting the appropriate row
 and column as Array1's, then calling dotprod above. *)
 inline_for_extraction noextract
@@ -75,3 +99,29 @@ fn matmul_dotprod
     res : et
   ensures
     pure (res == MS.matmul_single eA eB i j)
+
+(* As above, but using Kahan summation. *)
+inline_for_extraction noextract
+fn matmul_kahan_dotprod
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (#m #n #k : sz)
+  (#lA : Array2.layout m k)
+  (#lB : Array2.layout k n)
+  {| ctlayout lA, ctlayout lB |}
+  (gA : Array2.t et lA)
+  (gB : Array2.t et lB)
+  (i : szlt m)
+  (j : szlt n)
+  (#eA #eB : ematrix et _ _)
+  (rA rB : ematrix real _ _)
+  (#fA #fB : perm)
+  preserves
+    gpu **
+    gA |-> Frac fA eA **
+    gB |-> Frac fB eB
+  requires
+    pure (eA %~ rA /\ eB %~ rB)
+  returns
+    res : et
+  ensures
+    pure (res %~ MS.matmul_single rA rB i j)
