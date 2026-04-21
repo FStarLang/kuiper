@@ -6,8 +6,6 @@ open Kuiper.Approximates
 module T = Kuiper.Tensor
 module M = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
-module MU = Kuiper.Poly.GEMM.Util
-module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 
 unfold
