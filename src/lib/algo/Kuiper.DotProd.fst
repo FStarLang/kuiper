@@ -56,7 +56,6 @@ fn dotprod
     invariant sum |-> seq_dotprod sA sB !k
     decreases (len - !k)
   {
-    let v1 = Array1.(a.(!k));
     sum := !sum `add` mul (Array1.(a.(!k))) (Array1.(b.(!k)));
     k   := !k +^ 1sz;
   };
