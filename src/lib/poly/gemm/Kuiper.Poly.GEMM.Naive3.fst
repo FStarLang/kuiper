@@ -138,7 +138,24 @@ fn setup
       kpre comb comb_r gA gB gC eA eB eC rA rB rC fA fB gid) **
     emp (* frame *)
 {
-  admit();
+  M.share_n gA (m *^ n);
+  M.share_n gB (m *^ n);
+
+  M.explode gC;
+  forevery_rw_type (M.ait m n) (natlt m & natlt n) _;
+  forevery_unflatten' _;
+  forevery_unfactor' (m *^ n) m n (fun r c ->
+    M.pts_to_cell gC (r, c) (macc eC r c));
+
+  forevery_zip #(natlt2 m n)
+    (fun _ -> gB |-> Frac (fB /. (m *^ n)) eB)
+    (fun i -> M.pts_to_cell gC ((i/n <: natlt m), (i%n <: natlt n)) (macc eC (i/n) (i%n)));
+  forevery_zip #(natlt2 m n)
+    (fun _ -> gA |-> Frac (fA /. (m *^ n)) eA)
+    _;
+
+  forevery_ext #(natlt2 m n) _ (kpre comb comb_r gA gB gC eA eB eC rA rB rC fA fB);
+  ();
 }
 
 ghost
@@ -173,7 +190,49 @@ fn teardown
     (exists* (eC : ematrix et m n).
       gC |-> eC ** pure (eC %~ MS.mmcomb comb_r rC rA rB))
 {
-  admit();
+  forevery_unzip3
+    (fun (gid : natlt (m *^ n)) -> gA |-> Frac (fA /. (m * n)) eA)
+    (fun (gid : natlt (m *^ n)) -> gB |-> Frac (fB /. (m * n)) eB)
+    _;
+
+  forevery_rw_type (natlt (m *^ n)) (natlt (m * n))
+    (fun _ -> M.pts_to #et gA #(fA /. (v m * v n)) eA);
+  forevery_rw_type (natlt (m *^ n)) (natlt (m * n))
+    (fun _ -> M.pts_to #et gB #(fB /. (v m * v n)) eB);
+
+  M.gather_n gA _;
+  M.gather_n gB _;
+
+  forevery_factor (m *^ n) m n _;
+  let vf = forevery_exists_2 #(natlt m) #_ #(natlt n) _;
+
+  forevery_ext_2 _
+    (fun (r : natlt m) (c : natlt n) ->
+      M.pts_to_cell gC (r, c) (vf r c) **
+        pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c));
+
+  forevery_extract_pure_2
+    (fun (r : natlt m) (c : natlt n) ->
+      M.pts_to_cell gC (r, c) (vf r c) **
+        pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c))
+    (fun (r : natlt m) (c : natlt n) ->
+      vf r c %~ MS.gemm_single comb_r rA rB rC r c)
+    fn r c { (); };
+
+  let eC' : ematrix et m n = mkM (fun (r : natlt m) (c : natlt n) -> vf r c);
+  forevery_map_2
+    (fun (r : natlt m) (c : natlt n) ->
+      M.pts_to_cell gC (r, c) (vf r c) **
+        pure (vf r c %~ MS.gemm_single comb_r rA rB rC r c))
+    (fun (r : natlt m) (c : natlt n) ->
+      M.pts_to_cell gC (r, c) (macc eC' r c))
+    fn r c { () };
+
+  forevery_flatten' (fun (rc : natlt m & natlt n) ->
+    M.pts_to_cell gC rc (macc eC' (fst rc) (snd rc)));
+  M.implode gC;
+  assert (pure (eC' %~ MS.mmcomb comb_r rC rA rB));
+  ();
 }
 
 inline_for_extraction noextract
