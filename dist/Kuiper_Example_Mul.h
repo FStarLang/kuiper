@@ -1,0 +1,12 @@
+
+#ifndef Kuiper_Example_Mul_H
+#define Kuiper_Example_Mul_H
+
+#include <kuiper.h>
+
+__device__
+    void Kuiper_Example_Mul_kf(uint64_t * a1, uint64_t * a2, uint64_t * ar,
+                               uint32_t bid);
+
+#define Kuiper_Example_Mul_H_DEFINED
+#endif                          /* Kuiper_Example_Mul_H */
