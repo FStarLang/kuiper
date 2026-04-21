@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMMGPU.Type
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates { real_like, approx2, (%~) }
 open Kuiper.EMatrix { ematrix, matrix_comb }
 module MS = Kuiper.Spec.GEMM
 module T = Kuiper.Tensor

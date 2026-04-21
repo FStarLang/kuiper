@@ -2,7 +2,6 @@ module Kuiper.GEMM.SHMem
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
 module P = Kuiper.Poly.GEMM.SHMem
 module M = Kuiper.Array2

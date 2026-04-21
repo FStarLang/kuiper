@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMMCPU
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Tensor.Layout
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT

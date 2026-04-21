@@ -4,7 +4,6 @@ friend Kuiper.Poly.GEMM.Naive (* We reuse some lemmas from Naive *)
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 module T = Kuiper.Tensor
 module M = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM

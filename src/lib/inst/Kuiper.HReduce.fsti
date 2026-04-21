@@ -3,7 +3,6 @@ module Kuiper.HReduce
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Seq.Common

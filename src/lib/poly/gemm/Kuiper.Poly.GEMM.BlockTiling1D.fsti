@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.BlockTiling1D
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
 
 let size_req : tiled_size_req_t =

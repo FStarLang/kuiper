@@ -2,7 +2,6 @@ module Kuiper.Poly.Softmax
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Array1
 open Kuiper.Real { rexp }
 module KS = Kuiper.Seq.Common

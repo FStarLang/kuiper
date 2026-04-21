@@ -3,8 +3,6 @@ module Kuiper.Example.IntApprox
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
-open Kuiper.Approximates.U32
 open Kuiper.Seq.Common
 module U32 = FStar.UInt32
 

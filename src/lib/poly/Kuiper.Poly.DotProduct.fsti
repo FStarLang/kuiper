@@ -3,7 +3,6 @@ module Kuiper.Poly.DotProduct
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 
 (* pointwise mul of sequences *)
 let pmul

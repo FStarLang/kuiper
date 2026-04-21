@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.Util
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Pulse.Lib.Trade
 module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM

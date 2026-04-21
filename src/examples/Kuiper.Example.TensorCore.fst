@@ -8,7 +8,6 @@ open Kuiper.Matrix.Tiling
 open Kuiper.Matrix.Reprs { row_major, col_major }
 open Kuiper.Spec.GEMM
 open Kuiper.EMatrix
-open Kuiper.Approximates { ( %~ ) }
 
 inline_for_extraction noextract instance c16 : concrete_sz 16 = { x = 16sz; }
 inline_for_extraction noextract instance c1 : concrete_sz 1 = { x = 1sz; }

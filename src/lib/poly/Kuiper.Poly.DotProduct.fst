@@ -19,7 +19,6 @@ friend Kuiper.Poly.HReduce (* use gpu_pts_to_slice_sum, refactor ! *)
 open Kuiper
 open Kuiper.Barrier.RPM
 open Kuiper.Math
-open Kuiper.Approximates
 open Kuiper.Tensor { ctlayout }
 
 module V = Pulse.Lib.Vec

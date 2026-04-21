@@ -2,7 +2,6 @@ module Kuiper.GEMM.Naive2
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
 module M = Kuiper.Array2
 open Kuiper.Tensor.Layout.Alg

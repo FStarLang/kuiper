@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D.Teardown
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.EMatrix
 open Kuiper.Matrix { gpu_matrix }
 open Kuiper.Matrix.Reprs.Type

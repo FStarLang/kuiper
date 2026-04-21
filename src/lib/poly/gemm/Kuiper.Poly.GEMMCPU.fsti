@@ -5,7 +5,6 @@ module Kuiper.Poly.GEMMCPU
 (* Invoking GEMMGPU, providing a wrapper callable from CPU code. *)
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Tensor.Layout
 open Kuiper.Poly.GEMMGPU.Type
 open Kuiper.EMatrix

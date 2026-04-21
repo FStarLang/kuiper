@@ -2,7 +2,6 @@ module Kuiper.GEMM.OrigBlockTiling1D
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Matrix.Reprs { row_major as RM, col_major as CM }
 open Kuiper.GEMM.OrigBlockTiling1D.Inst
 module MS = Kuiper.Spec.GEMM

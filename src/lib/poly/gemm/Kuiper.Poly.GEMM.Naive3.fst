@@ -2,7 +2,6 @@ module Kuiper.Poly.GEMM.Naive3
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 module T = Kuiper.Tensor
 module M = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM

@@ -6,7 +6,6 @@ open Kuiper
 #set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1"
 #set-options "--z3rlimit 120"
 
-open Kuiper.Approximates
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix { ematrix }
 open Kuiper.Float16

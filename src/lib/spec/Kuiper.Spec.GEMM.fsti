@@ -4,7 +4,6 @@ module Kuiper.Spec.GEMM
 provide any weak approximate spec. *)
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.EMatrix
 open Kuiper.EMatrix.Tiling
 

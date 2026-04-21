@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
 open Kuiper.Matrix
 open Kuiper.EMatrix

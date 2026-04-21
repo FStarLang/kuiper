@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.BlockTiling2D
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Poly.GEMMGPU.Type
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Matrix.Reprs.Type

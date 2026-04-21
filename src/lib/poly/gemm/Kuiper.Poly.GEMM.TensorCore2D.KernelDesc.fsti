@@ -5,7 +5,6 @@ module Kuiper.Poly.GEMM.TensorCore2D.KernelDesc
 #set-options "--z3rlimit 60"
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.Math { even, odd }

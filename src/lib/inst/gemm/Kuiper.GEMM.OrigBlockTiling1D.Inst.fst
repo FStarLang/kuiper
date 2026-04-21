@@ -2,7 +2,6 @@ module Kuiper.GEMM.OrigBlockTiling1D.Inst
 
 #lang-pulse
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 

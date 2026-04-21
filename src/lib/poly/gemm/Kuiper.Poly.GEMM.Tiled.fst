@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.Tiled
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Array2
 open Kuiper.Tensor.Layout

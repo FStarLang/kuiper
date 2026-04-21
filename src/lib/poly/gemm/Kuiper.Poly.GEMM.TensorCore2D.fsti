@@ -6,7 +6,6 @@ open Kuiper
 open Kuiper.Matrix
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Approximates
 
 open Kuiper.Matrix.Reprs
 module R = Kuiper.Matrix.Reprs

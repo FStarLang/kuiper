@@ -5,7 +5,6 @@ module Kuiper.Poly.GEMM.BlockTiling1D
 #set-options "--z3rlimit 40"
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Tensor.Tiling
 

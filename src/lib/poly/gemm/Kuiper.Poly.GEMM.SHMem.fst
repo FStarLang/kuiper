@@ -3,7 +3,6 @@ module Kuiper.Poly.GEMM.SHMem
 #lang-pulse
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.Tensor.Tiling
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 

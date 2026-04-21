@@ -5,7 +5,6 @@ module Kuiper.Poly.GEMM.OrigBlockTiling1D.Defs
 #set-options "--z3rlimit 30"
 
 open Kuiper
-open Kuiper.Approximates
 open Kuiper.EMatrix
 open Kuiper.Math { even, odd }
 open Kuiper.Matrix { gpu_matrix, gpu_matrix_pts_to, gpu_matrix_pts_to_cell }
