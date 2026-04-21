@@ -9,12 +9,13 @@ should not be the case once there are more flexible memcpy's. *)
 // A fused version is possible.
 
 #lang-pulse
-module Array1 = Kuiper.Array1
 
 open Kuiper
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
 module KS = Kuiper.Seq.Common
+module Array1 = Kuiper.Array1
+open Kuiper.Array1
 
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
@@ -52,7 +53,7 @@ fn arr_read_1
   (* FIXME: Need to give length of ca?!? *)
   gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz (core a) i 1sz;
 
-  let x = ca.(0sz);
+  let x = Pulse.Lib.Vec.(ca.(0sz));
   Pulse.Lib.Vec.free ca;
 
   map_loc gpu_loc
