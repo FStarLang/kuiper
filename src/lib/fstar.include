@@ -3,7 +3,6 @@ common
 data
 ghost
 graph
-inst
 kuiper
 math
 poly
