@@ -44,7 +44,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 
 TESTS+=$(notdir $(basename $(wildcard test/Test_*.cu)))
 
-NOTEST += Test_Kuiper_Softmax__F16
+# NOTEST += Test_Kuiper_Softmax__F16
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
 NOTEST += $(foreach f,$(TESTS),$(if $(findstring TensorCore,$(f)),$(f)))
 endif
