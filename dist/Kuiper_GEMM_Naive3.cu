@@ -12,15 +12,16 @@ static void __hoisted_0(uint32_t m, uint32_t n, uint32_t k, float *gA,
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        float sum = 0.0f;
+        float acc = 0.0f;
         float c = 0.0f;
         for (; k1 < k; k1++) {
-            float yc = gA[trow * k + k1] * gB[k1 * n + tcol] - c;
-            float t = sum + yc;
-            c = t - sum - yc;
-            sum = t;
+            uint32_t __anf0 = k1;
+            float yc = gA[trow * k + __anf0] * gB[__anf0 * n + tcol] - c;
+            float t = acc + yc;
+            c = t - acc - yc;
+            acc = t;
         }
-        gC[trow * n + tcol] = sum;
+        gC[trow * n + tcol] = acc;
     }
 }
 
@@ -45,15 +46,16 @@ static void __hoisted_1(uint32_t m, uint32_t n, uint32_t k, double *gA,
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double sum = 0.0l;
+        double acc = 0.0l;
         double c = 0.0l;
         for (; k1 < k; k1++) {
-            double yc = gA[trow * k + k1] * gB[k1 * n + tcol] - c;
-            double t = sum + yc;
-            c = t - sum - yc;
-            sum = t;
+            uint32_t __anf0 = k1;
+            double yc = gA[trow * k + __anf0] * gB[__anf0 * n + tcol] - c;
+            double t = acc + yc;
+            c = t - acc - yc;
+            acc = t;
         }
-        gC[trow * n + tcol] = sum;
+        gC[trow * n + tcol] = acc;
     }
 }
 
