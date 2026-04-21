@@ -222,15 +222,19 @@ $(OUTDIR)/%.krml: | .fstar.touch
 	$(Q)$(FSTAR) --codegen krml --load_cmxs $(PLUGIN) --extract "-*,+$(MOD),+Kuiper" -o $@ $<
 
 # Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: MOD=$(subst _,.,$(basename $(notdir $<)))
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h: $(OUTDIR)/%.krml .krml.touch
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: MOD=$(subst _,.,$(basename $(notdir $<)))
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
-	# Output into prel/
+	# Output into pre/
 	$(KRML) -bundle "$(MOD)=*" -tmpdir $(OUTDIR)/pre/ $<
 
-$(OUTDIR)/%: $(OUTDIR)/pre/% scripts/fixup.sed
-	# Postprocess via sed and generate the actual target
+# Postprocess via sed and generate the actual target
+# Do NOT use a wildcard without an extension or this can match
+# objects files and whatnot.
+$(OUTDIR)/%.cu: $(OUTDIR)/pre/%.cu scripts/fixup.sed
+	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
+$(OUTDIR)/%.h: $(OUTDIR)/pre/%.h scripts/fixup.sed
 	sed -f scripts/fixup.sed $< | indent -linux -i4 -nut > $@
 
 include nvcc.mk

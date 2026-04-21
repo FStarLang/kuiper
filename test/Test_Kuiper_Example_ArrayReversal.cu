@@ -1,4 +1,4 @@
-#include "Kuiper_ArrayReversal.h"
+#include "Kuiper_Example_ArrayReversal.h"
 #include "timing.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -28,7 +28,7 @@ int main()
 
         MUST(cudaMemcpy(aa, a, n * 8U, cudaMemcpyHostToDevice));
 
-        TIME_void(Kuiper_ArrayReversal_reverse_u64(n, aa), NULL);
+        TIME_void(Kuiper_Example_ArrayReversal_reverse_u64(n, aa), NULL);
 
         MUST(cudaMemcpy(a, aa, n * 8U, cudaMemcpyDeviceToHost));
 

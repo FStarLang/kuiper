@@ -1,4 +1,4 @@
-#include "Kuiper_Async_GEMM.h"
+#include "Kuiper_Example_Async_GEMM.h"
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -50,7 +50,7 @@ int main()
     MUST(cudaMemcpy
          (d, d_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
 
-    Kuiper_Async_GEMM_main(a, b, c, d, r);
+    Kuiper_Example_Async_GEMM_main(a, b, c, d, r);
 
     cmp(DIM, DIM, r, expected);
 

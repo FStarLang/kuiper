@@ -1,4 +1,4 @@
-#include "Kuiper_Sparse_GEMM.h"
+#include "Kuiper_Example_Sparse_SPMM.h"
 #include "test-common.h"
 #include "timing.h"
 #include <stdint.h>
@@ -7,7 +7,7 @@
 
 const char *progname = __FILE__;
 
-#define N 128
+#define N 1024
 
 typedef Kuiper_Sparse_Matrix_smatrix__uint32_t smatrix_t;
 
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     cudaMemcpy(dB, B, sizeof B[0] * N * N, cudaMemcpyHostToDevice);
     uint32_t *dC = (uint32_t *) kpr_wait_alloc(sizeof dC[0], N * N);
 
-    Kuiper_Sparse_GEMM__gemm_u32_rr(N, N, N, dA, dB, dC);
+    Kuiper_Example_Sparse_SPMM_spmm_u32(N, N, N, dA, dB, dC);
     matmul(AD, B, CD);
 
     uint32_t *C = (uint32_t *) calloc(N * N, sizeof C[0]);
