@@ -1,7 +1,6 @@
 module Kuiper.Approximates
 
 include Kuiper.Approximates.Base
-
 include Kuiper.Approximates.U8
 include Kuiper.Approximates.U16
 include Kuiper.Approximates.U32
@@ -10,10 +9,13 @@ include Kuiper.Approximates.F16
 include Kuiper.Approximates.F32
 include Kuiper.Approximates.F64
 
-open Kuiper
+open FStar.Ghost
 open FStar.Real
+open FStar.Seq
+open Pulse
 open Kuiper.Scalars
 open Kuiper.Seq.Common
+open Kuiper.Len
 
 (* This class provides some syntactic sugar to use the %~ operator
    on scalars, sequences, matrices, etc. *)

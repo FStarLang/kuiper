@@ -8,6 +8,7 @@ include Pulse.Lib.Vec { vec, op_Array_Assignment, op_Array_Access }
 
 include FStar.Seq { seq, lseq, cons, empty }
 
+include Kuiper.Real
 include Kuiper.ForEvery
 include Kuiper.Common
 include Kuiper.Epoch
@@ -31,6 +32,7 @@ include Kuiper.PtsTo
 include Kuiper.Enumerable { enumerable }
 include Kuiper.TradeHelpers
 include Kuiper.Scalars
+include Kuiper.Approximates
 
 [@@coercion; pulse_unfold]
 unfold let kpr_box_to_ref  (#a:Type0) (b:Pulse.Lib.Box.box a) : Pulse.Lib.Reference.ref a = Pulse.Lib.Box.box_to_ref b

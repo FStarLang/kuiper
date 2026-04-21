@@ -10,13 +10,12 @@ should not be the case once there are more flexible memcpy's. *)
 
 #lang-pulse
 module Array1 = Kuiper.Array1
+
 open Kuiper
-(* ^ Why do I need this? Is it because Kuiper is a module and not a namespace? *)
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
 module KS = Kuiper.Seq.Common
-open Kuiper.Real
-open Kuiper.Approximates
+
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 

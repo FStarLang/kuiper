@@ -1,6 +1,6 @@
 module Kuiper.Approximates.U64
 
-open Kuiper
+open Kuiper.IntAliases
 open Kuiper.Scalars
 open Kuiper.Approximates.Base
 open FStar.Real

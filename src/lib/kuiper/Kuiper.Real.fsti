@@ -1,7 +1,7 @@
 module Kuiper.Real
 
 open FStar.Real
-include FStar.Real { of_int }
+include FStar.Real
 
 (* The exp function is assumed. F*'s real formalization
 does not expose one. *)

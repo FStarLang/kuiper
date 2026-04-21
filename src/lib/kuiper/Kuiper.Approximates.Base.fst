@@ -1,8 +1,7 @@
 module Kuiper.Approximates.Base
 
-open Kuiper
-open Kuiper.Scalars
 open Kuiper.Real
+open Kuiper.Scalars
 
 (* This class is meant for scalar types that can "approximate" or
 "model" real numbers. *)

@@ -1,6 +1,5 @@
 module Kuiper.Approximates
 
-open Kuiper
 open FStar.Real
 open Kuiper.Scalars
 
