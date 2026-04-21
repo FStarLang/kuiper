@@ -1,4 +1,4 @@
-module Kuiper.Sparse.Example
+module Kuiper.Example.Sparse.Example
 
 #lang-pulse
 open Kuiper

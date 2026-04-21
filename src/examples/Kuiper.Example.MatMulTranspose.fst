@@ -1,4 +1,4 @@
-module Kuiper.MatMulTranspose
+module Kuiper.Example.MatMulTranspose
 
 #lang-pulse
 open Kuiper

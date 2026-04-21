@@ -1,4 +1,4 @@
-module Kuiper.BasicFloat
+module Kuiper.Example.BasicFloat
 
 #lang-pulse
 

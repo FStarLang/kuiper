@@ -1,4 +1,4 @@
-module Kuiper.Sparse.GEMM
+module Kuiper.Example.Sparse.GEMM
 
 #lang-pulse
 

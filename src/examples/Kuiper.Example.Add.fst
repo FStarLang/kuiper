@@ -1,4 +1,4 @@
-module Kuiper.Add
+module Kuiper.Example.Add
 
 (* Testing basic polymorphism *)
 

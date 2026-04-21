@@ -1,4 +1,4 @@
-module Kuiper.ArrayView.Test.Modulo
+module Kuiper.Example.ArrayView.Test.Modulo
 
 (* Striding an array. *)
 #lang-pulse

@@ -1,4 +1,4 @@
-module Kuiper.ZeroKernel
+module Kuiper.Example.ZeroKernel
 
 #lang-pulse
 open Kuiper

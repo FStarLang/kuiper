@@ -1,4 +1,4 @@
-module Kuiper.Async1
+module Kuiper.Example.Async1
 
 #lang-pulse
 

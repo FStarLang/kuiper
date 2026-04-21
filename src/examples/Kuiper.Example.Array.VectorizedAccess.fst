@@ -1,4 +1,4 @@
-module Kuiper.Array.VectorizedAccess
+module Kuiper.Example.Array.VectorizedAccess
 #lang-pulse
 
 open Kuiper

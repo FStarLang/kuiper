@@ -1,4 +1,4 @@
-module Kuiper.Sparse.DotProduct
+module Kuiper.Example.Sparse.DotProduct
 
 #lang-pulse
 open Kuiper

@@ -1,4 +1,4 @@
-module Kuiper.DotProduct.Poly
+module Kuiper.Example.DotProduct.Poly
 
 #lang-pulse
 

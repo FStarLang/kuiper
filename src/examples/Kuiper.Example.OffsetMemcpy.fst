@@ -1,4 +1,4 @@
-module Kuiper.OffsetMemcpy
+module Kuiper.Example.OffsetMemcpy
 
 (* Test that gpu_memcpy_host_to_device' and gpu_memcpy_device_to_host'
    correctly handle non-zero offsets. Catches the extraction bug where

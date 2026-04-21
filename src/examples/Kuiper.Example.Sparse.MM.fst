@@ -1,5 +1,5 @@
 
-module Kuiper.Sparse.MM
+module Kuiper.Example.Sparse.MM
 
 #lang-pulse
 open Kuiper

@@ -1,4 +1,4 @@
-module Kuiper.ArrayReversal
+module Kuiper.Example.ArrayReversal
 #lang-pulse
 open Pulse.Lib
 open Pulse.Lib.Pervasives

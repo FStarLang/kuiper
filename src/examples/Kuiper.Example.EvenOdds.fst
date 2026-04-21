@@ -1,4 +1,4 @@
-module Kuiper.EvenOdds
+module Kuiper.Example.EvenOdds
 
 (* Some common definitions for the even/odds example. *)
 

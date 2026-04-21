@@ -1,4 +1,4 @@
-module Kuiper.ArrayView.Test.EvenOdds2
+module Kuiper.Example.ArrayView.Test.EvenOdds2
 
 (* Splitting an array into two varrays, of the even and odd
 positions in it. This simpler version does not transform
@@ -10,7 +10,7 @@ open Kuiper.View
 open Kuiper.VArray
 open Kuiper.Bijection
 open Kuiper.Injection
-open Kuiper.EvenOdds
+open Kuiper.Example.EvenOdds
 module IView = Kuiper.IView
 module SZ    = FStar.SizeT
 

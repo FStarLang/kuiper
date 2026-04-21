@@ -1,4 +1,4 @@
-module Kuiper.Stencil
+module Kuiper.Example.Stencil
 
 #lang-pulse
 

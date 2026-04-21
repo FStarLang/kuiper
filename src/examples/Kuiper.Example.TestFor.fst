@@ -1,4 +1,4 @@
-module TestFor
+module Kuiper.Example.TestFor
 
 #lang-pulse
 

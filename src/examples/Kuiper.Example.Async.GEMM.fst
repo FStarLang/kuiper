@@ -1,4 +1,4 @@
-module Kuiper.Async.GEMM
+module Kuiper.Example.Async.GEMM
 
 #lang-pulse
 
