@@ -67,6 +67,8 @@ instance scalar_dist : scalar dist = {
   one = D 1us;
   add = add';
   mul = mult;
+  gt = (fun _ _ -> false); // fake, not used by GEMM
+  gte = (fun _ _ -> false); // fake, not used by GEMM
 }
 
 ghost

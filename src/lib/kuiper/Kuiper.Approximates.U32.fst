@@ -6,6 +6,8 @@ open Kuiper.Approximates.Base
 open FStar.Real
 open Kuiper.Math.Silly { mod_prod }
 
+#set-options "--z3seed 1" // FIXME, work around Z3 crash
+
 (* For the integer types, we can actually define the relation
 and prove it. BUT, we must consider overflow! So we make the relation
 weaker than you may expect. *)
