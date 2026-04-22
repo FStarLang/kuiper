@@ -67,7 +67,7 @@ __global__
 */
 static void __hoisted_3(float *ga)
 {
-    ga[blockIdx.x] = exp(ga[blockIdx.x]);
+    ga[blockIdx.x] = expf(ga[blockIdx.x]);
 }
 
 __global__
