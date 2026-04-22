@@ -9,7 +9,7 @@ open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
 
 module M = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
-module P = Kuiper.Poly.GEMM.BlockTiling2D
+module K = Kuiper.Kernel.GEMM.BlockTiling2D
 module SZ = Kuiper.SizeT
 
 #set-options "--z3rlimit 80"
@@ -83,7 +83,7 @@ fn spec
   assert pure (aligned_strided_row_major (chunk et)
                 (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
 
-  P.mmcomb_gpu_exact
+  K.mmcomb_gpu_exact
     (fun o n -> mul beta o `add` mul alpha n)
     #rows #shared #cols
     gA #eA gB #eB gC #eC

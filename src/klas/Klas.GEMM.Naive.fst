@@ -2,12 +2,12 @@ module Klas.GEMM.Naive
 
 #lang-pulse
 open Kuiper
-open Kuiper.Poly.GEMMGPU.Type
+open Kuiper.Kernel.GEMMGPU.Type
 module M = Kuiper.Array2
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
-module P = Kuiper.Poly.GEMM.Naive
+module K = Kuiper.Kernel.GEMM.Naive
 
 (* As matmul, row-major for now. *)
 inline_for_extraction noextract
@@ -23,7 +23,7 @@ fn spec
   preserves
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB)
   requires
-    pure (P.size_req m n k) **
+    pure (K.size_req m n k) **
     pure (eA %~ rA /\ eB %~ rB) **
     on gpu_loc (gC |-> eC)
   ensures (
@@ -35,7 +35,7 @@ fn spec
   map_loc gpu_loc (fun () -> M.pts_to_ref gB);
   map_loc gpu_loc (fun () -> M.pts_to_ref gC);
 
-  P.mmcomb_gpu_approx
+  K.mmcomb_gpu_approx
     (fun _o n -> n) (fun _o n -> n)
     gA gB gC
     rA rB (to_real_matrix eC);
@@ -47,7 +47,7 @@ let g_matmul_f64_rrr = spec f64
 let g_matmul_u32_rrr = spec u32
 let g_matmul_u64_rrr = spec u64
 
-// let g_matmul_f32_rrr = spec_gpu P.mmcomb_gpu_exact f32 RM RM RM
-// let g_matmul_f64_rrr = spec_gpu P.mmcomb_gpu_exact f64 RM RM RM
-// let g_matmul_u32_rrr = spec_gpu P.mmcomb_gpu_exact u32 RM RM RM
-// let g_matmul_u64_rrr = spec_gpu P.mmcomb_gpu_exact u64 RM RM RM
+// let g_matmul_f32_rrr = spec_gpu K.mmcomb_gpu_exact f32 RM RM RM
+// let g_matmul_f64_rrr = spec_gpu K.mmcomb_gpu_exact f64 RM RM RM
+// let g_matmul_u32_rrr = spec_gpu K.mmcomb_gpu_exact u32 RM RM RM
+// let g_matmul_u64_rrr = spec_gpu K.mmcomb_gpu_exact u64 RM RM RM

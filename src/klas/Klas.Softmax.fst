@@ -3,8 +3,8 @@ module Klas.Softmax
 #lang-pulse
 open Kuiper
 
-module P = Kuiper.Poly.Softmax
+module K = Kuiper.Kernel.Softmax
 
-let softmax_f16 : P.softmax_ty f16 = P.softmax
-let softmax_f32 : P.softmax_ty f32 = P.softmax
-let softmax_f64 : P.softmax_ty f64 = P.softmax
+let softmax_f16 : K.softmax_ty f16 = K.softmax
+let softmax_f32 : K.softmax_ty f32 = K.softmax
+let softmax_f64 : K.softmax_ty f64 = K.softmax

@@ -73,7 +73,7 @@ make lint-c         # indent test/*.cu files
 - **`src/lib/kuiper/`** — Core library: arrays, refs, barriers, atomics, kernels, separation logic combinators (`ForEvery`, `Bijection`, `Injection`), math utilities
 - **`src/lib/data/`** — Matrix and array data structures, tiling, vectorized access
 - **`src/lib/spec/`** — Pure specifications (e.g., `Kuiper.Spec.GEMM` for matmul)
-- **`src/lib/poly/`** — Polymorphic (type-generic) kernel implementations
+- **`src/lib/kernel/`** — Polymorphic (type-generic) kernel implementations
 - **`src/lib/inst/`** — Monomorphic instantiations of polymorphic kernels (these get extracted to CUDA)
 - **`src/lib/views/`** — Array views for zero-copy sub-arrays
 - **`src/lib/ghost/`** — Ghost (erased) utilities

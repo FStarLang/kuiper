@@ -3,9 +3,9 @@ common
 data
 ghost
 graph
+kernel
 kuiper
 math
-poly
 sparse
 spec
 views

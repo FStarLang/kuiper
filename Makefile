@@ -101,7 +101,7 @@ wc:
 	echo Examples only:
 	find src/examples/ \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 	echo GEMMs in polymorphic form:
-	find src/lib/poly/gemm \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
+	find src/lib/kernel/gemm \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 	echo Data views:
 	find src/lib/data \( -name '*.fst' -o -name '*.fsti' \) -exec cat {} \+ | grep '[^ ]' | wc -l
 

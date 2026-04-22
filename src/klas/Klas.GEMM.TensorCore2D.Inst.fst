@@ -10,7 +10,7 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 
 module SZ = Kuiper.SizeT
 
-open Kuiper.Poly.GEMM.TensorCore2D
+open Kuiper.Kernel.GEMM.TensorCore2D
 
 #push-options "--split_queries always --z3rlimit 40" // very slow without splitting? flaky nevertheless
 

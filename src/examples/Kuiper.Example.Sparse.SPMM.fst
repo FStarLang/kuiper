@@ -15,7 +15,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Reprs
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-open Kuiper.Poly.GEMMGPU.Type { size_req_t }
+open Kuiper.Kernel.GEMMGPU.Type { size_req_t }
 
 let slice_live
   (#et : Type0)

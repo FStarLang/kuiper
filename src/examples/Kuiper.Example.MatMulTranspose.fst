@@ -2,7 +2,7 @@ module Kuiper.Example.MatMulTranspose
 
 #lang-pulse
 open Kuiper
-open Kuiper.Poly.GEMMGPU.Type
+open Kuiper.Kernel.GEMMGPU.Type
 open Kuiper.EMatrix
 open Kuiper.Tensor.Layout.Alg
 
@@ -51,6 +51,6 @@ TODO: It would be nicer to do this just over a CPU-side matmul, but there is no
 view-like interface for CPU arrays."]
 let matmul_transpose_gpu_f32_ff #m #n #k =
   matmul_transpose_gpu
-    Kuiper.Poly.GEMM.Naive.mmcomb_gpu_exact
+    Kuiper.Kernel.GEMM.Naive.mmcomb_gpu_exact
     #f32 #_
     #m #n #k

@@ -6,8 +6,8 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
 module M = Kuiper.Matrix
-module MU = Kuiper.Poly.GEMM.Util
-module P = Kuiper.Poly.GEMM.OrigBlockTiling1D
+module MU = Kuiper.Kernel.GEMM.Util
+module K = Kuiper.Kernel.GEMM.OrigBlockTiling1D
 
 inline_for_extraction noextract
 fn spec
@@ -61,7 +61,7 @@ fn spec
   let mrows   = rows   /^ bm;
   let mshared = shared /^ bk;
   let mcols   = cols   /^ bn;
-  P.mmcomb_gpu_approx
+  K.mmcomb_gpu_approx
     comb comb_r
     bm bn bk
     #(rows/^bm) #(shared/^bk) #(cols/^bn)

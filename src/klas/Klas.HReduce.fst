@@ -4,7 +4,7 @@ module Klas.HReduce
 
 open Kuiper
 open Kuiper.Tensor.Layout.Alg
-module P = Kuiper.Poly.HReduce
+module K = Kuiper.Kernel.HReduce
 
 inline_for_extraction noextract
 fn inst
@@ -26,7 +26,7 @@ fn inst
       pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr)
   )
 {
-  P.reduce lena a vr;
+  K.reduce lena a vr;
 }
 
 let reduce_f16_plus : reduce_ty f16 l1_forward = inst _ _

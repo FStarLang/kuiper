@@ -2,13 +2,13 @@ module Klas.GEMM.Tiled
 
 #lang-pulse
 open Kuiper
-open Kuiper.Poly.GEMMGPU.Type
+open Kuiper.Kernel.GEMMGPU.Type
 module M = Kuiper.Array2
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-module P = Kuiper.Poly.GEMM.Tiled
+module K = Kuiper.Kernel.GEMM.Tiled
 
 // Note: all row major until we support layout families better
 inline_for_extraction noextract
@@ -28,7 +28,7 @@ fn spec
     cpu ** on gpu_loc (gA |-> Frac fA eA ** gB |-> Frac fB eB) **
     pure (tile /? m /\ tile /? n /\ tile /? k)
   requires
-    pure (P.size_req m n k tile) **
+    pure (K.size_req m n k tile) **
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
     on gpu_loc (gC |-> eC)
   ensures (
@@ -44,7 +44,7 @@ fn spec
   let nn = n /^ tile;
   let kk = k /^ tile;
 
-  P.mmcomb_gpu_approx tile
+  K.mmcomb_gpu_approx tile
     comb comb_r
     #mm #nn #kk
     #(l2_row_major m k) #(l2_row_major k n) #(l2_row_major m n)

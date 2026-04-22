@@ -4,7 +4,7 @@ module Kuiper.Example.Stencil
 
 open Kuiper
 open Kuiper.Matrix.Reprs { row_major, col_major }
-open Kuiper.Poly.Stencil
+open Kuiper.Kernel.Stencil
 
 let stencil3x3_f32_add_rr (#rows #cols : (x:szp{x >= 3}))
 =

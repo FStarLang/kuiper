@@ -11,7 +11,7 @@ let matmul_f32_tiles64x8_8x64_rc8_rrr =
 
 // This combination of tile sizes is forbidden!
 //  The generated code contains dynamic guards that immediately fail.
-// let matmul_f32_tiles32x32_32x32_rc32_rrr = spec_cpu (mmcomb_gpu_block_tiled1d P.mmcomb_gpu 32sz 32sz 32sz 32sz) f32 RM RM RM
+// let matmul_f32_tiles32x32_32x32_rc32_rrr = spec_cpu (mmcomb_gpu_block_tiled1d K.mmcomb_gpu 32sz 32sz 32sz 32sz) f32 RM RM RM
 
 let g_gemm_f32_tiles64x8_8x64_rc8_rrr alpha beta =
   to_real_ok alpha;

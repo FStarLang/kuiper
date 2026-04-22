@@ -6,7 +6,7 @@ open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
 open Kuiper.Matrix
 open Kuiper.Matrix.Reprs
-open Kuiper.Poly.GEMM.TensorCore
+open Kuiper.Kernel.GEMM.TensorCore
 open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT

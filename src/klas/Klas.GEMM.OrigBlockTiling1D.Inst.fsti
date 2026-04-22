@@ -6,7 +6,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 
 module M = Kuiper.Matrix
-module MU = Kuiper.Poly.GEMM.Util
+module MU = Kuiper.Kernel.GEMM.Util
 
 inline_for_extraction noextract
 fn spec

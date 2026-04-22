@@ -11,7 +11,7 @@ open Kuiper.TensorCore
 
 module SZ = Kuiper.SizeT
 
-open Kuiper.Poly.GEMM.TensorCore
+open Kuiper.Kernel.GEMM.TensorCore
 
 inline_for_extraction noextract
 fn specialize_gpu

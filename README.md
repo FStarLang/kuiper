@@ -137,7 +137,7 @@ and layouts (`data/`), pure functional specifications (`spec/`), array views
 (`views/`), and ghost utilities (`ghost/`).
 
 Some kernels are written in highly-polymorphic style and later instantiated.
-Modules in `src/lib/poly/` are polymorphic over an element type `et` and perhaps
+Modules in `src/lib/kernel/` are polymorphic over an element type `et` and perhaps
 layouts, tile sizes, etc.  Modules in `src/lib/inst/` are instantiations that
 bind `et` to concrete types; these are what actually get extracted to CUDA.
 
