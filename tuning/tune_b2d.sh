@@ -2,9 +2,9 @@
 
 set -eu
 
-make -f verify.mk obj/Kuiper_GEMM_BlockTiling2D.o
+make -f verify.mk obj/Klas_GEMM_BlockTiling2D.o
 
-funcs=$(grep -Eo 'Kuiper_GEMM_BlockTiling2D_g_gemm_[^() ]*' obj/Kuiper_GEMM_BlockTiling2D.cu)
+funcs=$(grep -Eo 'Klas_GEMM_BlockTiling2D_g_gemm_[^() ]*' obj/Klas_GEMM_BlockTiling2D.cu)
 
 outf=$(mktemp -p . tune_XXXXXX.out)
 
@@ -16,7 +16,7 @@ go () {
 
   for func in $funcs; do
     # Skip the dynamic versions
-    if [ "$func" = "Kuiper_GEMM_BlockTiling2D_g_gemm_f32_8x8" ]
+    if [ "$func" = "Klas_GEMM_BlockTiling2D_g_gemm_f32_8x8" ]
     then
       echo "Skipping $func"
       continue
@@ -28,8 +28,8 @@ go () {
             -Dtile_sizes= \
             -Dregch_sizes= \
             -Det_lbl= \
-            obj/Kuiper_GEMM_BlockTiling2D.o \
-            test/Tune_Kuiper_GEMM_BlockTiling2D.cu
+            obj/Klas_GEMM_BlockTiling2D.o \
+            test/Tune_Klas_GEMM_BlockTiling2D.cu
     ./bench.exe 50 4096 4096 4096 0 || echo "RES ERROR"
   done
 }

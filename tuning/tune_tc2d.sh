@@ -2,9 +2,9 @@
 
 set -eu
 
-make -f verify.mk obj/Kuiper_GEMM_TensorCore2D.o
+make -f verify.mk obj/Klas_GEMM_TensorCore2D.o
 
-funcs=$(grep -Eo 'Kuiper_GEMM_TensorCore2D_g_gemm_[^() ]*' obj/Kuiper_GEMM_TensorCore2D.cu)
+funcs=$(grep -Eo 'Klas_GEMM_TensorCore2D_g_gemm_[^() ]*' obj/Klas_GEMM_TensorCore2D.cu)
 
 outf=$(mktemp -p . tune_XXXXXX.out)
 
@@ -16,9 +16,9 @@ go () {
 
   for func in $funcs; do
     # Skip the dynamic versions
-    if [ "$func" = "Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_2x2" ] \
-    || [ "$func" = "Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_4x4" ] \
-    || [ "$func" = "Kuiper_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_8x8" ]
+    if [ "$func" = "Klas_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_2x2" ] \
+    || [ "$func" = "Klas_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_4x4" ] \
+    || [ "$func" = "Klas_GEMM_TensorCore2D_g_gemm_f16_f16_16x16x16_8x8" ]
     then
       echo "Skipping $func"
       continue
@@ -32,8 +32,8 @@ go () {
             -Dtc_tile_sizes= \
             -Dregch_sizes= \
             -Det_lbl= \
-            obj/Kuiper_GEMM_TensorCore2D.o \
-            test/Tune_Kuiper_GEMM_TensorCore2D.cu
+            obj/Klas_GEMM_TensorCore2D.o \
+            test/Tune_Klas_GEMM_TensorCore2D.cu
     ./bench.exe 200 4096 4096 4096 0 || echo "RES ERROR"
   done
 }
