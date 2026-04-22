@@ -62,13 +62,9 @@ EXTRACT_MINIMAL :=
 
 # Extract everything in src/examples
 EXTRACT += $(wildcard src/examples/*.fst)
-# Extract everything in src/lib/inst, they are the C api for the library
-EXTRACT += $(wildcard src/lib/inst/*.fst)
-# And src/lib/inst/gemm...
-EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
+# Extract everything in src/klas , they are the C api for the library
+EXTRACT += $(wildcard src/klas/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
-EXTRACT += src/examples/Kuiper.Example2.fst
-
 NOEXTRACT :=
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
@@ -81,8 +77,8 @@ extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT))))
 extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
 EXTRACT_MINIMAL := $(EXTRACT)
-EXTRACT_MINIMAL := $(filter-out src/lib/inst/gemm/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
-EXTRACT_MINIMAL := $(filter-out src/lib/inst/gemm/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
+EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
+EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
 EXTRACT_MINIMAL := $(filter-out src/examples/Kuiper.Example.TensorCore.fst, $(EXTRACT_MINIMAL))
 
 extract-minimal: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))
