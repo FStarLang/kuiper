@@ -609,7 +609,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.sub",  [], [] -> EOp (Sub, Float)
   | "Kuiper.Float32.mul",  [], [] -> EOp (Mult, Float)
   | "Kuiper.Float32.div",  [], [] -> EOp (Div, Float)
-  | "Kuiper.Float32.exp",  [], [] -> EQualified ([], "exp")
+  | "Kuiper.Float32.exp",  [], [] -> EQualified ([], "expf")
   | "Kuiper.Float32.log",  [], [] -> EQualified ([], "logf")
 
   | "Kuiper.Float64.zero", [], [] -> EConstant (Double, "0.0l")
