@@ -11,14 +11,25 @@ open Kuiper.Seq.Common
 open Kuiper.Tensor
 
 inline_for_extraction noextract
-val kmap
+fn map_gpu
   (#et : Type0)
   (f: et -> et)
   (lena : szp{ lena <= max_blocks })
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l)
   (#_ : squash (Array1.is_global a))
-  (#s : erased (lseq et lena))
-  : kernel_desc
-      (requires a |-> s)
-      (ensures  a |-> lseq_map f s)
+  (#s: erased (lseq et lena))
+  preserves cpu
+  requires  on gpu_loc (a |-> s)
+  ensures   on gpu_loc (a |-> lseq_map f s)
+
+inline_for_extraction noextract
+fn map_host
+  (#et : Type0) {| sized et |}
+  (f: et -> et)
+  (lena : szp{ lena <= max_blocks })
+  (a : Pulse.Lib.Vec.lvec et lena)
+  (#s: erased (lseq et lena))
+  preserves cpu
+  requires  a |-> s
+  ensures   a |-> lseq_map f s

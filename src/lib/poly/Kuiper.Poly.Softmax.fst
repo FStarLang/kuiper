@@ -121,7 +121,7 @@ fn softmax_gpu
       pure (va' %~ softmax_real ra)
 {
   (* Pointwise exponentiation. *)
-  launch_sync (Kuiper.Poly.Map.kmap exp lena a);
+  Kuiper.Poly.Map.map_gpu exp lena a;
 
   (* Compute sum. Need swap space since hreduce trashes the input. *)
   let a' = Array1.alloc0 #et lena (l1_forward lena);
@@ -134,7 +134,7 @@ fn softmax_gpu
   Array1.free a';
 
   (* Divide by sum *)
-  launch_sync (Kuiper.Poly.Map.kmap (fun x -> div x sum) lena a);
+  Kuiper.Poly.Map.map_gpu (fun x -> div x sum) lena a;
 
   softmax_approx va ra sum;
   ()
