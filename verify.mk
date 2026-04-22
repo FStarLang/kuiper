@@ -64,6 +64,7 @@ karamel/Makefile:
 	[ -f $@ ] || touch $@
 	find karamel -type f -newer $@ -exec touch $@ \; -quit
 
+.krml.touch: .fstar.touch # Make sure we reinstall after installing F*, since it also install a krml binary
 .krml.touch: .krml.src.touch karamel/Makefile
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
