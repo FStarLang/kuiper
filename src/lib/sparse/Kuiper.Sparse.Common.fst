@@ -7,6 +7,10 @@ module SZ = FStar.SizeT
 // This is here to force extraction.
 let _ = 1ul
 
+(* Misc *)
+
+let divup (n : nat) (d : pos) : GTot nat = ((n + d - 1) / d)
+
 (* Propiedades sobre escalares *)
 
 assume
@@ -102,3 +106,30 @@ let cast_pos
     (ensures fun npos -> forall i. npos @! i == SZ.v (pos @! i))
 =
   Seq.map_seq SZ.v pos
+
+
+let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop
+= in_bounds 0 l s /\ sorted s
+
+let seq_make_sparse
+  (#et : Type0) {| scalar et |}
+  (#nnz #n : nat)
+  (pos : lseq nat nnz{valid_pos n pos})
+  (s : lseq et n)
+  : lseq et nnz
+=
+  Seq.init nnz (fun i -> s @! (pos @! i))
+
+// renombrar a seq_unsparse
+let unsparse
+  (#et:Type0) {| scalar et |}
+  (nnz l : nat)
+  (elems : lseq et nnz)
+  (pos   : lseq nat nnz)
+  : GTot (lseq et l)
+=
+  let open FStar.Seq in
+  init l fun i ->
+    if mem i pos
+      then elems @! index_mem i pos
+      else zero

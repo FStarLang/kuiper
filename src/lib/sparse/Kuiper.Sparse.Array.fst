@@ -9,9 +9,6 @@ module SZ = FStar.SizeT
 let _ = 1ul
 
 (* Sparse array *)
-noextract
-let valid_pos (#nnz l : nat) (s : lseq nat nnz) : prop
-= in_bounds 0 l s /\ sorted s
 
 noeq
 inline_for_extraction
@@ -23,18 +20,6 @@ type sarray (et : Type0)
   pos   : gpu_array sz nnz; // posición de cada elemento
 }
 
-let unsparse
-  (#et:Type0) {| scalar et |}
-  (nnz l : nat)
-  (elems : lseq et nnz)
-  (pos   : lseq nat nnz)
-  : GTot (lseq et l)
-=
-  let open FStar.Seq in
-  init l fun i ->
-    if mem i pos
-      then elems @! index_mem i pos
-      else zero
 
 unfold
 let pure_sarray_pts_to

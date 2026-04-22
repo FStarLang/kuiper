@@ -1,4 +1,4 @@
-module Kuiper.Example.Sparse.SPMM
+module Kuiper.Sparse.SPMM
 
 //#set-options "--z3rlimit 20"
 (* #set-options "--debug SMTFail --split_queries always" *)

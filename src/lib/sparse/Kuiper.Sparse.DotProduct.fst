@@ -1,59 +1,228 @@
-module Kuiper.Example.Sparse.DotProduct
+module Kuiper.Sparse.DotProduct
 
 #lang-pulse
 open Kuiper
-open Kuiper.Sparse
+open Kuiper.Sparse.Common
+open Kuiper
 module SZ = FStar.SizeT
 module KSeq = Kuiper.Seq.Common
 
-let rec _dprod
+//TODO ver lib/algo/Kuiper.DotProd
+
+
+let scale
+  (#et:_) {| scalar et |}
+  (#n : nat)
+  (k : et)
+  (s : lseq et n)
+  : (lseq et n)
+=
+  Seq.init n (fun i -> k `mul`(s @! i))
+
+let _comb
+  (#et:_) {| scalar et |}
+  (#n : nat)
+  (#acc_l : nat)
+  (acc : lseq et acc_l)
+  (k : et)
+  (s : lseq et n)
+  (to : natle n)
+  : Ghost (lseq et acc_l) (requires n <= acc_l) (ensures fun _ -> true)
+=
+  Seq.init_ghost acc_l (fun i ->
+    if i < to
+      then (acc @! i) `add` (k `mul`(s @! i))
+      else acc @! i
+  )
+
+let _comb_lemma
+  (#et:_) {| scalar et |}
+  (#n : nat)
+  (#acc_l : nat)
+  (acc : lseq et acc_l)
+  (k : et)
+  (s : lseq et n)
+  (to : natlt n)
+: Lemma
+  (requires n <= acc_l)
+  (ensures
+    Seq.upd (_comb acc k s to) to ((acc @! to) `add` (k `mul` (s @! to))) ==
+    _comb acc k s (to + 1)
+  )
+=
+  assert Seq.equal
+    (Seq.upd (_comb acc k s to) to ((acc @! to) `add` (k `mul` (s @! to))))
+    (_comb acc k s (to + 1))
+
+let comb
+  (#et:_) {| scalar et |}
+  (#n : nat)
+  (#acc_l : nat)
+  (acc : lseq et acc_l)
+  (k : et)
+  (s : lseq et n)
+  : Ghost (lseq et acc_l) (requires n <= acc_l) (ensures fun _ -> true)
+=
+  _comb acc k s n
+
+let rec _dprod_acc
+  (#et:_) {| scalar et |}
+  (acc : et)
+  (#n : nat)
+  (s t : lseq et n)
+  (to : natle n)
+  : et
+= 
+  if to = 0
+    then acc
+    else
+      add
+        (_dprod_acc acc s t (to - 1))
+        ((s @! to - 1) `mul` (t @! to - 1))
+
+let dprod_acc
+  (#et:_) {| scalar et |}
+  (acc : et)
+  (#n : nat)
+  (s t : lseq et n)
+  : et
+= _dprod_acc acc s t n
+
+let rec _dprod_acc_lemma0
+  (#et:_) {| scalar et |}
+  (#n1 #n2 : nat)
+  (acc : et)
+  (s1 t1 : lseq et n1)
+  (s2 t2 : lseq et n2)
+  (to : natle n1)
+: Lemma
+  (requires true)
+  (ensures
+    _dprod_acc acc s1 t1 to ==
+    _dprod_acc acc #(n1 + n2) (Seq.append s1 s2) (Seq.append t1 t2) to
+  ) 
+=
+  if to = 0
+    then ()
+    else _dprod_acc_lemma0 acc s1 t1 s2 t2 (to - 1)
+
+let rec _dprod_acc_lemma
+  (#et:_) {| scalar et |}
+  (#n1 #n2 : nat)
+  (acc : et)
+  (s1 t1 : lseq et n1)
+  (s2 t2 : lseq et n2)
+  (to : natle n2)
+: Lemma
+  (requires true)
+  (ensures
+    _dprod_acc (dprod_acc acc s1 t1) s2 t2 to ==
+    _dprod_acc acc #(n1 + n2) (Seq.append s1 s2) (Seq.append t1 t2) (n1 + to)
+  ) 
+=
+  if to = 0
+    then _dprod_acc_lemma0 acc s1 t1 s2 t2 n1
+    else _dprod_acc_lemma acc s1 t1 s2 t2 (to - 1)
+
+let dprod_acc_lemma
+  (#et:_) {| scalar et |}
+  (acc : et)
+  (#n1 : nat)
+  (s1 t1 : lseq et n1)
+  (#n2 : nat)
+  (s2 t2 : lseq et n2)
+: Lemma
+  (requires true)
+  (ensures
+    dprod_acc (dprod_acc acc s1 t1) s2 t2 ==
+    dprod_acc acc #(n1 + n2) (Seq.append s1 s2) (Seq.append t1 t2)
+  ) 
+=
+  _dprod_acc_lemma acc s1 t1 s2 t2 n2
+
+let dprod_acc_lemma'
+  (#et:_) {| scalar et |}
+  (#n : nat)
+  (acc : et)
+  (s t : lseq et n)
+  (to : natle n)
+: Lemma
+  (requires true)
+  (ensures
+    dprod_acc
+      (dprod_acc acc #to (fst (Seq.split s to)) (fst (Seq.split t to)))
+      #(n - to)
+      (snd (Seq.split s to)) (snd (Seq.split t to)) ==
+    dprod_acc acc s t
+  )
+=
+  let s1, s2 = Seq.split s to in
+  let t1, t2 = Seq.split t to in
+
+  Seq.lemma_split s to;
+  Seq.lemma_split t to;
+
+  dprod_acc_lemma acc #to s1 t1 #(n - to) s2 t2
+
+let _dprod
   (#et:_) {| scalar et |}
   (#n : nat)
   (s t : lseq et n)
   (to : natle n)
-  : GTot et
+  : et
 =
-  if to = 0
-    then zero
-    else
-      add
-        (_dprod s t (to - 1))
-        ((s @! to - 1) `mul` (t @! to - 1))
+  _dprod_acc zero s t to
 
 
 let dprod
   (#et:_) {| scalar et |}
   (#n : nat)
   (s t : lseq et n)
-  : GTot et
+  : et
 = _dprod s t n
 
-
 noextract
-let rec _sparse_dprod
+let _sparse_dprod_acc
   (#et : Type0) {| scalar et |}
   (#nnz #n : nat) //{nnz <= n})
+  (acc : et)
   (elems : lseq et nnz)
   (pos : lseq nat nnz{valid_pos n pos})
   (t : lseq et n)
   (to : natle nnz)
-  : GTot et
+  : et
 =
-  if to = 0
-    then zero
-    else
-      add
-        (_sparse_dprod elems pos t (to - 1))
-        (mul (elems @! to - 1) (t @! (pos @! to - 1)))
+  _dprod_acc acc elems (seq_make_sparse pos t) to
 
 noextract
+let sparse_dprod_acc
+  (#et : Type0) {| scalar et |}
+  (#n : nat )//{nnz <= n})
+  (acc : et)
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz{valid_pos n pos})
+  (t : lseq et n)
+  : et
+= _sparse_dprod_acc acc elems pos t nnz
+
+let _sparse_dprod
+  (#et : Type0) {| scalar et |}
+  (#nnz #n : nat )//{nnz <= n})
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz{valid_pos n pos})
+  (t : lseq et n)
+  (to : natle nnz)
+  : et
+= _sparse_dprod_acc zero elems pos t to
+
 let sparse_dprod
   (#et : Type0) {| scalar et |}
   (#nnz #n : nat )//{nnz <= n})
   (elems : lseq et nnz)
   (pos : lseq nat nnz{valid_pos n pos})
   (t : lseq et n)
-  : GTot et
+  : et
 = _sparse_dprod elems pos t nnz
 
 let rec dprod_all_zeros
@@ -116,6 +285,7 @@ let sparse_dprod_lemma
       dprod_all_zeros s t ((pos @! nnz - 1) + 1) n
     )
 
+(*
 inline_for_extraction noextract
 fn sarray_product_dense
   (#et : eqtype) {| scalar et |}
@@ -191,3 +361,5 @@ let rec seq_fold_left_lemma
     else seq_fold_left_lemma f #(n - 1) (f acc (v @! 0)) (seq_drop 1 v)
 
 let sarray_product_dense_u32 #len = sarray_product_dense #u32 #_ #len
+
+*)
