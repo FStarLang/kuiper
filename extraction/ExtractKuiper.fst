@@ -594,14 +594,16 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
    (* For halfs, using operators worked locally but failed on CI, probably
    depends on CUDA version. Just use the intrinsics. *)
+  // TODO: review exactly which variant to use here. There are also
+  // __hexp and __hlog that are faster but numerically worse.
   | "Kuiper.Float16.zero", [], [] -> EConstant (Half, "0.0f")
   | "Kuiper.Float16.one",  [], [] -> EConstant (Half, "1.0f")
   | "Kuiper.Float16.add",  [], [] -> EQualified ([], "__hadd")
   | "Kuiper.Float16.sub",  [], [] -> EQualified ([], "__hsub")
   | "Kuiper.Float16.mul",  [], [] -> EQualified ([], "__hmul")
   | "Kuiper.Float16.div",  [], [] -> EQualified ([], "__hdiv")
-  | "Kuiper.Float16.exp",  [], [] -> EQualified ([], "__hexp")
-  | "Kuiper.Float16.log",  [], [] -> EQualified ([], "__hlog")
+  | "Kuiper.Float16.exp",  [], [] -> EQualified ([], "hexp")
+  | "Kuiper.Float16.log",  [], [] -> EQualified ([], "hlog")
 
   | "Kuiper.Float32.zero", [], [] -> EConstant (Float, "0.0f")
   | "Kuiper.Float32.one",  [], [] -> EConstant (Float, "1.0f")
