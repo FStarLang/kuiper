@@ -9,7 +9,7 @@ never referenced externally are reported.
 
 By default, excludes:
   - Files under src/examples/ (standalone demos)
-  - Files under src/lib/inst/ (auto-generated kernel instantiations)
+  - Files under src/klas      (externally visible)
   - Auto-generated files (containing "AUTOMATICALLY GENERATED")
   - Private definitions
   - Definitions starting with __
@@ -77,7 +77,7 @@ def is_generated(content):
 def is_excluded_path(filepath, args):
     if not args.include_examples and '/examples/' in filepath:
         return True
-    if not args.include_inst and '/inst/' in filepath:
+    if not args.include_klas and '/klas/' in filepath:
         return True
     return False
 
@@ -198,11 +198,11 @@ def main():
 
     filt = parser.add_argument_group('filtering')
     filt.add_argument('--all', action='store_true',
-                      help='Include everything (examples, inst, generated, private, etc.)')
+                      help='Include everything (examples, klas, generated, private, etc.)')
     filt.add_argument('--include-examples', action='store_true',
                       help='Include src/examples/ files')
-    filt.add_argument('--include-inst', action='store_true',
-                      help='Include src/lib/inst/ files (auto-generated instantiations)')
+    filt.add_argument('--include-klas', action='store_true',
+                      help='Include src/klas/ files (externally visible)')
     filt.add_argument('--include-generated', action='store_true',
                       help='Include auto-generated files')
     filt.add_argument('--include-private', action='store_true',
@@ -226,7 +226,7 @@ def main():
 
     if args.all:
         args.include_examples = True
-        args.include_inst = True
+        args.include_klas = True
         args.include_generated = True
         args.include_private = True
         args.include_underscored = True
