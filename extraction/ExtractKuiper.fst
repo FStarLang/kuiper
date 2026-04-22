@@ -601,6 +601,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.mul",  [], [] -> EQualified ([], "__hmul")
   | "Kuiper.Float16.div",  [], [] -> EQualified ([], "__hdiv")
   | "Kuiper.Float16.exp",  [], [] -> EQualified ([], "__hexp")
+  | "Kuiper.Float16.log",  [], [] -> EQualified ([], "__hlog")
 
   | "Kuiper.Float32.zero", [], [] -> EConstant (Float, "0.0f")
   | "Kuiper.Float32.one",  [], [] -> EConstant (Float, "1.0f")
@@ -609,6 +610,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.mul",  [], [] -> EOp (Mult, Float)
   | "Kuiper.Float32.div",  [], [] -> EOp (Div, Float)
   | "Kuiper.Float32.exp",  [], [] -> EQualified ([], "exp")
+  | "Kuiper.Float32.log",  [], [] -> EQualified ([], "logf")
 
   | "Kuiper.Float64.zero", [], [] -> EConstant (Double, "0.0l")
   | "Kuiper.Float64.one",  [], [] -> EConstant (Double, "1.0l")
@@ -617,6 +619,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.mul",  [], [] -> EOp (Mult, Double)
   | "Kuiper.Float64.div",  [], [] -> EOp (Div, Double)
   | "Kuiper.Float64.exp",  [], [] -> EQualified ([], "exp")
+  | "Kuiper.Float64.log",  [], [] -> EQualified ([], "log")
 
   (******** REFERENCES ********)
 
