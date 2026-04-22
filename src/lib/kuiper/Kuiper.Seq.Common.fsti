@@ -114,3 +114,17 @@ let seq_drop
   : seq a
 =
   slice s n (length s)
+
+
+// Unfortunate to have to define and use this
+let seq_refine #a (p : a -> prop)
+  (s : seq a { forall i. p (s @! i) })
+  : GTot (lseq (x:a{p x}) (Seq.length s))
+  = Seq.init_ghost #(x:a{p x}) (Seq.length s) (fun i -> s @! i)
+
+val lem_seq_refine_at #a (p : a -> prop)
+  (s : seq a { forall i. p (s @! i) })
+  (i : nat {i < Seq.length s})
+  : Lemma ((seq_refine p s) @! i == s @! i)
+          // [SMTPat (seq_refine #a p s @! i)]
+          // ^ Does not seem to work (warns)

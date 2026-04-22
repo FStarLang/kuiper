@@ -1,7 +1,5 @@
 module Kuiper.Kernel.LogSoftmax
 
-friend Kuiper.Kernel.Softmax
-
 (*
 This implements log_softmax, essentially softmax + a pointwise log,
 but due to error concerns the result is computed differently.
@@ -33,21 +31,11 @@ open Kuiper.Array1
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
-let map_div_avg (#et:Type0) {| floating et |} (s:Seq.seq et) (avg:et) =
-  let exps = seq_map exp s in
-  seq_map (fun x -> div x avg) s
-
-let rec sum_non_zero
-    (s:seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
-    (acc:real)
-: Lemma
-  (requires Seq.length s > 0)
-  (ensures  seq_fold_left add acc s >. acc)
-  (decreases Seq.length s)
-= if Seq.length s = 1 then ()
-  else
-    let SCons hd tl = view_seq s in
-    sum_non_zero tl (add acc hd <: real)
+(* Alternative definition closer to what we compute. *)
+let log_softmax_real' (s:Seq.seq real { Seq.length s > 0 }) =
+  let exps = seq_map rexp s in
+  let summ : real = rsum exps in
+  lseq_map #_ #_ #(Seq.length s) (fun x -> x -. rlog summ) s
 
 (* Should add enough exp/log facts to prove this. *)
 let real_log_softmax_lemma (s : seq real{len s > 0})
@@ -55,12 +43,19 @@ let real_log_softmax_lemma (s : seq real{len s > 0})
   = let aux (i : natlt (len s)) : Lemma ((log_softmax_real s @! i) == (log_softmax_real' s @! i)) =
       calc (==) {
         log_softmax_real s @! i;
-        == { _ by (Tactics.compute ()) } // hmm
-        rlog (rexp (s @! i) /. (SM.sum #real (seq_map rexp s)));
         == {}
-        rlog (rexp (s @! i)) -. rlog (SM.sum #real (seq_map rexp s));
+        lseq_map rlog (seq_refine (fun x -> x >. 0.0R) (SM.softmax_real s))
+          @! i;
         == {}
-        (s @! i) -. rlog (SM.sum #real (seq_map rexp s));
+        rlog (seq_refine (fun x -> x >. 0.0R) (SM.softmax_real s) @! i);
+        == { lem_seq_refine_at #real (fun x -> x >. 0.0R) (SM.softmax_real s) i } // FIXME: should be automatic
+        rlog (SM.softmax_real s @! i);
+        == {}
+        rlog (rexp (s @! i) /. (rsum (seq_map rexp s)));
+        == {}
+        rlog (rexp (s @! i)) -. rlog (rsum (seq_map rexp s));
+        == {}
+        (s @! i) -. rlog (rsum (seq_map rexp s));
         == {}
         log_softmax_real' s @! i;
       };
@@ -73,17 +68,17 @@ let real_log_softmax_lemma (s : seq real{len s > 0})
 let log_softmax_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
     (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
-    (summ : et{summ %~ SM.sum (seq_map rexp r0)})
+    (summ : et{summ %~ rsum (seq_map rexp r0)})
   : Lemma (ensures seq_map (fun x -> x `sub` log summ) s0 %~ log_softmax_real r0)
   = let lhs = seq_map (fun x -> x `sub` log summ) s0 in
     let aux (i : natlt (len r0)) : Lemma ((lhs @! i) %~ (log_softmax_real' r0 @! i)) =
       let x = s0 @! i in
       assert (x %~ (r0 @! i));
-      assert ((summ <: et) %~ SM.sum (seq_map rexp r0));
-      log_approx summ (SM.sum #real (seq_map rexp r0));
-      assert (log summ %~ rlog (SM.sum #real (seq_map rexp r0)));
-      sub_approx x (log summ) (r0 @! i) (rlog (SM.sum #real (seq_map rexp r0)));
-      assert ((x `sub` log summ)   %~  ((r0 @! i) -. rlog (SM.sum #real (seq_map rexp r0))));
+      assert ((summ <: et) %~ rsum (seq_map rexp r0));
+      log_approx summ (rsum (seq_map rexp r0));
+      assert (log summ %~ rlog (rsum (seq_map rexp r0)));
+      sub_approx x (log summ) (r0 @! i) (rlog (rsum (seq_map rexp r0)));
+      assert ((x `sub` log summ)   %~  ((r0 @! i) -. rlog (rsum (seq_map rexp r0))));
       ()
     in
     Classical.forall_intro aux;
@@ -119,7 +114,7 @@ fn softmax_gpu
 
   (* Compute sum *)
   Kuiper.Kernel.HReduce.reduce lena a' (seq_map rexp ra);
-  let sum = SM.arr_read_1 a' 0sz;
+  let sum = arr_read_1 a' 0sz;
   Array1.free a';
 
   (* Compute pointwise log softmax. *)

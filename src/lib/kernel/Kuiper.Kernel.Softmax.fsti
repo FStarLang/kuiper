@@ -6,21 +6,10 @@ open Kuiper.Real { rexp }
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 
-// FIXME: If this is only used on reals it should be specialized.
-let sum (#et:Type0) {| scalar et |} (s:seq et) =
-  seq_fold_left add zero s
-
-val sum_non_zero
-    (s:seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
-    (acc:real)
-  : Lemma (requires Seq.length s > 0)
-          (ensures seq_fold_left add acc s >. acc)
-          [SMTPat (seq_fold_left add acc s)]
-
 let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
   let exps = seq_map rexp s in
-  let summ : real = sum exps in
-  seq_map FStar.Real.(fun x -> rexp x /. summ) s
+  let summ : real = rsum exps in
+  seq_map (fun x -> rexp x /. summ) s
 
 unfold
 type softmax_ty (et : Type0) {| floating et, real_like et |} =
@@ -41,4 +30,4 @@ type softmax_ty (et : Type0) {| floating et, real_like et |} =
 
 inline_for_extraction noextract
 val softmax (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-: softmax_ty et
+  : softmax_ty et

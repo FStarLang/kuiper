@@ -2,6 +2,8 @@ module Kuiper.Real
 
 open FStar.Real
 include FStar.Real
+open Kuiper.Seq.Common
+open Kuiper.Common
 
 (* The exp function is assumed. F*'s real formalization
 does not expose one. *)
@@ -38,3 +40,17 @@ val log_mul (x y : real{x >. 0.0R /\ y >. 0.0R})
 val log_div (x y : real{x >. 0.0R /\ y >. 0.0R})
   : Lemma (ensures rlog (x /. y) == rlog x -. rlog y)
           [SMTPat (rlog (x /. y))]
+
+let rsum (s : Seq.seq real) : real = seq_fold_left (+.) 0.0R s
+
+let rec sum_non_zero
+    (s : Seq.seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
+    (acc:real)
+  : Lemma (requires Seq.length s > 0)
+          (ensures seq_fold_left (+.) acc s >. acc)
+          (decreases Seq.length s)
+          [SMTPat (seq_fold_left (+.) acc s)]
+  = if Seq.length s = 1 then ()
+    else
+      let SCons hd tl = view_seq s in
+      sum_non_zero tl (acc +. hd <: real)
