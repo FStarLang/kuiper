@@ -34,6 +34,7 @@ class floating (t : Type) = {
   sub : t -> t -> t;
   div : t -> t -> t;
   exp : t -> t;
+  log : t -> t;
 }
 
 inline_for_extraction
@@ -85,12 +86,12 @@ instance _ : scalar F16.t =
   }
 
 inline_for_extraction
-instance _ : floating F16.t = {
-  is_scalar = solve;
-  sub = F16.sub;
-  div = F16.div;
-  exp = F16.exp;
-}
+instance _ : floating F16.t =
+  let open Kuiper.Float16 in
+  {
+    is_scalar = solve;
+    sub; div; exp; log;
+  }
 
 inline_for_extraction
 instance _ : scalar F32.t =
@@ -101,12 +102,12 @@ instance _ : scalar F32.t =
   }
 
 inline_for_extraction
-instance _ : floating F32.t = {
-  is_scalar = solve;
-  sub = F32.sub;
-  div = F32.div;
-  exp = F32.exp;
-}
+instance _ : floating F32.t =
+  let open Kuiper.Float32 in
+  {
+    is_scalar = solve;
+    sub; div; exp; log;
+  }
 
 inline_for_extraction
 instance _ : scalar F64.t =
@@ -117,12 +118,12 @@ instance _ : scalar F64.t =
   }
 
 inline_for_extraction
-instance _ : floating F64.t = {
-  is_scalar = solve;
-  sub = F64.sub;
-  div = F64.div;
-  exp = F64.exp;
-}
+instance _ : floating F64.t =
+  let open Kuiper.Float64 in
+  {
+    is_scalar = solve;
+    sub; div; exp; log;
+  }
 
 noextract
 instance _ : scalar Real.real =

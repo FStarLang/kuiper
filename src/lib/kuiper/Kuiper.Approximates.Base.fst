@@ -62,4 +62,8 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
   div_approx : x:a -> y:a -> r:real -> s:real{s =!= 0.0R} ->
                 Lemma (requires v_approximates x r /\ v_approximates y s)
                       (ensures v_approximates (div x y) (r /. s));
+
+  log_approx : x:a -> r:real ->
+                Lemma (requires v_approximates x r)
+                      (ensures v_approximates (log x) (rlog r));
 }
