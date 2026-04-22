@@ -596,8 +596,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
    depends on CUDA version. Just use the intrinsics. *)
   // TODO: review exactly which variant to use here. There are also
   // __hexp and __hlog that are faster but numerically worse.
-  | "Kuiper.Float16.zero", [], [] -> EConstant (Half, "0.0f")
-  | "Kuiper.Float16.one",  [], [] -> EConstant (Half, "1.0f")
+  | "Kuiper.Float16.zero", [], [] -> EConstant (Half, "__float2half_rn(0.0f)")
+  | "Kuiper.Float16.one",  [], [] -> EConstant (Half, "__float2half_rn(1.0f)")
   | "Kuiper.Float16.add",  [], [] -> EQualified ([], "__hadd")
   | "Kuiper.Float16.sub",  [], [] -> EQualified ([], "__hsub")
   | "Kuiper.Float16.mul",  [], [] -> EQualified ([], "__hmul")
