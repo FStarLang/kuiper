@@ -18,15 +18,14 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |}
      (#va : erased (lseq et len))
      (vr : erased (lseq real len))
   preserves
-    cpu
+    cpu **
+    on gpu_loc (a |-> va)
   requires
-    on gpu_loc (a |-> va) **
     pure (va %~ vr)
-  ensures (
-    exists* (va' : lseq et len).
-      on gpu_loc (a |-> va') **
-      pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr)
-  )
+  returns
+    res : et
+  ensures
+    pure (res %~ rsum vr)
 
 val reduce_f16_plus : reduce_ty f16 l1_forward
 val reduce_f32_plus : reduce_ty f32 l1_forward

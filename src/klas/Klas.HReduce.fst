@@ -15,16 +15,16 @@ fn inst
   (a : Array1.t et (lay lena) { Array1.is_global a })
   (#va : erased (lseq et lena))
   (vr : erased (lseq real lena))
+  norewrite // no purification on fsti
   preserves
-    cpu
+    cpu **
+    on gpu_loc (a |-> va)
   requires
-    on gpu_loc (a |-> va) **
     pure (va %~ vr)
-  ensures (
-    exists* (va' : lseq et lena).
-      on gpu_loc (a |-> va') **
-      pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr)
-  )
+  returns
+    res : et
+  ensures
+    pure (res %~ rsum vr)
 {
   K.reduce lena a vr;
 }

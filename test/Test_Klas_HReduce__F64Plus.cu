@@ -21,13 +21,13 @@ void test(int siz)
 
     MUST(cudaMemcpy(ga, a, siz * sizeof(double), cudaMemcpyHostToDevice));
 
-    Klas_HReduce_reduce_f64_plus(siz, ga);
+    double res = Klas_HReduce_reduce_f64_plus(siz, ga);
 
     MUST(cudaMemcpy(a, ga, siz * sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 
-    printf("%lf\n", a[0]);
-    if (a[0] != siz * (siz - 1) / 2)
+    printf("%lf\n", res);
+    if (res != siz * (siz - 1) / 2)
         ok = false;
     free(a);
 }

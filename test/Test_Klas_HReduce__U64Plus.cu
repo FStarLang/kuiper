@@ -22,13 +22,13 @@ void test(int siz)
 
     MUST(cudaMemcpy(ga, a, siz * sizeof(uint64_t), cudaMemcpyHostToDevice));
 
-    Klas_HReduce_reduce_u64_plus(siz, ga);
+    uint64_t res = Klas_HReduce_reduce_u64_plus(siz, ga);
 
     MUST(cudaMemcpy(a, ga, siz * sizeof(uint64_t), cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 
-    printf("%" PRIu64 "\n", a[0]);
-    if (a[0] != siz * (siz - 1) / 2)
+    printf("%" PRIu64 "\n", res);
+    if (res != siz * (siz - 1) / 2)
         ok = false;
     free(a);
 }

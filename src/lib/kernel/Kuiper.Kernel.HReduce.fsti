@@ -3,7 +3,6 @@ module Kuiper.Kernel.HReduce
 #lang-pulse
 
 open Kuiper
-open Kuiper.Seq.Common
 open Kuiper.Tensor { ctlayout }
 module Array1 = Kuiper.Array1
 
@@ -18,15 +17,14 @@ type reduce_ty (et : Type0) {| scalar et, real_like et |} =
      (#va : erased (lseq et len))
      (vr : erased (lseq real len))
   preserves
-    cpu
+    cpu **
+    on gpu_loc (a |-> va)
   requires
-    on gpu_loc (a |-> va) **
     pure (va %~ vr)
-  ensures (
-    exists* (va' : lseq et len).
-      on gpu_loc (a |-> va') **
-      pure ((va' @! 0) %~ seq_fold_left (+.) 0.0R vr)
-  )
+  returns
+    res : et
+  ensures
+    pure (res %~ rsum vr)
 
 inline_for_extraction noextract
 val reduce (#et:Type0) {| scalar et, real_like et |} : reduce_ty et
