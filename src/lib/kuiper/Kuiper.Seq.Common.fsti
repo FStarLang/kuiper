@@ -30,6 +30,9 @@ let ( @+ ) (#a:Type) (s1 s2 : seq a) : seq a = Seq.append s1 s2
 let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
   Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
 
+let lseq_map (#a #b : Type) (#len : nat) (f: a -> b) (s: lseq a len) : GTot (lseq b len) =
+  seq_map f s
+
 let lseq_upd (#a:Type) (#n:nat) (s : lseq a n) (i : nat { i < n }) (v : a)
   : GTot (lseq a n)
   = Seq.upd s i v

@@ -13,7 +13,6 @@ should not be the case once there are more flexible memcpy's. *)
 open Kuiper
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
-module KS = Kuiper.Seq.Common
 module Array1 = Kuiper.Array1
 open Kuiper.Array1
 
@@ -69,105 +68,11 @@ fn arr_read_1
   x;
 }
 
-ghost
-fn explode_setup
-  (#et : Type0)
-  (lena : nat)
-  (#l : Array1.layout lena)
-  (a : Array1.t et l)
-  (#s : erased (lseq et lena))
-  ()
-  norewrite
-  requires
-    (a |-> s)
-  ensures
-    (forall+ (bid : natlt lena).
-      Cell a bid |-> (Seq.index s bid)) **
-    pure (SZ.fits (layout_size l))
-{
-  Array1.pts_to_ref a;
-  Array1.explode a;
-}
-
-ghost
-fn explode_teardown
-  (#et : Type0)
-  (f : et -> et)
-  (lena : nat)
-  (#l : Array1.layout lena)
-  (a : Array1.t et l)
-  (#s : erased (lseq et lena))
-  ()
-  norewrite
-  requires
-    (forall+ (bid : natlt lena).
-      Cell a bid |-> (f (s @! bid))) **
-    pure (SZ.fits (layout_size l))
-  ensures
-    a |-> (Kuiper.Seq.Common.seq_map f s <: lseq et lena)
-{
-  forevery_map
-    (fun (i:natlt lena) -> Cell a i |-> (f (s @! i)))
-    (fun (i:natlt lena) -> Cell a i |-> ((KS.seq_map f s)@!i))
-    fn x { () };
-  Array1.implode a;
-}
-
-inline_for_extraction noextract
-fn kf_map
-  (#et : Type0)
-  (f : et -> et)
-  (#lena : erased nat)
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l)
-  (#s : erased (lseq et lena) )
-  (bid : szlt lena)
-  ()
-  requires
-    gpu **
-    Cell a (bid <: natlt lena) |-> (s@!bid) **
-    block_id lena bid
-  ensures
-    gpu **
-    Cell a (bid <: natlt lena) |-> (f (s@!bid)) **
-    block_id lena bid
-{
-  let x = Array1.read_cell a bid;
-  Array1.write_cell a bid (f x);
-}
-
-inline_for_extraction noextract
-let kmap
-  (#et : Type0)
-  (f: et -> et)
-  (lena : szp{ lena <= max_blocks })
-  (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l)
-  (#_ : squash (Array1.is_global a))
-  (#s : erased (lseq et lena))
-: kernel_desc
-    (a |-> s)
-    (a |-> (Kuiper.Seq.Common.seq_map f s <: lseq et lena)) =
-{
-  nblk = lena;
-  f = kf_map f a;
-
-  frame    = pure (SZ.fits (layout_size l));
-  teardown = explode_teardown f lena a;
-  setup    = explode_setup lena a;
-  kpre =  (fun (i:natlt lena) -> Cell a i |-> (s@!i));
-  kpost = (fun (i:natlt lena) -> Cell a i |-> (f (s@!i)));
-  kpost_sendable = solve;
-  kpre_sendable  = solve;
-} <: kernel_desc_m_1 _ _
-
 let map_div_avg (#et:Type0) {| floating et |} (s:Seq.seq et) (avg:et) =
-  let open Kuiper.Seq.Common in
   let exps = seq_map exp s in
   seq_map (fun x -> div x avg) s
 
 let softmax_spec (#et:Type0) {| floating et |} (s:Seq.seq et) =
-  let open Kuiper.Seq.Common in
   let exps = seq_map exp s in
   let avg = seq_fold_left add zero exps in
   map_div_avg exps avg
@@ -177,22 +82,22 @@ let rec sum_non_zero
     (acc:real)
 : Lemma
   (requires Seq.length s > 0)
-  (ensures Kuiper.Seq.Common.seq_fold_left add acc s >. acc)
+  (ensures  seq_fold_left add acc s >. acc)
   (decreases Seq.length s)
 = if Seq.length s = 1 then ()
   else
-    let open Kuiper.Seq.Common in
     let SCons hd tl = view_seq s in
     sum_non_zero tl (add acc hd <: real)
 
 let softmax_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
     (s0:seq et) (r0:seq real { s0 %~ r0 /\ Seq.length r0 > 0 })
+    (summ : et)
 : Lemma
-  (ensures Kuiper.Seq.Common.(
-      forall (avg:et). avg %~ sum (seq_map rexp r0) ==>
-      seq_map (fun x -> div x avg) (seq_map exp s0) %~ softmax_real r0))
-= let exps = KS.seq_map rexp r0 in
+  (ensures
+      summ %~ sum (seq_map rexp r0) ==>
+      seq_map (fun x -> div x summ) (seq_map exp s0) %~ softmax_real r0)
+= let exps = seq_map rexp r0 in
   sum_non_zero exps 0.0R;
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
   Classical.forall_intro_4 (fun (x y : et) (r : real) -> Classical.move_requires (div_approx #et x y r));
@@ -217,24 +122,22 @@ fn softmax_gpu
       pure (va' %~ softmax_real ra)
 {
   (* Pointwise exponentiation. *)
-  launch_sync (kmap exp lena a);
+  launch_sync (Kuiper.Poly.Map.kmap exp lena a);
 
-  (* Compute average. Need swap space since hreduce trashes the input. *)
+  (* Compute sum. Need swap space since hreduce trashes the input. *)
   let a' = Array1.alloc0 #et lena (l1_forward lena);
   Array1.memcpy_device_to_device a' a lena;
 
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
 
-  Kuiper.Poly.HReduce.reduce lena a' #(KS.seq_map exp va) (KS.seq_map rexp ra);
-  with va'. assert on gpu_loc (a' |-> va');
-  let avg = arr_read_1 a' 0sz;
+  Kuiper.Poly.HReduce.reduce lena a' (seq_map rexp ra);
+  let sum = arr_read_1 a' 0sz;
   Array1.free a';
 
-  (* Divide by average *)
-  with s'. assert on gpu_loc (a |-> s');
-  launch_sync (kmap (fun x -> div x avg) lena a);
+  (* Divide by sum *)
+  launch_sync (Kuiper.Poly.Map.kmap (fun x -> div x sum) lena a);
 
-  softmax_approx va ra;
+  softmax_approx va ra sum;
   ()
 }
 

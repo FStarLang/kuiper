@@ -3,24 +3,23 @@ module Kuiper.Poly.Softmax
 #lang-pulse
 open Kuiper
 open Kuiper.Real { rexp }
-module KS = Kuiper.Seq.Common
+open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 
 let sum (#et:Type0) {| scalar et |} (s:seq et) =
-  KS.seq_fold_left add zero s
+  seq_fold_left add zero s
 
 val sum_non_zero
     (s:seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc:real)
   : Lemma (requires Seq.length s > 0)
-          (ensures KS.seq_fold_left add acc s >. acc)
+          (ensures seq_fold_left add acc s >. acc)
+          [SMTPat (seq_fold_left add acc s)]
 
 let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
-  let open KS in
   let exps = seq_map rexp s in
-  let avg : real = sum exps in
-  sum_non_zero exps zero;
-  seq_map FStar.Real.(fun x -> x /. avg) exps
+  let summ : real = sum exps in
+  seq_map FStar.Real.(fun x -> rexp x /. summ) s
 
 unfold
 type softmax_ty (et : Type0) {| floating et, real_like et |} =
