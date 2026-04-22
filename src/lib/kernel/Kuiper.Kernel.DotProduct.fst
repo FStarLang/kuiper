@@ -186,7 +186,7 @@ fn block_teardown
     ga2 |-> s2 **
     (exists* (s1' : lseq et lena).
       (ga1 |-> s1') **
-      pure ((s1' @! 0) %~ real_seq_sum (rsmul vr1 vr2)))
+      pure ((s1' @! 0) %~ rsum (rsmul vr1 vr2)))
 {
   (* Step 1: Unfold each kpost into its components *)
   forevery_map (kpost lena ga1 ga2 s1 s2 vr1 vr2)
@@ -253,7 +253,7 @@ let dp_kernel
   : kernel_desc
       (ga2 |-> s2 ** ga1 |-> s1)
       (ga2 |-> s2 ** (exists* (s1' : lseq et lena). (ga1 |-> s1') **
-                                     pure ((s1' @! 0) %~ real_seq_sum (rsmul vr1 vr2))))
+                                     pure ((s1' @! 0) %~ rsum (rsmul vr1 vr2))))
   = {
     nthr = lena;
     f = kf lena ga1 ga2;

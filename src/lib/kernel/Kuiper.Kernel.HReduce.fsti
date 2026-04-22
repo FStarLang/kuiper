@@ -7,6 +7,9 @@ open Kuiper.Seq.Common
 open Kuiper.Tensor { ctlayout }
 module Array1 = Kuiper.Array1
 
+// TODO: generalize operation? It currently always uses `add`
+// from the scalar class.
+
 inline_for_extraction noextract
 type reduce_ty (et : Type0) {| scalar et, real_like et |} =
   fn (len : szp { len <= max_threads })

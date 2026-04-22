@@ -137,7 +137,7 @@ let array1_pts_to_slice_sum_inner
   (s : lseq et (j - i))
   : slprop
   = array1_pts_to_slice r i j s **
-    pure ((s @! 0) %~ real_seq_sum (Seq.slice rr i j))
+    pure ((s @! 0) %~ rsum (Seq.slice rr i j))
 
 let array1_pts_to_slice_sum
   (#et:Type0) {| scalar et, real_like et |}
@@ -301,17 +301,17 @@ fn iteration
       (**)array1_slice_concat #et #nth r tid nextid end_;
 
       let s1 = array1_read_from_slice r tid;
-      (**)assert (pure (s1 `approximates` real_seq_sum (Seq.slice vr tid nextid)));
+      (**)assert (pure (s1 `approximates` rsum (Seq.slice vr tid nextid)));
 
       let s2 = array1_read_from_slice r nextid;
-      (**)assert (pure (s2 `approximates` real_seq_sum (Seq.slice vr nextid end_)));
+      (**)assert (pure (s2 `approximates` rsum (Seq.slice vr nextid end_)));
 
       let s = add s1 s2;
       (**)lem_append_slice vr tid nextid end_;
       (**)seq_approximates_append s1 s2 (Seq.slice vr tid nextid) (Seq.slice vr nextid end_);
-      (**)assert (pure ((s1 `add` s2) `approximates` real_seq_sum (Seq.append (Seq.slice vr tid nextid) (Seq.slice vr nextid end_))));
-      (**)real_seq_sum_append (Seq.slice vr tid nextid) (Seq.slice vr nextid end_);
-      (**)assert (pure (s `approximates` real_seq_sum (Seq.slice vr tid end_)));
+      (**)assert (pure ((s1 `add` s2) `approximates` rsum (Seq.append (Seq.slice vr tid nextid) (Seq.slice vr nextid end_))));
+      (**)rsum_append (Seq.slice vr tid nextid) (Seq.slice vr nextid end_);
+      (**)assert (pure (s `approximates` rsum (Seq.slice vr tid end_)));
 
       // gpu_array_write r tid s;
       array1_write_to_slice r tid s;
