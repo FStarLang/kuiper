@@ -12,7 +12,6 @@ should not be the case once there are more flexible memcpy's. *)
 
 open Kuiper
 module Vec = Pulse.Lib.Vec
-module SZ = Kuiper.SizeT
 module Array1 = Kuiper.Array1
 open Kuiper.Array1
 

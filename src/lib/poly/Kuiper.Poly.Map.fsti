@@ -5,8 +5,6 @@ module Kuiper.Poly.Map
 #lang-pulse
 
 open Kuiper
-module Vec = Pulse.Lib.Vec
-module SZ = Kuiper.SizeT
 module Array1 = Kuiper.Array1
 open Kuiper.Array1
 open Kuiper.Seq.Common
