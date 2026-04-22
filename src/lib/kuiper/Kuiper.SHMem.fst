@@ -13,6 +13,7 @@ module SZ = Kuiper.SizeT
 module T = FStar.Tactics
 
 (* Description of one shared memory array "request" *)
+// TODO: Does the length really need to be nonzero?
 noeq
 inline_for_extraction
 type shmem_desc =
