@@ -1,5 +1,5 @@
 
-#include "Kuiper_GEMM_OrigBlockTiling1D.h"
+#include "Klas_GEMM_OrigBlockTiling1D.h"
 
 __global__
 /**
@@ -41,12 +41,12 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, float *gA, float *gB,
 }
 
 void
-Kuiper_GEMM_OrigBlockTiling1D_matmul_f32_tiles64x8_8x64_rc8_rrr(uint32_t rows,
-                                                                uint32_t shared,
-                                                                uint32_t cols,
-                                                                float *gA,
-                                                                float *gB,
-                                                                float *gC)
+Klas_GEMM_OrigBlockTiling1D_matmul_f32_tiles64x8_8x64_rc8_rrr(uint32_t rows,
+                                                              uint32_t shared,
+                                                              uint32_t cols,
+                                                              float *gA,
+                                                              float *gB,
+                                                              float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 8U == 0U);
@@ -105,14 +105,14 @@ beta * tC[(mrow * 64U + threadIdx.x / 64U * 8U + resIdx) * cols + mcol * 64U + t
 }
 
 void
-Kuiper_GEMM_OrigBlockTiling1D_g_gemm_f32_tiles64x8_8x64_rc8_rrr(float alpha,
-                                                                float beta,
-                                                                uint32_t rows,
-                                                                uint32_t shared,
-                                                                uint32_t cols,
-                                                                float *gA,
-                                                                float *gB,
-                                                                float *gC)
+Klas_GEMM_OrigBlockTiling1D_g_gemm_f32_tiles64x8_8x64_rc8_rrr(float alpha,
+                                                              float beta,
+                                                              uint32_t rows,
+                                                              uint32_t shared,
+                                                              uint32_t cols,
+                                                              float *gA,
+                                                              float *gB,
+                                                              float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 8U == 0U);

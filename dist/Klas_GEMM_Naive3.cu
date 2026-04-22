@@ -1,5 +1,5 @@
 
-#include "Kuiper_GEMM_Naive3.h"
+#include "Klas_GEMM_Naive3.h"
 
 __global__
 /**
@@ -26,9 +26,9 @@ static void __hoisted_0(uint32_t m, uint32_t n, uint32_t k, float *gA,
 }
 
 void
-Kuiper_GEMM_Naive3_g_matmul_f32_rrr(uint32_t m,
-                                    uint32_t n,
-                                    uint32_t k, float *gA, float *gB, float *gC)
+Klas_GEMM_Naive3_g_matmul_f32_rrr(uint32_t m,
+                                  uint32_t n,
+                                  uint32_t k, float *gA, float *gB, float *gC)
 {
     KPR_KCALL(__hoisted_0, (m * n + 1023U) / 1024U, 1024U, 0U, m, n, k, gA, gB,
               gC);
@@ -60,10 +60,10 @@ static void __hoisted_1(uint32_t m, uint32_t n, uint32_t k, double *gA,
 }
 
 void
-Kuiper_GEMM_Naive3_g_matmul_f64_rrr(uint32_t m,
-                                    uint32_t n,
-                                    uint32_t k,
-                                    double *gA, double *gB, double *gC)
+Klas_GEMM_Naive3_g_matmul_f64_rrr(uint32_t m,
+                                  uint32_t n,
+                                  uint32_t k,
+                                  double *gA, double *gB, double *gC)
 {
     KPR_KCALL(__hoisted_1, (m * n + 1023U) / 1024U, 1024U, 0U, m, n, k, gA, gB,
               gC);

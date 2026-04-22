@@ -1,5 +1,5 @@
 
-#include "Kuiper_GEMM_Tiled.h"
+#include "Klas_GEMM_Tiled.h"
 
 __global__
 /**
@@ -36,10 +36,10 @@ __hoisted_0(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_f32_rrr(uint32_t tile,
-                                   uint32_t m,
-                                   uint32_t n,
-                                   uint32_t k, float *gA, float *gB, float *gC)
+Klas_GEMM_Tiled_g_matmul_f32_rrr(uint32_t tile,
+                                 uint32_t m,
+                                 uint32_t n,
+                                 uint32_t k, float *gA, float *gB, float *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -85,11 +85,10 @@ __hoisted_1(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_f64_rrr(uint32_t tile,
-                                   uint32_t m,
-                                   uint32_t n,
-                                   uint32_t k,
-                                   double *gA, double *gB, double *gC)
+Klas_GEMM_Tiled_g_matmul_f64_rrr(uint32_t tile,
+                                 uint32_t m,
+                                 uint32_t n,
+                                 uint32_t k, double *gA, double *gB, double *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -135,11 +134,11 @@ __hoisted_2(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_u32_rrr(uint32_t tile,
-                                   uint32_t m,
-                                   uint32_t n,
-                                   uint32_t k,
-                                   uint32_t *gA, uint32_t *gB, uint32_t *gC)
+Klas_GEMM_Tiled_g_matmul_u32_rrr(uint32_t tile,
+                                 uint32_t m,
+                                 uint32_t n,
+                                 uint32_t k,
+                                 uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -185,11 +184,11 @@ __hoisted_3(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_u64_rrr(uint32_t tile,
-                                   uint32_t m,
-                                   uint32_t n,
-                                   uint32_t k,
-                                   uint64_t *gA, uint64_t *gB, uint64_t *gC)
+Klas_GEMM_Tiled_g_matmul_u64_rrr(uint32_t tile,
+                                 uint32_t m,
+                                 uint32_t n,
+                                 uint32_t k,
+                                 uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -233,10 +232,10 @@ __hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_f32_tile32_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          float *gA, float *gB, float *gC)
+Klas_GEMM_Tiled_g_matmul_f32_tile32_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        float *gA, float *gB, float *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_4, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
@@ -278,10 +277,10 @@ __hoisted_5(uint32_t n,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_f64_tile32_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          double *gA, double *gB, double *gC)
+Klas_GEMM_Tiled_g_matmul_f64_tile32_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        double *gA, double *gB, double *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_5, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
@@ -323,11 +322,11 @@ __hoisted_6(uint32_t n,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_u32_tile32_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          uint32_t *gA,
-                                          uint32_t *gB, uint32_t *gC)
+Klas_GEMM_Tiled_g_matmul_u32_tile32_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        uint32_t *gA,
+                                        uint32_t *gB, uint32_t *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_6, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
@@ -369,11 +368,11 @@ __hoisted_7(uint32_t n,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_u64_tile32_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          uint64_t *gA,
-                                          uint64_t *gB, uint64_t *gC)
+Klas_GEMM_Tiled_g_matmul_u64_tile32_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        uint64_t *gA,
+                                        uint64_t *gB, uint64_t *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_7, m / 32U * nn, 1024U, 0U, n, k, gA, gB, gC, nn,
@@ -414,10 +413,10 @@ __hoisted_8(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_f32_tile16_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          float *gA, float *gB, float *gC)
+Klas_GEMM_Tiled_g_matmul_f32_tile16_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        float *gA, float *gB, float *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_8, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
@@ -459,10 +458,10 @@ __hoisted_9(uint32_t n,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_f64_tile16_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          double *gA, double *gB, double *gC)
+Klas_GEMM_Tiled_g_matmul_f64_tile16_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        double *gA, double *gB, double *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_9, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
@@ -504,11 +503,11 @@ __hoisted_10(uint32_t n,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_u32_tile16_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          uint32_t *gA,
-                                          uint32_t *gB, uint32_t *gC)
+Klas_GEMM_Tiled_g_matmul_u32_tile16_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        uint32_t *gA,
+                                        uint32_t *gB, uint32_t *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_10, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
@@ -550,11 +549,11 @@ __hoisted_11(uint32_t n,
 }
 
 void
-Kuiper_GEMM_Tiled_g_matmul_u64_tile16_rrr(uint32_t m,
-                                          uint32_t n,
-                                          uint32_t k,
-                                          uint64_t *gA,
-                                          uint64_t *gB, uint64_t *gC)
+Klas_GEMM_Tiled_g_matmul_u64_tile16_rrr(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        uint64_t *gA,
+                                        uint64_t *gB, uint64_t *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_11, m / 16U * nn, 256U, 0U, n, k, gA, gB, gC, nn,
@@ -604,12 +603,12 @@ __hoisted_12(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_f32_rrr(uint32_t tile,
-                                 float alpha,
-                                 float beta,
-                                 uint32_t m,
-                                 uint32_t n,
-                                 uint32_t k, float *gA, float *gB, float *gC)
+Klas_GEMM_Tiled_g_gemm_f32_rrr(uint32_t tile,
+                               float alpha,
+                               float beta,
+                               uint32_t m,
+                               uint32_t n,
+                               uint32_t k, float *gA, float *gB, float *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -662,12 +661,12 @@ __hoisted_13(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_f64_rrr(uint32_t tile,
-                                 double alpha,
-                                 double beta,
-                                 uint32_t m,
-                                 uint32_t n,
-                                 uint32_t k, double *gA, double *gB, double *gC)
+Klas_GEMM_Tiled_g_gemm_f64_rrr(uint32_t tile,
+                               double alpha,
+                               double beta,
+                               uint32_t m,
+                               uint32_t n,
+                               uint32_t k, double *gA, double *gB, double *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -720,13 +719,13 @@ __hoisted_14(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_u32_rrr(uint32_t tile,
-                                 uint32_t alpha,
-                                 uint32_t beta,
-                                 uint32_t m,
-                                 uint32_t n,
-                                 uint32_t k,
-                                 uint32_t *gA, uint32_t *gB, uint32_t *gC)
+Klas_GEMM_Tiled_g_gemm_u32_rrr(uint32_t tile,
+                               uint32_t alpha,
+                               uint32_t beta,
+                               uint32_t m,
+                               uint32_t n,
+                               uint32_t k,
+                               uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -779,13 +778,13 @@ __hoisted_15(uint32_t tile,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_u64_rrr(uint32_t tile,
-                                 uint64_t alpha,
-                                 uint64_t beta,
-                                 uint32_t m,
-                                 uint32_t n,
-                                 uint32_t k,
-                                 uint64_t *gA, uint64_t *gB, uint64_t *gC)
+Klas_GEMM_Tiled_g_gemm_u64_rrr(uint32_t tile,
+                               uint64_t alpha,
+                               uint64_t beta,
+                               uint32_t m,
+                               uint32_t n,
+                               uint32_t k,
+                               uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     uint32_t mm = m / tile;
     uint32_t nn = n / tile;
@@ -837,12 +836,12 @@ __hoisted_16(float alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_f32_tile32_rrr(float alpha,
-                                        float beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        float *gA, float *gB, float *gC)
+Klas_GEMM_Tiled_g_gemm_f32_tile32_rrr(float alpha,
+                                      float beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      float *gA, float *gB, float *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_16, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
@@ -891,12 +890,12 @@ __hoisted_17(double alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_f64_tile32_rrr(double alpha,
-                                        double beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        double *gA, double *gB, double *gC)
+Klas_GEMM_Tiled_g_gemm_f64_tile32_rrr(double alpha,
+                                      double beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      double *gA, double *gB, double *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_17, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
@@ -945,13 +944,12 @@ __hoisted_18(uint32_t alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_u32_tile32_rrr(uint32_t alpha,
-                                        uint32_t beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        uint32_t *gA,
-                                        uint32_t *gB, uint32_t *gC)
+Klas_GEMM_Tiled_g_gemm_u32_tile32_rrr(uint32_t alpha,
+                                      uint32_t beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_18, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
@@ -1000,13 +998,12 @@ __hoisted_19(uint64_t alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_u64_tile32_rrr(uint64_t alpha,
-                                        uint64_t beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        uint64_t *gA,
-                                        uint64_t *gB, uint64_t *gC)
+Klas_GEMM_Tiled_g_gemm_u64_tile32_rrr(uint64_t alpha,
+                                      uint64_t beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     uint32_t nn = n / 32U;
     KPR_KCALL(__hoisted_19, m / 32U * nn, 1024U, 0U, alpha, beta, n, k, gA, gB,
@@ -1055,12 +1052,12 @@ __hoisted_20(float alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_f32_tile16_rrr(float alpha,
-                                        float beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        float *gA, float *gB, float *gC)
+Klas_GEMM_Tiled_g_gemm_f32_tile16_rrr(float alpha,
+                                      float beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      float *gA, float *gB, float *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_20, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
@@ -1109,12 +1106,12 @@ __hoisted_21(double alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_f64_tile16_rrr(double alpha,
-                                        double beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        double *gA, double *gB, double *gC)
+Klas_GEMM_Tiled_g_gemm_f64_tile16_rrr(double alpha,
+                                      double beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      double *gA, double *gB, double *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_21, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
@@ -1163,13 +1160,12 @@ __hoisted_22(uint32_t alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_u32_tile16_rrr(uint32_t alpha,
-                                        uint32_t beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        uint32_t *gA,
-                                        uint32_t *gB, uint32_t *gC)
+Klas_GEMM_Tiled_g_gemm_u32_tile16_rrr(uint32_t alpha,
+                                      uint32_t beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      uint32_t *gA, uint32_t *gB, uint32_t *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_22, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,
@@ -1218,13 +1214,12 @@ __hoisted_23(uint64_t alpha,
 }
 
 void
-Kuiper_GEMM_Tiled_g_gemm_u64_tile16_rrr(uint64_t alpha,
-                                        uint64_t beta,
-                                        uint32_t m,
-                                        uint32_t n,
-                                        uint32_t k,
-                                        uint64_t *gA,
-                                        uint64_t *gB, uint64_t *gC)
+Klas_GEMM_Tiled_g_gemm_u64_tile16_rrr(uint64_t alpha,
+                                      uint64_t beta,
+                                      uint32_t m,
+                                      uint32_t n,
+                                      uint32_t k,
+                                      uint64_t *gA, uint64_t *gB, uint64_t *gC)
 {
     uint32_t nn = n / 16U;
     KPR_KCALL(__hoisted_23, m / 16U * nn, 256U, 0U, alpha, beta, n, k, gA, gB,

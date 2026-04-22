@@ -1,5 +1,5 @@
 
-#include "Kuiper_DotProduct.h"
+#include "Klas_DotProduct.h"
 
 __global__
 /**
@@ -20,7 +20,7 @@ static void __hoisted_0(uint32_t lena, float *ga1, float *ga2)
     }
 }
 
-float Kuiper_DotProduct_dotprod_f32(uint32_t lena, float *a1, float *a2)
+float Klas_DotProduct_dotprod_f32(uint32_t lena, float *a1, float *a2)
 {
     float *ga1 = (float *)KPR_GPU_ALLOC(4U, lena);
     float *ga2 = (float *)KPR_GPU_ALLOC(4U, lena);
@@ -58,7 +58,7 @@ static void __hoisted_1(uint32_t lena, double *ga1, double *ga2)
     }
 }
 
-double Kuiper_DotProduct_dotprod_f64(uint32_t lena, double *a1, double *a2)
+double Klas_DotProduct_dotprod_f64(uint32_t lena, double *a1, double *a2)
 {
     double *ga1 = (double *)KPR_GPU_ALLOC(8U, lena);
     double *ga2 = (double *)KPR_GPU_ALLOC(8U, lena);
@@ -96,8 +96,7 @@ static void __hoisted_2(uint32_t lena, uint32_t *ga1, uint32_t *ga2)
     }
 }
 
-uint32_t Kuiper_DotProduct_dotprod_u32(uint32_t lena, uint32_t *a1,
-                                       uint32_t *a2)
+uint32_t Klas_DotProduct_dotprod_u32(uint32_t lena, uint32_t *a1, uint32_t *a2)
 {
     uint32_t *ga1 = (uint32_t *) KPR_GPU_ALLOC(4U, lena);
     uint32_t *ga2 = (uint32_t *) KPR_GPU_ALLOC(4U, lena);
@@ -133,8 +132,7 @@ static void __hoisted_3(uint32_t lena, uint64_t *ga1, uint64_t *ga2)
     }
 }
 
-uint64_t Kuiper_DotProduct_dotprod_u64(uint32_t lena, uint64_t *a1,
-                                       uint64_t *a2)
+uint64_t Klas_DotProduct_dotprod_u64(uint32_t lena, uint64_t *a1, uint64_t *a2)
 {
     uint64_t *ga1 = (uint64_t *) KPR_GPU_ALLOC(8U, lena);
     uint64_t *ga2 = (uint64_t *) KPR_GPU_ALLOC(8U, lena);

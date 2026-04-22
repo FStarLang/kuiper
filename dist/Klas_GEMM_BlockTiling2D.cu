@@ -1,5 +1,5 @@
 
-#include "Kuiper_GEMM_BlockTiling2D.h"
+#include "Klas_GEMM_BlockTiling2D.h"
 
 __global__
 /**
@@ -90,13 +90,12 @@ __hoisted_0(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -198,13 +197,13 @@ __hoisted_1(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -306,13 +305,13 @@ __hoisted_2(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -414,13 +413,13 @@ __hoisted_3(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x32_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -522,13 +521,12 @@ __hoisted_4(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -630,13 +628,13 @@ __hoisted_5(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -738,13 +736,13 @@ __hoisted_6(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -846,13 +844,13 @@ __hoisted_7(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x32x64_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -954,13 +952,12 @@ __hoisted_8(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1062,13 +1059,13 @@ __hoisted_9(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1170,13 +1167,13 @@ __hoisted_10(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1278,13 +1275,13 @@ __hoisted_11(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x32_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1386,13 +1383,12 @@ __hoisted_12(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1494,13 +1490,13 @@ __hoisted_13(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1602,13 +1598,13 @@ __hoisted_14(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1710,13 +1706,13 @@ __hoisted_15(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x64x64_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -1818,13 +1814,13 @@ __hoisted_16(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -1926,13 +1922,13 @@ __hoisted_17(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2034,13 +2030,13 @@ __hoisted_18(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2142,13 +2138,13 @@ __hoisted_19(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x32_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2250,13 +2246,13 @@ __hoisted_20(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -2358,13 +2354,13 @@ __hoisted_21(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -2466,13 +2462,13 @@ __hoisted_22(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -2574,13 +2570,13 @@ __hoisted_23(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_32x128x64_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -2682,13 +2678,12 @@ __hoisted_24(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2790,13 +2785,13 @@ __hoisted_25(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -2898,13 +2893,13 @@ __hoisted_26(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3006,13 +3001,13 @@ __hoisted_27(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x32_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3114,13 +3109,12 @@ __hoisted_28(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3222,13 +3216,13 @@ __hoisted_29(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3330,13 +3324,13 @@ __hoisted_30(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3438,13 +3432,13 @@ __hoisted_31(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x32x64_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -3546,13 +3540,12 @@ __hoisted_32(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3654,13 +3647,13 @@ __hoisted_33(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3762,13 +3755,13 @@ __hoisted_34(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3870,13 +3863,13 @@ __hoisted_35(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x32_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -3978,13 +3971,12 @@ __hoisted_36(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float alpha,
-                                                  float beta,
-                                                  uint32_t rows,
-                                                  uint32_t shared,
-                                                  uint32_t cols,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x8(float alpha,
+                                                float beta,
+                                                uint32_t rows,
+                                                uint32_t shared,
+                                                uint32_t cols,
+                                                float *gA, float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -4086,13 +4078,13 @@ __hoisted_37(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_8x16(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -4194,13 +4186,13 @@ __hoisted_38(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -4302,13 +4294,13 @@ __hoisted_39(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x64x64_16x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -4410,13 +4402,13 @@ __hoisted_40(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -4518,13 +4510,13 @@ __hoisted_41(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -4626,13 +4618,13 @@ __hoisted_42(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -4734,13 +4726,13 @@ __hoisted_43(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x32_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -4842,13 +4834,13 @@ __hoisted_44(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -4950,13 +4942,13 @@ __hoisted_45(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5058,13 +5050,13 @@ __hoisted_46(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5166,13 +5158,13 @@ __hoisted_47(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_64x128x64_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5274,13 +5266,13 @@ __hoisted_48(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5382,13 +5374,13 @@ __hoisted_49(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5490,13 +5482,13 @@ __hoisted_50(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5598,13 +5590,13 @@ __hoisted_51(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x32_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -5706,13 +5698,13 @@ __hoisted_52(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5814,13 +5806,13 @@ __hoisted_53(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -5922,13 +5914,13 @@ __hoisted_54(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6030,13 +6022,13 @@ __hoisted_55(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x32x64_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6138,13 +6130,13 @@ __hoisted_56(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -6246,13 +6238,13 @@ __hoisted_57(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -6354,13 +6346,13 @@ __hoisted_58(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -6462,13 +6454,13 @@ __hoisted_59(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x32_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -6570,13 +6562,13 @@ __hoisted_60(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x8(float alpha,
-                                                   float beta,
-                                                   uint32_t rows,
-                                                   uint32_t shared,
-                                                   uint32_t cols,
-                                                   float *gA,
-                                                   float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x8(float alpha,
+                                                 float beta,
+                                                 uint32_t rows,
+                                                 uint32_t shared,
+                                                 uint32_t cols,
+                                                 float *gA,
+                                                 float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6678,13 +6670,13 @@ __hoisted_61(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x16(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_8x16(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6786,13 +6778,13 @@ __hoisted_62(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -6894,13 +6886,13 @@ __hoisted_63(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x64x64_16x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -7002,13 +6994,13 @@ __hoisted_64(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7110,13 +7102,13 @@ __hoisted_65(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_8x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7219,13 +7211,13 @@ __hoisted_66(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x8(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7327,13 +7319,13 @@ __hoisted_67(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float alpha,
-                                                      float beta,
-                                                      uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      float *gA,
-                                                      float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x32_16x16(float alpha,
+                                                    float beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float *gA,
+                                                    float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 32U == 0U);
@@ -7435,13 +7427,13 @@ __hoisted_68(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x8(float alpha,
-                                                    float beta,
-                                                    uint32_t rows,
-                                                    uint32_t shared,
-                                                    uint32_t cols,
-                                                    float *gA,
-                                                    float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x8(float alpha,
+                                                  float beta,
+                                                  uint32_t rows,
+                                                  uint32_t shared,
+                                                  uint32_t cols,
+                                                  float *gA,
+                                                  float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -7543,13 +7535,13 @@ __hoisted_69(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x16(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_8x16(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -7652,13 +7644,13 @@ __hoisted_70(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x8(float alpha,
-                                                     float beta,
-                                                     uint32_t rows,
-                                                     uint32_t shared,
-                                                     uint32_t cols,
-                                                     float *gA,
-                                                     float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x8(float alpha,
+                                                   float beta,
+                                                   uint32_t rows,
+                                                   uint32_t shared,
+                                                   uint32_t cols,
+                                                   float *gA,
+                                                   float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);
@@ -7760,13 +7752,13 @@ __hoisted_71(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x16(float alpha,
-                                                      float beta,
-                                                      uint32_t rows,
-                                                      uint32_t shared,
-                                                      uint32_t cols,
-                                                      float *gA,
-                                                      float *gB, float *gC)
+Klas_GEMM_BlockTiling2D_g_gemm_f32_128x128x64_16x16(float alpha,
+                                                    float beta,
+                                                    uint32_t rows,
+                                                    uint32_t shared,
+                                                    uint32_t cols,
+                                                    float *gA,
+                                                    float *gB, float *gC)
 {
     KPR_GUARD(rows % 128U == 0U);
     KPR_GUARD(shared % 64U == 0U);

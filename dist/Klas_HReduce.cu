@@ -1,5 +1,5 @@
 
-#include "Kuiper_HReduce.h"
+#include "Klas_HReduce.h"
 
 __global__
 /**
@@ -19,7 +19,7 @@ static void __hoisted_0(uint32_t lena, half *a)
     }
 }
 
-void Kuiper_HReduce_reduce_f16_plus(uint32_t lena, half *a)
+void Klas_HReduce_reduce_f16_plus(uint32_t lena, half *a)
 {
     KPR_KCALL(__hoisted_0, 1U, lena, 0U, lena, a);
     MUST(cudaDeviceSynchronize());
@@ -43,7 +43,7 @@ static void __hoisted_1(uint32_t lena, float *a)
     }
 }
 
-void Kuiper_HReduce_reduce_f32_plus(uint32_t lena, float *a)
+void Klas_HReduce_reduce_f32_plus(uint32_t lena, float *a)
 {
     KPR_KCALL(__hoisted_1, 1U, lena, 0U, lena, a);
     MUST(cudaDeviceSynchronize());
@@ -67,7 +67,7 @@ static void __hoisted_2(uint32_t lena, double *a)
     }
 }
 
-void Kuiper_HReduce_reduce_f64_plus(uint32_t lena, double *a)
+void Klas_HReduce_reduce_f64_plus(uint32_t lena, double *a)
 {
     KPR_KCALL(__hoisted_2, 1U, lena, 0U, lena, a);
     MUST(cudaDeviceSynchronize());
@@ -91,7 +91,7 @@ static void __hoisted_3(uint32_t lena, uint32_t *a)
     }
 }
 
-void Kuiper_HReduce_reduce_u32_plus(uint32_t lena, uint32_t *a)
+void Klas_HReduce_reduce_u32_plus(uint32_t lena, uint32_t *a)
 {
     KPR_KCALL(__hoisted_3, 1U, lena, 0U, lena, a);
     MUST(cudaDeviceSynchronize());
@@ -115,7 +115,7 @@ static void __hoisted_4(uint32_t lena, uint64_t *a)
     }
 }
 
-void Kuiper_HReduce_reduce_u64_plus(uint32_t lena, uint64_t *a)
+void Klas_HReduce_reduce_u64_plus(uint32_t lena, uint64_t *a)
 {
     KPR_KCALL(__hoisted_4, 1U, lena, 0U, lena, a);
     MUST(cudaDeviceSynchronize());

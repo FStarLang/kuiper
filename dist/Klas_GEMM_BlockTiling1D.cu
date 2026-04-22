@@ -1,5 +1,5 @@
 
-#include "Kuiper_GEMM_BlockTiling1D.h"
+#include "Klas_GEMM_BlockTiling1D.h"
 
 __global__
 /**
@@ -43,11 +43,10 @@ __hoisted_0(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                float *gA, float *gB, float *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -102,11 +101,11 @@ __hoisted_1(uint32_t n,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  double *gA,
-                                                  double *gB, double *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                double *gA,
+                                                double *gB, double *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -160,11 +159,11 @@ __hoisted_2(uint32_t n,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile32_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  uint32_t *gA,
-                                                  uint32_t *gB, uint32_t *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_u32_tile32_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                uint32_t *gA,
+                                                uint32_t *gB, uint32_t *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -218,11 +217,11 @@ __hoisted_3(uint32_t n,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile32_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  uint64_t *gA,
-                                                  uint64_t *gB, uint64_t *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_u64_tile32_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                uint64_t *gA,
+                                                uint64_t *gB, uint64_t *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -276,11 +275,10 @@ __hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  float *gA,
-                                                  float *gB, float *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                float *gA, float *gB, float *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -335,11 +333,11 @@ __hoisted_5(uint32_t n,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  double *gA,
-                                                  double *gB, double *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                double *gA,
+                                                double *gB, double *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -393,11 +391,11 @@ __hoisted_6(uint32_t n,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_u32_tile16_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  uint32_t *gA,
-                                                  uint32_t *gB, uint32_t *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_u32_tile16_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                uint32_t *gA,
+                                                uint32_t *gB, uint32_t *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -451,11 +449,11 @@ __hoisted_7(uint32_t n,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_matmul_u64_tile16_rrr(uint32_t m,
-                                                  uint32_t n,
-                                                  uint32_t k,
-                                                  uint64_t *gA,
-                                                  uint64_t *gB, uint64_t *gC)
+Klas_GEMM_BlockTiling1D_g_matmul_u64_tile16_rrr(uint32_t m,
+                                                uint32_t n,
+                                                uint32_t k,
+                                                uint64_t *gA,
+                                                uint64_t *gB, uint64_t *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -515,12 +513,12 @@ __hoisted_8(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(float alpha,
-                                                float beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                float *gA, float *gB, float *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_f32_tile32_rrr(float alpha,
+                                              float beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              float *gA, float *gB, float *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -581,13 +579,13 @@ __hoisted_9(double alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(double alpha,
-                                                double beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                double *gA,
-                                                double *gB, double *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_f64_tile32_rrr(double alpha,
+                                              double beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              double *gA,
+                                              double *gB, double *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -647,13 +645,13 @@ __hoisted_10(uint32_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile32_rrr(uint32_t alpha,
-                                                uint32_t beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                uint32_t *gA,
-                                                uint32_t *gB, uint32_t *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_u32_tile32_rrr(uint32_t alpha,
+                                              uint32_t beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              uint32_t *gA,
+                                              uint32_t *gB, uint32_t *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -713,13 +711,13 @@ __hoisted_11(uint64_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile32_rrr(uint64_t alpha,
-                                                uint64_t beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                uint64_t *gA,
-                                                uint64_t *gB, uint64_t *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_u64_tile32_rrr(uint64_t alpha,
+                                              uint64_t beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              uint64_t *gA,
+                                              uint64_t *gB, uint64_t *gC)
 {
     uint32_t mm = m / 32U;
     uint32_t nn = n / 32U;
@@ -780,12 +778,12 @@ __hoisted_12(float alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(float alpha,
-                                                float beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                float *gA, float *gB, float *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_f32_tile16_rrr(float alpha,
+                                              float beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              float *gA, float *gB, float *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -846,13 +844,13 @@ __hoisted_13(double alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(double alpha,
-                                                double beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                double *gA,
-                                                double *gB, double *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_f64_tile16_rrr(double alpha,
+                                              double beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              double *gA,
+                                              double *gB, double *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -912,13 +910,13 @@ __hoisted_14(uint32_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_u32_tile16_rrr(uint32_t alpha,
-                                                uint32_t beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                uint32_t *gA,
-                                                uint32_t *gB, uint32_t *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_u32_tile16_rrr(uint32_t alpha,
+                                              uint32_t beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              uint32_t *gA,
+                                              uint32_t *gB, uint32_t *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;
@@ -978,13 +976,13 @@ __hoisted_15(uint64_t alpha,
 }
 
 void
-Kuiper_GEMM_BlockTiling1D_g_gemm_u64_tile16_rrr(uint64_t alpha,
-                                                uint64_t beta,
-                                                uint32_t m,
-                                                uint32_t n,
-                                                uint32_t k,
-                                                uint64_t *gA,
-                                                uint64_t *gB, uint64_t *gC)
+Klas_GEMM_BlockTiling1D_g_gemm_u64_tile16_rrr(uint64_t alpha,
+                                              uint64_t beta,
+                                              uint32_t m,
+                                              uint32_t n,
+                                              uint32_t k,
+                                              uint64_t *gA,
+                                              uint64_t *gB, uint64_t *gC)
 {
     uint32_t mm = m / 16U;
     uint32_t nn = n / 16U;

@@ -1,11 +1,71 @@
 
-#include "Kuiper_Softmax.h"
+#include "Klas_Softmax.h"
+
+__global__
+/**
+  hoisted when extracting softmax_f16
+*/
+static void __hoisted_0(half *ga)
+{
+    ga[blockIdx.x] = __hexp(ga[blockIdx.x]);
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f16
+*/
+static void __hoisted_1(uint32_t lena, half *a_)
+{
+    uint32_t n = 0U;
+    for (; 1U << (uint32_t) n < lena; n++) {
+        uint32_t __anf0 = n;
+        __syncthreads();
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        if (nextid < lena)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) -
+                 1U) == 0U)
+                a_[threadIdx.x] = __hadd(a_[threadIdx.x], a_[nextid]);
+    }
+}
+
+__global__
+/**
+  hoisted when extracting softmax_f16
+*/
+static void __hoisted_2(half *ga, half sum)
+{
+    ga[blockIdx.x] = __hdiv(ga[blockIdx.x], sum);
+}
+
+void Klas_Softmax_softmax_f16(uint32_t lena, half *a)
+{
+    half *ga = (half *) KPR_GPU_ALLOC(2U, lena);
+    MUST(cudaMemcpy(ga, a, 2U * lena, cudaMemcpyHostToDevice));
+    KPR_KCALL(__hoisted_0, lena, 1U, 0U, ga);
+    MUST(cudaDeviceSynchronize());
+    half *a_ = (half *) KPR_GPU_ALLOC(2U, lena);
+    MUST(cudaMemcpy(a_, ga, 2U * lena, cudaMemcpyDeviceToDevice));
+    KPR_KCALL(__hoisted_1, 1U, lena, 0U, lena, a_);
+    MUST(cudaDeviceSynchronize());
+    half *ca = (half *) KRML_HOST_MALLOC(sizeof(half));
+    if (ca != NULL)
+        *ca = 0.0f;
+    MUST(cudaMemcpy(ca, a_, 2U, cudaMemcpyDeviceToHost));
+    half x = *ca;
+    KRML_HOST_FREE(ca);
+    half sum = x;
+    MUST(cudaFree(a_));
+    KPR_KCALL(__hoisted_2, lena, 1U, 0U, ga, sum);
+    MUST(cudaDeviceSynchronize());
+    MUST(cudaMemcpy(a, ga, 2U * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaFree(ga));
+}
 
 __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_0(float *ga)
+static void __hoisted_3(float *ga)
 {
     ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
@@ -14,7 +74,7 @@ __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_1(uint32_t lena, float *a_)
+static void __hoisted_4(uint32_t lena, float *a_)
 {
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < lena; n++) {
@@ -32,20 +92,20 @@ __global__
 /**
   hoisted when extracting softmax_f32
 */
-static void __hoisted_2(float *ga, float avg)
+static void __hoisted_5(float *ga, float sum)
 {
-    ga[blockIdx.x] /= avg;
+    ga[blockIdx.x] /= sum;
 }
 
-void Kuiper_Softmax_softmax_f32(uint32_t lena, float *a)
+void Klas_Softmax_softmax_f32(uint32_t lena, float *a)
 {
     float *ga = (float *)KPR_GPU_ALLOC(4U, lena);
     MUST(cudaMemcpy(ga, a, 4U * lena, cudaMemcpyHostToDevice));
-    KPR_KCALL(__hoisted_0, lena, 1U, 0U, ga);
+    KPR_KCALL(__hoisted_3, lena, 1U, 0U, ga);
     MUST(cudaDeviceSynchronize());
     float *a_ = (float *)KPR_GPU_ALLOC(4U, lena);
     MUST(cudaMemcpy(a_, ga, 4U * lena, cudaMemcpyDeviceToDevice));
-    KPR_KCALL(__hoisted_1, 1U, lena, 0U, lena, a_);
+    KPR_KCALL(__hoisted_4, 1U, lena, 0U, lena, a_);
     MUST(cudaDeviceSynchronize());
     float *ca = (float *)KRML_HOST_MALLOC(sizeof(float));
     if (ca != NULL)
@@ -53,9 +113,9 @@ void Kuiper_Softmax_softmax_f32(uint32_t lena, float *a)
     MUST(cudaMemcpy(ca, a_, 4U, cudaMemcpyDeviceToHost));
     float x = *ca;
     KRML_HOST_FREE(ca);
-    float avg = x;
+    float sum = x;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_2, lena, 1U, 0U, ga, avg);
+    KPR_KCALL(__hoisted_5, lena, 1U, 0U, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 4U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
@@ -65,7 +125,7 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_3(double *ga)
+static void __hoisted_6(double *ga)
 {
     ga[blockIdx.x] = exp(ga[blockIdx.x]);
 }
@@ -74,7 +134,7 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_4(uint32_t lena, double *a_)
+static void __hoisted_7(uint32_t lena, double *a_)
 {
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < lena; n++) {
@@ -92,20 +152,20 @@ __global__
 /**
   hoisted when extracting softmax_f64
 */
-static void __hoisted_5(double *ga, double avg)
+static void __hoisted_8(double *ga, double sum)
 {
-    ga[blockIdx.x] /= avg;
+    ga[blockIdx.x] /= sum;
 }
 
-void Kuiper_Softmax_softmax_f64(uint32_t lena, double *a)
+void Klas_Softmax_softmax_f64(uint32_t lena, double *a)
 {
     double *ga = (double *)KPR_GPU_ALLOC(8U, lena);
     MUST(cudaMemcpy(ga, a, 8U * lena, cudaMemcpyHostToDevice));
-    KPR_KCALL(__hoisted_3, lena, 1U, 0U, ga);
+    KPR_KCALL(__hoisted_6, lena, 1U, 0U, ga);
     MUST(cudaDeviceSynchronize());
     double *a_ = (double *)KPR_GPU_ALLOC(8U, lena);
     MUST(cudaMemcpy(a_, ga, 8U * lena, cudaMemcpyDeviceToDevice));
-    KPR_KCALL(__hoisted_4, 1U, lena, 0U, lena, a_);
+    KPR_KCALL(__hoisted_7, 1U, lena, 0U, lena, a_);
     MUST(cudaDeviceSynchronize());
     double *ca = (double *)KRML_HOST_MALLOC(sizeof(double));
     if (ca != NULL)
@@ -113,9 +173,9 @@ void Kuiper_Softmax_softmax_f64(uint32_t lena, double *a)
     MUST(cudaMemcpy(ca, a_, 8U, cudaMemcpyDeviceToHost));
     double x = *ca;
     KRML_HOST_FREE(ca);
-    double avg = x;
+    double sum = x;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_5, lena, 1U, 0U, ga, avg);
+    KPR_KCALL(__hoisted_8, lena, 1U, 0U, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 8U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
