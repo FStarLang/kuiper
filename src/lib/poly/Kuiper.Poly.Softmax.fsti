@@ -6,6 +6,7 @@ open Kuiper.Real { rexp }
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 
+// FIXME: If this is only used on reals it should be specialized.
 let sum (#et:Type0) {| scalar et |} (s:seq et) =
   seq_fold_left add zero s
 
