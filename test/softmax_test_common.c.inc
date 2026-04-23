@@ -67,8 +67,7 @@ static void fill_constant(double *d, SCALAR *s, int n)
     }
 }
 
-static int check(const SCALAR *got, const double *ref, int n,
-                 const char *label)
+static int check(const SCALAR *got, const double *ref, int n, const char *label)
 {
     double max_err = 0.0;
     int fail_idx = -1;
@@ -77,7 +76,8 @@ static int check(const SCALAR *got, const double *ref, int n,
         double r = ref[i];
         double ae = fabs(g - r);
         double denom = fabs(r);
-        if (denom < 1.0) denom = 1.0;
+        if (denom < 1.0)
+            denom = 1.0;
         if (ae > ATOL && ae / denom > RTOL) {
             if (ae > max_err) {
                 max_err = ae;
@@ -97,7 +97,7 @@ static int check(const SCALAR *got, const double *ref, int n,
 
 static void test_fixed(int n)
 {
-    SCALAR *arr = (SCALAR *)malloc(n * sizeof(SCALAR));
+    SCALAR *arr = (SCALAR *) malloc(n * sizeof(SCALAR));
     double *din = (double *)malloc(n * sizeof(double));
     double *dref = (double *)malloc(n * sizeof(double));
 
@@ -131,7 +131,7 @@ static void test_fixed(int n)
 
 static void test_variable(int nth, int n)
 {
-    SCALAR *arr = (SCALAR *)malloc(n * sizeof(SCALAR));
+    SCALAR *arr = (SCALAR *) malloc(n * sizeof(SCALAR));
     double *din = (double *)malloc(n * sizeof(double));
     double *dref = (double *)malloc(n * sizeof(double));
 

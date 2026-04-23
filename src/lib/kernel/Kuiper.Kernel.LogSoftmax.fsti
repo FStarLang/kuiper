@@ -4,10 +4,8 @@ module Kuiper.Kernel.LogSoftmax
 open Kuiper
 open Kuiper.Real { rlog }
 open Kuiper.Seq.Common
-module SZ = Kuiper.SizeT
 module Vec = Pulse.Lib.Vec
 module SM = Kuiper.Kernel.Softmax
-module Array1 = Kuiper.Array1
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 

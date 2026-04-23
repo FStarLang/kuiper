@@ -30,8 +30,7 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns>]\n",
-                argv[0]);
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns>]\n", argv[0]);
         return 1;
     }
 
@@ -87,8 +86,7 @@ int main(int argc, char **argv)
 
         if (check) {
             cmp(rows, cols, m3, gold);
-            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et),
-                       cudaMemcpyHostToDevice);
+            cudaMemcpy(m3, m3_cpu, rows * cols * sizeof(et), cudaMemcpyHostToDevice);
         }
 
     }

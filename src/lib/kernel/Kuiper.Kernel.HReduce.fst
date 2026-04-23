@@ -421,7 +421,7 @@ fn sum_stride
     invariant
       live acc ** live gidx **
       live idx ** pure (SZ.v !idx == gread gidx * stride + off) **
-      // idx |-> (gread gidx * stride + off) ** 
+      // idx |-> (gread gidx * stride + off) **
       // ^ Would ideally just write that.
       pure (gread gidx <= seq_stride_length vr stride off /\
             !idx < lena + stride /\ // superfluous but helps

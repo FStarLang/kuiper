@@ -77,14 +77,12 @@ int main(int argc, char **argv)
     cudaFree(m2);
 
     if (check) {
-        cudaMemcpy(m1_cpu, m1, size * size * sizeof(et),
-                   cudaMemcpyDeviceToHost);
+        cudaMemcpy(m1_cpu, m1, size * size * sizeof(et), cudaMemcpyDeviceToHost);
 
         for (i = 0; i < size; i++) {
             for (j = 0; j < size; j++) {
                 if (m1_cpu[i * size + j] != (j > i ? j - i : 0)) {
-                    fprintf(stderr, "Error: m1[%d][%d] = %d\n", i, j,
-                            m1_cpu[i * size + j]);
+                    fprintf(stderr, "Error: m1[%d][%d] = %d\n", i, j, m1_cpu[i * size + j]);
                     return 1;
                 }
             }

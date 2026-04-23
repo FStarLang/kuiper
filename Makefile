@@ -70,7 +70,7 @@ dist: extract-all
 
 .PHONY: lint-c
 lint-c:
-	indent -linux -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
+	indent -linux -l100 -nut -i4 test/*.cu test/*.c.inc && rm -f test/*.cu~ test/*.c.inc~
 
 .PHONY: lint-fstar
 lint-fstar:

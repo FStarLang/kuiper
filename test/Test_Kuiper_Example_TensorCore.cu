@@ -67,8 +67,7 @@ int test1()
             if (!ok) {
                 printf
                     ("Mismatch at (%d, %d): GPU = %g, CPU = %g, relative error = %g\n",
-                     i, j, __half2float(c[i][j]), __half2float(c_check[i][j]),
-                     rel);
+                     i, j, __half2float(c[i][j]), __half2float(c_check[i][j]), rel);
             }
         }
     }
@@ -134,8 +133,7 @@ int test2()
             if (!ok) {
                 printf
                     ("Mismatch at (%d, %d): GPU = %g, CPU = %g, relative error = %g\n",
-                     i, j, __half2float(c[i][j]), __half2float(c_check[i][j]),
-                     rel);
+                     i, j, __half2float(c[i][j]), __half2float(c_check[i][j]), rel);
             }
         }
     }

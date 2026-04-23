@@ -16,8 +16,8 @@ void test(int nth, int siz)
     TYPE *a;
     TYPE *ga;
 
-    a = (TYPE *)malloc(siz * sizeof a[0]);
-    ga = (TYPE *)KPR_GPU_ALLOC(sizeof ga[0], siz);
+    a = (TYPE *) malloc(siz * sizeof a[0]);
+    ga = (TYPE *) KPR_GPU_ALLOC(sizeof ga[0], siz);
 
     int i;
 

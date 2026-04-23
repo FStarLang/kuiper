@@ -11,6 +11,8 @@
  *
  * Convention: every wrapper is named kpr_h<op>.  The extraction plugin
  * emits these names so they must stay in sync.
+ *
+ * TODO: would static inline functions be better?
  */
 
 #include <math.h>
