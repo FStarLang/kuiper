@@ -14,7 +14,7 @@ inline_for_extraction noextract
 fn map_gpu
   (#et : Type0)
   (f: et -> et)
-  (lena : szp{ lena <= max_blocks })
+  (lena : szp{ lena <= max_blocks * max_threads})
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l)
   (#_ : squash (Array1.is_global a))
@@ -27,7 +27,7 @@ inline_for_extraction noextract
 fn map_host
   (#et : Type0) {| sized et |}
   (f: et -> et)
-  (lena : szp{ lena <= max_blocks })
+  (lena : szp{ lena <= max_blocks * max_threads})
   (a : Pulse.Lib.Vec.lvec et lena)
   (#s: erased (lseq et lena))
   preserves cpu

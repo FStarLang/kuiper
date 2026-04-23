@@ -69,12 +69,10 @@ fn kf_map
   ()
   requires
     gpu **
-    Cell a (bid <: natlt lena) |-> (s@!bid) **
-    block_id lena bid
+    Cell a (bid <: natlt lena) |-> (s@!bid)
   ensures
     gpu **
-    Cell a (bid <: natlt lena) |-> (f (s@!bid)) **
-    block_id lena bid
+    Cell a (bid <: natlt lena) |-> (f (s@!bid))
 {
   let x = Array1.read_cell a bid;
   Array1.write_cell a bid (f x);
@@ -84,7 +82,7 @@ inline_for_extraction noextract
 let kmap
   (#et : Type0)
   (f: et -> et)
-  (lena : szp{ lena <= max_blocks })
+  (lena : szp{ lena <= max_blocks * max_threads})
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l)
   (#_ : squash (Array1.is_global a))
@@ -93,7 +91,7 @@ let kmap
       (requires a |-> s)
       (ensures  a |-> lseq_map f s)
 = {
-    nblk = lena;
+    nthr = lena;
     f = kf_map f a;
 
     frame    = pure (SZ.fits (layout_size l));
@@ -103,13 +101,13 @@ let kmap
     kpost = (fun (i:natlt lena) -> Cell a i |-> (f (s@!i)));
     kpost_sendable = solve;
     kpre_sendable  = solve;
-  } <: kernel_desc_m_1 _ _
+  } <: kernel_desc_n _ _
 
 inline_for_extraction noextract
 fn map_gpu
   (#et : Type0)
   (f: et -> et)
-  (lena : szp{ lena <= max_blocks })
+  (lena : szp{ lena <= max_blocks * max_threads})
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l)
   (#_ : squash (Array1.is_global a))
@@ -125,7 +123,7 @@ inline_for_extraction noextract
 fn map_host
   (#et : Type0) {| sized et |}
   (f: et -> et)
-  (lena : szp{ lena <= max_blocks })
+  (lena : szp{ lena <= max_blocks * max_threads})
   (a : Pulse.Lib.Vec.lvec et lena)
   (#s: erased (lseq et lena))
   preserves cpu
