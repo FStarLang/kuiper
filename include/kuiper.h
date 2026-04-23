@@ -43,6 +43,7 @@ void __MUST(cudaError_t rc, const char * str, const char * func, const char *fna
 			cudaStreamCreate(&fresh);					\
 			foo<<<_nblk, _nthr, (e_size), fresh>>>(__VA_ARGS__);		\
 			__MUST(cudaGetLastError(), "kcall", __func__, __FILE__, __LINE__);\
+			cudaStreamDestroy(fresh); /* note: ok to destroy while running */;\
 		}									\
 	} while (0)
 
