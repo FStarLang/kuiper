@@ -1,25 +1,19 @@
 #include "Klas_LogSoftmax.h"
-#include "timing.h"
 #include <stdint.h>
-#include <stdio.h>
+
+#define SCALAR       double
+#define TO_DOUBLE(x) ((double)(x))
+#define FROM_DOUBLE(x) ((double)(x))
+#define FUN(lena, a)       Klas_LogSoftmax_log_softmax_f64(lena, a)
+#define FUN_N(nth, lena, a) Klas_LogSoftmax_log_softmax_n_f64(nth, lena, a)
+#define LABEL        "logsoftmax_f64"
+#define ATOL         1e-10
+#define RTOL         1e-10
+#define IS_LOGSOFTMAX 1
+
+#include "softmax_test_common.c.inc"
 
 int main(int argc, char **argv)
 {
-    double arr[10];
-    int i, j;
-
-    for (i = 1; i < 10; i++) {
-        printf("len = %d\n", i);
-        for (j = 0; j < i; j++) {
-            arr[j] = j;
-        }
-        Klas_LogSoftmax_log_softmax_f64(i, arr);
-        for (j = 0; j < i; j++) {
-            printf("%f,", arr[j]);
-        }
-        printf("\n");
-    }
-    printf("OK\n");
-
-    return 0;
+    return run_all_tests();
 }
