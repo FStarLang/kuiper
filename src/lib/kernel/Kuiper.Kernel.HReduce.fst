@@ -384,31 +384,6 @@ private let log2_hreduce (nth:pos) (it:nat)
 = if it = 0 then ()
   else log2_range (2 * nth - 1) it
 
-// TODO: move to Kuiper.Conditional
-ghost
-fn if_elim_true' (b : bool) (p: slprop)
-  requires if_ b p ** pure b
-  ensures  p
-{
-  if_elim_true p;
-}
-
-ghost
-fn if_intro_false' (b:bool) (p: slprop)
-  requires pure (not b)
-  ensures  if_ false p
-{
-  if_intro_false p;
-}
-
-ghost
-fn if_elim_false' (b : bool) (p: slprop)
-  requires if_ b p ** pure (not b)
-  ensures  emp
-{
-  if_elim_false p;
-}
-
 inline_for_extraction noextract
 fn kf
   (#et:Type0) {| scalar et, real_like et |}

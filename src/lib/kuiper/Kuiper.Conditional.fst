@@ -57,6 +57,14 @@ fn if_intro_false (p: slprop)
 }
 
 ghost
+fn if_intro_false' (b:bool) (p: slprop)
+  requires pure (not b)
+  ensures  if_ false p
+{
+  if_intro_false p;
+}
+
+ghost
 fn if_elim_true (p: slprop)
   requires if_ true p
   ensures  p
@@ -65,11 +73,27 @@ fn if_elim_true (p: slprop)
 }
 
 ghost
+fn if_elim_true' (b : bool) (p: slprop)
+  requires if_ b p ** pure b
+  ensures  p
+{
+  if_elim_true p;
+}
+
+ghost
 fn if_elim_false (p: slprop)
   requires if_ false p
   ensures  emp
 {
   rewrite if_ false p as emp;
+}
+
+ghost
+fn if_elim_false' (b : bool) (p: slprop)
+  requires if_ b p ** pure (not b)
+  ensures  emp
+{
+  if_elim_false p;
 }
 
 // SPLIT and JOIN RULES
