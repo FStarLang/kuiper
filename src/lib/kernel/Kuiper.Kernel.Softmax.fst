@@ -33,6 +33,7 @@ let softmax_approx
 inline_for_extraction noextract
 fn softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (nth : szp{nth <= max_threads})
   (#lena : szp)
   (a : array1 et (l1_forward lena) { is_global a })
   (#va: erased (lseq et lena))
@@ -41,8 +42,8 @@ fn softmax_gpu
     cpu
   requires
     on gpu_loc (a |-> va) **
-    pure (lena <= max_threads) **
-    pure (va %~ ra)
+    pure (va %~ ra) **
+    pure (lena <= max_blocks * max_threads)
   ensures
     exists* (va' : lseq et lena).
       on gpu_loc (a |-> va') **
@@ -57,7 +58,7 @@ fn softmax_gpu
 
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
 
-  let sum = Kuiper.Kernel.HReduce.reduce lena lena a' (seq_map rexp ra);
+  let sum = Kuiper.Kernel.HReduce.reduce nth lena a' (seq_map rexp ra);
   Array1.free a';
 
   (* Divide by sum *)
@@ -70,6 +71,7 @@ fn softmax_gpu
 inline_for_extraction noextract
 fn softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (nth : szp{nth <= max_threads})
   (#lena : szp)
   (a : Vec.lvec et lena)
   (#va : erased (lseq et lena))
@@ -78,8 +80,8 @@ fn softmax
     cpu
   requires
     a |-> va **
-    pure (lena <= max_threads) **
-    pure (va %~ ra)
+    pure (va %~ ra) **
+    pure (lena <= max_blocks * max_threads)
   ensures
     exists* (va' : lseq et lena).
       a |-> va' **
@@ -87,7 +89,7 @@ fn softmax
 {
   let ga = Array1.alloc0 #et lena (l1_forward lena);
   Array1.memcpy_host_to_device ga a lena;
-  softmax_gpu ga ra;
+  softmax_gpu nth ga ra;
   Array1.memcpy_device_to_host' a 0sz ga 0sz lena;
   Array1.free ga;
   ()

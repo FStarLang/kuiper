@@ -4,6 +4,7 @@ module Kuiper.Kernel.Softmax
 open Kuiper
 open Kuiper.Real { rexp }
 open Kuiper.Seq.Common
+module SZ = Kuiper.SizeT
 module Vec = Pulse.Lib.Vec
 
 let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
@@ -13,7 +14,8 @@ let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
 
 unfold
 type softmax_ty (et : Type0) {| floating et, real_like et |} =
-  fn (#lena : szp)
+  fn (nth : szp{nth <= max_threads})
+     (#lena : szp)
      (a : Vec.lvec et lena)
      (#va : erased (lseq et lena))
      (ra : erased (lseq real lena))
@@ -21,8 +23,9 @@ type softmax_ty (et : Type0) {| floating et, real_like et |} =
     cpu
   requires
     a |-> va **
-    pure (lena <= max_threads) **
-    pure (va %~ ra)
+    pure (va %~ ra) **
+    pure (lena <= max_blocks * max_threads)
+    // ^ This could be removed
   ensures
     exists* (va' : lseq et lena).
       a |-> va' **
