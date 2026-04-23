@@ -3,6 +3,7 @@ module Kuiper.Seq.Common
 open FStar.Seq
 open Kuiper.Functions
 open Kuiper.Monoid
+open Kuiper.Common
 
 type seq_view a =
   | SNil
@@ -128,3 +129,15 @@ val lem_seq_refine_at #a (p : a -> prop)
   : Lemma ((seq_refine p s) @! i == s @! i)
           // [SMTPat (seq_refine #a p s @! i)]
           // ^ Does not seem to work (warns)
+
+let seq_stride_length (#a:Type)
+  (s : seq a) (stride : pos) (off : natlt stride)
+  : GTot nat
+  = (Seq.length s - off + stride - 1) / stride
+
+let seq_stride (#a:Type)
+  (s : seq a) (stride : pos) (off : natlt stride)
+  : GTot (seq a)
+  = Seq.init_ghost
+      (seq_stride_length s stride off)
+      (fun i -> s @! (off + i * stride))

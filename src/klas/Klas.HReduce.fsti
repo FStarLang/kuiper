@@ -6,6 +6,7 @@ open Kuiper
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.Seq.Common
+module SZ = FStar.SizeT
 module Array1 = Kuiper.Array1
 
 (* Type of reduction over a family of layouts. *)
@@ -13,7 +14,8 @@ inline_for_extraction noextract
 type reduce_ty (et : Type0) {| scalar et, real_like et |}
   (lay : (len:nat -> Array1.layout len))
 =
-  fn (len : szp { len <= max_threads })
+  fn (nth : szp { nth <= max_threads })
+     (len : szp { SZ.fits (len + nth) })
      (a : Array1.t et (lay len) { Array1.is_global a })
      (#va : erased (lseq et len))
      (vr : erased (lseq real len))

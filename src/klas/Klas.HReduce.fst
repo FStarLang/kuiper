@@ -11,7 +11,8 @@ fn inst
   (et : Type0) {| scalar et, real_like et |}
   (lay : (len:nat -> Array1.layout len))
   {| (len:szp -> ctlayout (lay len)) |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : szp { SZ.fits (lena + nth) })
   (a : Array1.t et (lay lena) { Array1.is_global a })
   (#va : erased (lseq et lena))
   (vr : erased (lseq real lena))
@@ -26,7 +27,10 @@ fn inst
   ensures
     pure (res %~ rsum vr)
 {
-  K.reduce lena a vr;
+  let lena64 = SZ.sizet_to_uint64 lena;
+  let nth64 = SZ.sizet_to_uint64 nth;
+  dassert (not (FStar.UInt64.(lena64 +%^ nth64 <^ lena64)));
+  K.reduce nth lena a vr;
 }
 
 let reduce_f16_plus : reduce_ty f16 l1_forward = inst _ _

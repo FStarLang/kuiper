@@ -113,7 +113,7 @@ fn softmax_gpu
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
 
   (* Compute sum *)
-  let sum = Kuiper.Kernel.HReduce.reduce lena a' (seq_map rexp ra);
+  let sum = Kuiper.Kernel.HReduce.reduce lena lena a' (seq_map rexp ra);
   Array1.free a';
 
   (* Compute pointwise log softmax. *)

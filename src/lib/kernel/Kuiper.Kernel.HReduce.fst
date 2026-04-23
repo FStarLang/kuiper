@@ -8,6 +8,7 @@ open Kuiper.Math
 open Kuiper.Seq.Common
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Pulse.Lib.GhostReference { read as gread, write as gwrite, alloc as galloc }
 
 module SZ = Kuiper.SizeT
 module RPM = Kuiper.Barrier.RPM
@@ -207,19 +208,20 @@ fn mk_barrier_pre
 unfold
 let kpre
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena)
   (a : Array1.t et l)
   (va : lseq et lena)
   (vr : lseq real lena)
   (out : gpu_ref et)
-  (shmem : c_shmems [SHArray et lena])
+  (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
-  (tid : natlt lena)
+  (tid : natlt nth)
   : slprop
-  = a |-> Frac (1 /. lena) va **
+  = a |-> Frac (1 /. nth) va **
     if_ (op_Equality #nat tid 0) (live out) **
-    exists* (v : et). Cell (Array1.from_array (l1_forward lena) shmem._1) tid |-> v
+    exists* (v : et). Cell (Array1.from_array (l1_forward nth) shmem._1) tid |-> v
 
 // Same RO permission to a, 1st thread has full ownership of shmem plus of the
 // output reference.  No need to specify the contents of the shmem array, it
@@ -227,19 +229,20 @@ let kpre
 unfold
 let kpost
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena)
   (a : Array1.t et l)
   (va : lseq et lena)
   (vr : lseq real lena)
   (out : gpu_ref et)
-  (shmem : c_shmems [SHArray et lena])
+  (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
-  (tid : natlt lena)
+  (tid : natlt nth)
   : slprop
-  = a |-> Frac (1 /. lena) va **
+  = a |-> Frac (1 /. nth) va **
     if_ (op_Equality #nat tid 0) (
-      live (Array1.from_array (l1_forward lena) shmem._1) **
+      live (Array1.from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ rsum vr)
     )
 
@@ -384,129 +387,216 @@ private let log2_hreduce (nth:pos) (it:nat)
 = if it = 0 then ()
   else log2_range (2 * nth - 1) it
 
+let vr_partial (vr : seq real) (nth : nat) : GTot (seq real) =
+  Seq.init_ghost nth (fun tid -> rsum (seq_stride vr nth tid))
+
+let strided_sum_is_sum (vr : seq real) (nth : nat)
+  : Lemma (ensures rsum (vr_partial vr nth) == rsum vr)
+  = admit() // TODO
+
+#push-options "--z3rlimit 40"
+inline_for_extraction noextract
+fn sum_stride
+  (#et:Type0) {| scalar et, real_like et |}
+  (lena : sz)
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : Array1.t et l)
+  (stride : szp)
+  (off : szlt stride)
+  (#va : erased (lseq et lena))
+  (vr : erased (lseq real lena))
+  (#f : perm)
+  preserves
+    gpu ** a |-> Frac f va ** pure (va %~ vr) ** pure (SZ.fits (lena + stride))
+  returns
+    res : et
+  ensures
+    pure (res %~ rsum (seq_stride vr stride off))
+{
+  let mut acc : et = zero;
+  let mut idx : sz = off;
+  let gidx = galloc #nat 0;
+
+  while (!idx <^ lena)
+    invariant
+      live acc ** live gidx **
+      live idx ** pure (SZ.v !idx == gread gidx * stride + off) **
+      // idx |-> (gread gidx * stride + off) ** 
+      // ^ Would ideally just write that.
+      pure (gread gidx <= seq_stride_length vr stride off /\
+            !idx < lena + stride /\ // superfluous but helps
+            !acc %~ rsum (seq_take (gread gidx) (seq_stride vr stride off))) **
+      emp
+    decreases (lena + stride - !idx)
+  {
+    assert pure (gread gidx < seq_stride_length vr stride off);
+
+    (* Read from input array (fractional permission) *)
+    let v = Array1.read a !idx;
+    (**)assert (pure (v == va @! SZ.v !idx));
+    (**)assert (pure (v %~ (vr @! SZ.v !idx)));
+
+    assert pure (!acc %~ rsum (seq_take (gread gidx) (seq_stride vr stride off)));
+    assert pure (v %~ (vr @! !idx));
+    a_add !acc v
+      (rsum (seq_take (gread gidx) (seq_stride vr stride off)))
+      (vr @! SZ.v !idx);
+    // Needs lemma about seq_stride. Should be simple.
+    assume pure (
+      rsum (seq_take (gread gidx) (seq_stride vr stride off)) +. (vr @! SZ.v !idx) ==
+      rsum (seq_take (gread gidx + 1) (seq_stride vr stride off)));
+
+    assert (pure (SZ.v !idx          == (gread gidx    ) * stride + off));
+    assert (pure ((gread gidx + 1) * stride + off == ((gread gidx * stride) + (1 * stride)) + off)); // Sad.
+    assert (pure (SZ.v !idx + stride == (gread gidx + 1) * stride + off));
+
+    acc := !acc `add` v;
+    idx := !idx +^ stride;
+    gwrite gidx (gread gidx + 1);
+    ()
+  };
+
+
+  assert pure (gread gidx <= seq_stride_length vr stride off);
+  Math.Lemmas.cancel_mul_div (gread gidx) stride;
+  assert pure (gread gidx == (!idx - off) / stride);
+  assert pure (gread gidx == seq_stride_length vr stride off);
+  assert pure (seq_take (seq_stride_length vr stride off) (seq_stride vr stride off) == seq_stride vr stride off);
+  assert pure (!acc %~ rsum (seq_stride vr stride off));
+
+  drop_ (gidx |-> _);
+
+  !acc
+}
+#pop-options
+
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kf
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l)
   (va : erased (lseq et lena))
-  (vr : erased (lseq real lena){ va %~ vr })
+  (vr : erased (lseq real lena) { va %~ vr })
   (out : gpu_ref et)
-  (shmem : c_shmems [SHArray et lena])
+  (shmem : c_shmems [SHArray et nth])
   (bid : szlt 1sz)
-  (tid : szlt lena)
+  (tid : szlt nth)
   ()
   requires
     gpu **
-    kpre lena a va vr out shmem bid tid **
-    thread_id lena tid **
+    kpre nth lena a va vr out shmem bid tid **
+    thread_id nth tid **
     block_id 1 bid **
-    mbarrier_tok lena (barrier_matrix lena (Array1.from_array (l1_forward lena) shmem._1) vr) **
+    mbarrier_tok nth (barrier_matrix nth (Array1.from_array (l1_forward nth) shmem._1) (vr_partial vr nth)) **
     B.barrier_state 0
   ensures
     gpu **
-    kpost lena a va vr out shmem bid tid **
-    thread_id lena tid **
+    kpost nth lena a va vr out shmem bid tid **
+    thread_id nth tid **
     block_id 1 bid **
-    mbarrier_tok lena (barrier_matrix lena (Array1.from_array (l1_forward lena) shmem._1) vr) **
-    B.barrier_state (hreduce_barrier_count lena)
+    mbarrier_tok nth (barrier_matrix nth (Array1.from_array (l1_forward nth) shmem._1) (vr_partial vr nth)) **
+    B.barrier_state (hreduce_barrier_count nth)
 {
   let (gsa, _) = shmem;
 
-  let sa = Array1.from_array (l1_forward lena) gsa;
-  rewrite each Array1.from_array (l1_forward lena) gsa as sa;
+  let sa = Array1.from_array (l1_forward nth) gsa;
+  rewrite each Array1.from_array (l1_forward nth) gsa as sa;
 
-  (* Copy from input to shmem swap. *)
-  let myv = Array1.read a tid;
-  Array1.write_cell sa tid myv;
+  let vr_s : erased (lseq real nth) = vr_partial vr nth;
 
-  (* Reduction *)
+  (* Compute partial sum and write to shmem *)
+  let psum : et = sum_stride lena a nth tid vr;
+  Array1.write_cell sa tid psum;
+
+  (* Now do tree reduction on shmem *)
   let mut n : szlt 32 = 0sz;
 
   forevery_singleton_intro'
     #(x:nat{tid <= x /\ x < tid + 1})
-    (fun x -> Cell sa (x <: natlt lena) |-> (seq![myv] @! (x - tid)))
+    (fun x -> Cell sa (x <: natlt nth) |-> (seq![psum] @! (x - tid)))
     tid;
-  fold array1_pts_to_slice sa tid (tid+1) seq![myv];
+  fold array1_pts_to_slice sa tid (tid+1) seq![psum];
 
-  (**)fold (array1_pts_to_slice_sum sa tid (tid + 1) vr);
-  (**)if_intro_true' (div_pow2 !n tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 !n) lena) vr);
+  (**)fold (array1_pts_to_slice_sum sa tid (tid + 1) vr_s);
+  (**)if_intro_true' (div_pow2 !n tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 !n) nth) vr_s);
 
   open FStar.SizeT;
-  while (spow2 !n <^ lena)
+  while (spow2 !n <^ nth)
     invariant
       live n **
       B.barrier_state !n **
-      if_ (div_pow2 !n tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 !n) lena) vr) **
-      pure (v !n > 0 ==> pow2 (v !n - 1) < v lena)
-    decreases (2 * lena - spow2 !n)
+      if_ (div_pow2 !n tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 !n) nth) vr_s) **
+      pure (v !n > 0 ==> pow2 (v !n - 1) < v nth)
+    decreases (2 * nth - spow2 !n)
   {
     assert pure (Seq.length va == SZ.v lena);
-    iteration lena sa vr tid !n;
+    iteration nth sa vr_s tid !n;
     n := !n +^ 1sz;
   };
 
   with it. assert (B.barrier_state it);
 
-  // After loop exit: pow2 it >= lena, and tid < lena, so div_pow2 it tid <==> tid = 0
+  // After loop exit: pow2 it >= nth, and tid < nth, so div_pow2 it tid <==> tid = 0
   FStar.Math.Lemmas.modulo_lemma tid (pow2 it);
   rewrite
-    (if_ (div_pow2 it tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 it) lena) vr))
+    (if_ (div_pow2 it tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 it) nth) vr_s))
   as
-    (if_ (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 lena vr));
+    (if_ (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s));
 
-  log2_hreduce (v lena) it;
-  rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count lena));
+  log2_hreduce (v nth) it;
+  rewrite (B.barrier_state it) as (B.barrier_state (hreduce_barrier_count nth));
 
   (* Thread zero owns the result at the end, and writes it out. *)
   if (tid = 0sz) {
-    if_elim_true' (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 lena vr);
+    if_elim_true' (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s);
     if_elim_true' (op_Equality #nat tid 0) (live out);
-    unfold array1_pts_to_slice_sum sa 0 lena vr;
+    unfold array1_pts_to_slice_sum sa 0 nth vr_s;
+    (**)strided_sum_is_sum vr nth;
     gpu_write out (array1_read_from_slice sa 0sz);
-    // fold array1_pts_to_slice_sum sa 0 lena vr;
-    with ss. assert array1_pts_to_slice sa 0 lena ss;
+    with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
-    (* I would prefer to rewrite the type with refinement extensionality,
-       but that does not seem to work. *)
-    let bij : Kuiper.Bijection.bijection (k:nat{0 <= k /\ k < lena}) (Array1.ait lena) =
+    let bij : Kuiper.Bijection.bijection (k:nat{0 <= k /\ k < nth}) (Array1.ait nth) =
       Kuiper.Bijection.Mkbijection
-        #(k:nat{0 <= k /\ k < lena})
-        #(Array1.ait lena)
+        #(k:nat{0 <= k /\ k < nth})
+        #(Array1.ait nth)
         (fun k -> k)
         (fun k -> k)
         ez ez;
     forevery_iso bij _;
-    forevery_ext _ (fun (k : natlt lena) -> Cell sa k |-> (ss @! k));
+    forevery_ext _ (fun (k : natlt nth) -> Cell sa k |-> (ss @! k));
     Array1.implode sa;
-    rewrite each sa as Array1.from_array (l1_forward lena) shmem._1;
+    rewrite each sa as Array1.from_array (l1_forward nth) shmem._1;
     if_intro_true' (op_Equality #nat tid 0) (
-      live (Array1.from_array (l1_forward lena) shmem._1) **
+      live (Array1.from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ rsum vr)
     )
   } else {
     (* Nop, convince Pulse. *)
-    if_elim_false' (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 lena vr);
+    if_elim_false' (op_Equality #nat tid 0) (array1_pts_to_slice_sum sa 0 nth vr_s);
     if_elim_false' (op_Equality #nat tid 0) (live out);
     if_intro_false' (op_Equality #nat tid 0) (
-      live (Array1.from_array (l1_forward lena) shmem._1) **
+      live (Array1.from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ rsum vr)
     );
     ();
   };
 }
+#pop-options
 
 ghost
 fn block_setup
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena)
   (a : Array1.t et l)
   (#va : lseq et lena)
   (vr : lseq real lena { va %~ vr })
   (out : gpu_ref et)
-  (shmem : c_shmems [SHArray et lena])
+  (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
   ()
   norewrite
@@ -514,7 +604,7 @@ fn block_setup
     live_c_shmems shmem **
     (a |-> va ** live out)
   ensures
-    (forall+ (i : natlt lena). kpre lena a va vr out shmem bid i) **
+    (forall+ (i : natlt nth). kpre nth lena a va vr out shmem bid i) **
     emp
 {
   unfold_live_c_shmems_cons shmem #_;
@@ -525,34 +615,34 @@ fn block_setup
   with vgsa. assert gsa |-> vgsa;
   gpu_pts_to_ref gsa;
 
-  (* share input *)
-  Array1.share_n a lena;
+  (* share input into nth fractional copies *)
+  Array1.share_n a nth;
 
   (* tid 0 gets the ref *)
-  forevery_if_intro #(natlt lena) 0 (fun _ -> live out);
+  forevery_if_intro #(natlt nth) 0 (fun _ -> live out);
   (* Sad.*)
   forevery_ext
-    (fun tid -> if_ (op_Equality #(natlt lena) tid 0) (live out))
+    (fun tid -> if_ (op_Equality #(natlt nth) tid 0) (live out))
     (fun tid -> if_ (op_Equality #nat tid 0) (live out));
 
-  forevery_zip (fun _ -> a |-> Frac (1 /. lena) va) _;
+  forevery_zip (fun _ -> a |-> Frac (1 /. nth) va) _;
 
   (* View shmem array as Array1. Explode it. *)
-  Array1.raise' (l1_forward lena) gsa;
-  Array1.explode (Array1.from_array (l1_forward lena) gsa);
+  Array1.raise' (l1_forward nth) gsa;
+  Array1.explode (Array1.from_array (l1_forward nth) gsa);
 
-  forevery_zip #(natlt lena)
-    (fun tid -> a |-> Frac (1 /. lena) va ** if_ (op_Equality #nat tid 0) (live out))
+  forevery_zip #(natlt nth)
+    (fun tid -> a |-> Frac (1 /. nth) va ** if_ (op_Equality #nat tid 0) (live out))
     _;
 
   forevery_map
-    #(natlt lena)
+    #(natlt nth)
     (fun tid ->
-      (a |-> Frac (1 /. lena) va **
+      (a |-> Frac (1 /. nth) va **
        if_ (op_Equality #nat tid 0) (live out)) **
-      Cell (Array1.from_array (l1_forward lena) gsa) tid |-> (Array1.from_seq (l1_forward lena) vgsa @! tid)
+      Cell (Array1.from_array (l1_forward nth) gsa) tid |-> (Array1.from_seq (l1_forward nth) vgsa @! tid)
     )
-    (fun (tid : natlt lena) -> kpre lena a va vr out shmem bid tid)
+    (fun (tid : natlt nth) -> kpre nth lena a va vr out shmem bid tid)
     fn tid {
       rewrite each gsa as shmem._1;
       ();
@@ -565,18 +655,19 @@ fn block_setup
 ghost
 fn block_teardown
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena)
   (a : Array1.t et l)
   (#va : lseq et lena)
   (vr : lseq real lena { va %~ vr })
   (out : gpu_ref et)
-  (shmem : c_shmems [SHArray et lena])
+  (shmem : c_shmems [SHArray et nth])
   (bid : natlt 1)
   ()
   norewrite
   requires
-    (forall+ (i : natlt lena). kpost lena a va vr out shmem bid i) **
+    (forall+ (i : natlt nth). kpost nth lena a va vr out shmem bid i) **
     emp
   ensures
     live_c_shmems shmem **
@@ -584,26 +675,26 @@ fn block_teardown
 {
   forevery_unzip _ _;
 
-  Array1.gather_n a lena;
+  Array1.gather_n a nth;
 
   (* Sad.*)
-  forevery_ext #(natlt lena)
+  forevery_ext #(natlt nth)
     (fun tid ->
       if_ (op_Equality #nat tid 0) (
-        live (Array1.from_array (l1_forward lena) shmem._1) **
+        live (Array1.from_array (l1_forward nth) shmem._1) **
         exists* (v : et). out |-> v ** pure (v %~ rsum vr)))
     (fun tid ->
-      if_ (op_Equality #(natlt lena) tid 0) (
-        live (Array1.from_array (l1_forward lena) shmem._1) **
+      if_ (op_Equality #(natlt nth) tid 0) (
+        live (Array1.from_array (l1_forward nth) shmem._1) **
         exists* (v : et). out |-> v ** pure (v %~ rsum vr)));
 
-  forevery_if_elim #(natlt lena) 0 (fun tid ->
-      live (Array1.from_array (l1_forward lena) shmem._1) **
+  forevery_if_elim #(natlt nth) 0 (fun tid ->
+      live (Array1.from_array (l1_forward nth) shmem._1) **
       exists* (v : et). out |-> v ** pure (v %~ rsum vr)
   );
 
-  Array1.lower (Array1.from_array (l1_forward lena) shmem._1);
-  rewrite each Array1.core (Array1.from_array (l1_forward lena) shmem._1) as shmem._1;
+  Array1.lower (Array1.from_array (l1_forward nth) shmem._1);
+  rewrite each Array1.core (Array1.from_array (l1_forward nth) shmem._1) as shmem._1;
 
   fold_live_c_shmems_nil shmem._2 #_;
   with vgsa. assert shmem._1 |-> vgsa;
@@ -614,7 +705,8 @@ fn block_teardown
 ghost
 fn setup
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l { Array1.is_global a })
   (#va : erased (lseq et lena))
@@ -635,7 +727,8 @@ fn setup
 ghost
 fn teardown
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l { Array1.is_global a })
   (#va : erased (lseq et lena))
@@ -656,7 +749,8 @@ fn teardown
 inline_for_extraction noextract
 let kernel
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz { SZ.fits (lena + nth) })
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l { Array1.is_global a })
   (#va : erased (lseq et lena))
@@ -668,29 +762,29 @@ let kernel
       (a |-> va ** exists* (v : et). out |-> v ** pure (v %~ rsum vr))
   = {
     nblk = 1sz;
-    nthr = lena;
+    nthr = nth;
 
-    shmems_desc = [SHArray et lena];
+    shmems_desc = [SHArray et nth];
 
     barrier_contract = (fun _bid shmem ->
-      mbarrier_contract (barrier_matrix #et lena (Array1.from_array _ shmem._1) vr));
-    barrier_count    = (fun _bid    -> hreduce_barrier_count lena);
+      mbarrier_contract (barrier_matrix #et nth (Array1.from_array _ shmem._1) (vr_partial vr nth)));
+    barrier_count    = (fun _bid    -> hreduce_barrier_count nth);
     barrier_ok       = (fun _bid shmem ->
-      mbarrier_transform (barrier_matrix lena #(l1_forward lena) (Array1.from_array _ shmem._1) vr));
+      mbarrier_transform (barrier_matrix nth #(l1_forward nth) (Array1.from_array _ shmem._1) (vr_partial vr nth)));
 
-    f = kf lena a va vr out;
+    f = kf nth lena a va vr out;
 
     block_pre  = (fun bid -> a |-> va ** live out);
     block_post = (fun bid -> a |-> va ** exists* (v : et). out |-> v ** pure (v %~ rsum vr));
-    setup      = setup    lena a #va vr out;
-    teardown   = teardown lena a #va vr out;
+    setup      = setup    nth lena a #va vr out;
+    teardown   = teardown nth lena a #va vr out;
 
     block_frame    = (fun _shmem _bid -> emp);
-    block_setup    = block_setup    lena a #va vr out;
-    block_teardown = block_teardown lena a #va vr out;
+    block_setup    = block_setup    nth lena a #va vr out;
+    block_teardown = block_teardown nth lena a #va vr out;
 
-    kpre =  kpre  lena a va vr out;
-    kpost = kpost lena a va vr out;
+    kpre =  kpre  nth lena a va vr out;
+    kpost = kpost nth lena a va vr out;
     frame = emp;
 
     // FIXME: kpre and kpost mention a non-global array, but tc resolution tries
@@ -705,7 +799,8 @@ let kernel
 inline_for_extraction noextract
 fn reduce
   (#et:Type0) {| scalar et, real_like et |}
-  (lena : szp { lena <= max_threads })
+  (nth : szp { nth <= max_threads })
+  (lena : sz)
   (#l : Array1.layout lena) {| ctlayout l |}
   (a : Array1.t et l { Array1.is_global a })
   (#va : erased (lseq et lena))
@@ -715,14 +810,15 @@ fn reduce
     cpu **
     on gpu_loc (a |-> va)
   requires
-    pure (va %~ vr)
+    pure (va %~ vr) **
+    pure (SZ.fits (lena + nth))
   returns
     res : et
   ensures
     pure (res %~ rsum vr)
 {
   let out = Kuiper.Ref.gpu_alloc0 #et ();
-  launch_sync (kernel lena a vr out);
+  launch_sync (kernel nth lena a vr out);
 
   (* Bring back out result, free swap. *)
   let mut hout : et = zero #et;
