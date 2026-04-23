@@ -6,14 +6,14 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 NVCC_FLAGS += -arch=native
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 
-%.o: %.cu %.h include/*.h
+%.o: %.cu %.h include/*.h include/*/*.h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
 remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
 .SECONDEXPANSION:
-$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
+$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h include/*/*.h $(OUTDIR)/$$(call remove__, Test_%).h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 

@@ -6,6 +6,8 @@ open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
 open Kuiper.EMatrix
+open Kuiper.Index
+open Kuiper.Seq.Common { (@!) }
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2

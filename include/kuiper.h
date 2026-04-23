@@ -18,6 +18,8 @@
  * need a more scalable solution. */
 #define __hexp(f) (__float2half(exp(__half2float(f))))
 
+#include "kuiper/math.h"
+
 static inline
 void __MUST(cudaError_t rc, const char * str, const char * func, const char *fname, int line)
 {

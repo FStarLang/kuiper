@@ -4,6 +4,7 @@ module Kuiper.Array3
 open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
+open Kuiper.Index
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
