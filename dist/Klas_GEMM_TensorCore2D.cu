@@ -27,7 +27,7 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -36,7 +36,8 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -50,7 +51,8 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -164,7 +166,7 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -173,7 +175,8 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -187,7 +190,8 @@ static void __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -299,7 +303,7 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -308,7 +312,8 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -322,7 +327,8 @@ static void __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -436,7 +442,7 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -445,7 +451,8 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -459,7 +466,8 @@ static void __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -571,7 +579,7 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -580,7 +588,8 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -594,7 +603,8 @@ static void __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -708,7 +718,7 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -717,7 +727,8 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -731,7 +742,8 @@ static void __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -843,7 +855,7 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -852,7 +864,8 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -866,7 +879,8 @@ static void __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -980,7 +994,7 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -989,7 +1003,8 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -1003,7 +1018,8 @@ static void __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1115,7 +1131,7 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1124,7 +1140,8 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1138,7 +1155,8 @@ static void __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1252,7 +1270,7 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1261,7 +1279,8 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1275,7 +1294,8 @@ static void __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1387,7 +1407,7 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1396,7 +1416,8 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1410,7 +1431,8 @@ static void __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1524,7 +1546,7 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1533,7 +1555,8 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1547,7 +1570,8 @@ static void __hoisted_11(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -1659,7 +1683,7 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1668,7 +1692,8 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1682,7 +1707,8 @@ static void __hoisted_12(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -1796,7 +1822,7 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1805,7 +1831,8 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1819,7 +1846,8 @@ static void __hoisted_13(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -1931,7 +1959,7 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -1940,7 +1968,8 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1954,7 +1983,8 @@ static void __hoisted_14(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2068,7 +2098,7 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2077,7 +2107,8 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -2091,7 +2122,8 @@ static void __hoisted_15(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2205,7 +2237,7 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2214,7 +2246,8 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 1024U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -2228,7 +2261,8 @@ static void __hoisted_16(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2340,7 +2374,7 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2349,7 +2383,8 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2363,7 +2398,8 @@ static void __hoisted_17(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2477,7 +2513,7 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2486,7 +2522,8 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2500,7 +2537,8 @@ static void __hoisted_18(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2614,7 +2652,7 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2623,7 +2661,8 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2637,7 +2676,8 @@ static void __hoisted_19(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2749,7 +2789,7 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2758,7 +2798,8 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2772,7 +2813,8 @@ static void __hoisted_20(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -2886,7 +2928,7 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -2895,7 +2937,8 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -2909,7 +2952,8 @@ static void __hoisted_21(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3023,7 +3067,7 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3032,7 +3076,8 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -3046,7 +3091,8 @@ static void __hoisted_22(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3158,7 +3204,7 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3167,7 +3213,8 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3181,7 +3228,8 @@ static void __hoisted_23(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3295,7 +3343,7 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3304,7 +3352,8 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3318,7 +3367,8 @@ static void __hoisted_24(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3432,7 +3482,7 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3441,7 +3491,8 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3455,7 +3506,8 @@ static void __hoisted_25(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3567,7 +3619,7 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3576,7 +3628,8 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3590,7 +3643,8 @@ static void __hoisted_26(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3704,7 +3758,7 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3713,7 +3767,8 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3727,7 +3782,8 @@ static void __hoisted_27(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3841,7 +3897,7 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3850,7 +3906,8 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -3864,7 +3921,8 @@ static void __hoisted_28(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -3976,7 +4034,7 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -3985,7 +4043,8 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -3999,7 +4058,8 @@ static void __hoisted_29(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4111,7 +4171,7 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4120,7 +4180,8 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4134,7 +4195,8 @@ static void __hoisted_30(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4248,7 +4310,7 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4257,7 +4319,8 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4271,7 +4334,8 @@ static void __hoisted_31(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4383,7 +4447,7 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4392,7 +4456,8 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4406,7 +4471,8 @@ static void __hoisted_32(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4520,7 +4586,7 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4529,7 +4595,8 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -4543,7 +4610,8 @@ static void __hoisted_33(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4655,7 +4723,7 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4664,7 +4732,8 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4678,7 +4747,8 @@ static void __hoisted_34(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4792,7 +4862,7 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4801,7 +4871,8 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4815,7 +4886,8 @@ static void __hoisted_35(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -4927,7 +4999,7 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -4936,7 +5008,8 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -4950,7 +5023,8 @@ static void __hoisted_36(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5064,7 +5138,7 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5073,7 +5147,8 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5087,7 +5162,8 @@ static void __hoisted_37(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5199,7 +5275,7 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5208,7 +5284,8 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5222,7 +5299,8 @@ static void __hoisted_38(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5336,7 +5414,7 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5345,7 +5423,8 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -5359,7 +5438,8 @@ static void __hoisted_39(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5471,7 +5551,7 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5480,7 +5560,8 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5494,7 +5575,8 @@ static void __hoisted_40(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5608,7 +5690,7 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5617,7 +5699,8 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5631,7 +5714,8 @@ static void __hoisted_41(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5743,7 +5827,7 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5752,7 +5836,8 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5766,7 +5851,8 @@ static void __hoisted_42(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5880,7 +5966,7 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -5889,7 +5975,8 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -5903,7 +5990,8 @@ static void __hoisted_43(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6015,7 +6103,7 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6024,7 +6112,8 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6038,7 +6127,8 @@ static void __hoisted_44(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6152,7 +6242,7 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6161,7 +6251,8 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6175,7 +6266,8 @@ static void __hoisted_45(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -6287,7 +6379,7 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6296,7 +6388,8 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6310,7 +6403,8 @@ static void __hoisted_46(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6425,7 +6519,7 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6434,7 +6528,8 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6448,7 +6543,8 @@ static void __hoisted_47(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6561,7 +6657,7 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6570,7 +6666,8 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6584,7 +6681,8 @@ static void __hoisted_48(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6699,7 +6797,7 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6708,7 +6806,8 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6722,7 +6821,8 @@ static void __hoisted_49(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6837,7 +6937,7 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6846,7 +6946,8 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6860,7 +6961,8 @@ static void __hoisted_50(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -6973,7 +7075,7 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -6982,7 +7084,8 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -6996,7 +7099,8 @@ static void __hoisted_51(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7111,7 +7215,7 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7120,7 +7224,8 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -7134,7 +7239,8 @@ static void __hoisted_52(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7249,7 +7355,7 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7258,7 +7364,8 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 2048U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -7272,7 +7379,8 @@ static void __hoisted_53(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7385,7 +7493,7 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7394,7 +7502,8 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 4096U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7408,7 +7517,8 @@ static void __hoisted_54(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 4096U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7523,7 +7633,7 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7532,7 +7642,8 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7546,7 +7657,8 @@ static void __hoisted_55(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7661,7 +7773,7 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7670,7 +7782,8 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7684,7 +7797,8 @@ static void __hoisted_56(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7797,7 +7911,7 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7806,7 +7920,8 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7820,7 +7935,8 @@ static void __hoisted_57(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -7935,7 +8051,7 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -7944,7 +8060,8 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -7958,7 +8075,8 @@ static void __hoisted_58(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8073,7 +8191,7 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8082,7 +8200,8 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8096,7 +8215,8 @@ static void __hoisted_59(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8209,7 +8329,7 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8218,7 +8338,8 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8232,7 +8353,8 @@ static void __hoisted_60(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8347,7 +8469,7 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8356,7 +8478,8 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8370,7 +8493,8 @@ static void __hoisted_61(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8485,7 +8609,7 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8494,7 +8618,8 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 4096U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -8508,7 +8633,8 @@ static void __hoisted_62(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8621,7 +8747,7 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 4U);
     uint32_t fi = 0U;
     for (; fi < 4U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8630,7 +8756,8 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 4096U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8644,7 +8771,8 @@ static void __hoisted_63(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 4096U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8759,7 +8887,7 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8768,7 +8896,8 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8782,7 +8911,8 @@ static void __hoisted_64(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -8897,7 +9027,7 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -8906,7 +9036,8 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -8920,7 +9051,8 @@ static void __hoisted_65(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9033,7 +9165,7 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 8U);
     uint32_t fi = 0U;
     for (; fi < 8U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -9042,7 +9174,8 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9056,7 +9189,8 @@ static void __hoisted_66(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9171,7 +9305,7 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -9180,7 +9314,8 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9194,7 +9329,8 @@ static void __hoisted_67(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9309,7 +9445,7 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -9318,7 +9454,8 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9332,7 +9469,8 @@ static void __hoisted_68(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9445,7 +9583,7 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 16U);
     uint32_t fi = 0U;
     for (; fi < 16U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -9454,7 +9592,8 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9468,7 +9607,8 @@ static void __hoisted_69(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9583,7 +9723,7 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 32U);
     uint32_t fi = 0U;
     for (; fi < 32U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -9592,7 +9732,8 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9606,7 +9747,8 @@ static void __hoisted_70(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
@@ -9721,7 +9863,7 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half *gA, half *gB,
         KPR_INIT_ARR(kpr_fragment(wmma::accumulator, 16U, 16U, 16U, half), 64U);
     uint32_t fi = 0U;
     for (; fi < 64U; fi++)
-        wmma::fill_fragment(accFrags[fi], 0.0f);
+        wmma::fill_fragment(accFrags[fi], __float2half_rn(0.0f));
     uint32_t bkIdx = 0U;
     for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
@@ -9730,7 +9872,8 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i2 = 0U;
         for (; i2 < 8192U; i2 += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i2 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i2 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -9744,7 +9887,8 @@ static void __hoisted_71(uint32_t shared, uint32_t cols, half *gA, half *gB,
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 128U;
             uint32_t col = (i + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,

@@ -14,18 +14,22 @@ __global__
 /**
   hoisted when extracting log_softmax_f16
 */
-static void __hoisted_1(uint32_t lena, half *a_)
+static void __hoisted_1(uint32_t lena, half *a_, half *out)
 {
+    half *sa = (half *) KPR_SHMEM_AT(0U);
+    sa[threadIdx.x] = a_[threadIdx.x];
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < lena; n++) {
-        uint32_t __anf0 = n;
+        uint32_t __anf01 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
         if (nextid < lena)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
                  1U) == 0U)
-                a_[threadIdx.x] = __hadd(a_[threadIdx.x], a_[nextid]);
+                sa[threadIdx.x] = __hadd(sa[threadIdx.x], sa[nextid]);
     }
+    if (threadIdx.x == 0U)
+        *out = *sa;
 }
 
 __global__
@@ -46,15 +50,16 @@ void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, half *a)
     MUST(cudaMemcpy(a_, ga, 2U * lena, cudaMemcpyDeviceToDevice));
     KPR_KCALL(__hoisted_0, lena, 1U, 0U, a_);
     MUST(cudaDeviceSynchronize());
-    KPR_KCALL(__hoisted_1, 1U, lena, 0U, lena, a_);
+    half *out = (half *) KPR_GPU_ALLOC(2U, 1U);
+    KPR_SHMEM_FITS(2U * lena);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 2U * lena));
+    KPR_KCALL(__hoisted_1, 1U, lena, 2U * lena, lena, a_, out);
     MUST(cudaDeviceSynchronize());
-    half *ca = (half *) KRML_HOST_MALLOC(sizeof(half));
-    if (ca != NULL)
-        *ca = 0.0f;
-    MUST(cudaMemcpy(ca, a_, 2U, cudaMemcpyDeviceToHost));
-    half x = *ca;
-    KRML_HOST_FREE(ca);
-    half sum = x;
+    half hout = __float2half_rn(0.0f);
+    MUST(cudaMemcpy(&hout, out, 2U, cudaMemcpyDeviceToHost));
+    MUST(cudaFree(out));
+    half sum = hout;
     MUST(cudaFree(a_));
     KPR_KCALL(__hoisted_2, lena, 1U, 0U, ga, sum);
     MUST(cudaDeviceSynchronize());
@@ -75,18 +80,22 @@ __global__
 /**
   hoisted when extracting log_softmax_f32
 */
-static void __hoisted_4(uint32_t lena, float *a_)
+static void __hoisted_4(uint32_t lena, float *a_, float *out)
 {
+    float *sa = (float *)KPR_SHMEM_AT(0U);
+    sa[threadIdx.x] = a_[threadIdx.x];
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < lena; n++) {
-        uint32_t __anf0 = n;
+        uint32_t __anf01 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
         if (nextid < lena)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
                  1U) == 0U)
-                a_[threadIdx.x] += a_[nextid];
+                sa[threadIdx.x] += sa[nextid];
     }
+    if (threadIdx.x == 0U)
+        *out = *sa;
 }
 
 __global__
@@ -107,15 +116,16 @@ void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a)
     MUST(cudaMemcpy(a_, ga, 4U * lena, cudaMemcpyDeviceToDevice));
     KPR_KCALL(__hoisted_3, lena, 1U, 0U, a_);
     MUST(cudaDeviceSynchronize());
-    KPR_KCALL(__hoisted_4, 1U, lena, 0U, lena, a_);
+    float *out = (float *)KPR_GPU_ALLOC(4U, 1U);
+    KPR_SHMEM_FITS(4U * lena);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * lena));
+    KPR_KCALL(__hoisted_4, 1U, lena, 4U * lena, lena, a_, out);
     MUST(cudaDeviceSynchronize());
-    float *ca = (float *)KRML_HOST_MALLOC(sizeof(float));
-    if (ca != NULL)
-        *ca = 0.0f;
-    MUST(cudaMemcpy(ca, a_, 4U, cudaMemcpyDeviceToHost));
-    float x = *ca;
-    KRML_HOST_FREE(ca);
-    float sum = x;
+    float hout = 0.0f;
+    MUST(cudaMemcpy(&hout, out, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaFree(out));
+    float sum = hout;
     MUST(cudaFree(a_));
     KPR_KCALL(__hoisted_5, lena, 1U, 0U, ga, sum);
     MUST(cudaDeviceSynchronize());
@@ -136,18 +146,22 @@ __global__
 /**
   hoisted when extracting log_softmax_f64
 */
-static void __hoisted_7(uint32_t lena, double *a_)
+static void __hoisted_7(uint32_t lena, double *a_, double *out)
 {
+    double *sa = (double *)KPR_SHMEM_AT(0U);
+    sa[threadIdx.x] = a_[threadIdx.x];
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < lena; n++) {
-        uint32_t __anf0 = n;
+        uint32_t __anf01 = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf01);
         if (nextid < lena)
-            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) -
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (__anf01 + 1U)) -
                  1U) == 0U)
-                a_[threadIdx.x] += a_[nextid];
+                sa[threadIdx.x] += sa[nextid];
     }
+    if (threadIdx.x == 0U)
+        *out = *sa;
 }
 
 __global__
@@ -168,15 +182,16 @@ void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a)
     MUST(cudaMemcpy(a_, ga, 8U * lena, cudaMemcpyDeviceToDevice));
     KPR_KCALL(__hoisted_6, lena, 1U, 0U, a_);
     MUST(cudaDeviceSynchronize());
-    KPR_KCALL(__hoisted_7, 1U, lena, 0U, lena, a_);
+    double *out = (double *)KPR_GPU_ALLOC(8U, 1U);
+    KPR_SHMEM_FITS(8U * lena);
+    MUST(cudaFuncSetAttribute
+         (__hoisted_7, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * lena));
+    KPR_KCALL(__hoisted_7, 1U, lena, 8U * lena, lena, a_, out);
     MUST(cudaDeviceSynchronize());
-    double *ca = (double *)KRML_HOST_MALLOC(sizeof(double));
-    if (ca != NULL)
-        *ca = 0.0l;
-    MUST(cudaMemcpy(ca, a_, 8U, cudaMemcpyDeviceToHost));
-    double x = *ca;
-    KRML_HOST_FREE(ca);
-    double sum = x;
+    double hout = 0.0l;
+    MUST(cudaMemcpy(&hout, out, 8U, cudaMemcpyDeviceToHost));
+    MUST(cudaFree(out));
+    double sum = hout;
     MUST(cudaFree(a_));
     KPR_KCALL(__hoisted_8, lena, 1U, 0U, ga, sum);
     MUST(cudaDeviceSynchronize());

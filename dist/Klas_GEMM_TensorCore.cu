@@ -37,7 +37,8 @@ __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -51,7 +52,8 @@ __hoisted_0(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -139,7 +141,8 @@ __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -153,7 +156,8 @@ __hoisted_1(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -240,7 +244,8 @@ __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -254,7 +259,8 @@ __hoisted_2(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -338,7 +344,8 @@ __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 512U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -352,7 +359,8 @@ __hoisted_3(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 128U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 8U;
             uint32_t col = (i + threadIdx.x * 8U) % 8U;
             vec_memcpy(local,
@@ -436,7 +444,8 @@ __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -450,7 +459,8 @@ __hoisted_4(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -535,7 +545,8 @@ __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 4096U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -549,7 +560,8 @@ __hoisted_5(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 4096U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -637,7 +649,8 @@ __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 4096U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -651,7 +664,8 @@ __hoisted_6(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 4096U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -739,7 +753,8 @@ __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 4096U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -753,7 +768,8 @@ __hoisted_7(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 4096U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
@@ -841,7 +857,8 @@ __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -855,7 +872,8 @@ __hoisted_8(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -942,7 +960,8 @@ __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i0 = 0U;
         for (; i0 < 256U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 16U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -956,7 +975,8 @@ __hoisted_9(uint32_t shared, uint32_t cols, half *gA, half *gB, half *gC,
         uint32_t i = 0U;
         for (; i < 256U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
             vec_memcpy(local,
@@ -1041,7 +1061,8 @@ __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB, float *gC,
         uint32_t i0 = 0U;
         for (; i0 < 1024U; i0 += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i0 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
@@ -1055,7 +1076,8 @@ __hoisted_10(uint32_t shared, uint32_t cols, half *gA, half *gB, float *gC,
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
             half local[8U];
-            memset(local, 0U, 8U * sizeof(half));
+            for (uint32_t _i = 0U; _i < 8U; ++_i)
+                local[_i] = __float2half_rn(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(local,
