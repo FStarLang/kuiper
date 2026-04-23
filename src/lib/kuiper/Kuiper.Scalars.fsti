@@ -37,6 +37,9 @@ class floating (t : Type) = {
   log : t -> t;
 }
 
+let abs (#t:Type) {| floating t |} (x : t) : t =
+  if x `gte` zero then x else sub zero x
+
 inline_for_extraction
 instance _ : scalar U8.t =
   let open FStar.UInt8 in
