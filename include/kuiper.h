@@ -8,17 +8,13 @@
 
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
-#include "atomics.h"
-#include "vectorops.h"
-#if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
-#include "tensorcores.h"
-#endif
-
-/* NOTE: making this a macro means it works in host/device, but we
- * need a more scalable solution. */
-#define __hexp(f) (__float2half(exp(__half2float(f))))
-
+#include "kuiper/atomics.h"
+#include "kuiper/vectorops.h"
 #include "kuiper/math.h"
+
+#if (!defined(KUIPER_CFG_TENSORCORES) || KUIPER_CFG_TENSORCORES)
+#include "kuiper/tensorcores.h"
+#endif
 
 static inline
 void __MUST(cudaError_t rc, const char * str, const char * func, const char *fname, int line)
