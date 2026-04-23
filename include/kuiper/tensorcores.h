@@ -1,5 +1,5 @@
-#ifndef __KUIPER_TENSORCORE_H
-#define __KUIPER_TENSORCORE_H 1
+#ifndef KUIPER_TENSORCORES_H
+#define KUIPER_TENSORCORES_H 1
 
 #include <mma.h>
 using namespace nvcuda;
@@ -10,4 +10,4 @@ using namespace nvcuda;
 #define KPR_INIT(ty)                              (ty){0}
 #define KPR_INIT_ARR(ty, size)                    (ty[size]){0}
 
-#endif /* __KUIPER_TENSORCORE_H */
+#endif /* KUIPER_TENSORCORES_H */

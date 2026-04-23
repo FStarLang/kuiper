@@ -1,5 +1,5 @@
-#ifndef __KUIPER_MATH_H
-#define __KUIPER_MATH_H 1
+#ifndef KUIPER_MATH_H
+#define KUIPER_MATH_H 1
 
 /*
  * Half-precision math wrappers.
@@ -75,4 +75,4 @@
 #define kpr_hfmod(f, g)      KPR_HFALL2(fmodf,     f, g)
 #define kpr_hcopysign(f, g)  KPR_HFALL2(copysignf, f, g)
 
-#endif /* __KUIPER_MATH_H */
+#endif /* KUIPER_MATH_H */

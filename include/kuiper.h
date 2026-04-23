@@ -1,9 +1,10 @@
-#ifndef __KUIPER_H
-#define __KUIPER_H 1
+#ifndef KUIPER_H
+#define KUIPER_H 1
 
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #include <cuda_runtime.h>
@@ -113,17 +114,17 @@ void * __KPR_GPU_ALLOC(size_t sz, size_t len, const char * func, const char *str
 static inline
 void INFO ()
 {
-	printf("sizeof(short) = %lu\n", sizeof(short));
-	printf("sizeof(int) = %lu\n", sizeof(int));
-	printf("sizeof(long) = %lu\n", sizeof(long));
-	printf("sizeof(long long) = %lu\n", sizeof(long long));
+	printf("sizeof(short) = %zu\n", sizeof(short));
+	printf("sizeof(int) = %zu\n", sizeof(int));
+	printf("sizeof(long) = %zu\n", sizeof(long));
+	printf("sizeof(long long) = %zu\n", sizeof(long long));
 
-	printf("sizeof(unsigned short) = %lu\n", sizeof(unsigned short));
-	printf("sizeof(unsigned int) = %lu\n", sizeof(unsigned int));
-	printf("sizeof(unsigned long) = %lu\n", sizeof(unsigned long));
-	printf("sizeof(unsigned long long) = %lu\n", sizeof(unsigned long long));
+	printf("sizeof(unsigned short) = %zu\n", sizeof(unsigned short));
+	printf("sizeof(unsigned int) = %zu\n", sizeof(unsigned int));
+	printf("sizeof(unsigned long) = %zu\n", sizeof(unsigned long));
+	printf("sizeof(unsigned long long) = %zu\n", sizeof(unsigned long long));
 }
 
 #define KPR_SHMEM_FITS(e) KPR_ASSERT((e) <= 101376) // 99KiB
 
-#endif /* __KUIPER_H */
+#endif /* KUIPER_H */

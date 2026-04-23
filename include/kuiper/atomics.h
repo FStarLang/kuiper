@@ -1,5 +1,5 @@
-#ifndef __KUIPER__ATOMIC_H
-#define __KUIPER__ATOMIC_H 1
+#ifndef KUIPER_ATOMICS_H
+#define KUIPER_ATOMICS_H 1
 
 #include <stdint.h>
 #include <type_traits>
@@ -58,4 +58,4 @@ double atomic_add_f64(double* address, double val)
 #endif
 }
 
-#endif /* __KUIPER_ATOMIC_H */
+#endif /* KUIPER_ATOMICS_H */
