@@ -2,8 +2,6 @@ module Kuiper.Kernel.GEMM.OrigBlockTiling1D.Kf
 
 #lang-pulse
 
-#set-options "--z3rlimit 60"
-
 open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
@@ -123,7 +121,7 @@ fn subproducts1d
 }
 
 #restart-solver
-#push-options "--ifuel 1 --retry 3 --z3rlimit 80"
+#push-options "--ifuel 1"
 
 inline_for_extraction noextract
 fn kf
@@ -190,6 +188,14 @@ fn kf
 
   (* thread-local result cache *)
   let mut cache1d : Pulse.Lib.Array.array et = [| zero #et #_ ; tm |];
+
+  // Establish arithmetic bounds for the kpre1 frame refinements
+  // (natlt/enatlt for subtile indices, perm positivity)
+  assert pure (bid / mcols < mrows);
+  assert pure (bid % mcols < mcols);
+  assert pure (tid / bn < bm / tm);
+  assert pure (bm/tm * bn > 0);
+  assert pure (mrows * mcols * (bm/tm * bn) > 0);
 
   let mut bkIdx  : sz = 0sz;
   while (!bkIdx <^ mshared)
