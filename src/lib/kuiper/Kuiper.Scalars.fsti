@@ -23,6 +23,8 @@ class scalar (t : Type) = {
   mul : t -> t -> t;
   zero : t;
   one : t;
+  lt : t -> t -> bool;
+  lte : t -> t -> bool;
   gt : t -> t -> bool;
   gte : t -> t -> bool;
 }
@@ -73,7 +75,7 @@ instance _ : scalar U8.t =
     is_sized = solve;
     add = add_mod;
     mul = mul_mod;
-    zero; one; gt; gte;
+    zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -83,7 +85,7 @@ instance _ : scalar U16.t =
     is_sized = solve;
     add = add_mod;
     mul = mul_mod;
-    zero; one; gt; gte;
+    zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -93,7 +95,7 @@ instance _ : scalar U32.t =
     is_sized = solve;
     add = add_mod;
     mul = mul_mod;
-    zero; one; gt; gte;
+    zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -103,7 +105,7 @@ instance _ : scalar U64.t =
     is_sized = solve;
     add = add_mod;
     mul = mul_mod;
-    zero; one; gt; gte;
+    zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -111,7 +113,7 @@ instance _ : scalar F16.t =
   let open Kuiper.Float16 in
   {
     is_sized = solve;
-    add; mul ; zero; one; gt; gte;
+    add; mul ; zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -131,7 +133,7 @@ instance _ : scalar F32.t =
   let open Kuiper.Float32 in
   {
     is_sized = solve;
-    add; mul ; zero; one; gt; gte;
+    add; mul ; zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -151,7 +153,7 @@ instance _ : scalar F64.t =
   let open Kuiper.Float64 in
   {
     is_sized = solve;
-    add; mul ; zero; one; gt; gte;
+    add; mul ; zero; one; lt; lte; gt; gte;
   }
 
 inline_for_extraction
@@ -177,6 +179,8 @@ instance _ : scalar Real.real =
   one = 1.0R;
   // FIXME: reals cannot be compared in Tot.
   // We're overdue for restructuring the class hierarchy.
+  lt = (fun _ _ -> false);
+  lte = (fun _ _ -> false);
   gt = (fun _ _ -> false);
   gte = (fun _ _ -> false);
 }

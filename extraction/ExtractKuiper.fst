@@ -604,6 +604,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.div",  [], [] -> EQualified ([], "__hdiv")
   | "Kuiper.Float16.exp",  [], [] -> EQualified ([], "hexp")
   | "Kuiper.Float16.log",  [], [] -> EQualified ([], "hlog")
+  | "Kuiper.Float16.lt",   [], [] -> EQualified ([], "__hlt")
+  | "Kuiper.Float16.lte",  [], [] -> EQualified ([], "__hle")
+  | "Kuiper.Float16.gt",   [], [] -> EQualified ([], "__hgt")
+  | "Kuiper.Float16.gte",  [], [] -> EQualified ([], "__hge")
 
   | "Kuiper.Float32.zero", [], [] -> EConstant (Float, "0.0f")
   | "Kuiper.Float32.one",  [], [] -> EConstant (Float, "1.0f")
@@ -613,6 +617,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.div",  [], [] -> EOp (Div, Float)
   | "Kuiper.Float32.exp",  [], [] -> EQualified ([], "expf")
   | "Kuiper.Float32.log",  [], [] -> EQualified ([], "logf")
+  | "Kuiper.Float32.lt",   [], [] -> EOp (Lt, Float)
+  | "Kuiper.Float32.lte",  [], [] -> EOp (Lte, Float)
+  | "Kuiper.Float32.gt",   [], [] -> EOp (Gt, Float)
+  | "Kuiper.Float32.gte",  [], [] -> EOp (Gte, Float)
 
   | "Kuiper.Float64.zero", [], [] -> EConstant (Double, "0.0l")
   | "Kuiper.Float64.one",  [], [] -> EConstant (Double, "1.0l")
@@ -622,6 +630,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.div",  [], [] -> EOp (Div, Double)
   | "Kuiper.Float64.exp",  [], [] -> EQualified ([], "exp")
   | "Kuiper.Float64.log",  [], [] -> EQualified ([], "log")
+  | "Kuiper.Float64.lt",   [], [] -> EOp (Lt, Double)
+  | "Kuiper.Float64.lte",  [], [] -> EOp (Lte, Double)
+  | "Kuiper.Float64.gt",   [], [] -> EOp (Gt, Double)
+  | "Kuiper.Float64.gte",  [], [] -> EOp (Gte, Double)
 
   (* Transcendental / math primitives *)
 

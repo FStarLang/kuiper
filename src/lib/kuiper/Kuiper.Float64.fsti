@@ -11,6 +11,8 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 val div : t -> t -> t
 
+val lt : t -> t -> bool
+val lte : t -> t -> bool
 val gt : t -> t -> bool
 val gte : t -> t -> bool
 
