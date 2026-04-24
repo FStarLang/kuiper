@@ -4,3 +4,7 @@
 - Make Kuiper.Concrete work on arbitrary constant nats
 - Try to reduce __anf variables in output CUDA
 - Try newer Z3's to see if we can get rid of --retry, --z3refresh, etc.
+- Make sure shmem and local arrays get proper sendable predicates with solve,
+  see the FIXME in Kernel.HReduce.
+- Can we still use memset when initializing an array with __float2half_rn(0.0f)?
+  How should we do that cleanly?

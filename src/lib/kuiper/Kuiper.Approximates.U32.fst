@@ -1,10 +1,12 @@
 module Kuiper.Approximates.U32
 
-open Kuiper
+open Kuiper.IntAliases
 open Kuiper.Scalars
 open Kuiper.Approximates.Base
 open FStar.Real
 open Kuiper.Math.Silly { mod_prod }
+
+#set-options "--z3rlimit 20"
 
 (* For the integer types, we can actually define the relation
 and prove it. BUT, we must consider overflow! So we make the relation

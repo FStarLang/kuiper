@@ -10,7 +10,7 @@ open Kuiper.EMatrix
 open Kuiper.Tensor.Layout
 open Kuiper.Tensor.Layout.Alg
 module MS = Kuiper.Spec.GEMM
-module N = Kuiper.Poly.GEMM.Naive
+module N = Kuiper.Kernel.GEMM.Naive
 module M = Kuiper.Array2
 
 [@@allow_ambiguous]

@@ -31,5 +31,19 @@ Kuiper_Example_Sparse_SPMM_spmm_u32(uint32_t rows,
                                     Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
                                     uint32_t * gB, uint32_t * gC);
 
+typedef struct Kuiper_Sparse_Matrix_smatrix__float_s {
+    uint32_t nnz;
+    float *elems;
+    uint32_t *col_ind;
+    uint32_t *row_off;
+} Kuiper_Sparse_Matrix_smatrix__float;
+
+void
+Kuiper_Example_Sparse_SPMM_spmm_f32(uint32_t rows,
+                                    uint32_t shared,
+                                    uint32_t cols,
+                                    Kuiper_Sparse_Matrix_smatrix__float gA,
+                                    float *gB, float *gC);
+
 #define Kuiper_Example_Sparse_SPMM_H_DEFINED
 #endif                          /* Kuiper_Example_Sparse_SPMM_H */

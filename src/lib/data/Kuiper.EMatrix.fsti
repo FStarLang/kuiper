@@ -5,7 +5,6 @@ module Kuiper.EMatrix
 
 open Kuiper
 open Kuiper.Container
-open Kuiper.Approximates
 open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
 

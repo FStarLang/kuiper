@@ -6,14 +6,14 @@ NVCC_FLAGS += -I obj # needed for files in test/ only..
 NVCC_FLAGS += -arch=native
 NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=$(KUIPER_CFG_TENSORCORES)
 
-%.o: %.cu %.h include/*.h
+%.o: %.cu %.h include/*.h include/*/*.h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
 remove__ = $(firstword $(subst __, ,$(patsubst Test_%,%,$1)))
 
 .SECONDEXPANSION:
-$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h $(OUTDIR)/$$(call remove__, Test_%).h
+$(OUTDIR)/Test_%.o: test/Test_%.cu test/test-common.h test/*.c.inc include/*.h include/*/*.h $(OUTDIR)/$$(call remove__, Test_%).h
 	$(call msg,"NVCC")
 	$(Q)nvcc $(NVCC_FLAGS) -o $@ -c $<
 
@@ -44,7 +44,7 @@ $(OUTDIR)/%.accept: $(OUTDIR)/%.output
 
 TESTS+=$(notdir $(basename $(wildcard test/Test_*.cu)))
 
-NOTEST += Test_Kuiper_Softmax__F16
+# NOTEST += Test_Kuiper_Softmax__F16
 ifeq ($(KUIPER_CFG_TENSORCORES),0)
 NOTEST += $(foreach f,$(TESTS),$(if $(findstring TensorCore,$(f)),$(f)))
 endif
@@ -62,13 +62,9 @@ EXTRACT_MINIMAL :=
 
 # Extract everything in src/examples
 EXTRACT += $(wildcard src/examples/*.fst)
-# Extract everything in src/lib/inst, they are the C api for the library
-EXTRACT += $(wildcard src/lib/inst/*.fst)
-# And src/lib/inst/gemm...
-EXTRACT += $(wildcard src/lib/inst/gemm/*.fst)
+# Extract everything in src/klas , they are the C api for the library
+EXTRACT += $(wildcard src/klas/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
-EXTRACT += src/examples/Kuiper.Example2.fst
-
 NOEXTRACT :=
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
@@ -81,8 +77,8 @@ extract-all: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT))))
 extract-all: $(patsubst %,obj/%.h, $(subst .,_,$(basename $(notdir $(EXTRACT)))))
 
 EXTRACT_MINIMAL := $(EXTRACT)
-EXTRACT_MINIMAL := $(filter-out src/lib/inst/gemm/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
-EXTRACT_MINIMAL := $(filter-out src/lib/inst/gemm/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
+EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore2D.fst, $(EXTRACT_MINIMAL))
+EXTRACT_MINIMAL := $(filter-out src/klas/Kuiper.GEMM.TensorCore.fst, $(EXTRACT_MINIMAL))
 EXTRACT_MINIMAL := $(filter-out src/examples/Kuiper.Example.TensorCore.fst, $(EXTRACT_MINIMAL))
 
 extract-minimal: $(patsubst %,obj/%.cu,$(subst .,_,$(basename $(notdir $(EXTRACT_MINIMAL)))))

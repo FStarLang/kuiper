@@ -26,9 +26,7 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr,
-                "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n",
-                argv[0]);
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check>]\n", argv[0]);
         return 1;
     }
 
@@ -68,8 +66,7 @@ int main(int argc, char **argv)
         float t;
         TIME_void(TOKENPASTE3(stem, et_lbl, _rrr)
                   (rows, shared, cols, m1, m2, m3), &t);
-        fprintf(stderr, "Estimated GFLOPS: %.3f\n",
-                (rows * shared * cols * 2.0) / t / 1e9);
+        fprintf(stderr, "Estimated GFLOPS: %.3f\n", (rows * shared * cols * 2.0) / t / 1e9);
         if (check)
             cmp(rows, cols, m3, m3_cpu);
     }

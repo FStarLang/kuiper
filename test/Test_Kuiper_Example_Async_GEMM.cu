@@ -41,14 +41,10 @@ int main()
     float *d = (float *)kpr_wait_alloc(sizeof(float), DIM * DIM);
     float *r = (float *)kpr_wait_alloc(sizeof(float), DIM * DIM);
 
-    MUST(cudaMemcpy
-         (a, a_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy
-         (b, b_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy
-         (c, c_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy
-         (d, d_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(a, a_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(b, b_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(c, c_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(d, d_cpu, DIM * DIM * sizeof(float), cudaMemcpyHostToDevice));
 
     Kuiper_Example_Async_GEMM_main(a, b, c, d, r);
 

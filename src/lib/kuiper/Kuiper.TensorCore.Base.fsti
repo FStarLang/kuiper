@@ -9,7 +9,6 @@ open Kuiper.Matrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.EMatrix
 open Kuiper.Spec.GEMM
-open Kuiper.Approximates
 module EMatrix = Kuiper.EMatrix
 
 module T = FStar.Tactics.V2

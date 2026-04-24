@@ -19,7 +19,7 @@ Your expertise spans:
 Use the `fstar.sh` script to verify Kuiper modules with the correct F* options:
 
 ```bash
-./fstar.sh src/lib/poly/gemm/Kuiper.Poly.GEMM.BlockTiling2D.fst
+./fstar.sh src/lib/kernel/gemm/Kuiper.Kernel.GEMM.BlockTiling2D.fst
 ```
 
 The script automatically configures F* with necessary options for the Kuiper codebase. Verification times can be substantial (5-10 minutes for complex files), so be patient.
@@ -33,7 +33,7 @@ When implementing proofs for a new kernel, study simpler implementations first:
    - Understand the simpler cases before tackling complex ones
 
 2. **Similar kernels**: Look for kernels with similar structure
-   - For scalar multiplications: study `Kuiper.Poly.GEMM.TensorCore2D` (ignoring tensor core specifics)
+   - For scalar multiplications: study `Kuiper.Kernel.GEMM.TensorCore2D` (ignoring tensor core specifics)
    - Pay attention to how they structure `setup`, `teardown`, and main computation proofs
    - Copy proof organization patterns, not necessarily the detailed code
 
@@ -233,7 +233,7 @@ When searching for patterns in the codebase:
 - `Kuiper.Spec.GEMM`: Specification of matmul and partial matmul functions
 - `Kuiper.Matrix.Tiling`: Tiling API (`ematrix_subtile`, `gpu_matrix_tile`, `gpu_matrix_untile`)
 - `Kuiper.ForEvery`: Parallel permission reasoning (`forevery_zip`, `forevery_factor'`, `forevery_ext`)
-- `Kuiper.Poly.GEMM.TensorCore2D.KernelDesc`: Template for complex kernel proofs
+- `Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc`: Template for complex kernel proofs
 
 ## When Uncertain
 

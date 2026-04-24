@@ -1,7 +1,6 @@
 module Kuiper.Approximates
 
 include Kuiper.Approximates.Base
-
 include Kuiper.Approximates.U8
 include Kuiper.Approximates.U16
 include Kuiper.Approximates.U32
@@ -10,10 +9,13 @@ include Kuiper.Approximates.F16
 include Kuiper.Approximates.F32
 include Kuiper.Approximates.F64
 
-open Kuiper
-open FStar.Real
+open FStar.Ghost
+open FStar.Seq
+open Pulse
+open Kuiper.Real
 open Kuiper.Scalars
 open Kuiper.Seq.Common
+open Kuiper.Len
 
 (* This class provides some syntactic sugar to use the %~ operator
    on scalars, sequences, matrices, etc. *)
@@ -87,17 +89,14 @@ val to_real_seq_is_approx (#a:Type) {| scalar a, real_like a |}
   : Lemma (s %~ to_real_seq s)
           [SMTPat (seq_approximates s (to_real_seq s))]
 
-let real_seq_sum (r : seq real) : real
-  = seq_fold_left (+.) 0.0R r
-
-val real_seq_sum_append
+val rsum_append
   (r1 r2 : seq real)
-  : Lemma (real_seq_sum (r1 `Seq.append` r2) == real_seq_sum r1 +. real_seq_sum r2)
+  : Lemma (rsum (r1 `Seq.append` r2) == rsum r1 +. rsum r2)
 
 val seq_approximates_append (#a:Type) {| scalar a, real_like a |}
   (s1 s2 : a) (r1 r2 : seq real)
-  : Lemma (requires s1 %~ real_seq_sum r1 /\ s2 %~ real_seq_sum r2)
-          (ensures (s1 `add` s2) %~ real_seq_sum (r1 `Seq.append` r2))
+  : Lemma (requires s1 %~ rsum r1 /\ s2 %~ rsum r2)
+          (ensures (s1 `add` s2) %~ rsum (r1 `Seq.append` r2))
 
 val sum_is_approx' #a {| scalar a, real_like a |}
       (s: seq a) (s': seq real) (acc: a) (acc': real) :

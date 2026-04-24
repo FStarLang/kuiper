@@ -33,9 +33,7 @@ int main(int argc, char **argv)
     } else if (argc == 1) {
         /* use defaults */
     } else {
-        fprintf(stderr,
-                "Usage: %s [<laps> <rows> <shared> <columns> <check flag>]\n",
-                argv[0]);
+        fprintf(stderr, "Usage: %s [<laps> <rows> <shared> <columns> <check flag>]\n", argv[0]);
         return 1;
     }
 
@@ -112,9 +110,7 @@ int main(int argc, char **argv)
 #define XSTR(x) STR(x)
 
     if (check) {
-        TIME_void(gold =
-                  cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu,
-                            m3_cpu, alpha, beta), NULL);
+        TIME_void(gold = cpu_sgemm(rows, shared, cols, m1_cpu, m2_cpu, m3_cpu, alpha, beta), NULL);
 
         F(PREARGS rows, shared, cols, m1, m2, m3);
 
@@ -138,8 +134,7 @@ int main(int argc, char **argv)
     // I think the below is more accurate, but I'm reusing the
     // same formula from the sgemm.cu benchsuite
     // uint64_t flops = (rows * shared * cols * 2.0 + rows * cols * 3) / t;
-    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F),
-            (double)flops / t / 1e9);
+    fprintf(stderr, ">> RES\t%s\t%.3f GFLOPS\n", XSTR(F), (double)flops / t / 1e9);
 
     cudaFree(m1);
     cudaFree(m2);

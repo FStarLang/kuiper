@@ -7,6 +7,7 @@ open Kuiper.Tensor
 open Kuiper.Injection
 open Kuiper.Index
 open FStar.Tactics.Typeclasses { no_method }
+open Kuiper.Tensor.Layout.Alg { l1_forward }
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -408,3 +409,21 @@ fn memcpy_device_to_device
     pure (SZ.v cnt == sz)
   ensures
     on gpu_loc (dst |-> vsrc)
+
+(* Random helper. From the CPU, read one element from a flat array1. *)
+inline_for_extraction noextract
+fn arr_read_1
+  (#et : Type0) {| sized et |}
+  (#len : erased nat)
+  (a : t et (l1_forward len))
+  (i : szlt len)
+  (#f : perm)
+  (#va : erased (lseq et len))
+  preserves
+    cpu
+  preserves
+    on gpu_loc (a |-> Frac f va)
+  returns
+    x : et
+  ensures
+    pure (x == Seq.index va i)

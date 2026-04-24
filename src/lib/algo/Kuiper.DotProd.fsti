@@ -8,7 +8,6 @@ module Kuiper.DotProd
 open Kuiper
 open Kuiper.Tensor { ctlayout }
 open Kuiper.EMatrix
-open Kuiper.Approximates
 module MS = Kuiper.Spec.GEMM
 module Array1 = Kuiper.Array1
 

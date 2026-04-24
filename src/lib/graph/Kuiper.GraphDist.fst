@@ -3,7 +3,7 @@ module Kuiper.GraphDist
 #lang-pulse
 open Kuiper
 open Kuiper.Scalars
-module P = Kuiper.Poly.GEMM.Naive2
+module K = Kuiper.Kernel.GEMM.Naive2
 module M = Kuiper.Array2
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.EMatrix { ematrix }
@@ -67,6 +67,10 @@ instance scalar_dist : scalar dist = {
   one = D 1us;
   add = add';
   mul = mult;
+  lt = (fun _ _ -> false); // fake, not used by GEMM
+  lte = (fun _ _ -> false); // fake, not used by GEMM
+  gt = (fun _ _ -> false); // fake, not used by GEMM
+  gte = (fun _ _ -> false); // fake, not used by GEMM
 }
 
 ghost
@@ -121,6 +125,6 @@ fn matmul_dist_gpu
     exists* eb'. on gpu_loc (b |-> eb')
 {
   map_loc gpu_loc (fun () -> m_share_2 a);
-  P.mmcomb_gpu_exact add' a a b;
+  K.mmcomb_gpu_exact add' a a b;
   map_loc gpu_loc (fun () -> m_gather_2 a);
 }

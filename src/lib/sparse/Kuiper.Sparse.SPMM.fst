@@ -15,7 +15,7 @@ open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Reprs
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-open Kuiper.Poly.GEMMGPU.Type { size_req_t }
+open Kuiper.Kernel.GEMMGPU.Type { size_req_t }
 
 let slice_live
   (#et : Type0)
@@ -2453,4 +2453,10 @@ let spmm_u32 (rows shared cols : szp)
   (#_ : squash (SZ.fits (rows * cols) /\ SZ.fits (shared * cols)))
   =
   spmm #u32 #_ rows shared cols 128sz 128sz 32sz 4sz #(row_major _ _) #(row_major _ _)
+    #_ #_
+
+let spmm_f32 (rows shared cols : szp)
+  (#_ : squash (SZ.fits (rows * cols) /\ SZ.fits (shared * cols)))
+  =
+  spmm #f32 #_ rows shared cols 128sz 128sz 32sz 4sz #(row_major _ _) #(row_major _ _)
     #_ #_

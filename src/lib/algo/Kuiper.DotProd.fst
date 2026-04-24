@@ -84,35 +84,19 @@ fn kahan_dotprod
   ensures
     pure (res %~ seq_dotprod rA rB len)
 {
-  let mut k : szle len = 0sz;
-  let mut sum : et = zero;
-  let mut c : et = zero; // compensation
-
-  while (!k <^ len)
-    invariant live k
-    invariant live sum ** pure (!sum %~ seq_dotprod rA rB !k)
-    invariant live c ** pure (!c %~ 0.0R)
-    decreases (len - !k)
-  {
-    let y = mul (Array1.(a.(!k))) (Array1.(b.(!k)));
-    a_mul (Array1.(a.(!k))) (Array1.(b.(!k))) (rA @! !k) (rB @! !k);
-    assert pure (y %~ ((rA @! !k) *. (rB @! !k)));
-    let yc = y `sub` !c;
-    sub_approx y !c ((rA @! !k) *. (rB @! !k)) 0.0R;
-    assert pure (yc %~ ((rA @! !k) *. (rB @! !k)));
-    let t = !sum `add` yc;
-    a_add (!sum) yc (seq_dotprod rA rB !k) ((rA @! !k) *. (rB @! !k));
-    assert pure (t %~ (seq_dotprod rA rB (!k + 1)));
-    sub_approx t !sum (seq_dotprod rA rB (!k + 1)) (seq_dotprod rA rB !k);
-    assert pure (t `sub` !sum %~ ((rA @! !k) *. (rB @! !k)));
-    c := (t `sub` !sum) `sub` yc;
-    sub_approx (t `sub` !sum) yc ((rA @! !k) *. (rB @! !k)) ((rA @! !k) *. (rB @! !k));
-    assert pure (!c %~ 0.0R);
-    sum := t;
-    k   := !k +^ 1sz;
-    ()
-  };
-  !sum
+  let res =
+    Kuiper.Kahan.kahan_sum #et
+      len
+      (gpu ** a |-> Frac fA sA ** b |-> Frac fB sB)
+      (fun (i : natlt len) -> (rA @! i) *. (rB @! i))
+      fn (i : szlt len) {
+        open Array1;
+        a_mul a.(i) b.(i) (rA @! i) (rB @! i);
+        a.(i) `mul` b.(i);
+      };
+  assume pure (Kuiper.Kahan.sum 0 len (fun (i : natlt len) -> (rA @! i) *. (rB @! i))
+               == seq_dotprod rA rB len);
+  res
 }
 
 inline_for_extraction noextract

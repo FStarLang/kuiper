@@ -85,6 +85,7 @@ let setBit_lemma_preserves (u : u32) (i j : szlt 32)
 =
   shift_left_1_lemma_false i (31sz -^ j)
 
+#push-options "--retry 5"
 let unsetBit_lemma_ensures (u : u32) (i : szlt 32)
 : Lemma
     (requires true)
@@ -94,6 +95,7 @@ let unsetBit_lemma_ensures (u : u32) (i : szlt 32)
   UI.lognot_definition (UI.shift_left #32 1 i) (31 - i);
   UI.logand_definition u (UI.lognot (UI.shift_left #32 1 i)) (31 - i);
   ()
+#pop-options
 
 let unsetBit_lemma_preserves (u : u32) (i j : szlt 32)
 : Lemma

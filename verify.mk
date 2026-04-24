@@ -11,9 +11,6 @@ minimal: build-minimal
 .PHONY: .force
 .force:
 
-test-handwritten:
-	$(MAKE) -C handwritten-bench run
-
 .configure.output: ./configure $(shell which nvcc 2>/dev/null)
 	./configure $@
 
@@ -64,6 +61,7 @@ karamel/Makefile:
 	[ -f $@ ] || touch $@
 	find karamel -type f -newer $@ -exec touch $@ \; -quit
 
+.krml.touch: .fstar.touch # Make sure we reinstall after installing F*, since it also install a krml binary
 .krml.touch: .krml.src.touch karamel/Makefile
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
@@ -197,7 +195,7 @@ echo-krml:
 
 .depend: $(ROOTS) .fstar.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims' --dep full $(ROOTS) -o $@.tmp
+	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
 	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
 	sed ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
 	rm -f $@.tmp
@@ -205,7 +203,7 @@ echo-krml:
 depgraph: depend.pdf
 depend.pdf: .depend .force
 	$(call msg, "DEPEND GRAPH", $(SRC))
-	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims' $(ROOTS) $(DEPFLAGS) -o .depend.graph
+	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
 	sed -i 's/^digraph{/& ratio=1;/' .depend.simpl

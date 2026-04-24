@@ -4,6 +4,8 @@ module Kuiper.Array1
 open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
+open Kuiper.Index
+open Kuiper.Seq.Common { (@!) }
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
@@ -550,4 +552,56 @@ fn memcpy_device_to_device
            as (dst |-> vsrc);
     };
   ();
+}
+
+(* Random helper. From the CPU, read one element from a flat array1. *)
+inline_for_extraction noextract
+fn arr_read_1
+  (#et : Type0) {| sized et |}
+  (#len : erased nat)
+  (a : t et (l1_forward len))
+  (i : szlt len)
+  (#f : perm)
+  (#va : erased (lseq et len))
+  preserves
+    cpu
+  preserves
+    on gpu_loc (a |-> Frac f va)
+  returns
+    x : et
+  ensures
+    pure (x == Seq.index va i)
+{
+  let ca = Pulse.Lib.Vec.alloc #et default 1sz;
+
+  map_loc gpu_loc
+    #(a |-> Frac f va)
+    #(core a |-> Frac f va)
+    fn _ {
+      lower a;
+      assert pure (Seq.equal (to_seq (l1_forward len) va) va);
+      rewrite core a |-> Frac f (to_seq (l1_forward len) va)
+           as core a |-> Frac f va;
+    };
+
+  (* FIXME: Need to give length of ca?!? *)
+  gpu_memcpy_device_to_host' #_ #_ #1 ca 0sz (core a) i 1sz;
+
+  let x = Pulse.Lib.Vec.(ca.(0sz));
+  Pulse.Lib.Vec.free ca;
+
+  map_loc gpu_loc
+    #(core a |-> Frac f va)
+    #(a |-> Frac f va)
+    fn _ {
+      raise' (l1_forward len) (core a);
+      rewrite each from_array (l1_forward len) (core a) as a;
+      assert pure (Seq.equal (from_seq (l1_forward len) va) va);
+      rewrite a |-> Frac f (from_seq (l1_forward len) va) as a |-> Frac f va;
+      (* ^ Why is this needed? We have an mkey on the pointer. It was not
+      needed when this function was defined externally. *)
+      ();
+    };
+
+  x;
 }

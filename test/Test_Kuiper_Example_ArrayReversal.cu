@@ -34,8 +34,7 @@ int main()
 
         for (i = 0; i < n; i++) {
             if (a[i] != n - i - 1) {
-                printf("Error at %d: %" PRIu64 " != %" PRIu64
-                       "\n", i, a[i], (u64) (n - i - 1));
+                printf("Error at %d: %" PRIu64 " != %" PRIu64 "\n", i, a[i], (u64) (n - i - 1));
                 return 1;
             }
         }

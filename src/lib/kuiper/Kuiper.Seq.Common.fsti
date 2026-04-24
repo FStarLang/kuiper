@@ -3,6 +3,7 @@ module Kuiper.Seq.Common
 open FStar.Seq
 open Kuiper.Functions
 open Kuiper.Monoid
+open Kuiper.Common
 
 type seq_view a =
   | SNil
@@ -29,6 +30,9 @@ let ( @+ ) (#a:Type) (s1 s2 : seq a) : seq a = Seq.append s1 s2
 
 let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
   Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
+
+let lseq_map (#a #b : Type) (#len : nat) (f: a -> b) (s: lseq a len) : GTot (lseq b len) =
+  seq_map f s
 
 let lseq_upd (#a:Type) (#n:nat) (s : lseq a n) (i : nat { i < n }) (v : a)
   : GTot (lseq a n)
@@ -111,3 +115,29 @@ let seq_drop
   : seq a
 =
   slice s n (length s)
+
+
+// Unfortunate to have to define and use this
+let seq_refine #a (p : a -> prop)
+  (s : seq a { forall i. p (s @! i) })
+  : GTot (lseq (x:a{p x}) (Seq.length s))
+  = Seq.init_ghost #(x:a{p x}) (Seq.length s) (fun i -> s @! i)
+
+val lem_seq_refine_at #a (p : a -> prop)
+  (s : seq a { forall i. p (s @! i) })
+  (i : nat {i < Seq.length s})
+  : Lemma ((seq_refine p s) @! i == s @! i)
+          // [SMTPat (seq_refine #a p s @! i)]
+          // ^ Does not seem to work (warns)
+
+let seq_stride_length (#a:Type)
+  (s : seq a) (stride : pos) (off : natlt stride)
+  : GTot nat
+  = (Seq.length s - off + stride - 1) / stride
+
+let seq_stride (#a:Type)
+  (s : seq a) (stride : pos) (off : natlt stride)
+  : GTot (seq a)
+  = Seq.init_ghost
+      (seq_stride_length s stride off)
+      (fun i -> s @! (off + i * stride))

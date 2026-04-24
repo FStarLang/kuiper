@@ -139,7 +139,7 @@ jobs:
           include-hidden-files: true
           path: '**'
 
-  test:
+  test-and-bench:
     needs: verify
     runs-on: [self-hosted, linux, X64, cuda]
     container:
@@ -194,35 +194,3 @@ jobs:
           else
             echo "dist/ is up to date."
           fi
-
-  bench:
-    needs: verify
-    runs-on: [self-hosted, linux, X64, cuda]
-    container:
-      image: mtzguido/pulse-cuda-devcontainer:latest
-      options: --gpus all
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - run: |
-          whoami
-          id
-          env
-
-      - run: find . -delete
-
-      - name: Check out repo
-        uses: actions/checkout@v6
-
-      - name: Download bench-package
-        uses: actions/download-artifact@v7
-        with:
-          name: kuiper-bench
-
-      - run: tar xzf kuiper-bench.tar.gz
-
-      - name: Run benchmarks
-        working-directory: kuiper-bench
-        run: |
-          make -kj$(nproc) -Otarget
