@@ -762,8 +762,8 @@ fn teardown
 
   (* Step 3: Divisibility chain for flatten *)
   assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
-  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
   assert pure (rows/tm == (bm/tm) * (rows/bm));
+  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
   assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
   // assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
   assert pure (cols/tn == (bn/tn) * (cols/bn));

@@ -123,7 +123,7 @@ fn subproducts1d
 }
 
 #restart-solver
-#push-options "--ifuel 1 --retry 3"
+#push-options "--ifuel 1 --retry 3 --z3rlimit 80"
 
 inline_for_extraction noextract
 fn kf
