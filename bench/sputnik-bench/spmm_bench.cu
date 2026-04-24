@@ -221,6 +221,52 @@ static void run_bench(int rows, int shared, int cols, int density_pct,
     float *d_dense       = to_gpu(B);
     float *d_out         = gpu_zeros<float>(rows * cols);
 
+    /* Correctness check: run both once and compare outputs */
+    CHECK_CUDA(cudaMemset(dC_k, 0, sizeof(float) * rows * cols));
+    CHECK_CUDA(cudaMemset(d_out, 0, sizeof(float) * rows * cols));
+
+    Kuiper_Example_Sparse_SPMM_spmm_f32(rows, shared, cols, dA_k, dB_k, dC_k);
+    CHECK_CUDA(cudaDeviceSynchronize());
+
+    {
+        cudaStream_t s;
+        CHECK_CUDA(cudaStreamCreate(&s));
+        sputnik::CudaSpmm(rows, shared, cols, csr.nnz,
+                           d_row_indices, d_values, d_row_offsets,
+                           d_col_indices, d_dense, d_out, s);
+        CHECK_CUDA(cudaStreamSynchronize(s));
+        CHECK_CUDA(cudaStreamDestroy(s));
+    }
+
+    std::vector<float> C_kuiper(rows * cols), C_sputnik(rows * cols);
+    CHECK_CUDA(cudaMemcpy(C_kuiper.data(), dC_k, sizeof(float) * rows * cols,
+                          cudaMemcpyDeviceToHost));
+    CHECK_CUDA(cudaMemcpy(C_sputnik.data(), d_out, sizeof(float) * rows * cols,
+                          cudaMemcpyDeviceToHost));
+
+    int mismatches = 0;
+    float max_reldiff = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            float vk = C_kuiper[i * cols + j];
+            float vs = C_sputnik[i * cols + j];
+            float diff = fabsf(vk - vs);
+            float denom = fmaxf(fabsf(vk), fabsf(vs));
+            float rel = (denom > 0) ? diff / denom : diff;
+            if (rel > max_reldiff) max_reldiff = rel;
+            /* tolerance: fp32 accumulation order differs, allow small error */
+            if (rel > 1e-4f && diff > 1e-2f) {
+                if (mismatches == 0)
+                    fprintf(stderr,
+                        "  MISMATCH at (%d,%d): kuiper=%.6f sputnik=%.6f "
+                        "(diff=%.6f rel=%.6f)\n", i, j, vk, vs, diff, rel);
+                mismatches++;
+            }
+        }
+    }
+
+    const char *status = (mismatches == 0) ? "OK" : "FAIL";
+
     /* Effective FLOPs: 2 * nnz * cols (one mul + one add per nonzero per output col) */
     double flops = 2.0 * csr.nnz * cols;
 
@@ -237,11 +283,11 @@ static void run_bench(int rows, int shared, int cols, int density_pct,
     printf("%-6d %-6d %-6d %3d%%  %-8d  "
            "%8.3f ms (%6.1f GFLOP/s)  "
            "%8.3f ms (%6.1f GFLOP/s)  "
-           "ratio(K/S): %.2fx\n",
+           "%.2fx  %s (maxrel=%.1e)\n",
            rows, shared, cols, density_pct, csr.nnz,
            ms_kuiper, gflops_kuiper,
            ms_sputnik, gflops_sputnik,
-           speedup);
+           speedup, status, max_reldiff);
 
     /* Cleanup */
     cudaFree(dA_k.elems); cudaFree(dA_k.col_ind); cudaFree(dA_k.row_off);
@@ -287,10 +333,10 @@ int main(int argc, char **argv)
     srand(42);
     print_gpu_info();
 
-    printf("%-6s %-6s %-6s %-5s %-8s  %-31s  %-31s  %s\n",
+    printf("%-6s %-6s %-6s %-5s %-8s  %-31s  %-31s  %-5s  %s\n",
            "rows", "K", "cols", "dens", "nnz",
-           "Kuiper (float32)", "Sputnik (float32)", "ratio");
-    printf("%s\n", std::string(115, '-').c_str());
+           "Kuiper (float32)", "Sputnik (float32)", "K/S", "check");
+    printf("%s\n", std::string(140, '-').c_str());
 
     /* Square matrices at various sizes and densities */
     int sizes[]     = { 256, 512, 1024, 2048 };
