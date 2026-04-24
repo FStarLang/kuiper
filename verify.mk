@@ -11,9 +11,6 @@ minimal: build-minimal
 .PHONY: .force
 .force:
 
-test-handwritten:
-	$(MAKE) -C handwritten-bench run
-
 .configure.output: ./configure $(shell which nvcc 2>/dev/null)
 	./configure $@
 

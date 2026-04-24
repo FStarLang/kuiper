@@ -150,4 +150,4 @@ Also:
 - `include/`: C/CUDA headers, needed to compile Kuiper code
 - `test/`: CUDA test drivers with expected-output files
 - `dist/`: a CUDA snapshot of the verified kernels
-- `bench/`, `handwritten-bench/`: benchmarking infrastructure
+- `bench/`: benchmarking infrastructure
