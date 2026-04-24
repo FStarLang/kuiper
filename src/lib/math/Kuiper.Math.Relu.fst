@@ -3,18 +3,6 @@ module Kuiper.Math.Relu
 #lang-pulse
 open Kuiper
 
-let relu
-  (#et:Type) {| scalar et |}
-  (x : et)
-  : et
-  = if x `gt` zero then x else zero
-
-(* must redefine since real comparisons are admitted. *)
-let relu_real
-  (x : real)
-  : real
-  = if t2b (x >. zero) then x else zero
-
 let relu_lem
   (#et:Type) {| scalar et, real_like et |}
   (x : et) (r : real)
