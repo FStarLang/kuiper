@@ -10,11 +10,6 @@ open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.Array
 open Kuiper.Sparse.Common
 module M  = Kuiper.Matrix
-module SZ = Kuiper.SizeT
-
-#set-options "--debug SMTFail --split_queries always"
-//#set-options "--print_implicits"
-
 
 (* Definiciones auxiliares *)
 
@@ -40,44 +35,6 @@ let col_strided_matrix
 =
   mkM (fun i j -> macc em i (j * step))
 
-// esto x ahora no se usa
-let col_strided_matrix_lemma
-  (#a : Type0)
-  (#rows1 #rows2 #cols : nat)
-  (em1 : ematrix a rows1 cols)
-  (em2 : ematrix a rows2 cols)
-  (em : ematrix a (rows1 + rows2) cols)
-  (step : pos)
-  (j : natlt (cols `divup` step))
-: Lemma
-  (requires
-    ematrix_col em1 (j * step) `Seq.append` ematrix_col em2 (j * step) ==
-    ematrix_col em (j * step)
-  )
-  (ensures
-    Seq.append
-      (ematrix_col (col_strided_matrix em1 step) j)
-      (ematrix_col (col_strided_matrix em2 step) j)
-    ==
-    ematrix_col (col_strided_matrix em step) j 
-
-  )
-=
-  let c1 = ematrix_col (col_strided_matrix em1 step) j in
-  let c2 = ematrix_col (col_strided_matrix em2 step) j in
-  let c = ematrix_col (col_strided_matrix em step) j in
-
-  introduce forall i. Seq.append c1 c2 @! i == c @! i
-  with calc (==) {
-    Seq.append c1 c2 @! i;
-    == {}
-    ematrix_col em (j * step) @! i;
-    == {}
-    c @! i;
-  };
-
-  assert Seq.equal (Seq.append c1 c2) c
-
 let step_sparse_cols
   (cols n scols : nat)
   (step : pos)
@@ -97,7 +54,26 @@ let step_submatrix
   let n' = min n cols in
   col_strided_matrix (submatrix em 0 rows n' (min scols (cols - n'))) step
 
-// esto x ahora no se usa
+let step_submatrix_congr
+  (#et : Type0) {| scalar et |}
+  (#rows #cols : nat)
+  (em : ematrix et rows cols)
+  (scols : nat)
+  (n : nat)
+  (step : pos)
+  (x : natlt (step_sparse_cols cols n scols step))
+: Lemma
+  (requires true)
+  (ensures
+    ematrix_col em (min n cols + x * step) ==
+    ematrix_col (step_submatrix em scols n step) x
+  )
+=
+  assert Seq.equal
+    (ematrix_col em (min n cols + x * step))
+    (ematrix_col (step_submatrix em scols n step) x)
+
+
 let _row_x_mat_acc
   (#et : Type0) {| scalar et |}
   (#shared #cols : nat)
@@ -114,29 +90,6 @@ let _row_x_mat_acc
       else acc @! i
   )
 
-
-// esto x ahora no se usa
-// creo q no hace falta
-let comb_row_x_mat_acc
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (#block : nat)
-  (acc : lseq et block)
-  (row : lseq et shared)
-  (em : ematrix et shared cols)
-  (to : natlt shared)
-: Lemma
-  (requires cols <= block)
-  (ensures
-    comb (_row_x_mat_acc acc row em to) (row @! to) (ematrix_row em to) ==
-    _row_x_mat_acc acc row em (to + 1)
-  )
-=
-  assert Seq.equal
-    (comb (_row_x_mat_acc acc row em to) (row @! to) (ematrix_row em to))
-    (_row_x_mat_acc acc row em (to + 1))
-
-// esto x ahora no se usa
 let row_x_mat_acc
   (#et : Type0) {| scalar et |}
   (#shared #cols : nat)
@@ -374,6 +327,136 @@ let sparse_comb_row_x_mat_acc
     )
     (_sparse_row_x_mat_acc acc elems pos em (to + 1))
 
+open Kuiper.Spec.GEMM
+
+let sparse_row_x_mat_acc_congr
+  (#et : Type0) {| scalar et |}
+  (#shared #cols : nat)
+  (#block : nat)
+  (acc : lseq et block)
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz)
+  (em : ematrix et shared cols)
+: Lemma
+  (requires valid_pos shared pos /\ cols <= block)
+  (ensures
+    sparse_row_x_mat_acc acc elems pos em ==
+    row_x_mat_acc acc (unsparse _ _ elems pos) em
+  )
+=
+  let s = sparse_row_x_mat_acc acc elems pos em in
+  let t = row_x_mat_acc acc (unsparse _ _ elems pos) em in
+
+  introduce forall i. s @! i == t @! i
+  with (
+    if i < cols
+      then sparse_dprod_acc_lemma (acc @! i) elems pos (ematrix_col em i)
+      else ()
+  );
+
+  assert s `Seq.equal` t
+
+let compute_result
+  (#et : Type0) {| scalar et |}
+  (#shared #cols : nat)
+  (bw bx : pos{bw /? bx})
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz)
+  (eB : ematrix et shared cols)
+  (out : lseq et (bx / bw))
+  (off : natlt bw)
+  (n : natlt cols)
+: Ghost (lseq et (bx / bw))
+  (requires valid_pos shared col_ind)
+  (ensures fun _ -> true)
+=
+  sparse_row_x_mat_acc
+    out elems col_ind
+    (step_submatrix eB (bx - off) (n + off) bw)
+
+let compute_step
+  (#et : Type0) {| scalar et |}
+  (#shared #cols : nat)
+  (bw bx : pos{bw /? bx})
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz)
+  (eB : ematrix et shared cols)
+  (out : lseq et (bx / bw))
+  (off : natlt bw)
+  (n : natlt cols)
+  (from to : natle nnz{from <= to})
+: Lemma
+  (requires valid_pos shared col_ind)
+  (ensures
+    compute_result
+      bw bx #(to - from)
+      (Seq.slice elems from to) (Seq.slice col_ind from to) eB
+      (compute_result
+        bw bx #from
+        (Seq.slice elems 0 from) (Seq.slice col_ind 0 from)
+        eB out off n
+      )
+      off n ==
+    compute_result
+      bw bx #to
+      (Seq.slice elems 0 to) (Seq.slice col_ind 0 to)
+      eB out off n
+  )
+=
+  sparse_row_x_mat_acc_lemma'
+    out elems col_ind
+    (step_submatrix eB (bx - off) (n + off) bw)
+    from to
+
+let compute_lemma
+  (#et : Type0) {| scalar et |}
+  (#rows #shared #cols : nat)
+  (bw bx : pos{bw /? bx})
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (col_ind : lseq nat nnz)
+  (eA : ematrix et rows shared)
+  (eB : ematrix et shared cols)
+  (out : lseq et (bx / bw))
+  (off : natlt bw)
+  (n : natlt cols)
+  (i : natlt rows)
+  (x : natlt (bx / bw))
+: Lemma
+  (requires
+    valid_pos shared col_ind /\
+    unsparse _ _ elems col_ind == ematrix_row eA i /\
+    n + off + x * bw < cols /\
+    forall i. out @! i == zero
+  )
+  (ensures
+    compute_result bw bx elems col_ind eB out off n @! x ==
+    matmul_single eA eB i (n + off + x * bw)
+  )
+=
+  let sm = step_submatrix eB (bx - off) (n + off) bw in
+  let j = n + off + x * bw in
+
+  calc (==) {
+    compute_result bw bx elems col_ind eB out off n @! x;
+    == {}
+    sparse_row_x_mat_acc out elems col_ind sm @! x;
+    == { sparse_row_x_mat_acc_congr out elems col_ind sm }
+    row_x_mat_acc out (unsparse _ _ elems col_ind) sm @! x;
+    == {}
+    row_x_mat_acc out (ematrix_row eA i) sm @! x;
+    == {}
+    dprod (ematrix_row eA i) (ematrix_col sm x);
+    // == { assert ematrix_col sm x `Seq.equal` ematrix_col eB j}
+    == { step_submatrix_congr eB (bx - off) (n + off) bw x }
+    dprod (ematrix_row eA i) (ematrix_col eB j);
+    == { dprod_is_matmul_single eA eB i j }
+    matmul_single eA eB i j;
+  }
+
 
 #push-options "--z3rlimit 20"
 // TODO ver si se pueden simplificar más los argumentos
@@ -413,12 +496,10 @@ fn compute
     out |-> v_out
   ensures
     out |->
-      sparse_row_x_mat_acc
-        // esto es feo pero por algun motivo no tomamos v_out como lseq
-        #_ #_ #_ #_
-        #(blockItemsX /^ blockWidth) v_out
-        v_elems (cast_pos v_col_ind)
-        (step_submatrix eB (blockItemsX - tid) (n_idx + tid) blockWidth)
+      compute_result
+        blockWidth blockItemsX
+        v_elems (cast_pos v_col_ind) eB v_out
+        tid n_idx
 
 {
   let mut k : sz = 0sz;

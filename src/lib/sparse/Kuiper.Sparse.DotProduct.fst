@@ -225,22 +225,24 @@ let sparse_dprod
   : et
 = _sparse_dprod elems pos t nnz
 
-let rec dprod_all_zeros
+let rec dprod_acc_all_zeros
   (#et:Type) {| scalar et |}
+  (acc : et)
   (#n : nat)
   (s t : lseq et n)
   (from to : nat{from <= to /\ to <= n})
   : Lemma
     (requires forall i. from <= i /\ i < to ==> s @! i == zero)
-    (ensures _dprod s t from == _dprod s t to)
+    (ensures _dprod_acc acc s t from == _dprod_acc acc s t to)
 =
   if from = to
     then ()
-    else dprod_all_zeros s t from (to - 1)
+    else dprod_acc_all_zeros acc s t from (to - 1)
 
 #push-options "--split_queries always"
-let rec _sparse_dprod_lemma
+let rec _sparse_dprod_acc_lemma
   (#et : Type0) {| scalar et |}
+  (acc : et)
   (#n : nat) (#nnz : nat)
   (elems : lseq et nnz)
   (pos : lseq nat nnz)
@@ -249,20 +251,42 @@ let rec _sparse_dprod_lemma
   : Lemma
     (requires valid_pos n pos)
     (ensures
-      _sparse_dprod elems pos t (to + 1) ==
-      _dprod (unsparse _ _ elems pos) t ((pos @! to) + 1)
+      _sparse_dprod_acc acc elems pos t (to + 1) ==
+      _dprod_acc acc (unsparse _ _ elems pos) t ((pos @! to) + 1)
     )
 =
   bounded_from_sorted_in_bounds 0 n pos;
   let s = unsparse _ _ elems pos in
 
   if to = 0
-  then dprod_all_zeros s t 0 (pos @! to)
+  then dprod_acc_all_zeros acc s t 0 (pos @! to)
   else (
-    _sparse_dprod_lemma elems pos t (to - 1);
-    dprod_all_zeros s t ((pos @! to - 1) + 1) (pos @! to)
+    _sparse_dprod_acc_lemma acc elems pos t (to - 1);
+    dprod_acc_all_zeros acc s t ((pos @! to - 1) + 1) (pos @! to)
   )
 #pop-options
+
+let sparse_dprod_acc_lemma
+  (#et : Type0) {| scalar et |}
+  (acc : et)
+  (#n : nat) (#nnz : nat)
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz)
+  (t : lseq et n)
+  : Lemma
+    (requires valid_pos n pos)
+    (ensures
+      sparse_dprod_acc acc elems pos t ==
+      dprod_acc acc (unsparse _ _ elems pos) t
+    )
+=
+  let s = unsparse _ _ elems pos in
+  if nnz = 0
+    then dprod_acc_all_zeros acc s t 0 n
+    else (
+      _sparse_dprod_acc_lemma acc elems pos t (nnz - 1);
+      dprod_acc_all_zeros acc s t ((pos @! nnz - 1) + 1) n
+    )
 
 let sparse_dprod_lemma
   (#et : Type0) {| scalar et |}
@@ -277,13 +301,48 @@ let sparse_dprod_lemma
       dprod (unsparse _ _ elems pos) t
     )
 =
-  let s = unsparse _ _ elems pos in
-  if nnz = 0
-    then dprod_all_zeros s t 0 n
+  sparse_dprod_acc_lemma zero elems pos t
+
+open Kuiper.EMatrix
+open Kuiper.Spec.GEMM
+
+let rec __dprod_is_matmul_single
+  (#et : Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : natlt rows)
+  (col : natlt columns)
+  (to : natle shared)
+: Lemma
+  (requires true)
+  (ensures
+    _dprod (ematrix_row m1 row) (ematrix_col m2 col) to ==
+    __matmul_single m1 m2 row col to
+  )
+=
+  if to = 0
+    then ()
     else (
-      _sparse_dprod_lemma elems pos t (nnz - 1);
-      dprod_all_zeros s t ((pos @! nnz - 1) + 1) n
+      matmul_single_lemma m1 m2 row col to;
+      __dprod_is_matmul_single m1 m2 row col (to - 1)
     )
+
+let dprod_is_matmul_single
+  (#et : Type) {| scalar et |}
+  (#rows #shared #columns : nat)
+  (m1 : ematrix et rows shared)
+  (m2 : ematrix et shared columns)
+  (row : natlt rows)
+  (col : natlt columns)
+: Lemma
+  (requires true)
+  (ensures
+    dprod (ematrix_row m1 row) (ematrix_col m2 col) ==
+    matmul_single m1 m2 row col
+  )
+=
+  __dprod_is_matmul_single m1 m2 row col shared
 
 (*
 inline_for_extraction noextract
