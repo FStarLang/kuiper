@@ -161,7 +161,7 @@ int main()
     check_f16("ceil", Kuiper_Example_MathPrimitives_test_ceil_f16(x16), ceilf(0.5f), tol16);
     check_f16("floor", Kuiper_Example_MathPrimitives_test_floor_f16(x16), floorf(0.5f), tol16);
     check_f16("round", Kuiper_Example_MathPrimitives_test_round_f16(x16), roundf(0.5f), tol16);
-    check_f16("fabs", Kuiper_Example_MathPrimitives_test_fabs_f16(__hneg(x16)), fabsf(0.5f), tol16);
+    check_f16("fabs", Kuiper_Example_MathPrimitives_test_fabs_f16(__float2half(-0.5f)), fabsf(0.5f), tol16);
     check_f16("erf", Kuiper_Example_MathPrimitives_test_erf_f16(x16), erff(0.5f), tol16);
     check_f16("log2", Kuiper_Example_MathPrimitives_test_log2_f16(x16), log2f(0.5f), tol16);
     check_f16("log10", Kuiper_Example_MathPrimitives_test_log10_f16(x16), log10f(0.5f), tol16);
@@ -176,7 +176,7 @@ int main()
     check_f16("fmod", Kuiper_Example_MathPrimitives_test_fmod_f16(y16, x16),
               fmodf(2.0f, 0.5f), tol16);
     check_f16("copysign",
-              Kuiper_Example_MathPrimitives_test_copysign_f16(x16, __hneg(y16)),
+              Kuiper_Example_MathPrimitives_test_copysign_f16(x16, __float2half(-2.0f)),
               copysignf(0.5f, -2.0f), tol16);
     check_f16("fma", Kuiper_Example_MathPrimitives_test_fma_f16(x16, y16, z16),
               fmaf(0.5f, 2.0f, 3.0f), tol16);
