@@ -77,8 +77,3 @@ let sdiv_pow2_ok (i:sz{i < 32}) (tid:sz) :
     == {}
     SZ.v tid % pow2 (SZ.v i);
 }
-
-noextract inline_for_extraction
-let smin (a b : sz): sz =
-  let open FStar.SizeT in
-  if a <^ b then a else b
