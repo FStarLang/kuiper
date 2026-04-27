@@ -1,8 +1,5 @@
 module Kuiper.Sparse.SPMM
 
-//#set-options "--z3rlimit 20"
-(* #set-options "--debug SMTFail --split_queries always" *)
-
 #lang-pulse
 
 open Kuiper
@@ -46,7 +43,7 @@ let matrix_live_cell
   : slprop
   = exists* v. M.gpu_matrix_pts_to_cell gm i j v
 
-inline_for_extraction //noextract
+inline_for_extraction
 type parameters = {
   rows : szp;
   shared : szp;
@@ -60,48 +57,65 @@ type parameters = {
 let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
 
 
-let nblocks (p : parameters) : GTot pos
-= p.rows * ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+let nblocks_ (p : parameters) : GTot pos
+// = p.rows * ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+= p.rows * (p.cols `divup` p.blockItemsX)
 
-// TODO cambiar por blockWidth
-let nthreads (p : parameters) : GTot pos
-= nblocks p * p.blockWidth
+let nthreads_ (p : parameters) : GTot pos
+= p.blockWidth
+
+let allthreads_ (p : parameters) : GTot pos
+= nblocks_ p * nthreads_ p
 
 inline_for_extraction noextract
 let size_req (p : parameters) =
-    nblocks p <= max_blocks /\
-    p.blockWidth <= max_threads
+    nblocks_ p <= max_blocks /\
+    p.blockWidth <= max_threads /\
+    p.rows < 10000 /\
+    p.shared < 10000 /\
+    p.cols < 10000 /\
+    p.blockItemsK < 10000 /\
+    p.blockItemsX < 10000
 
 inline_for_extraction noextract
-let sz_nblocks (p : parameters{size_req p}) : szle max_blocks =
-  p.rows *^ (p.cols /^ p.blockItemsX)
+let nblocks (p : parameters)
+: Pure (szle max_blocks)
+  (requires size_req p)
+  (ensures fun r -> SZ.v r == nblocks_ p)
+= p.rows *^ (p.cols `divup_` p.blockItemsX)
 
 inline_for_extraction noextract
-let sz_nthreads (p : parameters{size_req p}) : (nt : szp {nt <= max_threads}) =
-  p.blockWidth
-
-let brow (p : parameters) (bid : natlt (nblocks p))
-  : GTot (natlt p.rows)
-  //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
-  = bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+let nthreads (p : parameters{size_req p})
+: Pure (szle max_threads)
+  (requires size_req p)
+  (ensures fun r -> SZ.v r == nthreads_ p)
+= p.blockWidth
 
 inline_for_extraction noextract
-let brow_ (p : parameters) (bid : szlt (nblocks p))
+let allthreads (p : parameters{size_req p})
+: Pure sz
+  (requires size_req p)
+  (ensures fun r -> SZ.v r == allthreads_ p)
+= nblocks p *^ nthreads p
+
+let brow (p : parameters) (bid : natlt (nblocks_ p))
+: GTot (natlt p.rows)
+= bid / (p.cols `divup` p.blockItemsX)
+
+inline_for_extraction noextract
+let brow_ (p : parameters) (bid : szlt (nblocks_ p))
   (#_ : squash (fits (p.cols + p.blockItemsX)))
-  : Tot (m : sz {SZ.v m == brow p bid})
-  =
-  bid /^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)
+: Tot (m : sz {SZ.v m == brow p bid})
+= bid /^ (p.cols `divup_` p.blockItemsX)
 
-let bcol (p : parameters) (bid : natlt (nblocks p))
-  : GTot (natlt p.cols)
-  = (bid % ((p.cols + p.blockItemsX - 1) / p.blockItemsX)) * p.blockItemsX
+let bcol (p : parameters) (bid : natlt (nblocks_ p))
+: GTot (natlt p.cols)
+= (bid % (p.cols `divup` p.blockItemsX)) * p.blockItemsX
 
 inline_for_extraction noextract
-let bcol_ (p : parameters) (bid : szlt (nblocks p))
-  (#_ : squash (fits (p.cols + p.blockItemsX)))
-  : Tot (n : sz {SZ.v n == bcol p bid})
-  =
-  (bid %^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)) *^ p.blockItemsX
+let bcol_ (p : parameters { size_req p }) (bid : szlt (nblocks_ p))
+: Tot (n : sz {SZ.v n == bcol p bid})
+= (bid %^ (p.cols `divup_` p.blockItemsX)) *^ p.blockItemsX
 
 // MAYBE definir threadItemsX?
 
@@ -126,17 +140,8 @@ let well_formed
   (#nnz : sz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  : prop
-  =
-  // condicion de smatrix
-  valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off) /\
-  // necesitamos exactamente esto en una prueba
-  // probablemente se puede escrbir de otra manera
-  // o asumir que cada parametro del algoritmo esta acotado
-  // esta bien ponerlo aca?
-  fits (p.blockWidth + p.blockItemsK) /\
-  // esta es rara
-  fits (p.cols + p.blockItemsX)
+: prop
+= valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
 
 let block_lemma whole block k
   : Lemma (requires block /? whole /\ k * block < whole)
@@ -174,7 +179,7 @@ let barrier_p_odd
 
 let barrier_p
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -238,7 +243,7 @@ let barrier_q_odd
 
 let barrier_q
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -274,7 +279,7 @@ let barrier_q
 unfold
 let block_pre
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{size_req p})
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -292,9 +297,9 @@ let block_pre
   (tid : natlt p.blockWidth)
   : slprop
   =
-  smatrix_pts_to' gA #(fA /. (nthreads p))
+  smatrix_pts_to' gA #(fA /. allthreads p)
     elems col_ind row_off eA **
-  gB |-> Frac (fB /. (nthreads p)) eB **
+  gB |-> Frac (fB /. allthreads p) eB **
   forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
@@ -304,7 +309,7 @@ let block_pre
 unfold
 let block_post
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{ size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -322,9 +327,9 @@ let block_post
   (tid : natlt p.blockWidth)
   : slprop
   =
-  smatrix_pts_to' gA #(fA /. (nthreads p))
+  smatrix_pts_to' gA #(fA /. allthreads p)
     elems col_ind row_off eA **
-  gB |-> Frac (fB /. (nthreads p)) eB **
+  gB |-> Frac (fB /. allthreads p) eB **
   forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
@@ -335,7 +340,7 @@ let block_post
 
 let barrier_contract
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -353,7 +358,7 @@ let barrier_contract
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -381,7 +386,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -519,7 +524,7 @@ fn forevery_refine_pred'
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{size_req p})
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -534,7 +539,6 @@ fn setup
   // matrices densas
   (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
-  // TODO por que toma unit?
   ()
   norewrite
   requires
@@ -643,20 +647,20 @@ fn setup
         )
     );
 
-  smatrix_share_n' gA #fA elems col_ind row_off eA (nthreads p);//elems col_ind row_off eA;
+  smatrix_share_n' gA #fA elems col_ind row_off eA (allthreads p);//elems col_ind row_off eA;
 
-  M.gpu_matrix_share_n gB (nthreads p) #fB;
+  M.gpu_matrix_share_n gB (allthreads p) #fB;
 
-  forevery_zip #(natlt (nthreads p))
+  forevery_zip #(natlt (allthreads p))
    _
-   (fun _ -> M.gpu_matrix_pts_to gB #(fB /. (nthreads p)) eB);
+   (fun _ -> M.gpu_matrix_pts_to gB #(fB /. (allthreads p)) eB);
 
-  forevery_factor (nthreads p) (nblocks p) p.blockWidth _;
+  forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   forevery_zip_2
     (fun _ _ ->
-      smatrix_pts_to' gA #(fA /. (nthreads p)) elems col_ind row_off eA **
-      M.gpu_matrix_pts_to gB #(fB /. (nthreads p)) eB
+      smatrix_pts_to' gA #(fA /. (allthreads p)) elems col_ind row_off eA **
+      M.gpu_matrix_pts_to gB #(fB /. (allthreads p)) eB
     )
     _;
 
@@ -668,7 +672,7 @@ fn setup
 ghost
 fn block_setup
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -723,7 +727,7 @@ fn block_setup
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -818,7 +822,7 @@ fn block_teardown
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{ size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -847,23 +851,23 @@ fn teardown
     gC |-> MS.matmul eA eB
 {
   forevery_unzip_2 _ _;
-  forevery_unfactor' (nthreads p) _ _
+  forevery_unfactor' (allthreads p) _ _
     (fun _ _ ->
-      smatrix_pts_to' gA #(fA /. nthreads p) elems col_ind row_off eA
+      smatrix_pts_to' gA #(fA /. allthreads p) elems col_ind row_off eA
     );
-  smatrix_gather_n' gA #fA elems col_ind row_off eA (nthreads p);//elems col_ind row_off eA;
+  smatrix_gather_n' gA #fA elems col_ind row_off eA (allthreads p);
 
   forevery_unzip_2 _ _;
-  forevery_unfactor' (nthreads p) _ _
-    (fun _ _ -> gB |-> Frac (fB /. nthreads p) eB);
-  M.gpu_matrix_gather_n gB (nthreads p) #fB;
+  forevery_unfactor' (allthreads p) _ _
+    (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
+  M.gpu_matrix_gather_n gB (allthreads p) #fB;
 
 
-  forevery_map
+  forevery_map #(natlt (nblocks p))
     (fun bid ->
       forall+
-        (tid: natlt (v p.blockWidth))
-        (k: natlt (v (SizeT.div p.blockItemsX p.blockWidth))).
+        (tid: natlt p.blockWidth)
+        (k: natlt (p.blockItemsX /^ p.blockWidth)).
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
             M.gpu_matrix_pts_to_cell gC
@@ -1024,7 +1028,7 @@ fn teardown
 ghost
 fn barrier_p_fold_even
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1053,7 +1057,7 @@ fn barrier_p_fold_even
 ghost
 fn barrier_p_fold_odd
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1102,7 +1106,7 @@ fn barrier_p_fold_odd
 ghost
 fn barrier_q_unfold_even
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1144,7 +1148,7 @@ fn barrier_q_unfold_even
 ghost
 fn barrier_q_unfold_odd
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1193,7 +1197,7 @@ fn barrier_q_unfold_odd
 ghost
 fn barrier_q_unfold_odd_residue
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1282,7 +1286,7 @@ fn foreach
 inline_for_extraction noextract
 fn sparse_load_one
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   // matriz sparse gA
   (#row_off : lseq sz (p.rows + 1))
@@ -1339,7 +1343,7 @@ fn sparse_load_one
 inline_for_extraction noextract
 fn sparse_load
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   // matriz sparse gA
   (#row_off : lseq sz (p.rows + 1))
@@ -1630,7 +1634,7 @@ fn gpu_forall_live_cell_to_slice
 inline_for_extraction noextract
 fn sparse_load_residue
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   // matriz sparse gA
   (#row_off : lseq sz (p.rows + 1))
@@ -1922,7 +1926,7 @@ fn when__elim_false (b:bool{b == false}) (p : slprop)
 inline_for_extraction noextract
 fn store_out
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   // TODO esto es raro acá
   (#_ : squash (fits (p.cols + p.blockItemsX)))
   (#lC : mlayout p.rows p.cols)
@@ -1991,7 +1995,7 @@ fn store_out
 
 noextract
 let barrier_count
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : nat)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
@@ -2011,7 +2015,7 @@ let barrier_count
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
   (#lb : mlayout p.shared p.cols)
   (#lc : mlayout p.rows p.cols)
@@ -2268,8 +2272,6 @@ fn kf
 }
 #pop-options
 
-
-#set-options "--debug SMTFail --z3rlimit 20"
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et |}
@@ -2301,9 +2303,9 @@ let kdesc
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB
     )
-= admit();{
-  nblk = sz_nblocks p;
-  nthr = sz_nthreads p;
+= {
+  nblk = nblocks p;
+  nthr = nthreads p;
 
   barrier_contract = (fun bid ptrs ->
     barrier_contract p elems col_ind row_off
