@@ -1,4 +1,4 @@
-module Kuiper.Sparse.Compute
+module Kuiper.Sparse.SPMM.Compute
 
 #lang-pulse
 
@@ -458,14 +458,15 @@ let compute_lemma
   }
 
 
+// para usar esto con el residuo se puede cortar el array y listo
 #push-options "--z3rlimit 20"
 // TODO ver si se pueden simplificar más los argumentos
 inline_for_extraction noextract
 fn compute
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : sz)
+  (#shared #cols : sz)
   // creo que este refinamiento no hace falta
-  (#blockWidth #blockItemsK #blockItemsX : szp{blockWidth /? blockItemsX})
+  (blockWidth blockItemsK blockItemsX : szp{blockWidth /? blockItemsX})
   (elems_tile : gpu_array et blockItemsK)
   (col_ind_tile : gpu_array sz blockItemsK)
   (#fA : perm)
@@ -475,8 +476,8 @@ fn compute
   (#fB : perm)
   (out : larray et (blockItemsX /^ blockWidth))
   // fragmentos sparse
-  (#v_elems : lseq et blockItemsK)
-  (#v_col_ind : lseq sz blockItemsK)
+  (#v_elems : erased (lseq et blockItemsK))
+  (#v_col_ind : erased(lseq sz blockItemsK))
   (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
   // matriz densa B
   (#eB : erased (ematrix et shared cols))
