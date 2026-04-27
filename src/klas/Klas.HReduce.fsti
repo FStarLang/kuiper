@@ -9,7 +9,8 @@ open Kuiper.Seq.Common
 module SZ = FStar.SizeT
 module Array1 = Kuiper.Array1
 
-(* Type of reduction over a family of layouts. *)
+(* Type of reduction over a family of layouts. Note:
+pre_map is specialized to the identity here. *)
 inline_for_extraction noextract
 type reduce_ty (et : Type0) {| scalar et, real_like et |}
   (lay : (len:nat -> Array1.layout len))

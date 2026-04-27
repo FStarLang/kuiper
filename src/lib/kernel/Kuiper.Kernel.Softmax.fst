@@ -58,7 +58,9 @@ fn softmax_gpu
 
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
 
-  let sum = Kuiper.Kernel.HReduce.reduce nth lena a' (seq_map rexp ra);
+  // Can we do something interesting with pre_map here?
+  assert pure (Seq.equal (seq_map id (seq_map rexp ra)) (seq_map rexp ra));
+  let sum = Kuiper.Kernel.HReduce.reduce id id nth lena a' (seq_map rexp ra);
   Array1.free a';
 
   (* Divide by sum *)

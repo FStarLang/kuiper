@@ -30,7 +30,8 @@ fn inst
   let lena64 = SZ.sizet_to_uint64 lena;
   let nth64 = SZ.sizet_to_uint64 nth;
   dassert (not (FStar.UInt64.(lena64 +%^ nth64 <^ lena64)));
-  K.reduce nth lena a vr;
+  assert pure (Seq.equal (seq_map id vr) vr);
+  K.reduce id id nth lena a vr;
 }
 
 let reduce_f16_plus : reduce_ty f16 l1_forward = inst _ _
