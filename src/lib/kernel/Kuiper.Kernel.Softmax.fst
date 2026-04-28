@@ -49,22 +49,16 @@ fn softmax_gpu
       on gpu_loc (a |-> va') **
       pure (va' %~ softmax_real ra)
 {
-  (* Pointwise exponentiation. *)
-  Kuiper.Kernel.Map.map_gpu exp lena a;
-
-  (* Compute sum. Need swap space since hreduce trashes the input. *)
-  let a' = Array1.alloc0 #et lena (l1_forward lena);
-  Array1.memcpy_device_to_device a' a lena;
-
+  (* Compute sum of exps (does not modify array) *)
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
-
-  // Can we do something interesting with pre_map here?
   assert pure (Seq.equal (seq_map id (seq_map rexp ra)) (seq_map rexp ra));
-  let sum = Kuiper.Kernel.HReduce.reduce id id nth lena a' (seq_map rexp ra);
-  Array1.free a';
+  let sum = Kuiper.Kernel.HReduce.reduce exp rexp nth lena a ra;
 
-  (* Divide by sum *)
-  Kuiper.Kernel.Map.map_gpu (fun x -> div x sum) lena a;
+  (* Exp and divide by sum. Note: we are callng exp twice for every value.  An
+  alernative would be to first do an exp pass, then reduce, then divide, but I
+  think the extra kernel launch would be more expensive than the redundant
+  exp's. *)
+  Kuiper.Kernel.Map.map_gpu (fun x -> div (exp x) sum) lena a;
 
   softmax_approx va ra sum;
   ()
