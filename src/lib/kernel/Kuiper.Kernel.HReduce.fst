@@ -398,7 +398,14 @@ let strided_sum_is_sum (pre_map : real -> real) (vr : seq real) (nth : nat)
   : Lemma (ensures rsum (vr_partial pre_map vr nth) == rsum (seq_map pre_map vr))
   = admit() // TODO
 
-#push-options "--z3rlimit 60"
+let lemma_first_past
+  (len off : nat) (stride : pos)
+  (i : nat)
+  : Lemma (requires i % stride == off /\ i >= len /\ i < len + stride)
+          (ensures  i == off + ((len - off - 1 + stride) / stride) * stride)
+  = ()
+
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn sum_stride_map
   (#et:Type0) {| scalar et, real_like et |}
@@ -426,11 +433,11 @@ fn sum_stride_map
   while (!idx <^ lena)
     invariant
       live acc ** live gidx **
-      live idx ** pure (SZ.v !idx == gread gidx * stride + off) **
-      // idx |-> (gread gidx * stride + off) **
-      // ^ Would ideally just write that.
-      pure (gread gidx <= seq_stride_length (lseq_map pre_map_r vr) stride off /\
-            !idx < lena + stride /\ // superfluous but helps
+      live idx **
+      pure (SZ.v !idx == gread gidx * stride + off /\
+            off <= SZ.v !idx /\ SZ.v !idx < lena + stride /\
+            gread gidx <= seq_stride_length (lseq_map pre_map_r vr) stride off /\
+            // gread gidx == (SZ.v !idx - SZ.v off) / SZ.v stride /\ // superfluous
             !acc %~ rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off))) **
       emp
     decreases (lena + stride - !idx)
@@ -460,15 +467,31 @@ fn sum_stride_map
     assert (pure ((vgidx + 1) * stride + off == ((vgidx * stride) + (1 * stride)) + off)); // Sad.
     assert (pure (SZ.v !idx + stride == (vgidx + 1) * stride + off));
 
+    Math.Lemmas.add_div_mod_1 (SZ.v !idx) stride;
+
     acc := !acc `add` v';
     idx := !idx +^ stride;
     gwrite gidx (gread gidx + 1);
     ()
   };
 
+  assert pure (SZ.v !idx == gread gidx * stride + off);
+  Math.Lemmas.lemma_mod_plus off (gread gidx) stride;
+  Math.Lemmas.small_mod off stride;
+  assert pure ((off + stride * gread gidx) % stride == off);
+  assert pure ((gread gidx * stride + off) % stride == off);
+  assert pure (!idx % stride == off);
+  lemma_first_past lena off stride (SZ.v !idx);
+  assert (pure (SZ.v !idx == off + ((lena - off - 1 + stride) / stride) * stride));
+
   assert pure (gread gidx <= seq_stride_length (lseq_map pre_map_r vr) stride off);
   Math.Lemmas.cancel_mul_div (gread gidx) stride;
+  (* A calc proof would be much nicer. *)
   assert pure (gread gidx == (!idx - off) / stride);
+  assert pure (gread gidx == ((off + ((lena - off - 1 + stride) / stride) * stride) - off) / stride);
+  assert pure (gread gidx == (((lena - off - 1 + stride) / stride) * stride) / stride);
+  assert pure (gread gidx == (lena - off - 1 + stride) / stride);
+  assert pure (gread gidx == (lena - off + stride - 1) / stride);
   assert pure (gread gidx == seq_stride_length (lseq_map pre_map_r vr) stride off);
   assert pure (seq_take (seq_stride_length (lseq_map pre_map_r vr) stride off) (seq_stride (lseq_map pre_map_r vr) stride off) == seq_stride (lseq_map pre_map_r vr) stride off);
   assert pure (!acc %~ rsum (seq_stride (lseq_map pre_map_r vr) stride off));

@@ -32,6 +32,7 @@ include Kuiper.PtsTo
 include Kuiper.Enumerable { enumerable }
 include Kuiper.TradeHelpers
 include Kuiper.Scalars
+include Kuiper.Floating
 include Kuiper.Approximates
 
 [@@coercion; pulse_unfold]
