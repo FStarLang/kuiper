@@ -406,7 +406,7 @@ fn teardown
   M.gather_n gB n_threads;
 
   (* Step 4: Collect gC cells back into matrix, with approximation proof. We have a lemma for this. *)
-  let _ = MT.array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
+  let _ = Kuiper.Tensor.Tiling.CollectApprox.array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
     (SZ.v m) (SZ.v n)
     (fun (row : natlt (m * tile)) (col : natlt (n * tile)) (v : et) ->
       v %~ MS.gemm_single comb_r rA rB rC row col);
