@@ -2149,7 +2149,7 @@ fn kf
 
     Compute.compute
       p.blockWidth p.blockItemsK p.blockItemsX
-      elems_tile col_ind_tile gB out tid n_idx;
+      elems_tile col_ind_tile p.blockItemsK gB out tid n_idx;
 
     Compute.compute_step
       p.blockWidth p.blockItemsX
