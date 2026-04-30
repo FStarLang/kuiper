@@ -1,5 +1,5 @@
 
-#include "Kuiper_Example_Sparse_SPMM.h"
+#include "Kuiper_Sparse_SPMM.h"
 
 __global__
 /**
@@ -112,13 +112,13 @@ __hoisted_0(uint32_t cols,
 }
 
 void
-Kuiper_Example_Sparse_SPMM_spmm_u32(uint32_t rows,
-                                    uint32_t shared,
-                                    uint32_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
-                                    uint32_t *gB, uint32_t *gC)
+Kuiper_Sparse_SPMM_spmm_u32(uint32_t rows,
+                            uint32_t shared,
+                            uint32_t cols,
+                            Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
+                            uint32_t *gB, uint32_t *gC)
 {
-    Kuiper_Example_Sparse_SPMM_parameters params = {
+    Kuiper_Sparse_SPMM_parameters params = {
         .rows = rows,.shared = shared,.cols = cols,.blockItemsK =
             128U,.blockItemsX = 128U,
         .blockWidth = 32U
@@ -248,13 +248,13 @@ __hoisted_1(uint32_t cols,
 }
 
 void
-Kuiper_Example_Sparse_SPMM_spmm_f32(uint32_t rows,
-                                    uint32_t shared,
-                                    uint32_t cols,
-                                    Kuiper_Sparse_Matrix_smatrix__float gA,
-                                    float *gB, float *gC)
+Kuiper_Sparse_SPMM_spmm_f32(uint32_t rows,
+                            uint32_t shared,
+                            uint32_t cols,
+                            Kuiper_Sparse_Matrix_smatrix__float gA,
+                            float *gB, float *gC)
 {
-    Kuiper_Example_Sparse_SPMM_parameters params = {
+    Kuiper_Sparse_SPMM_parameters params = {
         .rows = rows,.shared = shared,.cols = cols,.blockItemsK =
             128U,.blockItemsX = 128U,
         .blockWidth = 32U
