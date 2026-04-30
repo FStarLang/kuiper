@@ -1,12 +1,12 @@
 module Kuiper.Kernel.Softmax
 
-(* Much of this module is layout-polymorphic, but
-we fix to l1_forward at the end so we can use arr_read_1. This
-should not be the case once there are more flexible memcpy's. *)
-
-// This is a very naive implementation of softmax on the GPU,
-// which uses three separate kernels launches (exp, reduce, divide).
-// A fused version is possible.
+(* Softmax, in two kernel calls.
+   1. Compute sum of exps (does not modify array)
+   2. Exp and divide by sum. Note: we are callng exp twice for every value.  An
+   alernative would be to first do an exp pass, then reduce, then divide, but I
+   think the extra kernel launch would be more expensive than the redundant
+   exp's.
+   *)
 
 #lang-pulse
 
@@ -35,7 +35,8 @@ fn softmax_gpu
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (nth : szp{nth <= max_threads})
   (#lena : szp)
-  (a : array1 et (l1_forward lena) { is_global a })
+  (#l : Array1.layout lena) {| ctlayout l |}
+  (a : array1 et l { is_global a })
   (#va: erased (lseq et lena))
   (ra: erased (lseq real lena))
   preserves
@@ -49,20 +50,17 @@ fn softmax_gpu
       on gpu_loc (a |-> va') **
       pure (va' %~ softmax_real ra)
 {
-  (* Pointwise exponentiation. *)
-  Kuiper.Kernel.Map.map_gpu exp lena a;
-
-  (* Compute sum. Need swap space since hreduce trashes the input. *)
-  let a' = Array1.alloc0 #et lena (l1_forward lena);
-  Array1.memcpy_device_to_device a' a lena;
-
+  (* Compute sum of exps (does not modify array) *)
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
+  assert pure (Seq.equal (seq_map id (seq_map rexp ra)) (seq_map rexp ra));
+  let sum = Kuiper.Kernel.HReduce.reduce exp rexp nth lena a ra;
 
-  let sum = Kuiper.Kernel.HReduce.reduce nth lena a' (seq_map rexp ra);
-  Array1.free a';
+  (* Exp and divide by sum. *)
+  Kuiper.Kernel.Map.map_gpu (fun x -> div (exp x) sum) lena a;
 
-  (* Divide by sum *)
-  Kuiper.Kernel.Map.map_gpu (fun x -> div x sum) lena a;
+  (* Note: this could also be fused into a single kcall. The comfortable way of
+     doing that would require extensible barrier contracts, so we can add one more
+     step to the barrier of HReduce. *)
 
   softmax_approx va ra sum;
   ()

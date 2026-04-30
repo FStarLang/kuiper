@@ -75,7 +75,7 @@ val ematrix_ext #et #rows #cols
           [SMTPat (equal m1 m2)]
 
 let ematrix_approximates #et
-  {| scalar et, Kuiper.Approximates.real_like et |}
+  {| scalar et, real_like et |}
   #rows #cols
   (m1 : ematrix et rows cols)
   (m2 : ematrix real rows cols)

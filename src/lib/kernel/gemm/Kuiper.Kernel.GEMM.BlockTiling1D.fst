@@ -1049,7 +1049,7 @@ fn teardown
     };
 
   (* Step 8: Collect cells via gpu_matrix_collect_approx_tiled *)
-  array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
+  Kuiper.Tensor.Tiling.CollectApprox.array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile)
     m n
     (fun (row : natlt (m * tile)) (col : natlt (n * tile)) (v : et) ->
       v %~ MS.gemm_single comb_r rA rB rC row col);

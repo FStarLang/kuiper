@@ -6,6 +6,7 @@ open Kuiper.Real { rexp }
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 open Kuiper.Array1
+open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
@@ -17,7 +18,8 @@ unfold
 type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =
   fn (nth : szp{nth <= max_threads})
      (#lena : szp)
-     (a : array1 et (l1_forward lena) { is_global a })
+     (#l : Kuiper.Array1.layout lena) {| ctlayout l |}
+     (a : array1 et l { is_global a })
      (#va : erased (lseq et lena))
      (ra : erased (lseq real lena))
   preserves

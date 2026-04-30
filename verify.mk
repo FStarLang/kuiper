@@ -132,6 +132,7 @@ KRML_FLAGS += -faggressive-inlining
 KRML_FLAGS += -fauto-for-loops
 KRML_FLAGS += -fnoshort-enums
 KRML_FLAGS += -cuda
+KRML_FLAGS += -fternary
 KRML_FLAGS += -dbacktrace
 KRML_FLAGS += $(if $(V),-verbose,-silent)
 KRML_FLAGS += -drop Prims

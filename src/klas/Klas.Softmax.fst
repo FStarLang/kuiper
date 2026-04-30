@@ -4,16 +4,40 @@ module Klas.Softmax
 open Kuiper
 
 module K = Kuiper.Kernel.Softmax
+open Kuiper.Array1
+open Kuiper.Tensor.Layout.Alg { l1_forward }
+
+inline_for_extraction noextract
+fn inst_gpu
+  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
+  (nth : szp{nth <= max_threads})
+  (#lena : szp)
+  (a : array1 et (l1_forward lena) { is_global a })
+  (#va: erased (lseq et lena))
+  (ra: erased (lseq real lena))
+  preserves
+    cpu
+  requires
+    on gpu_loc (a |-> va) **
+    pure (va %~ ra) **
+    pure (lena <= max_blocks * max_threads)
+  ensures
+    exists* (va' : lseq et lena).
+      on gpu_loc (a |-> va') **
+      pure (va' %~ K.softmax_real ra)
+{
+  K.softmax_gpu #et nth #lena a ra;
+}
 
 (* GPU-pointer variants, dynamic thread number *)
-let softmax_gpu_n_f16 : K.softmax_gpu_ty f16 = K.softmax_gpu
-let softmax_gpu_n_f32 : K.softmax_gpu_ty f32 = K.softmax_gpu
-let softmax_gpu_n_f64 : K.softmax_gpu_ty f64 = K.softmax_gpu
+let softmax_gpu_n_f16 = inst_gpu
+let softmax_gpu_n_f32 = inst_gpu
+let softmax_gpu_n_f64 = inst_gpu
 
 (* GPU-pointer variants, full blocks *)
-let softmax_gpu_f16 lena = K.softmax_gpu #f16 1024sz #lena
-let softmax_gpu_f32 lena = K.softmax_gpu #f32 1024sz #lena
-let softmax_gpu_f64 lena = K.softmax_gpu #f64 1024sz #lena
+let softmax_gpu_f16 lena = inst_gpu #f16 1024sz #lena
+let softmax_gpu_f32 lena = inst_gpu #f32 1024sz #lena
+let softmax_gpu_f64 lena = inst_gpu #f64 1024sz #lena
 
 (* dynamic thread number *)
 let softmax_n_f16 : K.softmax_ty f16 = K.softmax

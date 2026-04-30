@@ -108,13 +108,9 @@ fn log_softmax_gpu
   let a' = Array1.alloc0 #et lena (l1_forward lena);
   Array1.memcpy_device_to_device a' a lena;
 
-  (* Pointwise exponentiation. *)
-  Kuiper.Kernel.Map.map_gpu exp lena a';
-
+  (* Pointwise exp + compute sum *)
   Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
-
-  (* Compute sum *)
-  let sum = Kuiper.Kernel.HReduce.reduce nth lena a' (seq_map rexp ra);
+  let sum = Kuiper.Kernel.HReduce.reduce exp rexp nth lena a' ra;
   Array1.free a';
 
   (* Compute pointwise log softmax. *)

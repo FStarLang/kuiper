@@ -903,7 +903,7 @@ fn teardown
   M.gather_n gB ((mrows * tile) * (mcols * tile));
 
   (* Step 6: Collect gC cells back into matrix *)
-  let vf = array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile) mrows mcols
+  let vf = Kuiper.Tensor.Tiling.CollectApprox.array2_collect_approx_tiled gC (SZ.v tile) (SZ.v tile) mrows mcols
     (fun row col v -> v %~ MS.gemm_single comb_r rA rB rC row col);
   with eC'. assert (gC |-> eC');
   assert pure (eC' %~ MS.mmcomb comb_r rC rA rB);

@@ -8,3 +8,5 @@
   see the FIXME in Kernel.HReduce.
 - Can we still use memset when initializing an array with __float2half_rn(0.0f)?
   How should we do that cleanly?
+- Use `smin 1024sz lena` for thread size in HReduce/Softmax/LogSoftmax? Ideally I want
+  a single ocurrence of the ternary operator in the output CUDA. See karamel -fternary
