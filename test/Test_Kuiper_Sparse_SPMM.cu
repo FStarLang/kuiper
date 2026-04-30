@@ -1,4 +1,4 @@
-#include "Kuiper_Example_Sparse_SPMM.h"
+#include "Kuiper_Sparse_SPMM.h"
 #include "test-common.h"
 #include "timing.h"
 #include <stdint.h>
@@ -113,7 +113,7 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
     uint32_t *dC = (uint32_t *) kpr_wait_alloc(sizeof dC[0], rows * cols);
     MUST(cudaMemset(dC, 0, sizeof dC[0] * rows * cols));
 
-    Kuiper_Example_Sparse_SPMM_spmm_u32(rows, shared, cols, dA, dB, dC);
+    Kuiper_Sparse_SPMM_spmm_u32(rows, shared, cols, dA, dB, dC);
     MUST(cudaDeviceSynchronize());
 
     uint32_t *C = (uint32_t *) calloc(rows * cols, sizeof C[0]);
