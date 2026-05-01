@@ -1129,20 +1129,14 @@ fn barrier_q_unfold_even
   assert rewrites_to ri (row_off @! brow p bid);
   assert rewrites_to re (row_off @! brow p bid + 1);
 
-  let it = idx * 2;
+  unfold barrier_q
+    p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
 
-  rewrite each (idx * 2) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
-
-  rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
-  rewrite each (even it) as true;
-
-  rewrite each it as (idx * 2);
-  rewrite each (idx * 2 / 2) as idx;
+  rewrite each ((idx * 2) / 2) as idx;
+  rewrite each (ri + idx * p.blockItemsK > re) as false;
+  rewrite each (even (idx * 2)) as true;
 
   ();
-
 }
 
 ghost
@@ -1178,22 +1172,17 @@ fn barrier_q_unfold_odd
   assert rewrites_to ri (row_off @! brow p bid);
   assert rewrites_to re (row_off @! brow p bid + 1);
 
-  let it = idx * 2 + 1;
+  unfold barrier_q
+    p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
 
-  rewrite each (idx * 2 + 1) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
-  rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
-  rewrite each (even it) as false;
-  rewrite each (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re) as true;
-
-  rewrite each it as (idx * 2 + 1);
   rewrite each ((idx * 2 + 1) / 2) as idx;
+  rewrite each (ri + idx * p.blockItemsK > re) as false;
+  rewrite each (even (idx * 2 + 1)) as false;
+  rewrite each (ri + idx * p.blockItemsK + p.blockItemsK <= re) as true;
 
   ();
 }
 
-#push-options "--z3rlimit 20"
 ghost
 fn barrier_q_unfold_odd_residue
   (#et : Type0)
@@ -1221,21 +1210,16 @@ fn barrier_q_unfold_odd_residue
   assert rewrites_to ri (row_off @! brow p bid);
   assert rewrites_to re (row_off @! brow p bid + 1);
 
-  let it = idx * 2 + 1;
+  unfold barrier_q
+    p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
 
-  rewrite each (idx * 2 + 1) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
-  rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
-  rewrite each (even it) as false;
-  rewrite each (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re) as false;
-
-  rewrite each it as (idx * 2 + 1);
   rewrite each ((idx * 2 + 1) / 2) as idx;
+  rewrite each (ri + idx * p.blockItemsK > re) as false;
+  rewrite each (even (idx * 2 + 1)) as false;
+  rewrite each (ri + idx * p.blockItemsK + p.blockItemsK <= re) as false;
 
   ();
 }
-#pop-options
 
 open Kuiper.Bijection
 
