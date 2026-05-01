@@ -13,8 +13,6 @@ module M  = Kuiper.Matrix
 
 (* Definiciones auxiliares *)
 
-let divup n d = ((n + d - 1) / d)
-
 let submatrix
   (#a : Type0)
   (#rows #cols : nat)
@@ -574,7 +572,7 @@ fn compute
           (ematrix_row stepB c)
           v_x;
 
-          assert rewrites_to b (ematrix_row stepB c @! v_x);
+        assert rewrites_to b (ematrix_row stepB c @! v_x);
 
         x := !x +^ 1sz;
       }

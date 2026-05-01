@@ -2008,8 +2008,7 @@ let barrier_count
 =
   let ri = row_off @! brow p bid in
   let re = row_off @! brow p bid + 1 in
-  // TODO redondear para arriba cuando carguemos el residuo
-  (re - ri) / p.blockItemsK * 2
+  ((re - ri) / p.blockItemsK + 1) * 2
 
 #push-options "--z3rlimit 10"
 inline_for_extraction noextract
@@ -2164,23 +2163,50 @@ fn kf
   assert pure (ri + !idx * p.blockItemsK <= re);
   assert pure (re - (ri + !idx * p.blockItemsK) < p.blockItemsK);
 
-  let residue : erased nat = re - (ri + !idx * p.blockItemsK);
-  assume pure (residue == 0);
-  // sparse_load_residue p gA #row_off #elems #col_ind #eA
-  //   elems_tile col_ind_tile bid ri re !idx tid;
-  // compute_residue p elems_tile col_ind_tile gB out bid tid n_idx
-  //   (re -^ (ri +^ !idx *^ p.blockItemsK));
+  let residue : sz = re -^ (ri +^ !idx *^ p.blockItemsK);
 
+  sparse_load_residue p gA #row_off #elems #col_ind #eA
+    elems_tile col_ind_tile bid ri re !idx tid;
 
-  // unfold slice_live elems_tile #(1.0R /. p.blockWidth)
-  //   (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
-  // gpu_slice_concat elems_tile #(1.0R /. p.blockWidth)
-  //   0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
+  assert pure (
+    Seq.equal
+      (Seq.slice elems (ri + !idx * p.blockItemsK) re)
+      (Seq.slice row_elems
+        (!idx * p.blockItemsK)
+        (!idx * p.blockItemsK + residue)
+      )
+  );
+  assert pure (
+    Seq.equal
+      (cast_pos #residue (Seq.slice col_ind (ri + !idx * p.blockItemsK) re))
+      (Seq.slice row_pos
+        (!idx * p.blockItemsK)
+        (!idx * p.blockItemsK + residue)
+      )
+  );
 
-  // unfold slice_live col_ind_tile #(1.0R /. p.blockWidth)
-  //   (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
-  // gpu_slice_concat col_ind_tile #(1.0R /. p.blockWidth)
-  //   0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
+  Compute.compute
+    p.blockWidth p.blockItemsK p.blockItemsX
+    elems_tile col_ind_tile residue gB out tid n_idx;
+  Compute.compute_step
+    p.blockWidth p.blockItemsX
+    row_elems row_pos eB out0 tid n_idx
+    (!idx * p.blockItemsK) (!idx * p.blockItemsK + residue);
+
+  assert out |->
+    Compute.compute_result
+      p.blockWidth p.blockItemsX
+      row_elems row_pos eB out0 tid n_idx;
+
+  unfold slice_live elems_tile #(1.0R /. p.blockWidth)
+    (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
+  gpu_slice_concat elems_tile #(1.0R /. p.blockWidth)
+    0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
+
+  unfold slice_live col_ind_tile #(1.0R /. p.blockWidth)
+    (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
+  gpu_slice_concat col_ind_tile #(1.0R /. p.blockWidth)
+    0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
 
   //------------------------------------------------------------------
 
