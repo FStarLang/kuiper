@@ -42,6 +42,7 @@ let valid_smatrix
   // los offsets de fila están ordenados y dentro de rango
   (row_off @! 0 == 0) /\
   (row_off @! rows == nnz) /\
+  // maybe separar esta propiedad en otra definicion
   (forall i j. {:pattern (row_off @! i); (row_off @! j)} i < j ==> row_off @! i <= row_off @! j) /\
   // indices de columna son posiciones validas por cada fila
   (in_bounds 0 cols col_ind) /\

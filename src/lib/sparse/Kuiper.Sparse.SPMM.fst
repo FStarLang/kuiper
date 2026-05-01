@@ -1,8 +1,5 @@
 module Kuiper.Sparse.SPMM
 
-//#set-options "--z3rlimit 20"
-(* #set-options "--debug SMTFail --split_queries always" *)
-
 #lang-pulse
 
 open Kuiper
@@ -10,6 +7,7 @@ module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
+module Compute = Kuiper.Sparse.SPMM.Compute
 open Kuiper.Sparse
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
@@ -45,7 +43,7 @@ let matrix_live_cell
   : slprop
   = exists* v. M.gpu_matrix_pts_to_cell gm i j v
 
-inline_for_extraction //noextract
+inline_for_extraction
 type parameters = {
   rows : szp;
   shared : szp;
@@ -59,48 +57,65 @@ type parameters = {
 let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
 
 
-let nblocks (p : parameters) : GTot pos
-= p.rows * ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+let nblocks_ (p : parameters) : GTot pos
+// = p.rows * ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+= p.rows * (p.cols `divup` p.blockItemsX)
 
-// TODO cambiar por blockWidth
-let nthreads (p : parameters) : GTot pos
-= nblocks p * p.blockWidth
+let nthreads_ (p : parameters) : GTot pos
+= p.blockWidth
+
+let allthreads_ (p : parameters) : GTot pos
+= nblocks_ p * nthreads_ p
 
 inline_for_extraction noextract
 let size_req (p : parameters) =
-    nblocks p <= max_blocks /\
-    p.blockWidth <= max_threads
+    nblocks_ p <= max_blocks /\
+    p.blockWidth <= max_threads /\
+    p.rows < 10000 /\
+    p.shared < 10000 /\
+    p.cols < 10000 /\
+    p.blockItemsK < 10000 /\
+    p.blockItemsX < 10000
 
 inline_for_extraction noextract
-let sz_nblocks (p : parameters{size_req p}) : szle max_blocks =
-  p.rows *^ (p.cols /^ p.blockItemsX)
+let nblocks (p : parameters)
+: Pure (szle max_blocks)
+  (requires size_req p)
+  (ensures fun r -> SZ.v r == nblocks_ p)
+= p.rows *^ (p.cols `divup_` p.blockItemsX)
 
 inline_for_extraction noextract
-let sz_nthreads (p : parameters{size_req p}) : (nt : szp {nt <= max_threads}) =
-  p.blockWidth
-
-let brow (p : parameters) (bid : natlt (nblocks p))
-  : GTot (natlt p.rows)
-  //= bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
-  = bid / ((p.cols + p.blockItemsX - 1) / p.blockItemsX)
+let nthreads (p : parameters{size_req p})
+: Pure (szle max_threads)
+  (requires size_req p)
+  (ensures fun r -> SZ.v r == nthreads_ p)
+= p.blockWidth
 
 inline_for_extraction noextract
-let brow_ (p : parameters) (bid : szlt (nblocks p))
+let allthreads (p : parameters{size_req p})
+: Pure sz
+  (requires size_req p)
+  (ensures fun r -> SZ.v r == allthreads_ p)
+= nblocks p *^ nthreads p
+
+let brow (p : parameters) (bid : natlt (nblocks_ p))
+: GTot (natlt p.rows)
+= bid / (p.cols `divup` p.blockItemsX)
+
+inline_for_extraction noextract
+let brow_ (p : parameters) (bid : szlt (nblocks_ p))
   (#_ : squash (fits (p.cols + p.blockItemsX)))
-  : Tot (m : sz {SZ.v m == brow p bid})
-  =
-  bid /^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)
+: Tot (m : sz {SZ.v m == brow p bid})
+= bid /^ (p.cols `divup_` p.blockItemsX)
 
-let bcol (p : parameters) (bid : natlt (nblocks p))
-  : GTot (natlt p.cols)
-  = (bid % ((p.cols + p.blockItemsX - 1) / p.blockItemsX)) * p.blockItemsX
+let bcol (p : parameters) (bid : natlt (nblocks_ p))
+: GTot (natlt p.cols)
+= (bid % (p.cols `divup` p.blockItemsX)) * p.blockItemsX
 
 inline_for_extraction noextract
-let bcol_ (p : parameters) (bid : szlt (nblocks p))
-  (#_ : squash (fits (p.cols + p.blockItemsX)))
-  : Tot (n : sz {SZ.v n == bcol p bid})
-  =
-  (bid %^ ((p.cols +^ p.blockItemsX -^ 1sz) /^ p.blockItemsX)) *^ p.blockItemsX
+let bcol_ (p : parameters { size_req p }) (bid : szlt (nblocks_ p))
+: Tot (n : sz {SZ.v n == bcol p bid})
+= (bid %^ (p.cols `divup_` p.blockItemsX)) *^ p.blockItemsX
 
 // MAYBE definir threadItemsX?
 
@@ -125,17 +140,8 @@ let well_formed
   (#nnz : sz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  : prop
-  =
-  // condicion de smatrix
-  valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off) /\
-  // necesitamos exactamente esto en una prueba
-  // probablemente se puede escrbir de otra manera
-  // o asumir que cada parametro del algoritmo esta acotado
-  // esta bien ponerlo aca?
-  fits (p.blockWidth + p.blockItemsK) /\
-  // esta es rara
-  fits (p.cols + p.blockItemsX)
+: prop
+= valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
 
 let block_lemma whole block k
   : Lemma (requires block /? whole /\ k * block < whole)
@@ -173,7 +179,7 @@ let barrier_p_odd
 
 let barrier_p
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -237,7 +243,7 @@ let barrier_q_odd
 
 let barrier_q
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -273,7 +279,7 @@ let barrier_q
 unfold
 let block_pre
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{size_req p})
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -291,9 +297,9 @@ let block_pre
   (tid : natlt p.blockWidth)
   : slprop
   =
-  smatrix_pts_to' gA #(fA /. (nthreads p))
+  smatrix_pts_to' gA #(fA /. allthreads p)
     elems col_ind row_off eA **
-  gB |-> Frac (fB /. (nthreads p)) eB **
+  gB |-> Frac (fB /. allthreads p) eB **
   forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
@@ -303,7 +309,7 @@ let block_pre
 unfold
 let block_post
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{ size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -321,9 +327,9 @@ let block_post
   (tid : natlt p.blockWidth)
   : slprop
   =
-  smatrix_pts_to' gA #(fA /. (nthreads p))
+  smatrix_pts_to' gA #(fA /. allthreads p)
     elems col_ind row_off eA **
-  gB |-> Frac (fB /. (nthreads p)) eB **
+  gB |-> Frac (fB /. allthreads p) eB **
   forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
@@ -334,7 +340,7 @@ let block_post
 
 let barrier_contract
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -352,7 +358,7 @@ let barrier_contract
 unfold
 let kpre
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -380,7 +386,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -518,7 +524,7 @@ fn forevery_refine_pred'
 ghost
 fn setup
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{size_req p})
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -533,7 +539,6 @@ fn setup
   // matrices densas
   (#eB : ematrix et p.shared p.cols)
   (#fA #fB : perm)
-  // TODO por que toma unit?
   ()
   norewrite
   requires
@@ -642,20 +647,20 @@ fn setup
         )
     );
 
-  smatrix_share_n' gA #fA elems col_ind row_off eA (nthreads p);//elems col_ind row_off eA;
+  smatrix_share_n' gA #fA elems col_ind row_off eA (allthreads p);//elems col_ind row_off eA;
 
-  M.gpu_matrix_share_n gB (nthreads p) #fB;
+  M.gpu_matrix_share_n gB (allthreads p) #fB;
 
-  forevery_zip #(natlt (nthreads p))
+  forevery_zip #(natlt (allthreads p))
    _
-   (fun _ -> M.gpu_matrix_pts_to gB #(fB /. (nthreads p)) eB);
+   (fun _ -> M.gpu_matrix_pts_to gB #(fB /. (allthreads p)) eB);
 
-  forevery_factor (nthreads p) (nblocks p) p.blockWidth _;
+  forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   forevery_zip_2
     (fun _ _ ->
-      smatrix_pts_to' gA #(fA /. (nthreads p)) elems col_ind row_off eA **
-      M.gpu_matrix_pts_to gB #(fB /. (nthreads p)) eB
+      smatrix_pts_to' gA #(fA /. (allthreads p)) elems col_ind row_off eA **
+      M.gpu_matrix_pts_to gB #(fB /. (allthreads p)) eB
     )
     _;
 
@@ -667,7 +672,7 @@ fn setup
 ghost
 fn block_setup
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -722,7 +727,7 @@ fn block_setup
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -817,7 +822,7 @@ fn block_teardown
 ghost
 fn teardown
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters{ size_req p })
   (#lB : mlayout p.shared p.cols)
   (#lC : mlayout p.rows p.cols)
   {| clayout lB, clayout lC |}
@@ -846,23 +851,23 @@ fn teardown
     gC |-> MS.matmul eA eB
 {
   forevery_unzip_2 _ _;
-  forevery_unfactor' (nthreads p) _ _
+  forevery_unfactor' (allthreads p) _ _
     (fun _ _ ->
-      smatrix_pts_to' gA #(fA /. nthreads p) elems col_ind row_off eA
+      smatrix_pts_to' gA #(fA /. allthreads p) elems col_ind row_off eA
     );
-  smatrix_gather_n' gA #fA elems col_ind row_off eA (nthreads p);//elems col_ind row_off eA;
+  smatrix_gather_n' gA #fA elems col_ind row_off eA (allthreads p);
 
   forevery_unzip_2 _ _;
-  forevery_unfactor' (nthreads p) _ _
-    (fun _ _ -> gB |-> Frac (fB /. nthreads p) eB);
-  M.gpu_matrix_gather_n gB (nthreads p) #fB;
+  forevery_unfactor' (allthreads p) _ _
+    (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
+  M.gpu_matrix_gather_n gB (allthreads p) #fB;
 
 
-  forevery_map
+  forevery_map #(natlt (nblocks p))
     (fun bid ->
       forall+
-        (tid: natlt (v p.blockWidth))
-        (k: natlt (v (SizeT.div p.blockItemsX p.blockWidth))).
+        (tid: natlt p.blockWidth)
+        (k: natlt (p.blockItemsX /^ p.blockWidth)).
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
             M.gpu_matrix_pts_to_cell gC
@@ -1023,7 +1028,7 @@ fn teardown
 ghost
 fn barrier_p_fold_even
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1052,7 +1057,7 @@ fn barrier_p_fold_even
 ghost
 fn barrier_p_fold_odd
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1101,7 +1106,7 @@ fn barrier_p_fold_odd
 ghost
 fn barrier_q_unfold_even
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1124,26 +1129,20 @@ fn barrier_q_unfold_even
   assert rewrites_to ri (row_off @! brow p bid);
   assert rewrites_to re (row_off @! brow p bid + 1);
 
-  let it = idx * 2;
+  unfold barrier_q
+    p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
 
-  rewrite each (idx * 2) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
-
-  rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
-  rewrite each (even it) as true;
-
-  rewrite each it as (idx * 2);
-  rewrite each (idx * 2 / 2) as idx;
+  rewrite each ((idx * 2) / 2) as idx;
+  rewrite each (ri + idx * p.blockItemsK > re) as false;
+  rewrite each (even (idx * 2)) as true;
 
   ();
-
 }
 
 ghost
 fn barrier_q_unfold_odd
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1173,26 +1172,21 @@ fn barrier_q_unfold_odd
   assert rewrites_to ri (row_off @! brow p bid);
   assert rewrites_to re (row_off @! brow p bid + 1);
 
-  let it = idx * 2 + 1;
+  unfold barrier_q
+    p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
 
-  rewrite each (idx * 2 + 1) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
-  rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
-  rewrite each (even it) as false;
-  rewrite each (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re) as true;
-
-  rewrite each it as (idx * 2 + 1);
   rewrite each ((idx * 2 + 1) / 2) as idx;
+  rewrite each (ri + idx * p.blockItemsK > re) as false;
+  rewrite each (even (idx * 2 + 1)) as false;
+  rewrite each (ri + idx * p.blockItemsK + p.blockItemsK <= re) as true;
 
   ();
 }
 
-#push-options "--z3rlimit 20"
 ghost
 fn barrier_q_unfold_odd_residue
   (#et : Type0)
-  (p : parameters)
+  (p : parameters { size_req p })
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -1216,21 +1210,16 @@ fn barrier_q_unfold_odd_residue
   assert rewrites_to ri (row_off @! brow p bid);
   assert rewrites_to re (row_off @! brow p bid + 1);
 
-  let it = idx * 2 + 1;
+  unfold barrier_q
+    p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid;
 
-  rewrite each (idx * 2 + 1) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
-  rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
-  rewrite each (even it) as false;
-  rewrite each (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re) as false;
-
-  rewrite each it as (idx * 2 + 1);
   rewrite each ((idx * 2 + 1) / 2) as idx;
+  rewrite each (ri + idx * p.blockItemsK > re) as false;
+  rewrite each (even (idx * 2 + 1)) as false;
+  rewrite each (ri + idx * p.blockItemsK + p.blockItemsK <= re) as false;
 
   ();
 }
-#pop-options
 
 open Kuiper.Bijection
 
@@ -1281,7 +1270,7 @@ fn foreach
 inline_for_extraction noextract
 fn sparse_load_one
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   // matriz sparse gA
   (#row_off : lseq sz (p.rows + 1))
@@ -1338,7 +1327,7 @@ fn sparse_load_one
 inline_for_extraction noextract
 fn sparse_load
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   // matriz sparse gA
   (#row_off : lseq sz (p.rows + 1))
@@ -1629,7 +1618,7 @@ fn gpu_forall_live_cell_to_slice
 inline_for_extraction noextract
 fn sparse_load_residue
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   // matriz sparse gA
   (#row_off : lseq sz (p.rows + 1))
@@ -1887,202 +1876,6 @@ fn sparse_load_residue
 }
 #pop-options
 
-
-
-inline_for_extraction noextract
-fn compute
-  (#et : Type0) {| scalar et |}
-  (p : parameters)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (#lB : mlayout p.shared p.cols)
-  {| clayout lB |}
-  (gB : M.gpu_matrix et lB)
-  (#fB : perm)
-  (out : larray et (p.blockItemsX /^ p.blockWidth))
-  // fragmentos sparse
-  (#v_elems : lseq et p.blockItemsK)
-  (#v_col_ind : lseq sz p.blockItemsK)
-  (#_ : squash(forall i. 0 <= v_col_ind @! i /\ v_col_ind @! i < p.shared))
-  // matriz densa B
-  (#eB : erased (ematrix et p.shared p.cols))
-  // resultado parcial
-  (#v_out : erased (seq et))
-  (bid : szlt (nblocks p))
-  (tid : szlt p.blockWidth)
-  (n_idx : szlt p.cols {SZ.v n_idx == bcol p bid})
-  norewrite
-  preserves
-    gpu **
-    elems_tile |-> Frac (1.0R /. p.blockWidth) v_elems **
-    col_ind_tile |-> Frac (1.0R /. p.blockWidth) v_col_ind **
-    gB |-> Frac (fB /. nthreads p) eB
-  requires
-    pure (fits (p.cols + p.blockItemsX)) **
-    out |-> v_out
-  ensures
-    //out |-> v_out + dprod v_elems v_col_ind eB (col := tid)
-    live out
-{
-  Pulse.Lib.Array.pts_to_len out;
-
-  let mut k : sz = 0sz;
-  while (!k <^ p.blockItemsK)
-    invariant
-      // TODO decir algo sobre el producto
-      live out ** live k **
-      pure (
-        !k <= p.blockItemsK
-        ///\ (!k < blockItemsK ==> !idx * blockItemsK + !k < re - ri) // hace falta?
-      )
-  {
-    let a = gpu_array_read elems_tile !k;
-    let c = gpu_array_read col_ind_tile !k;
-    let mut x = 0sz;
-    while ((!x <^ p.blockItemsX /^ p.blockWidth))
-      invariant
-        live out ** live k ** live x **
-        pure (
-          !k < p.blockItemsK /\
-          !x <= p.blockItemsX /^ p.blockWidth
-        )
-    {
-      block_lemma_off p.blockItemsX p.blockWidth !x tid;
-
-      assert pure (!x *^ p.blockWidth + tid < p.blockItemsX);
-      let dense_off : sz = n_idx +^ !x *^ p.blockWidth +^ tid;
-
-      if (dense_off <^ p.cols)
-        ensures
-          gpu **
-          elems_tile |-> Frac (1.0R /. p.blockWidth) v_elems **
-          col_ind_tile |-> Frac (1.0R /. p.blockWidth) v_col_ind **
-          gB |-> Frac (fB /. nthreads p) eB **
-          live out **
-          (exists* (k_v x_v : sz).
-            k |-> k_v **
-            x |-> x_v **
-            pure (
-              k_v < p.blockItemsK /\
-              x_v < p.blockItemsX /^ p.blockWidth
-            )
-          )
-      {
-        let b = M.gpu_matrix_read gB c dense_off;
-        open Pulse.Lib.Array;
-        Pulse.Lib.Array.pts_to_len out;
-        let c = out.(!x);
-        out.(!x) <- (c `add` (a `mul` b));
-        ();
-      };
-
-      x := !x +^ 1sz;
-    };
-
-    k := !k +^ 1sz;
-  };
-}
-
-// TODO implementar optimización para unrollear loops
-inline_for_extraction noextract
-fn compute_residue
-  (#et : Type0) {| scalar et |}
-  (p : parameters)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
-  (#lB : mlayout p.shared p.cols)
-  {| clayout lB |}
-  (gB : M.gpu_matrix et lB)
-  (#fB : perm)
-  (out : larray et (p.blockItemsX /^ p.blockWidth))
-  // fragmentos sparse
-  (#v_elems : erased (seq et))
-  (#v_col_ind : erased (seq sz))
-  (#_ : squash(forall i. 0 <= v_col_ind @! i /\ v_col_ind @! i < p.shared))
-  // matriz densa B
-  (#eB : erased (ematrix et p.shared p.cols))
-  // resultado parcial
-  (#v_out : erased (seq et))
-  (bid : szlt (nblocks p))
-  (tid : szlt p.blockWidth)
-  (n_idx : szlt p.cols {SZ.v n_idx == bcol p bid})
-  (residue : szlt p.blockItemsK)
-  norewrite
-  preserves
-    gpu **
-    gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth)
-      0 residue v_elems **
-    gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
-      0 residue v_col_ind **
-    gB |-> Frac (fB /. nthreads p) eB
-  requires
-    pure (fits (p.cols + p.blockItemsX)) **
-    pure (len v_elems == residue /\ len v_col_ind == residue) **
-    out |-> v_out
-  ensures
-    //out |-> v_out + dprod v_elems v_col_ind eB (col := tid)
-    live out
-{
-  Pulse.Lib.Array.pts_to_len out;
-
-  let mut k : sz = 0sz;
-  while (!k <^ residue)
-    invariant
-      // TODO decir algo sobre el producto
-      live out ** live k **
-      pure (
-        !k <= residue
-        ///\ (!k < blockItemsK ==> !idx * blockItemsK + !k < re - ri) // hace falta?
-      )
-  {
-    let a = gpu_array_read elems_tile !k;
-    let c = gpu_array_read col_ind_tile !k;
-    let mut x = 0sz;
-    while ((!x <^ p.blockItemsX /^ p.blockWidth))
-      invariant
-        live out ** live k ** live x **
-        pure (
-          !k < residue /\
-          !x <= p.blockItemsX /^ p.blockWidth
-        )
-    {
-      block_lemma_off p.blockItemsX p.blockWidth !x tid;
-
-      let dense_off : sz = n_idx +^ !x *^ p.blockWidth +^ tid;
-
-      if (dense_off <^ p.cols)
-        ensures
-          gpu **
-          gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth)
-            0 residue v_elems **
-          gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
-            0 residue v_col_ind **
-          gB |-> Frac (fB /. nthreads p) eB **
-          live out **
-          (exists* (k_v x_v : sz).
-            k |-> k_v **
-            x |-> x_v **
-            pure (
-              k_v < residue /\
-              x_v < p.blockItemsX /^ p.blockWidth
-            )
-          )
-      {
-        let b = M.gpu_matrix_read gB c dense_off;
-        open Pulse.Lib.Array;
-        Pulse.Lib.Array.pts_to_len out;
-        let c = out.(!x);
-        out.(!x) <- (c `add` (a `mul` b));
-        ();
-      };
-
-      x := !x +^ 1sz;
-    };
-
-    k := !k +^ 1sz;
-  };
-}
-
 ghost
 fn when__intro_true (b:bool{b == true}) (p : slprop)
   requires p
@@ -2117,7 +1910,7 @@ fn when__elim_false (b:bool{b == false}) (p : slprop)
 inline_for_extraction noextract
 fn store_out
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   // TODO esto es raro acá
   (#_ : squash (fits (p.cols + p.blockItemsX)))
   (#lC : mlayout p.rows p.cols)
@@ -2184,12 +1977,28 @@ fn store_out
 
 }
 
+noextract
+let barrier_count
+  (p : parameters { size_req p })
+  (#nnz : nat)
+  (col_ind : lseq sz nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (bid : natlt (nblocks p))
+: Ghost nat
+  (requires
+    valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
+  )
+  (ensures fun _ -> true)
+=
+  let ri = row_off @! brow p bid in
+  let re = row_off @! brow p bid + 1 in
+  ((re - ri) / p.blockItemsK + 1) * 2
 
-#push-options "--z3rlimit 20"
+#push-options "--z3rlimit 10"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
-  (p : parameters)
+  (p : parameters { size_req p })
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
   (#lb : mlayout p.shared p.cols)
   (#lc : mlayout p.rows p.cols)
@@ -2224,7 +2033,7 @@ fn kf
     thread_id p.blockWidth tid **
     block_id (nblocks p) bid **
     B.barrier_tok (barrier_contract p elems col_ind row_off (fst sh) (fst (snd sh)) bid) **
-    B.barrier_state 0
+    B.barrier_state (barrier_count p col_ind row_off bid)
 {
   let m_idx = brow_ p bid;
   let n_idx = bcol_ p bid;
@@ -2240,11 +2049,18 @@ fn kf
   let ri = gpu_array_read gA.row_off m_idx;
   let re = gpu_array_read gA.row_off (m_idx +^ 1sz);
 
+  let row_elems : lseq et (re - ri) = hide (Seq.slice elems ri re);
+  let row_pos : lseq nat (re - ri) = hide (Seq.slice (cast_pos col_ind) ri re);
+
+  assert pure (valid_pos #(re - ri) p.shared row_pos);
+
   (* GM: Nota: no podemos tener una expresión de división como la
   longitud del array, porque sería un VLA. Por eso agregué un argumento
   al kernel (blockChunks) que tiene un refinamiento que asegura que
   es igual (p.blockItemsK / p.blockWidth). *)
   let mut out = [| zero #et #_; blockChunks |];
+  let out0 : lseq et (p.blockItemsX / p.blockWidth) =
+    Seq.create (p.blockItemsX / p.blockWidth) zero;
 
   let mut nnz : sz = re -^ ri;
   let mut idx = 0sz;
@@ -2255,17 +2071,35 @@ fn kf
   assert pure (ri == row_off @! brow p bid);
   assert pure (re == row_off @! brow p bid + 1);
 
+  assert pure (
+    Seq.equal
+      out0
+      (Compute.compute_result
+        p.blockWidth p.blockItemsX #0
+        (Seq.slice row_elems 0 0)
+        (Seq.slice row_pos 0 0)
+        eB out0 tid n_idx)
+  );
+
   while (!nnz >=^ p.blockItemsK)
     invariant
-      live out ** // TODO decir algo sobre el producto
-      live nnz **
-      live idx **
-      B.barrier_state (!idx * 2) **
-      (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
-      (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s) **
-      pure (
-        !idx <= (re -^ ri) /^ p.blockItemsK /\
-        !nnz == re -^ ri -^ !idx *^ p.blockItemsK
+      (exists* v_out.
+        out |-> v_out **
+        live idx **
+        live nnz **
+        B.barrier_state (!idx * 2) **
+        (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
+        (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s) **
+        pure (
+          !idx <= (re -^ ri) /^ p.blockItemsK /\
+          !nnz == re -^ ri -^ !idx *^ p.blockItemsK /\
+          v_out ==
+          Compute.compute_result
+            p.blockWidth p.blockItemsX #(!idx * p.blockItemsK)
+            (Seq.slice row_elems 0 (!idx * p.blockItemsK))
+            (Seq.slice row_pos 0 (!idx * p.blockItemsK))
+            eB out0 tid n_idx
+        )
       )
   {
     assert pure (ri + (!idx + 1) * p.blockItemsK <= gA.nnz);
@@ -2274,19 +2108,79 @@ fn kf
     sparse_load p gA #row_off #elems #col_ind #eA
       elems_tile col_ind_tile bid ri re !idx tid #();
 
-    compute p elems_tile col_ind_tile gB out bid tid n_idx;
+    assert pure (
+      Seq.equal
+        (Seq.slice elems
+          (ri + !idx * p.blockItemsK)
+          (ri + (!idx + 1) * p.blockItemsK))
+        (Seq.slice row_elems
+          (!idx * p.blockItemsK)
+          ((!idx + 1) * p.blockItemsK))
+    );
+    assert pure (
+      Seq.equal
+        (cast_pos #p.blockItemsK (
+          Seq.slice col_ind
+            (ri + !idx * p.blockItemsK)
+            (ri + (!idx + 1) * p.blockItemsK)
+        ))
+        (Seq.slice row_pos (!idx * p.blockItemsK)
+          ((!idx + 1) * p.blockItemsK))
+    );
+
+    Pulse.Lib.Array.pts_to_len out;
+
+    Compute.compute
+      p.blockWidth p.blockItemsK p.blockItemsX
+      elems_tile col_ind_tile p.blockItemsK gB out tid n_idx;
+
+    Compute.compute_step
+      p.blockWidth p.blockItemsX
+      row_elems row_pos eB out0 tid n_idx
+      (!idx * p.blockItemsK) ((!idx + 1) * p.blockItemsK);
 
     idx := !idx +^ 1sz;
     nnz := !nnz -^ p.blockItemsK;
   };
 
+  //------------------residue-----------------------------------------
   assert pure (ri + !idx * p.blockItemsK <= re);
   assert pure (re - (ri + !idx * p.blockItemsK) < p.blockItemsK);
+
+  let residue : sz = re -^ (ri +^ !idx *^ p.blockItemsK);
+
   sparse_load_residue p gA #row_off #elems #col_ind #eA
     elems_tile col_ind_tile bid ri re !idx tid;
-  compute_residue p elems_tile col_ind_tile gB out bid tid n_idx
-    (re -^ (ri +^ !idx *^ p.blockItemsK));
 
+  assert pure (
+    Seq.equal
+      (Seq.slice elems (ri + !idx * p.blockItemsK) re)
+      (Seq.slice row_elems
+        (!idx * p.blockItemsK)
+        (!idx * p.blockItemsK + residue)
+      )
+  );
+  assert pure (
+    Seq.equal
+      (cast_pos #residue (Seq.slice col_ind (ri + !idx * p.blockItemsK) re))
+      (Seq.slice row_pos
+        (!idx * p.blockItemsK)
+        (!idx * p.blockItemsK + residue)
+      )
+  );
+
+  Compute.compute
+    p.blockWidth p.blockItemsK p.blockItemsX
+    elems_tile col_ind_tile residue gB out tid n_idx;
+  Compute.compute_step
+    p.blockWidth p.blockItemsX
+    row_elems row_pos eB out0 tid n_idx
+    (!idx * p.blockItemsK) (!idx * p.blockItemsK + residue);
+
+  assert out |->
+    Compute.compute_result
+      p.blockWidth p.blockItemsX
+      row_elems row_pos eB out0 tid n_idx;
 
   unfold slice_live elems_tile #(1.0R /. p.blockWidth)
     (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
@@ -2298,9 +2192,10 @@ fn kf
   gpu_slice_concat col_ind_tile #(1.0R /. p.blockWidth)
     0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
 
+  //------------------------------------------------------------------
+
   with v_out. assert out |-> v_out;
   Pulse.Lib.Array.pts_to_len out;
-
 
   foreach (p.blockItemsX /^ p.blockWidth)
     (fun x ->
@@ -2315,20 +2210,77 @@ fn kf
             (v_out @! x)))
     (store_out p gC out bid tid m_idx n_idx);
 
-  //assume pure (!dp == MS.matmul_single eA eB bid tid);
-  admit();
+  unsparse_row_lemma
+    p.rows p.shared
+    elems (cast_pos col_ind) (cast_pos row_off) m_idx;
 
-  drop_ (B.barrier_tok _);
-  drop_ (B.barrier_state (!idx * 2));
+  forevery_refine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
+    (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
+    (fun x _ ->
+      M.gpu_matrix_pts_to_cell gC
+        (brow p bid)
+        (bcol p bid + x * p.blockWidth + tid)
+        (v_out @! x));
 
-  rewrite
-    block_post p gA gB gC elems col_ind row_off eA eB fA fB bid tid **
-    live elems_tile #(1.0R /. p.blockWidth) **
-    live col_ind_tile #(1.0R /. p.blockWidth)
-    as kpost p gA gB gC elems col_ind row_off eA eB fA fB sh bid tid;
+  forevery_map
+    #(x : natlt (p.blockItemsX /^ p.blockWidth){
+      bcol p bid + x * p.blockWidth + tid < p.cols
+    })
+    (fun x ->
+      M.gpu_matrix_pts_to_cell gC
+        (brow p bid)
+        (bcol p bid + x * p.blockWidth + tid)
+        (v_out @! x)
+    )
+    (fun x ->
+      M.gpu_matrix_pts_to_cell gC
+        (brow p bid)
+        (bcol p bid + x * p.blockWidth + tid)
+        (MS.matmul_single eA eB
+          (brow p bid) (bcol p bid + x * p.blockWidth + tid)
+        )
+    )
+    fn x {
+      assert M.gpu_matrix_pts_to_cell gC
+        (brow p bid)
+        (bcol p bid + x * p.blockWidth + tid)
+        (Compute.compute_result
+          p.blockWidth p.blockItemsX
+          row_elems row_pos
+          eB out0
+          tid n_idx @! x
+        );
+      Compute.compute_lemma
+        p.blockWidth p.blockItemsX
+        row_elems row_pos
+        eA eB out0
+        tid n_idx m_idx x;
+      rewrite each (
+        Compute.compute_result
+          p.blockWidth p.blockItemsX
+          row_elems row_pos
+          eB out0
+          tid n_idx @! x
+      ) as (
+        MS.matmul_single eA eB m_idx (n_idx + tid + x * p.blockWidth)
+      );
+      ();
+    };
+
+  forevery_unrefine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
+    (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
+    (fun x _ ->
+      M.gpu_matrix_pts_to_cell gC
+        (brow p bid)
+        (bcol p bid + x * p.blockWidth + tid)
+        (MS.matmul_single eA eB
+          (brow p bid) (bcol p bid + x * p.blockWidth + tid)
+        )
+    );
+
+  ()
 }
 #pop-options
-
 
 inline_for_extraction noextract
 let kdesc
@@ -2361,14 +2313,14 @@ let kdesc
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB
     )
-= admit();{
-  nblk = sz_nblocks p;
-  nthr = sz_nthreads p;
+= {
+  nblk = nblocks p;
+  nthr = nthreads p;
 
   barrier_contract = (fun bid ptrs ->
     barrier_contract p elems col_ind row_off
       (fst ptrs) (fst (snd ptrs)) bid);
-  barrier_count = (fun _bid -> 0);
+  barrier_count = (fun bid -> barrier_count p col_ind row_off bid);
   barrier_ok = (fun bid ptrs -> magic());
 
   shmems_desc = shmems_desc et p;

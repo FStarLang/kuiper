@@ -9,7 +9,12 @@ let _ = 1ul
 
 (* Misc *)
 
-let divup (n : nat) (d : pos) : GTot nat = ((n + d - 1) / d)
+let divup (n : nat) (d : pos) : GTot nat = ((n + d) - 1) / d
+
+inline_for_extraction noextract
+let divup_ (n : sz) (d : szp)
+: Pure sz (requires fits (n + d)) (ensures fun r -> SZ.v r == divup n d)
+= (n +^ d -^ 1sz) /^ d
 
 (* Propiedades sobre escalares *)
 

@@ -1,4 +1,4 @@
-module Kuiper.Sparse.Compute
+module Kuiper.Sparse.SPMM.Compute
 
 #lang-pulse
 
@@ -12,8 +12,6 @@ open Kuiper.Sparse.Common
 module M  = Kuiper.Matrix
 
 (* Definiciones auxiliares *)
-
-let divup n d = ((n + d - 1) / d)
 
 let submatrix
   (#a : Type0)
@@ -463,24 +461,25 @@ let compute_lemma
 inline_for_extraction noextract
 fn compute
   (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : sz)
+  (#shared #cols : sz)
   // creo que este refinamiento no hace falta
-  (#blockWidth #blockItemsK #blockItemsX : szp{blockWidth /? blockItemsX})
+  (blockWidth blockItemsK blockItemsX : szp{blockWidth /? blockItemsX})
+  // fragmentos sparse
   (elems_tile : gpu_array et blockItemsK)
   (col_ind_tile : gpu_array sz blockItemsK)
   (#fA : perm)
+  (nnz : sz)
+  (#v_elems : erased (lseq et nnz))
+  (#v_col_ind : erased (lseq sz nnz))
+  (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
+  // matriz densa B
   (#lB : mlayout shared cols)
   {| clayout lB |}
   (gB : M.gpu_matrix et lB)
   (#fB : perm)
-  (out : larray et (blockItemsX /^ blockWidth))
-  // fragmentos sparse
-  (#v_elems : lseq et blockItemsK)
-  (#v_col_ind : lseq sz blockItemsK)
-  (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
-  // matriz densa B
   (#eB : erased (ematrix et shared cols))
   // resultado parcial
+  (out : larray et (blockItemsX /^ blockWidth))
   (#v_out : erased (seq et))
   (#_ : squash (len v_out == blockItemsX /^ blockWidth))
   (tid : szlt blockWidth)
@@ -488,8 +487,8 @@ fn compute
   norewrite
   preserves
     gpu **
-    elems_tile |-> Frac fA v_elems **
-    col_ind_tile |-> Frac fA v_col_ind **
+    gpu_pts_to_slice elems_tile #fA 0 nnz v_elems **
+    gpu_pts_to_slice col_ind_tile #fA 0 nnz v_col_ind **
     gB |-> Frac fB eB
   requires
     pure (fits (cols + blockItemsX)) **
@@ -516,9 +515,9 @@ fn compute
       0
   );
 
-  while (!k <^ blockItemsK)
+  while (!k <^ nnz)
     invariant
-      (exists* (v_k : sz {v_k <= blockItemsK}).
+      (exists* (v_k : sz {v_k <= nnz}).
         k |-> v_k **
         out |->
         _sparse_row_x_mat_acc
@@ -544,30 +543,20 @@ fn compute
     while ((!x <^ blockItemsX /^ blockWidth))
       invariant
         (exists* (v_x : sz).
+          x |-> v_x **
           out |->
-            _sparse_comb v_out' v_elems (cast_pos v_col_ind) stepB v_k v_x **
-            x |-> v_x
+            _sparse_comb v_out' v_elems (cast_pos v_col_ind) stepB v_k v_x
         ) **
         k |-> v_k
     {
       with v_x. assert x |-> v_x;
       assert pure (v_x *^ blockWidth + tid < blockItemsX);
 
+      // TODO arreglar
       assume pure (fits (n_idx +^ v_x *^ blockWidth + tid));
       let dense_off : sz = n_idx +^ !x *^ blockWidth +^ tid;
 
       if (dense_off <^ cols)
-        ensures 
-          gpu **
-          elems_tile |-> Frac fA v_elems **
-          col_ind_tile |-> Frac fA v_col_ind **
-          gB |-> Frac fB eB **
-          out |->
-            _sparse_comb
-              v_out' v_elems (cast_pos v_col_ind)
-              stepB v_k (v_x + 1) **
-          k |-> v_k **
-          x |-> v_x 
       {
         with v_out''. assert out |-> v_out'';
 
@@ -577,27 +566,21 @@ fn compute
         let v = out.(!x);
         out.(!x) <- (v `add` (a `mul` b));
 
-        assert out |-> Seq.upd v_out'' v_x (add v (a `mul` b));
-
-        rewrite each v_out'' as (_comb v_out' a (ematrix_row stepB c) v_x);
-
-        assert pure (v_x < (blockItemsX - tid) `divup` blockWidth);
-        assert pure (v_x < (cols - n_idx - tid) `divup` blockWidth);
-        rewrite each a as (v_elems @! v_k);
-        rewrite each b as (macc stepB c v_x);
-
         _comb_lemma
           v_out'
           (v_elems @! v_k)
           (ematrix_row stepB c)
           v_x;
 
-          // esto esta inestable, a veces sale y a veces no
-          // admitimos por ahora
-          admit();
+        assert rewrites_to b (ematrix_row stepB c @! v_x);
+
+        x := !x +^ 1sz;
+      }
+      else
+      {
+        x := !x +^ 1sz;
       };
 
-      x := !x +^ 1sz;
     };
 
     sparse_comb_row_x_mat_acc
