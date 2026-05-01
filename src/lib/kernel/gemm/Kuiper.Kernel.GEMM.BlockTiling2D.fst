@@ -680,7 +680,7 @@ let ettile_mmcomb_pointwise
                  comb (macc (ettile eC bm bn tm tn bid tid) i j)
                       (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
-#push-options "--z3rlimit 180"
+#push-options "--z3rlimit 250" // Huge
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
