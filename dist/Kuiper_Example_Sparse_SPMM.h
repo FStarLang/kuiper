@@ -15,8 +15,6 @@ typedef struct Kuiper_Example_Sparse_SPMM_parameters_s {
 
 typedef void *Kuiper_Example_Sparse_SPMM_lseq;
 
-typedef void *Kuiper_Example_Sparse_SPMM_well_formed;
-
 typedef struct Kuiper_Sparse_Matrix_smatrix__uint32_t_s {
     uint32_t nnz;
     uint32_t *elems;

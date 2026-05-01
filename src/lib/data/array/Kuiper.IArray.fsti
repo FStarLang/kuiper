@@ -10,7 +10,7 @@ module SZ = Kuiper.SizeT
 
 let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
   fun x' ->
-    if FStar.StrongExcludedMiddle.strong_excluded_middle (x == x')
+    if t2b (x == x')
     then y
     else f x'
 

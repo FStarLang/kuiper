@@ -471,6 +471,7 @@ let em_fade'_fade_aux
     end
   end
 
+#push-options "--z3rlimit 20"
 let em_fade'_fade
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (#rows #cols: pos)
@@ -516,6 +517,7 @@ let em_fade'_fade
           ()
         end
       )
+#pop-options
 
 #push-options "--z3rlimit 80 --fuel 0 --ifuel 1"
 // NB: The scalar constraint is only here so we can use 'zero' as an initializer
