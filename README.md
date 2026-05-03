@@ -1,5 +1,7 @@
 # Kuiper: GPU Kernel Verification in Pulse
 
+[![CI](https://github.com/FStarLang/kuiper/actions/workflows/ci.yml/badge.svg)](https://github.com/FStarLang/kuiper/actions/workflows/ci.yml)
+
 Kuiper is a language for safe and verified efficient CPU/GPU programming.  It
 builds over F* and Pulse to provide a language based on dependent types and
 separation logic to model the intricacies of GPU programming.  All Kuiper
