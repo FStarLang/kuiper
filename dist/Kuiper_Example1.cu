@@ -7,7 +7,7 @@ __global__
 */
 static void __hoisted_0(uint64_t *gr)
 {
-    *gr += 1ULL;
+    (*gr)++;
 }
 
 uint64_t Kuiper_Example1_main(void)

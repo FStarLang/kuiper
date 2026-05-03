@@ -22,7 +22,7 @@ __global__
 */
 static void __hoisted_0(uint64_t *r1)
 {
-    *r1 += 1ULL;
+    (*r1)++;
 }
 
 __global__
@@ -31,7 +31,7 @@ __global__
 */
 static void __hoisted_1(uint64_t *r2)
 {
-    *r2 += 1ULL;
+    (*r2)++;
 }
 
 __global__
@@ -40,7 +40,7 @@ __global__
 */
 static void __hoisted_2(uint64_t *r3)
 {
-    *r3 += 1ULL;
+    (*r3)++;
 }
 
 __global__
@@ -49,7 +49,7 @@ __global__
 */
 static void __hoisted_3(uint64_t *r4)
 {
-    *r4 += 1ULL;
+    (*r4)++;
 }
 
 __global__
@@ -58,7 +58,7 @@ __global__
 */
 static void __hoisted_4(uint64_t *r5)
 {
-    *r5 += 1ULL;
+    (*r5)++;
 }
 
 __global__
@@ -67,7 +67,7 @@ __global__
 */
 static void __hoisted_5(uint64_t *r6)
 {
-    *r6 += 1ULL;
+    (*r6)++;
 }
 
 uint64_t Kuiper_Example_Async1_main(void)
