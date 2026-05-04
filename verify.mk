@@ -66,7 +66,7 @@ karamel/Makefile:
 	@echo KRML
 	@# karamel needs builtin rules which we disable, so clear MAKEFLAGS but still set -j
 	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel ADMIT=1 LOWSTAR=false
-	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel PREFIX=$(CURDIR)/inst install
+	$(MAKE) MAKEFLAGS=-j$(shell nproc) -C karamel LOWSTAR=false PREFIX=$(CURDIR)/inst install
 	@touch .krml.src.touch # building will change files
 	@touch $@
 
