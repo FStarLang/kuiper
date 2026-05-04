@@ -21,7 +21,7 @@ let submatrix
   (srows : nat{m + srows <= rows})
   (n : natle cols)
   (scols : nat{n + scols <= cols})
-: ematrix a srows scols 
+: ematrix a srows scols
 = mkM (fun i j -> macc em (m + i) (n + j))
 
 let col_strided_matrix
@@ -151,7 +151,7 @@ let sparse_row_x_mat_acc_lemma
   (to : natle nnz)
 : Lemma
   (requires valid_pos shared pos)
-  (ensures 
+  (ensures
     sparse_row_x_mat_acc #_ #_ #_ #_ #block
       (sparse_row_x_mat_acc acc
         #to (fst (Seq.split elems to)) (fst (Seq.split pos to)) em
@@ -166,7 +166,7 @@ let sparse_row_x_mat_acc_lemma
 
   let (s1 : lseq et block) =
     sparse_row_x_mat_acc acc #to elems1 pos1 em in
-  let (s : lseq et block) = 
+  let (s : lseq et block) =
     sparse_row_x_mat_acc s1 #(nnz - to) elems2 pos2 em in
   let (s' : lseq et block) =
     sparse_row_x_mat_acc acc elems pos em in
@@ -200,7 +200,7 @@ let sparse_row_x_mat_acc_lemma
               #(nnz - to) elems2 scol2
           }
           dprod_acc (acc @! i)
-            #nnz 
+            #nnz
             (Seq.append elems1 elems2)
             (Seq.append scol1 scol2);
           == { Seq.lemma_split elems to}
@@ -209,7 +209,7 @@ let sparse_row_x_mat_acc_lemma
           dprod_acc (acc @! i) elems scol;
           == {}
           sparse_dprod_acc (acc @! i) elems pos col;
-          == {} 
+          == {}
           s' @! i;
         }
       )
@@ -229,7 +229,7 @@ let sparse_row_x_mat_acc_lemma'
   (from to : natle nnz{from <= to})
 : Lemma
   (requires valid_pos shared pos)
-  (ensures 
+  (ensures
     sparse_row_x_mat_acc #_ #_ #_ #_ #block
       (sparse_row_x_mat_acc
         acc #from (Seq.slice elems 0 from) (Seq.slice pos 0 from) em
@@ -525,7 +525,7 @@ fn compute
           #(blockItemsX /^ blockWidth) v_out
           v_elems (cast_pos v_col_ind)
           stepB
-          v_k 
+          v_k
       )
   {
     let a = gpu_array_read elems_tile !k;

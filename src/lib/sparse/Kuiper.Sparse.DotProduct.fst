@@ -72,7 +72,7 @@ let rec _dprod_acc
   (s t : lseq et n)
   (to : natle n)
   : et
-= 
+=
   if to = 0
     then acc
     else
@@ -100,7 +100,7 @@ let rec _dprod_acc_lemma0
   (ensures
     _dprod_acc acc s1 t1 to ==
     _dprod_acc acc #(n1 + n2) (Seq.append s1 s2) (Seq.append t1 t2) to
-  ) 
+  )
 =
   if to = 0
     then ()
@@ -118,7 +118,7 @@ let rec _dprod_acc_lemma
   (ensures
     _dprod_acc (dprod_acc acc s1 t1) s2 t2 to ==
     _dprod_acc acc #(n1 + n2) (Seq.append s1 s2) (Seq.append t1 t2) (n1 + to)
-  ) 
+  )
 =
   if to = 0
     then _dprod_acc_lemma0 acc s1 t1 s2 t2 n1
@@ -136,7 +136,7 @@ let dprod_acc_lemma
   (ensures
     dprod_acc (dprod_acc acc s1 t1) s2 t2 ==
     dprod_acc acc #(n1 + n2) (Seq.append s1 s2) (Seq.append t1 t2)
-  ) 
+  )
 =
   _dprod_acc_lemma acc s1 t1 s2 t2 n2
 
