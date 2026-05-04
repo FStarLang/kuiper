@@ -331,7 +331,7 @@ let kdesc
 inline_for_extraction noextract
 fn reverse
     (#ty:Type0)
-    (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < max_blocks })
+    (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
     (a:gpu_array ty size { is_global_array a })
     (#s: erased (seq ty) { len s == SZ.v size })
   preserves
