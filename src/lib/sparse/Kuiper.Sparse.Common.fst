@@ -16,6 +16,17 @@ let divup_ (n : sz) (d : szp)
 : Pure sz (requires fits (n + d)) (ensures fun r -> SZ.v r == divup n d)
 = (n +^ d -^ 1sz) /^ d
 
+(* Orderings *)
+
+open Kuiper.Bijection
+
+let permutation a = bijection a a
+
+let ordering (#n : nat{ fits n }) (p : permutation (natlt n))
+: GTot (seq sz)
+// : Ghost (seq sz) (requires fits n) (ensures fun s -> forall i. s @! i < n)
+= Seq.init_ghost n (fun i -> uint_to_t (i |~> p))
+
 (* Propiedades sobre escalares *)
 
 assume
