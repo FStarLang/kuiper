@@ -17,6 +17,7 @@ __global__
 static void
 __hoisted_0(uint32_t cols,
             Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
+            uint32_t *row_indices,
             uint32_t *gB,
             uint32_t *gC,
             uint32_t params__rows,
@@ -28,17 +29,15 @@ __hoisted_0(uint32_t cols,
     KRML_MAYBE_UNUSED_VAR(params__rows);
     KRML_MAYBE_UNUSED_VAR(params__shared);
     uint32_t
-        n_idx =
+        m_idx =
+        row_indices[blockIdx.x /
+                    ((params__cols + params__blockItemsX -
+                      1U) / params__blockItemsX)];
+    uint32_t n_idx =
         blockIdx.x % ((params__cols + params__blockItemsX - 1U) /
                       params__blockItemsX) * params__blockItemsX;
-    uint32_t ri =
-        gA.row_off[blockIdx.x /
-                   ((params__cols + params__blockItemsX -
-                     1U) / params__blockItemsX)];
-    uint32_t re =
-        gA.row_off[blockIdx.x /
-                   ((params__cols + params__blockItemsX -
-                     1U) / params__blockItemsX) + 1U];
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t out[4U] = { 0U };
     uint32_t nnz = re - ri;
     uint32_t idx = 0U;
@@ -111,11 +110,8 @@ __hoisted_0(uint32_t cols,
     uint32_t i0 = 0U;
     for (; i0 < params__blockItemsX / params__blockWidth; i0++)
         if (n_idx + i0 * params__blockWidth + threadIdx.x < params__cols)
-            gC[blockIdx.x /
-               ((params__cols + params__blockItemsX -
-                 1U) / params__blockItemsX) * cols + n_idx +
-               i0 * params__blockWidth + threadIdx.x]
-                = out[i0];
+            gC[m_idx * cols + n_idx + i0 * params__blockWidth + threadIdx.x] =
+                out[i0];
 }
 
 void
@@ -123,7 +119,7 @@ Kuiper_Sparse_SPMM_spmm_u32(uint32_t rows,
                             uint32_t shared,
                             uint32_t cols,
                             Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
-                            uint32_t *gB, uint32_t *gC)
+                            uint32_t *row_indices, uint32_t *gB, uint32_t *gC)
 {
     parameters params = {
         .rows = rows,.shared = shared,.cols = cols,.blockItemsK =
@@ -138,9 +134,9 @@ Kuiper_Sparse_SPMM_spmm_u32(uint32_t rows,
     KPR_KCALL(__hoisted_0,
               params.rows * ((params.cols + params.blockItemsX - 1U) /
                              params.blockItemsX), params.blockWidth,
-              4U * params.blockItemsK + 4U * params.blockItemsK, cols, gA, gB,
-              gC, params.rows, params.shared, params.cols, params.blockItemsK,
-              params.blockItemsX, params.blockWidth);
+              4U * params.blockItemsK + 4U * params.blockItemsK, cols, gA,
+              row_indices, gB, gC, params.rows, params.shared, params.cols,
+              params.blockItemsK, params.blockItemsX, params.blockWidth);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -151,6 +147,7 @@ __global__
 static void
 __hoisted_1(uint32_t cols,
             Kuiper_Sparse_Matrix_smatrix__float gA,
+            uint32_t *row_indices,
             float *gB,
             float *gC,
             uint32_t params__rows,
@@ -162,17 +159,15 @@ __hoisted_1(uint32_t cols,
     KRML_MAYBE_UNUSED_VAR(params__rows);
     KRML_MAYBE_UNUSED_VAR(params__shared);
     uint32_t
-        n_idx =
+        m_idx =
+        row_indices[blockIdx.x /
+                    ((params__cols + params__blockItemsX -
+                      1U) / params__blockItemsX)];
+    uint32_t n_idx =
         blockIdx.x % ((params__cols + params__blockItemsX - 1U) /
                       params__blockItemsX) * params__blockItemsX;
-    uint32_t ri =
-        gA.row_off[blockIdx.x /
-                   ((params__cols + params__blockItemsX -
-                     1U) / params__blockItemsX)];
-    uint32_t re =
-        gA.row_off[blockIdx.x /
-                   ((params__cols + params__blockItemsX -
-                     1U) / params__blockItemsX) + 1U];
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     uint32_t nnz = re - ri;
@@ -246,11 +241,8 @@ __hoisted_1(uint32_t cols,
     uint32_t i0 = 0U;
     for (; i0 < params__blockItemsX / params__blockWidth; i0++)
         if (n_idx + i0 * params__blockWidth + threadIdx.x < params__cols)
-            gC[blockIdx.x /
-               ((params__cols + params__blockItemsX -
-                 1U) / params__blockItemsX) * cols + n_idx +
-               i0 * params__blockWidth + threadIdx.x]
-                = out[i0];
+            gC[m_idx * cols + n_idx + i0 * params__blockWidth + threadIdx.x] =
+                out[i0];
 }
 
 void
@@ -258,7 +250,7 @@ Kuiper_Sparse_SPMM_spmm_f32(uint32_t rows,
                             uint32_t shared,
                             uint32_t cols,
                             Kuiper_Sparse_Matrix_smatrix__float gA,
-                            float *gB, float *gC)
+                            uint32_t *row_indices, float *gB, float *gC)
 {
     parameters params = {
         .rows = rows,.shared = shared,.cols = cols,.blockItemsK =
@@ -273,8 +265,8 @@ Kuiper_Sparse_SPMM_spmm_f32(uint32_t rows,
     KPR_KCALL(__hoisted_1,
               params.rows * ((params.cols + params.blockItemsX - 1U) /
                              params.blockItemsX), params.blockWidth,
-              4U * params.blockItemsK + 4U * params.blockItemsK, cols, gA, gB,
-              gC, params.rows, params.shared, params.cols, params.blockItemsK,
-              params.blockItemsX, params.blockWidth);
+              4U * params.blockItemsK + 4U * params.blockItemsK, cols, gA,
+              row_indices, gB, gC, params.rows, params.shared, params.cols,
+              params.blockItemsK, params.blockItemsX, params.blockWidth);
     MUST(cudaDeviceSynchronize());
 }

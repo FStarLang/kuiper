@@ -8,7 +8,9 @@ open Kuiper
 open Kuiper.Sparse
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Sparse.SPMM.Defs
+open Kuiper.Bijection { ( |~> ) }
 
+#set-options "--z3rlimit 20"
 
 #restart-solver
 #push-options "--z3rlimit 80 --fuel 0 --ifuel 0"
@@ -45,6 +47,7 @@ ghost
 fn barrier_p_fold_even
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -53,20 +56,20 @@ fn barrier_p_fold_even
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! brow p bid})
-  (re : sz{re == row_off @! brow p bid + 1})
+  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (idx : nat)
   (tid : natlt p.blockWidth)
   requires
     pure (ri + idx * p.blockItemsK <= re) **
     (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
     (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
-  ensures barrier_p p elems col_ind row_off
+  ensures barrier_p p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2) tid
 {
   rewrite (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
           (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
-       as barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
+       as barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid;
   ();
 }
 
@@ -74,6 +77,7 @@ ghost
 fn barrier_p_fold_odd
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -82,8 +86,8 @@ fn barrier_p_fold_odd
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! brow p bid})
-  (re : sz{re == row_off @! brow p bid + 1})
+  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (idx : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (ri + idx * p.blockItemsK <= re))
@@ -91,10 +95,10 @@ fn barrier_p_fold_odd
     forall+ (k: natlt (p.blockItemsK /^ p.blockWidth)).
       barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k
   ensures
-    barrier_p p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid
+    barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid (idx * 2 + 1) tid
 {
-  assert rewrites_to ri (row_off @! brow p bid);
-  assert rewrites_to re (row_off @! brow p bid + 1);
+  assert rewrites_to ri (row_off @! (brow p bid |~> row_perm));
+  assert rewrites_to re (row_off @! (brow p bid |~> row_perm) + 1);
 
   let it = idx * 2 + 1;
 
@@ -112,7 +116,7 @@ fn barrier_p_fold_odd
           barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re (it / 2) tid k
     );
 
-  fold barrier_p p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+  fold barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 
   rewrite each it as (idx * 2 + 1);
 
@@ -123,6 +127,7 @@ ghost
 fn barrier_q_unfold_even
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -131,25 +136,24 @@ fn barrier_q_unfold_even
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! brow p bid})
-  (re : sz{re == row_off @! brow p bid + 1})
+  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (idx : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (ri + idx * p.blockItemsK <= re))
   requires
-    barrier_q p elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid
+    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid (idx * 2) tid
   ensures
     forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
       barrier_q_even p nnz elems_tile col_ind_tile ri re idx tid k
 {
-  assert rewrites_to ri (row_off @! brow p bid);
-  assert rewrites_to re (row_off @! brow p bid + 1);
+  assert rewrites_to ri (row_off @! (brow p bid |~> row_perm));
+  assert rewrites_to re (row_off @! (brow p bid |~> row_perm) + 1);
 
   let it = idx * 2;
 
   rewrite each (idx * 2) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
-
+  unfold barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 
   rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
   rewrite each (even it) as true;
@@ -166,6 +170,7 @@ ghost
 fn barrier_q_unfold_odd
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -174,13 +179,13 @@ fn barrier_q_unfold_odd
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! brow p bid})
-  (re : sz{re == row_off @! brow p bid + 1})
+  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (idx : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (ri + idx * p.blockItemsK + p.blockItemsK <= re))
   requires
-    barrier_q p elems col_ind row_off elems_tile col_ind_tile
+    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid (idx * 2 + 1) tid
   ensures
     elems_tile |-> Frac (1.0R /. p.blockWidth)
@@ -192,13 +197,13 @@ fn barrier_q_unfold_odd
         (ri + idx * p.blockItemsK)
         (ri + idx * p.blockItemsK + p.blockItemsK))
 {
-  assert rewrites_to ri (row_off @! brow p bid);
-  assert rewrites_to re (row_off @! brow p bid + 1);
+  assert rewrites_to ri (row_off @! (brow p bid |~> row_perm));
+  assert rewrites_to re (row_off @! (brow p bid |~> row_perm) + 1);
 
   let it = idx * 2 + 1;
 
   rewrite each (idx * 2 + 1) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+  unfold barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 
   rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
   rewrite each (even it) as false;
@@ -216,6 +221,7 @@ ghost
 fn barrier_q_unfold_odd_residue
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -224,25 +230,25 @@ fn barrier_q_unfold_odd_residue
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : sz{ri == row_off @! brow p bid})
-  (re : sz{re == row_off @! brow p bid + 1})
+  (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (idx : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (ri + idx * p.blockItemsK <= re))
   (#_ : squash (ri + idx * p.blockItemsK + p.blockItemsK > re))
   requires
-    barrier_q p elems col_ind row_off elems_tile col_ind_tile
+    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid (idx * 2 + 1) tid
   ensures forall+ (k : natlt p.blockItemsK).
     barrier_q_odd p elems col_ind elems_tile col_ind_tile ri re idx k
 {
-  assert rewrites_to ri (row_off @! brow p bid);
-  assert rewrites_to re (row_off @! brow p bid + 1);
+  assert rewrites_to ri (row_off @! (brow p bid |~> row_perm));
+  assert rewrites_to re (row_off @! (brow p bid |~> row_perm) + 1);
 
   let it = idx * 2 + 1;
 
   rewrite each (idx * 2 + 1) as it;
-  unfold barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+  unfold barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 
   rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
   rewrite each (even it) as false;
@@ -260,6 +266,7 @@ ghost
 fn barrier_q_fold_even
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -268,8 +275,8 @@ fn barrier_q_fold_even
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : nat{ri == row_off @! brow p bid})
-  (re : nat{re == row_off @! brow p bid + 1})
+  (ri : nat{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : nat{re == row_off @! (brow p bid |~> row_perm) + 1})
   (it : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (even it))
@@ -278,15 +285,15 @@ fn barrier_q_fold_even
     forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
       barrier_q_even p nnz elems_tile col_ind_tile ri re (it / 2) tid k
   ensures
-    barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid
+    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid
 {
-  rewrite each ri as (row_off @! brow p bid);
-  rewrite each re as (row_off @! brow p bid + 1);
+  rewrite each ri as (row_off @! (brow p bid |~> row_perm));
+  rewrite each re as (row_off @! (brow p bid |~> row_perm) + 1);
 
   rewrite
     forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
-      barrier_q_even p nnz elems_tile col_ind_tile (row_off @! brow p bid) (row_off @! brow p bid + 1) (it / 2) tid k
-  as barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+      barrier_q_even p nnz elems_tile col_ind_tile (row_off @! (brow p bid |~> row_perm)) (row_off @! (brow p bid |~> row_perm) + 1) (it / 2) tid k
+  as barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 }
 #pop-options
 
@@ -295,6 +302,7 @@ ghost
 fn barrier_q_fold_odd
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -303,8 +311,8 @@ fn barrier_q_fold_odd
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : nat{ri == row_off @! brow p bid})
-  (re : nat{re == row_off @! brow p bid + 1})
+  (ri : nat{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : nat{re == row_off @! (brow p bid |~> row_perm) + 1})
   (it : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (odd it))
@@ -316,16 +324,16 @@ fn barrier_q_fold_odd
     col_ind_tile |-> Frac (1.0R /. p.blockWidth)
       (Seq.slice (reveal col_ind) (ri + (it / 2) * p.blockItemsK) (ri + (it / 2) * p.blockItemsK + p.blockItemsK))
   ensures
-    barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid
+    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid
 {
-  rewrite each ri as (row_off @! brow p bid);
+  rewrite each ri as (row_off @! (brow p bid |~> row_perm));
 
   rewrite
     elems_tile |-> Frac (1.0R /. p.blockWidth)
-      (Seq.slice (reveal elems) ((row_off @! brow p bid) + (it / 2) * p.blockItemsK) ((row_off @! brow p bid) + (it / 2) * p.blockItemsK + p.blockItemsK)) **
+      (Seq.slice (reveal elems) ((row_off @! (brow p bid |~> row_perm)) + (it / 2) * p.blockItemsK) ((row_off @! (brow p bid |~> row_perm)) + (it / 2) * p.blockItemsK + p.blockItemsK)) **
     col_ind_tile |-> Frac (1.0R /. p.blockWidth)
-      (Seq.slice (reveal col_ind) ((row_off @! brow p bid) + (it / 2) * p.blockItemsK) ((row_off @! brow p bid) + (it / 2) * p.blockItemsK + p.blockItemsK))
-  as barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+      (Seq.slice (reveal col_ind) ((row_off @! (brow p bid |~> row_perm)) + (it / 2) * p.blockItemsK) ((row_off @! (brow p bid |~> row_perm)) + (it / 2) * p.blockItemsK + p.blockItemsK))
+  as barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 }
 #pop-options
 
@@ -334,6 +342,7 @@ ghost
 fn barrier_q_fold_odd_residue
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -342,8 +351,8 @@ fn barrier_q_fold_odd_residue
   (col_ind_tile : gpu_array sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
-  (ri : nat{ri == row_off @! brow p bid})
-  (re : nat{re == row_off @! brow p bid + 1})
+  (ri : nat{ri == row_off @! (brow p bid |~> row_perm)})
+  (re : nat{re == row_off @! (brow p bid |~> row_perm) + 1})
   (it : nat)
   (tid : natlt p.blockWidth)
   (#_ : squash (odd it))
@@ -353,15 +362,15 @@ fn barrier_q_fold_odd_residue
     forall+ (k : natlt p.blockItemsK).
       barrier_q_odd p elems col_ind elems_tile col_ind_tile ri re (it / 2) k
   ensures
-    barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid
+    barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid
 {
-  rewrite each ri as (row_off @! brow p bid);
-  rewrite each re as (row_off @! brow p bid + 1);
+  rewrite each ri as (row_off @! (brow p bid |~> row_perm));
+  rewrite each re as (row_off @! (brow p bid |~> row_perm) + 1);
 
   rewrite
     forall+ (k : natlt p.blockItemsK).
-      barrier_q_odd p elems col_ind elems_tile col_ind_tile (row_off @! brow p bid) (row_off @! brow p bid + 1) (it / 2) k
-  as barrier_q p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+      barrier_q_odd p elems col_ind elems_tile col_ind_tile (row_off @! (brow p bid |~> row_perm)) (row_off @! (brow p bid |~> row_perm) + 1) (it / 2) k
+  as barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 }
 #pop-options
 
@@ -727,6 +736,7 @@ ghost
 fn barrier_p_to_q_transform
   (#et : Type0)
   (p : parameters { size_req p })
+  (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
@@ -738,16 +748,16 @@ fn barrier_p_to_q_transform
   (it : nat)
   requires
     forall+ (tid : natlt p.blockWidth).
-      barrier_p p elems col_ind row_off
+      barrier_p p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid it tid
   ensures
     forall+ (tid : natlt p.blockWidth).
-      barrier_q p elems col_ind row_off
+      barrier_q p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid it tid
 {
   let trow = brow p bid;
-  let ri : nat = row_off @! trow;
-  let re : nat = row_off @! (trow + 1);
+  let ri : nat = row_off @! (trow |~> row_perm);
+  let re : nat = row_off @! (trow |~> row_perm) + 1;
   let off : nat = ri + (it / 2) * p.blockItemsK;
   let bik : nat = p.blockItemsK;
 
@@ -755,10 +765,10 @@ fn barrier_p_to_q_transform
     // Case 1: out of bounds — both sides are emp
     forevery_ext
       (fun (tid : natlt p.blockWidth) ->
-        barrier_p p elems col_ind row_off
+        barrier_p p row_perm elems col_ind row_off
           elems_tile col_ind_tile bid it tid)
       (fun (tid : natlt p.blockWidth) ->
-        barrier_q p elems col_ind row_off
+        barrier_q p row_perm elems col_ind row_off
           elems_tile col_ind_tile bid it tid);
   } else {
     let ev = even it;
@@ -771,7 +781,7 @@ fn barrier_p_to_q_transform
       // Unfold barrier_p into its even expansion (inlined)
       forevery_map
         (fun (tid : natlt p.blockWidth) ->
-          barrier_p p elems col_ind row_off
+          barrier_p p row_perm elems col_ind row_off
             elems_tile col_ind_tile bid it tid)
         (fun (tid : natlt p.blockWidth) ->
           (exists* (s : seq et).
@@ -779,11 +789,12 @@ fn barrier_p_to_q_transform
           (exists* (s : seq sz).
             col_ind_tile |-> Frac (1.0R /. p.blockWidth) s))
         fn tid {
-          assert rewrites_to ri (row_off @! brow p bid);
-          assert rewrites_to re (row_off @! brow p bid + 1);
-          unfold barrier_p p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+          assert rewrites_to ri (row_off @! (brow p bid |~> row_perm));
+          assert rewrites_to re (row_off @! (brow p bid |~> row_perm) + 1);
+          unfold barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
           rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
           rewrite each (even it) as true;
+          ()
         };
 
       even_barrier_p_to_q #et p #nnz elems_tile col_ind_tile ri re idx;
@@ -795,10 +806,10 @@ fn barrier_p_to_q_transform
           forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
             barrier_q_even p nnz elems_tile col_ind_tile ri re (it / 2) tid k)
         (fun (tid : natlt p.blockWidth) ->
-          barrier_q p elems col_ind row_off
+          barrier_q p row_perm elems col_ind row_off
             elems_tile col_ind_tile bid it tid)
         fn tid {
-          barrier_q_fold_even p elems col_ind row_off
+          barrier_q_fold_even p row_perm elems col_ind row_off
             elems_tile col_ind_tile bid ri re it tid;
         };
     } else {
@@ -810,16 +821,16 @@ fn barrier_p_to_q_transform
       // Unfold barrier_p into its odd expansion (inlined)
       forevery_map
         (fun (tid : natlt p.blockWidth) ->
-          barrier_p p elems col_ind row_off
+          barrier_p p row_perm elems col_ind row_off
             elems_tile col_ind_tile bid it tid)
         (fun (tid : natlt p.blockWidth) ->
           forall+ (k : natlt (p.blockItemsK /^ p.blockWidth)).
             barrier_p_odd p elems col_ind elems_tile col_ind_tile
               ri re idx tid k)
         fn tid {
-          assert rewrites_to ri (row_off @! brow p bid);
-          assert rewrites_to re (row_off @! brow p bid + 1);
-          unfold barrier_p p elems col_ind row_off elems_tile col_ind_tile bid it tid;
+          assert rewrites_to ri (row_off @! (brow p bid |~> row_perm));
+          assert rewrites_to re (row_off @! (brow p bid |~> row_perm) + 1);
+          unfold barrier_p p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
           rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
           rewrite each (even it) as false;
           rewrite each (it / 2) as idx;
@@ -839,10 +850,10 @@ fn barrier_p_to_q_transform
             col_ind_tile |-> Frac (1.0R /. p.blockWidth)
               (Seq.slice (reveal col_ind) off (off + p.blockItemsK)))
           (fun (tid : natlt p.blockWidth) ->
-            barrier_q p elems col_ind row_off
+            barrier_q p row_perm elems col_ind row_off
               elems_tile col_ind_tile bid it tid)
           fn tid {
-            barrier_q_fold_odd p elems col_ind row_off
+            barrier_q_fold_odd p row_perm elems col_ind row_off
               elems_tile col_ind_tile bid ri re it tid;
           };
       } else {
@@ -858,10 +869,10 @@ fn barrier_p_to_q_transform
               barrier_q_odd p elems col_ind elems_tile col_ind_tile
                 ri re (it / 2) k)
           (fun (tid : natlt p.blockWidth) ->
-            barrier_q p elems col_ind row_off
+            barrier_q p row_perm elems col_ind row_off
               elems_tile col_ind_tile bid it tid)
           fn tid {
-            barrier_q_fold_odd_residue p elems col_ind row_off
+            barrier_q_fold_odd_residue p row_perm elems col_ind row_off
               elems_tile col_ind_tile bid ri re it tid;
           };
       }
