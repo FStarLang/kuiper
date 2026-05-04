@@ -601,7 +601,6 @@ fn forevery_refine_split
           p;
       }
     };
-  forevery_refine_ext #a #(fun x -> auto_squash (f x)) (fun x -> f x) p;
 }
 
 ghost
@@ -618,7 +617,6 @@ fn forevery_refine_join
   ensures
     forall+ (x:a{f x \/ g x}). p x
 {
-  forevery_refine_ext #a #g (fun (x: a) -> auto_squash (g x)) p;
   forevery_rec #(x:a{f x}) p
     (fun pred ->
       forall+ (x:a{(f x /\ pred x) \/ g x}). p x)

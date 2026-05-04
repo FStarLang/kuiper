@@ -45,7 +45,6 @@ let l1_forward (m : nat) : tlayout (m @| INil) =
   major_on 0 m <|
   lunit
 
-// FIXME: SZ.t -> nat ?
 let l2_row_major (m n : nat) : tlayout (m @| n @| INil) =
   pack <|
   major_on 0 m <|

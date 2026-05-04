@@ -39,7 +39,7 @@ class container (ct it vt : Type) = {
    change the l2 statement to avoid it. *)
 let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : (a ^->> b) =
   F.on_g _ fun x' ->
-    if FStar.StrongExcludedMiddle.strong_excluded_middle (x == x')
+    if t2b (x == x')
     then y
     else f x'
 
@@ -162,7 +162,7 @@ instance dep_ghost_map_container
     : squash (acc (upd c i2 v) i1 == acc c i1) =
     let (| idx1, it1 |) = i1 in
     let (| idx2, it2 |) = i2 in
-    if FStar.StrongExcludedMiddle.strong_excluded_middle (idx1 == idx2)
+    if t2b (idx1 == idx2)
     then
       (sub idx1).l2 (c idx1) it1 it2 v
   in

@@ -77,7 +77,7 @@ let to_seq_upd (#a:Type) (#st:Type)
       == {}
       reveal (vw.ctn.acc (vw.ctn.upd v i x) (it_of_nat vw idx));
       == {
-        if FStar.StrongExcludedMiddle.strong_excluded_middle (it_of_nat vw idx == i)
+        if t2b (it_of_nat vw idx == i)
         then vw.ctn.l1 v (it_of_nat vw idx) x
         else vw.ctn.l2 v (it_of_nat vw idx) i x
        }

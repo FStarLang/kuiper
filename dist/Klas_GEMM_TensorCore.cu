@@ -93,6 +93,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x16_16x16x16(uint32_t rows,
                                                       half *gA,
                                                       half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 64U == 0U);
@@ -197,6 +198,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_32x8x16(uint32_t rows,
                                                      half *gA,
                                                      half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
@@ -297,6 +299,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_8x32x16(uint32_t rows,
                                                      half *gA,
                                                      half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
@@ -397,6 +400,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x8x16_32x8x16(uint32_t rows,
                                                     half *gA,
                                                     half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 8U == 0U);
@@ -497,6 +501,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_8x32x16_8x32x16(uint32_t rows,
                                                     half *gA,
                                                     half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
@@ -601,6 +606,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_16x16x16(uint32_t rows,
                                                       half *gA,
                                                       half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
@@ -705,6 +711,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_32x8x16(uint32_t rows,
                                                      half *gA,
                                                      half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
@@ -809,6 +816,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_64x64x64_8x32x16(uint32_t rows,
                                                      half *gA,
                                                      half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 64U == 0U);
     KPR_GUARD(shared % 64U == 0U);
     KPR_GUARD(cols % 64U == 0U);
@@ -913,6 +921,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_32x32x32_16x16x16(uint32_t rows,
                                                       half *gA,
                                                       half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);
@@ -1013,6 +1022,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f16_16x16x16_16x16x16(uint32_t rows,
                                                       half *gA,
                                                       half *gB, half *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 16U == 0U);
     KPR_GUARD(shared % 16U == 0U);
     KPR_GUARD(cols % 16U == 0U);
@@ -1117,6 +1127,7 @@ Klas_GEMM_TensorCore_g_gemm_f16_f32_32x32x32_16x16x16(uint32_t rows,
                                                       half *gA,
                                                       half *gB, float *gC)
 {
+    KPR_GUARD(rows * cols <= 2097152U);
     KPR_GUARD(rows % 32U == 0U);
     KPR_GUARD(shared % 32U == 0U);
     KPR_GUARD(cols % 32U == 0U);

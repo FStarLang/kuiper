@@ -22,6 +22,7 @@ RUN apt-get update \
       libgmp-dev \
       opam \
       vim \
+      time \
       pkg-config \
     && apt-get clean -y
 # FIXME: libgmp-dev should be installed automatically by opam,

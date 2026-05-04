@@ -352,7 +352,7 @@ fn kf
   let mrow = bid /^ num_n_tiles;
   let mcol = bid %^ num_n_tiles;
 
-  let wid = tid /^ warp_sz;
+  let wid = tid /^ warp_size;
   let warpRow = wid /^ (bn/^tn);
   let warpCol = wid %^ (bn/^tn);
 

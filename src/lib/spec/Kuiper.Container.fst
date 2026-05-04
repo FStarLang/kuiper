@@ -17,7 +17,7 @@ let oplus_lemma
   = let aux (i':it) :
       Lemma (acc (upd c i v) i' ==
              oplus (acc c) i v i') =
-      if FStar.StrongExcludedMiddle.strong_excluded_middle (i == i')
+      if t2b (i == i')
       then
         gm.l1 c i v
       else

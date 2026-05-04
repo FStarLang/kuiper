@@ -1,5 +1,16 @@
 name: Advance submodules
 
+# This workflow uses KUIPER_ADVANCE_GH_TOKEN (a fine-grained PAT) to push
+# to the FStar and karamel submodule repos. To renew/recreate the token:
+#
+# 1. Go to https://github.com/settings/personal-access-tokens/new
+# 2. Set resource owner to "FStarLang"
+# 3. Under "Repository access", select "FStarLang/FStar" and "FStarLang/karamel"
+# 4. Under "Permissions > Repository permissions > Contents", set to "Read and write"
+# 5. Generate the token
+# 6. Update the secret at: https://github.com/FStarLang/kuiper/settings/secrets/actions
+#    (secret name: KUIPER_ADVANCE_GH_TOKEN)
+
 on:
   # Manually triggered
   workflow_dispatch:
@@ -35,10 +46,30 @@ jobs:
           git config --global user.name "Actions bot"
           git config --global user.email "none@none"
 
+      # This step is optional. It's here to remind us how to update the token,
+      # since sadly they expire every year (just long enough to fully forget
+      # how it's done!)
+      - name: Validate KUIPER_ADVANCE_GH_TOKEN
+        env:
+          TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::KUIPER_ADVANCE_GH_TOKEN secret is not set. See instructions at the top of this workflow file."
+            exit 1
+          fi
+          for repo in FStarLang/FStar FStarLang/karamel; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' \
+              -H "Authorization: Bearer $TOKEN" \
+              "https://api.github.com/repos/$repo/collaborators")
+            if [ "$status" = "401" ] || [ "$status" = "403" ]; then
+              echo "::error::KUIPER_ADVANCE_GH_TOKEN lacks push access to $repo (HTTP $status). The token may be expired. See instructions at the top of this workflow file to renew it."
+              exit 1
+            fi
+          done
+
       - name: Get submodules
         run: |
-          git submodule init
-          git submodule update
+          git submodule update --init --recursive
 
       - run: |
           ./try-rebase.sh

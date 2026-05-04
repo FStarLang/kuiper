@@ -846,7 +846,7 @@ fn kf
   let mcol = bid %^ num_n_tiles;
   assert pure (mcol < cols / bn);
 
-  let wid = tid /^ warp_sz;
+  let wid = tid /^ warp_size;
   let warpRow : szlt (bm / (wm*tm)) = wid /^ (bn/^(wn*^tn));
   let warpCol : szlt (bn / (wn*tn)) = wid %^ (bn/^(wn*^tn));
 
@@ -909,7 +909,7 @@ fn kf
          as (FB.barrier_q eA eB sA sB nthr bid) (2 * !bkIdx) tid;
     FB.unfold_barrier_q_even eA eB sA sB nthr bid !bkIdx tid;
 
-    copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_sz) tid;
+    copy_tiles_out_of_matrices_vec bm bn bk sA sB gA gB mrow !bkIdx mcol (bm/^(wm*^tm)*^(bn/^(wn*^tn))*^warp_size) tid;
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));

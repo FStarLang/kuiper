@@ -44,8 +44,8 @@ fn specialize_gpu
   (gC : gpu_matrix et_c (row_major rows cols) { is_global_matrix gC })
   (#_ : squash (aligned 16 (core gA)))
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_sz) /?+ (bm * bk)))
-  (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_sz) /?+ (bk * bn)))
+  (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_size) /?+ (bm * bk)))
+  (#_ : squash (chunk et_ab * ((bm/tm) * (bn/tn) * warp_size) /?+ (bk * bn)))
   (#eA : ematrix et_ab rows shared)
   (#eB : ematrix et_ab shared cols)
   (#eC : ematrix et_c rows cols)
@@ -72,8 +72,7 @@ fn specialize_gpu
   let mcols   = cols   /^ bn;
 
   // preconditions checcked at runtime
-  // TODO should be checked at runtime but has ghost effect:
-  //  dguard (SZ.lte (rows *^ cols) (SZ.uint_to_t max_blocks));
+  dguard (SZ.lte (rows *^ cols) max_blocks);
   dguard (rows   %^ bm = 0sz);
   dguard (shared %^ bk = 0sz);
   dguard (cols   %^ bn = 0sz);
@@ -89,7 +88,7 @@ fn specialize_gpu
                 (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
 
   let nblk = rows/^bm *^ (cols/^bn);
-  let nthr = bm/^tm *^ (bn/^tn) *^ warp_sz;
+  let nthr = bm/^tm *^ (bn/^tn) *^ warp_size;
 
   assert pure (rows/bm <= rows);
   assert pure (cols/bn <= cols);

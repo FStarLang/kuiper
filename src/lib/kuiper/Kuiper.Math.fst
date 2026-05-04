@@ -30,17 +30,13 @@ let pow2_mono n m = M.pow2_le_compat m n
 
 let mul_pow2 n m = M.pow2_plus n m
 
-let lemma_log2_le1 (n:pos) (m : nat) : Lemma (log2 n < m ==> n <= pow2 m) =
+let lemma_log2_le1 (n:pos) (m : nat) : Lemma (log2 n < m ==> n < pow2 m) =
   calc (==>) {
     log2 n < m <: prop;
     ==> { lemma_log2_pow2 m }
     log2 n < log2 (pow2 m) <: prop;
-    ==> { pow2_mono (log2 n) (log2 (pow2 m)) }
-    pow2 (log2 n) < pow2 (log2 (pow2 m)) <: prop;
-    ==> { lemma_log2_pow2 m }
-    pow2 (log2 n) < pow2 m <: prop;
     ==> {}
-    n <= pow2 m <: prop;
+    n < pow2 m <: prop;
   }
 
 let lemma_log2_le2 (n:pos) (m:nat) : Lemma (n <= pow2 m ==> log2 n <= m) =
