@@ -64,7 +64,7 @@ fn inst
     blockItemsK blockItemsX blockWidth blockChunks
     #(rB shared cols) #(rC rows cols)
     gA row_indices fri gB gC
-    elems col_ind row_off 
+    elems col_ind row_off
     #eA
     row_perm
     #eB #eC
