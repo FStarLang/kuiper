@@ -271,7 +271,7 @@ fn kf
 ghost
 fn setup
   (#ty:Type0)
-  (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < reveal max_blocks })
+  (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
   (a:gpu_array ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
@@ -290,7 +290,7 @@ fn setup
 ghost
 fn teardown
   (#ty:Type0)
-  (size:sz { size > 0sz /\ size % 2sz == 0sz /\ SZ.v size < reveal max_blocks })
+  (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
   (a:gpu_array ty size)
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   ()
@@ -310,7 +310,7 @@ fn teardown
 inline_for_extraction noextract
 let kdesc
   (#ty:Type0)
-  (size:sz { size > 0sz /\ size %^ 2sz == 0sz /\ SZ.v size < reveal max_blocks })
+  (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
   (a:gpu_array ty size { is_global_array a })
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   : kernel_desc_m_1

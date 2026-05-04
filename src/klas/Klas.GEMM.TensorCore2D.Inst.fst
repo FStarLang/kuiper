@@ -37,9 +37,9 @@ fn spec
   (#_ : squash (valid_frag_et_dims et_ab FragB tm tn tk))
   (#_ : squash (valid_frag_et_dims et_c FragAcc tm tn tk))
   (#_ : squash (valid_frag_et_comb et_ab et_c))
-  (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_sz) -1)))
-  (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_sz) -1)))
-  (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_sz)) <= max_threads))
+  (#_ : squash (SZ.fits (bm*bk + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) -1)))
+  (#_ : squash (SZ.fits (bk*bn + (bm/(wm*tm) * (bn/(wn*tn)) * warp_size) -1)))
+  (#_ : squash ((bm/(wm*tm) * (bn/(wn*tn)) * (SZ.v warp_size)) <= max_threads))
 
   // do not specialize
   (rows shared cols : szp)
@@ -87,7 +87,7 @@ fn spec
   lemma_divides_chain (wn * tn) bn cols;
 
   let nblk = rows/^bm *^ (cols/^bn);
-  let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_sz;
+  let nthr = bm/^(wm*^tm) *^ (bn/^(wn*^tn)) *^ warp_size;
 
   assert pure ((rows/bm) * (cols/bn) == nblk);
   assert pure ((rows/bm) * (cols/bn) <= max_blocks);

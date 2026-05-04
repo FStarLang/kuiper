@@ -90,22 +90,18 @@ let cpu : slprop = exists* l. loc l ** pure (is_cpu_loc l)
 hack about interpreting size_t as uint32_t in karamel (see Kuiper.SizeT). When
 that is gone, this should be increased. *)
 unfold
-let max_blocks : erased int = 2097152 // 2^21
+let max_blocks : SZ.t = SZ.uint_to_t 2097152
 
 (* Help F* *)
-let max_blocks_explicit : squash (reveal max_blocks == 2097152 /\ reveal max_blocks == pow2 21) =
-  assert_norm (reveal max_blocks == 2097152);
-  assert_norm (reveal max_blocks == pow2 21)
+let max_blocks_explicit : squash (SZ.v max_blocks == 2097152 /\ SZ.v max_blocks == pow2 21) =
+  assert_norm (SZ.v max_blocks == 2097152);
+  assert_norm (SZ.v max_blocks == pow2 21)
 
 (* Hard CUDA limit *)
 unfold
-let max_threads : erased int = 1024
+let max_threads : SZ.t = 1024sz
 
-inline_for_extraction noextract
-unfold let warp_sz = 32sz
-inline_for_extraction noextract
-unfold let warp_size = 32
-
+unfold let warp_size = 32sz
 
 (* Get a concrete value for the number of blocks (~ gridDim.x) *)
 fn get_gdim ()
