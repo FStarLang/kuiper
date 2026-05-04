@@ -16,14 +16,14 @@ clone:
 	touch .cloned
 
 .cloned:
-	$(error $(SPUTNIK_DIR) not found, run `make clone` to fetch it?)
+	@[ -d $(SPUTNIK_DIR) ] || (echo '$(SPUTNIK_DIR) not found, run `make clone` to fetch it?'; false)
 
 # Sputnik SpMM object
 sputnik_spmm.o: $(SPUTNIK_DIR)/sputnik/spmm/cuda_spmm.cu.cc .cloned
 	$(NVCC) $(NVCC_FLAGS) -x cu -c $< -o $@
 
 # Kuiper SpMM object (from obj/, which has the latest build including f32)
-kuiper_spmm.o: $(KUIPER_DIR)/obj/Kuiper_Example_Sparse_SPMM.cu
+kuiper_spmm.o: $(KUIPER_DIR)/obj/Klas_SPMM.cu
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
 
 # Benchmark driver

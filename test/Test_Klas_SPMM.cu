@@ -1,4 +1,4 @@
-#include "Kuiper_Sparse_SPMM.h"
+#include "Klas_SPMM.h"
 #include "test-common.h"
 #include "timing.h"
 #include <stdint.h>
@@ -89,7 +89,8 @@ static uint32_t *mk_row_indices(int rows, smatrix_t A)
     std::sort(swizzle_staging.begin(), swizzle_staging.end(),[&A] (int idx_a, int idx_b) {
               uint32_t length_a = A.row_off[idx_a + 1] - A.row_off[idx_a];
               uint32_t length_b = A.row_off[idx_b + 1] - A.row_off[idx_b];
-              return length_a > length_b;}
+              return length_a > length_b;
+              }
     );
 
     memcpy(row_indices, swizzle_staging.data(), sizeof(row_indices[0]) * rows);
@@ -138,7 +139,7 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
     uint32_t *dC = (uint32_t *) kpr_wait_alloc(sizeof dC[0], rows * cols);
     MUST(cudaMemset(dC, 0, sizeof dC[0] * rows * cols));
 
-    Kuiper_Sparse_SPMM_spmm_u32(rows, shared, cols, dA, drow_indices, dB, dC);
+    Klas_SPMM_spmm_u32(rows, shared, cols, dA, drow_indices, dB, dC);
     MUST(cudaDeviceSynchronize());
 
     uint32_t *C = (uint32_t *) calloc(rows * cols, sizeof C[0]);

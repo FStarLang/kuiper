@@ -2138,15 +2138,3 @@ fn spmm
       #eB #fA #fri #fB
   );
 }
-
-let spmm_u32 (rows shared cols : szp)
-  (#_ : squash (SZ.fits (rows * cols) /\ SZ.fits (shared * cols)))
-  =
-  spmm #u32 #_ rows shared cols 128sz 128sz 32sz 4sz #(row_major _ _) #(row_major _ _)
-    #_ #_
-
-let spmm_f32 (rows shared cols : szp)
-  (#_ : squash (SZ.fits (rows * cols) /\ SZ.fits (shared * cols)))
-  =
-  spmm #f32 #_ rows shared cols 128sz 128sz 32sz 4sz #(row_major _ _) #(row_major _ _)
-    #_ #_

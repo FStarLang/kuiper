@@ -18,7 +18,7 @@
 #include <cuda_runtime.h>
 
 /* Kuiper SpMM (f32) */
-#include "Kuiper_Example_Sparse_SPMM.h"
+#include "Klas_SPMM.h"
 
 /* Sputnik SpMM */
 #include "sputnik/spmm/cuda_spmm.h"
@@ -94,12 +94,13 @@ static void gen_sparse(int rows, int cols, int density_pct, CSR &csr)
 /* ------------------------------------------------------------------ */
 
 static float bench_kuiper(int rows, int shared, int cols,
+                          uint32_t *d_row_indices,
                           Kuiper_Sparse_Matrix_smatrix__float dA,
                           float *dB, float *dC,
                           int warmup, int iters)
 {
     for (int i = 0; i < warmup; i++) {
-        Kuiper_Example_Sparse_SPMM_spmm_f32(rows, shared, cols, dA, dB, dC);
+        Klas_SPMM_spmm_f32(rows, shared, cols, dA, d_row_indices, dB, dC);
         CHECK_CUDA(cudaDeviceSynchronize());
     }
 
@@ -109,7 +110,7 @@ static float bench_kuiper(int rows, int shared, int cols,
 
     CHECK_CUDA(cudaEventRecord(start));
     for (int i = 0; i < iters; i++) {
-        Kuiper_Example_Sparse_SPMM_spmm_f32(rows, shared, cols, dA, dB, dC);
+        Klas_SPMM_spmm_f32(rows, shared, cols, dA, d_row_indices, dB, dC);
     }
     CHECK_CUDA(cudaEventRecord(stop));
     CHECK_CUDA(cudaEventSynchronize(stop));
@@ -225,7 +226,7 @@ static void run_bench(int rows, int shared, int cols, int density_pct,
     CHECK_CUDA(cudaMemset(dC_k, 0, sizeof(float) * rows * cols));
     CHECK_CUDA(cudaMemset(d_out, 0, sizeof(float) * rows * cols));
 
-    Kuiper_Example_Sparse_SPMM_spmm_f32(rows, shared, cols, dA_k, dB_k, dC_k);
+    Klas_SPMM_spmm_f32(rows, shared, cols, dA_k, (uint32_t*)d_row_indices, dB_k, dC_k);
     CHECK_CUDA(cudaDeviceSynchronize());
 
     {
@@ -270,7 +271,7 @@ static void run_bench(int rows, int shared, int cols, int density_pct,
     /* Effective FLOPs: 2 * nnz * cols (one mul + one add per nonzero per output col) */
     double flops = 2.0 * csr.nnz * cols;
 
-    float ms_kuiper  = bench_kuiper(rows, shared, cols, dA_k, dB_k, dC_k, warmup, iters);
+    float ms_kuiper  = bench_kuiper(rows, shared, cols, (uint32_t*)d_row_indices, dA_k, dB_k, dC_k, warmup, iters);
     float ms_sputnik = bench_sputnik(rows, shared, cols, csr.nnz,
                                      d_row_indices, d_values, d_row_offsets,
                                      d_col_indices, d_dense, d_out,
