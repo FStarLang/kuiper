@@ -13,10 +13,10 @@ NVCC_FLAGS += -DKUIPER_CFG_TENSORCORES=0
 .PHONY:
 clone:
 	git clone https://github.com/google-research/sputnik
-	touch .cloned
 
 .cloned:
 	@[ -d $(SPUTNIK_DIR) ] || (echo '$(SPUTNIK_DIR) not found, run `make clone` to fetch it?'; false)
+	touch .cloned
 
 # Sputnik SpMM object
 sputnik_spmm.o: $(SPUTNIK_DIR)/sputnik/spmm/cuda_spmm.cu.cc .cloned
