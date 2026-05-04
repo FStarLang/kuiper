@@ -4,13 +4,18 @@ module Kuiper.Kahan
 
 open Kuiper
 open Kuiper.Approximates
+open Kuiper.Sum { sum, sum_pop_right, real_add_semigroup }
+
+let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
+  : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
+  = sum_pop_right 0 (k+1) vf
 
 inline_for_extraction noextract
 fn kahan_sum
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
   (len : sz)
   (frame : slprop)
-  (vf : natlt len -> GTot real) (* spec function *)
+  (vf : natlt len -> real) (* spec function *)
   (f : fn (i:szlt len)
          preserves frame
          returns   r : et
@@ -39,6 +44,7 @@ fn kahan_sum
     assert pure (yc %~ vf !k);
     let t = !acc `add` yc;
     a_add (!acc) yc (sum 0 !k vf) (vf !k);
+    sum_step len vf !k;
     assert pure (t %~ sum 0 (!k + 1) vf);
     sub_approx t !acc (sum 0 (!k + 1) vf) (sum 0 !k vf);
     assert pure (t `sub` !acc %~ vf !k);

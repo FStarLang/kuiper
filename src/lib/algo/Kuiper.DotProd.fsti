@@ -10,14 +10,25 @@ open Kuiper.Tensor { ctlayout }
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 module Array1 = Kuiper.Array1
+open Kuiper.Sum { sum }
 
 (* A simple dot product spec over sequences.
-   FIXME: there are several definitions like these... unify. *)
+   For reals, equivalent to Kuiper.Sum.sum (see seq_dotprod_is_sum). *)
 let rec seq_dotprod (#et : Type0) {| scalar et |}
   (a b : lseq et 'n) (k : nat{k <= 'n})
   : GTot et (decreases k)
   = if k = 0 then zero
-    else add (seq_dotprod a b (k-1)) (mul (Seq.index a (k-1)) (Seq.index b (k-1)))
+    else add (seq_dotprod a b (k-1)) (mul (a @! k-1) (b @! k-1))
+
+(* Lemma: for reals, seq_dotprod equals Kuiper.Sum.sum *)
+val seq_dotprod_is_sum
+  (#n : nat)
+  (a b : lseq real n)
+  (k : nat{k <= n})
+  : Lemma (ensures
+            seq_dotprod a b k
+            ==
+            sum 0 k (fun (i : natlt n) -> (a @! i) *. (b @! i)))
 
 (* Lemma: seq_dotprod over ematrix_row/ematrix_col equals matmul_single *)
 val seq_dotprod_is_matmul_single
