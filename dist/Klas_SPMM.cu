@@ -1,5 +1,5 @@
 
-#include "Kuiper_Sparse_SPMM.h"
+#include "Klas_SPMM.h"
 
 typedef struct parameters_s {
     uint32_t rows;
@@ -115,11 +115,11 @@ __hoisted_0(uint32_t cols,
 }
 
 void
-Kuiper_Sparse_SPMM_spmm_u32(uint32_t rows,
-                            uint32_t shared,
-                            uint32_t cols,
-                            Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
-                            uint32_t *row_indices, uint32_t *gB, uint32_t *gC)
+Klas_SPMM_spmm_u32(uint32_t rows,
+                   uint32_t shared,
+                   uint32_t cols,
+                   Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
+                   uint32_t *row_indices, uint32_t *gB, uint32_t *gC)
 {
     parameters params = {
         .rows = rows,.shared = shared,.cols = cols,.blockItemsK =
@@ -246,11 +246,11 @@ __hoisted_1(uint32_t cols,
 }
 
 void
-Kuiper_Sparse_SPMM_spmm_f32(uint32_t rows,
-                            uint32_t shared,
-                            uint32_t cols,
-                            Kuiper_Sparse_Matrix_smatrix__float gA,
-                            uint32_t *row_indices, float *gB, float *gC)
+Klas_SPMM_spmm_f32(uint32_t rows,
+                   uint32_t shared,
+                   uint32_t cols,
+                   Kuiper_Sparse_Matrix_smatrix__float gA,
+                   uint32_t *row_indices, float *gB, float *gC)
 {
     parameters params = {
         .rows = rows,.shared = shared,.cols = cols,.blockItemsK =
