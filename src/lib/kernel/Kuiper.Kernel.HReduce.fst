@@ -391,12 +391,175 @@ private let log2_hreduce (nth:pos) (it:nat)
 = if it = 0 then ()
   else log2_range (2 * nth - 1) it
 
+(* ---- Helpers for strided_sum_is_sum ---- *)
+
+private let rsum_snoc_ (s : seq real) (x : real)
+  : Lemma (rsum (Seq.snoc s x) == rsum s +. x)
+  = assert (Seq.equal (Seq.snoc s x) (Seq.append s (Seq.create 1 x)));
+    rsum_append s (Seq.create 1 x)
+
+#push-options "--z3rlimit 20"
+private let stride_len_snoc_ (n : nat) (nth : pos) (off : natlt nth)
+  : Lemma (ensures (
+      let old_len = (n - off + nth - 1) / nth in
+      let new_len = (n + 1 - off + nth - 1) / nth in
+      if n % nth = off then new_len == old_len + 1
+      else new_len == old_len))
+  = let m = n - off + nth - 1 in
+    FStar.Math.Lemmas.euclidean_division_definition m nth;
+    FStar.Math.Lemmas.euclidean_division_definition (m+1) nth;
+    FStar.Math.Lemmas.euclidean_division_definition n nth;
+    FStar.Math.Lemmas.modulo_addition_lemma (n % nth + nth - 1 - off) nth (n / nth);
+    assert (m % nth == (n % nth + nth - 1 - off) % nth);
+    if n % nth <= off then begin
+      FStar.Math.Lemmas.small_mod (n % nth + nth - 1 - off) nth
+    end else begin
+      FStar.Math.Lemmas.modulo_addition_lemma (n % nth - 1 - off) nth 1;
+      FStar.Math.Lemmas.small_mod (n % nth - 1 - off) nth
+    end
+#pop-options
+
+#push-options "--fuel 0 --ifuel 0 --z3rlimit 30"
+private let seq_stride_snoc_ (s : seq real) (x : real) (nth : pos) (off : natlt nth)
+  : Lemma (ensures (
+      let s' = Seq.snoc s x in
+      let n = Seq.length s in
+      if n % nth = off
+      then Seq.equal (seq_stride s' nth off) (Seq.snoc (seq_stride s nth off) x)
+      else Seq.equal (seq_stride s' nth off) (seq_stride s nth off)))
+  = let n = Seq.length s in
+    let s' = Seq.snoc s x in
+    stride_len_snoc_ n nth off;
+    let old_stride = seq_stride s nth off in
+    let new_stride = seq_stride s' nth off in
+    if n % nth = off then begin
+      let old_sl = seq_stride_length s nth off in
+      let new_sl = seq_stride_length s' nth off in
+      assert (new_sl == old_sl + 1);
+      let goal = Seq.snoc old_stride x in
+      let aux (i : nat{i < new_sl}) : Lemma (Seq.index new_stride i == Seq.index goal i)
+        = if i < old_sl then
+            assert (off + i * nth < n)
+          else begin
+            assert (i == old_sl);
+            assert (off + old_sl * nth == n)
+          end
+      in
+      Classical.forall_intro aux;
+      assert (Seq.equal new_stride goal)
+    end else begin
+      let old_sl = seq_stride_length s nth off in
+      let aux (i : nat{i < old_sl}) : Lemma (Seq.index new_stride i == Seq.index old_stride i)
+        = assert ((off + i * nth) % nth == off);
+          assert (off + i * nth <> n);
+          assert (off + i * nth < n)
+      in
+      Classical.forall_intro aux;
+      assert (Seq.equal new_stride old_stride)
+    end
+#pop-options
+
+#push-options "--z3rlimit 10"
+private let rsum_singleton_ (x : real)
+  : Lemma (rsum (Seq.create 1 x) == x)
+  = let SCons hd tl = view_seq (Seq.create 1 x) in
+    assert (Seq.equal tl (Seq.empty #real))
+
+private let rsum_upd_ (s : seq real) (k : nat{k < Seq.length s}) (v : real)
+  : Lemma (rsum (Seq.upd s k v) == rsum s +. (v -. (s @! k)))
+  = let s1 = Seq.slice s 0 k in
+    let s2 = Seq.slice s (k+1) (Seq.length s) in
+    assert (Seq.equal s (s1 @+ Seq.create 1 (s @! k) @+ s2));
+    assert (Seq.equal (Seq.upd s k v) (s1 @+ Seq.create 1 v @+ s2));
+    rsum_append s1 (Seq.create 1 (s @! k) @+ s2);
+    rsum_append (Seq.create 1 (s @! k)) s2;
+    rsum_append s1 (Seq.create 1 v @+ s2);
+    rsum_append (Seq.create 1 v) s2;
+    rsum_singleton_ (s @! k);
+    rsum_singleton_ v
+#pop-options
+
+private let rec rsum_zeros_ (n : nat)
+  : Lemma (ensures rsum (Seq.init_ghost n (fun _ -> 0.0R)) == 0.0R)
+          (decreases n)
+  = if n = 0 then ()
+    else begin
+      let s = Seq.init_ghost n (fun (_:nat{_ < n}) -> 0.0R) in
+      let SCons hd tl = view_seq s in
+      assert (hd == 0.0R);
+      assert (Seq.equal tl (Seq.init_ghost (n-1) (fun (_:nat{_ < n-1}) -> 0.0R)));
+      rsum_zeros_ (n-1)
+    end
+
+#push-options "--z3rlimit 20"
+private let rec strided_sum_is_sum_core_ (s : seq real) (nth : pos)
+  : Lemma (ensures rsum (Seq.init_ghost nth (fun tid -> rsum (seq_stride s nth tid))) == rsum s)
+          (decreases Seq.length s)
+  = if Seq.length s = 0 then begin
+      assert (Seq.equal s (Seq.empty #real));
+      let aux (tid : natlt nth) : Lemma (rsum (seq_stride s nth tid) == 0.0R)
+        = assert (seq_stride_length s nth tid == 0);
+          assert (Seq.equal (seq_stride s nth tid) (Seq.empty #real))
+      in
+      Classical.forall_intro aux;
+      let ig = Seq.init_ghost nth (fun tid -> rsum (seq_stride s nth tid)) in
+      rsum_zeros_ nth;
+      let z = Seq.init_ghost nth (fun _ -> 0.0R) in
+      assert (forall (tid:natlt nth). ig @! tid == 0.0R);
+      assert (forall (tid:natlt nth). z @! tid == 0.0R);
+      Seq.lemma_eq_elim ig z;
+      assert (rsum ig == 0.0R);
+      assert (rsum s == 0.0R)
+    end else begin
+      let s', last = Seq.un_snoc s in
+      let n = Seq.length s' in
+      let off : natlt nth = n % nth in
+
+      strided_sum_is_sum_core_ s' nth;
+      assert (Seq.equal s (Seq.snoc s' last));
+      rsum_snoc_ s' last;
+
+      let f  (tid : natlt nth) : GTot real = rsum (seq_stride s  nth tid) in
+      let f' (tid : natlt nth) : GTot real = rsum (seq_stride s' nth tid) in
+
+      let aux (tid : natlt nth) : Lemma (
+        if tid = off then f tid == f' tid +. last
+        else f tid == f' tid)
+        = seq_stride_snoc_ s' last nth tid;
+          if tid = off then
+            rsum_snoc_ (seq_stride s' nth tid) last
+          else ()
+      in
+      Classical.forall_intro aux;
+
+      let ig  = Seq.init_ghost nth (fun tid -> rsum (seq_stride s nth tid)) in
+      let ig' = Seq.init_ghost nth (fun tid -> rsum (seq_stride s' nth tid)) in
+
+      let upd_ig' = Seq.upd ig' off (rsum (seq_stride s' nth off) +. last) in
+      let eq_aux (i : natlt nth) : Lemma (ig @! i == upd_ig' @! i)
+        = if i = off then
+            assert (f i == f' i +. last)
+          else
+            assert (f i == f' i)
+      in
+      Classical.forall_intro eq_aux;
+      assert (Seq.equal ig upd_ig');
+
+      rsum_upd_ ig' off (rsum (seq_stride s' nth off) +. last);
+      assert (ig' @! off == rsum (seq_stride s' nth off));
+      rsum_singleton_ (rsum (seq_stride s' nth off) +. last);
+      rsum_singleton_ (rsum (seq_stride s' nth off))
+    end
+#pop-options
+
+(* ---- End helpers ---- *)
+
 let vr_partial (pre_map : real -> real) (vr : seq real) (nth : nat) : GTot (seq real) =
   Seq.init_ghost nth (fun tid -> rsum (seq_stride (seq_map pre_map vr) nth tid))
 
-let strided_sum_is_sum (pre_map : real -> real) (vr : seq real) (nth : nat)
+let strided_sum_is_sum (pre_map : real -> real) (vr : seq real) (nth : pos)
   : Lemma (ensures rsum (vr_partial pre_map vr nth) == rsum (seq_map pre_map vr))
-  = admit() // TODO
+  = strided_sum_is_sum_core_ (seq_map pre_map vr) nth
 
 let lemma_first_past
   (len off : nat) (stride : pos)
