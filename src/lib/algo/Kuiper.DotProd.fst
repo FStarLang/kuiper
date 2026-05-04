@@ -6,8 +6,23 @@ open Kuiper
 open Kuiper.Tensor { ctlayout }
 module Array1 = Kuiper.Array1
 module SZ = Kuiper.SizeT
+open Kuiper.Sum { sum, sum_pop_right }
 
 #push-options "--fuel 4 --ifuel 2 --z3rlimit 20"
+let rec seq_dotprod_is_sum
+  (#n : nat)
+  (a b : lseq real n)
+  (k : nat{k <= n})
+  : Lemma (ensures
+            seq_dotprod a b k
+            ==
+            sum 0 k (fun (i : natlt n) -> (Seq.index a i) *. (Seq.index b i)))
+          (decreases k)
+  = if k > 0 then begin
+      seq_dotprod_is_sum a b (k-1);
+      sum_pop_right 0 k (fun (i : natlt n) -> (Seq.index a i) *. (Seq.index b i))
+    end
+
 let rec seq_dotprod_is_matmul_single
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : nat)
@@ -94,8 +109,7 @@ fn kahan_dotprod
         a_mul a.(i) b.(i) (rA @! i) (rB @! i);
         a.(i) `mul` b.(i);
       };
-  assume pure (Kuiper.Kahan.sum 0 len (fun (i : natlt len) -> (rA @! i) *. (rB @! i))
-               == seq_dotprod rA rB len);
+  seq_dotprod_is_sum rA rB len;
   res
 }
 

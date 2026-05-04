@@ -2,6 +2,7 @@ module Kuiper.Sum
 
 open Kuiper.Common
 open Kuiper.Functions
+open Kuiper.Real
 
 class semigroup (a : Type) = {
   id : a;
@@ -16,6 +17,18 @@ class commutative_semigroup (a : Type) = {
   is_semi : semigroup a;
 
   comm : is_commutative is_semi.op;
+}
+
+instance real_add_semigroup : semigroup real = {
+  id = 0.0R;
+  op = ( +. );
+  assoc = ();
+  neut = ();
+}
+
+instance commutative_real_add_semigroup : commutative_semigroup real = {
+  is_semi = real_add_semigroup;
+  comm = ();
 }
 
 (* [i,j) *)
