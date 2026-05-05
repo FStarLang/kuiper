@@ -460,6 +460,11 @@ private let seq_stride_snoc_ (s : seq real) (x : real) (nth : pos) (off : natlt 
 #pop-options
 
 #push-options "--z3rlimit 10"
+private let rsum_seq_take_next_ (s : seq real) (n : nat{n < Seq.length s})
+  : Lemma (rsum (seq_take n s) +. (s @! n) == rsum (seq_take (n + 1) s))
+  = assert (Seq.equal (seq_take (n + 1) s) (Seq.snoc (seq_take n s) (s @! n)));
+    rsum_snoc_ (seq_take n s) (s @! n)
+
 private let rsum_singleton_ (x : real)
   : Lemma (rsum (Seq.create 1 x) == x)
   = let SCons hd tl = view_seq (Seq.create 1 x) in
@@ -619,10 +624,9 @@ fn sum_stride_map
     a_add !acc v'
       (rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off)))
       ((lseq_map pre_map_r vr) @! SZ.v !idx);
-    // Needs lemma about seq_stride. Should be simple.
-    assume pure (
-      rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off)) +. ((lseq_map pre_map_r vr) @! SZ.v !idx) ==
-      rsum (seq_take (gread gidx + 1) (seq_stride (lseq_map pre_map_r vr) stride off)));
+    assert pure (seq_stride (lseq_map pre_map_r vr) stride off @! gread gidx == (lseq_map pre_map_r vr) @! (off + gread gidx * stride));
+    assert pure (off + gread gidx * stride == SZ.v !idx);
+    rsum_seq_take_next_ (seq_stride (lseq_map pre_map_r vr) stride off) (gread gidx);
 
     let vgidx = gread gidx;
     assert (pure (SZ.v !idx                  == vgidx    * stride + off));
