@@ -296,16 +296,3 @@ let rec raw_fits #n (d : idesc n) (idx : raw d) : prop =
   | ICons t ts ->
     let i, is = idx <: sz & raw ts in
     i < t /\ raw_fits ts is
-
-// Hmmm... the naive definition would match on d, but it's erased.  It should
-// all be evaluated away during extraction, though, so maybe it could be a
-// non-erased type. But that seems like a limitation.  Cheat for now.
-let raw_to_conc (#n : Ghost.erased nat) (d : idesc n) (idx : raw d{raw_fits d idx})
-  : conc d =
-  admit();
-  coerce_eq () idx
-
-let conc_to_raw (#n : Ghost.erased nat) (d : idesc n) (idx : conc d)
-  : x : raw d {raw_fits d x} =
-  admit();
-  coerce_eq () idx
