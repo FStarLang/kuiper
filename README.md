@@ -8,10 +8,10 @@ separation logic to model the intricacies of GPU programming.  All Kuiper
 programs are by construction safe, data-race free, and optionally verified to be
 functionally correct.
 
-Several GPU features are supported by Kuiper: shared memory, barriers, atomics,
-vectorized memory operations, and tensor cores. Kuiper also safely models
-CPU-GPU interaction via a notion of located resources, as well as asynchronous
-kernels launches.
+Several GPU features are supported by Kuiper, including: shared memory,
+barriers, atomics, vectorized memory operations, and tensor cores. Kuiper also
+safely models CPU-GPU interaction via a notion of located resources, as well as
+asynchronous kernels launches.
 
 There are also libraries to make programming with matrices more convenient, by,
 e.g., abstracting layouts and matrix tiling. This allows most algorithms to be
@@ -20,9 +20,14 @@ any layout of choice.
 
 Kuiper currently only generates CUDA code.
 
+**NOTE**: Some modules are still work in progress and therefore
+contain admitted proofs.
+
 ## Publications
 
-To appear at PLDI 2026.
+- **Kuiper: Correct and Efficient GPU Programming with Dependent Types and Separation Logic**
+*Guido Martínez, Bastian Köpcke, Jonáš Fiala, Gabriel Ebner, Tahina Ramananandro, Michel Steuwer, Tyler Sorensen, Nikhil Swamy*.
+PLDI 2026. https://doi.org/10.1145/3808280
 
 ## Using Verified Kernels
 
@@ -64,8 +69,7 @@ First, clone the Kuiper repository with submodules:
 ```bash
 git clone https://github.com/FStarLang/kuiper
 cd kuiper
-git submodule init
-git submodule update
+git submodule update --init --recursive
 ```
 
 You can use a script provided by F* to set up Z3 in your system:
@@ -140,7 +144,7 @@ and layouts (`data/`), pure functional specifications (`spec/`), array views
 
 Some kernels are written in highly-polymorphic style and later instantiated.
 Modules in `src/lib/kernel/` are polymorphic over an element type `et` and perhaps
-layouts, tile sizes, etc.  Modules in `src/lib/inst/` are instantiations that
+layouts, tile sizes, etc.  Modules in `src/klas/` are instantiations that
 bind `et` to concrete types; these are what actually get extracted to CUDA.
 
 Some kernels have a large number of instantiations, so we generate them via a
