@@ -17,7 +17,7 @@ fn inst (t:Type) {| scalar t|}
   {| (len:sz -> ctlayout (fla len)) |}
   (flb : (m:nat -> n:nat{SZ.fits (m * n)} -> Array2.layout m n))
   {| (m:sz -> n:sz{SZ.fits (m * n)} -> ctlayout (flb m n)) |}
-  (m n : sz)
+  (m n : szp)
   (#_ : squash (m * n <= max_blocks * max_threads))
   // (#la : Array1.layout m) {| ctlayout la |}
   (a : Array1.t t (fla m))

@@ -9,7 +9,6 @@ open Kuiper.Array
 open FStar.Tactics.V2
 open Kuiper.ForEvery
 open Kuiper.Common
-module SZ = Kuiper.SizeT
 module T = FStar.Tactics
 
 //don't mark this an instance, to avoid clashing with other instances

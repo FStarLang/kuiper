@@ -23,7 +23,7 @@ let s_row_scale
 
 type row_scale_ty (t:Type0) {| scalar t |} =
   fn
-  (m n : sz)
+  (m n : szp)
   (#_ : squash (m * n <= max_blocks * max_threads))
   (#la : Array1.layout m) {| ctlayout la |}
   (a : Array1.t t la)
