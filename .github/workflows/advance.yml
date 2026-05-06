@@ -130,7 +130,7 @@ jobs:
             pushd $dir
             R=$(git remote get-url origin | grep -Eo '[[:alnum:]]*/[[:alnum:]]*$')
             git remote set-url origin https://${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}@github.com/$R
-            git push -f origin HEAD:refs/heads/advance/kuiper
+            git push -f origin HEAD:refs/heads/_kuiper
             popd
           done
 
