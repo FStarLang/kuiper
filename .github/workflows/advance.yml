@@ -36,6 +36,12 @@ jobs:
 
       - run: sudo apt-get install -y indent
 
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt-get update && sudo apt-get install -y gh
+
       - name: Setup HOME and PATH
         run: |
           echo "HOME=/home/vscode" >> $GITHUB_ENV
@@ -116,6 +122,8 @@ jobs:
 
       - name: Push submodule commits to remotes and open PR
         if: ${{ env.MOVED == '1' && env.DISTCHANGE == '1' }}
+        env:
+          GH_TOKEN: ${{ secrets.KUIPER_ADVANCE_GH_TOKEN }}
         run: |
           # Push submodule commits so the SHAs are reachable when the PR is merged.
           for dir in FStar karamel; do
