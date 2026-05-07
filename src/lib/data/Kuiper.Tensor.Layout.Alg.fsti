@@ -149,7 +149,7 @@ instance c_major_on_i_0'
 #push-options "--z3rlimit 40"
 module T = Kuiper.Tensor
 
-// This should just work from instances in Tensor.Layout.Alg
+// These below should just work from instances in Tensor.Layout.Alg
 
 inline_for_extraction noextract
 instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
@@ -179,5 +179,37 @@ instance c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)}) 
     cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
               match idx with
               | (i, (j, ())) -> SZ.add (SZ.mul j m) i)
+  }
+
+inline_for_extraction noextract
+instance c_l3_batched_row_major
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  : T.ctlayout (l3_batched_row_major r m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
+              match idx with
+              | (i, (j, (k, ()))) ->
+                SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul j n) k))
+  }
+#pop-options
+
+#push-options "--z3rlimit 80"
+inline_for_extraction noextract
+instance c_l3_batched_col_major
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  : T.ctlayout (l3_batched_col_major r m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
+              match idx with
+              | (i, (j, (k, ()))) ->
+                SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j))
   }
 #pop-options

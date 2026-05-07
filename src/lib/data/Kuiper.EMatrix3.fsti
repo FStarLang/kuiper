@@ -5,6 +5,7 @@ open Kuiper
 open Kuiper.Container
 open FStar.FunctionalExtensionality { (^->>) }
 module F = FStar.FunctionalExtensionality
+module EM = Kuiper.EMatrix
 
 [@@erasable]
 noeq
@@ -115,3 +116,31 @@ instance ematrix_is_container
     from_fun = (fun f -> mkM fun i j k -> f (i, j, k));
     from_fun_ok = ez;
   }
+
+(* Extract / update a single "page" (the 2-D slice at batch index i). *)
+let slice_page (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : ematrix3 et d0 d1 d2) (i : natlt d0)
+  : EM.ematrix et d1 d2
+  = EM.mkM fun j k -> macc m i j k
+
+let upd_page (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : ematrix3 et d0 d1 d2) (i : natlt d0)
+  (p : EM.ematrix et d1 d2)
+  : ematrix3 et d0 d1 d2
+  = mkM fun i' j k ->
+      if i' = i
+      then EM.macc p j k
+      else macc m i' j k
+
+val slice_upd_page_same (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : ematrix3 et d0 d1 d2) (i : natlt d0)
+  (p : EM.ematrix et d1 d2)
+  : Lemma (ensures slice_page (upd_page m i p) i == p)
+          [SMTPat (slice_page (upd_page m i p) i)]
+
+val slice_upd_page_other (#et:Type) (#d0 #d1 #d2 : nat)
+  (m : ematrix3 et d0 d1 d2) (i i' : natlt d0)
+  (p : EM.ematrix et d1 d2)
+  : Lemma (requires i' <> i)
+          (ensures slice_page (upd_page m i p) i' == slice_page m i')
+          [SMTPat (slice_page (upd_page m i p) i')]

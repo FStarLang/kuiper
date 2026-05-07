@@ -9,6 +9,8 @@ open Kuiper.Index
 open FStar.Tactics.Typeclasses { no_method }
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
+module EM = Kuiper.EMatrix
+open Pulse.Lib.Trade
 
 let desc (d0 d1 d2 : nat) : idesc 3 =
   d0 @| d1 @| d2 @| INil
@@ -104,6 +106,47 @@ fn pts_to_ref
     a |-> Frac f s
   ensures
     pure (SZ.fits (layout_size l))
+
+ghost
+fn pts_to_ref_located
+  (#et : Type) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
+  (a : t et l)
+  (#loc : _)
+  (#f : perm) (#s : erased (EMatrix3.t et d0 d1 d2))
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (layout_size l))
+
+inline_for_extraction noextract
+fn alloc0
+  (#et:Type) {| sized et |}
+  (d0 d1 d2 : szp)
+  (l : layout d0 d1 d2 { is_full l })
+  preserves
+    cpu
+  requires
+    pure (SZ.fits (layout_size l))
+  returns
+    p : t et l
+  ensures
+    exists* em. on gpu_loc (p |-> em)
+  ensures
+    pure (is_global p)
+
+inline_for_extraction noextract
+fn free
+  (#et:Type)
+  (#d0 #d1 #d2 : erased nat)
+  (#l : layout d0 d1 d2 { is_full l })
+  (p : t et l)
+  (#em : EMatrix3.t et d0 d1 d2)
+  preserves
+    cpu
+  requires
+    on gpu_loc (p |-> em)
+  ensures emp
+
 
 ghost
 fn share_n
@@ -224,3 +267,60 @@ unfold let op_Array_Assignment
   (v : et)
   (#s : erased (EMatrix3.t et d0 d1 d2))
   = write #et #d0 #d1 #d2 #l a ijk v #s
+
+(* ---- page: extract a 2-D slice (Array2) from a 3-D tensor (Array3) ---- *)
+
+let page_layout
+  (#et : Type0)
+  (#d0 #d1 #d2 : erased nat)
+  (#l : layout d0 d1 d2)
+  (a : t et l)
+  (i : erased nat{i < d0})
+  : Array2.layout d1 d2
+  = Tensor.tlayout_slice l 0 i
+
+inline_for_extraction noextract
+val page
+  (#et : Type0)
+  (#d0 #d1 #d2 : erased nat)
+  (#l : layout d0 d1 d2)
+  (a : t et l)
+  (i : erased nat{i < d0})
+  : Array2.t et (page_layout a i)
+
+val page_is_global
+  (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
+  (a : t et l) (i : erased nat{i < d0})
+  : Lemma (ensures Array2.is_global (page a i) <==> is_global a)
+          [SMTPat (page a i)]
+
+ghost
+fn extract_page
+  (#et : Type0)
+  (#d0 #d1 #d2 : nat)
+  (#l : layout d0 d1 d2)
+  (a : t et l)
+  (i : natlt d0)
+  (#f : perm) (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    a |-> Frac f s
+  ensures
+    page a i |-> Frac f (EMatrix3.slice_page s i) **
+    (forall* (s' : EM.ematrix et d1 d2).
+      page a i |-> Frac f s' @==>
+      a |-> Frac f (EMatrix3.upd_page s i s'))
+
+ghost
+fn extract_page_ro
+  (#et : Type0)
+  (#d0 #d1 #d2 : nat)
+  (#l : layout d0 d1 d2)
+  (a : t et l)
+  (i : natlt d0)
+  (#f : perm) (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    a |-> Frac f s
+  ensures
+    factored
+      (page a i |-> Frac f (EMatrix3.slice_page s i))
+      (a |-> Frac f s)
