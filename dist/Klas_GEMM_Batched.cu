@@ -1,0 +1,41 @@
+
+#include "Klas_GEMM_Batched.h"
+
+__global__
+/**
+  hoisted when extracting batched_gemm_f32
+*/
+static void
+__hoisted_0(uint32_t rows,
+            uint32_t shared,
+            uint32_t cols, float *a, float *b, float *out, uint32_t i)
+{
+    if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
+        uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / cols;
+        uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % cols;
+        uint32_t k = 0U;
+        float sum = 0.0f;
+        for (; k < shared; k++)
+            sum +=
+                a[i * (rows * shared) + trow * shared +
+                  k] * b[i * (shared * cols) + k * cols + tcol];
+        out[i * (rows * cols) + trow * cols + tcol] = sum;
+    }
+}
+
+float
+*Klas_GEMM_Batched_batched_gemm_f32(uint32_t batch,
+                                    uint32_t rows,
+                                    uint32_t shared,
+                                    uint32_t cols, float *a, float *b)
+{
+    uint32_t idx = 0U;
+    for (; idx < batch; idx++) {
+        KPR_KCALL(__hoisted_0,
+                  (rows * cols + 1023U) / 1024U,
+                  1024U,
+                  0U, rows, shared, cols, a, b, (float *)(void *)0U, idx);
+        MUST(cudaDeviceSynchronize());
+    }
+    return (float *)(void *)0U;
+}
