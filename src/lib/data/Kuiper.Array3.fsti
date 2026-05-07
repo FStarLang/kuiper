@@ -6,14 +6,21 @@ open Kuiper
 open Kuiper.Tensor
 open Kuiper.Injection
 open Kuiper.Index
+open Kuiper.EMatrix { ematrix }
+open Pulse.Lib.Trade
 open FStar.Tactics.Typeclasses { no_method }
+module Array2 = Kuiper.Array2
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
-module EM = Kuiper.EMatrix
-open Pulse.Lib.Trade
 
 let desc (d0 d1 d2 : nat) : idesc 3 =
   d0 @| d1 @| d2 @| INil
+
+// Even if this is trivial, it seems to help in some contexts.
+let sizeof_desc (d0 d1 d2 : nat)
+  : Lemma (sizeof (desc d0 d1 d2) == d0 * d1 * d2)
+          [SMTPat (sizeof (desc d0 d1 d2))]
+  = ()
 
 let ait (d0 d1 d2 : nat) = natlt d0 & natlt d1 & natlt d2
 
@@ -32,6 +39,36 @@ let cit_fits (d0 d1 d2 : nat) (idx : raw_cit) : prop =
 
 [@@erasable]
 type layout (d0 d1 d2 : nat) = tlayout (desc d0 d1 d2)
+
+type full_layout (d0 d1 d2 : nat) = l : layout d0 d1 d2 { is_full l }
+
+let from_seq (#et:Type) (#d0 #d1 #d2 : nat)
+  (l : full_layout d0 d1 d2)
+  (s : lseq et (d0 * d1 * d2))
+  : EMatrix3.t et d0 d1 d2
+  = EMatrix3.mkM (fun i j k -> s `Seq.index` l.imap.f (i, (j, (k, ()))))
+
+let to_seq (#et:Type) (#d0 #d1 #d2 : nat)
+  (l : full_layout d0 d1 d2)
+  (s : EMatrix3.t et d0 d1 d2)
+  : GTot (lseq et (d0 * d1 * d2))
+  = Seq.init_ghost (d0 * d1 * d2) (fun i ->
+      let x = Kuiper.Injection.inverse_f l.imap i in
+      EMatrix3.macc s x._1 x._2._1 x._2._2._1)
+
+// Odd that this seems to help.
+let to_seq_helper (#et:Type) (#d0 #d1 #d2 : nat)
+  (l : full_layout d0 d1 d2)
+  (s : EMatrix3.t et d0 d1 d2)
+  (i : natlt (d0 * d1 * d2))
+  : Lemma (to_seq l s `Seq.index` i == (let x = Kuiper.Injection.inverse_f l.imap i in EMatrix3.macc s x._1 x._2._1 x._2._2._1))
+          [SMTPat (to_seq l s `Seq.index` i)]
+  = ()
+
+val to_from (#et:Type) (#d0 #d1 #d2 : nat)
+  (l : full_layout d0 d1 d2) (s : lseq et (d0 * d1 * d2))
+  : Lemma (ensures to_seq l (from_seq l s) == s)
+          [SMTPat (to_seq l (from_seq l s))]
 
 let layout_size (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : GTot nat = l.ulen
 
@@ -147,6 +184,76 @@ fn free
     on gpu_loc (p |-> em)
   ensures emp
 
+ghost
+fn lower
+  (#et:Type)
+  (#d0 #d1 #d2 : nat)
+  (#l : layout d0 d1 d2 { is_full l })
+  (g : t et l)
+  (#s : EMatrix3.t et d0 d1 d2)
+  (#f : perm)
+  requires
+    g |-> Frac f s
+  ensures
+    core g |-> Frac f (to_seq l s)
+
+ghost
+fn raise
+  (#et:Type)
+  (#d0 #d1 #d2 : nat)
+  (l : layout d0 d1 d2 { is_full l })
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    p |-> Frac f (to_seq l s)
+  ensures
+    from_array l p |-> Frac f s
+
+ghost
+fn raise'
+  (#et:Type)
+  (#d0 #d1 #d2 : nat)
+  (l : layout d0 d1 d2 { is_full l })
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et (layout_size l))
+  requires
+    p |-> Frac f s
+  ensures
+    from_array l p |-> Frac f (from_seq l s)
+
+inline_for_extraction noextract
+fn copy_from_vec
+  (#et:Type0) {| sized et |}
+  (#d0 #d1 #d2 : szp)
+  (#l : layout d0 d1 d2 { is_full l })
+  (gm : t et l)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == d0 * d1 * d2})
+  (#em : EMatrix3.t et d0 d1 d2)
+  preserves
+    cpu ** a |-> s
+  requires
+    on gpu_loc (gm |-> em)
+  ensures
+    on gpu_loc (gm |-> from_seq l s)
+
+inline_for_extraction noextract
+fn copy_to_vec
+  (#et:Type0) {| sized et |}
+  (#d0 #d1 #d2 : szp)
+  (#l : layout d0 d1 d2 { is_full l })
+  (a : vec et)
+  (gm : t et l)
+  (#s : erased (seq et){Seq.length s == d0 * d1 * d2})
+  (#em : EMatrix3.t et d0 d1 d2)
+  preserves
+    cpu ** on gpu_loc (gm |-> em)
+  requires
+    a |-> s
+  ensures
+    a |-> to_seq l em
 
 ghost
 fn share_n
@@ -306,7 +413,7 @@ fn extract_page
     a |-> Frac f s
   ensures
     page a i |-> Frac f (EMatrix3.slice_page s i) **
-    (forall* (s' : EM.ematrix et d1 d2).
+    (forall* (s' : ematrix et d1 d2).
       page a i |-> Frac f s' @==>
       a |-> Frac f (EMatrix3.upd_page s i s'))
 

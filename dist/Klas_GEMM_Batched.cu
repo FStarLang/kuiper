@@ -29,13 +29,13 @@ float
                                     uint32_t shared,
                                     uint32_t cols, float *a, float *b)
 {
+    float *out = (float *)KPR_GPU_ALLOC(4U, batch * (rows * cols));
     uint32_t idx = 0U;
     for (; idx < batch; idx++) {
         KPR_KCALL(__hoisted_0,
                   (rows * cols + 1023U) / 1024U,
-                  1024U,
-                  0U, rows, shared, cols, a, b, (float *)(void *)0U, idx);
+                  1024U, 0U, rows, shared, cols, a, b, out, idx);
         MUST(cudaDeviceSynchronize());
     }
-    return (float *)(void *)0U;
+    return out;
 }

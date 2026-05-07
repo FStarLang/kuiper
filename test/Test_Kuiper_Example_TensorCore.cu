@@ -1,5 +1,7 @@
 #include "test-common.h"
 
+const char *progname = NULL;
+
 // Huge hack: including the cu here. The right thing is writing
 // an actual kernel and call it in the example file. This requires
 // the device function there to be inline, so nvcc won't complain
@@ -147,8 +149,9 @@ int test2()
     return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    progname = argv[0];
     test1();
     test2();
 }

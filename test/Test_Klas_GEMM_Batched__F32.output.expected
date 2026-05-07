@@ -1,0 +1,5 @@
+Batch = 4
+Rows = 64
+Shared = 32
+Columns = 64
+OK

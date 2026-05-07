@@ -1,12 +1,14 @@
 module Kuiper.Array3
-friend Kuiper.Array2 // Should remove
+friend Kuiper.Array2
 #lang-pulse
 
 open Kuiper
 open Kuiper.Chest
 open Kuiper.Bijection
 open Kuiper.Index
+open Kuiper.Seq.Common { (@!) }
 module T = Kuiper.Tensor
+module Array2 = Kuiper.Array2
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -28,6 +30,24 @@ let abs_bij (#d0 #d1 #d2 : nat) : (abs (desc d0 d1 d2) =~ (ait d0 d1 d2)) =
 let tr_val (#et : Type) (#d0 #d1 #d2 : nat) (s : EMatrix3.t et d0 d1 d2)
   : chest (desc d0 d1 d2) et
   = Chest.mk (desc d0 d1 d2) (fun (i, (j, (k, ()))) -> EMatrix3.macc s i j k)
+
+let backtr_val (#et : Type) (#d0 #d1 #d2 : nat) (c : chest (desc d0 d1 d2) et)
+  : EMatrix3.t et d0 d1 d2
+  = EMatrix3.mkM (fun i j k -> Chest.acc c (i, (j, (k, ()))))
+
+let to_from (#et:Type) (#d0 #d1 #d2 : nat)
+  (l : full_layout d0 d1 d2) (s : lseq et (d0 * d1 * d2))
+  : Lemma (ensures to_seq l (from_seq l s) == s)
+          [SMTPat (to_seq l (from_seq l s))]
+  = assert (Seq.equal (to_seq l (from_seq l s)) s)
+
+let to_seq_rel (#et:Type) (#d0 #d1 #d2 : nat)
+  (l : full_layout d0 d1 d2) (s : EMatrix3.t et d0 d1 d2)
+  : Lemma (to_seq l s == T.to_seq l (tr_val s))
+  = let aux (i : natlt (d0 * d1 * d2)) : Lemma (to_seq l s @! i == T.to_seq l (tr_val s) @! i) =
+      ()
+    in
+    assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
 
 let t (et : Type0) (#d0 #d1 #d2 : nat) (l : layout d0 d1 d2) : Type0 =
   T.tensor et l
@@ -102,6 +122,177 @@ fn pts_to_ref
   unfold pts_to a #f s;
   T.tensor_pts_to_ref a;
   fold pts_to a #f s;
+}
+
+#push-options "--ifuel 3"
+inline_for_extraction noextract
+fn alloc0
+  (#et:Type) {| sized et |}
+  (d0 d1 d2 : szp)
+  (l : layout d0 d1 d2 { is_full l })
+  preserves
+    cpu
+  requires
+    pure (SZ.fits (layout_size l))
+  returns
+    p : t et l
+  ensures
+    exists* em. on gpu_loc (p |-> em)
+  ensures
+    pure (is_global p)
+{
+  let t = T.alloc0 #et (d0 *^ (d1 *^ d2)) l;
+  with em. assert on gpu_loc (T.tensor_pts_to t em);
+  assert pure (Chest.equal em (tr_val (backtr_val em)));
+  rewrite on gpu_loc (T.tensor_pts_to t em)
+       as on gpu_loc (pts_to t (backtr_val em));
+  t
+}
+#pop-options
+
+inline_for_extraction noextract
+fn free
+  (#et:Type)
+  (#d0 #d1 #d2 : erased nat)
+  (#l : layout d0 d1 d2 { is_full l })
+  (p : t et l)
+  (#em : EMatrix3.t et d0 d1 d2)
+  preserves
+    cpu
+  requires
+    on gpu_loc (p |-> em)
+  ensures emp
+{
+  rewrite on gpu_loc (pts_to p em)
+       as on gpu_loc (T.tensor_pts_to p (tr_val em));
+  T.free p;
+}
+
+ghost
+fn lower
+  (#et:Type)
+  (#d0 #d1 #d2 : nat)
+  (#l : layout d0 d1 d2 { is_full l })
+  (g : t et l)
+  (#s : EMatrix3.t et d0 d1 d2)
+  (#f : perm)
+  requires
+    g |-> Frac f s
+  ensures
+    core g |-> Frac f (to_seq l s)
+{
+  unfold pts_to g #f s;
+  T.tensor_concr g;
+  to_seq_rel l s;
+  rewrite T.core g |-> Frac f (T.to_seq l (tr_val s))
+       as core g |-> Frac f (to_seq l s);
+}
+
+ghost
+fn raise
+  (#et:Type)
+  (#d0 #d1 #d2 : nat)
+  (l : layout d0 d1 d2 { is_full l })
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : EMatrix3.t et d0 d1 d2)
+  requires
+    p |-> Frac f (to_seq l s)
+  ensures
+    from_array l p |-> Frac f s
+{
+  to_seq_rel l s;
+  rewrite
+    p |-> Frac f (to_seq l s)
+  as
+    p |-> Frac f (T.to_seq l (tr_val s));
+  T.tensor_abs l p;
+  fold pts_to (from_array l p) #f s;
+}
+
+ghost
+fn raise'
+  (#et:Type)
+  (#d0 #d1 #d2 : nat)
+  (l : layout d0 d1 d2 { is_full l })
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et (layout_size l))
+  requires
+    p |-> Frac f s
+  ensures
+    from_array l p |-> Frac f (from_seq l s)
+{
+  rewrite each s as to_seq l (from_seq l s);
+  raise l p;
+}
+
+inline_for_extraction noextract
+fn copy_from_vec
+  (#et:Type0) {| sized et |}
+  (#d0 #d1 #d2 : szp)
+  (#l : layout d0 d1 d2 { is_full l })
+  (gm : t et l)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == d0 * d1 * d2})
+  (#em : EMatrix3.t et d0 d1 d2)
+  preserves
+    cpu ** a |-> s
+  requires
+    on gpu_loc (gm |-> em)
+  ensures
+    on gpu_loc (gm |-> from_seq l s)
+{
+  map_loc gpu_loc
+    #(gm |-> em)
+    #(core gm |-> to_seq l em)
+    fn () { lower gm; };
+  Pulse.Lib.Vec.pts_to_len a;
+  gpu_memcpy_host_to_device (core gm) a (d0 *^ (d1 *^ d2));
+  map_loc gpu_loc
+    #(core gm |-> s)
+    #(gm |-> from_seq l s)
+    fn () {
+      raise' l (core gm);
+      rewrite from_array l (core gm) |-> Frac 1.0R (from_seq l s)
+           as gm |-> from_seq l s;
+    };
+}
+
+inline_for_extraction noextract
+fn copy_to_vec
+  (#et:Type0) {| sized et |}
+  (#d0 #d1 #d2 : szp)
+  (#l : layout d0 d1 d2 { is_full l })
+  (a : vec et)
+  (gm : t et l)
+  (#s : erased (seq et){Seq.length s == d0 * d1 * d2})
+  (#em : EMatrix3.t et d0 d1 d2)
+  preserves
+    cpu ** on gpu_loc (gm |-> em)
+  requires
+    a |-> s
+  ensures
+    a |-> to_seq l em
+{
+  map_loc gpu_loc
+    #(gm |-> em)
+    #(gm |-> em ** pure (SZ.fits (layout_size l)))
+    fn () { pts_to_ref gm; };
+  Pulse.Lib.Vec.pts_to_len a;
+  map_loc gpu_loc
+    #(gm |-> em)
+    #(core gm |-> Frac 1.0R (to_seq l em))
+    fn () { lower gm; };
+  gpu_memcpy_device_to_host a (core gm) (d0 *^ (d1 *^ d2));
+  map_loc gpu_loc
+    #(core gm |-> Frac 1.0R (to_seq l em))
+    #(gm |-> em)
+    fn () {
+      raise l (core gm);
+      rewrite from_array l (core gm) |-> Frac 1.0R em
+           as gm |-> em;
+    };
 }
 
 ghost
@@ -241,6 +432,8 @@ fn implode
   fold pts_to a #f s;
 }
 
+(* ---- page: extract a 2-D slice (Array2) from a 3-D tensor (Array3) ---- *)
+
 inline_for_extraction noextract
 let page
   (#et : Type0)
@@ -251,12 +444,14 @@ let page
   : Array2.t et (page_layout a i)
   = Array2.from_array (page_layout a i) (T.core (T.sliceof a 0 i))
 
+#push-options "--z3rlimit 40"
 let page_is_global
   (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
   (a : t et l) (i : erased nat{i < d0})
   : Lemma (ensures Array2.is_global (page a i) <==> is_global a)
           [SMTPat (page a i)]
-  = admit() // Fix
+  = admit() // FIXME
+#pop-options
 
 ghost
 fn extract_page
