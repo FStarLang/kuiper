@@ -555,7 +555,7 @@ let smatrix_extract_lemma
       row_off
   )
 =
-  admit();
+  // admit();
   //e == smatrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
   let ri = row_off @! r in
   let re = row_off @! r + 1 in

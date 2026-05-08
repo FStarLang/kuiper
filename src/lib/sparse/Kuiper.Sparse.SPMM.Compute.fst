@@ -552,8 +552,7 @@ fn compute
       with v_x. assert x |-> v_x;
       assert pure (v_x *^ blockWidth + tid < blockItemsX);
 
-      // TODO arreglar
-      assume pure (fits (n_idx +^ v_x *^ blockWidth + tid));
+      assert pure (fits (n_idx + v_x * blockWidth + tid));
       let dense_off : sz = n_idx +^ !x *^ blockWidth +^ tid;
 
       if (dense_off <^ cols)
