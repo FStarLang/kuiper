@@ -14,3 +14,8 @@ _tmp
 
 # from tuning script
 bench.exe
+
+# Generated from .fst.sh scripts
+src/klas/Klas.SPMM.fst
+src/klas/Klas.GEMM.BlockTiling2D.fst
+src/klas/Klas.GEMM.TensorCore2D.fst

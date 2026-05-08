@@ -81,8 +81,18 @@ lint-fstar:
 	( cd src && ../scripts/find-pulse-noix.sh )
 	( cd src && ../scripts/check-attrs.sh )
 
+.PHONY: lint-generated
+lint-generated:
+	@for sh in $$(find . -name "*.fst.sh"); do \
+	  fst="$${sh%.sh}"; \
+	  if git ls-files --error-unmatch "$$fst" >/dev/null 2>&1; then \
+	    echo "ERROR: $$fst is generated from $$sh and should not be tracked"; \
+	    exit 1; \
+	  fi; \
+	done
+
 .PHONY: lint
-lint: lint-c lint-fstar
+lint: lint-c lint-fstar lint-generated
 
 .PHONY: list-admits
 list-admits:
