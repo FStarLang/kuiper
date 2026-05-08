@@ -11,47 +11,6 @@ open Kuiper.Sparse.Array
 open Kuiper.Sparse.Common
 module M  = Kuiper.Matrix
 
-(* Definiciones auxiliares *)
-
-let submatrix
-  (#a : Type0)
-  (#rows #cols : nat)
-  (em : ematrix a rows cols)
-  (m : natle rows)
-  (srows : nat{m + srows <= rows})
-  (n : natle cols)
-  (scols : nat{n + scols <= cols})
-: ematrix a srows scols
-= mkM (fun i j -> macc em (m + i) (n + j))
-
-let col_strided_matrix
-  (#a : Type0)
-  (#rows #cols : nat)
-  (em : ematrix a rows cols)
-  (step : pos)
-: ematrix a rows (cols `divup` step)
-=
-  mkM (fun i j -> macc em i (j * step))
-
-let step_sparse_cols
-  (cols n scols : nat)
-  (step : pos)
-= let n' = min n cols in min scols (cols - n') `divup` step
-
-let step_submatrix
-  (#et : Type0) {| scalar et |}
-  (#rows #cols : nat)
-  (em : ematrix et rows cols)
-  (scols : nat)
-  (n : nat)
-  (step : pos)
-: Pure (ematrix et rows (step_sparse_cols cols n scols step))
-  (requires true)
-  (ensures fun _ -> true)
-=
-  let n' = min n cols in
-  col_strided_matrix (submatrix em 0 rows n' (min scols (cols - n'))) step
-
 let step_submatrix_congr
   (#et : Type0) {| scalar et |}
   (#rows #cols : nat)
@@ -99,43 +58,6 @@ let row_x_mat_acc
 =
   _row_x_mat_acc acc row em shared
 
-
-(* Definiciones sparse *)
-
-let _sparse_row_x_mat_acc
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (#block : nat)
-  (acc : lseq et block)
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
-  (to : natle nnz)
-: Ghost (lseq et block)
-  (requires valid_pos shared pos)
-  (ensures fun _ -> true)
-=
-  Seq.init_ghost block (fun i ->
-    if i < cols
-      then _sparse_dprod_acc (acc @! i) elems pos (ematrix_col em i) to
-      else acc @! i
-  )
-
-let sparse_row_x_mat_acc
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (#block : nat)
-  (acc : lseq et block)
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz)
-  (em : ematrix et shared cols)
-: Ghost (lseq et block)
-  (requires valid_pos shared pos)
-  (ensures fun _ -> true)
-=
-  _sparse_row_x_mat_acc acc elems pos em nnz
 
 (* Lemas para combinar resultados *)
 
@@ -354,25 +276,6 @@ let sparse_row_x_mat_acc_congr
   );
 
   assert s `Seq.equal` t
-
-let compute_result
-  (#et : Type0) {| scalar et |}
-  (#shared #cols : nat)
-  (bw bx : pos{bw /? bx})
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (col_ind : lseq nat nnz)
-  (eB : ematrix et shared cols)
-  (out : lseq et (bx / bw))
-  (off : natlt bw)
-  (n : natlt cols)
-: Ghost (lseq et (bx / bw))
-  (requires valid_pos shared col_ind)
-  (ensures fun _ -> true)
-=
-  sparse_row_x_mat_acc
-    out elems col_ind
-    (step_submatrix eB (bx - off) (n + off) bw)
 
 let compute_step
   (#et : Type0) {| scalar et |}

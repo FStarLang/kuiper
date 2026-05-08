@@ -1776,8 +1776,8 @@ fn kf
         (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
         (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s) **
         pure (
-          !idx <= (re -^ ri) /^ p.blockItemsK /\
-          !nnz == re -^ ri -^ !idx *^ p.blockItemsK /\
+          !idx <= (re - ri) / p.blockItemsK /\
+          SZ.v !nnz == re - ri - SZ.v !idx * p.blockItemsK /\
           v_out ==
           Compute.compute_result
             p.blockWidth p.blockItemsX #(!idx * p.blockItemsK)
