@@ -48,7 +48,7 @@ fn inst
   requires
     pure (blockItemsX /? cols) **
     on gpu_loc (live gC) **
-    pure (rows * cols / blockItemsX <= max_blocks) **
+    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {

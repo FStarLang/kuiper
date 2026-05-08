@@ -2121,19 +2121,22 @@ fn spmm
   requires
     pure (blockItemsX /? cols) **
     on gpu_loc (live gC) **
-    pure (rows * cols / blockItemsX <= max_blocks) **
+    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  let [@@@inline_let] params = {
-    rows; shared; cols; blockItemsK; blockItemsX; blockWidth
-  };
-  // let [@@@inline_let] blockChunks = blockItemsX /^ blockWidth;
-  assume pure (well_formed params #gA.nnz col_ind row_off);
-  // que raro, arreglar
-  assume pure (size_req params);
+  dguard (rows <^ 10000sz);
+  dguard (shared <^ 10000sz);
+  dguard (cols <^ 10000sz);
+  dguard (blockItemsK <^ 10000sz);
+  dguard (blockItemsX <^ 10000sz);
+  // ^ FIXME: propagate preconditions instead of dynamically aborting
+  assert pure (rows * (cols `divup` blockItemsX) <= max_blocks);
+  assert pure (size_req ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
   launch_sync (
-    kdesc #et #_ params row_perm blockChunks #lB #lC #cB #cC
+    kdesc #et #_
+      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
+      row_perm blockChunks #lB #lC #cB #cC
       gA row_indices gB gC elems col_ind row_off eA
       #eB #fA #fri #fB
   );
