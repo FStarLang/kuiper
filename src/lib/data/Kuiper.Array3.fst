@@ -124,6 +124,27 @@ fn pts_to_ref
   fold pts_to a #f s;
 }
 
+ghost
+fn pts_to_ref_located
+  (#et : Type) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
+  (a : t et l)
+  (#loc : _)
+  (#f : perm) (#s : erased (EMatrix3.t et d0 d1 d2))
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (layout_size l))
+{
+  ghost_impersonate loc
+    (on loc (a |-> Frac f s))
+    (on loc (a |-> Frac f s) ** pure (SZ.fits (layout_size l)))
+    fn () {
+      on_elim _;
+      pts_to_ref a;
+      on_intro (a |-> Frac f s);
+    }
+}
+
 #push-options "--ifuel 3"
 inline_for_extraction noextract
 fn alloc0

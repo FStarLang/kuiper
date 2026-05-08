@@ -500,6 +500,31 @@ fn forevery_intro_fill (#a: Type0) (p: a -> slprop)
 }
 
 ghost
+fn forevery_intro_pure (#a:Type0) (p: a -> prop)
+  requires
+    pure (forall x. p x)
+  ensures
+    forall+ x. pure (p x)
+{
+  forevery_intro_fill (fun x -> pure (p x))
+    fn x { () }
+}
+
+ghost
+fn forevery_intro_pure_2 (#a:Type0) (#b:Type0) (p: a -> b -> prop)
+  requires
+    pure (forall x y. p x y)
+  ensures
+    forall+ (x:a) (y:b). pure (p x y)
+{
+  forevery_intro_fill (fun (x:a) -> forall+ (y:b). pure (p x y))
+    fn x {
+      forevery_intro_fill (fun (y:b) -> pure (p x y))
+        fn y { () }
+    }
+}
+
+ghost
 fn forevery_unrefine
   (#a: Type0)
   (#f: a->prop)
@@ -2458,6 +2483,29 @@ fn forevery_zip3_2
   forevery_map_2 #a #b
     (fun (x:a) (y:b) -> (p1 x y ** p2 x y) ** p3 x y)
     (fun (x:a) (y:b) -> p1 x y ** p2 x y ** p3 x y)
+    fn x y { () };
+}
+
+ghost
+fn forevery_zip4_2
+  (#a #b : Type0)
+  (p1 p2 p3 p4 : a -> b -> slprop)
+  requires
+    forall+ (x:a) (y:b). p1 x y
+  requires
+    forall+ (x:a) (y:b). p2 x y
+  requires
+    forall+ (x:a) (y:b). p3 x y
+  requires
+    forall+ (x:a) (y:b). p4 x y
+  ensures
+    forall+ (x:a) (y:b). p1 x y ** p2 x y ** p3 x y ** p4 x y
+{
+  forevery_zip3_2 p1 p2 p3;
+  forevery_zip_2 (fun x y -> p1 x y ** p2 x y ** p3 x y) p4;
+  forevery_map_2 #a #b
+    (fun (x:a) (y:b) -> (p1 x y ** p2 x y ** p3 x y) ** p4 x y)
+    (fun (x:a) (y:b) -> p1 x y ** p2 x y ** p3 x y ** p4 x y)
     fn x y { () };
 }
 

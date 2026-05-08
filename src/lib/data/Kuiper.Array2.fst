@@ -773,3 +773,71 @@ fn restore_col
 {
   elim_trade _ _;
 }
+
+inline_for_extraction noextract
+fn copy_from_vec
+  (#et:Type0) {| sized et |}
+  (#rows #cols : sz)
+  (#l : layout rows cols { is_full l })
+  (gm : t et l)
+  (a : vec et)
+  (#s : erased (seq et){Seq.length s == rows * cols})
+  (#em : ematrix et rows cols)
+  preserves
+    cpu ** a |-> s
+  requires
+    on gpu_loc (gm |-> em)
+  ensures
+    on gpu_loc (gm |-> from_seq l s)
+{
+  map_loc gpu_loc
+    #(gm |-> em)
+    #(core gm |-> to_seq l em)
+    fn () { lower gm; };
+  Pulse.Lib.Vec.pts_to_len a;
+  gpu_memcpy_host_to_device (core gm) a (rows *^ cols);
+  map_loc gpu_loc
+    #(core gm |-> s)
+    #(gm |-> from_seq l s)
+    fn () {
+      raise' l (core gm);
+      rewrite from_array l (core gm) |-> Frac 1.0R (from_seq l s)
+           as gm |-> from_seq l s;
+    };
+}
+
+inline_for_extraction noextract
+fn copy_to_vec
+  (#et:Type0) {| sized et |}
+  (#rows #cols : sz)
+  (#l : layout rows cols { is_full l })
+  (a : vec et)
+  (gm : t et l)
+  (#s : erased (seq et){Seq.length s == rows * cols})
+  (#em : ematrix et rows cols)
+  preserves
+    cpu ** on gpu_loc (gm |-> em)
+  requires
+    a |-> s
+  ensures
+    a |-> to_seq l em
+{
+  map_loc gpu_loc
+    #(gm |-> em)
+    #(gm |-> em ** pure (SZ.fits (layout_size l)))
+    fn () { pts_to_ref gm; };
+  Pulse.Lib.Vec.pts_to_len a;
+  map_loc gpu_loc
+    #(gm |-> em)
+    #(core gm |-> Frac 1.0R (to_seq l em))
+    fn () { lower gm; };
+  gpu_memcpy_device_to_host a (core gm) (rows *^ cols);
+  map_loc gpu_loc
+    #(core gm |-> Frac 1.0R (to_seq l em))
+    #(gm |-> em)
+    fn () {
+      raise l (core gm);
+      rewrite from_array l (core gm) |-> Frac 1.0R em
+           as gm |-> em;
+    };
+}

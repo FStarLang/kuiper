@@ -587,6 +587,7 @@ fn restore_col
   ensures
     a |-> Frac f s
 
+inline_for_extraction noextract
 fn copy_from_vec
   (#et:Type0) {| sized et |}
   (#rows #cols : sz)

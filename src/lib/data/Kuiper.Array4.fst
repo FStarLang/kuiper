@@ -110,6 +110,70 @@ fn pts_to_ref
   fold pts_to a #f s;
 }
 
+let to_seq_rel (#et:Type) (#d0 #d1 #d2 #d3 : nat)
+  (l : full_layout d0 d1 d2 d3) (s : EMatrix4.t et d0 d1 d2 d3)
+  : Lemma (to_seq l s == T.to_seq l (tr_val s))
+  = assert (Seq.equal (to_seq l s) (T.to_seq l (tr_val s)))
+
+ghost
+fn lower
+  (#et:Type)
+  (#d0 #d1 #d2 #d3 : nat)
+  (#l : layout d0 d1 d2 d3 { is_full l })
+  (g : t et l)
+  (#s : EMatrix4.t et d0 d1 d2 d3)
+  (#f : perm)
+  requires
+    g |-> Frac f s
+  ensures
+    core g |-> Frac f (to_seq l s)
+{
+  unfold pts_to g #f s;
+  T.tensor_concr g;
+  to_seq_rel l s;
+  rewrite T.core g |-> Frac f (T.to_seq l (tr_val s))
+       as core g |-> Frac f (to_seq l s);
+}
+
+ghost
+fn raise
+  (#et:Type)
+  (#d0 #d1 #d2 #d3 : nat)
+  (l : layout d0 d1 d2 d3 { is_full l })
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : EMatrix4.t et d0 d1 d2 d3)
+  requires
+    p |-> Frac f (to_seq l s)
+  ensures
+    from_array l p |-> Frac f s
+{
+  to_seq_rel l s;
+  rewrite
+    p |-> Frac f (to_seq l s)
+  as
+    p |-> Frac f (T.to_seq l (tr_val s));
+  T.tensor_abs l p;
+  fold pts_to (from_array l p) #f s;
+}
+
+ghost
+fn raise'
+  (#et:Type)
+  (#d0 #d1 #d2 #d3 : nat)
+  (l : layout d0 d1 d2 d3 { is_full l })
+  (p : gpu_array et (layout_size l))
+  (#f : perm)
+  (#s : lseq et (layout_size l))
+  requires
+    p |-> Frac f s
+  ensures
+    from_array l p |-> Frac f (from_seq l s)
+{
+  rewrite each s as to_seq l (from_seq l s);
+  raise l p;
+}
+
 ghost
 fn share_n
   (#et : Type0) (#d0 #d1 #d2 #d3 : nat) (#l : layout d0 d1 d2 d3)
