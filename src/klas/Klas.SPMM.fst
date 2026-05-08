@@ -11,8 +11,6 @@ module MS = Kuiper.Spec.GEMM
 
 #lang-pulse
 
-#set-options "--debug SMTFail --split_queries always"
-
 let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
 
 inline_for_extraction noextract
