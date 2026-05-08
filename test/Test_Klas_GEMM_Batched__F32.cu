@@ -12,8 +12,7 @@ const char *progname = "Test_Klas_GEMM_Batched__F32";
 #define TOLERANCE 0.001f
 
 static float *cpu_batched_mul(uint32_t batch, uint32_t rows,
-                              uint32_t shared, uint32_t cols,
-                              float *m1, float *m2)
+                              uint32_t shared, uint32_t cols, float *m1, float *m2)
 {
     float *out = (float *)calloc(batch * rows * cols, sizeof(float));
     for (uint32_t b = 0; b < batch; b++) {
@@ -52,12 +51,10 @@ int main(int argc, char **argv)
     for (uint32_t bi = 0; bi < batch; bi++) {
         for (uint32_t i = 0; i < rows; i++)
             for (uint32_t j = 0; j < shared; j++)
-                a_cpu[bi * (rows * shared) + i * shared + j] =
-                    (float)(2 * i + j + bi);
+                a_cpu[bi * (rows * shared) + i * shared + j] = (float)(2 * i + j + bi);
         for (uint32_t i = 0; i < shared; i++)
             for (uint32_t j = 0; j < cols; j++)
-                b_cpu[bi * (shared * cols) + i * cols + j] =
-                    (float)(i + j + bi);
+                b_cpu[bi * (shared * cols) + i * cols + j] = (float)(i + j + bi);
     }
 
     float *a_gpu = (float *)kpr_wait_alloc(sizeof(float), a_elems);
@@ -68,13 +65,11 @@ int main(int argc, char **argv)
 
     float *expected = cpu_batched_mul(batch, rows, shared, cols, a_cpu, b_cpu);
 
-    float *c_gpu =
-        Klas_GEMM_Batched_batched_gemm_f32(batch, rows, shared, cols,
-                                           a_gpu, b_gpu);
+    float *c_gpu = Klas_GEMM_Batched_batched_gemm_f32(batch, rows, shared, cols,
+                                                      a_gpu, b_gpu);
 
     float *c_host = (float *)malloc(c_elems * sizeof(float));
-    MUST(cudaMemcpy(c_host, c_gpu, c_elems * sizeof(float),
-                    cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(c_host, c_gpu, c_elems * sizeof(float), cudaMemcpyDeviceToHost));
 
     int nerrs = 0;
     for (uint32_t bi = 0; bi < batch; bi++) {
@@ -83,8 +78,7 @@ int main(int argc, char **argv)
                 size_t idx = bi * (rows * cols) + i * cols + j;
                 float got = c_host[idx];
                 float exp = expected[idx];
-                bool ok = (got == exp) ||
-                          (exp != 0.0f && fabsf((got - exp) / exp) <= TOLERANCE);
+                bool ok = (got == exp) || (exp != 0.0f && fabsf((got - exp) / exp) <= TOLERANCE);
                 if (!ok) {
                     fprintf(stderr,
                             "Error at batch=%u pos=(%u,%u): %g (gpu) != %g (cpu)\n",
