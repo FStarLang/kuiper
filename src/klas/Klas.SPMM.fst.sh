@@ -23,12 +23,12 @@ all_blockItemsX="16 32 64 128 256 512"
 all_blockItemsK="16 32 64 128 256 512"
 all_blockWidth="16 32 64 128 256 512"
 
-for blockItemsX in $all_blockItemsX; do
-  for blockItemsK in $all_blockItemsK; do
+for blockItemsK in $all_blockItemsK; do
+  for blockItemsX in $all_blockItemsX; do
     for blockWidth in $all_blockWidth; do
       if [ $((blockItemsK % blockWidth)) -ne 0 ]; then continue; fi
       if [ $((blockItemsX % blockWidth)) -ne 0 ]; then continue; fi
-      echo "let g_spmm_f32_${blockItemsX}x${blockItemsK}x${blockWidth} = inst f32 row_major row_major ${blockItemsX}sz ${blockItemsK}sz ${blockWidth}sz"
+      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 row_major row_major ${blockItemsX}sz ${blockItemsK}sz ${blockWidth}sz"
     done
   done
 done
