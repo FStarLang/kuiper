@@ -504,6 +504,15 @@ let sliceof
   : tensor et (tlayout_slice l i j)
   = from_array (tlayout_slice l i j) (core a)
 
+let lem_sliceof_core
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : erased nat{i < r}) (j : erased nat{j < d @! i})
+  : Lemma (core (sliceof a i j) == core a)
+          [SMTPat (sliceof a i j)]
+  = ()
+
 let tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)

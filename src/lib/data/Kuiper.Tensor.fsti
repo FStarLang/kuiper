@@ -415,6 +415,14 @@ val sliceof
   (i : erased nat{i < r}) (j : erased nat{j < d @! i})
   : tensor et (tlayout_slice l i j)
 
+val lem_sliceof_core
+  (#et : Type0) (#r : erased nat) (#d : idesc r)
+  (#l : tlayout d)
+  (a : tensor et l)
+  (i : erased nat{i < r}) (j : erased nat{j < d @! i})
+  : Lemma (core (sliceof a i j) == core a)
+          [SMTPat (sliceof a i j)]
+
 #push-options "--warn_error -271" // implicit subtraction in pattern, OK
 val tensor_slice_cell_eq
   (#et : Type0) (#r : nat) (#d : idesc r)

@@ -465,14 +465,12 @@ let page
   : Array2.t et (page_layout a i)
   = Array2.from_array (page_layout a i) (T.core (T.sliceof a 0 i))
 
-#push-options "--z3rlimit 40"
 let page_is_global
   (#et : Type0) (#d0 #d1 #d2 : nat) (#l : layout d0 d1 d2)
   (a : t et l) (i : erased nat{i < d0})
   : Lemma (ensures Array2.is_global (page a i) <==> is_global a)
           [SMTPat (page a i)]
-  = admit() // FIXME
-#pop-options
+  = ()
 
 ghost
 fn extract_page
