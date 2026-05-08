@@ -17,6 +17,8 @@
 
 #include <cuda_runtime.h>
 
+#define Klas_f Klas_SPMM_g_spmm_f32_512x512x64
+
 /* Kuiper SpMM (f32) */
 #include "Klas_SPMM.h"
 
@@ -195,7 +197,7 @@ static float bench_kuiper(int rows, int shared, int cols,
                           int warmup, int iters)
 {
     for (int i = 0; i < warmup; i++) {
-        Klas_SPMM_spmm_f32(rows, shared, cols, dA, d_row_indices, dB, dC);
+        Klas_f(rows, shared, cols, dA, d_row_indices, dB, dC);
         CHECK_CUDA(cudaDeviceSynchronize());
     }
 
@@ -205,7 +207,7 @@ static float bench_kuiper(int rows, int shared, int cols,
 
     CHECK_CUDA(cudaEventRecord(start));
     for (int i = 0; i < iters; i++) {
-        Klas_SPMM_spmm_f32(rows, shared, cols, dA, d_row_indices, dB, dC);
+        Klas_f(rows, shared, cols, dA, d_row_indices, dB, dC);
     }
     CHECK_CUDA(cudaEventRecord(stop));
     CHECK_CUDA(cudaEventSynchronize(stop));
@@ -325,7 +327,7 @@ static void run_bench_csr(CSR &csr, int cols, const char *label,
     CHECK_CUDA(cudaMemset(dC_k, 0, sizeof(float) * rows * cols));
     CHECK_CUDA(cudaMemset(d_out, 0, sizeof(float) * rows * cols));
 
-    Klas_SPMM_spmm_f32(rows, shared, cols, dA_k, (uint32_t*)d_row_indices, dB_k, dC_k);
+    Klas_f(rows, shared, cols, dA_k, (uint32_t*)d_row_indices, dB_k, dC_k);
     CHECK_CUDA(cudaDeviceSynchronize());
 
     {
