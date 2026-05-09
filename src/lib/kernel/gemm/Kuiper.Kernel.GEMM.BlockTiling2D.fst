@@ -680,7 +680,6 @@ let ettile_mmcomb_pointwise
                  comb (macc (ettile eC bm bn tm tn bid tid) i j)
                       (macc (ettile (MS.matmul eA eB) bm bn tm tn bid tid) i j))
 
-#push-options "--z3rlimit 250" // Huge
 inline_for_extraction noextract
 fn epilogue
   (#et : Type0) {| scalar et |}
@@ -765,6 +764,12 @@ fn epilogue
       assert pure (forall (i:natlt tm) (j:natlt tn).
         i * tn + j == !resIdxM * tn + !resIdxN <==> (i == !resIdxM /\ j == !resIdxN));
 
+      // Bridge for invariant step: decompose `< bound+1` into
+      // `< bound` (handled by old invariant) or `== bound` (freshly written).
+      assert pure (forall (i:natlt tm) (j:natlt tn).
+        i * tn + j < !resIdxM * tn + !resIdxN + 1 <==>
+        (i * tn + j < !resIdxM * tn + !resIdxN \/ (i == !resIdxM /\ j == !resIdxN)));
+
       resIdxN := !resIdxN +^ 1sz;
     };
 
@@ -782,7 +787,6 @@ fn epilogue
   assert pure (Kuiper.EMatrix.equal m (ettile (MS.mmcomb comb eC eA eB) bm bn tm tn bid tid));
   ()
 }
-#pop-options
 
 #push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
