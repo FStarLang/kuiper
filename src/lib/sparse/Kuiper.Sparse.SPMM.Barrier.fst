@@ -205,6 +205,8 @@ fn barrier_q_unfold_odd
   rewrite each (idx * 2 + 1) as it;
   unfold barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 
+  FStar.Math.Lemmas.lemma_div_mod_plus 1 idx 2;
+  assert pure (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re);
   rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
   rewrite each (even it) as false;
   rewrite each (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re) as true;
@@ -250,6 +252,7 @@ fn barrier_q_unfold_odd_residue
   rewrite each (idx * 2 + 1) as it;
   unfold barrier_q p row_perm elems col_ind row_off elems_tile col_ind_tile bid it tid;
 
+  FStar.Math.Lemmas.lemma_div_mod_plus 1 idx 2;
   rewrite each (ri + (it / 2) * p.blockItemsK > re) as false;
   rewrite each (even it) as false;
   rewrite each (ri + (it / 2) * p.blockItemsK + p.blockItemsK <= re) as false;

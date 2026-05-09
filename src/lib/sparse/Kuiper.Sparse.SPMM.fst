@@ -1651,7 +1651,7 @@ let barrier_count
   let re = row_off @! (brow p bid |~> row_perm) + 1 in
   ((re - ri) / p.blockItemsK + 1) * 2
 
-#push-options "--z3rlimit 10"
+#push-options "--z3rlimit 15"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -1793,6 +1793,9 @@ fn kf
     sparse_load p row_perm gA #row_off #elems #col_ind #eA
       elems_tile col_ind_tile bid ri re !idx tid #();
 
+    Seq.Properties.slice_slice elems ri re
+      (!idx * p.blockItemsK) ((!idx + 1) * p.blockItemsK);
+
     assert pure (
       Seq.equal
         (Seq.slice elems
@@ -1802,6 +1805,10 @@ fn kf
           (!idx * p.blockItemsK)
           ((!idx + 1) * p.blockItemsK))
     );
+
+    Seq.Properties.slice_slice (cast_pos col_ind) ri re
+      (!idx * p.blockItemsK) ((!idx + 1) * p.blockItemsK);
+
     assert pure (
       Seq.equal
         (cast_pos #p.blockItemsK (
@@ -1972,6 +1979,13 @@ fn kf
           (bcol p bid + x * p.blockWidth + tid)
         )
     );
+
+  assert pure (SZ.v !nnz == re - ri - SZ.v !idx * p.blockItemsK);
+  assert pure (SZ.v !nnz < p.blockItemsK);
+  assert pure (SZ.v !idx <= (re - ri) / p.blockItemsK);
+  FStar.Math.Lemmas.small_div (SZ.v !nnz) p.blockItemsK;
+  FStar.Math.Lemmas.lemma_div_mod_plus (SZ.v !nnz) (SZ.v !idx) p.blockItemsK;
+  assert pure (SZ.v !idx == (re - ri) / p.blockItemsK);
 
   ()
 }
