@@ -14,6 +14,7 @@ let divup (n : nat) (d : pos) : GTot nat = ((n + d) - 1) / d
 (* sdivup is implemented as (n + (d-1))/d. Associating
 that way usually performs more partial evaluation as d is usually
 known. *)
+[@@"opaque_to_smt"] // Important to prevent a trigger cascade apparently... investigate
 inline_for_extraction noextract
 let divup_ (n : sz) (d : szp)
 : Pure sz (requires fits (n + d)) (ensures fun r -> SZ.v r == divup n d)

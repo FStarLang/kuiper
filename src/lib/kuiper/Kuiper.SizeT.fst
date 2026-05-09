@@ -50,6 +50,12 @@ let s_divmod_inv_2 (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)})
           [SMTPat (s_divmod j (s_undivmod j dm))]
   = ()
 
+inline_for_extraction noextract
+let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
+  let open FStar.SizeT in
+  (* Parenthesizing like such allows constant folding when y is a constant. *)
+  (x +^ (y -^ 1sz)) `div` y
+
 let lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
   : Lemma (SZ.v (sdivup x y) == divup (SZ.v x) (SZ.v y))
           [SMTPat (sdivup x y)]
