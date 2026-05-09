@@ -12,6 +12,8 @@ __hoisted_0(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    uint32_t *elems_tile = (uint32_t *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t out[4U] = { 0U };
@@ -24,18 +26,14 @@ __hoisted_0(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            uint32_t x1 = gA.elems[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            uint32_t a = ((uint32_t *) KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            uint32_t a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -48,27 +46,22 @@ __hoisted_0(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        uint32_t x = gA.elems[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        uint32_t a = ((uint32_t *) KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        uint32_t a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -114,6 +107,8 @@ __hoisted_1(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 16U - 1U) / 16U)];
     uint32_t n_idx = blockIdx.x % ((cols + 16U - 1U) / 16U) * 16U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -126,18 +121,14 @@ __hoisted_1(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 16U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 16U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -150,27 +141,22 @@ __hoisted_1(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 16U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 16U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 16U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 16U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 16U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -216,6 +202,8 @@ __hoisted_2(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 16U - 1U) / 16U)];
     uint32_t n_idx = blockIdx.x % ((cols + 16U - 1U) / 16U) * 16U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -228,18 +216,14 @@ __hoisted_2(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -252,27 +236,22 @@ __hoisted_2(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -318,6 +297,8 @@ __hoisted_3(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 16U - 1U) / 16U)];
     uint32_t n_idx = blockIdx.x % ((cols + 16U - 1U) / 16U) * 16U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -330,18 +311,14 @@ __hoisted_3(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -354,27 +331,22 @@ __hoisted_3(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -420,6 +392,8 @@ __hoisted_4(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 16U - 1U) / 16U)];
     uint32_t n_idx = blockIdx.x % ((cols + 16U - 1U) / 16U) * 16U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -432,18 +406,14 @@ __hoisted_4(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -456,27 +426,22 @@ __hoisted_4(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -522,6 +487,8 @@ __hoisted_5(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 16U - 1U) / 16U)];
     uint32_t n_idx = blockIdx.x % ((cols + 16U - 1U) / 16U) * 16U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -534,18 +501,14 @@ __hoisted_5(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -558,27 +521,22 @@ __hoisted_5(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -624,6 +582,8 @@ __hoisted_6(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 16U - 1U) / 16U)];
     uint32_t n_idx = blockIdx.x % ((cols + 16U - 1U) / 16U) * 16U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -636,18 +596,14 @@ __hoisted_6(uint32_t cols,
         for (; i < 32U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -660,27 +616,22 @@ __hoisted_6(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -726,6 +677,8 @@ __hoisted_7(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -739,18 +692,14 @@ __hoisted_7(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 16U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 16U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -763,27 +712,22 @@ __hoisted_7(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 16U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 16U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 16U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 16U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 16U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -829,6 +773,8 @@ __hoisted_8(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -842,18 +788,14 @@ __hoisted_8(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -866,27 +808,22 @@ __hoisted_8(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -932,6 +869,8 @@ __hoisted_9(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -944,18 +883,14 @@ __hoisted_9(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -968,27 +903,22 @@ __hoisted_9(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1034,6 +964,8 @@ __hoisted_10(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -1047,18 +979,14 @@ __hoisted_10(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1071,27 +999,22 @@ __hoisted_10(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1137,6 +1060,8 @@ __hoisted_11(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -1149,18 +1074,14 @@ __hoisted_11(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1173,27 +1094,22 @@ __hoisted_11(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1239,6 +1155,8 @@ __hoisted_12(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -1252,18 +1170,14 @@ __hoisted_12(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1276,27 +1190,22 @@ __hoisted_12(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1342,6 +1251,8 @@ __hoisted_13(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -1354,18 +1265,14 @@ __hoisted_13(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1378,27 +1285,22 @@ __hoisted_13(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1444,6 +1346,8 @@ __hoisted_14(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -1457,18 +1361,14 @@ __hoisted_14(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1481,27 +1381,22 @@ __hoisted_14(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1547,6 +1442,8 @@ __hoisted_15(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -1559,18 +1456,14 @@ __hoisted_15(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1583,27 +1476,22 @@ __hoisted_15(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1649,6 +1537,8 @@ __hoisted_16(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -1662,18 +1552,14 @@ __hoisted_16(uint32_t cols,
         for (; i < 32U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1686,27 +1572,22 @@ __hoisted_16(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1752,6 +1633,8 @@ __hoisted_17(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 32U - 1U) / 32U)];
     uint32_t n_idx = blockIdx.x % ((cols + 32U - 1U) / 32U) * 32U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -1764,18 +1647,14 @@ __hoisted_17(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1788,27 +1667,22 @@ __hoisted_17(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -1854,6 +1728,8 @@ __hoisted_18(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -1867,18 +1743,14 @@ __hoisted_18(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 16U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 16U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1891,27 +1763,22 @@ __hoisted_18(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 16U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 16U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 16U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 16U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 16U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1957,6 +1824,8 @@ __hoisted_19(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -1970,18 +1839,14 @@ __hoisted_19(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -1994,27 +1859,22 @@ __hoisted_19(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2060,6 +1920,8 @@ __hoisted_20(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -2073,18 +1935,14 @@ __hoisted_20(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2097,27 +1955,22 @@ __hoisted_20(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2163,6 +2016,8 @@ __hoisted_21(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -2176,18 +2031,14 @@ __hoisted_21(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2200,27 +2051,22 @@ __hoisted_21(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2266,6 +2112,8 @@ __hoisted_22(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -2279,18 +2127,14 @@ __hoisted_22(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2303,27 +2147,22 @@ __hoisted_22(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2369,6 +2208,8 @@ __hoisted_23(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -2381,18 +2222,14 @@ __hoisted_23(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -2405,27 +2242,22 @@ __hoisted_23(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -2471,6 +2303,8 @@ __hoisted_24(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -2484,18 +2318,14 @@ __hoisted_24(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2508,27 +2338,22 @@ __hoisted_24(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2574,6 +2399,8 @@ __hoisted_25(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -2587,18 +2414,14 @@ __hoisted_25(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2611,27 +2434,22 @@ __hoisted_25(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2677,6 +2495,8 @@ __hoisted_26(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -2689,18 +2509,14 @@ __hoisted_26(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -2713,27 +2529,22 @@ __hoisted_26(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -2779,6 +2590,8 @@ __hoisted_27(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -2792,18 +2605,14 @@ __hoisted_27(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2816,27 +2625,22 @@ __hoisted_27(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -2882,6 +2686,8 @@ __hoisted_28(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -2895,18 +2701,14 @@ __hoisted_28(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2919,27 +2721,22 @@ __hoisted_28(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -2985,6 +2782,8 @@ __hoisted_29(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -2997,18 +2796,14 @@ __hoisted_29(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -3021,27 +2816,22 @@ __hoisted_29(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -3087,6 +2877,8 @@ __hoisted_30(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -3100,18 +2892,14 @@ __hoisted_30(uint32_t cols,
         for (; i < 32U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3124,27 +2912,22 @@ __hoisted_30(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3190,6 +2973,8 @@ __hoisted_31(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -3203,18 +2988,14 @@ __hoisted_31(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -3227,27 +3008,22 @@ __hoisted_31(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -3293,6 +3069,8 @@ __hoisted_32(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 64U - 1U) / 64U)];
     uint32_t n_idx = blockIdx.x % ((cols + 64U - 1U) / 64U) * 64U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -3305,18 +3083,14 @@ __hoisted_32(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -3329,27 +3103,22 @@ __hoisted_32(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -3395,6 +3164,8 @@ __hoisted_33(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -3408,18 +3179,14 @@ __hoisted_33(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 16U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 16U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3432,27 +3199,22 @@ __hoisted_33(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 16U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 16U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 16U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 16U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 16U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3498,6 +3260,8 @@ __hoisted_34(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -3511,18 +3275,14 @@ __hoisted_34(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3535,27 +3295,22 @@ __hoisted_34(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3601,6 +3356,8 @@ __hoisted_35(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -3614,18 +3371,14 @@ __hoisted_35(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -3638,27 +3391,22 @@ __hoisted_35(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -3704,6 +3452,8 @@ __hoisted_36(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -3717,18 +3467,14 @@ __hoisted_36(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3741,27 +3487,22 @@ __hoisted_36(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -3807,6 +3548,8 @@ __hoisted_37(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -3820,18 +3563,14 @@ __hoisted_37(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -3844,27 +3583,22 @@ __hoisted_37(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -3910,6 +3644,8 @@ __hoisted_38(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -3923,18 +3659,14 @@ __hoisted_38(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -3947,27 +3679,22 @@ __hoisted_38(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -4013,6 +3740,8 @@ __hoisted_39(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -4026,18 +3755,14 @@ __hoisted_39(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -4050,27 +3775,22 @@ __hoisted_39(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -4116,6 +3836,8 @@ __hoisted_40(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -4129,18 +3851,14 @@ __hoisted_40(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -4153,27 +3871,22 @@ __hoisted_40(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -4219,6 +3932,8 @@ __hoisted_41(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -4232,18 +3947,14 @@ __hoisted_41(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -4256,27 +3967,22 @@ __hoisted_41(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -4322,6 +4028,8 @@ __hoisted_42(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -4334,18 +4042,14 @@ __hoisted_42(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -4358,27 +4062,22 @@ __hoisted_42(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -4424,6 +4123,8 @@ __hoisted_43(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -4437,18 +4138,14 @@ __hoisted_43(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -4461,27 +4158,22 @@ __hoisted_43(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -4527,6 +4219,8 @@ __hoisted_44(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -4540,18 +4234,14 @@ __hoisted_44(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -4564,27 +4254,22 @@ __hoisted_44(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -4630,6 +4315,8 @@ __hoisted_45(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -4643,18 +4330,14 @@ __hoisted_45(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -4667,27 +4350,22 @@ __hoisted_45(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -4733,6 +4411,8 @@ __hoisted_46(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -4745,18 +4425,14 @@ __hoisted_46(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -4769,27 +4445,22 @@ __hoisted_46(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -4835,6 +4506,8 @@ __hoisted_47(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -4848,18 +4521,14 @@ __hoisted_47(uint32_t cols,
         for (; i < 32U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -4872,27 +4541,22 @@ __hoisted_47(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -4938,6 +4602,8 @@ __hoisted_48(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -4951,18 +4617,14 @@ __hoisted_48(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -4975,27 +4637,22 @@ __hoisted_48(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -5041,6 +4698,8 @@ __hoisted_49(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -5054,18 +4713,14 @@ __hoisted_49(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -5078,27 +4733,22 @@ __hoisted_49(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -5144,6 +4794,8 @@ __hoisted_50(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 128U - 1U) / 128U)];
     uint32_t n_idx = blockIdx.x % ((cols + 128U - 1U) / 128U) * 128U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -5156,18 +4808,14 @@ __hoisted_50(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -5180,27 +4828,22 @@ __hoisted_50(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -5246,6 +4889,8 @@ __hoisted_51(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -5259,18 +4904,14 @@ __hoisted_51(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 16U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 16U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5283,27 +4924,22 @@ __hoisted_51(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 16U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 16U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 16U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 16U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 16U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5349,6 +4985,8 @@ __hoisted_52(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -5362,18 +5000,14 @@ __hoisted_52(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5386,27 +5020,22 @@ __hoisted_52(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5452,6 +5081,8 @@ __hoisted_53(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -5465,18 +5096,14 @@ __hoisted_53(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -5489,27 +5116,22 @@ __hoisted_53(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -5555,6 +5177,8 @@ __hoisted_54(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -5568,18 +5192,14 @@ __hoisted_54(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5592,27 +5212,22 @@ __hoisted_54(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5658,6 +5273,8 @@ __hoisted_55(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -5671,18 +5288,14 @@ __hoisted_55(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -5695,27 +5308,22 @@ __hoisted_55(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -5761,6 +5369,8 @@ __hoisted_56(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -5774,18 +5384,14 @@ __hoisted_56(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -5798,27 +5404,22 @@ __hoisted_56(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -5864,6 +5465,8 @@ __hoisted_57(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -5877,18 +5480,14 @@ __hoisted_57(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5901,27 +5500,22 @@ __hoisted_57(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -5967,6 +5561,8 @@ __hoisted_58(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -5980,18 +5576,14 @@ __hoisted_58(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -6004,27 +5596,22 @@ __hoisted_58(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -6070,6 +5657,8 @@ __hoisted_59(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -6083,18 +5672,14 @@ __hoisted_59(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -6107,27 +5692,22 @@ __hoisted_59(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -6173,6 +5753,8 @@ __hoisted_60(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -6186,18 +5768,14 @@ __hoisted_60(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -6210,27 +5788,22 @@ __hoisted_60(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -6276,6 +5849,8 @@ __hoisted_61(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -6289,18 +5864,14 @@ __hoisted_61(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -6313,27 +5884,22 @@ __hoisted_61(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -6379,6 +5945,8 @@ __hoisted_62(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -6392,18 +5960,14 @@ __hoisted_62(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -6416,27 +5980,22 @@ __hoisted_62(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -6482,6 +6041,8 @@ __hoisted_63(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -6495,18 +6056,14 @@ __hoisted_63(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -6519,27 +6076,22 @@ __hoisted_63(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -6585,6 +6137,8 @@ __hoisted_64(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -6598,18 +6152,14 @@ __hoisted_64(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -6622,27 +6172,22 @@ __hoisted_64(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -6688,6 +6233,8 @@ __hoisted_65(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -6700,18 +6247,14 @@ __hoisted_65(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 256U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -6724,27 +6267,22 @@ __hoisted_65(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 255U - threadIdx.x) / 256U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 256U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -6790,6 +6328,8 @@ __hoisted_66(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -6803,18 +6343,14 @@ __hoisted_66(uint32_t cols,
         for (; i < 32U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -6827,27 +6363,22 @@ __hoisted_66(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -6893,6 +6424,8 @@ __hoisted_67(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -6906,18 +6439,14 @@ __hoisted_67(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -6930,27 +6459,22 @@ __hoisted_67(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -6996,6 +6520,8 @@ __hoisted_68(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -7009,18 +6535,14 @@ __hoisted_68(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -7033,27 +6555,22 @@ __hoisted_68(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -7099,6 +6616,8 @@ __hoisted_69(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -7112,18 +6631,14 @@ __hoisted_69(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -7136,27 +6651,22 @@ __hoisted_69(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -7202,6 +6712,8 @@ __hoisted_70(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 256U - 1U) / 256U)];
     uint32_t n_idx = blockIdx.x % ((cols + 256U - 1U) / 256U) * 256U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -7214,18 +6726,14 @@ __hoisted_70(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 256U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -7238,27 +6746,22 @@ __hoisted_70(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 255U - threadIdx.x) / 256U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 256U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -7304,6 +6807,8 @@ __hoisted_71(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[32U];
@@ -7317,18 +6822,14 @@ __hoisted_71(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 16U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 16U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 32U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7341,27 +6842,22 @@ __hoisted_71(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 16U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 16U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 16U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 16U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(64U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 16U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(64U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 32U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7407,6 +6903,8 @@ __hoisted_72(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[32U];
@@ -7420,18 +6918,14 @@ __hoisted_72(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 32U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7444,27 +6938,22 @@ __hoisted_72(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 32U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7510,6 +6999,8 @@ __hoisted_73(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -7523,18 +7014,14 @@ __hoisted_73(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 32U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 32U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -7547,27 +7034,22 @@ __hoisted_73(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 32U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 32U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 32U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 32U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(128U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 32U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(128U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -7613,6 +7095,8 @@ __hoisted_74(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[32U];
@@ -7626,18 +7110,14 @@ __hoisted_74(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 32U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7650,27 +7130,22 @@ __hoisted_74(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 32U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7716,6 +7191,8 @@ __hoisted_75(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -7729,18 +7206,14 @@ __hoisted_75(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -7753,27 +7226,22 @@ __hoisted_75(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -7819,6 +7287,8 @@ __hoisted_76(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -7832,18 +7302,14 @@ __hoisted_76(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 64U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 64U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -7856,27 +7322,22 @@ __hoisted_76(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 64U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 64U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 64U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 64U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(256U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 64U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(256U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -7922,6 +7383,8 @@ __hoisted_77(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[32U];
@@ -7935,18 +7398,14 @@ __hoisted_77(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 32U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -7959,27 +7418,22 @@ __hoisted_77(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 32U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -8025,6 +7479,8 @@ __hoisted_78(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -8038,18 +7494,14 @@ __hoisted_78(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -8062,27 +7514,22 @@ __hoisted_78(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -8128,6 +7575,8 @@ __hoisted_79(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -8141,18 +7590,14 @@ __hoisted_79(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -8165,27 +7610,22 @@ __hoisted_79(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -8231,6 +7671,8 @@ __hoisted_80(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -8244,18 +7686,14 @@ __hoisted_80(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 128U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 128U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -8268,27 +7706,22 @@ __hoisted_80(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 128U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 128U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 128U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 128U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(512U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 128U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(512U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -8334,6 +7767,8 @@ __hoisted_81(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[32U];
@@ -8347,18 +7782,14 @@ __hoisted_81(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 32U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -8371,27 +7802,22 @@ __hoisted_81(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 32U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -8437,6 +7863,8 @@ __hoisted_82(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -8450,18 +7878,14 @@ __hoisted_82(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -8474,27 +7898,22 @@ __hoisted_82(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -8540,6 +7959,8 @@ __hoisted_83(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -8553,18 +7974,14 @@ __hoisted_83(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -8577,27 +7994,22 @@ __hoisted_83(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -8643,6 +8055,8 @@ __hoisted_84(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -8656,18 +8070,14 @@ __hoisted_84(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -8680,27 +8090,22 @@ __hoisted_84(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -8746,6 +8151,8 @@ __hoisted_85(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(1024U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -8759,18 +8166,14 @@ __hoisted_85(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 256U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 256U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 256U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -8783,27 +8186,22 @@ __hoisted_85(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 256U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 256U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 256U;
     __syncthreads();
     uint32_t tresidue = (re - off + 255U - threadIdx.x) / 256U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 256U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 256U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(1024U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 256U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(1024U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -8849,6 +8247,8 @@ __hoisted_86(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[32U];
@@ -8862,18 +8262,14 @@ __hoisted_86(uint32_t cols,
         for (; i < 32U; i++) {
             uint32_t tile_off = i * 16U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 32U) {
                 uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -8886,27 +8282,22 @@ __hoisted_86(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 15U - threadIdx.x) / 16U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 16U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 32U) {
             uint32_t dense_off = n_idx + x * 16U + threadIdx.x;
@@ -8952,6 +8343,8 @@ __hoisted_87(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[16U];
@@ -8965,18 +8358,14 @@ __hoisted_87(uint32_t cols,
         for (; i < 16U; i++) {
             uint32_t tile_off = i * 32U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 16U) {
                 uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -8989,27 +8378,22 @@ __hoisted_87(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 31U - threadIdx.x) / 32U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 32U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 16U) {
             uint32_t dense_off = n_idx + x * 32U + threadIdx.x;
@@ -9055,6 +8439,8 @@ __hoisted_88(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[8U];
@@ -9068,18 +8454,14 @@ __hoisted_88(uint32_t cols,
         for (; i < 8U; i++) {
             uint32_t tile_off = i * 64U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 8U) {
                 uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -9092,27 +8474,22 @@ __hoisted_88(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 63U - threadIdx.x) / 64U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 64U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 8U) {
             uint32_t dense_off = n_idx + x * 64U + threadIdx.x;
@@ -9158,6 +8535,8 @@ __hoisted_89(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[4U];
@@ -9171,18 +8550,14 @@ __hoisted_89(uint32_t cols,
         for (; i < 4U; i++) {
             uint32_t tile_off = i * 128U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 4U) {
                 uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -9195,27 +8570,22 @@ __hoisted_89(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 127U - threadIdx.x) / 128U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 128U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 4U) {
             uint32_t dense_off = n_idx + x * 128U + threadIdx.x;
@@ -9261,6 +8631,8 @@ __hoisted_90(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out[2U];
@@ -9274,18 +8646,14 @@ __hoisted_90(uint32_t cols,
         for (; i < 2U; i++) {
             uint32_t tile_off = i * 256U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 2U) {
                 uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -9298,27 +8666,22 @@ __hoisted_90(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 255U - threadIdx.x) / 256U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 256U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 2U) {
             uint32_t dense_off = n_idx + x * 256U + threadIdx.x;
@@ -9364,6 +8727,8 @@ __hoisted_91(uint32_t cols,
 {
     uint32_t m_idx = row_indices[blockIdx.x / ((cols + 512U - 1U) / 512U)];
     uint32_t n_idx = blockIdx.x % ((cols + 512U - 1U) / 512U) * 512U;
+    float *elems_tile = (float *)KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile = (uint32_t *) KPR_SHMEM_AT(2048U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     float out = 0.0f;
@@ -9376,18 +8741,14 @@ __hoisted_91(uint32_t cols,
         for (; i < 1U; i++) {
             uint32_t tile_off = i * 512U + threadIdx.x;
             uint32_t off1 = ri + __anf0 * 512U;
-            float x1 = gA.elems[off1 + tile_off];
-            ((float *)KPR_SHMEM_AT(0U))[tile_off] = x1;
-            uint32_t c = gA.col_ind[off1 + tile_off];
-            ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+            elems_tile[tile_off] = gA.elems[off1 + tile_off];
+            col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
         }
         __syncthreads();
         uint32_t k = 0U;
         for (; k < 512U; k++) {
-            uint32_t __anf01 = k;
-            float a = ((float *)KPR_SHMEM_AT(0U))[__anf01];
-            uint32_t __anf02 = k;
-            uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf02];
+            float a = elems_tile[k];
+            uint32_t c = col_ind_tile[k];
             uint32_t x = 0U;
             while (x < 1U) {
                 uint32_t dense_off = n_idx + x * 512U + threadIdx.x;
@@ -9400,27 +8761,22 @@ __hoisted_91(uint32_t cols,
         }
         idx++;
     }
-    uint32_t residue = re - (ri + idx * 512U);
-    uint32_t __anf01 = idx;
-    uint32_t off = ri + __anf01 * 512U;
+    uint32_t __anf0 = idx;
+    uint32_t off = ri + __anf0 * 512U;
     __syncthreads();
     uint32_t tresidue = (re - off + 511U - threadIdx.x) / 512U;
     uint32_t i = 0U;
     for (; i < tresidue; i++) {
         uint32_t tile_off = i * 512U + threadIdx.x;
-        uint32_t off1 = ri + __anf01 * 512U;
-        float x = gA.elems[off1 + tile_off];
-        ((float *)KPR_SHMEM_AT(0U))[tile_off] = x;
-        uint32_t c = gA.col_ind[off1 + tile_off];
-        ((uint32_t *) KPR_SHMEM_AT(2048U))[tile_off] = c;
+        uint32_t off1 = ri + __anf0 * 512U;
+        elems_tile[tile_off] = gA.elems[off1 + tile_off];
+        col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
     uint32_t k = 0U;
-    for (; k < residue; k++) {
-        uint32_t __anf02 = k;
-        float a = ((float *)KPR_SHMEM_AT(0U))[__anf02];
-        uint32_t __anf03 = k;
-        uint32_t c = ((uint32_t *) KPR_SHMEM_AT(2048U))[__anf03];
+    for (; k < nnz; k++) {
+        float a = elems_tile[k];
+        uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
         while (x < 1U) {
             uint32_t dense_off = n_idx + x * 512U + threadIdx.x;

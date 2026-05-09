@@ -1718,7 +1718,12 @@ fn kf
   assert rewrites_to m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
   let n_idx = bcol_ p bid;
 
-  let (elems_tile, (col_ind_tile, _)) = sh;
+  let (elems_tile0, (col_ind_tile0, _)) = sh;
+
+  (* This incantation here improves the generated code by actually defining
+  these variables at this point. *)
+  let elems_tile   = elems_tile0;     assert rewrites_to elems_tile   elems_tile0;
+  let col_ind_tile = col_ind_tile0;   assert rewrites_to col_ind_tile col_ind_tile0;
 
   assert rewrites_to elems_tile (fst sh);
   assert rewrites_to col_ind_tile (fst (snd sh));
@@ -1827,7 +1832,10 @@ fn kf
   assert pure (ri + !idx * p.blockItemsK <= re);
   assert pure (re - (ri + !idx * p.blockItemsK) < p.blockItemsK);
 
-  let residue : sz = re -^ (ri +^ !idx *^ p.blockItemsK);
+
+  // let residue : sz = re -^ (ri +^ !idx *^ p.blockItemsK);
+  (* ^ This is provably equal to the current value of nnz, using that
+  to avoid the extra computation. *)
 
   sparse_load_residue p row_perm gA #row_off #elems #col_ind #eA
     elems_tile col_ind_tile bid ri re !idx tid;
@@ -1837,25 +1845,25 @@ fn kf
       (Seq.slice elems (ri + !idx * p.blockItemsK) re)
       (Seq.slice row_elems
         (!idx * p.blockItemsK)
-        (!idx * p.blockItemsK + residue)
+        (!idx * p.blockItemsK + !nnz)
       )
   );
   assert pure (
     Seq.equal
-      (cast_pos #residue (Seq.slice col_ind (ri + !idx * p.blockItemsK) re))
+      (cast_pos #!nnz (Seq.slice col_ind (ri + !idx * p.blockItemsK) re))
       (Seq.slice row_pos
         (!idx * p.blockItemsK)
-        (!idx * p.blockItemsK + residue)
+        (!idx * p.blockItemsK + !nnz)
       )
   );
 
   Compute.compute
     p.blockWidth p.blockItemsK p.blockItemsX
-    elems_tile col_ind_tile residue gB out tid n_idx;
+    elems_tile col_ind_tile !nnz gB out tid n_idx;
   Compute.compute_step
     p.blockWidth p.blockItemsX
     row_elems row_pos eB out0 tid n_idx
-    (!idx * p.blockItemsK) (!idx * p.blockItemsK + residue);
+    (!idx * p.blockItemsK) (!idx * p.blockItemsK + !nnz );
 
   assert out |->
     Compute.compute_result
