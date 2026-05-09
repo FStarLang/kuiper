@@ -4,11 +4,11 @@ module Kuiper.Sparse.SPMM.Compute
 
 open Kuiper
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
 open Kuiper.Spec.GEMM
 open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.Common
-module M  = Kuiper.Matrix
+module Array2 = Kuiper.Array2
+open Kuiper.Tensor { ctlayout }
 
 (* Definiciones auxiliares *)
 
@@ -184,9 +184,9 @@ fn compute
   (#v_col_ind : erased (lseq sz nnz))
   (#_ : squash(valid_pos shared (cast_pos v_col_ind)))
   // matriz densa B
-  (#lB : mlayout shared cols)
-  {| clayout lB |}
-  (gB : M.gpu_matrix et lB)
+  (#lB : Array2.layout shared cols)
+  {| ctlayout lB |}
+  (gB : Array2.t et lB)
   (#fB : perm)
   (#eB : erased (ematrix et shared cols))
   // resultado parcial

@@ -3,42 +3,43 @@ module Kuiper.Sparse.SPMM
 #lang-pulse
 
 open Kuiper
-module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
+module Array2 = Kuiper.Array2
 open Kuiper.Sparse
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Reprs
+// open Kuiper.Matrix.Reprs.Type
+// open Kuiper.Matrix.Reprs
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
 open Kuiper.Bijection { ( |~> ) }
 open Kuiper.Kernel.GEMMGPU.Type { size_req_t }
 open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Sparse.SPMM.Barrier
+open Kuiper.Tensor.Layout { ctlayout }
 
 let matrix_live_cell
   (#et : Type0)
   (#rows #cols : nat)
-  (#lm : mlayout rows cols)
-  (gm : M.gpu_matrix et lm)
+  (#lm : Array2.layout rows cols)
+  (gm : Array2.t et lm)
   (i : natlt rows)
   (j : natlt cols)
   : slprop
-  = exists* v. M.gpu_matrix_pts_to_cell gm i j v
+  = exists* v. Array2.pts_to_cell gm (i, j) v
 
 unfold
 let block_pre
   (#et : Type0) {| scalar et |}
   (p : parameters{size_req p})
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -67,12 +68,12 @@ let block_post
   (#et : Type0) {| scalar et |}
   (p : parameters{ size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -92,9 +93,9 @@ let block_post
   forall+ (k : natlt(p.blockItemsX /^ p.blockWidth)).
     when__
       (bcol p bid + k * p.blockWidth + tid < p.cols)
-      (fun _ -> M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + k * p.blockWidth + tid)
+      (fun _ -> Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + k * p.blockWidth + tid)
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + k * p.blockWidth + tid)))
@@ -122,12 +123,12 @@ let kpre
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -157,12 +158,12 @@ let kpost
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -301,13 +302,13 @@ fn setup
   (#et : Type0) {| scalar et |}
   (p : parameters{size_req p})
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -336,12 +337,13 @@ fn setup
       emp
 {
   with eC. assert gC |-> eC;
-  M.gpu_matrix_explode gC;
+  Array2.explode gC;
+  forevery_unflatten' _;
 
   forevery_map
     (fun r ->
       forall+ (c : natlt p.cols).
-        M.gpu_matrix_pts_to_cell gC r c (macc eC r c)
+        Array2.pts_to_cell gC (r, c) (macc eC r c)
     )
     (fun r ->
       forall+
@@ -360,7 +362,7 @@ fn setup
         #(natlt (divup p.cols p.blockItemsX))
         (fun b ->
           forall+ (ix : natlt p.blockItemsX { b * p.blockItemsX + ix < p.cols }).
-            M.gpu_matrix_pts_to_cell gC r (b * p.blockItemsX + ix)
+            Array2.pts_to_cell gC (r, b * p.blockItemsX + ix)
               (macc eC r (b * p.blockItemsX + ix))
         )
         (fun b ->
@@ -377,7 +379,7 @@ fn setup
           forevery_map
             #(ix : natlt p.blockItemsX { b * p.blockItemsX + ix  < p.cols })
             (fun ix ->
-              M.gpu_matrix_pts_to_cell gC r (b * p.blockItemsX + ix)
+              Array2.pts_to_cell gC (r, b * p.blockItemsX + ix)
                 (macc eC r (b * p.blockItemsX + ix))
             )
             (fun ix ->
@@ -436,7 +438,7 @@ fn setup
   gpu_slice_share row_indices 0 p.rows (allthreads p);
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
-  M.gpu_matrix_share_n gB (allthreads p) #fB;
+  Array2.share_n gB (allthreads p) #fB;
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   forevery_zip3_2
@@ -463,13 +465,13 @@ fn block_setup
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -535,13 +537,13 @@ fn block_teardown
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -646,13 +648,13 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (p : parameters{ size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : Array2.t et lB)
+  (gC : Array2.t et lC)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -696,7 +698,7 @@ fn teardown
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
     (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
-  M.gpu_matrix_gather_n gB (allthreads p) #fB;
+  Array2.gather_n gB (allthreads p) #fB;
 
 
   forevery_map #(natlt (nblocks p))
@@ -706,9 +708,9 @@ fn teardown
         (k: natlt (p.blockItemsX /^ p.blockWidth)).
         when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
           (fun _ ->
-            M.gpu_matrix_pts_to_cell gC
-              (brow p bid |~> row_perm)
-              (bcol p bid + k * v p.blockWidth + tid)
+            Array2.pts_to_cell gC
+              (brow p bid |~> row_perm,
+               bcol p bid + k * v p.blockWidth + tid)
               (MS.matmul_single eA
                   eB
                   (brow p bid |~> row_perm)
@@ -719,9 +721,9 @@ fn teardown
         when__
           (bcol p bid + ix < p.cols)
           (fun _ ->
-            M.gpu_matrix_pts_to_cell gC
-              (brow p bid |~> row_perm)
-              (bcol p bid + ix)
+            Array2.pts_to_cell gC
+              (brow p bid |~> row_perm,
+               bcol p bid + ix)
               (MS.matmul_single eA eB
                 (brow p bid |~> row_perm)
                 (bcol p bid + ix)
@@ -735,9 +737,9 @@ fn teardown
         (fun tid k ->
           when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
             (fun _ ->
-              M.gpu_matrix_pts_to_cell gC
-                (brow p bid |~> row_perm)
-                (bcol p bid + k * v p.blockWidth + tid)
+              Array2.pts_to_cell gC
+                (brow p bid |~> row_perm,
+                 bcol p bid + k * v p.blockWidth + tid)
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -746,9 +748,9 @@ fn teardown
         (fun tid k ->
           when__ (bcol p bid + (k * v p.blockWidth + tid) < v p.cols)
             (fun _ ->
-              M.gpu_matrix_pts_to_cell gC
-                (brow p bid |~> row_perm)
-                (bcol p bid + (k * v p.blockWidth + tid))
+              Array2.pts_to_cell gC
+                (brow p bid |~> row_perm,
+                 bcol p bid + (k * v p.blockWidth + tid))
                 (MS.matmul_single eA
                     eB
                     (brow p bid |~> row_perm)
@@ -761,9 +763,9 @@ fn teardown
           when__
             (bcol p bid + ix < p.cols)
             (fun _ ->
-              M.gpu_matrix_pts_to_cell gC
-                (brow p bid |~> row_perm)
-                (bcol p bid + ix)
+              Array2.pts_to_cell gC
+                (brow p bid |~> row_perm,
+                 bcol p bid + ix)
                 (MS.matmul_single eA eB
                   (brow p bid |~> row_perm)
                   (bcol p bid + ix)
@@ -780,9 +782,9 @@ fn teardown
         when__
           (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
           (fun _ ->
-            M.gpu_matrix_pts_to_cell gC
-              (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
-              (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+            Array2.pts_to_cell gC
+              (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm,
+               bcol p (r * divup p.cols p.blockItemsX + b) + ix)
               (MS.matmul_single eA eB
                 (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                 (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -791,7 +793,7 @@ fn teardown
     )
     (fun r ->
       forall+ (c : natlt p.cols).
-        M.gpu_matrix_pts_to_cell gC (r |~> row_perm) c
+        Array2.pts_to_cell gC (r |~> row_perm, c)
           (MS.matmul_single eA eB (r |~> row_perm) c)
     )
     fn r {
@@ -800,9 +802,9 @@ fn teardown
           when__
             (bcol p (r * divup p.cols p.blockItemsX + b) + ix < p.cols)
             (fun _ ->
-              M.gpu_matrix_pts_to_cell gC
-                (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
-                (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
+              Array2.pts_to_cell gC
+                (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm,
+                 bcol p (r * divup p.cols p.blockItemsX + b) + ix)
                 (MS.matmul_single eA eB
                   (brow p (r * divup p.cols p.blockItemsX + b) |~> row_perm)
                   (bcol p (r * divup p.cols p.blockItemsX + b) + ix)
@@ -813,8 +815,8 @@ fn teardown
           when__
             (b * p.blockItemsX + ix < p.cols)
             (fun _ ->
-              M.gpu_matrix_pts_to_cell gC
-                (r |~> row_perm) (b * p.blockItemsX + ix)
+              Array2.pts_to_cell gC
+                (r |~> row_perm, b * p.blockItemsX + ix)
                 (MS.matmul_single eA eB (r |~> row_perm) (b * p.blockItemsX + ix))
             )
         )
@@ -832,8 +834,8 @@ fn teardown
             when__
               (b * p.blockItemsX + ix < p.cols)
               (fun _ ->
-                M.gpu_matrix_pts_to_cell gC
-                  (r |~> row_perm) (b * p.blockItemsX + ix)
+                Array2.pts_to_cell gC
+                  (r |~> row_perm, b * p.blockItemsX + ix)
                   (MS.matmul_single eA eB
                     (r |~> row_perm) (b * p.blockItemsX + ix)
                   )
@@ -841,8 +843,8 @@ fn teardown
         )
         (fun b ->
           forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
-            M.gpu_matrix_pts_to_cell gC
-              (r |~> row_perm) (b * p.blockItemsX + ix)
+            Array2.pts_to_cell gC
+              (r |~> row_perm, b * p.blockItemsX + ix)
               (MS.matmul_single
                 eA eB (r |~> row_perm) (b * p.blockItemsX + ix)
               )
@@ -856,24 +858,28 @@ fn teardown
         p.cols
         (p.blockItemsX)
         (fun c ->
-          M.gpu_matrix_pts_to_cell gC (r |~> row_perm) c
+          Array2.pts_to_cell gC (r |~> row_perm, c)
             (MS.matmul_single eA eB (r |~> row_perm) c)
         );
     };
 
   forevery_iso row_perm (fun r ->
     forall+ (c : natlt p.cols).
-      M.gpu_matrix_pts_to_cell gC (r |~> row_perm) c
+      Array2.pts_to_cell gC (r |~> row_perm, c)
         (MS.matmul_single eA eB (r |~> row_perm) c)
   );
   forevery_ext_2
     (fun r c ->
-      M.gpu_matrix_pts_to_cell gC
-        (row_perm.gg r |~> row_perm) c
+      Array2.pts_to_cell gC
+        (row_perm.gg r |~> row_perm, c)
         (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
     )
-    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (macc (MS.matmul eA eB) r c));
-  M.gpu_matrix_implode gC;
+    (fun r c -> Array2.pts_to_cell gC (r, c) (macc (MS.matmul eA eB) r c));
+  forevery_flatten _;
+  forevery_ext
+    (fun (rc : natlt p.rows & natlt p.cols) -> Array2.pts_to_cell gC (rc._1, rc._2) (macc (MS.matmul eA eB) rc._1 rc._2))
+    (fun (rc : Array2.ait p.rows p.cols) -> Array2.pts_to_cell gC rc (macc (MS.matmul eA eB) rc._1 rc._2));
+  Array2.implode gC;
 
   ();
 }
@@ -1565,9 +1571,9 @@ fn store_out
   (#et : Type0) {| scalar et |}
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lC |}
-  (gC : M.gpu_matrix et lC)
+  (#lC : Array2.layout p.rows p.cols)
+  {| ctlayout lC |}
+  (gC : Array2.t et lC)
   (out : larray et (p.blockItemsX /^ p.blockWidth))
   (#v_out : erased (seq et){length out == len v_out})
   (bid : szlt (nblocks p))
@@ -1584,9 +1590,9 @@ fn store_out
     ** out |-> v_out
   ensures
     when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-        M.gpu_matrix_pts_to_cell gC
-          (brow p bid |~> row_perm)
-          (bcol p bid + x * p.blockWidth + tid)
+        Array2.pts_to_cell gC
+          (brow p bid |~> row_perm,
+           bcol p bid + x * p.blockWidth + tid)
           (v_out @! x)
     )
     ** out |-> v_out
@@ -1607,15 +1613,15 @@ fn store_out
     assert rewrites_to #sz m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
     assert rewrites_to #sz n_idx (SZ.uint_to_t (bcol p bid));
 
-    M.gpu_matrix_write_cell gC m_idx (n_idx +^ x *^ p.blockWidth +^ tid) c;
+    Array2.write_cell gC ((m_idx <: sz), n_idx +^ x *^ p.blockWidth +^ tid) c;
 
-    assert M.gpu_matrix_pts_to_cell gC
-      (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid)
+    assert Array2.pts_to_cell gC
+      (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
       (v_out @! x);
     when__intro_true (bcol p bid + x * p.blockWidth + tid < p.cols)
-      (M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
+      (Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + x * p.blockWidth + tid)
         (v_out @! x)
       );
   }
@@ -1625,8 +1631,8 @@ fn store_out
         (brow p bid |~> row_perm)
         (bcol p bid + x * p.blockWidth + tid)
     ) as when__ (bcol p bid + x * p.blockWidth + tid < p.cols) (fun _ ->
-      M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm) (bcol p bid + x * p.blockWidth + tid)
+      Array2.pts_to_cell gC
+        (brow p bid |~> row_perm, bcol p bid + x * p.blockWidth + tid)
         (v_out @! x)
     );
   };
@@ -1658,13 +1664,13 @@ fn kf
   (p : parameters { size_req p })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
-  (#lb : mlayout p.shared p.cols)
-  (#lc : mlayout p.rows p.cols)
-  {| clayout lb, clayout lc |}
+  (#lb : Array2.layout p.shared p.cols)
+  (#lc : Array2.layout p.rows p.cols)
+  {| ctlayout lb, ctlayout lc |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lb)
-  (gC : M.gpu_matrix et lc)
+  (gB : Array2.t et lb)
+  (gC : Array2.t et lc)
   // matriz sparse ga
   (#elems : lseq et gA.nnz)
   (#col_ind : lseq sz gA.nnz)
@@ -1902,9 +1908,9 @@ fn kf
     )
     (fun x -> when__ (bcol p bid + x * p.blockWidth + tid < p.cols)
         (fun _ ->
-          M.gpu_matrix_pts_to_cell gC
-            (brow p bid |~> row_perm)
-            (bcol p bid + x * p.blockWidth + tid)
+          Array2.pts_to_cell gC
+            (brow p bid |~> row_perm,
+             bcol p bid + x * p.blockWidth + tid)
             (v_out @! x)
         )
     )
@@ -1917,9 +1923,9 @@ fn kf
   forevery_refine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
     (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
     (fun x _ ->
-      M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
+      Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + x * p.blockWidth + tid)
         (v_out @! x));
 
   forevery_map
@@ -1927,24 +1933,24 @@ fn kf
       bcol p bid + x * p.blockWidth + tid < p.cols
     })
     (fun x ->
-      M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
+      Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + x * p.blockWidth + tid)
         (v_out @! x)
     )
     (fun x ->
-      M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
+      Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + x * p.blockWidth + tid)
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + x * p.blockWidth + tid)
         )
     )
     fn x {
-      assert M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
+      assert Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + x * p.blockWidth + tid)
         (Compute.compute_result
           p.blockWidth p.blockItemsX
           row_elems row_pos
@@ -1971,9 +1977,9 @@ fn kf
   forevery_unrefine_pred' #(natlt (p.blockItemsX /^ p.blockWidth))
     (fun x -> bcol p bid + x * p.blockWidth + tid < p.cols)
     (fun x _ ->
-      M.gpu_matrix_pts_to_cell gC
-        (brow p bid |~> row_perm)
-        (bcol p bid + x * p.blockWidth + tid)
+      Array2.pts_to_cell gC
+        (brow p bid |~> row_perm,
+         bcol p bid + x * p.blockWidth + tid)
         (MS.matmul_single eA eB
           (brow p bid |~> row_perm)
           (bcol p bid + x * p.blockWidth + tid)
@@ -1997,13 +2003,13 @@ let kdesc
   (p : parameters{size_req p})
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{SZ.v blockChunks == p.blockItemsX / p.blockWidth}) // Ver nota abajo
-  (#lB : mlayout p.shared p.cols)
-  (#lC : mlayout p.rows p.cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout p.shared p.cols)
+  (#lC : Array2.layout p.rows p.cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
   (row_indices : gpu_array sz p.rows)
-  (gB : M.gpu_matrix et lB{M.is_global_matrix gB})
-  (gC : M.gpu_matrix et lC{M.is_global_matrix gC})
+  (gB : Array2.t et lB {Array2.is_global gB})
+  (gC : Array2.t et lC {Array2.is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -2112,16 +2118,16 @@ fn spmm
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
   (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| cB : clayout lB, cC : clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)
-  (gB : M.gpu_matrix et lB{M.is_global_matrix gB})
+  (gB : Array2.t et lB{Array2.is_global gB})
   (#fB : perm)
-  (gC : M.gpu_matrix et lC{M.is_global_matrix gC})
+  (gC : Array2.t et lC{Array2.is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -2158,7 +2164,7 @@ fn spmm
   launch_sync (
     kdesc #et #_
       ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
-      row_perm blockChunks #lB #lC #cB #cC
+      row_perm blockChunks #lB #lC
       gA row_indices gB gC elems col_ind row_off eA
       #eB #fA #fri #fB
   );

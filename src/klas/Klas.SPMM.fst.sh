@@ -11,12 +11,12 @@ open Kuiper.Matrix.Reprs
 open Klas.SPMM.Inst
 
 // One single u32 variant for the test
-let spmm_u32 = inst u32 row_major row_major 128sz 128sz 32sz
+let spmm_u32 = inst u32 128sz 128sz 32sz
 
 EOF
 
-# let spmm_u32 = inst u32 row_major row_major 128sz 128sz 32sz
-# let spmm_f32 = inst f32 row_major row_major 128sz 128sz 32sz
+# let spmm_u32 = inst u32 128sz 128sz 32sz
+# let spmm_f32 = inst f32 128sz 128sz 32sz
 
 # Tweak these lists to control which instances are generated
 all_blockItemsX="16 32 64 128 256 512"
@@ -28,7 +28,7 @@ for blockItemsK in $all_blockItemsK; do
     for blockWidth in $all_blockWidth; do
       if [ $((blockItemsK % blockWidth)) -ne 0 ]; then continue; fi
       if [ $((blockItemsX % blockWidth)) -ne 0 ]; then continue; fi
-      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 row_major row_major ${blockItemsX}sz ${blockItemsK}sz ${blockWidth}sz"
+      echo "let g_spmm_f32_${blockItemsK}x${blockItemsX}x${blockWidth} = inst f32 ${blockItemsX}sz ${blockItemsK}sz ${blockWidth}sz"
     done
   done
 done

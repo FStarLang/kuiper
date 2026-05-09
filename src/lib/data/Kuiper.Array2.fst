@@ -171,6 +171,27 @@ fn pts_to_ref
   fold pts_to a #f s;
 }
 
+ghost
+fn pts_to_ref_located
+  (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l)
+  (#loc : loc_id)
+  (#f : perm) (#s : erased (ematrix et rows cols))
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (layout_size l))
+{
+  ghost_impersonate loc
+    (on loc (a |-> Frac f s))
+    (on loc (a |-> Frac f s) ** pure (SZ.fits (layout_size l)))
+    fn () {
+      on_elim _;
+      pts_to_ref a;
+      on_intro (a |-> Frac f s);
+    }
+}
+
 let to_seq_rel (#et:Type) (#rows #cols : nat)
   (l : full_layout rows cols) (s : ematrix et rows cols)
   : Lemma (to_seq l s == T.to_seq l (tr_val s))

@@ -172,6 +172,17 @@ fn pts_to_ref
     pure (SZ.fits (layout_size l))
 
 ghost
+fn pts_to_ref_located
+  (#et : Type) (#rows #cols : nat) (#l : layout rows cols)
+  (a : t et l)
+  (#loc : loc_id)
+  (#f : perm) (#s : erased (ematrix et rows cols))
+  preserves
+    on loc (a |-> Frac f s)
+  ensures
+    pure (SZ.fits (layout_size l))
+
+ghost
 fn lower
   (#et:Type)
   (#rows #cols : nat)

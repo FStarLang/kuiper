@@ -3,13 +3,12 @@ module Kuiper.Sparse.SPMM
 #lang-pulse
 
 open Kuiper
-module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
+module Array2 = Kuiper.Array2
+open Kuiper.Tensor { ctlayout }
 open Kuiper.Sparse
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Reprs
 
 let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
 
@@ -21,16 +20,16 @@ fn spmm
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
   (blockChunks : sz{SZ.v blockChunks == blockItemsX / blockWidth}) // Ver nota abajo
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| cB : clayout lB, cC : clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)
-  (gB : M.gpu_matrix et lB{M.is_global_matrix gB})
+  (gB : Array2.t et lB {Array2.is_global gB})
   (#fB : perm)
-  (gC : M.gpu_matrix et lC{M.is_global_matrix gC})
+  (gC : Array2.t et lC {Array2.is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
