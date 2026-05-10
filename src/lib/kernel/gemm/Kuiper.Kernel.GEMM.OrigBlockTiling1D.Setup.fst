@@ -2,7 +2,8 @@ module Kuiper.Kernel.GEMM.OrigBlockTiling1D.Setup
 
 #lang-pulse
 
-#set-options "--z3rlimit 30"
+// Split queries help performance, though it should not be needed.
+#set-options "--z3rlimit 30 --split_queries always"
 
 open Kuiper
 open Kuiper.EMatrix
