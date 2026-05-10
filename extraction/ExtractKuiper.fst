@@ -301,7 +301,7 @@ let parse_shmem_desc (e : mlexpr) : ML (option (mlexpr & mlexpr)) =
     Format.print1 "Not a shmem_desc: %s\n" (mlexpr_to_string e);
     None
 
-let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
+let extract_kcall (cb : mlexpr -> ML expr) (env : Krml.env) (kdesc : mlexpr) : ML (option expr) =
   let open FStarC.Class.Monad in
   let assoc' k v =
     match List.assoc k v with
@@ -408,41 +408,36 @@ let extract_kcall (env : Krml.env) (kdesc : mlexpr) : ML (option mlexpr) =
         text "launch_kernel: not a record:" ^/^ pp kdesc
       ]
   in
+  let smem_bytesz = cb smem_bytesz in
   let shmem_is_nonzero : bool =
-    match smem_bytesz.expr with
-    | MLE_App ({expr = MLE_Name (["FStar"; "SizeT"], "uint_to_t")},
-               [{ expr = MLE_Const (MLC_Int ("0", _))}]) ->
-      false
+    match smem_bytesz with
+    | EConstant (_w, "0") -> false
     | _ -> true
   in
-  let assert_shmem_size : mlexpr =
+  let assert_shmem_size : expr =
     (* If smem_bytesz is zero, skip the check. Could later find a bigger
     range on which to skip. *)
     if shmem_is_nonzero then
-      with_ty ml_unit_ty <|
-        MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
+      EApp (EQualified ([], "KPR_SHMEM_FITS"), [ smem_bytesz ])
     else
-      ml_unit
+      EUnit
   in
-  let shmem_setup : mlexpr =
+  let shmem_setup : expr =
     if shmem_is_nonzero then
-      let kk : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncSetAttribute") in
-      let aa : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
-      _mlMUST <|
-        with_ty ml_unit_ty <|
-        MLE_App (kk, [ hd; aa; smem_bytesz ])
+      let kk : expr = EQualified ([], "cudaFuncSetAttribute") in
+      let aa : expr = EQualified ([], "cudaFuncAttributeMaxDynamicSharedMemorySize") in
+      _MUST <|
+        EApp (kk, [ cb hd; aa; smem_bytesz ])
     else
-      ml_unit
+      EUnit
   in
   let e' =
-    let kcall : mlexpr = with_ty ml_unit_ty <| MLE_Name ([], "KPR_KCALL") in
-    with_ty ml_unit_ty <|
-      MLE_App (kcall, [ hd; nblk; nthr; smem_bytesz ] @ rest_args)
+    let kcall : expr = EQualified ([], "KPR_KCALL") in
+    EApp (kcall, [ cb hd; cb nblk; cb nthr; smem_bytesz ] @ List.map cb rest_args)
   in
   // Format.print1_warning "New kcall: %s\n" (show e');
   return <|
-    with_ty ml_unit_ty <|
-    MLE_Seq [assert_shmem_size; shmem_setup; e']
+    ESequence [assert_shmem_size; shmem_setup; e']
 
 let kpr_translate_alloc_fragment (cb : mlexpr -> ML expr) et knd m n k layout =
     let knd =
@@ -874,8 +869,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (* The single kcall! *)
   | "Kuiper.Kernel.Base.launch_kernel_full", [], [ _full_pre; _full_post; kdesc; _epoch ] ->
-    begin match extract_kcall env kdesc with
-    | Some e' -> cb e'
+    begin match extract_kcall cb env kdesc with
+    | Some e' -> e'
     | None ->
       raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
         text "failed to translate kcall:" ^/^ pp e
@@ -885,7 +880,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Kernel.Base.sync_device", [], [_unit; _epoch] ->
     _MUST <| EApp (EQualified ([], "cudaDeviceSynchronize"), [ EUnit ])
 
-  (* Misc stuff missing from F*? *)
+  (* Misc stuff missing from F*? Without these, they extract to names
+     and depend on being linked with that module. *)
   | "FStar.UInt64.zero" , [], [] -> EConstant (Krml.UInt64, "0")
   | "FStar.UInt64.one"  , [], [] -> EConstant (Krml.UInt64, "1")
   | "FStar.UInt32.zero" , [], [] -> EConstant (Krml.UInt32, "0")
@@ -951,7 +947,7 @@ let kpr_translate_type_decl : translate_type_decl_t = fun env td ->
        | Some (MLTD_Record _) -> "Record"
        | Some (MLTD_Abbrev _) -> "Abbrev"
        | Some (MLTD_DType _)  -> "DType"
-       | None                  -> "None");
+       | None                 -> "None");
    match td.tydecl_defn with
    | Some (MLTD_Record fields) ->
      let type_path = string_of_mlpath (env.module_name, td.tydecl_name) in
