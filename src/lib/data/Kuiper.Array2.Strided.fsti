@@ -64,6 +64,13 @@ instance val strided_row_major_l2_row_major (#rows #cols : erased nat)
   {| d : concrete_sz cols |}
   : strided_row_major (l2_row_major rows cols)
 
+val lemma_aligned_strided_row_major_l2_row_major (#rows #cols : erased nat)
+  (#_ : squash (cols > 0))
+  {| d : concrete_sz cols |}
+  (n : pos)
+  : Lemma (requires n /?+ cols)
+          (ensures aligned_strided_row_major n (strided_row_major_l2_row_major #rows #cols #_ #d))
+
 (* Instance for l2_col_major *)
 inline_for_extraction noextract
 instance val strided_col_major_l2_col_major (#rows #cols : erased nat)

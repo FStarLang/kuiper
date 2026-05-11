@@ -4,10 +4,12 @@ module Klas.GEMM.BlockTiling2D.Inst
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
+open Kuiper.Array2 { array2 }
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm, l2_col_major as cm }
 
-module M = Kuiper.Matrix
+module M = Kuiper.Array2
+module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 module K = Kuiper.Kernel.GEMM.BlockTiling2D
 module SZ = Kuiper.SizeT
@@ -17,9 +19,6 @@ module SZ = Kuiper.SizeT
 inline_for_extraction noextract
 fn spec
   (bm bn bk : szp)
-  // (slA : full_mlayout bm bk)
-  // (slB : full_mlayout bk bn)
-  // {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
   (#_ : squash (sz_fits (bm*bk + (bm/tm * (bn/tn)))))
@@ -31,11 +30,11 @@ fn spec
   (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bk * bn)))
   (alpha beta : et)
   (#rows #shared #cols : szp)
-  (gA : M.gpu_matrix et (rm rows shared) { M.is_global_matrix gA })
+  (gA : array2 et (rm rows shared) { M.is_global gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et (rm shared cols) { M.is_global_matrix gB })
+  (gB : array2 et (rm shared cols) { M.is_global gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et (rm rows cols) { M.is_global_matrix gC })
+  (gC : array2 et (rm rows cols) { M.is_global gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -52,13 +51,9 @@ fn spec
   ensures
     on gpu_loc (gC |-> MS.gemm alpha beta eC eA eB)
 {
-  M.gpu_matrix_pts_to_ref_located gA;
-  M.gpu_matrix_pts_to_ref_located gB;
-  M.gpu_matrix_pts_to_ref_located gC;
-
-  // TODO: add dynamic assert for this.
-    // pure (aligned 16 (M.core gA)) **
-    // pure (aligned 16 (M.core gB)) **
+  M.pts_to_ref_located gA;
+  M.pts_to_ref_located gB;
+  M.pts_to_ref_located gC;
 
   dassert (bm >^ 0sz);
   dassert (bn >^ 0sz);
@@ -75,13 +70,14 @@ fn spec
 
   lemma_divides_trans (chunk et) bk shared;
   assert pure (chunk et /?+ shared);
-  assert pure (aligned_strided_row_major (chunk et)
-                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v rows) #(SZ.v shared)));
+  lemma_aligned_strided_row_major_l2_row_major #(SZ.v rows) #(SZ.v shared) (chunk et);
 
   lemma_divides_trans (chunk et) bn cols;
   assert pure (chunk et /?+ cols);
-  assert pure (aligned_strided_row_major (chunk et)
-                (Kuiper.Matrix.Reprs.strided_row_major_base #(SZ.v shared) #(SZ.v cols)));
+  lemma_aligned_strided_row_major_l2_row_major #(SZ.v shared) #(SZ.v cols) (chunk et);
+
+  assert pure (SZ.fits (bm * bk));
+  assert pure (SZ.fits (bk * bn));
 
   K.mmcomb_gpu_exact
     (fun o n -> mul beta o `add` mul alpha n)
@@ -89,8 +85,9 @@ fn spec
     gA #eA gB #eB gC #eC
     bm bn bk
     tm tn
-    (cm _ _) (rm _ _) //slA slB
-    #_ #_;
+    (cm _ _) (rm _ _)
+    #(Kuiper.Tensor.Layout.Alg.c_r2_col_major.inst bm bk)
+    #(Kuiper.Tensor.Layout.Alg.c_r2_row_major.inst bk bn);
 
   ()
 }

@@ -503,9 +503,9 @@ fn cp_array2_vec
       with vk . assert (pts_to k vk);
       Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
       assert pure (col + !k < cols);
-      let nrow : natlt rows = SZ.v row;
-      let colpk : natlt cols = SZ.v col + SZ.v !k;
-      let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) nrow colpk;
+      let nrow : erased (natlt rows) = SZ.v row;
+      let colpk : erased (natlt cols) = SZ.v col + SZ.v !k;
+      let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) (reveal nrow) (reveal colpk);
       cp_in_chunk et rows cols nthr tid (GR.read git) !k ();
       assert pure (in_chunk (chunk et) rows cols nthr tid ecell);
       forevery_remove'
@@ -519,18 +519,18 @@ fn cp_array2_vec
         M.pts_to_cell dst ((reveal ecell)._1, (reveal ecell)._2)
                   (macc em' (reveal ecell)._1 (reveal ecell)._2)
       as
-        M.pts_to_cell dst (nrow, colpk)
-                  (macc em' nrow colpk);
+        M.pts_to_cell dst (reveal nrow, reveal colpk)
+                  (macc em' (reveal nrow) (reveal colpk));
 
       with s. assert local |-> s;
       let v = Pulse.Lib.Array.op_Array_Access local !k #_ #s;
       rewrite
-        M.pts_to_cell dst (nrow, colpk) (macc em' nrow colpk)
+        M.pts_to_cell dst (reveal nrow, reveal colpk) (macc em' (reveal nrow) (reveal colpk))
       as
-        M.pts_to_cell dst ((SZ.v row <: natlt rows), (SZ.v (col +^ !k) <: natlt cols)) (macc em' nrow colpk);
+        M.pts_to_cell dst ((SZ.v row <: natlt rows), (SZ.v (col +^ !k) <: natlt cols)) (macc em' (reveal nrow) (reveal colpk));
       M.write_cell' dst row (col +^ !k) v;
 
-      let em'' : ematrix et rows cols = mupd em' nrow colpk v;
+      let em'' : ematrix et rows cols = mupd em' (reveal nrow) (reveal colpk) v;
 
       rewrite
         M.pts_to_cell dst ((SZ.v row <: natlt rows), (SZ.v (col +^ !k) <: natlt cols)) v

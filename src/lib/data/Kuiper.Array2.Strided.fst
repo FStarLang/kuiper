@@ -22,6 +22,15 @@ instance strided_row_major_l2_row_major (#rows #cols : erased nat)
   pf = ez;
 }
 
+let lemma_aligned_strided_row_major_l2_row_major (#rows #cols : erased nat)
+  (#_ : squash (cols > 0))
+  {| d : concrete_sz cols |}
+  (n : pos)
+  : Lemma (requires n /?+ cols)
+          (ensures aligned_strided_row_major n (strided_row_major_l2_row_major #rows #cols #_ #d))
+  = ()
+
+(* Instance for l2_col_major: cell_of_pos = j * rows + i *)
 inline_for_extraction noextract
 instance strided_col_major_l2_col_major (#rows #cols : erased nat)
   (#_ : squash (rows > 0))

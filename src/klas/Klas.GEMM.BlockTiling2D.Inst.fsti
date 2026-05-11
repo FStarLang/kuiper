@@ -4,10 +4,13 @@ module Klas.GEMM.BlockTiling2D.Inst
 open Kuiper
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Reprs { row_major as rm, col_major as cm }
+open Kuiper.Array2 { array2 }
+open Kuiper.Array2.Strided
+open Kuiper.Tensor.Layout.Alg { l2_row_major as rm, l2_col_major as cm,
+  c_l2_col_major, c_l2_row_major }
 
-module M = Kuiper.Matrix
+module M = Kuiper.Array2
+module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 
 unfold
@@ -18,9 +21,6 @@ fn spec
   (bm bn bk : szp)
   // These are fixed, by this function, to column-major and row-major
   // respectively, which is the more efficient thing to do.
-  // (slA : full_mlayout bm bk)
-  // (slB : full_mlayout bk bn)
-  // {| clayout slA, clayout slB |}
   (tm : szp{tm /? bm})
   (tn : szp{tn /? bn /\ (bm/tm * bn/tn <= max_threads)})
   (#_ : squash (sz_fits (bm*bk + (bm/tm * (bn/tn)))))
@@ -32,11 +32,11 @@ fn spec
   (#_ : squash (chunk et * (bm/tm * (bn/tn)) /?+ (bk * bn)))
   (alpha beta : et)
   (#rows #shared #cols : szp)
-  (gA : M.gpu_matrix et (rm rows shared) { M.is_global_matrix gA })
+  (gA : array2 et (rm rows shared) { M.is_global gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et (rm shared cols) { M.is_global_matrix gB })
+  (gB : array2 et (rm shared cols) { M.is_global gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et (rm rows cols) { M.is_global_matrix gC })
+  (gC : array2 et (rm rows cols) { M.is_global gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
