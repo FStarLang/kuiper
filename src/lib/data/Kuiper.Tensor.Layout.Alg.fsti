@@ -152,64 +152,33 @@ module T = Kuiper.Tensor
 // These below should just work from instances in Tensor.Layout.Alg
 
 inline_for_extraction noextract
-instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
-  {
-    ulen_fits = ();
-    all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (m @| INil)) ->
-              match idx with
-              | (i, ()) -> i);
-  }
+instance val c_l1_forward (m : erased nat{SZ.fits m})
+  : T.ctlayout (l1_forward m)
 
 inline_for_extraction noextract
-instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) : T.ctlayout (l2_row_major m n) =
-  {
-    ulen_fits = ();
-    all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
-              match idx with
-              | (i, (j, ())) -> SZ.add (SZ.mul i n) j)
-  }
+instance val c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)})
+  : T.ctlayout (l2_row_major m n)
 
 inline_for_extraction noextract
-instance c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)}) : T.ctlayout (l2_col_major m n) =
-  {
-    ulen_fits = ();
-    all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
-              match idx with
-              | (i, (j, ())) -> SZ.add (SZ.mul j m) i)
-  }
+instance val c_r2_row_major : ctrepr2 l2_row_major
 
 inline_for_extraction noextract
-instance c_l3_batched_row_major
+instance val c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)})
+  : T.ctlayout (l2_col_major m n)
+
+inline_for_extraction noextract
+instance val c_r2_col_major : ctrepr2 l2_col_major
+
+inline_for_extraction noextract
+instance val c_l3_batched_row_major
   (r : erased nat{SZ.fits r})
   (m : SZ.t{SZ.fits (r * m)})
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
-  : T.ctlayout (l3_batched_row_major r m n) =
-  {
-    ulen_fits = ();
-    all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
-              match idx with
-              | (i, (j, (k, ()))) ->
-                SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul j n) k))
-  }
-#pop-options
+  : T.ctlayout (l3_batched_row_major r m n)
 
-#push-options "--z3rlimit 80"
 inline_for_extraction noextract
-instance c_l3_batched_col_major
+instance val c_l3_batched_col_major
   (r : erased nat{SZ.fits r})
   (m : SZ.t{SZ.fits (r * m)})
   (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
-  : T.ctlayout (l3_batched_col_major r m n) =
-  {
-    ulen_fits = ();
-    all_fit = ();
-    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
-              match idx with
-              | (i, (j, (k, ()))) ->
-                SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j))
-  }
-#pop-options
+  : T.ctlayout (l3_batched_col_major r m n)

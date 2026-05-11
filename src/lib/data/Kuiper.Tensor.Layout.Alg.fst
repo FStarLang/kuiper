@@ -22,6 +22,7 @@ let major_on (#n:nat)
   }
 #pop-options
 
+
 inline_for_extraction noextract
 instance csizeof_INil : csizeof INil = { v = 1sz; }
 
@@ -106,3 +107,77 @@ instance c_pack (#n : erased nat) (#d: idesc n)
     all_fit = ();
     cimap   = (fun x -> c_f.ff x);
   }
+
+inline_for_extraction noextract
+instance c_l1_forward (m : erased nat{SZ.fits m}) : T.ctlayout (l1_forward m) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (m @| INil)) ->
+              match idx with
+              | (i, ()) -> i);
+  }
+
+inline_for_extraction noextract
+instance c_l2_row_major (m : erased nat{SZ.fits m}) (n : SZ.t{SZ.fits (m * n)}) : T.ctlayout (l2_row_major m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
+              match idx with
+              | (i, (j, ())) -> SZ.add (SZ.mul i n) j)
+  }
+
+inline_for_extraction noextract
+instance c_r2_row_major : ctrepr2 l2_row_major = {
+  inst = (fun m n #_ -> c_l2_row_major (SZ.v m) n);
+}
+
+inline_for_extraction noextract
+instance c_l2_col_major (m : sz) (n : erased nat{SZ.fits n /\ SZ.fits (m * n)}) : T.ctlayout (l2_col_major m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (m @| n @| INil)) ->
+              match idx with
+              | (i, (j, ())) -> SZ.add (SZ.mul j m) i)
+  }
+
+inline_for_extraction noextract
+instance c_r2_col_major : ctrepr2 l2_col_major = {
+  inst = (fun m n #_ -> c_l2_col_major m (SZ.v n));
+}
+
+#push-options "--z3rlimit 80"
+inline_for_extraction noextract
+instance c_l3_batched_row_major
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  : T.ctlayout (l3_batched_row_major r m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
+              match idx with
+              | (i, (j, (k, ()))) ->
+                SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul j n) k))
+  }
+#pop-options
+
+#push-options "--z3rlimit 80"
+inline_for_extraction noextract
+instance c_l3_batched_col_major
+  (r : erased nat{SZ.fits r})
+  (m : SZ.t{SZ.fits (r * m)})
+  (n : SZ.t{SZ.fits (m * n) /\ SZ.fits (r * (m * n))})
+  : T.ctlayout (l3_batched_col_major r m n) =
+  {
+    ulen_fits = ();
+    all_fit = ();
+    cimap = (fun (idx : Kuiper.Index.conc (r @| m @| n @| INil)) ->
+              match idx with
+              | (i, (j, (k, ()))) ->
+                SZ.add (SZ.mul i (SZ.mul m n)) (SZ.add (SZ.mul k m) j))
+  }
+#pop-options

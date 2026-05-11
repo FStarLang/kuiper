@@ -99,3 +99,23 @@ let to_from (#et:Type) (#r : nat) (#d : idesc r)
   = from_seq_rel l s;
     to_seq_rel l (from_seq l s);
     ()
+
+
+(* Matrix representations (families). Ideally this should also be
+   polymorphic in tensor dimensionality. *)
+
+let trepr2 = m:nat -> n:nat -> tlayout (m @| n @| INil)
+
+inline_for_extraction noextract
+class ctrepr2 (f : trepr2) = {
+  inst : m:sz -> n:sz -> #_:squash(SZ.fits (m*n)) ->
+         ctlayout (f m n);
+}
+
+inline_for_extraction noextract
+instance ctrepr2_gives_ctlayout2
+  (f : trepr2)
+  (m n : sz)
+  (#_ : squash (SZ.fits (m*n)))
+  {| d : ctrepr2 f |}
+  : ctlayout (f m n) = d.inst m n

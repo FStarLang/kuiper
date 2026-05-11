@@ -25,6 +25,7 @@ let lem_imap_swap_cr (#rows #cols : nat) (rc : natlt rows & (natlt cols & unit))
   = ()
 #pop-options
 
+#push-options "--z3rlimit 40 --retry 3"
 ghost
 fn ghost_transpose1
   (#et:Type)
@@ -44,6 +45,7 @@ fn ghost_transpose1
        as core gA |-> to_seq (l2_col_major cols rows) (mtranspose m);
   raise (l2_col_major cols rows) (core gA);
 }
+#pop-options
 
 ghost
 fn ghost_transpose2
