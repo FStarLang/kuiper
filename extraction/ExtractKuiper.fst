@@ -260,7 +260,9 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
     ];
   // Format.print1_warning "fvs = %s\n" (show fvs);
   (* Explode record-typed free variables into individual fields *)
-  let (fvs, e, call_args) = explode_fvs g fvs e in
+  // Disabled for now... we're not relying on it anymore
+  (* let (fvs, e, call_args) = explode_fvs g fvs e in *)
+  let call_args = List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs in
   let e = collapse_record_proj e in
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
   let fresh = "__hoisted_" ^ string_of_int !ctr in
