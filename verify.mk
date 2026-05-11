@@ -71,7 +71,7 @@ karamel/Makefile:
 	@touch $@
 
 .PHONY: prepare
-prepare: .fstar.touch .krml.touch
+prepare: .fstar.touch .krml.touch .plugin.touch
 
 AUTOGEN_SCRIPTS := $(shell find src -name '*.fst.sh')
 AUTOGEND := $(patsubst %.fst.sh,%.fst,$(AUTOGEN_SCRIPTS))
