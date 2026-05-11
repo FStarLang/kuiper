@@ -15,6 +15,7 @@ open FStarC.Pprint
 
 open FStarC.Class.Show
 open FStarC.Class.PP
+open FStarC.Class.Tagged
 
 let rec unmagic (e : mlexpr) : mlexpr =
   match e.expr with
@@ -64,6 +65,29 @@ let type_hta (e : mlty) : option (string & list mlty) =
   | MLTY_Named (args, p) -> Some (string_of_mlpath p, args)
   | _ -> None
 
+instance _ : tagged mlexpr = {
+  tag_of = (
+    fun e -> match e.expr with
+    | MLE_Const _ -> "MLE_Const"
+    | MLE_Var i -> "MLE_Var: " ^ i
+    | MLE_Name _ -> "MLE_Name"
+    | MLE_Let _ -> "MLE_Let"
+    | MLE_App _ -> "MLE_App"
+    | MLE_TApp _ -> "MLE_TApp"
+    | MLE_Fun _ -> "MLE_Fun"
+    | MLE_Match _ -> "MLE_Match"
+    | MLE_Coerce _ -> "MLE_Coerce"
+    | MLE_CTor _ -> "MLE_CTor"
+    | MLE_Seq _ -> "MLE_Seq"
+    | MLE_Tuple _ -> "MLE_Tuple"
+    | MLE_Record _ -> "MLE_Record"
+    | MLE_Proj _ -> "MLE_Proj"
+    | MLE_If _ -> "MLE_If"
+    | MLE_Raise _ -> "MLE_Raise"
+    | MLE_Try _ -> "MLE_Try"
+  );
+}
+
 
 (* Substitutes the variable [v] in the expression [e] with the expression [e'].
    i.e e[v := e']. *)
@@ -93,7 +117,7 @@ let rec ml_visit (pre post : mlexpr -> ML mlexpr) (e : mlexpr) : ML mlexpr =
       let e1' = ml_visit pre post e1 in
       let branches' =
         branches |> List.map (fun (p, e2, e3) ->
-          let e2' = Option.map (fun e2 -> ml_visit pre post e2) e2 in
+          let e2' = Option.map (ml_visit pre post) e2 in
           let e3' = ml_visit pre post e3 in
           (p, e2', e3')
         )
@@ -146,7 +170,7 @@ let ml_subst (e : mlexpr) (v : mlident) (e' : mlexpr) : ML mlexpr =
     | MLE_Var v' when v = v' -> e'
     | _ -> e
   in
-  ml_visit subst1 id e
+  ml_visit id subst1 e
 
 let rec ml_subst_many (e : mlexpr) (vs : list mlident) (es : list mlexpr) : ML mlexpr =
   match vs, es with
