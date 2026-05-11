@@ -29,15 +29,13 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
 
     smatrix_t dA;
     uint32_t *drow_indices, *dB, *dC;
-    upload_spmm_u32(rows, shared, cols, A, row_indices, B,
-                    &dA, &drow_indices, &dB, &dC);
+    upload_spmm_u32(rows, shared, cols, A, row_indices, B, &dA, &drow_indices, &dB, &dC);
 
     float t;
     TIME_void(Klas_SPMM_spmm_u32(rows, shared, cols, dA, drow_indices, dB, dC), &t);
     fprintf(stderr, ">>> RES (rows=%d, shared=%d, cols=%d, sparsity=%.2f%%) \t GFLOPS: %.3f\n",
-        rows, shared, cols,
-        (1.0 - (double) A.nnz / (rows * shared)) * 100.0,
-        (A.nnz * shared * 2.0) / t / 1e9);
+            rows, shared, cols,
+            (1.0 - (double)A.nnz / (rows * shared)) * 100.0, (A.nnz * shared * 2.0) / t / 1e9);
 
     uint32_t *C = (uint32_t *) calloc(rows * cols, sizeof C[0]);
     MUST(cudaMemcpy(C, dC, sizeof C[0] * rows * cols, cudaMemcpyDeviceToHost));
@@ -124,7 +122,7 @@ int main(int argc, char **argv)
     int sizes[] = { 128, 256, 512, 1024 };
     int densities[] = { 1, 10, 50, 100 };
 
-    #define ARRLEN(s) (sizeof(s)/sizeof(s[0]))
+#define ARRLEN(s) (sizeof(s)/sizeof(s[0]))
 
     for (int si = 0; si < ARRLEN(sizes); si++)
         for (int di = 0; di < ARRLEN(densities); di++)

@@ -8,7 +8,6 @@ open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
 open Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
-module SZ = Kuiper.SizeT
 module K = Kuiper.Kernel.GEMM.SHMem
 
 inline_for_extraction noextract

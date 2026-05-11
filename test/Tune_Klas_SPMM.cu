@@ -55,8 +55,7 @@ int main(int argc, char **argv)
     smatrix_f32_t dA;
     uint32_t *drow_indices;
     float *dB, *dC;
-    upload_spmm_f32(rows, shared, cols, A, row_indices, B,
-                    &dA, &drow_indices, &dB, &dC);
+    upload_spmm_f32(rows, shared, cols, A, row_indices, B, &dA, &drow_indices, &dB, &dC);
 
     /* Warmup */
     for (int l = 0; l < laps / 10 + 1; l++) {
@@ -88,4 +87,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
