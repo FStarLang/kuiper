@@ -4,7 +4,8 @@ open Kuiper
 open Kuiper.Sparse
 open Kuiper.Sparse.SPMM
 module SZ = Kuiper.SizeT
-module Array2 = Kuiper.Array2
+open Kuiper.Array2
+open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
@@ -14,8 +15,8 @@ module MS = Kuiper.Spec.GEMM
 inline_for_extraction noextract
 fn inst
   (et : Type0) {| scalar et |}
-  // (rB : mrepr) {| crepr rB |}
-  // (rC : mrepr) {| crepr rC |}
+  (repB repC : trepr2)
+  {| crepB : ctrepr2 repB, crepC : ctrepr2 repC |}
   (blockItemsK : szp)
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
@@ -24,9 +25,9 @@ fn inst
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)
-  (gB : Array2.t et (rm shared cols) { Array2.is_global gB})
+  (gB : array2 et (repB shared cols) { is_global gB})
   (#fB : perm)
-  (gC : Array2.t et (rm rows cols) { Array2.is_global gC})
+  (gC : array2 et (repC rows cols) { is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -52,12 +53,11 @@ fn inst
     pure (blockWidth <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
-  Array2.pts_to_ref_located gB;
-  Array2.pts_to_ref_located gC;
+  pts_to_ref_located gB;
+  pts_to_ref_located gC;
   spmm #et
     rows shared cols
     blockItemsK blockItemsX blockWidth (blockItemsX /^ blockWidth)
-    // #(rB shared cols) #(rC rows cols)
     gA row_indices fri gB gC
     elems col_ind row_off
     #eA

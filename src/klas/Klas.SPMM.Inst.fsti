@@ -3,7 +3,8 @@ module Klas.SPMM.Inst
 open Kuiper
 open Kuiper.Sparse
 module SZ = Kuiper.SizeT
-module Array2 = Kuiper.Array2
+open Kuiper.Array2
+open Kuiper.Tensor.Layout { trepr2, ctrepr2 }
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
@@ -15,8 +16,8 @@ let lseq (a:Type) (n:nat) = erased (Seq.lseq a n)
 inline_for_extraction noextract
 fn inst
   (et : Type0) {| scalar et |}
-  // (rB : mrepr) {| crepr rB |}
-  // (rC : mrepr) {| crepr rC |}
+  (repB repC : trepr2)
+  {| crepB : ctrepr2 repB, crepC : ctrepr2 repC |}
   (blockItemsK : szp)
   (blockItemsX : szp)
   (blockWidth : (k : szp {k /? blockItemsK /\ k /? blockItemsX}))
@@ -25,9 +26,9 @@ fn inst
   (#fA : perm)
   (row_indices : gpu_array sz rows)
   (fri : perm)
-  (gB : Array2.t et (rm shared cols) { Array2.is_global gB})
+  (gB : array2 et (repB shared cols) { is_global gB})
   (#fB : perm)
-  (gC : Array2.t et (rm rows cols) { Array2.is_global gC})
+  (gC : array2 et (repC rows cols) { is_global gC})
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)

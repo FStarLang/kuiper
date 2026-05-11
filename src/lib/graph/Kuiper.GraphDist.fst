@@ -4,7 +4,7 @@ module Kuiper.GraphDist
 open Kuiper
 open Kuiper.Scalars
 module K = Kuiper.Kernel.GEMM.Naive2
-module M = Kuiper.Array2
+open Kuiper.Array2
 open Kuiper.Tensor.Layout.Alg
 open Kuiper.EMatrix { ematrix }
 
@@ -77,15 +77,15 @@ ghost
 fn m_share_2
   (#et : Type)
   (#m #n : nat)
-  (#l : M.layout m n)
-  (a : M.t et l)
+  (#l : layout m n)
+  (a : array2 et l)
   (#em : ematrix et m n)
   requires
     a |-> em
   ensures
     a |-> Frac 0.5R em ** a |-> Frac 0.5R em
 {
-  M.share_n a 2;
+  share_n a 2;
   forevery_natlt_pop _ _;
   forevery_natlt_pop _ _;
   forevery_elim_empty _;
@@ -95,8 +95,8 @@ ghost
 fn m_gather_2
   (#et : Type)
   (#m #n : nat)
-  (#l : M.layout m n)
-  (a : M.t et l)
+  (#l : layout m n)
+  (a : array2 et l)
   (#em : ematrix et m n)
   requires
     a |-> Frac 0.5R em ** a |-> Frac 0.5R em
@@ -106,14 +106,14 @@ fn m_gather_2
   forevery_intro_empty #(natlt 0) (fun _ -> a |-> Frac (1.0R /. 2) em);
   forevery_natlt_push 1 _;
   forevery_natlt_push 2 _;
-  M.gather_n a 2;
+  gather_n a 2;
   ()
 }
 
 fn matmul_dist_gpu
   (#size : szp)
-  (a : M.t dist (l2_row_major size size) { M.is_global a })
-  (b : M.t dist (l2_row_major size size) { M.is_global b })
+  (a : array2 dist (l2_row_major size size) { is_global a })
+  (b : array2 dist (l2_row_major size size) { is_global b })
   (#ea : ematrix dist size size)
   (#eb : ematrix dist size size)
   preserves
