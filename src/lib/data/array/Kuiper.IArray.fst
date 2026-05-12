@@ -9,18 +9,6 @@ module SZ = Kuiper.SizeT
 module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
 
-ghost
-fn move_forevery_placeless (#a: Type u#0)
-    (p: a -> slprop) (l: loc_id)
-    {| pa: (x:a -> placeless (p x)) |}
-  requires
-    (forall+ (x:a). p x)
-  ensures
-    on l (forall+ (x:a). p x)
-{
-  placeless_on_intro (forall+ x. p x) l
-}
-
 noeq
 inline_for_extraction
 type iarray (et : Type0) (vw : aiview) : Type0 =
