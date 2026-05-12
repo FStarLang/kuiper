@@ -109,8 +109,7 @@ fn map_gpu
   (f: et -> et)
   (lena : szp{ lena <= max_blocks * max_threads})
   (#l : Array1.layout lena) {| ctlayout l |}
-  (a : Array1.t et l)
-  (#_ : squash (Array1.is_global a))
+  (a : Array1.t et l { Array1.is_global a })
   (#s: erased (lseq et lena))
   preserves cpu
   requires  on gpu_loc (a |-> s)
