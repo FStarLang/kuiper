@@ -40,10 +40,15 @@ val inverse_lem (#a #b : Type) (i : a @~> b) (y : image_of i)
   : Lemma (ensures i.f (inverse_f i y) == y)
           [SMTPat (inverse_f i y)]
 
-(* An injection can be inverted, but this requires choice. *)
+(* An injection can be inverted. *)
 let inverse (#a #b : Type) (i : a @~> b) : (image_of i @~> a) = {
   f = inverse_f i;
+  is_inj = ez;
+}
 
+(* If it's surjective, the image_of is not needed. *)
+let inverse' (#a #b : Type) (i : a @~> b { is_surj i.f }) : (b @~> a) = {
+  f = inverse_f i;
   is_inj = ez;
 }
 

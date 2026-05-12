@@ -1110,6 +1110,9 @@ fn setup
   assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
   assert pure (rows/tm == (bm/tm) * (rows/bm));
   assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
+  assert pure (bn * (cols/bn) == cols);
+  assert pure (tn * ((bn/tn) * (cols/bn)) == cols);
+  assert pure (tn * (cols/tn) == cols);
   assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
   assert pure (cols/tn == (bn/tn) * (cols/bn));
   assert pure (n_total == (rows/bm * (cols/bn)) * (bm/tm * (bn/tn)));
@@ -1297,6 +1300,9 @@ fn teardown
   assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
   assert pure (rows/tm == (bm/tm) * (rows/bm));
   assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
+  assert pure (bn * (cols/bn) == cols);
+  assert pure (tn * ((bn/tn) * (cols/bn)) == cols);
+  assert pure (tn * (cols/tn) == cols);
   assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
   assert pure (cols/tn == (bn/tn) * (cols/bn));
   assert pure (n_total == nblk_val * nthr_val);

@@ -449,28 +449,43 @@ fn varray_concr
   ensures
     core a |-> Frac f (to_seq vw v)
 {
-  varray_pts_to_ref a;
-  with vw0. assert pure (vw0 == raw_view #et #(len vw));
-  let bij: (vw.iview.ait =~ vw0.iview.ait) = Kuiper.IView.full_view_bij vw.iview;
-  varray_reindex_ bij a;
-  let vw1 = reindex_view vw bij; rewrite each reindex_view vw bij as vw1;
-  let a1 = from_array vw1 (core a); rewrite each from_array vw1 (core a) as a1;
-  varray_explode a1;
-  assert pure (vw0.iview.ait == vw1.iview.ait);
-  let a2 = from_array vw0 (core a);
-  forevery_map'
-    (fun (i: vw1.iview.ait) -> varray_pts_to_cell a1 #f i (vw1.ctn.acc v i))
-    (fun (i: vw0.iview.ait) ->
-      varray_pts_to_cell a2 #f i (vw0.ctn.acc (to_seq vw v) i))
-    fn i i' {
-      varray_cell_reindex a1 i a2 i';
-    };
-  varray_implode a2 #f;
-  varray_end_ a2;
-  admit();
-  assume pure (core a2 == core a);
-  rewrite each core a2 as core a;
-  rewrite each len vw0 as len vw;
+  varray_explode a;
+  forevery_map
+    #vw.iview.ait
+    (fun i -> varray_pts_to_cell a #f i (vw.ctn.acc v i))
+    (fun i -> gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
+    fn i {
+      unfold varray_pts_to_cell a #f i (vw.ctn.acc v i);
+      IArray.iarray_pts_to_cell_def a #f i (vw.ctn.acc v i);
+      rewrite IArray.iarray_pts_to_cell a #f i (vw.ctn.acc v i)
+            as gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i);
+      ()
+  };
+
+  (* We now have separate ownership of each cell. Change the index type to natlt. *)
+  let bij : (vw.iview.ait =~ natlt (len vw)) = Kuiper.IView.full_view_bij vw.iview;
+  forevery_iso bij _;
+
+  (* Now, we need them to be in sequential order, so can use unslice_1. (This can probably
+     be done in one step. *)
+  assert pure (Functions.is_surj vw.iview.step.imap.f);
+  let inv_f : (natlt (len vw) @~> vw.iview.ait) = Injection.inverse' vw.iview.step.imap;
+  let perm : (natlt (len vw) =~ natlt (len vw)) = bij_inj' inv_f `bij_comp` bij;
+  forevery_iso perm _;
+
+  (* By carefully choosing that permutation, things simplify away. *)
+  forevery_map
+    #(natlt (len vw))
+    (fun i -> gpu_pts_to_cell (core a) #f (vw.iview.step.imap.f (bij.gg (perm.gg i))) (vw.ctn.acc v (bij.gg (perm.gg i))))
+    (fun i -> gpu_pts_to_cell (core a) #f i (to_seq vw v @! i))
+    fn i {
+      rewrite each vw.iview.step.imap.f (bij.gg (perm.gg i)) as i;
+      rewrite each vw.ctn.acc v (bij.gg (perm.gg i)) as (to_seq vw v @! i);
+      ()
+  };
+
+  B.gpu_array_unslice_1 (core a) #f #(to_seq vw v);
+  ()
 }
 
 ghost
