@@ -14,7 +14,6 @@ let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
     then y
     else f x'
 
-new
 inline_for_extraction
 val iarray (et : Type0) (vw : aiview) : Type0
 

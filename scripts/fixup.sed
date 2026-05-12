@@ -10,4 +10,3 @@ s/auto_AMP/auto\&/g
 # an awful fix to rewrite auto& *foo into auto& foo
 s/auto\& *\*/auto\&/g
 /auto\&$/{n;s/^\( *\)\*/\1/; b again}
-s/__id(\([^)]*\))/\1/g

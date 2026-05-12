@@ -23,7 +23,6 @@ let view_equiv (#et #st : Type)
   (* probably need more about the mappings in ctn *)
   True
 
-new
 inline_for_extraction
 val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
 

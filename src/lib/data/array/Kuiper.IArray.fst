@@ -9,13 +9,12 @@ module SZ = Kuiper.SizeT
 module B = Kuiper.Array
 module Trade = Pulse.Lib.Trade
 
-noeq
 inline_for_extraction
 type iarray (et : Type0) (vw : aiview) : Type0 =
-  | IA of B.gpu_array et (len vw)
+  B.gpu_array et (len vw)
 
 let is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop =
-  let IA a = arr in is_global_array a
+  is_global_array arr
 
 inline_for_extraction noextract
 let from_array
@@ -23,9 +22,9 @@ let from_array
   (vw : aiview)
   (arr : gpu_array et (len vw))
   : iarray et vw
-  = IA arr
+  = arr
 
-let core (IA a) = a
+let core a = a
 
 let lem_from_array_core
   (#et : Type0)
