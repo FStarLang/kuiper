@@ -5,9 +5,11 @@ module Kuiper.Kernel.GEMM.BlockTiling2D
 open Kuiper
 open Kuiper.Kernel.GEMMGPU.Type
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix
+open Kuiper.Array2 { array2 }
+open Kuiper.Array2.Strided
 open Kuiper.EMatrix
+module M = Kuiper.Array2
+module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 module MS = Kuiper.Spec.GEMM
 
@@ -28,19 +30,19 @@ fn mmcomb_gpu_exact
   (#et : Type0) {| scalar et, has_vec_cpy et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
-  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gA : array2 et lA { M.is_global gA })
   (#eA : ematrix et rows shared)
-  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gB : array2 et lB { M.is_global gB })
   (#eB : ematrix et shared cols)
-  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (gC : array2 et lC { M.is_global gC })
   (#eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
@@ -54,9 +56,9 @@ fn mmcomb_gpu_exact
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (slA : full_mlayout bm bk)
-  (slB : full_mlayout bk bn)
-  {| clayout slA, clayout slB |}
+  (slA : M.full_layout bm bk)
+  (slB : M.full_layout bk bn)
+  {| T.ctlayout slA, T.ctlayout slB |}
   (#fA #fB : perm)
   norewrite
   preserves
@@ -64,8 +66,8 @@ fn mmcomb_gpu_exact
     on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
-    pure (aligned 16 (core gA)) **
-    pure (aligned 16 (core gB)) **
+    pure (aligned 16 (M.core gA)) **
+    pure (aligned 16 (M.core gB)) **
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
     on gpu_loc (gC |-> eC)
@@ -78,19 +80,19 @@ fn mmcomb_gpu_approx
   (comb : binop et)
   (comb_r : binop real { approx2 comb comb_r })
   (#rows #shared #cols : szp)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lA, clayout lB, clayout lC |}
+  (#lA : M.layout rows shared)
+  (#lB : M.layout shared cols)
+  (#lC : M.layout rows cols)
+  {| T.ctlayout lA, T.ctlayout lB, T.ctlayout lC |}
   {| str_A : strided_row_major lA,
      str_B : strided_row_major lB |}
   (#_ : squash (aligned_strided_row_major (chunk et) str_A))
   (#_ : squash (aligned_strided_row_major (chunk et) str_B))
-  (gA : gpu_matrix et lA { is_global_matrix gA })
+  (gA : array2 et lA { M.is_global gA })
   (#eA : ematrix et rows shared)
-  (gB : gpu_matrix et lB { is_global_matrix gB })
+  (gB : array2 et lB { M.is_global gB })
   (#eB : ematrix et shared cols)
-  (gC : gpu_matrix et lC { is_global_matrix gC })
+  (gC : array2 et lC { M.is_global gC })
   (#eC : ematrix et rows cols)
   (bm : szp{bm /?+ rows})
   (bn : szp{bn /?+ cols})
@@ -104,9 +106,9 @@ fn mmcomb_gpu_approx
   (#_ : squash (SZ.fits (bm*bk + bm/tm*(bn/tn))))
   (#_ : squash (SZ.fits (bk*bn + bm/tm*(bn/tn))))
   (#_: squash (SZ.fits (bm * bk) /\ SZ.fits (bk * bn)))
-  (slA : full_mlayout bm bk)
-  (slB : full_mlayout bk bn)
-  {| clayout slA, clayout slB |}
+  (slA : M.full_layout bm bk)
+  (slB : M.full_layout bk bn)
+  {| T.ctlayout slA, T.ctlayout slB |}
   (#fA #fB : perm)
   (rA : ematrix real rows shared)
   (rB : ematrix real shared cols)
@@ -117,8 +119,8 @@ fn mmcomb_gpu_approx
     on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
-    pure (aligned 16 (core gA)) **
-    pure (aligned 16 (core gB)) **
+    pure (aligned 16 (M.core gA)) **
+    pure (aligned 16 (M.core gB)) **
     pure (rows/bm * (cols/bn) <= max_blocks) **
     pure (bm/tm * (bn/tn) <= max_threads) **
     pure (eA %~ rA /\ eB %~ rB /\ eC %~ rC) **
