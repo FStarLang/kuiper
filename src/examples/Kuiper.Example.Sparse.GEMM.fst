@@ -3,13 +3,14 @@ module Kuiper.Example.Sparse.GEMM
 #lang-pulse
 
 open Kuiper
-module M  = Kuiper.Matrix
+module Array2 = Kuiper.Array2
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-open Kuiper.Sparse
+open Kuiper.Array2
 open Kuiper.EMatrix
-open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Reprs
+open Kuiper.Sparse
+open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor.Layout.Alg { l2_row_major }
 
 noextract
 let rec __dprod
@@ -136,10 +137,10 @@ inline_for_extraction noextract
 fn matmul_dotprod
   (#et : Type0) {| scalar et |}
   (#rows #shared #cols : SZ.t)
-  (#lB : mlayout shared cols)
-  {| clayout lB |}
+  (#lB : Array2.layout shared cols)
+  {| ctlayout lB |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
-  (gB : M.gpu_matrix et lB)
+  (gB : array2 et lB)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (i : szlt rows)
@@ -184,7 +185,7 @@ fn matmul_dotprod
     let x = gpu_array_read gA.elems !k;
     let c = gpu_array_read gA.col_ind !k;
 
-    let y = M.gpu_matrix_read gB c j;
+    let y = Array2.read gB (c, j);
 
     dp := !dp `add` (x `mul` y);
 
@@ -203,11 +204,11 @@ let kpre
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : nat)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
   (gA : smatrix et rows shared)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
@@ -217,7 +218,7 @@ let kpre
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  M.gpu_matrix_pts_to_cell gC (bid / cols) (bid % cols)
+  Array2.pts_to_cell gC (bid / cols, bid % cols)
     (macc eC (bid / cols) (bid % cols))
 
 unfold
@@ -225,11 +226,11 @@ let kpost
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : nat)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
   (gA : smatrix et rows shared)
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   (eA : ematrix et rows shared)
   (eB : ematrix et shared cols)
   (eC : ematrix et rows cols)
@@ -239,7 +240,7 @@ let kpost
   =
   gA |-> Frac (fA /. (rows * cols)) eA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  M.gpu_matrix_pts_to_cell gC (bid / cols) (bid % cols)
+  Array2.pts_to_cell gC (bid / cols, bid % cols)
     (MS.gemm_single comb eA eB eC (bid / cols) (bid % cols))
 
 inline_for_extraction noextract
@@ -247,12 +248,12 @@ fn kf
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : SZ.t)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
-  (gB : M.gpu_matrix et lB)
-  (gC : M.gpu_matrix et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -267,13 +268,13 @@ fn kf
     gpu **
     kpost comb gA gB gC eA eB eC fA fB bid
 {
-  let trow = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
-  let tcol = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
+  let trow : sz = bid /^ cols; assert (rewrites_to trow (bid /^ cols));
+  let tcol : sz = bid %^ cols; assert (rewrites_to tcol (bid %^ cols));
 
   let s = matmul_dotprod gA gB trow tcol;
-  let v0 = M.gpu_matrix_read_cell gC trow tcol;
+  let v0 = Array2.read_cell gC (trow, tcol);
   let v1 = comb v0 s;
-  M.gpu_matrix_write_cell gC trow tcol v1;
+  Array2.write_cell gC (trow, tcol) v1;
 
   ()
 }
@@ -283,14 +284,14 @@ fn setup
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : array2 et lB)
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : array2 et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -307,18 +308,18 @@ fn setup
 {
   // Sharing the input matrices (splitting permissions)
   smatrix_share_n gA (rows *^ cols);
-  M.gpu_matrix_share_n gB (rows *^ cols);
+  Array2.share_n gB (rows *^ cols);
 
   // Sharing the output matrix (splitting each cell)
-  M.gpu_matrix_explode gC;
+  Array2.ilower gC;
 
   forevery_unfactor' (rows *^ cols) rows cols (fun r c ->
-    M.gpu_matrix_pts_to_cell gC r c (macc eC r c));
+    Array2.pts_to_cell gC (r, c) (macc eC r c));
 
   // Join resources into a single bigstar
   forevery_zip #(natlt2 rows cols)
     (fun _ -> gB |-> Frac (fB /. (rows *^ cols)) eB)
-    (fun i -> M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i/cols) (i%cols)));
+    (fun i -> Array2.pts_to_cell gC ((i/cols <: natlt rows), (i%cols <: natlt cols)) (macc eC (i/cols) (i%cols)));
   forevery_zip #(natlt2 rows cols)
     (fun _ -> gA |-> Frac (fA /. (rows *^ cols)) eA)
     _;
@@ -328,7 +329,7 @@ fn setup
     (fun i ->
       (gA |-> Frac (fA /. (rows *^ cols)) eA) **
       (gB |-> Frac (fB /. (rows *^ cols)) eB) **
-      M.gpu_matrix_pts_to_cell gC (i/cols) (i%cols) (macc eC (i / cols) (i % cols)))
+      Array2.pts_to_cell gC ((i/cols <: natlt rows), (i%cols <: natlt cols)) (macc eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb gA gB gC eA eB eC fA fB i);
 }
@@ -338,14 +339,14 @@ fn teardown
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
   (#fA : perm)
-  (gB : M.gpu_matrix et lB)
+  (gB : array2 et lB)
   (#fB : perm)
-  (gC : M.gpu_matrix et lC)
+  (gC : array2 et lC)
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -366,13 +367,13 @@ fn teardown
   forevery_unzip #(natlt (rows * cols)) _ _;
 
   smatrix_gather_n gA (rows * cols) #fA #eA;
-  M.gpu_matrix_gather_n gB _;
+  Array2.gather_n gB _;
 
   forevery_factor (rows * cols) rows cols _;
 
   (* we get things back with some arithmetic in it *)
   assert forall+ (r:natlt rows) (c:natlt cols).
-      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+      Array2.pts_to_cell gC (((r * cols + c) / cols <: natlt rows), ((r * cols + c) % cols <: natlt cols))
         (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)
   );
 
@@ -381,26 +382,26 @@ fn teardown
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
-      M.gpu_matrix_pts_to_cell gC ((r * cols + c) / cols) ((r * cols + c) % cols)
+      Array2.pts_to_cell gC (((r * cols + c) / cols <: natlt rows), ((r * cols + c) % cols <: natlt cols))
          (MS.gemm_single comb eA eB eC ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c));
+      Array2.pts_to_cell gC (r, c) (MS.gemm_single comb eA eB eC r c));
 
   ghost
   fn aux (r:natlt rows) (c:natlt cols)
     requires
-      M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c)
+      Array2.pts_to_cell gC (r, c) (MS.gemm_single comb eA eB eC r c)
     ensures
-      M.gpu_matrix_pts_to_cell gC r c (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
+      Array2.pts_to_cell gC (r, c) (macc (matrix_comb comb eC (MS.matmul eA eB)) r c)
   {
     ()
   };
   forevery_map_2
-    (fun r c -> M.gpu_matrix_pts_to_cell gC r c (MS.gemm_single comb eA eB eC r c))
+    (fun r c -> Array2.pts_to_cell gC (r, c) (MS.gemm_single comb eA eB eC r c))
     _
     aux;
 
-  M.gpu_matrix_implode gC;
+  Array2.iraise gC;
 }
 
 inline_for_extraction noextract
@@ -408,14 +409,14 @@ let kdesc
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared) { is_global_smatrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
+  (gB : array2 et lB { Array2.is_global gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
+  (gC : array2 et lC { Array2.is_global gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -448,14 +449,14 @@ fn mmcomb_gpu
   (#et : Type0) {| scalar et |}
   (comb : binop et)
   (#rows #shared #cols : szp)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lB, clayout lC |}
+  (#lB : Array2.layout shared cols)
+  (#lC : Array2.layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared) { is_global_smatrix gA })
   (#fA : perm)
-  (gB : M.gpu_matrix et lB { M.is_global_matrix gB })
+  (gB : array2 et lB { Array2.is_global gB })
   (#fB : perm)
-  (gC : M.gpu_matrix et lC { M.is_global_matrix gC })
+  (gC : array2 et lC { Array2.is_global gC })
   (#eA : ematrix et rows shared)
   (#eB : ematrix et shared cols)
   (#eC : ematrix et rows cols)
@@ -475,4 +476,4 @@ fn mmcomb_gpu
 let _gemm_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
   mmcomb_gpu #u32 #_ (fun _ x -> x)
   #rows #shared #cols
-  #(row_major _ _) #(row_major _ _)
+  #(l2_row_major _ _) #(l2_row_major _ _)
