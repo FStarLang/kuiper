@@ -8,8 +8,11 @@ module Kuiper.Array2.Strided
 
 open Kuiper
 open Kuiper.Injection
-open Kuiper.Array2 { array2, layout, full_layout, layout_size, adapt_idx_back }
+open Kuiper.Array2 { array2, layout, layout_size, adapt_idx_back }
 open FStar.Tactics.Typeclasses { no_method }
+open Kuiper.Tensor.Layout.Alg
+open Kuiper.Tensor.Tiling { subtile_layout }
+
 module SZ = Kuiper.SizeT
 
 let cell_of_pos (#rows #cols : nat)
@@ -54,15 +57,19 @@ let aligned_strided_col_major
   : prop =
   n /?+ srm.stride /\ n /?+ srm.offset
 
-open Kuiper.Tensor.Layout.Alg
-open Kuiper.Tensor.Tiling { subtile_layout }
-
 (* Instance for l2_row_major *)
 inline_for_extraction noextract
 instance val strided_row_major_l2_row_major (#rows #cols : erased nat)
   (#_ : squash (cols > 0))
   {| d : concrete_sz cols |}
   : strided_row_major (l2_row_major rows cols)
+
+val lemma_aligned_strided_row_major_l2_row_major (#rows #cols : erased nat)
+  (#_ : squash (cols > 0))
+  {| d : concrete_sz cols |}
+  (n : pos)
+  : Lemma (requires n /?+ cols)
+          (ensures aligned_strided_row_major n (strided_row_major_l2_row_major #rows #cols #_ #d))
 
 (* Instance for l2_col_major *)
 inline_for_extraction noextract
