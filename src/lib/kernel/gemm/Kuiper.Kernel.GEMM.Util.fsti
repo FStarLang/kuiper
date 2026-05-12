@@ -3,35 +3,12 @@ module Kuiper.Kernel.GEMM.Util
 #lang-pulse
 
 open Kuiper
-module M  = Kuiper.Matrix
 module MS = Kuiper.Spec.GEMM
-module SZ = Kuiper.SizeT
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling { ematrix_subtile }
 
-inline_for_extraction noextract
-fn matmul_dotprod
-  (#et : Type0) {| scalar et |}
-  (#rows #shared #cols : SZ.t)
-  (#lA : mlayout rows shared)
-  (#lB : mlayout shared cols)
-  {| clayout lA, clayout lB |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (#eA : ematrix et rows shared)
-  (#eB : ematrix et shared cols)
-  (i : szlt rows)
-  (j : szlt cols)
-  (#fA #fB : perm)
-  preserves
-    gpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  returns
-    res : et
-  ensures
-    pure (res == MS.matmul_single eA eB i j)
+(* This is now only spec and lemmas. *)
 
 (* Real-valued matrix for specification purposes *)
 let ematrix_to_real (#et:Type) {| scalar et, real_like et |}
@@ -233,58 +210,3 @@ val mmcomb_approx_real
     (requires approx2 comb comb_r /\
               eA %~ rA /\ eB %~ rB /\ eC %~ rC)
     (ensures MS.mmcomb comb eC eA eB %~ MS.mmcomb comb_r rC rA rB)
-
-(* Version of matmul_tiled_dotprod with approximate postcondition *)
-inline_for_extraction noextract
-fn matmul_tiled_dotprod'
-  (#et : Type0) {| scalar et, real_like et |}
-  (#mrows #mshared #mcols #tile : szp)
-  (#lA : mlayout (mrows * tile)   (mshared * tile))
-  (#lB : mlayout (mshared * tile) (mcols   * tile))
-  {| clayout lA, clayout lB |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (#eA #eB : ematrix et _ _)
-  (bi : szlt mrows)
-  (bj : szlt mcols)
-  (i : szlt tile)
-  (j : szlt tile)
-  (#fA #fB : perm)
-  preserves
-    gpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  returns
-    res : et
-  ensures
-    pure (res %~ real_matmul_single eA eB (bi * tile + i) (bj * tile + j))
-
-(* Version of matmul_tiled_dotprod with external real matrices.
-   Proves the result approximates the real-valued dot product over rA, rB. *)
-inline_for_extraction noextract
-fn matmul_tiled_dotprod_real
-  (#et : Type0) {| scalar et, real_like et |}
-  (#mrows #mshared #mcols #tile : szp)
-  (#lA : mlayout (mrows * tile)   (mshared * tile))
-  (#lB : mlayout (mshared * tile) (mcols   * tile))
-  {| clayout lA, clayout lB |}
-  (gA : M.gpu_matrix et lA)
-  (gB : M.gpu_matrix et lB)
-  (#eA #eB : ematrix et _ _)
-  (rA : ematrix real (mrows * tile) (mshared * tile))
-  (rB : ematrix real (mshared * tile) (mcols * tile))
-  (bi : szlt mrows)
-  (bj : szlt mcols)
-  (i : szlt tile)
-  (j : szlt tile)
-  (#fA #fB : perm)
-  preserves
-    gpu **
-    gA |-> Frac fA eA **
-    gB |-> Frac fB eB
-  requires
-    pure (eA %~ rA /\ eB %~ rB)
-  returns
-    res : et
-  ensures
-    pure (res %~ MS.matmul_single rA rB (bi * tile + i) (bj * tile + j))

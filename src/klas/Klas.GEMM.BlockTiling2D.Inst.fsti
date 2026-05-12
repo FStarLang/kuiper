@@ -10,7 +10,6 @@ open Kuiper.Tensor.Layout.Alg { l2_row_major as rm, l2_col_major as cm,
   c_l2_col_major, c_l2_row_major }
 
 module M = Kuiper.Array2
-module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 
 unfold

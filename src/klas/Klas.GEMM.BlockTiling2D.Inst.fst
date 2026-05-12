@@ -9,7 +9,6 @@ open Kuiper.Array2.Strided
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm, l2_col_major as cm }
 
 module M = Kuiper.Array2
-module T = Kuiper.Tensor
 module MS = Kuiper.Spec.GEMM
 module K = Kuiper.Kernel.GEMM.BlockTiling2D
 module SZ = Kuiper.SizeT
