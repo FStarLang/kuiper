@@ -5,7 +5,7 @@ module Kuiper.Kernel.GEMM.OrigBlockTiling1D.Kf
 open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Math { even, odd, even_2x, odd_2x1 }
-open Kuiper.Matrix { gpu_matrix, gpu_matrix_pts_to, gpu_matrix_pts_to_cell }
+open Kuiper.Matrix { gpu_matrix, gpu_matrix_pts_to, gpu_matrix_pts_to_cell, live_cell }
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
 
@@ -15,7 +15,6 @@ module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
 module Trade = Pulse.Lib.Trade
 
-open Kuiper.Kernel.GEMM.Copy { live_cell }
 open Kuiper.Kernel.GEMM.OrigBlockTiling1D.Defs
 
 inline_for_extraction noextract

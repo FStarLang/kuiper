@@ -6,7 +6,6 @@ open Kuiper
 module MS = Kuiper.Spec.GEMM
 open Kuiper.EMatrix
 open Kuiper.Matrix.Reprs.Type
-open Kuiper.Matrix.Tiling { ematrix_subtile }
 
 (* This is now only spec and lemmas. *)
 
@@ -54,34 +53,6 @@ let real_mmcomb
   : GTot (ematrix real rows cols)
   = mkM (fun i j -> real_gemm_single comb_r m1 m2 m0 i j)
 
-(* Partial real dot product over tiled matrices, summing first `to` elements *)
-let __real_matmul_single_tiled
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols #tile : nat)
-  (m1 : ematrix et (rows * tile) (shared * tile))
-  (m2 : ematrix et (shared * tile) (cols * tile))
-  (row : natlt (rows * tile))
-  (col : natlt (cols * tile))
-  (to : nat{to <= shared * tile})
-  : GTot real
-  = MS.__gmatmul_single 0.0R ( *. ) ( +. )
-      (ematrix_to_real m1) (ematrix_to_real m2)
-      row col to
-
-(* Real-valued matmul_single for a subtile *)
-let real_matmul_single_subtile
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols #tile : nat)
-  (m1 : ematrix et (rows * tile) (shared * tile))
-  (m2 : ematrix et (shared * tile) (cols * tile))
-  (bi : natlt rows) (bj : natlt cols) (bk : natlt shared)
-  (i : natlt tile) (j : natlt tile)
-  : GTot real
-  = MS.__gmatmul_single 0.0R ( *. ) ( +. )
-      (ematrix_to_real (ematrix_subtile m1 tile tile bi bk))
-      (ematrix_to_real (ematrix_subtile m2 tile tile bk bj))
-      i j tile
-
 (* Splitting partial sum over real matrices:
    sum(0 to base+n) = sum(0 to base) + sum over subtile elements *)
 val __gmatmul_single_split
@@ -107,70 +78,6 @@ val __gmatmul_single_split
       ==
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) m1 m2 row col base +.
       MS.__gmatmul_single 0.0R ( *. ) ( +. ) sub_m1 sub_m2 sub_row sub_col n)
-
-(* Stepping the tiled partial sum by one tile block *)
-val __real_matmul_single_tiled_step
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols : nat)
-  (#tile : pos)
-  (m1 : ematrix et (rows * tile) (shared * tile))
-  (m2 : ematrix et (shared * tile) (cols * tile))
-  (bi : natlt rows) (bj : natlt cols) (bk : nat{bk < shared})
-  (i : natlt tile) (j : natlt tile)
-  : Lemma
-    (ensures (
-      let row = bi * tile + i in
-      let col = bj * tile + j in
-      __real_matmul_single_tiled m1 m2 row col ((bk + 1) * tile)
-      ==
-      __real_matmul_single_tiled m1 m2 row col (bk * tile) +.
-      real_matmul_single_subtile m1 m2 bi bj bk i j
-    ))
-
-(* Scalar matmul_single of subtile approximates the real version *)
-val matmul_single_subtile_approx
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols : nat)
-  (#tile : pos)
-  (m1 : ematrix et (rows * tile) (shared * tile))
-  (m2 : ematrix et (shared * tile) (cols * tile))
-  (bi : natlt rows) (bj : natlt cols) (bk : natlt shared)
-  (i : natlt tile) (j : natlt tile)
-  : Lemma
-    (ensures (
-      MS.matmul_single (ematrix_subtile m1 tile tile bi bk)
-                       (ematrix_subtile m2 tile tile bk bj)
-                       i j
-      %~ real_matmul_single_subtile m1 m2 bi bj bk i j
-    ))
-
-(* General matmul approximation: scalar matmul_single approximates real version.
-   Generalization of matmul_single_subtile_approx to non-square matrices. *)
-val matmul_single_approx
-  (#et:Type) {| scalar et, real_like et |}
-  (#rows #shared #cols : nat)
-  (m1 : ematrix et rows shared)
-  (m2 : ematrix et shared cols)
-  (row : natlt rows)
-  (col : natlt cols)
-  : Lemma
-    (ensures (
-      MS.matmul_single m1 m2 row col
-      %~ real_matmul_single m1 m2 row col
-    ))
-
-(* mmcomb approximation: exact mmcomb result approximates real-valued real_mmcomb *)
-val mmcomb_approx
-  (#et:Type) {| scalar et, real_like et |}
-  (comb : binop et)
-  (comb_r : binop real)
-  (#rows #shared #cols : nat)
-  (eC : ematrix et rows cols)
-  (eA : ematrix et rows shared)
-  (eB : ematrix et shared cols)
-  : Lemma
-    (requires approx2 comb comb_r)
-    (ensures ematrix_approximates (MS.mmcomb comb eC eA eB) (real_mmcomb comb_r eC eA eB))
 
 (* Approximation of partial matmul over external real matrices:
    if eA %~ rA and eB %~ rB then

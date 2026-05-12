@@ -75,8 +75,6 @@ fn copy_tiles_out_of_matrices_vec
     unfold live_strided_chunks sA nthr tid;
     let tileA = gpu_matrix_extract_tile_ro' gA
       (SZ.v bm) (SZ.v bk) (SZ.v tile_row) (SZ.v tile_shared);
-    // get_bdim() is not specialized, when the block dimensions are specialized
-    // cp_matrix bm bk tileA sA (get_bdim()) tid;
 
     // Z3 needs some convicing.
     Kuiper.Divides.lemma_divides_product_l (chunk et) str_A.stride (tile_row * bm);

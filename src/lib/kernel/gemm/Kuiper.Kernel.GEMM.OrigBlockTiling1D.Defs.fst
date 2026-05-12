@@ -7,15 +7,13 @@ module Kuiper.Kernel.GEMM.OrigBlockTiling1D.Defs
 open Kuiper
 open Kuiper.EMatrix
 open Kuiper.Math { even, odd }
-open Kuiper.Matrix { gpu_matrix, gpu_matrix_pts_to, gpu_matrix_pts_to_cell }
+open Kuiper.Matrix { gpu_matrix, gpu_matrix_pts_to, gpu_matrix_pts_to_cell, live_cell }
 open Kuiper.Matrix.Reprs.Type
 open Kuiper.Matrix.Tiling
 
 module B = Kuiper.Barrier
 module MU = Kuiper.Kernel.GEMM.Util
 module SZ = Kuiper.SizeT
-
-open Kuiper.Kernel.GEMM.Copy { live_cell }
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract

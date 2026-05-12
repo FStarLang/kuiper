@@ -478,3 +478,13 @@ fn gpu_matrix_to_array
   ensures
     pure (SZ.fits (rows * cols) /\ Pulse.Lib.Vec.length a == rows * cols) **
     (a |-> to_seq l em) //TODO: consider rebinding
+
+let live_cell
+  (#et : Type0)
+  (#rows #cols : nat)
+  (#lm : mlayout rows cols)
+  (gm : gpu_matrix et lm)
+  (i : natlt rows)
+  (j : natlt cols)
+  : slprop
+  = exists* v. gpu_matrix_pts_to_cell gm i j v
