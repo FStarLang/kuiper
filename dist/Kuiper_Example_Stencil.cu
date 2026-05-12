@@ -36,12 +36,12 @@ __global__
 /**
   hoisted when extracting stencil3x3_i32_add_mul2_rc
 */
-static void __hoisted_1(uint32_t rows, uint32_t *gIn, uint32_t *gOut,
+static void __hoisted_1(uint32_t *gIn, uint32_t *gOut, uint32_t rows_sub2,
                         uint32_t cols_sub2)
 {
     uint32_t i = blockIdx.x / cols_sub2;
     uint32_t j = blockIdx.x % cols_sub2;
-    gOut[j * (rows - 2U) + i] =
+    gOut[j * rows_sub2 + i] =
         gIn[i * (cols_sub2 + 2U) + j] + gIn[i * (cols_sub2 + 2U) + j + 1U] +
         gIn[i * (cols_sub2 + 2U) + j + 2U]
         + gIn[(i + 1U) * (cols_sub2 + 2U) + j]
@@ -57,8 +57,9 @@ Kuiper_Example_Stencil_stencil3x3_i32_add_mul2_rc(uint32_t rows,
                                                   uint32_t cols,
                                                   uint32_t *gIn, uint32_t *gOut)
 {
+    uint32_t rows_sub2 = rows - 2U;
     uint32_t cols_sub2 = cols - 2U;
-    KPR_KCALL(__hoisted_1, (rows - 2U) * cols_sub2, 1U, 0U, rows, gIn, gOut,
+    KPR_KCALL(__hoisted_1, rows_sub2 * cols_sub2, 1U, 0U, gIn, gOut, rows_sub2,
               cols_sub2);
     MUST(cudaDeviceSynchronize());
 }

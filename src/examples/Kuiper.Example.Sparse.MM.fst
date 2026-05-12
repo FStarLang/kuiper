@@ -3,23 +3,24 @@ module Kuiper.Example.Sparse.MM
 
 #lang-pulse
 open Kuiper
+open Kuiper.Array2
 open Kuiper.Sparse
-module SZ = FStar.SizeT
-open Kuiper.Matrix
-open Kuiper.Matrix.Reprs.Type
 open Kuiper.Spec.GEMM
-open Kuiper.Matrix.Reprs
+open Kuiper.Tensor { ctlayout }
+open Kuiper.Tensor.Layout.Alg { l2_row_major, l2_col_major }
+module SZ = Kuiper.SizeT
+module Array2 = Kuiper.Array2
 
 inline_for_extraction noextract
 fn smatrix_sdmm
   (#et : Type0) {| scalar et |}
   (rows shared cols : szp)
-  (#lB : mlayout shared cols)
-  (#lC : mlayout rows cols)
-  {| clayout lB, clayout lC |}
+  (#lB : layout shared cols)
+  (#lC : layout rows cols)
+  {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared))
-  (gB : gpu_matrix et lB)
-  (gC : gpu_matrix et lC)
+  (gB : array2 et lB)
+  (gC : array2 et lC)
   #a #b
   requires
     live gC
@@ -59,14 +60,14 @@ fn smatrix_sdmm
         let x = gpu_array_read gA.elems !k;
         let c = gpu_array_read gA.col_ind !k;
 
-        let y = gpu_matrix_read gB c !j;
+        let y = Array2.read gB (c, !j);
 
         dp := !dp `add` (x `mul` y);
 
         k := !k +^ 1sz;
       };
 
-      gpu_matrix_write gC !i !j !dp;
+      Array2.write gC (!i, !j) !dp;
       j := !j +^ 1sz;
     };
     i := !i +^ 1sz;
@@ -78,9 +79,9 @@ fn smatrix_sdmm
 let _mmsd_u32_rr (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
   smatrix_sdmm #u32 #_
   rows shared cols
-  #(row_major _ _) #(row_major _ _)
+  #(l2_row_major _ _) #(l2_row_major _ _)
 
 let _mmsd_u32_cc (rows shared cols : szp { SZ.fits (rows * cols) /\ SZ.fits (shared * cols) }) =
   smatrix_sdmm #u32 #_
   rows shared cols
-  #(col_major _ _) #(col_major _ _)
+  #(l2_col_major _ _) #(l2_col_major _ _)
