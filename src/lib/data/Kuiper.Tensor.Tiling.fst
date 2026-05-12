@@ -20,7 +20,7 @@ include Kuiper.EMatrix.Tiling
 #restart-solver
 #push-options "--split_queries always --z3rlimit 20"
 inline_for_extraction noextract
-let c_subtile_layout2
+let c_subtile_layout
   (#rows #cols : erased nat)
   (l : M.layout rows cols)
   {| cc : ctlayout l |}
@@ -42,12 +42,6 @@ let c_subtile_layout2
                 cc.cimap x');
   }
 #pop-options
-
-(* FIXME. The definition above works just fine. But, if we remove this
-indirection (and presumably have the val on the fsti ascribe it), the
-function fails to verify. *)
-inline_for_extraction noextract
-let c_subtile_layout = c_subtile_layout2
 
 inline_for_extraction noextract
 let array2_subtile
