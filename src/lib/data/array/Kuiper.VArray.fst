@@ -1036,7 +1036,7 @@ fn varray_write
   unfold varray_pts_to a v0;
   IArray.iarray_write a ci e;
   Container.oplus_lemma (reveal v0) (ci_to_ai vw ci) e;
-  IArray.iarray_ext a 
+  IArray.iarray_ext a
     _
     (vw.ctn.acc (vw.ctn.upd v0 (ci_to_ai vw ci) e));
   fold varray_pts_to a (vw.ctn.upd v0 (ci_to_ai vw ci) e);
