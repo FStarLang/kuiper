@@ -136,3 +136,36 @@ let lemma_eucl_unique
   )
   (ensures q == q' /\ r == r')
 = ()
+
+let lemma_div_product (a b c : pos)
+  : Lemma (requires a /?+ b /\ b /?+ c)
+          (ensures  c / a == (b / a) * (c / b))
+= // a * (b/a) == b, b * (c/b) == c, a * (c/a) == c
+  lemma_divides_exact a b;
+  lemma_divides_exact b c;
+  lemma_divides_chain a b c;
+  lemma_divides_exact a c;
+  // So: a * (b/a) * (c/b) == b * (c/b) == c == a * (c/a)
+  // Cancel a from both sides:
+  calc (==) {
+    (b/a) * (c/b) * a;
+    == {} // commutativity + associativity
+    (b/a) * a * (c/b);
+    == {} // (b/a) * a == a * (b/a) == b
+    b * (c/b);
+    == {} // b * (c/b) == c
+    c;
+    == {} // a * (c/a) == c
+    (c/a) * a;
+  };
+  M.lemma_cancel_mul (b/a * (c/b)) (c/a) a
+
+let lemma_eucl_lt_succ (b : pos) (q r q' r' : nat)
+  : Lemma (requires r < b /\ r' < b)
+          (ensures q * b + r < q' * b + r' + 1 <==>
+                   (q * b + r < q' * b + r' \/ (q == q' /\ r == r')))
+= let aux () : Lemma (requires q * b + r == q' * b + r' /\ r < b /\ r' < b)
+                     (ensures q == q' /\ r == r')
+  = lemma_eucl_unique b q r q' r'
+  in
+  Classical.move_requires aux ()

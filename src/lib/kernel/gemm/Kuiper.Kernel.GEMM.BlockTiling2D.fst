@@ -778,9 +778,13 @@ fn epilogue
 
       // Bridge for invariant step: decompose `< bound+1` into
       // `< bound` (handled by old invariant) or `== bound` (freshly written).
-      assert pure (forall (i:natlt tm) (j:natlt tn).
-        i * tn + j < !resIdxM * tn + !resIdxN + 1 <==>
-        (i * tn + j < !resIdxM * tn + !resIdxN \/ (i == !resIdxM /\ j == !resIdxN)));
+      // Use lemma_eucl_lt_succ for each (i,j) to avoid flaky Z3 non-linear reasoning.
+      let rM = !resIdxM;
+      let rN = !resIdxN;
+      (introduce forall (i:natlt tm) (j:natlt tn).
+        (i * tn + j < SZ.v rM * tn + SZ.v rN + 1 <==>
+        (i * tn + j < SZ.v rM * tn + SZ.v rN \/ (i == SZ.v rM /\ j == SZ.v rN)))
+      with (lemma_eucl_lt_succ tn i j (SZ.v rM) (SZ.v rN)));
 
       resIdxN := !resIdxN +^ 1sz;
     };
@@ -1106,14 +1110,9 @@ fn setup
 
   (* Step 5: Factor gA/gB to 2D *)
   (* Divisibility chain: rows/tm == (rows/bm) * (bm/tm), cols/tn == (cols/bn) * (bn/tn) *)
-  assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
-  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
+  lemma_div_product tm bm rows;
   assert pure (rows/tm == (bm/tm) * (rows/bm));
-  assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
-  assert pure (bn * (cols/bn) == cols);
-  assert pure (tn * ((bn/tn) * (cols/bn)) == cols);
-  assert pure (tn * (cols/tn) == cols);
-  assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
+  lemma_div_product tn bn cols;
   assert pure (cols/tn == (bn/tn) * (cols/bn));
   assert pure (n_total == (rows/bm * (cols/bn)) * (bm/tm * (bn/tn)));
   forevery_factor n_total (rows/bm * (cols/bn)) (bm/tm * (bn/tn))
@@ -1296,14 +1295,9 @@ fn teardown
   (* Step 1: Collapse 2D → 1D (single forall+ in context, no ambiguity) *)
   forevery_rw_size2 (SZ.v nblk) nblk_val (SZ.v nthr) nthr_val;
   (* Divisibility chain: rows/tm == (rows/bm) * (bm/tm), cols/tn == (cols/bn) * (bn/tn) *)
-  assert pure (tm * (bm/tm) * (rows/bm) == bm * (rows/bm));
-  assert pure (tm * ((bm/tm) * (rows/bm)) == tm * (rows/tm));
+  lemma_div_product tm bm rows;
   assert pure (rows/tm == (bm/tm) * (rows/bm));
-  assert pure (tn * (bn/tn) * (cols/bn) == bn * (cols/bn));
-  assert pure (bn * (cols/bn) == cols);
-  assert pure (tn * ((bn/tn) * (cols/bn)) == cols);
-  assert pure (tn * (cols/tn) == cols);
-  assert pure (tn * ((bn/tn) * (cols/bn)) == tn * (cols/tn));
+  lemma_div_product tn bn cols;
   assert pure (cols/tn == (bn/tn) * (cols/bn));
   assert pure (n_total == nblk_val * nthr_val);
   forevery_unfactor' (rows/tm * (cols/tn)) nblk_val nthr_val

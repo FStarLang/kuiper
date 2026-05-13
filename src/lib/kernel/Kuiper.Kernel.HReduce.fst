@@ -655,6 +655,7 @@ fn sum_stride_map
   assert pure (gread gidx == ((off + ((lena - off - 1 + stride) / stride) * stride) - off) / stride);
   assert pure (gread gidx == (((lena - off - 1 + stride) / stride) * stride) / stride);
   assert pure (gread gidx == (lena - off - 1 + stride) / stride);
+  assert pure (lena - off - 1 + stride == lena - off + stride - 1);
   assert pure (gread gidx == (lena - off + stride - 1) / stride);
   assert pure (gread gidx == seq_stride_length (lseq_map pre_map_r vr) stride off);
   assert pure (seq_take (seq_stride_length (lseq_map pre_map_r vr) stride off) (seq_stride (lseq_map pre_map_r vr) stride off) == seq_stride (lseq_map pre_map_r vr) stride off);

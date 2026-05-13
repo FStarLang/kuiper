@@ -85,3 +85,17 @@ val lemma_eucl_unique
     r' < b
   )
   (ensures q == q' /\ r == r')
+
+(* Helpers... *)
+
+(* If a | b | c, then c/a == (b/a) * (c/b). *)
+val lemma_div_product (a b c : pos)
+  : Lemma (requires a /?+ b /\ b /?+ c)
+          (ensures  c / a == (b / a) * (c / b))
+
+(* Successor decomposition for Euclidean indices: if both r,R < b, then
+   q*b+r < Q*b+R+1  iff  q*b+r < Q*b+R or (q==Q /\ r==R). *)
+val lemma_eucl_lt_succ (b : pos) (q r q' r' : nat)
+  : Lemma (requires r < b /\ r' < b)
+          (ensures q * b + r < q' * b + r' + 1 <==>
+                   (q * b + r < q' * b + r' \/ (q == q' /\ r == r')))
