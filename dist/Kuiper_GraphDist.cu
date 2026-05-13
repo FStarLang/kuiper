@@ -39,7 +39,8 @@ static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
 
 void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b)
 {
-    KPR_KCALL(__hoisted_0, (size * size + 1023U) / 1024U, 1024U, 0U, size, a,
-              b);
+    KPR_KCALL(__hoisted_0,
+              size * size / 1024U + (size * size % 1024U != 0U ? 1U : 0U),
+              1024U, 0U, size, a, b);
     MUST(cudaDeviceSynchronize());
 }
