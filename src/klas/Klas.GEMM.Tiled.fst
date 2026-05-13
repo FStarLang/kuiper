@@ -67,8 +67,6 @@ let spec_gemm (tile : valid_tile) (et : Type0) {| scalar et, real_like et |}
   (repA repB repC : trepr2)
   {| crepA : ctrepr2 repA, crepB : ctrepr2 repB, crepC : ctrepr2 repC |}
   (alpha beta : et) =
-  to_real_ok alpha;
-  to_real_ok beta;
   spec tile et
     (MS.lincomb alpha beta) (MS.lincomb (to_real alpha) (to_real beta))
     repA repB repC

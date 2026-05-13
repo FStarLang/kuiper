@@ -24,4 +24,4 @@ let lemma_to_real_matrix_approximates (#et : Type0)
   (m : ematrix4 et d0 d1 d2 d3)
   : Lemma (ensures m %~ to_real_matrix m)
           [SMTPat (to_real_matrix m)]
-  = Classical.forall_intro d.to_real_ok
+  = ()
