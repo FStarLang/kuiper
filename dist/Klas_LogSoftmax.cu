@@ -56,7 +56,8 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f16(uint32_t nth, uint32_t lena, half *a)
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_1, (lena + 1023U) / 1024U, 1024U, 0U, lena, a, sum);
+    KPR_KCALL(__hoisted_1, lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a, sum);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -116,7 +117,8 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f32(uint32_t nth, uint32_t lena,
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_3, (lena + 1023U) / 1024U, 1024U, 0U, lena, a, sum);
+    KPR_KCALL(__hoisted_3, lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a, sum);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -176,7 +178,8 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f64(uint32_t nth, uint32_t lena,
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_5, (lena + 1023U) / 1024U, 1024U, 0U, lena, a, sum);
+    KPR_KCALL(__hoisted_5, lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a, sum);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -235,7 +238,8 @@ void Klas_LogSoftmax_log_softmax_gpu_f16(uint32_t lena, half *a)
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_7, (lena + 1023U) / 1024U, 1024U, 0U, lena, a, sum);
+    KPR_KCALL(__hoisted_7, lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a, sum);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -294,7 +298,8 @@ void Klas_LogSoftmax_log_softmax_gpu_f32(uint32_t lena, float *a)
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_9, (lena + 1023U) / 1024U, 1024U, 0U, lena, a, sum);
+    KPR_KCALL(__hoisted_9, lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a, sum);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -353,7 +358,9 @@ void Klas_LogSoftmax_log_softmax_gpu_f64(uint32_t lena, double *a)
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_11, (lena + 1023U) / 1024U, 1024U, 0U, lena, a, sum);
+    KPR_KCALL(__hoisted_11,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, a, sum);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -414,7 +421,9 @@ void Klas_LogSoftmax_log_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_13, (lena + 1023U) / 1024U, 1024U, 0U, lena, ga, sum);
+    KPR_KCALL(__hoisted_13,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 2U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
@@ -477,7 +486,9 @@ void Klas_LogSoftmax_log_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_15, (lena + 1023U) / 1024U, 1024U, 0U, lena, ga, sum);
+    KPR_KCALL(__hoisted_15,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 4U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
@@ -540,7 +551,9 @@ void Klas_LogSoftmax_log_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_17, (lena + 1023U) / 1024U, 1024U, 0U, lena, ga, sum);
+    KPR_KCALL(__hoisted_17,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 8U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
@@ -603,7 +616,9 @@ void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, half *a)
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_19, (lena + 1023U) / 1024U, 1024U, 0U, lena, ga, sum);
+    KPR_KCALL(__hoisted_19,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 2U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
@@ -666,7 +681,9 @@ void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a)
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_21, (lena + 1023U) / 1024U, 1024U, 0U, lena, ga, sum);
+    KPR_KCALL(__hoisted_21,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 4U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
@@ -729,7 +746,9 @@ void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a)
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
-    KPR_KCALL(__hoisted_23, (lena + 1023U) / 1024U, 1024U, 0U, lena, ga, sum);
+    KPR_KCALL(__hoisted_23,
+              lena / 1024U + (uint32_t) (lena % 1024U != 0U),
+              1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy(a, ga, 8U * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));

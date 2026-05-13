@@ -9,7 +9,7 @@ bool Kuiper_GraphDist_uu___is_D(uint16_t projectee)
 
 __device__ static uint16_t add_(uint16_t x, uint16_t y)
 {
-    return x == 0U || !(y == 0U) && y < x ? y : x;
+    return x == 0U || y != 0U && y < x ? y : x;
 }
 
 __device__ static uint16_t mult(uint16_t x, uint16_t y)
@@ -39,7 +39,8 @@ static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
 
 void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b)
 {
-    KPR_KCALL(__hoisted_0, (size * size + 1023U) / 1024U, 1024U, 0U, size, a,
-              b);
+    KPR_KCALL(__hoisted_0,
+              size * size / 1024U + (uint32_t) (size * size % 1024U != 0U),
+              1024U, 0U, size, a, b);
     MUST(cudaDeviceSynchronize());
 }

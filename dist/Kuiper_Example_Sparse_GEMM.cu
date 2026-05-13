@@ -30,7 +30,8 @@ Kuiper_Example_Sparse_GEMM__gemm_u32_rr(uint32_t rows,
                                         gA, uint32_t *gB, uint32_t *gC)
 {
     KRML_MAYBE_UNUSED_VAR(shared);
-    KPR_KCALL(__hoisted_0, (rows * cols + 1023U) / 1024U, 1024U, 0U, rows, cols,
-              gA, gB, gC);
+    KPR_KCALL(__hoisted_0,
+              rows * cols / 1024U + (uint32_t) (rows * cols % 1024U != 0U),
+              1024U, 0U, rows, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }

@@ -51,13 +51,27 @@ let s_divmod_inv_2 (j:szp) (dm : sz & szlt j {SZ.fits (dm._1 * j + dm._2)})
   = ()
 
 inline_for_extraction noextract
-let sdivup (x:sz) (y:szp{SZ.fits (x+y)}) : sz =
-  let open FStar.SizeT in
-  (* Parenthesizing like such allows constant folding when y is a constant. *)
-  (x +^ (y -^ 1sz)) `div` y
+let sdivup (x : sz) (y : szp) : sz =
+  (* The idiomatic way to round up would be
+       (x +^ (y -^ 1sz)) `div` y
+     which also generates nice code like (x + 7) / 8 after partial evaluation.
+     But, it requires that x + (y-1) does not overflow, which means
+     propagating this precondition everywhere, even though it's essentially
+     unfalsifiable for a SizeT... The implementation below
+     is more verbose but does not have this requirement. *)
+  (x /^ y) +^ (if SZ.rem x y <> 0sz then 1sz else 0sz)
 
-let lem_sdivup (x:sz) (y:szp{SZ.fits (x+y)})
+let lem_sdivup (x:sz) (y:szp)
   : Lemma (SZ.v (sdivup x y) == divup (SZ.v x) (SZ.v y))
+          [SMTPat (sdivup x y)]
+  = ()
+
+inline_for_extraction noextract
+let sdivup' (x : sz) (y : szp{SZ.fits (x+y-1)}) : sz =
+  (x +^ (y -^ 1sz)) /^ y
+
+let lem_sdivup' (x : sz) (y : szp{SZ.fits (x+y-1)})
+  : Lemma (SZ.v (sdivup' x y) == divup x y)
           [SMTPat (sdivup x y)]
   = ()
 
