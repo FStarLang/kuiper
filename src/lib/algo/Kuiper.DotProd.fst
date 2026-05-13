@@ -106,7 +106,6 @@ fn kahan_dotprod
       (fun (i : natlt len) -> (rA @! i) *. (rB @! i))
       fn (i : szlt len) {
         open Array1;
-        a_mul a.(i) b.(i) (rA @! i) (rB @! i);
         a.(i) `mul` b.(i);
       };
   seq_dotprod_is_sum rA rB len;

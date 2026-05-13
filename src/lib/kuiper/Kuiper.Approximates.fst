@@ -22,8 +22,7 @@ let seq_approximates_append (#a:Type) {| scalar a, real_like a |}
   (s1 s2 : a) (r1 r2 : seq real)
   : Lemma (requires s1 `approximates` rsum r1 /\ s2 `approximates` rsum r2)
           (ensures (s1 `add` s2) `approximates` rsum (r1 `Seq.append` r2))
-  = rsum_append r1 r2;
-    a_add s1 s2 (rsum r1) (rsum r2)
+  = rsum_append r1 r2
 
 let rec sum_is_approx' #a {| scalar a, real_like a |}
       (s: seq a) (s': seq real) (acc: a) (acc': real) :
@@ -33,7 +32,6 @@ let rec sum_is_approx' #a {| scalar a, real_like a |}
   match view_seq s, view_seq s' with
   | SNil, SNil -> ()
   | SCons hd tl, SCons hd' tl' ->
-    a_add acc hd acc' hd';
     sum_is_approx' #a tl tl' (add acc hd) (acc' +. hd')
 
 let sum_is_approx #a {| scalar a, real_like a |} (s: seq a) (s': seq real) :

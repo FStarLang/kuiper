@@ -26,8 +26,6 @@ let softmax_approx
     (ensures seq_map (fun x -> div x summ) (seq_map exp s0) %~ softmax_real r0)
   = let exps = seq_map rexp r0 in
     sum_non_zero exps 0.0R;
-    Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
-    Classical.forall_intro_4 (fun (x y : et) (r : real) -> Classical.move_requires (div_approx #et x y r));
     ()
 
 inline_for_extraction noextract
@@ -51,7 +49,6 @@ fn softmax_gpu
       pure (va' %~ softmax_real ra)
 {
   (* Compute sum of exps (does not modify array) *)
-  Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
   assert pure (Seq.equal (seq_map id (seq_map rexp ra)) (seq_map rexp ra));
   let sum = Kuiper.Kernel.HReduce.reduce exp rexp nth lena a ra;
 

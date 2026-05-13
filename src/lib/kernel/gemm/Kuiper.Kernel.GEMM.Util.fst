@@ -69,10 +69,8 @@ let rec __matmul_single_approx_real
       let b = macc eB (n-1) col in
       let ra = macc rA row (n-1) in
       let rb = macc rB (n-1) col in
-      a_mul a b ra rb;
       let ps = MS.__gmatmul_single zero mul add eA eB row col (n-1) in
       let rps = MS.__gmatmul_single #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col (n-1) in
-      a_add ps (mul a b) rps (Kuiper.Scalars.mul ra rb);
       MS.__gmatmul_single_lemma zero mul add eA eB row col n;
       MS.__gmatmul_single_lemma #real #real 0.0R Kuiper.Scalars.mul Kuiper.Scalars.add rA rB row col n
     end

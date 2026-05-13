@@ -83,8 +83,6 @@ fn matmul_tiled_dotprod_real
     (* Step the partial sum: split property of __gmatmul_single over rA, rB *)
     MU.__gmatmul_single_split rA rB grow gcol (SZ.v !bk * tile) tile sub_rA sub_rB i j;
 
-    a_add s s' r_partial r_subtile;
-
     bk := !bk +^ 1sz;
 
     ()

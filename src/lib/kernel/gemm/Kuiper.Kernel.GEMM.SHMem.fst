@@ -580,8 +580,6 @@ fn kf
       == r_partial +. r_subtile));
     assert (pure ((SZ.v !bk + 1) * SZ.v tile == SZ.v !bk * SZ.v tile + SZ.v tile));
 
-    a_add s t r_partial r_subtile;
-
     assert (pure (2 * (!bk + 1) == 2 * !bk + 1 + 1));
 
     bk := !bk +^ 1sz;

@@ -71,17 +71,6 @@ let log_softmax_approx
     (summ : et{summ %~ rsum (seq_map rexp r0)})
   : Lemma (ensures seq_map (fun x -> x `sub` log summ) s0 %~ log_softmax_real r0)
   = let lhs = seq_map (fun x -> x `sub` log summ) s0 in
-    let aux (i : natlt (len r0)) : Lemma ((lhs @! i) %~ (log_softmax_real' r0 @! i)) =
-      let x = s0 @! i in
-      assert (x %~ (r0 @! i));
-      assert ((summ <: et) %~ rsum (seq_map rexp r0));
-      log_approx summ (rsum (seq_map rexp r0));
-      assert (log summ %~ rlog (rsum (seq_map rexp r0)));
-      sub_approx x (log summ) (r0 @! i) (rlog (rsum (seq_map rexp r0)));
-      assert ((x `sub` log summ)   %~  ((r0 @! i) -. rlog (rsum (seq_map rexp r0))));
-      ()
-    in
-    Classical.forall_intro aux;
     real_log_softmax_lemma r0;
     ()
 
@@ -109,7 +98,6 @@ fn log_softmax_gpu
   Array1.memcpy_device_to_device a' a lena;
 
   (* Pointwise exp + compute sum *)
-  Classical.forall_intro_2 (fun x -> Classical.move_requires (exp_approx #et x));
   let sum = Kuiper.Kernel.HReduce.reduce exp rexp nth lena a' ra;
   Array1.free a';
 

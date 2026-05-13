@@ -621,9 +621,6 @@ fn sum_stride_map
 
     assert pure (!acc %~ rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off)));
     assert pure (v %~ (vr @! !idx));
-    a_add !acc v'
-      (rsum (seq_take (gread gidx) (seq_stride (lseq_map pre_map_r vr) stride off)))
-      ((lseq_map pre_map_r vr) @! SZ.v !idx);
     assert pure (seq_stride (lseq_map pre_map_r vr) stride off @! gread gidx == (lseq_map pre_map_r vr) @! (off + gread gidx * stride));
     assert pure (off + gread gidx * stride == SZ.v !idx);
     rsum_seq_take_next_ (seq_stride (lseq_map pre_map_r vr) stride off) (gread gidx);
