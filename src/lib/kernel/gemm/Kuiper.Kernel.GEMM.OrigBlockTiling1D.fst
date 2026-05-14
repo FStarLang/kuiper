@@ -18,6 +18,17 @@ open Kuiper.Kernel.GEMM.OrigBlockTiling1D.Kf
 open Kuiper.Kernel.GEMM.OrigBlockTiling1D.Setup
 open Kuiper.Kernel.GEMM.OrigBlockTiling1D.Teardown
 
+(* All of the sendable proofs here are admitted, only due to SMT limitations.
+When solving the typeclass instance, we generate rather huge terms that inline
+the definitions of kpre,kpre1, etc. These definitions involve non-trivial
+non-linear arithmetic for their indexing, and unfolding means F* must re-do the
+proof that each of those expressions are in bounds yet again. Worse, they are
+duplicated several times.
+
+I think the most problematic is the forall+ in kpre1. Giving that a name, and a
+standalone sendavble instance, would probably fix this. But this should ideally
+just work.  *)
+
 let kpre_block_sendable
   (#et : Type0) {| scalar et |}
   (comb : binop et)
@@ -42,7 +53,7 @@ let kpre_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpre comb tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= magic()
+= magic() (* see above *)
 
 let kpost_block_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -69,7 +80,7 @@ let kpost_block_sendable
   (bid : natlt (mrows * mcols))
   (tid : natlt (bm/tm * bn))
 : is_send_across block_of (kpost comb comb_r tm slA slB gA gB gC eA eB eC fA fB sh bid tid)
-= magic()
+= magic() (* see above *)
 
 let block_pre_gpu_sendable
   (#et : Type0) {| scalar et |}
@@ -92,7 +103,7 @@ let block_pre_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt (bm/tm * bn)).
       kpre1 comb tm gA gB gC eA eB eC fA fB bid tid)
-= magic()
+= magic() (* see above *)
 
 let block_post_gpu_sendable
   (#et : Type0) {| scalar et, real_like et |}
@@ -115,7 +126,7 @@ let block_post_gpu_sendable
 : is_send_across gpu_of
     (forall+ (tid : natlt (bm/tm * bn)).
       kpost1 comb comb_r tm gA gB gC eA eB eC fA fB bid tid)
-= magic()
+= magic() (* see above *)
 
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 80"
 #restart-solver
