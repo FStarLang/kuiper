@@ -10,9 +10,11 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 module SMX = Kuiper.Kernel.Softmax
 
+val max_real: real -> real -> real
+
 let online_softmax_real_iter (md: erased (tuple2 real real)) (x:real) : erased (tuple2 real real) =
   let (m,d) = md in 
-  let m' = if x >. m then x else m in
+  let m' = max_real m x in
   let d' = d *. (rexp (m -. m')) +. rexp (x -. m') in
   (m',d')
 
@@ -57,7 +59,7 @@ type softmax_notinplace_gpu_ty (et : Type0) {| floating et, real_like et, floati
      (b : array1 et l { is_global b })
      (#va : erased (lseq et lenab))
      (ra : erased (lseq real lenab) { va %~ ra })
-     (#_: squash ( forall (i:natlt lenab). (va @! i) `gt` minus_inf))
+     (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
   preserves
     cpu **
     on gpu_loc (a |-> va)

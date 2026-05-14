@@ -11,6 +11,9 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 module SMX = Kuiper.Kernel.Softmax
 
+let max_real (x: real) (y: real) : real = 
+  if x >. y then x else y
+
 unfold
 let kpre
   (#et : Type0) {| floating et, real_like et |}
@@ -59,6 +62,20 @@ instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
 
 #set-options "--debug SMTFail --split_queries always"
 
+let max_float (#et : Type0) {| floating et |} 
+  (x: et) (y: et) : et = 
+  if x `gt` y then x else y
+ 
+let max_float_approximates_max_real (#et: Type0) {| floating et, real_like et |}  
+  (x: et) (y: et) (xr: real) (yr: real): 
+    Lemma
+      (requires x %~ xr /\ y %~ yr) 
+      (ensures max_float #et x y %~ max_real xr yr)
+      [SMTPat (max_float x y); SMTPat (max_real xr yr);
+       SMTPat (x %~ xr); SMTPat (y %~ yr);]
+      = admit ()
+
+
 inline_for_extraction noextract
 fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -68,7 +85,7 @@ fn kfonline_softmax
   (b : array1 et l)
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). (va @! i) `gt` minus_inf))
+  (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
   (tid : szlt lenab)
   ()
   preserves
@@ -78,41 +95,68 @@ fn kfonline_softmax
   ensures
     kpost #et lenab #l a b #va ra tid 
 {
+  rexp_base ();
+  
   let mut i = 0sz;
   let mut sum: et = zero;
   let mut max: et = minus_inf;
   let mut gsum : erased real = 0.0R;
-  let mut gmax : erased real = 123.0R;
+  let mut gmax : erased real = ra @! 0;
   while (!i <^ lenab)
     invariant live i ** 
       live max ** live gmax **
-      live sum **
-      live gsum **
-      pure (!sum %~ !gsum) **
-      pure (!i > 0 ==> !max %~ !gmax)
-    //   pure (!i > 0 ==>
-    //          (!max, !sum) %~ seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (seq_drop 1 ra)) **
-    //   pure (!i == 0sz ==> (!sum == zero /\ !max == minus_inf))
+      live sum ** live gsum
+    invariant pure (!sum %~ !gsum)
+    invariant pure (!i > 0 ==> !max %~ !gmax)
+    invariant pure (!i > 0 ==> !i <= Seq.length ra /\
+      (reveal !gmax, reveal !gsum) == 
+        seq_fold_left online_softmax_real_iter 
+        (hide (ra @! 0, 1.0R)) (Seq.slice ra 1 (!i)))
+    invariant pure (!i == 0sz ==> 
+      (!sum == zero /\ !gsum == 0.0R /\ !max == minus_inf /\ !gmax == ra @! 0))
     decreases (lenab - !i) {
-    assert pure (!i < lenab);
+
     let x = read a !i;
-    assert pure (x %~ (ra @! !i));
-    let max' = (if x `gt` !max then x else !max);
-    let vi = !i;
-    let vgmax : erased real = !gmax;
-    let gmax' : erased real = hide (if (ra `Seq.index` vi) >. reveal vgmax then ra `Seq.index` vi else reveal #real vgmax);
-    assume pure (max' %~ gmax');
-    admit();
-    sum := !sum `mul` (exp (max' `sub` !max)) `add` (exp (x `sub` max'));
+    let gx = ra @! !i;
+    assert pure (x %~ gx);
+
+    let old_sum = !gsum;
+    let old_max = !gmax;
+    
+    let max' = max_float #et !max x;
+    let gmax' : erased real = max_real (reveal !gmax) gx; // if (i == 0) then gx else max_real gx (reveal !gmax); // ?
+    assert pure (max' %~ gmax');
+
+    let y1 = exp (!max `sub` max');
+    let gy1 = rexp (reveal !gmax -. reveal gmax');
+    assert pure (!gsum == 0.0R \/ y1 %~ gy1);
+
+    let y2 = exp (x `sub` max');
+    let gy2 = rexp (gx -. reveal gmax');
+    assert pure (y2 %~ gy2);
+
+    assume pure (zero `mul` y1 == zero #et); // TODO: add to float properties (take care for nans)
+    assert pure ( (!sum `mul` y1)  %~  (reveal (!gsum) *. gy1) );
+    
+
+    let sum' = !sum `mul` y1 `add` y2;
+    let gsum': erased real = (reveal !gsum) *. gy1 +. gy2;
+    assert pure (sum' %~ gsum');
+
     max := max';
+    gmax := gmax';
+    assert pure (!max %~ !gmax);
+
+    sum := sum';
+    gsum := gsum';
+    assert pure (!sum %~ !gsum);
+
     i := !i `SZ.add` 1sz;
-    // admit();
-    // assert pure (!max %~ fst (seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (seq_drop 1 ra)));
-    // assert pure (!sum %~ snd (seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (seq_drop 1 ra)));
-    // assert pure ((!max, !sum) %~ seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (seq_drop 1 ra));
-    // admit()
+
+    assert pure (gmax' == max_real (reveal old_max) gx);
+    assert pure (reveal gsum' == reveal old_sum *. (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax'));
+    assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i)));
   };
-  admit();
   let x = read a tid;
   let y = (exp (x `sub` !max) `div` !sum);
   write_cell b tid y;
@@ -122,7 +166,6 @@ fn kfonline_softmax
 ghost
 fn setup
   (#et : Type0) {| floating et, real_like et |}
-  (nth : szp{nth <= max_threads})
   (#lenab : szp{lenab <= max_blocks * max_threads})
   (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
@@ -154,7 +197,6 @@ fn setup
 ghost
 fn teardown
   (#et : Type0) {| floating et, real_like et |}
-  (nth : szp{nth <= max_threads})
   (#lenab : szp{lenab <= max_blocks * max_threads})
   (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l)
@@ -199,14 +241,13 @@ fn teardown
 inline_for_extraction noextract
 let konline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (nth : szp{nth <= max_threads})
   (#lenab : szp{lenab <= max_blocks * max_threads})
   (#l : Kuiper.Array1.layout lenab) {| ctlayout l |} (* TODO: let them have different layouts *)
   (a : array1 et l { is_global a })
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). (va @! i) `gt` minus_inf))
+  (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
   : kernel_desc
       (requires a |-> va ** (exists* (vb : lseq et lenab). b |-> vb))
       (ensures  a |-> va ** (exists* (vb' : lseq et lenab).
@@ -214,13 +255,13 @@ let konline_softmax
         pure (vb' %~ online_softmax_real ra)))
 = {
     nthr = lenab;
-    f = kfonline_softmax lenab a b;
+    f = kfonline_softmax a b ra;
 
     frame    = pure (SZ.fits (layout_size l));
-    teardown = teardown lenab a b;
-    setup    = setup lenab #l a b #va;
-    kpre =  (kpre_post #et lenab #l a b #va);
-    kpost = (kpre_post #et lenab #l a b #va);
+    teardown = teardown a b #va ra;
+    setup    = setup a b #va ra;
+    kpre =  (kpre #et lenab #l a b #va);
+    kpost = (kpost #et lenab #l a b #va ra);
     kpost_sendable = solve;
     kpre_sendable  = solve;
   } <: kernel_desc_n _ _
@@ -235,6 +276,7 @@ fn online_softmax_gpu
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
+  (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
   norewrite
   preserves
     cpu **
@@ -246,7 +288,7 @@ fn online_softmax_gpu
       on gpu_loc (b |-> vb') **
       pure (vb' %~ SMX.softmax_real ra)
 {
-  launch_sync (konline_softmax nth lenab a b #va ra);
+  launch_sync (konline_softmax a b #va ra);
   admit();
   ()
 }
