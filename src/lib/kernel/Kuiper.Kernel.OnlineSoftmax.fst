@@ -14,6 +14,78 @@ module SMX = Kuiper.Kernel.Softmax
 let max_real (x: real) (y: real) : real = 
   if x >. y then x else y
 
+
+// TODO: refactor all these real lemma proofs into a separate file (in src/lib/spec)
+
+private let rsum_cons (x: real) (t: Seq.seq real)
+  : Lemma (rsum (Seq.cons x t) == x +. rsum t)
+  = assert (Seq.equal (Seq.cons x t) (Seq.append (Seq.create 1 x) t));
+    rsum_append (Seq.create 1 x) t
+
+private let seq_map_cons (#a #b: Type) (f: a -> b) (x: a) (t: Seq.seq a)
+  : Lemma (seq_map f (Seq.cons x t) == Seq.cons (f x) (seq_map f t))
+  = assert (Seq.equal (seq_map f (Seq.cons x t)) (Seq.cons (f x) (seq_map f t)))
+
+private let rsum_map_cons (f: real -> real) (x: real) (t: Seq.seq real)
+  : Lemma (rsum (seq_map f (Seq.cons x t)) == f x +. rsum (seq_map f t))
+  = seq_map_cons f x t;
+    rsum_cons (f x) (seq_map f t)
+
+(* Theorem 1 from the Online Softmax paper (unshifted invariant form):
+   The online normalizer computation correctly tracks the running max and,
+   when multiplied by exp(max), equals the sum of exponentials. *)
+private let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
+  : Lemma (ensures (
+      let r = reveal (seq_fold_left online_softmax_real_iter (hide (m0, d0)) s) in
+      fst r == seq_fold_left max_real m0 s /\
+      snd r *. rexp (fst r) == d0 *. rexp m0 +. rsum (seq_map rexp s)))
+    (decreases Seq.length s)
+  = rexp_base ();
+    match view_seq s with
+    | SNil -> ()
+    | SCons x t ->
+        let m1 = max_real m0 x in
+        let d1 = d0 *. rexp (m0 -. m1) +. rexp (x -. m1) in
+        // d1 * exp(m1) = (d0 * exp(m0-m1) + exp(x-m1)) * exp(m1)
+        //              = d0 * exp(m0-m1) * exp(m1) + exp(x-m1) * exp(m1)
+        //              = d0 * exp(m0) + exp(x)
+        assert (d1 *. rexp m1 == d0 *. rexp m0 +. rexp x);
+        fold_correct m1 d1 t;
+        rsum_map_cons rexp x t;
+        // IH gives: snd(fold t) * exp(fst(fold t)) == d1 * exp(m1) + rsum(map rexp t)
+        //         = d0 * exp(m0) + exp(x) + rsum(map rexp t)
+        //         = d0 * exp(m0) + rsum(map rexp (cons x t))
+        ()
+
+private let pointwise_eq (xi m d summ : real)
+  : Lemma (requires d *. rexp m == summ /\ d >. 0.0R)
+          (ensures rexp (xi -. m) /. d == rexp xi /. summ)
+  = assert (rexp (xi -. m) == rexp xi /. rexp m);
+    assert (rexp (xi -. m) /. d == (rexp xi /. rexp m) /. d);
+    assert ((rexp xi /. rexp m) /. d == rexp xi /. (rexp m *. d));
+    assert (rexp m *. d == d *. rexp m);
+    ()
+
+let real_online_softmax_lemma (s: Seq.seq real{Seq.length s > 0}) : 
+  Lemma (online_softmax_real s == SMX.softmax_real s)
+  = rexp_base ();
+    let x0 = s @! 0 in
+    let tl = seq_drop 1 s in
+    fold_correct x0 1.0R tl;
+    assert (Seq.equal s (Seq.cons x0 tl));
+    rsum_map_cons rexp x0 tl;
+    let init : erased (tuple2 real real) = hide (x0, 1.0R) in
+    assert (snd (reveal init) == 1.0R);
+    let fold_result = seq_fold_left online_softmax_real_iter init tl in
+    let (m, (d : real)) = reveal fold_result in
+    let summ : real = rsum (seq_map rexp s) in
+    assert (d *. rexp m == summ);
+    let aux (idx: natlt (Seq.length s)) : Lemma (rexp ((s @! idx) -. m) /. d == rexp (s @! idx) /. summ)
+      = pointwise_eq (s @! idx) m d summ
+    in
+    Classical.forall_intro aux;
+    assert (Seq.equal (online_softmax_real s) (SMX.softmax_real s))
+
 unfold
 let kpre
   (#et : Type0) {| floating et, real_like et |}
@@ -62,6 +134,7 @@ instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
 
 #set-options "--debug SMTFail --split_queries always"
 
+inline_for_extraction noextract
 let max_float (#et : Type0) {| floating et |} 
   (x: et) (y: et) : et = 
   if x `gt` y then x else y
@@ -289,6 +362,6 @@ fn online_softmax_gpu
       pure (vb' %~ SMX.softmax_real ra)
 {
   launch_sync (konline_softmax a b #va ra);
-  admit();
+  real_online_softmax_lemma ra;
   ()
 }
