@@ -1,5 +1,9 @@
 module Kuiper.Float64
 
+open FStar.Tactics.Typeclasses { solve }
+open Kuiper.Sized
+open Kuiper.Scalars.Base
+
 new
 val t : Type0
 
@@ -11,10 +15,20 @@ val sub : t -> t -> t
 val mul : t -> t -> t
 val div : t -> t -> t
 
+val eq : t -> t -> bool
 val lt : t -> t -> bool
 val lte : t -> t -> bool
-val gt : t -> t -> bool
-val gte : t -> t -> bool
+
+val valid : t -> bool
+
+inline_for_extraction noextract
+instance _ : sized t = { size = 8sz; default = zero }
+
+inline_for_extraction noextract
+instance _ : scalar t = {
+  is_sized = solve;
+  add; mul; zero; one; lt; lte; eq; valid;
+}
 
 val exp : t -> t
 val log : t -> t

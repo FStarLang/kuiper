@@ -998,6 +998,8 @@ fn kf
     fold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;
 
     // What the hell.
+    Math.Lemmas.distributivity_add_right 2 (!bkIdx) 1;
+    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2 * 1));
     assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 1 + 1));
 
     bkIdx := !bkIdx +^ 1sz;

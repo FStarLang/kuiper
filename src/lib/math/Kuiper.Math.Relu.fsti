@@ -13,7 +13,7 @@ let relu
 let relu_real
   (x : real)
   : real
-  = if t2b (x >. zero) then x else zero
+  = if t2b (x >. 0.0R) then x else 0.0R
 
 val relu_lem
   (#et:Type) {| scalar et, real_like et |}

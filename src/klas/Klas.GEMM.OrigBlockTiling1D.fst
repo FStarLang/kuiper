@@ -15,5 +15,5 @@ let matmul_f32_tiles64x8_8x64_rc8_rrr =
 
 let g_gemm_f32_tiles64x8_8x64_rc8_rrr alpha beta =
   spec 64sz 64sz 8sz 8sz f32
-    (MS.lincomb alpha beta) (MS.lincomb (to_real alpha) (to_real beta))
+    (MS.lincomb alpha beta) (MS.rlincomb (to_real alpha) (to_real beta))
      RM RM RM
