@@ -32,10 +32,9 @@ float
     float *out = (float *)KPR_GPU_ALLOC(4U, batch * (rows * cols));
     uint32_t idx = 0U;
     for (; idx < batch; idx++) {
-        uint32_t i = idx;
         KPR_KCALL(__hoisted_0,
                   rows * cols / 1024U + (uint32_t) (rows * cols % 1024U != 0U),
-                  1024U, 0U, rows, shared, cols, a, b, out, i);
+                  1024U, 0U, rows, shared, cols, a, b, out, idx);
         MUST(cudaDeviceSynchronize());
     }
     return out;
