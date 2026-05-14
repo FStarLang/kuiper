@@ -41,6 +41,7 @@ class floating (t : Type) = {
   fmod : t -> t -> t;
   copysign : t -> t -> t;
   fma : t -> t -> t -> t;
+  minus_inf : t;
 }
 
 let abs (#t:Type) {| floating t |} (x : t) : t =
@@ -55,7 +56,7 @@ instance _ : floating F16.t =
     sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
     sinh; cosh; tanh; ceil; floor; round; fabs; erf;
     log2; log10; exp2; pow; atan2; fmin; fmax; fmod;
-    copysign; fma;
+    copysign; fma; minus_inf;
   }
 
 inline_for_extraction
@@ -67,7 +68,7 @@ instance _ : floating F32.t =
     sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
     sinh; cosh; tanh; ceil; floor; round; fabs; erf;
     log2; log10; exp2; pow; atan2; fmin; fmax; fmod;
-    copysign; fma;
+    copysign; fma; minus_inf;
   }
 
 inline_for_extraction
@@ -79,5 +80,5 @@ instance _ : floating F64.t =
     sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
     sinh; cosh; tanh; ceil; floor; round; fabs; erf;
     log2; log10; exp2; pow; atan2; fmin; fmax; fmod;
-    copysign; fma;
+    copysign; fma; minus_inf;
   }

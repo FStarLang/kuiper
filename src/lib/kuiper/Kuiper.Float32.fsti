@@ -5,6 +5,7 @@ val t : Type0
 
 val zero : t
 val one : t
+val minus_inf : t
 
 val add : t -> t -> t
 val sub : t -> t -> t

@@ -586,6 +586,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   // __hexp and __hlog that are faster but numerically worse.
   | "Kuiper.Float16.zero", [], [] -> EConstant (Half, "__float2half_rn(0.0f)")
   | "Kuiper.Float16.one",  [], [] -> EConstant (Half, "__float2half_rn(1.0f)")
+  | "Kuiper.Float16.minus_inf",  [], [] -> EConstant (Half, "-HLF_MAX")
   | "Kuiper.Float16.add",  [], [] -> EQualified ([], "__hadd")
   | "Kuiper.Float16.sub",  [], [] -> EQualified ([], "__hsub")
   | "Kuiper.Float16.mul",  [], [] -> EQualified ([], "__hmul")
@@ -599,6 +600,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Float32.zero", [], [] -> EConstant (Float, "0.0f")
   | "Kuiper.Float32.one",  [], [] -> EConstant (Float, "1.0f")
+  | "Kuiper.Float32.minus_inf",  [], [] -> EConstant (Float, "-FLT_MAX") 
   | "Kuiper.Float32.add",  [], [] -> EOp (Add, Float)
   | "Kuiper.Float32.sub",  [], [] -> EOp (Sub, Float)
   | "Kuiper.Float32.mul",  [], [] -> EOp (Mult, Float)
@@ -612,6 +614,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Float64.zero", [], [] -> EConstant (Double, "0.0l")
   | "Kuiper.Float64.one",  [], [] -> EConstant (Double, "1.0l")
+  | "Kuiper.Float64.minus_inf",  [], [] -> EConstant (Double, "-DBL_MAX")
   | "Kuiper.Float64.add",  [], [] -> EOp (Add, Double)
   | "Kuiper.Float64.sub",  [], [] -> EOp (Sub, Double)
   | "Kuiper.Float64.mul",  [], [] -> EOp (Mult, Double)
