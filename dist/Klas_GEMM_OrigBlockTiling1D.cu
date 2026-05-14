@@ -27,11 +27,11 @@ static void __hoisted_0(uint32_t shared, uint32_t cols, float *gA, float *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 8U; dotIdx++) {
-            float tmpB = sB[dotIdx * 64U + threadIdx.x % 64U];
             uint32_t resIdx = 0U;
             for (; resIdx < 8U; resIdx++)
                 cache1d[resIdx] +=
-                    sA[(threadIdx.x / 64U * 8U + resIdx) * 8U + dotIdx] * tmpB;
+                    sA[(threadIdx.x / 64U * 8U + resIdx) * 8U +
+                       dotIdx] * sB[dotIdx * 64U + threadIdx.x % 64U];
         }
     }
     uint32_t resIdx = 0U;
@@ -87,11 +87,11 @@ __hoisted_1(float alpha,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 8U; dotIdx++) {
-            float tmpB = sB[dotIdx * 64U + threadIdx.x % 64U];
             uint32_t resIdx = 0U;
             for (; resIdx < 8U; resIdx++)
                 cache1d[resIdx] +=
-                    sA[(threadIdx.x / 64U * 8U + resIdx) * 8U + dotIdx] * tmpB;
+                    sA[(threadIdx.x / 64U * 8U + resIdx) * 8U +
+                       dotIdx] * sB[dotIdx * 64U + threadIdx.x % 64U];
         }
     }
     uint32_t resIdx = 0U;

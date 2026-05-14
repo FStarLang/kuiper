@@ -30,16 +30,14 @@ __hoisted_0(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
-    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        tileC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -88,16 +86,14 @@ __hoisted_1(uint32_t n,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
-    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        tileC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -146,16 +142,14 @@ __hoisted_2(uint32_t n,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            uint32_t v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
-    uint32_t *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        tileC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -204,16 +198,14 @@ __hoisted_3(uint32_t n,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            uint64_t v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
-    uint64_t *tileC = gC;
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        tileC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(32U * (blockIdx.x / nn) + row) * n + 32U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -262,16 +254,14 @@ __hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
-    float *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        tileC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -320,16 +310,14 @@ __hoisted_5(uint32_t n,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
-    double *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        tileC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -378,16 +366,14 @@ __hoisted_6(uint32_t n,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            uint32_t v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
-    uint32_t *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        tileC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -436,16 +422,14 @@ __hoisted_7(uint32_t n,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            uint64_t v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
-    uint64_t *tileC = gC;
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        tileC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
-              threadIdx.x] = sums[row];
+        gC[(16U * (blockIdx.x / nn) + row) * n + 16U * (blockIdx.x % nn) +
+           threadIdx.x] = sums[row];
 }
 
 void
@@ -497,9 +481,8 @@ __hoisted_8(float alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            float v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
     float *tileC = gC;
@@ -563,9 +546,8 @@ __hoisted_9(double alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            double v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
     double *tileC = gC;
@@ -629,9 +611,8 @@ __hoisted_10(uint32_t alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            uint32_t v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
     uint32_t *tileC = gC;
@@ -695,9 +676,8 @@ __hoisted_11(uint64_t alpha,
         uint32_t sk = 0U;
         for (; sk < 32U; sk++) {
             uint32_t i = 0U;
-            uint64_t v2 = sa2[sk * 32U + threadIdx.x];
             for (; i < 32U; i++)
-                sums[i] += sa1[i * 32U + sk] * v2;
+                sums[i] += sa1[i * 32U + sk] * sa2[sk * 32U + threadIdx.x];
         }
     }
     uint64_t *tileC = gC;
@@ -762,9 +742,8 @@ __hoisted_12(float alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            float v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
     float *tileC = gC;
@@ -828,9 +807,8 @@ __hoisted_13(double alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            double v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
     double *tileC = gC;
@@ -894,9 +872,8 @@ __hoisted_14(uint32_t alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            uint32_t v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
     uint32_t *tileC = gC;
@@ -960,9 +937,8 @@ __hoisted_15(uint64_t alpha,
         uint32_t sk = 0U;
         for (; sk < 16U; sk++) {
             uint32_t i = 0U;
-            uint64_t v2 = sa2[sk * 16U + threadIdx.x];
             for (; i < 16U; i++)
-                sums[i] += sa1[i * 16U + sk] * v2;
+                sums[i] += sa1[i * 16U + sk] * sa2[sk * 16U + threadIdx.x];
         }
     }
     uint64_t *tileC = gC;

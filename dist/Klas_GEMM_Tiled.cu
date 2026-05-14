@@ -15,18 +15,14 @@ __hoisted_0(uint32_t tile,
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        float *tA = gA;
-        uint32_t __anf01 = bk;
-        float *tB = gB;
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         float s_ = sum1;
         sum += s_;
     }
@@ -64,18 +60,14 @@ __hoisted_1(uint32_t tile,
     double sum = 0.0l;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        double *tA = gA;
-        uint32_t __anf01 = bk;
-        double *tB = gB;
         uint32_t k1 = 0U;
         double sum1 = 0.0l;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         double s_ = sum1;
         sum += s_;
     }
@@ -113,18 +105,14 @@ __hoisted_2(uint32_t tile,
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint32_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint32_t *tB = gB;
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         uint32_t s_ = sum1;
         sum += s_;
     }
@@ -163,18 +151,14 @@ __hoisted_3(uint32_t tile,
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint64_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint64_t *tB = gB;
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         uint64_t s_ = sum1;
         sum += s_;
     }
@@ -211,18 +195,14 @@ __hoisted_4(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        float *tA = gA;
-        uint32_t __anf01 = bk;
-        float *tB = gB;
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         float s_ = sum1;
         sum += s_;
     }
@@ -256,18 +236,14 @@ __hoisted_5(uint32_t n,
     double sum = 0.0l;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        double *tA = gA;
-        uint32_t __anf01 = bk;
-        double *tB = gB;
         uint32_t k1 = 0U;
         double sum1 = 0.0l;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         double s_ = sum1;
         sum += s_;
     }
@@ -301,18 +277,14 @@ __hoisted_6(uint32_t n,
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint32_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint32_t *tB = gB;
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         uint32_t s_ = sum1;
         sum += s_;
     }
@@ -347,18 +319,14 @@ __hoisted_7(uint32_t n,
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint64_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint64_t *tB = gB;
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         uint64_t s_ = sum1;
         sum += s_;
     }
@@ -392,18 +360,14 @@ __hoisted_8(uint32_t n, uint32_t k, float *gA, float *gB, float *gC,
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        float *tA = gA;
-        uint32_t __anf01 = bk;
-        float *tB = gB;
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         float s_ = sum1;
         sum += s_;
     }
@@ -437,18 +401,14 @@ __hoisted_9(uint32_t n,
     double sum = 0.0l;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        double *tA = gA;
-        uint32_t __anf01 = bk;
-        double *tB = gB;
         uint32_t k1 = 0U;
         double sum1 = 0.0l;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         double s_ = sum1;
         sum += s_;
     }
@@ -482,18 +442,14 @@ __hoisted_10(uint32_t n,
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint32_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint32_t *tB = gB;
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         uint32_t s_ = sum1;
         sum += s_;
     }
@@ -528,18 +484,14 @@ __hoisted_11(uint32_t n,
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint64_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint64_t *tB = gB;
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         uint64_t s_ = sum1;
         sum += s_;
     }
@@ -577,18 +529,14 @@ __hoisted_12(uint32_t tile,
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        float *tA = gA;
-        uint32_t __anf01 = bk;
-        float *tB = gB;
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         float s_ = sum1;
         sum += s_;
     }
@@ -635,18 +583,14 @@ __hoisted_13(uint32_t tile,
     double sum = 0.0l;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        double *tA = gA;
-        uint32_t __anf01 = bk;
-        double *tB = gB;
         uint32_t k1 = 0U;
         double sum1 = 0.0l;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         double s_ = sum1;
         sum += s_;
     }
@@ -693,18 +637,14 @@ __hoisted_14(uint32_t tile,
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint32_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint32_t *tB = gB;
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         uint32_t s_ = sum1;
         sum += s_;
     }
@@ -752,18 +692,14 @@ __hoisted_15(uint32_t tile,
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint64_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint64_t *tB = gB;
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < tile; k1++)
             sum1 +=
-                tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                   tile * __anf0 + k1] * tB[(tile * __anf01 + k1) * n +
-                                            tile * (blockIdx.x % nn) +
-                                            threadIdx.x % tile];
+                gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                   tile * bk + k1] * gB[(tile * bk + k1) * n +
+                                        tile * (blockIdx.x % nn) +
+                                        threadIdx.x % tile];
         uint64_t s_ = sum1;
         sum += s_;
     }
@@ -810,18 +746,14 @@ __hoisted_16(float alpha,
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        float *tA = gA;
-        uint32_t __anf01 = bk;
-        float *tB = gB;
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         float s_ = sum1;
         sum += s_;
     }
@@ -864,18 +796,14 @@ __hoisted_17(double alpha,
     double sum = 0.0l;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        double *tA = gA;
-        uint32_t __anf01 = bk;
-        double *tB = gB;
         uint32_t k1 = 0U;
         double sum1 = 0.0l;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         double s_ = sum1;
         sum += s_;
     }
@@ -918,18 +846,14 @@ __hoisted_18(uint32_t alpha,
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint32_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint32_t *tB = gB;
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         uint32_t s_ = sum1;
         sum += s_;
     }
@@ -972,18 +896,14 @@ __hoisted_19(uint64_t alpha,
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint64_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint64_t *tB = gB;
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < 32U; k1++)
             sum1 +=
-                tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                   32U * __anf0 + k1] * tB[(32U * __anf01 + k1) * n +
-                                           32U * (blockIdx.x % nn) +
-                                           threadIdx.x % 32U];
+                gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                   32U * bk + k1] * gB[(32U * bk + k1) * n +
+                                       32U * (blockIdx.x % nn) +
+                                       threadIdx.x % 32U];
         uint64_t s_ = sum1;
         sum += s_;
     }
@@ -1026,18 +946,14 @@ __hoisted_20(float alpha,
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        float *tA = gA;
-        uint32_t __anf01 = bk;
-        float *tB = gB;
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         float s_ = sum1;
         sum += s_;
     }
@@ -1080,18 +996,14 @@ __hoisted_21(double alpha,
     double sum = 0.0l;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        double *tA = gA;
-        uint32_t __anf01 = bk;
-        double *tB = gB;
         uint32_t k1 = 0U;
         double sum1 = 0.0l;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         double s_ = sum1;
         sum += s_;
     }
@@ -1134,18 +1046,14 @@ __hoisted_22(uint32_t alpha,
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint32_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint32_t *tB = gB;
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         uint32_t s_ = sum1;
         sum += s_;
     }
@@ -1188,18 +1096,14 @@ __hoisted_23(uint64_t alpha,
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t __anf0 = bk;
-        uint64_t *tA = gA;
-        uint32_t __anf01 = bk;
-        uint64_t *tB = gB;
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < 16U; k1++)
             sum1 +=
-                tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                   16U * __anf0 + k1] * tB[(16U * __anf01 + k1) * n +
-                                           16U * (blockIdx.x % nn) +
-                                           threadIdx.x % 16U];
+                gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                   16U * bk + k1] * gB[(16U * bk + k1) * n +
+                                       16U * (blockIdx.x % nn) +
+                                       threadIdx.x % 16U];
         uint64_t s_ = sum1;
         sum += s_;
     }
