@@ -23,6 +23,16 @@ class scalar (t : Type) = {
 
   (* Is this a mathematically valid element? I.e., not a NaN. *)
   valid : t -> bool;
+
+  (* Laws. *)
+  lte_is_lt_or_eq :
+    (x : t) -> (y : t) ->
+      Lemma (requires valid x /\ valid y) (ensures lte x y <==> lt x y \/ eq x y);
+
+  (* x < y <==> not (y <= x) *)
+  negate_lt_is_lte :
+    (x : t) -> (y : t) ->
+      Lemma (requires valid x /\ valid y) (ensures lt x y <==> not (lte y x));
 }
 
 (* Derived methods *)
@@ -55,5 +65,8 @@ instance _ : scalar Real.real =
   eq  = (fun _ _ -> false);
   lt  = (fun _ _ -> false);
   lte = (fun _ _ -> false);
-  valid = (fun _ -> true);
+  valid = (fun _ -> false);
+
+  lte_is_lt_or_eq = (fun _ _ -> ());
+  negate_lt_is_lte = (fun _ _ -> ());
 }

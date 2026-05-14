@@ -636,6 +636,8 @@ fn sum_stride_map
     acc := !acc `add` v';
     idx := !idx +^ stride;
     gwrite gidx (gread gidx + 1);
+
+    assert pure (SZ.v !idx == gread gidx * stride + off);
     ()
   };
 

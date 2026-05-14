@@ -17,6 +17,8 @@ instance _ : scalar UInt8.t =
     mul = mul_mod;
     zero; one; lt; lte; eq;
     valid = (fun _ -> true);
+    lte_is_lt_or_eq = (fun _ _ -> ());
+    negate_lt_is_lte = (fun _ _ -> ());
   }
 
 inline_for_extraction
@@ -28,6 +30,8 @@ instance _ : scalar UInt16.t =
     mul = mul_mod;
     zero; one; lt; lte; eq;
     valid = (fun _ -> true);
+    lte_is_lt_or_eq = (fun _ _ -> ());
+    negate_lt_is_lte = (fun _ _ -> ());
   }
 
 inline_for_extraction
@@ -39,6 +43,8 @@ instance _ : scalar UInt32.t =
     mul = mul_mod;
     zero; one; lt; lte; eq;
     valid = (fun _ -> true);
+    lte_is_lt_or_eq = (fun _ _ -> ());
+    negate_lt_is_lte = (fun _ _ -> ());
   }
 
 inline_for_extraction
@@ -50,4 +56,6 @@ instance _ : scalar UInt64.t =
     mul = mul_mod;
     zero; one; lt; lte; eq;
     valid = (fun _ -> true);
+    lte_is_lt_or_eq = (fun _ _ -> ());
+    negate_lt_is_lte = (fun _ _ -> ());
   }

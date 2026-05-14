@@ -10,6 +10,9 @@ val t : Type0
 val zero : t
 val one : t
 
+inline_for_extraction noextract
+instance _ : sized t = { size = 4sz; default = zero }
+
 val add : t -> t -> t
 val sub : t -> t -> t
 val mul : t -> t -> t
@@ -21,13 +24,17 @@ val lte : t -> t -> bool
 
 val valid : t -> bool
 
-inline_for_extraction noextract
-instance _ : sized t = { size = 4sz; default = zero }
+val lte_is_lt_or_eq (x y : t) :
+  Lemma (requires valid x /\ valid y) (ensures lte x y <==> lt x y \/ eq x y)
+
+val negate_lt_is_lte (x y : t) :
+  Lemma (requires valid x /\ valid y) (ensures lt x y <==> not (lte y x))
 
 inline_for_extraction noextract
 instance _ : scalar t = {
   is_sized = solve;
   add; mul; zero; one; lt; lte; eq; valid;
+  lte_is_lt_or_eq; negate_lt_is_lte;
 }
 
 val exp : t -> t
