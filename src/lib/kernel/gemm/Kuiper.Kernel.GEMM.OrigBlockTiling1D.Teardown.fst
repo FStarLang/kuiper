@@ -282,26 +282,95 @@ fn teardown
                     (bid % mcols * bn + c)));
     };
 
-  (* Step 7: Collect cells back into matrix *)
-  // let _ = gpu_matrix_collect_approx_tiled gC (SZ.v bm) (SZ.v bn)
-  //   mrows mcols
-  //   (fun (row : natlt (mrows * bm)) (col : natlt (mcols * bn)) (v : et) ->
-  //     v %~ MU.real_gemm_single comb_r eA eB eC row col);
-  // ^ This function was so slow that it's now removed. The Tensor variant
-  // remains, so this should be fine once everything moves to tensors. Admit
-  // this proof for now.
+  (* Step 7: Collect existential witnesses *)
+  let vf = forevery_exists_2
+    (fun (bid : natlt (mrows * mcols)) (flatid : natlt (bm * bn)) (v : et) ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+        (flatid / bn) (flatid % bn) v **
+      pure (v %~ MU.real_gemm_single comb_r eA eB eC
+              (bid / mcols * bm + flatid / bn)
+              (bid % mcols * bn + flatid % bn)));
 
-  admit();
-  // (* Step 8: Prove ematrix_approximates *)
-  // with eC'. assert (gC |-> eC');
+  (* Step 8: Extract pure facts *)
+  forevery_extract_pure_2
+    #(natlt (mrows * mcols)) #(natlt (bm * bn))
+    (fun bid flatid ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+        (flatid / bn) (flatid % bn) (vf bid flatid) **
+      pure (vf bid flatid %~ MU.real_gemm_single comb_r eA eB eC
+              (bid / mcols * bm + flatid / bn)
+              (bid % mcols * bn + flatid % bn)))
+    (fun bid flatid ->
+      vf bid flatid %~ MU.real_gemm_single comb_r eA eB eC
+        (bid / mcols * bm + flatid / bn)
+        (bid % mcols * bn + flatid % bn))
+    fn bid flatid { (); };
 
-  // assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
-  //   macc eC' row col %~ MU.real_gemm_single comb_r eA eB eC row col);
+  (* Step 9: Drop pures *)
+  forevery_map_2
+    #(natlt (mrows * mcols)) #(natlt (bm * bn))
+    (fun bid flatid ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+        (flatid / bn) (flatid % bn) (vf bid flatid) **
+      pure (vf bid flatid %~ MU.real_gemm_single comb_r eA eB eC
+              (bid / mcols * bm + flatid / bn)
+              (bid % mcols * bn + flatid % bn)))
+    (fun bid flatid ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+        (flatid / bn) (flatid % bn) (vf bid flatid))
+    fn bid flatid { () };
 
-  // assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
-  //   macc eC' row col %~ macc (MU.real_mmcomb comb_r eC eA eB) row col);
+  (* Step 10: Factor to 4D *)
+  forevery_factor_2
+    (mrows * mcols) mrows mcols
+    (bm * bn) bm bn
+    (fun (bid : natlt (mrows * mcols)) (flatid : natlt (bm * bn)) ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+        (flatid / bn) (flatid % bn) (vf bid flatid));
 
-  // assert pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB));
-  ();
+  (* Step 11: Simplify div/mod *)
+  assert pure (forall (tr:natlt mrows) (tc:natlt mcols).
+    (tr * mcols + tc) / mcols == tr /\ (tr * mcols + tc) % mcols == tc);
+  assert pure (forall (i:natlt bm) (j:natlt bn).
+    (i * bn + j) / bn == i /\ (i * bn + j) % bn == j);
+
+  forevery_ext_4
+    (fun (tr:natlt mrows) (tc:natlt mcols) (i:natlt bm) (j:natlt bn) ->
+      let bid = tr * mcols + tc in let flatid = i * bn + j in
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) (bid / mcols) (bid % mcols))
+        (flatid / bn) (flatid % bn) (vf bid flatid))
+    (fun (tr:natlt mrows) (tc:natlt mcols) (i:natlt bm) (j:natlt bn) ->
+      gpu_matrix_pts_to_cell
+        (gpu_matrix_subtile gC (SZ.v bm) (SZ.v bn) tr tc)
+        i j (vf (tr * mcols + tc) (i * bn + j)));
+
+  (* Step 12: Rewrite sizes for gpu_matrix_implode_tiled *)
+  forevery_rw_size4
+    mrows ((mrows * bm) / bm)
+    mcols ((mcols * bn) / bn)
+    bm bm bn bn;
+
+  (* Step 13: Implode tiled *)
+  gpu_matrix_implode_tiled gC (SZ.v bm) (SZ.v bn)
+    (fun (tr:natlt ((mrows * bm) / bm)) (tc:natlt ((mcols * bn) / bn))
+         (i:natlt bm) (j:natlt bn) ->
+      vf (tr * mcols + tc) (i * bn + j));
+
+  (* Step 14: Prove ematrix_approximates *)
+  with eC'. assert (gC |-> eC');
+
+  assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
+    macc eC' row col %~ MU.real_gemm_single comb_r eA eB eC row col);
+
+  assert pure (forall (row:natlt (mrows * bm)) (col:natlt (mcols * bn)).
+    macc eC' row col %~ macc (MU.real_mmcomb comb_r eC eA eB) row col);
+
+  assert pure (ematrix_approximates eC' (MU.real_mmcomb comb_r eC eA eB));
 }
 #pop-options
