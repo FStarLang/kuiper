@@ -26,19 +26,24 @@ val div : t -> t -> t
 
 val valid : t -> bool
 
+val min_val : t
+val max_val : t
+
 val eq_spec (x y : t) (_ : (valid x /\ valid y)) : (eq x y <==> x == y)
 val lte_is_lt_or_eq (x y : t) (_ : (valid x /\ valid y)) : (lte x y <==> lt x y \/ eq x y)
 val negate_lt_is_lte (x y : t) (_ : (valid x /\ valid y)) : (lt x y <==> not (lte y x))
 val add_comm (x y : t) (_ : valid x) (_ : valid y) : (eq (add x y) (add y x))
 val mul_comm (x y : t) (_ : valid x) (_ : valid y) : (eq (mul x y) (mul y x))
 val add_zero (x : t) (_ : valid x) : (eq (add x zero) x)
+val min_val_spec (x : t) (_ : valid x) : (lte min_val x /\ lte x max_val)
 
 inline_for_extraction noextract
 instance _ : scalar t = {
   is_sized = solve;
   add; mul; zero; one; lt; lte; eq; valid;
+  min_val; max_val;
   eq_spec; lte_is_lt_or_eq; negate_lt_is_lte;
-  add_comm; mul_comm; add_zero;
+  add_comm; mul_comm; add_zero; min_val_spec;
 }
 
 val exp : t -> t

@@ -71,6 +71,8 @@ instance scalar_dist : scalar dist = {
   lte = (fun _ _ -> false); // fake, not used by GEMM
   eq  = (fun _ _ -> false); // fake, not used by GEMM
   valid = (fun _ -> false);
+  min_val = D 0us;
+  max_val = D 65535us;
 }
 
 ghost

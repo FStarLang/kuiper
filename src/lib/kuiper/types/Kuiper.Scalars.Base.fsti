@@ -24,6 +24,9 @@ class scalar (t : Type) = {
   (* Is this a mathematically valid element? I.e., not a NaN. *)
   valid : t -> bool;
 
+  min_val : t;
+  max_val : t;
+
   (* Laws. *)
 
   (* Equality is sound, at least for valid terms. *)
@@ -58,6 +61,12 @@ class scalar (t : Type) = {
   add_zero : (x : t) ->
     valid x ->
     eq (add x zero) x;
+
+  (* min and max are correct. *)
+  #[easy_fill ()]
+  min_val_spec : (x : t) ->
+    valid x ->
+    (lte min_val x /\ lte x max_val);
 }
 
 (* Derived methods *)
@@ -85,6 +94,9 @@ instance _ : scalar Real.real =
   mul = ( *. );
   zero = 0.0R;
   one = 1.0R;
+  // bogus from here down
+  min_val = 0.0R -. 100.0R;
+  max_val = 100.0R;
   // FIXME: reals cannot be compared in Tot.
   // We're overdue for restructuring the class hierarchy.
   eq  = (fun _ _ -> false);
