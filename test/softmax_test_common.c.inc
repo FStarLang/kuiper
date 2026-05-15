@@ -5,13 +5,26 @@
  *   SCALAR        - the scalar type (float, double, half)
  *   TO_DOUBLE(x)  - convert SCALAR to double
  *   FROM_DOUBLE(x)- convert double to SCALAR
- *   FUN(lena, a)  - the fixed-thread softmax/logsoftmax call
- *   FUN_N(nth, lena, a) - the variable-thread call
+ *   FUN           - the fixed-thread softmax/logsoftmax call
+ *                   in-place: FUN(lena, a)  |  not-in-place: FUN(lena, a, b)
  *   LABEL         - string label for output (e.g. "softmax_f32")
  *   ATOL          - absolute tolerance
  *   RTOL          - relative tolerance
  *   IS_LOGSOFTMAX - 0 or 1
+ *
+ * Optional (defaulted):
+ *   IS_INPLACE    - 1 (default) for in-place, 0 for separate input/output
+ *   HAS_VARIABLE  - 1 (default) to include variable-thread tests
+ *                   requires FUN_N(nth, lena, a) when 1
  */
+
+#ifndef IS_INPLACE
+#define IS_INPLACE 1
+#endif
+
+#ifndef HAS_VARIABLE
+#define HAS_VARIABLE 1
+#endif
 
 #include <math.h>
 #include <stdlib.h>
@@ -98,6 +111,9 @@ static int check(const SCALAR *got, const double *ref, int n, const char *label)
 static void test_fixed(int n)
 {
     SCALAR *arr = (SCALAR *) malloc(n * sizeof(SCALAR));
+#if !IS_INPLACE
+    SCALAR *out = (SCALAR *) malloc(n * sizeof(SCALAR));
+#endif
     double *din = (double *)malloc(n * sizeof(double));
     double *dref = (double *)malloc(n * sizeof(double));
 
@@ -108,10 +124,18 @@ static void test_fixed(int n)
 #else
     cpu_softmax(din, dref, n);
 #endif
+#if IS_INPLACE
     FUN(n, arr);
+#else
+    FUN(n, arr, out);
+#endif
     char label[128];
     snprintf(label, sizeof label, LABEL "(len=%d,ramp)", n);
+#if IS_INPLACE
     check(arr, dref, n, label);
+#else
+    check(out, dref, n, label);
+#endif
 
     /* constant pattern */
     fill_constant(din, arr, n);
@@ -120,15 +144,27 @@ static void test_fixed(int n)
 #else
     cpu_softmax(din, dref, n);
 #endif
+#if IS_INPLACE
     FUN(n, arr);
+#else
+    FUN(n, arr, out);
+#endif
     snprintf(label, sizeof label, LABEL "(len=%d,const)", n);
+#if IS_INPLACE
     check(arr, dref, n, label);
+#else
+    check(out, dref, n, label);
+#endif
 
     free(arr);
+#if !IS_INPLACE
+    free(out);
+#endif
     free(din);
     free(dref);
 }
 
+#if HAS_VARIABLE
 static void test_variable(int nth, int n)
 {
     SCALAR *arr = (SCALAR *) malloc(n * sizeof(SCALAR));
@@ -150,6 +186,7 @@ static void test_variable(int nth, int n)
     free(din);
     free(dref);
 }
+#endif
 
 static int run_all_tests(void)
 {
@@ -165,6 +202,7 @@ static int run_all_tests(void)
         test_fixed(lengths[i]);
 
     /* Variable thread count tests */
+#if HAS_VARIABLE
     static const int thread_counts[] = { 1, 32, 33, 64, 128, 255, 256, 512, 1000, 1024 };
     static const int var_lengths[] = { 1, 10, 64, 255, 256, 512, 1024, 2000 };
     int nths = sizeof thread_counts / sizeof thread_counts[0];
@@ -173,6 +211,7 @@ static int run_all_tests(void)
     for (int t = 0; t < nths; t++)
         for (int l = 0; l < nvlens; l++)
             test_variable(thread_counts[t], var_lengths[l]);
+#endif
 
     printf("%d tests, %s\n", g_tests_run, g_ok ? "OK" : "FAILED");
     return g_ok ? 0 : 1;

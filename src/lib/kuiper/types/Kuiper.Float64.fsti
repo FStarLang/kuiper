@@ -26,8 +26,8 @@ val div : t -> t -> t
 
 val valid : t -> bool
 
-val min_val : t
-val max_val : t
+val min_val : (x:t{valid x})
+val max_val : (x:t{valid x})
 
 val eq_spec (x y : t) (_ : (valid x /\ valid y)) : (eq x y <==> x == y)
 val lte_is_lt_or_eq (x y : t) (_ : (valid x /\ valid y)) : (lte x y <==> lt x y \/ eq x y)

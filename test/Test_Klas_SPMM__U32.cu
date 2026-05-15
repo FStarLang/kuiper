@@ -27,7 +27,7 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
     uint32_t *CD = (uint32_t *) calloc(rows * cols, sizeof CD[0]);
 
     if (do_check)
-      cpu_matmul(AD, B, CD, rows, shared, cols);
+        cpu_matmul(AD, B, CD, rows, shared, cols);
 
     smatrix_t dA;
     uint32_t *drow_indices, *dB, *dC;

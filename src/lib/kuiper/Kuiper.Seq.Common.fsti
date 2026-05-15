@@ -66,6 +66,13 @@ val lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
   : Lemma (requires i <= j /\ j <= k /\ k <= length s)
           (ensures append (slice s i j) (slice s j k) == slice s i k)
 
+val lemma_seq_fold_left_slice (#a #b:Type) (e:b) (f: b -> a -> b)
+  (s : seq a) (i j : nat)
+  : Lemma (requires i <= j /\ j < length s)
+          (ensures seq_fold_left f e (slice s i (j + 1))
+                    == seq_fold_left f e (slice s i j) `f` (s @! j))
+          [SMTPat (seq_fold_left f e (slice s i (j + 1)))]
+
 val lem_one_elem (#a:Type) (s : seq a) (v : a)
   : Lemma (requires length s == 1 /\ s @! 0 == v)
           (ensures s == seq![v])

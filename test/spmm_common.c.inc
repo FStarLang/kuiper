@@ -147,7 +147,8 @@ template < typename smatrix_t > static uint32_t *mk_row_indices(int rows, smatri
     std::sort(swizzle_staging.begin(), swizzle_staging.end(),[&A] (int idx_a, int idx_b) {
               uint32_t length_a = A.row_off[idx_a + 1] - A.row_off[idx_a];
               uint32_t length_b = A.row_off[idx_b + 1] - A.row_off[idx_b];
-              return length_a > length_b;}
+              return length_a > length_b;
+              }
     );
 
     memcpy(row_indices, swizzle_staging.data(), sizeof(row_indices[0]) * rows);

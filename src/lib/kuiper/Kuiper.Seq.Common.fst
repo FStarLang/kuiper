@@ -90,6 +90,17 @@ let lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
           (ensures append (slice s i j) (slice s j k) == slice s i k)
   = assert (Seq.equal (append (slice s i j) (slice s j k)) (slice s i k))
 
+let lemma_seq_fold_left_slice (#a #b:Type) (e:b) (f: b -> a -> b)
+  (s : seq a) (i j : nat)
+  : Lemma (requires i <= j /\ j < length s)
+          (ensures seq_fold_left f e (slice s i (j + 1))
+                    == seq_fold_left f e (slice s i j) `f` (s @! j))
+  = lem_append_slice s i j (j + 1);
+    assert (Seq.equal (append (slice s i j) (slice s j (j + 1))) (slice s i (j + 1)));
+    assert (Seq.equal (slice s j (j + 1)) (seq![s @! j]));
+    seq_fold_left_append #a #b f e (slice s i j) (seq![s @! j]);
+    ()
+
 let lem_one_elem (#a:Type) (s : seq a) (v : a)
   : Lemma (requires length s == 1 /\ s @! 0 == v)
           (ensures s == seq![v])
