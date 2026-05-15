@@ -26,6 +26,13 @@ typedef struct Kuiper_Sparse_Matrix_smatrix__float_s {
 } Kuiper_Sparse_Matrix_smatrix__float;
 
 void
+Klas_SPMM_spmm_f32(uint32_t rows,
+                   uint32_t shared,
+                   uint32_t cols,
+                   Kuiper_Sparse_Matrix_smatrix__float gA,
+                   uint32_t * row_indices, float *gB, float *gC);
+
+void
 Klas_SPMM_g_spmm_f32_16x16x16(uint32_t rows,
                               uint32_t shared,
                               uint32_t cols,
