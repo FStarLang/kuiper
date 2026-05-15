@@ -44,7 +44,7 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
 
     g_tests++;
     int mismatches = 0;
-    if (!do_check) {
+    if (do_check) {
         for (int i = 0; i < rows * cols; i++) {
             if (C[i] != CD[i]) {
                 if (mismatches == 0)
