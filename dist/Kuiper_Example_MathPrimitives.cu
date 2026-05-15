@@ -390,3 +390,48 @@ half Kuiper_Example_MathPrimitives_test_fma_f16(half x, half y, half z)
 {
     return kpr_hfma(x, y, z);
 }
+
+bool Kuiper_Example_MathPrimitives_test_valid_f32(float x)
+{
+    return kpr_fisvalid(x);
+}
+
+float Kuiper_Example_MathPrimitives_test_min_val_f32(void)
+{
+    return -FLT_MAX;
+}
+
+float Kuiper_Example_MathPrimitives_test_max_val_f32(void)
+{
+    return FLT_MAX;
+}
+
+bool Kuiper_Example_MathPrimitives_test_valid_f64(double x)
+{
+    return kpr_disvalid(x);
+}
+
+double Kuiper_Example_MathPrimitives_test_min_val_f64(void)
+{
+    return -DBL_MAX;
+}
+
+double Kuiper_Example_MathPrimitives_test_max_val_f64(void)
+{
+    return DBL_MAX;
+}
+
+bool Kuiper_Example_MathPrimitives_test_valid_f16(half x)
+{
+    return kpr_hisvalid(x);
+}
+
+half Kuiper_Example_MathPrimitives_test_min_val_f16(void)
+{
+    return __float2half_rn(-65504.0f);
+}
+
+half Kuiper_Example_MathPrimitives_test_max_val_f16(void)
+{
+    return __float2half_rn(65504.0f);
+}

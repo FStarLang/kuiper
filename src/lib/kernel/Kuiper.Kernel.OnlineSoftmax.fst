@@ -3,7 +3,6 @@ module Kuiper.Kernel.OnlineSoftmax
 #lang-pulse
 open Kuiper 
 open Kuiper.Seq.Common
-module Vec = Pulse.Lib.Vec
 module SZ = FStar.SizeT
 open Kuiper.Array1
 open Kuiper.Tensor.Layout { ctlayout }
@@ -13,7 +12,6 @@ module SMX = Kuiper.Kernel.Softmax
 
 let max_real (x: real) (y: real) : real = 
   if x >. y then x else y
-
 
 // TODO: refactor all these real lemma proofs into a separate file (in src/lib/spec)
 
@@ -132,8 +130,6 @@ instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
   approximates = tup2_approximates;
 }
 
-#set-options "--debug SMTFail --split_queries always"
-
 inline_for_extraction noextract
 let max_float (#et : Type0) {| floating et |} 
   (x: et) (y: et) : et = 
@@ -158,7 +154,7 @@ fn kfonline_softmax
   (b : array1 et l)
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
+  (#_: squash ( forall (i:natlt lenab). valid (va @! i) /\ min_val `lte` (va @! i)))
   (tid : szlt lenab)
   ()
   preserves
@@ -172,7 +168,7 @@ fn kfonline_softmax
   
   let mut i = 0sz;
   let mut sum: et = zero;
-  let mut max: et = minus_inf;
+  let mut max: et = min_val;
   let mut gsum : erased real = 0.0R;
   let mut gmax : erased real = ra @! 0;
   while (!i <^ lenab)
@@ -180,13 +176,14 @@ fn kfonline_softmax
       live max ** live gmax **
       live sum ** live gsum
     invariant pure (!sum %~ !gsum)
+    // invariant pure (valid !max /\ valid !sum)
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==> !i <= Seq.length ra /\
       (reveal !gmax, reveal !gsum) == 
         seq_fold_left online_softmax_real_iter 
         (hide (ra @! 0, 1.0R)) (Seq.slice ra 1 (!i)))
     invariant pure (!i == 0sz ==> 
-      (!sum == zero /\ !gsum == 0.0R /\ !max == minus_inf /\ !gmax == ra @! 0))
+      (!sum == zero /\ !gsum == 0.0R /\ !max == min_val /\ !gmax == ra @! 0))
     decreases (lenab - !i) {
 
     let x = read a !i;
@@ -208,9 +205,14 @@ fn kfonline_softmax
     let gy2 = rexp (gx -. reveal gmax');
     assert pure (y2 %~ gy2);
 
-    assume pure (zero `mul` y1 == zero #et); // TODO: add to float properties (take care for nans)
+    (* At this point, we cannot prove y1 is valid. It may not be,
+       in the first iteration, since !max was -FLT_MAX
+       and !max - max' could underflow and return -INFINITY.
+       But, exp(-INFINITY) is define to be zero, so we should be good
+       in that case too. TODO: extend the scalar (or floating) class
+       with a notion of the infinities that allows to prove this. *)
+    assume pure (zero `mul` y1 == zero #et);
     assert pure ( (!sum `mul` y1)  %~  (reveal (!gsum) *. gy1) );
-    
 
     let sum' = !sum `mul` y1 `add` y2;
     let gsum': erased real = (reveal !gsum) *. gy1 +. gy2;
@@ -320,7 +322,7 @@ let konline_softmax
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
+  (#_: squash ( forall (i:natlt lenab). valid (va @! i) /\ min_val `lte` (va @! i)))
   : kernel_desc
       (requires a |-> va ** (exists* (vb : lseq et lenab). b |-> vb))
       (ensures  a |-> va ** (exists* (vb' : lseq et lenab).
@@ -349,7 +351,7 @@ fn online_softmax_gpu
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). false == minus_inf `gt` (va @! i)))
+  (#_: squash ( forall (i:natlt lenab). valid (va @! i) /\ min_val `lte` (va @! i)))
   norewrite
   preserves
     cpu **

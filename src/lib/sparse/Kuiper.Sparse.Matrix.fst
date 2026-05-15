@@ -530,6 +530,7 @@ let unsparse_row_lemma
   assert row `Seq.equal` s
 
 // TODO probablemente no nos interese probar esto
+#push-options "--z3rlimit 20"
 let smatrix_extract_lemma
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
@@ -600,6 +601,7 @@ let smatrix_extract_lemma
   assert e `equal` e';
 
   ()
+#pop-options
 
 ghost
 fn gpu_array_share

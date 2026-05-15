@@ -1,6 +1,5 @@
 module Kuiper.IntAliases
 
-
 unfold type f16 = Kuiper.Float16.t
 unfold type f32 = Kuiper.Float32.t
 unfold type f64 = Kuiper.Float64.t

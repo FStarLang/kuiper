@@ -5,6 +5,7 @@
 
 #include "Kuiper_Example_MathPrimitives.h"
 #include <math.h>
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -181,6 +182,74 @@ int main()
               copysignf(0.5f, -2.0f), tol16);
     check_f16("fma", Kuiper_Example_MathPrimitives_test_fma_f16(x16, y16, z16),
               fmaf(0.5f, 2.0f, 3.0f), tol16);
+
+    /* ---- valid / min_val / max_val ---- */
+
+    /* Float32 */
+    n_tests++;
+    if (Kuiper_Example_MathPrimitives_test_valid_f32(1.0f))
+        n_pass++;
+    else
+        printf("FAIL f32 valid(1.0f) returned false\n");
+
+    n_tests++;
+    if (!Kuiper_Example_MathPrimitives_test_valid_f32(NAN))
+        n_pass++;
+    else
+        printf("FAIL f32 valid(NAN) returned true\n");
+
+    n_tests++;
+    if (!Kuiper_Example_MathPrimitives_test_valid_f32(INFINITY))
+        n_pass++;
+    else
+        printf("FAIL f32 valid(INFINITY) returned true\n");
+
+    check_f32("min_val", Kuiper_Example_MathPrimitives_test_min_val_f32(), -FLT_MAX, 0.0f);
+    check_f32("max_val", Kuiper_Example_MathPrimitives_test_max_val_f32(), FLT_MAX, 0.0f);
+
+    /* Float64 */
+    n_tests++;
+    if (Kuiper_Example_MathPrimitives_test_valid_f64(1.0))
+        n_pass++;
+    else
+        printf("FAIL f64 valid(1.0) returned false\n");
+
+    n_tests++;
+    if (!Kuiper_Example_MathPrimitives_test_valid_f64((double)NAN))
+        n_pass++;
+    else
+        printf("FAIL f64 valid(NAN) returned true\n");
+
+    n_tests++;
+    if (!Kuiper_Example_MathPrimitives_test_valid_f64((double)INFINITY))
+        n_pass++;
+    else
+        printf("FAIL f64 valid(INFINITY) returned true\n");
+
+    check_f64("min_val", Kuiper_Example_MathPrimitives_test_min_val_f64(), -DBL_MAX, 0.0);
+    check_f64("max_val", Kuiper_Example_MathPrimitives_test_max_val_f64(), DBL_MAX, 0.0);
+
+    /* Float16 */
+    n_tests++;
+    if (Kuiper_Example_MathPrimitives_test_valid_f16(__float2half(1.0f)))
+        n_pass++;
+    else
+        printf("FAIL f16 valid(1.0) returned false\n");
+
+    n_tests++;
+    if (!Kuiper_Example_MathPrimitives_test_valid_f16(__float2half(NAN)))
+        n_pass++;
+    else
+        printf("FAIL f16 valid(NAN) returned true\n");
+
+    n_tests++;
+    if (!Kuiper_Example_MathPrimitives_test_valid_f16(__float2half(INFINITY)))
+        n_pass++;
+    else
+        printf("FAIL f16 valid(INFINITY) returned true\n");
+
+    check_f16("min_val", Kuiper_Example_MathPrimitives_test_min_val_f16(), -65504.0f, 0.0f);
+    check_f16("max_val", Kuiper_Example_MathPrimitives_test_max_val_f16(), 65504.0f, 0.0f);
 
     if (n_pass == n_tests) {
         printf("%d tests, OK\n", n_tests);

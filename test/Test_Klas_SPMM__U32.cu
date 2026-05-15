@@ -25,7 +25,9 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
     uint32_t *row_indices = mk_row_indices(rows, A);
     uint32_t *B = mk_dense_matrix_u32(shared, cols, 50);
     uint32_t *CD = (uint32_t *) calloc(rows * cols, sizeof CD[0]);
-    cpu_matmul(AD, B, CD, rows, shared, cols);
+
+    if (do_check)
+        cpu_matmul(AD, B, CD, rows, shared, cols);
 
     smatrix_t dA;
     uint32_t *drow_indices, *dB, *dC;
@@ -44,7 +46,7 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
 
     g_tests++;
     int mismatches = 0;
-    if (!do_check) {
+    if (do_check) {
         for (int i = 0; i < rows * cols; i++) {
             if (C[i] != CD[i]) {
                 if (mismatches == 0)
@@ -81,7 +83,7 @@ static void test_identity(int n, int cols)
 {
     char label[128];
     snprintf(label, sizeof label, "identity(%dx%d, cols=%d)", n, n, cols);
-    uint32_t *AD = mk_identity_matrix(n, n);
+    uint32_t *AD = mk_identity_matrix_u32(n, n);
     run_spmm(label, AD, n, n, cols);
     free(AD);
 }
@@ -99,7 +101,7 @@ static void test_single_per_row(int rows, int shared, int cols)
 {
     char label[128];
     snprintf(label, sizeof label, "single_per_row(%dx%dx%d)", rows, shared, cols);
-    uint32_t *AD = mk_single_per_row(rows, shared);
+    uint32_t *AD = mk_single_per_row_u32(rows, shared);
     run_spmm(label, AD, rows, shared, cols);
     free(AD);
 }

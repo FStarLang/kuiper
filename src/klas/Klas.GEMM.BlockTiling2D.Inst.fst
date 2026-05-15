@@ -82,6 +82,11 @@ fn spec
   assert pure (SZ.fits (bm * bk));
   assert pure (SZ.fits (bk * bn));
 
+  assert pure (rows / bm <= rows);
+  assert pure (cols / bn <= cols);
+  assert pure ((rows / bm) * (cols / bn) <= rows * cols);
+  assert pure ((rows / bm) * (cols / bn) <= max_blocks);
+
   K.mmcomb_gpu_exact
     (fun o n -> mul beta o `add` mul alpha n)
     #rows #shared #cols

@@ -2,6 +2,8 @@ module Kuiper.Kahan
 
 #lang-pulse
 
+#set-options "--z3seed 1" // Sigh
+
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.Sum { sum, sum_pop_right }

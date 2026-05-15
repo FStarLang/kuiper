@@ -115,3 +115,17 @@ fn test_copysign_f16 (x y : f16) returns f16 { F16.copysign x y }
 (* ---- Float16 ternary ---- *)
 
 fn test_fma_f16 (x y z : f16) returns f16 { F16.fma x y z }
+
+(* ---- valid / min_val / max_val ---- *)
+
+fn test_valid_f32  (x : f32)  returns bool { F32.valid x }
+fn test_min_val_f32 (_:unit)  returns f32  { F32.min_val }
+fn test_max_val_f32 (_:unit)  returns f32  { F32.max_val }
+
+fn test_valid_f64  (x : f64)  returns bool { F64.valid x }
+fn test_min_val_f64 (_:unit)  returns f64  { F64.min_val }
+fn test_max_val_f64 (_:unit)  returns f64  { F64.max_val }
+
+fn test_valid_f16  (x : f16)  returns bool { F16.valid x }
+fn test_min_val_f16 (_:unit)  returns f16  { F16.min_val }
+fn test_max_val_f16 (_:unit)  returns f16  { F16.max_val }

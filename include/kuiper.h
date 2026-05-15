@@ -8,8 +8,6 @@
 #include <stdio.h>
 #include <float.h>
 
-#define HLF_MAX __float2half(65504.0f)
-
 #include <cuda_runtime.h>
 #include <cuda_fp16.h>
 #include "kuiper/atomics.h"

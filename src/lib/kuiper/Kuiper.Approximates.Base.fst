@@ -2,7 +2,7 @@ module Kuiper.Approximates.Base
 
 open Kuiper.Real
 open Kuiper.Scalars
-open Kuiper.Floating
+open Kuiper.Floating.Base
 
 (* This class is meant for scalar types that can "approximate" or
 "model" real numbers. *)
@@ -32,7 +32,7 @@ class real_like (a:Type) {| scalar a |} = {
                 //[SMTPat (v_approximates x r); SMTPat (v_approximates y s)];
 }
 
-let to_real_ok_pat 
+let to_real_ok_pat
   (a:Type) {| scalar a, real_like a |}
   (x : a) :
           Lemma (ensures x `v_approximates` to_real x)

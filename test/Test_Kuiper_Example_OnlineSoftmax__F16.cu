@@ -6,8 +6,8 @@ const char *progname = "online_softmax_f16";
 
 static void wrap_f16(uint32_t n, half *host_a, half *host_b)
 {
-    half *ga = (half *)KPR_GPU_ALLOC(sizeof ga[0], n);
-    half *gb = (half *)KPR_GPU_ALLOC(sizeof gb[0], n);
+    half *ga = (half *) KPR_GPU_ALLOC(sizeof ga[0], n);
+    half *gb = (half *) KPR_GPU_ALLOC(sizeof gb[0], n);
     MUST(cudaMemcpy(ga, host_a, n * sizeof ga[0], cudaMemcpyHostToDevice));
     Kuiper_Example_OnlineSoftmax__testh(n, ga, gb);
     MUST(cudaMemcpy(host_b, gb, n * sizeof gb[0], cudaMemcpyDeviceToHost));

@@ -10,6 +10,7 @@ open Kuiper.Ref
 open Kuiper.IntAliases
 open Kuiper.AtomicOps
 open FStar.Tactics.Typeclasses { no_method }
+open Kuiper.Scalars
 
 inline_for_extraction
 class has_atomic_add (t:Type) = {
@@ -28,24 +29,24 @@ class has_atomic_add (t:Type) = {
 
 inline_for_extraction
 instance has_atomic_add_u32 : has_atomic_add u32 = {
-  pure_op = FStar.UInt32.add_mod;
+  pure_op = add;
   atomic_add = gpu_faa_u32;
 }
 
 inline_for_extraction
 instance has_atomic_add_u64 : has_atomic_add u64 = {
-  pure_op = FStar.UInt64.add_mod;
+  pure_op = add;
   atomic_add = gpu_faa_u64;
 }
 
 inline_for_extraction
 instance has_atomic_add_f32 : has_atomic_add f32 = {
-  pure_op = Kuiper.Float32.add;
+  pure_op = add;
   atomic_add = gpu_faa_f32;
 }
 
 inline_for_extraction
 instance has_atomic_add_f64 : has_atomic_add f64 = {
-  pure_op = Kuiper.Float64.add;
+  pure_op = add;
   atomic_add = gpu_faa_f64;
 }

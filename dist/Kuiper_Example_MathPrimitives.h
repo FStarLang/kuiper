@@ -160,5 +160,23 @@ half Kuiper_Example_MathPrimitives_test_copysign_f16(half x, half y);
 
 half Kuiper_Example_MathPrimitives_test_fma_f16(half x, half y, half z);
 
+bool Kuiper_Example_MathPrimitives_test_valid_f32(float x);
+
+float Kuiper_Example_MathPrimitives_test_min_val_f32(void);
+
+float Kuiper_Example_MathPrimitives_test_max_val_f32(void);
+
+bool Kuiper_Example_MathPrimitives_test_valid_f64(double x);
+
+double Kuiper_Example_MathPrimitives_test_min_val_f64(void);
+
+double Kuiper_Example_MathPrimitives_test_max_val_f64(void);
+
+bool Kuiper_Example_MathPrimitives_test_valid_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_min_val_f16(void);
+
+half Kuiper_Example_MathPrimitives_test_max_val_f16(void);
+
 #define Kuiper_Example_MathPrimitives_H_DEFINED
 #endif                          /* Kuiper_Example_MathPrimitives_H */

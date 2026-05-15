@@ -60,7 +60,7 @@ val lemma_seq_fold_left_sum (#a:Type) (e:a) (f: a -> a -> a)
   (s1 s2 : seq a)
   : Lemma (requires is_monoid e f)
           (ensures seq_fold_left f e (append s1 s2)
-                   == seq_fold_left f e s1 `f` seq_fold_left f e s2)                   
+                   == seq_fold_left f e s1 `f` seq_fold_left f e s2)
 
 val lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
   : Lemma (requires i <= j /\ j <= k /\ k <= length s)
@@ -69,10 +69,10 @@ val lem_append_slice (#a:Type) (s : seq a) (i j k : nat)
 val lemma_seq_fold_left_slice (#a #b:Type) (e:b) (f: b -> a -> b)
   (s : seq a) (i j : nat)
   : Lemma (requires i <= j /\ j < length s)
-          (ensures seq_fold_left f e (slice s i (j + 1)) 
+          (ensures seq_fold_left f e (slice s i (j + 1))
                     == seq_fold_left f e (slice s i j) `f` (s @! j))
           [SMTPat (seq_fold_left f e (slice s i (j + 1)))]
-          
+
 val lem_one_elem (#a:Type) (s : seq a) (v : a)
   : Lemma (requires length s == 1 /\ s @! 0 == v)
           (ensures s == seq![v])
