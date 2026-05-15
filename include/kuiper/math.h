@@ -18,19 +18,24 @@
 #include <math.h>
 #include <cuda_fp16.h>
 
-static inline
+static inline __host__ __device__
 bool kpr_hisvalid(half x)
 {
+#ifdef __CUDA_ARCH__
         return !__hisnan(x) && !__hisinf(x);
+#else
+        float f = __half2float(x);
+        return !isnan(f) && !isinf(f);
+#endif
 }
 
-static inline
+static inline __host__ __device__
 bool kpr_fisvalid(float x)
 {
         return !isnan(x) && !isinf(x);
 }
 
-static inline
+static inline __host__ __device__
 bool kpr_disvalid(double x)
 {
         return !isnan(x) && !isinf(x);
