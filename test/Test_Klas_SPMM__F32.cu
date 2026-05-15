@@ -25,7 +25,9 @@ static void run_spmm(const char *label, float *AD, int rows, int shared, int col
     uint32_t *row_indices = mk_row_indices(rows, A);
     float *B = mk_dense_matrix_f32(shared, cols, 50);
     float *CD = (float *) calloc(rows * cols, sizeof CD[0]);
-    cpu_matmul(AD, B, CD, rows, shared, cols);
+
+    if (do_check)
+      cpu_matmul(AD, B, CD, rows, shared, cols);
 
     smatrix_t dA;
     uint32_t *drow_indices;
