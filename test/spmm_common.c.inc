@@ -36,7 +36,7 @@ static float *mk_dense_matrix_f32(int rows, int cols, int density_pct)
 }
 
 /* Identity-like: A[i][i] = 1 for min(rows,cols) diagonal entries. */
-static uint32_t *mk_identity_matrix(int rows, int cols)
+static uint32_t *mk_identity_matrix_u32(int rows, int cols)
 {
     uint32_t *M = (uint32_t *) calloc(rows * cols, sizeof M[0]);
     int diag = rows < cols ? rows : cols;
@@ -45,10 +45,27 @@ static uint32_t *mk_identity_matrix(int rows, int cols)
     return M;
 }
 
+static float *mk_identity_matrix_f32(int rows, int cols)
+{
+    float *M = (float *) calloc(rows * cols, sizeof M[0]);
+    int diag = rows < cols ? rows : cols;
+    for (int i = 0; i < diag; i++)
+        M[i * cols + i] = 1;
+    return M;
+}
+
 /* One nonzero per row, at a random column. */
-static uint32_t *mk_single_per_row(int rows, int cols)
+static uint32_t *mk_single_per_row_u32(int rows, int cols)
 {
     uint32_t *M = (uint32_t *) calloc(rows * cols, sizeof M[0]);
+    for (int i = 0; i < rows; i++)
+        M[i * cols + rand() % cols] = 1 + rand() % 99;
+    return M;
+}
+
+static float *mk_single_per_row_f32(int rows, int cols)
+{
+    float *M = (float *) calloc(rows * cols, sizeof M[0]);
     for (int i = 0; i < rows; i++)
         M[i * cols + rand() % cols] = 1 + rand() % 99;
     return M;

@@ -13,6 +13,9 @@ open Klas.SPMM.Inst
 // One single u32 variant for the test
 let spmm_u32 = inst u32 rm rm 128sz 128sz 32sz
 
+// A fixed-name f32 variant for the test and quick benching
+let spmm_f32 = inst f32 rm rm 512sz 512sz 64sz
+
 EOF
 
 # let spmm_u32 = inst u32 128sz 128sz 32sz
