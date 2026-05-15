@@ -2,7 +2,7 @@ module Kuiper.Approximates.Base
 
 open Kuiper.Real
 open Kuiper.Scalars
-open Kuiper.Floating
+open Kuiper.Floating.Base
 
 (* This class is meant for scalar types that can "approximate" or
 "model" real numbers. *)

@@ -1,5 +1,7 @@
 module Kuiper.Approximates.U32
 
+friend Kuiper.Scalars (* Need to peek in the definition of the class. *)
+
 open Kuiper.IntAliases
 open Kuiper.Approximates.Base
 open FStar.Real

@@ -1,6 +1,7 @@
 module Kuiper.Scalars.Base
 
 open Kuiper.Sized
+open FStar.Tactics.Easy
 open FStar.Tactics.Typeclasses { solve, tcinstance }
 
 (* There are no scalar instances for signed ints, we do not have
@@ -8,8 +9,7 @@ total unconditional operations on them. *)
 
 inline_for_extraction noextract
 class scalar (t : Type) = {
-  [@@@tcinstance]
-  is_sized : sized t;
+  [@@@tcinstance]is_sized : sized t;
 
   add : t -> t -> t;
   mul : t -> t -> t;
@@ -25,14 +25,39 @@ class scalar (t : Type) = {
   valid : t -> bool;
 
   (* Laws. *)
+
+  (* Equality is sound, at least for valid terms. *)
+  #[easy_fill ()]
+  eq_spec : (x : t) -> (y : t) ->
+    valid x /\ valid y -> (eq x y <==> x == y);
+
+  (* x <= y <==> x < y or x == y *)
+  #[easy_fill ()]
   lte_is_lt_or_eq :
     (x : t) -> (y : t) ->
-      Lemma (requires valid x /\ valid y) (ensures lte x y <==> lt x y \/ eq x y);
+      valid x /\ valid y -> (lte x y <==> lt x y \/ eq x y);
 
   (* x < y <==> not (y <= x) *)
+  #[easy_fill ()]
   negate_lt_is_lte :
     (x : t) -> (y : t) ->
-      Lemma (requires valid x /\ valid y) (ensures lt x y <==> not (lte y x));
+      valid x /\ valid y -> (lt x y <==> not (lte y x));
+
+  (* Addition commutes. Note: this is true even for NaNs. *)
+  #[easy_fill ()]
+  add_comm : (x : t) -> (y : t) ->
+    valid x -> valid y ->
+    eq (add x y) (add y x);
+
+  #[easy_fill ()]
+  mul_comm : (x : t) -> (y : t) ->
+    valid x -> valid y ->
+    eq (mul x y) (mul y x);
+
+  #[easy_fill ()]
+  add_zero : (x : t) ->
+    valid x ->
+    eq (add x zero) x;
 }
 
 (* Derived methods *)
@@ -55,7 +80,7 @@ noextract
 instance _ : scalar Real.real =
   let open FStar.Real in
   {
-  is_sized = { size = 0sz; default = 0.0R };
+    is_sized = { size = 0sz; default = 0.0R };
   add = ( +. );
   mul = ( *. );
   zero = 0.0R;
@@ -66,7 +91,4 @@ instance _ : scalar Real.real =
   lt  = (fun _ _ -> false);
   lte = (fun _ _ -> false);
   valid = (fun _ -> false);
-
-  lte_is_lt_or_eq = (fun _ _ -> ());
-  negate_lt_is_lte = (fun _ _ -> ());
 }

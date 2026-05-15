@@ -577,7 +577,10 @@ fn cp_matrix_vec
       pure (SZ.v !i == GR.read git * nthr * chunk et) **
       pure (GR.read git <= (rows*cols) / (nthr * chunk et)) **
       own_strided_chunks dst (em_fade edst esrc nthr (GR.read git)) nthr tid
-    decreases (mlen - !i)
+
+    // Both are valid termination measures, the one below seems easier on SMT.
+    // decreases (mlen - !i)
+    decreases (mlen - GR.read git)
   {
     assert pure (GR.read git < (rows*cols) / (chunk et * nthr));
     let vi = !i;

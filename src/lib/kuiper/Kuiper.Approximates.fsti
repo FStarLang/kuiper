@@ -5,9 +5,6 @@ include Kuiper.Approximates.U8
 include Kuiper.Approximates.U16
 include Kuiper.Approximates.U32
 include Kuiper.Approximates.U64
-include Kuiper.Approximates.F16
-include Kuiper.Approximates.F32
-include Kuiper.Approximates.F64
 
 open FStar.Ghost
 open FStar.Seq

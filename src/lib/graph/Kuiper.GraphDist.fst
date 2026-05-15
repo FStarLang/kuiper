@@ -71,8 +71,6 @@ instance scalar_dist : scalar dist = {
   lte = (fun _ _ -> false); // fake, not used by GEMM
   eq  = (fun _ _ -> false); // fake, not used by GEMM
   valid = (fun _ -> false);
-  lte_is_lt_or_eq = (fun _ _ -> ());
-  negate_lt_is_lte = (fun _ _ -> ());
 }
 
 ghost

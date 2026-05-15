@@ -2,6 +2,7 @@ module Klas.LogSoftmax
 
 #lang-pulse
 open Kuiper
+open Kuiper.Approximates
 
 module K = Kuiper.Kernel.LogSoftmax
 
