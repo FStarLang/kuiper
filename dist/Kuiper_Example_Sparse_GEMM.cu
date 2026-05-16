@@ -14,9 +14,10 @@ __hoisted__gemm_u32_rr_0(uint32_t rows,
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / cols;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % cols;
+        uint32_t re = gA.row_off[trow + 1U];
         uint32_t dp = 0U;
         uint32_t k = gA.row_off[trow];
-        for (; k < gA.row_off[trow + 1U]; k++)
+        for (; k < re; k++)
             dp += gA.elems[k] * gB[gA.col_ind[k] * cols + tcol];
         gC[trow * cols + tcol] = dp;
     }

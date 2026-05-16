@@ -14,13 +14,14 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -127,13 +128,14 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -241,13 +243,14 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -355,13 +358,14 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -469,13 +473,14 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -582,13 +587,14 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -696,13 +702,14 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -810,13 +817,14 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -924,13 +932,14 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1037,13 +1046,14 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1151,13 +1161,14 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1265,13 +1276,14 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1379,13 +1391,14 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1492,13 +1505,14 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1606,13 +1620,14 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1720,13 +1735,14 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1834,13 +1850,14 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -1948,13 +1965,14 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2062,13 +2080,14 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2176,13 +2195,14 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(4096U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2290,13 +2310,14 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2404,13 +2425,14 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2518,13 +2540,14 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2632,13 +2655,14 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2746,13 +2770,14 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2859,13 +2884,14 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -2973,13 +2999,14 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3087,13 +3114,14 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3201,13 +3229,14 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3314,13 +3343,14 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3428,13 +3458,14 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3542,13 +3573,14 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3656,13 +3688,14 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3769,13 +3802,14 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3883,13 +3917,14 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -3997,13 +4032,14 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4111,13 +4147,14 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4224,13 +4261,14 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4338,13 +4376,14 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4452,13 +4491,14 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4566,13 +4606,14 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4680,13 +4721,14 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4794,13 +4836,14 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -4908,13 +4951,14 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(8192U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5022,13 +5066,14 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5136,13 +5181,14 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5250,13 +5296,14 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5364,13 +5411,14 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5478,13 +5526,14 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5592,13 +5641,14 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5706,13 +5756,14 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5820,13 +5871,14 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -5934,13 +5986,14 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6048,13 +6101,14 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6162,13 +6216,14 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6276,13 +6331,14 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 32U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6390,13 +6446,14 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6504,13 +6561,14 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6618,13 +6676,14 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6732,13 +6791,14 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6846,13 +6906,14 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -6960,13 +7021,14 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7074,13 +7136,14 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7188,13 +7251,14 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7302,13 +7366,14 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7416,13 +7481,14 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7530,13 +7596,14 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7644,13 +7711,14 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(16384U);
+    uint32_t num_k_tiles = shared / 32U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 32U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7758,13 +7826,14 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[64U];
     memset(rchProd, 0U, 64U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7872,13 +7941,14 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -7986,13 +8056,14 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[128U];
     memset(rchProd, 0U, 128U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;
@@ -8100,13 +8171,14 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha,
 {
     float *sA = (float *)KPR_SHMEM_AT(0U);
     float *sB = (float *)KPR_SHMEM_AT(32768U);
+    uint32_t num_k_tiles = shared / 64U;
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
     float rchProd[256U];
     memset(rchProd, 0U, 256U * sizeof(float));
     uint32_t bkIdx = 0U;
-    for (; bkIdx < shared / 64U; bkIdx++) {
+    for (; bkIdx < num_k_tiles; bkIdx++) {
         __syncthreads();
         uint32_t __anf03 = bkIdx;
         float *tileA = gA;

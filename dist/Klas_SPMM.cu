@@ -61,8 +61,9 @@ __hoisted_spmm_u32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         uint32_t a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -162,8 +163,9 @@ __hoisted_spmm_f32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -261,8 +263,9 @@ __hoisted_g_spmm_f32_16x16x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -360,8 +363,9 @@ __hoisted_g_spmm_f32_16x32x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -459,8 +463,9 @@ __hoisted_g_spmm_f32_16x64x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -558,8 +563,9 @@ __hoisted_g_spmm_f32_16x128x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -657,8 +663,9 @@ __hoisted_g_spmm_f32_16x256x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -756,8 +763,9 @@ __hoisted_g_spmm_f32_16x512x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -856,8 +864,9 @@ __hoisted_g_spmm_f32_32x16x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -956,8 +965,9 @@ __hoisted_g_spmm_f32_32x32x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1055,8 +1065,9 @@ __hoisted_g_spmm_f32_32x32x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1155,8 +1166,9 @@ __hoisted_g_spmm_f32_32x64x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1254,8 +1266,9 @@ __hoisted_g_spmm_f32_32x64x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1354,8 +1367,9 @@ __hoisted_g_spmm_f32_32x128x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1453,8 +1467,9 @@ __hoisted_g_spmm_f32_32x128x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1553,8 +1568,9 @@ __hoisted_g_spmm_f32_32x256x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1652,8 +1668,9 @@ __hoisted_g_spmm_f32_32x256x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1752,8 +1769,9 @@ __hoisted_g_spmm_f32_32x512x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1851,8 +1869,9 @@ __hoisted_g_spmm_f32_32x512x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -1951,8 +1970,9 @@ __hoisted_g_spmm_f32_64x16x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2051,8 +2071,9 @@ __hoisted_g_spmm_f32_64x32x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2151,8 +2172,9 @@ __hoisted_g_spmm_f32_64x32x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2251,8 +2273,9 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2351,8 +2374,9 @@ __hoisted_g_spmm_f32_64x64x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2450,8 +2474,9 @@ __hoisted_g_spmm_f32_64x64x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2550,8 +2575,9 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2650,8 +2676,9 @@ __hoisted_g_spmm_f32_64x128x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2749,8 +2776,9 @@ __hoisted_g_spmm_f32_64x128x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2849,8 +2877,9 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -2949,8 +2978,9 @@ __hoisted_g_spmm_f32_64x256x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3048,8 +3078,9 @@ __hoisted_g_spmm_f32_64x256x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3148,8 +3179,9 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3248,8 +3280,9 @@ __hoisted_g_spmm_f32_64x512x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3347,8 +3380,9 @@ __hoisted_g_spmm_f32_64x512x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3448,8 +3482,9 @@ __hoisted_g_spmm_f32_128x16x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3549,8 +3584,9 @@ __hoisted_g_spmm_f32_128x32x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3650,8 +3686,9 @@ __hoisted_g_spmm_f32_128x32x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3751,8 +3788,9 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3852,8 +3890,9 @@ __hoisted_g_spmm_f32_128x64x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -3953,8 +3992,9 @@ __hoisted_g_spmm_f32_128x64x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4054,8 +4094,9 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4155,8 +4196,9 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4256,8 +4298,9 @@ __hoisted_g_spmm_f32_128x128x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4356,8 +4399,9 @@ __hoisted_g_spmm_f32_128x128x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4457,8 +4501,9 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4558,8 +4603,9 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4659,8 +4705,9 @@ __hoisted_g_spmm_f32_128x256x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4759,8 +4806,9 @@ __hoisted_g_spmm_f32_128x256x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4860,8 +4908,9 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -4961,8 +5010,9 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5062,8 +5112,9 @@ __hoisted_g_spmm_f32_128x512x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5162,8 +5213,9 @@ __hoisted_g_spmm_f32_128x512x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5263,8 +5315,9 @@ __hoisted_g_spmm_f32_256x16x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5364,8 +5417,9 @@ __hoisted_g_spmm_f32_256x32x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5465,8 +5519,9 @@ __hoisted_g_spmm_f32_256x32x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5566,8 +5621,9 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5667,8 +5723,9 @@ __hoisted_g_spmm_f32_256x64x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5768,8 +5825,9 @@ __hoisted_g_spmm_f32_256x64x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5869,8 +5927,9 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -5970,8 +6029,9 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6071,8 +6131,9 @@ __hoisted_g_spmm_f32_256x128x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6172,8 +6233,9 @@ __hoisted_g_spmm_f32_256x128x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6273,8 +6335,9 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6374,8 +6437,9 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6475,8 +6539,9 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6576,8 +6641,9 @@ __hoisted_g_spmm_f32_256x256x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6676,8 +6742,9 @@ __hoisted_g_spmm_f32_256x256x256_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6777,8 +6844,9 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6878,8 +6946,9 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -6979,8 +7048,9 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7080,8 +7150,9 @@ __hoisted_g_spmm_f32_256x512x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7180,8 +7251,9 @@ __hoisted_g_spmm_f32_256x512x256_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7281,8 +7353,9 @@ __hoisted_g_spmm_f32_512x16x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7382,8 +7455,9 @@ __hoisted_g_spmm_f32_512x32x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7483,8 +7557,9 @@ __hoisted_g_spmm_f32_512x32x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7584,8 +7659,9 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7685,8 +7761,9 @@ __hoisted_g_spmm_f32_512x64x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7786,8 +7863,9 @@ __hoisted_g_spmm_f32_512x64x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7887,8 +7965,9 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -7988,8 +8067,9 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8089,8 +8169,9 @@ __hoisted_g_spmm_f32_512x128x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8190,8 +8271,9 @@ __hoisted_g_spmm_f32_512x128x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8291,8 +8373,9 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8392,8 +8475,9 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8493,8 +8577,9 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8594,8 +8679,9 @@ __hoisted_g_spmm_f32_512x256x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8695,8 +8781,9 @@ __hoisted_g_spmm_f32_512x256x256_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8796,8 +8883,9 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8897,8 +8985,9 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -8998,8 +9087,9 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -9099,8 +9189,9 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -9200,8 +9291,9 @@ __hoisted_g_spmm_f32_512x512x256_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
@@ -9300,8 +9392,9 @@ __hoisted_g_spmm_f32_512x512x512_0(uint32_t cols,
         col_ind_tile[tile_off] = gA.col_ind[off1 + tile_off];
     }
     __syncthreads();
+    uint32_t __anf01 = nnz;
     uint32_t k = 0U;
-    for (; k < nnz; k++) {
+    for (; k < __anf01; k++) {
         float a = elems_tile[k];
         uint32_t c = col_ind_tile[k];
         uint32_t x = 0U;
