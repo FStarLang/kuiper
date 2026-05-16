@@ -43,16 +43,17 @@ static void __hoisted_1(uint32_t lena, half *a, half sum)
 
 void Klas_LogSoftmax_log_softmax_gpu_n_f16(uint32_t nth, uint32_t lena, half *a)
 {
-    half *a_ = (half *) KPR_GPU_ALLOC(sizeof((half) 0), lena);
-    MUST(cudaMemcpy(a_, a, sizeof((half) 0) * lena, cudaMemcpyDeviceToDevice));
-    half *out = (half *) KPR_GPU_ALLOC(sizeof((half) 0), 1U);
+    half *a_ = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (a_, a, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToDevice));
+    half *out = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
     KPR_SHMEM_FITS(2U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 2U * nth));
     KPR_KCALL(__hoisted_0, 1U, nth, 2U * nth, nth, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, sizeof((half) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(half), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
@@ -104,16 +105,17 @@ static void __hoisted_3(uint32_t lena, float *a, float sum)
 void Klas_LogSoftmax_log_softmax_gpu_n_f32(uint32_t nth, uint32_t lena,
                                            float *a)
 {
-    float *a_ = (float *)KPR_GPU_ALLOC(sizeof((float) 0), lena);
-    MUST(cudaMemcpy(a_, a, sizeof((float) 0) * lena, cudaMemcpyDeviceToDevice));
-    float *out = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+    float *a_ = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
+    MUST(cudaMemcpy
+         (a_, a, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToDevice));
+    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
     KPR_SHMEM_FITS(4U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * nth));
     KPR_KCALL(__hoisted_2, 1U, nth, 4U * nth, nth, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, sizeof((float) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
@@ -165,17 +167,17 @@ static void __hoisted_5(uint32_t lena, double *a, double sum)
 void Klas_LogSoftmax_log_softmax_gpu_n_f64(uint32_t nth, uint32_t lena,
                                            double *a)
 {
-    double *a_ = (double *)KPR_GPU_ALLOC(sizeof((double) 0), lena);
+    double *a_ = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
     MUST(cudaMemcpy
-         (a_, a, sizeof((double) 0) * lena, cudaMemcpyDeviceToDevice));
-    double *out = (double *)KPR_GPU_ALLOC(sizeof((double) 0), 1U);
+         (a_, a, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToDevice));
+    double *out = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     KPR_SHMEM_FITS(8U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * nth));
     KPR_KCALL(__hoisted_4, 1U, nth, 8U * nth, nth, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, sizeof((double) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
@@ -226,16 +228,17 @@ static void __hoisted_7(uint32_t lena, half *a, half sum)
 
 void Klas_LogSoftmax_log_softmax_gpu_f16(uint32_t lena, half *a)
 {
-    half *a_ = (half *) KPR_GPU_ALLOC(sizeof((half) 0), lena);
-    MUST(cudaMemcpy(a_, a, sizeof((half) 0) * lena, cudaMemcpyDeviceToDevice));
-    half *out = (half *) KPR_GPU_ALLOC(sizeof((half) 0), 1U);
+    half *a_ = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (a_, a, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToDevice));
+    half *out = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute
          (__hoisted_6, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
     KPR_KCALL(__hoisted_6, 1U, 1024U, 2048U, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, sizeof((half) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(half), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
@@ -286,16 +289,17 @@ static void __hoisted_9(uint32_t lena, float *a, float sum)
 
 void Klas_LogSoftmax_log_softmax_gpu_f32(uint32_t lena, float *a)
 {
-    float *a_ = (float *)KPR_GPU_ALLOC(sizeof((float) 0), lena);
-    MUST(cudaMemcpy(a_, a, sizeof((float) 0) * lena, cudaMemcpyDeviceToDevice));
-    float *out = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+    float *a_ = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
+    MUST(cudaMemcpy
+         (a_, a, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToDevice));
+    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_8, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
     KPR_KCALL(__hoisted_8, 1U, 1024U, 4096U, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, sizeof((float) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
@@ -346,17 +350,17 @@ static void __hoisted_11(uint32_t lena, double *a, double sum)
 
 void Klas_LogSoftmax_log_softmax_gpu_f64(uint32_t lena, double *a)
 {
-    double *a_ = (double *)KPR_GPU_ALLOC(sizeof((double) 0), lena);
+    double *a_ = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
     MUST(cudaMemcpy
-         (a_, a, sizeof((double) 0) * lena, cudaMemcpyDeviceToDevice));
-    double *out = (double *)KPR_GPU_ALLOC(sizeof((double) 0), 1U);
+         (a_, a, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToDevice));
+    double *out = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_10, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_10, 1U, 1024U, 8192U, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, sizeof((double) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
@@ -408,18 +412,20 @@ static void __hoisted_13(uint32_t lena, half *ga, half sum)
 
 void Klas_LogSoftmax_log_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
 {
-    half *ga = (half *) KPR_GPU_ALLOC(sizeof((half) 0), lena);
-    MUST(cudaMemcpy(ga, a, sizeof((half) 0) * lena, cudaMemcpyHostToDevice));
-    half *a_ = (half *) KPR_GPU_ALLOC(sizeof((half) 0), lena);
-    MUST(cudaMemcpy(a_, ga, sizeof((half) 0) * lena, cudaMemcpyDeviceToDevice));
-    half *out = (half *) KPR_GPU_ALLOC(sizeof((half) 0), 1U);
+    half *ga = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(half) * lena, cudaMemcpyHostToDevice));
+    half *a_ = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (a_, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToDevice));
+    half *out = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
     KPR_SHMEM_FITS(2U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_12, cudaFuncAttributeMaxDynamicSharedMemorySize, 2U * nth));
     KPR_KCALL(__hoisted_12, 1U, nth, 2U * nth, nth, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, sizeof((half) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(half), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
@@ -427,7 +433,8 @@ void Klas_LogSoftmax_log_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
               1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, sizeof((half) 0) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -473,19 +480,20 @@ static void __hoisted_15(uint32_t lena, float *ga, float sum)
 
 void Klas_LogSoftmax_log_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
 {
-    float *ga = (float *)KPR_GPU_ALLOC(sizeof((float) 0), lena);
-    MUST(cudaMemcpy(ga, a, sizeof((float) 0) * lena, cudaMemcpyHostToDevice));
-    float *a_ = (float *)KPR_GPU_ALLOC(sizeof((float) 0), lena);
+    float *ga = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
     MUST(cudaMemcpy
-         (a_, ga, sizeof((float) 0) * lena, cudaMemcpyDeviceToDevice));
-    float *out = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+         (ga, a, (uint32_t) sizeof(float) * lena, cudaMemcpyHostToDevice));
+    float *a_ = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
+    MUST(cudaMemcpy
+         (a_, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToDevice));
+    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
     KPR_SHMEM_FITS(4U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_14, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * nth));
     KPR_KCALL(__hoisted_14, 1U, nth, 4U * nth, nth, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, sizeof((float) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
@@ -493,7 +501,8 @@ void Klas_LogSoftmax_log_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
               1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, sizeof((float) 0) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -539,19 +548,20 @@ static void __hoisted_17(uint32_t lena, double *ga, double sum)
 
 void Klas_LogSoftmax_log_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
 {
-    double *ga = (double *)KPR_GPU_ALLOC(sizeof((double) 0), lena);
-    MUST(cudaMemcpy(ga, a, sizeof((double) 0) * lena, cudaMemcpyHostToDevice));
-    double *a_ = (double *)KPR_GPU_ALLOC(sizeof((double) 0), lena);
+    double *ga = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
     MUST(cudaMemcpy
-         (a_, ga, sizeof((double) 0) * lena, cudaMemcpyDeviceToDevice));
-    double *out = (double *)KPR_GPU_ALLOC(sizeof((double) 0), 1U);
+         (ga, a, (uint32_t) sizeof(double) * lena, cudaMemcpyHostToDevice));
+    double *a_ = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
+    MUST(cudaMemcpy
+         (a_, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToDevice));
+    double *out = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     KPR_SHMEM_FITS(8U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_16, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * nth));
     KPR_KCALL(__hoisted_16, 1U, nth, 8U * nth, nth, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, sizeof((double) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
@@ -559,7 +569,8 @@ void Klas_LogSoftmax_log_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
               1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, sizeof((double) 0) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -605,18 +616,20 @@ static void __hoisted_19(uint32_t lena, half *ga, half sum)
 
 void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, half *a)
 {
-    half *ga = (half *) KPR_GPU_ALLOC(sizeof((half) 0), lena);
-    MUST(cudaMemcpy(ga, a, sizeof((half) 0) * lena, cudaMemcpyHostToDevice));
-    half *a_ = (half *) KPR_GPU_ALLOC(sizeof((half) 0), lena);
-    MUST(cudaMemcpy(a_, ga, sizeof((half) 0) * lena, cudaMemcpyDeviceToDevice));
-    half *out = (half *) KPR_GPU_ALLOC(sizeof((half) 0), 1U);
+    half *ga = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (ga, a, (uint32_t) sizeof(half) * lena, cudaMemcpyHostToDevice));
+    half *a_ = (half *) KPR_GPU_ALLOC(sizeof(half), lena);
+    MUST(cudaMemcpy
+         (a_, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToDevice));
+    half *out = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
     KPR_SHMEM_FITS(2048U);
     MUST(cudaFuncSetAttribute
          (__hoisted_18, cudaFuncAttributeMaxDynamicSharedMemorySize, 2048U));
     KPR_KCALL(__hoisted_18, 1U, 1024U, 2048U, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, sizeof((half) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(half), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     half sum = hout;
     MUST(cudaFree(a_));
@@ -624,7 +637,8 @@ void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, half *a)
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
               1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, sizeof((half) 0) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -670,19 +684,20 @@ static void __hoisted_21(uint32_t lena, float *ga, float sum)
 
 void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a)
 {
-    float *ga = (float *)KPR_GPU_ALLOC(sizeof((float) 0), lena);
-    MUST(cudaMemcpy(ga, a, sizeof((float) 0) * lena, cudaMemcpyHostToDevice));
-    float *a_ = (float *)KPR_GPU_ALLOC(sizeof((float) 0), lena);
+    float *ga = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
     MUST(cudaMemcpy
-         (a_, ga, sizeof((float) 0) * lena, cudaMemcpyDeviceToDevice));
-    float *out = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+         (ga, a, (uint32_t) sizeof(float) * lena, cudaMemcpyHostToDevice));
+    float *a_ = (float *)KPR_GPU_ALLOC(sizeof(float), lena);
+    MUST(cudaMemcpy
+         (a_, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToDevice));
+    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
     KPR_SHMEM_FITS(4096U);
     MUST(cudaFuncSetAttribute
          (__hoisted_20, cudaFuncAttributeMaxDynamicSharedMemorySize, 4096U));
     KPR_KCALL(__hoisted_20, 1U, 1024U, 4096U, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, sizeof((float) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     float sum = hout;
     MUST(cudaFree(a_));
@@ -690,7 +705,8 @@ void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a)
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
               1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, sizeof((float) 0) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
@@ -736,19 +752,20 @@ static void __hoisted_23(uint32_t lena, double *ga, double sum)
 
 void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a)
 {
-    double *ga = (double *)KPR_GPU_ALLOC(sizeof((double) 0), lena);
-    MUST(cudaMemcpy(ga, a, sizeof((double) 0) * lena, cudaMemcpyHostToDevice));
-    double *a_ = (double *)KPR_GPU_ALLOC(sizeof((double) 0), lena);
+    double *ga = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
     MUST(cudaMemcpy
-         (a_, ga, sizeof((double) 0) * lena, cudaMemcpyDeviceToDevice));
-    double *out = (double *)KPR_GPU_ALLOC(sizeof((double) 0), 1U);
+         (ga, a, (uint32_t) sizeof(double) * lena, cudaMemcpyHostToDevice));
+    double *a_ = (double *)KPR_GPU_ALLOC(sizeof(double), lena);
+    MUST(cudaMemcpy
+         (a_, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToDevice));
+    double *out = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     KPR_SHMEM_FITS(8192U);
     MUST(cudaFuncSetAttribute
          (__hoisted_22, cudaFuncAttributeMaxDynamicSharedMemorySize, 8192U));
     KPR_KCALL(__hoisted_22, 1U, 1024U, 8192U, lena, a_, out);
     MUST(cudaDeviceSynchronize());
     double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, sizeof((double) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     double sum = hout;
     MUST(cudaFree(a_));
@@ -756,6 +773,7 @@ void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a)
               lena / 1024U + (uint32_t) (lena % 1024U != 0U),
               1024U, 0U, lena, ga, sum);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(a, ga, sizeof((double) 0) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy
+         (a, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }

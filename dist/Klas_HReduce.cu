@@ -31,14 +31,14 @@ half Klas_HReduce_reduce_f16_plus(uint32_t nth, uint32_t lena, half *a)
 {
     uint64_t lena64 = (uint64_t) lena;
     KPR_ASSERT(!(lena64 + (uint64_t) nth < lena64));
-    half *out = (half *) KPR_GPU_ALLOC(sizeof((half) 0), 1U);
+    half *out = (half *) KPR_GPU_ALLOC(sizeof(half), 1U);
     KPR_SHMEM_FITS(2U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_0, cudaFuncAttributeMaxDynamicSharedMemorySize, 2U * nth));
     KPR_KCALL(__hoisted_0, 1U, nth, 2U * nth, nth, lena, a, out);
     MUST(cudaDeviceSynchronize());
     half hout = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(&hout, out, sizeof((half) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(half), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     return hout;
 }
@@ -73,14 +73,14 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
 {
     uint64_t lena64 = (uint64_t) lena;
     KPR_ASSERT(!(lena64 + (uint64_t) nth < lena64));
-    float *out = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), 1U);
     KPR_SHMEM_FITS(4U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_1, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * nth));
     KPR_KCALL(__hoisted_1, 1U, nth, 4U * nth, nth, lena, a, out);
     MUST(cudaDeviceSynchronize());
     float hout = 0.0f;
-    MUST(cudaMemcpy(&hout, out, sizeof((float) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(float), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     return hout;
 }
@@ -115,14 +115,14 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
 {
     uint64_t lena64 = (uint64_t) lena;
     KPR_ASSERT(!(lena64 + (uint64_t) nth < lena64));
-    double *out = (double *)KPR_GPU_ALLOC(sizeof((double) 0), 1U);
+    double *out = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     KPR_SHMEM_FITS(8U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_2, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * nth));
     KPR_KCALL(__hoisted_2, 1U, nth, 8U * nth, nth, lena, a, out);
     MUST(cudaDeviceSynchronize());
     double hout = 0.0l;
-    MUST(cudaMemcpy(&hout, out, sizeof((double) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     return hout;
 }
@@ -157,14 +157,14 @@ uint32_t Klas_HReduce_reduce_u32_plus(uint32_t nth, uint32_t lena, uint32_t *a)
 {
     uint64_t lena64 = (uint64_t) lena;
     KPR_ASSERT(!(lena64 + (uint64_t) nth < lena64));
-    uint32_t *out = (uint32_t *) KPR_GPU_ALLOC(sizeof((uint32_t) 0), 1U);
+    uint32_t *out = (uint32_t *) KPR_GPU_ALLOC(sizeof(uint32_t), 1U);
     KPR_SHMEM_FITS(4U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_3, cudaFuncAttributeMaxDynamicSharedMemorySize, 4U * nth));
     KPR_KCALL(__hoisted_3, 1U, nth, 4U * nth, nth, lena, a, out);
     MUST(cudaDeviceSynchronize());
     uint32_t hout = 0U;
-    MUST(cudaMemcpy(&hout, out, sizeof((uint32_t) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(uint32_t), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     return hout;
 }
@@ -199,14 +199,14 @@ uint64_t Klas_HReduce_reduce_u64_plus(uint32_t nth, uint32_t lena, uint64_t *a)
 {
     uint64_t lena64 = (uint64_t) lena;
     KPR_ASSERT(!(lena64 + (uint64_t) nth < lena64));
-    uint64_t *out = (uint64_t *) KPR_GPU_ALLOC(sizeof((uint64_t) 0), 1U);
+    uint64_t *out = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 1U);
     KPR_SHMEM_FITS(8U * nth);
     MUST(cudaFuncSetAttribute
          (__hoisted_4, cudaFuncAttributeMaxDynamicSharedMemorySize, 8U * nth));
     KPR_KCALL(__hoisted_4, 1U, nth, 8U * nth, nth, lena, a, out);
     MUST(cudaDeviceSynchronize());
     uint64_t hout = 0ULL;
-    MUST(cudaMemcpy(&hout, out, sizeof((uint64_t) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(&hout, out, sizeof(uint64_t), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     return hout;
 }

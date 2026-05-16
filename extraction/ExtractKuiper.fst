@@ -114,8 +114,14 @@ let get_sizet (e : mlexpr) : ML mlexpr = get_record_field "size" e
 (* Generate a sizeof expression for a type. A bit hacky, since it generates
    something like sizeof((ty)0). The way to avoid the zero would to be add
    a ESizeof to krml. Note: sizeof((int)) fails, so we need something in there. *)
-let sizeof (ty : typ) : expr =
-  EApp (EQualified ([], "sizeof"), [ ECast (EQualified ([], "0"), ty) ])
+let sizeof (ty : typ) : expr = ESizeof ty
+
+(* e times sz, where sz is a sizeof *)
+let mul_by_sz (sz e : expr) : expr =
+  (* Note the cast below to please krml, since ESizeof t is always SizeT.
+  The real one, not the fake one. *)
+  let sz = ECast (sz, TInt fake_SizeT) in
+  EApp (EOp (Mult, fake_SizeT), [ sz; e ])
 
 // repeated names get a numeric prefix, and we have both strided_row_major and strided_col_major
 let get_strided_row_major_offset (e : mlexpr) : ML mlexpr =
@@ -740,7 +746,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Ref.gpu_memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
-    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; sz ; cudaMemcpyHostToDevice ])
+    _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_gr; cb src_r; sz; cudaMemcpyHostToDevice ])
 
   | "Kuiper.Ref.gpu_memcpy_device_to_host", [ty], [ sz; dst_r; src_gr; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
@@ -768,43 +774,41 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Array.Core.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
-    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ sz; cb cnt ]) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_ga; cb src_a; bytesize; cudaMemcpyHostToDevice ])
 
   | "Kuiper.Array.Core.gpu_memcpy_host_to_device'", [ty],
         [ sz; _dst_sz; dst_ga; dst_off; _src_sz; src_a; src_off; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
-    let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)
     let dst_ga = cb dst_ga in
     let dst_ga = EBufSub (dst_ga, dst_off) in
     let src_off = cb src_off in (* element offset, not byte offset *)
     let src_a = cb src_a in
     let src_a = EBufSub (src_a, src_off) in
-    let bytesize : expr = mul_by_sz (cb cnt) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
   | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
-    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ sz; cb cnt ]) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
 
   | "Kuiper.Array.Core.gpu_memcpy_device_to_host'", [ty],
         [ sz; _dst_sz; dst_a; dst_off; _src_sz; src_ga; src_off; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
-    let mul_by_sz (e:expr) = EApp (EOp (Mult, fake_SizeT), [ sz; e ]) in
     let dst_off = cb dst_off in (* element offset, not byte offset *)
     let dst_ga = cb dst_a in
     let dst_ga = EBufSub (dst_ga, dst_off) in
     let src_off = cb src_off in (* element offset, not byte offset *)
     let src_a = cb src_ga in
     let src_a = EBufSub (src_a, src_off) in
-    let bytesize : expr = mul_by_sz (cb cnt) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyDeviceToHost ])
 
   | "Kuiper.Array.Core.gpu_memcpy_device_to_device", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
-    let bytesize : expr = EApp (EOp (Mult, fake_SizeT), [ sz; cb cnt ]) in
+    let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToDevice ])
 
 
@@ -812,7 +816,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dd",
     [ et ],
-    [ sized; _has_vec_cpy;
+    [ _sized; _has_vec_cpy;
       _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
       _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
       _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
@@ -826,7 +830,7 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh",
     [ et ],
-    [ sized; _has_vec_cpy;
+    [ _sized; _has_vec_cpy;
       dst_arr; dst_off;
       _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
       _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->

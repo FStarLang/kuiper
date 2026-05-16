@@ -12,18 +12,18 @@ uint64_t Kuiper_Example_OffsetMemcpy_main(void)
     src[5U] = 60ULL;
     src[6U] = 70ULL;
     src[7U] = 80ULL;
-    uint64_t *ga = (uint64_t *) KPR_GPU_ALLOC(sizeof((uint64_t) 0), 8U);
+    uint64_t *ga = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 8U);
     uint64_t *zeros = (uint64_t *) KRML_HOST_CALLOC(8U, sizeof(uint64_t));
     MUST(cudaMemcpy
-         (ga, zeros, sizeof((uint64_t) 0) * 8U, cudaMemcpyHostToDevice));
+         (ga, zeros, (uint32_t) sizeof(uint64_t) * 8U, cudaMemcpyHostToDevice));
     KRML_HOST_FREE(zeros);
     MUST(cudaMemcpy
-         (ga + 2U, src + 1U, sizeof((uint64_t) 0) * 3U,
+         (ga + 2U, src + 1U, (uint32_t) sizeof(uint64_t) * 3U,
           cudaMemcpyHostToDevice));
     KRML_HOST_FREE(src);
     uint64_t *dst = (uint64_t *) KRML_HOST_CALLOC(8U, sizeof(uint64_t));
     MUST(cudaMemcpy
-         (dst + 3U, ga + 2U, sizeof((uint64_t) 0) * 3U,
+         (dst + 3U, ga + 2U, (uint32_t) sizeof(uint64_t) * 3U,
           cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
     uint64_t r0 = dst[3U];
