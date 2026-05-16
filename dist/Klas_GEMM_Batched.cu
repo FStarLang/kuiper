@@ -29,7 +29,8 @@ float
                                     uint32_t shared,
                                     uint32_t cols, float *a, float *b)
 {
-    float *out = (float *)KPR_GPU_ALLOC(4U, batch * (rows * cols));
+    float *out =
+        (float *)KPR_GPU_ALLOC(sizeof((float) 0), batch * (rows * cols));
     uint32_t idx = 0U;
     for (; idx < batch; idx++) {
         KPR_KCALL(__hoisted_0,

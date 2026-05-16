@@ -19,14 +19,14 @@ static void __hoisted_0(uint64_t *gr1, uint64_t *gr2)
 
 void Kuiper_Example_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
 {
-    uint64_t *gr1 = (uint64_t *) KPR_GPU_ALLOC(8U, 1U);
-    uint64_t *gr2 = (uint64_t *) KPR_GPU_ALLOC(8U, 1U);
-    MUST(cudaMemcpy(gr1, r1, 8U, cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy(gr2, r2, 8U, cudaMemcpyHostToDevice));
+    uint64_t *gr1 = (uint64_t *) KPR_GPU_ALLOC(sizeof((uint64_t) 0), 1U);
+    uint64_t *gr2 = (uint64_t *) KPR_GPU_ALLOC(sizeof((uint64_t) 0), 1U);
+    MUST(cudaMemcpy(gr1, r1, sizeof((uint64_t) 0), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr2, r2, sizeof((uint64_t) 0), cudaMemcpyHostToDevice));
     KPR_KCALL(__hoisted_0, 1U, 1U, 0U, gr1, gr2);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(r1, gr1, 8U, cudaMemcpyDeviceToHost));
-    MUST(cudaMemcpy(r2, gr2, 8U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(r1, gr1, sizeof((uint64_t) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(r2, gr2, sizeof((uint64_t) 0), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr1));
     MUST(cudaFree(gr2));
 }
@@ -49,14 +49,14 @@ static void __hoisted_1(float *gr1, float *gr2)
 
 void Kuiper_Example_Polymorphism1_swap_F32(float *r1, float *r2)
 {
-    float *gr1 = (float *)KPR_GPU_ALLOC(4U, 1U);
-    float *gr2 = (float *)KPR_GPU_ALLOC(4U, 1U);
-    MUST(cudaMemcpy(gr1, r1, 4U, cudaMemcpyHostToDevice));
-    MUST(cudaMemcpy(gr2, r2, 4U, cudaMemcpyHostToDevice));
+    float *gr1 = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+    float *gr2 = (float *)KPR_GPU_ALLOC(sizeof((float) 0), 1U);
+    MUST(cudaMemcpy(gr1, r1, sizeof((float) 0), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(gr2, r2, sizeof((float) 0), cudaMemcpyHostToDevice));
     KPR_KCALL(__hoisted_1, 1U, 1U, 0U, gr1, gr2);
     MUST(cudaDeviceSynchronize());
-    MUST(cudaMemcpy(r1, gr1, 4U, cudaMemcpyDeviceToHost));
-    MUST(cudaMemcpy(r2, gr2, 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(r1, gr1, sizeof((float) 0), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(r2, gr2, sizeof((float) 0), cudaMemcpyDeviceToHost));
     MUST(cudaFree(gr1));
     MUST(cudaFree(gr2));
 }
