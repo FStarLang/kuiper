@@ -6,10 +6,10 @@ __global__
   hoisted when extracting _gemm_u32_rr
 */
 static void
-__hoisted_0(uint32_t rows,
-            uint32_t cols,
-            Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
-            uint32_t *gB, uint32_t *gC)
+__hoisted__gemm_u32_rr_0(uint32_t rows,
+                         uint32_t cols,
+                         Kuiper_Sparse_Matrix_smatrix__uint32_t gA,
+                         uint32_t *gB, uint32_t *gC)
 {
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / cols;
@@ -30,7 +30,7 @@ Kuiper_Example_Sparse_GEMM__gemm_u32_rr(uint32_t rows,
                                         gA, uint32_t *gB, uint32_t *gC)
 {
     KRML_MAYBE_UNUSED_VAR(shared);
-    KPR_KCALL(__hoisted_0,
+    KPR_KCALL(__hoisted__gemm_u32_rr_0,
               rows * cols / 1024U + (uint32_t) (rows * cols % 1024U != 0U),
               1024U, 0U, rows, cols, gA, gB, gC);
     MUST(cudaDeviceSynchronize());

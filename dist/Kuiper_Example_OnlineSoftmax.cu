@@ -5,7 +5,7 @@ __global__
 /**
   hoisted when extracting _test
 */
-static void __hoisted_0(uint32_t len, float *a, float *b)
+static void __hoisted__test_0(uint32_t len, float *a, float *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
@@ -29,8 +29,9 @@ static void __hoisted_0(uint32_t len, float *a, float *b)
 
 void Kuiper_Example_OnlineSoftmax__test(uint32_t len, float *a, float *b)
 {
-    KPR_KCALL(__hoisted_0, len / 1024U + (uint32_t) (len % 1024U != 0U), 1024U,
-              0U, len, a, b);
+    KPR_KCALL(__hoisted__test_0,
+              len / 1024U + (uint32_t) (len % 1024U != 0U),
+              1024U, 0U, len, a, b);
     MUST(cudaDeviceSynchronize());
 }
 
@@ -38,7 +39,7 @@ __global__
 /**
   hoisted when extracting _testh
 */
-static void __hoisted_1(uint32_t len, half *a, half *b)
+static void __hoisted__testh_0(uint32_t len, half *a, half *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
@@ -63,7 +64,8 @@ static void __hoisted_1(uint32_t len, half *a, half *b)
 
 void Kuiper_Example_OnlineSoftmax__testh(uint32_t len, half *a, half *b)
 {
-    KPR_KCALL(__hoisted_1, len / 1024U + (uint32_t) (len % 1024U != 0U), 1024U,
-              0U, len, a, b);
+    KPR_KCALL(__hoisted__testh_0,
+              len / 1024U + (uint32_t) (len % 1024U != 0U),
+              1024U, 0U, len, a, b);
     MUST(cudaDeviceSynchronize());
 }

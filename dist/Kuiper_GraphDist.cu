@@ -21,7 +21,7 @@ __global__
 /**
   hoisted when extracting matmul_dist_gpu
 */
-static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
+static void __hoisted_matmul_dist_gpu_0(uint32_t size, uint16_t *a, uint16_t *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < size * size) {
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / size;
@@ -39,7 +39,7 @@ static void __hoisted_0(uint32_t size, uint16_t *a, uint16_t *b)
 
 void Kuiper_GraphDist_matmul_dist_gpu(uint32_t size, uint16_t *a, uint16_t *b)
 {
-    KPR_KCALL(__hoisted_0,
+    KPR_KCALL(__hoisted_matmul_dist_gpu_0,
               size * size / 1024U + (uint32_t) (size * size % 1024U != 0U),
               1024U, 0U, size, a, b);
     MUST(cudaDeviceSynchronize());

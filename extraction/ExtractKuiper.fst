@@ -137,6 +137,7 @@ let _mlMUST (e : mlexpr) : mlexpr =
       MLE_App (with_ty ml_unit_ty <| MLE_Name ([], "MUST"), [e])
 
 let ctr = mk_ref 0
+let last_name : ref mlident = mk_ref "<bogus>"
 
 let extra_unit_binder = {mlbinder_name = "extra_unit"; mlbinder_ty = ml_unit_ty; mlbinder_attrs = []}
 
@@ -278,8 +279,20 @@ let hoist (g : env) (e : mlexpr) : ML mlexpr =
   let call_args = List.map (fun (v, t) -> with_ty t <| MLE_Var v) fvs in
   let e = collapse_record_proj e in
   let mk_binder (v, t) = {mlbinder_name = v; mlbinder_ty = t; mlbinder_attrs = []} in
-  let fresh = "__hoisted_" ^ string_of_int !ctr in
-  ctr := !ctr + 1;
+
+  if None? !krml_current_decl then
+    raise_error0 Fatal_ExtractionUnsupported [
+      text "Hoist: internal error: no current declaration in context for:" ^/^ pp e0
+    ];
+
+  (* Get a fresh stable name *)
+  if Some?.v !krml_current_decl <> !last_name then (
+    last_name := Some?.v !krml_current_decl;
+    ctr := 0
+  ) else
+    ctr := !ctr + 1;
+
+  let fresh = "__hoisted_" ^ !last_name ^ "_" ^ string_of_int !ctr in
 
   let bs =  List.map mk_binder fvs @ [extra_unit_binder] in
   let kbs = translate_binders g bs in

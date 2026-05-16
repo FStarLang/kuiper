@@ -5,8 +5,11 @@ __global__
 /**
   hoisted when extracting matmul_transpose_gpu_f32_ff
 */
-static void __hoisted_0(uint32_t m, uint32_t n, uint32_t k, float *gA,
-                        float *gB, float *gC)
+static void
+__hoisted_matmul_transpose_gpu_f32_ff_0(uint32_t m,
+                                        uint32_t n,
+                                        uint32_t k,
+                                        float *gA, float *gB, float *gC)
 {
     uint32_t trow = blockIdx.x / n;
     uint32_t tcol = blockIdx.x % n;
@@ -33,6 +36,7 @@ Kuiper_Example_MatMulTranspose_matmul_transpose_gpu_f32_ff(uint32_t m,
                                                            float *gA,
                                                            float *gB, float *gC)
 {
-    KPR_KCALL(__hoisted_0, m * n, 1U, 0U, m, n, k, gA, gB, gC);
+    KPR_KCALL(__hoisted_matmul_transpose_gpu_f32_ff_0, m * n, 1U, 0U, m, n, k,
+              gA, gB, gC);
     MUST(cudaDeviceSynchronize());
 }

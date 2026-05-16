@@ -5,7 +5,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_0(float *a, float *b, float *s1)
+static void __hoisted_main_0(float *a, float *b, float *s1)
 {
     uint32_t k = 0U;
     float sum = 0.0f;
@@ -20,7 +20,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_1(float *c1, float *d, float *s2)
+static void __hoisted_main_1(float *c1, float *d, float *s2)
 {
     uint32_t k = 0U;
     float sum = 0.0f;
@@ -35,7 +35,7 @@ __global__
 /**
   hoisted when extracting main
 */
-static void __hoisted_2(float *r, float *s1, float *s2)
+static void __hoisted_main_2(float *r, float *s1, float *s2)
 {
     uint32_t k = 0U;
     float sum = 0.0f;
@@ -50,11 +50,11 @@ void Kuiper_Example_Async_GEMM_main(float *a, float *b, float *c1, float *d,
                                     float *r)
 {
     float *s1 = (float *)KPR_GPU_ALLOC(sizeof(float), 1048576U);
-    KPR_KCALL(__hoisted_0, 1048576U, 1U, 0U, a, b, s1);
+    KPR_KCALL(__hoisted_main_0, 1048576U, 1U, 0U, a, b, s1);
     float *s2 = (float *)KPR_GPU_ALLOC(sizeof(float), 1048576U);
-    KPR_KCALL(__hoisted_1, 1048576U, 1U, 0U, c1, d, s2);
+    KPR_KCALL(__hoisted_main_1, 1048576U, 1U, 0U, c1, d, s2);
     MUST(cudaDeviceSynchronize());
-    KPR_KCALL(__hoisted_2, 1048576U, 1U, 0U, r, s1, s2);
+    KPR_KCALL(__hoisted_main_2, 1048576U, 1U, 0U, r, s1, s2);
     MUST(cudaDeviceSynchronize());
     MUST(cudaFree(s1));
     MUST(cudaFree(s2));

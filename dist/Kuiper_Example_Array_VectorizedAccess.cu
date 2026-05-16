@@ -5,7 +5,7 @@ __global__
 /**
   hoisted when extracting hf
 */
-static void __hoisted_0(float *a, float two)
+static void __hoisted_hf_0(float *a, float two)
 {
     float local[4U];
     memset(local, 0U, 4U * sizeof(float));
@@ -22,7 +22,7 @@ void Kuiper_Example_Array_VectorizedAccess_hf(float *v)
     float *a = (float *)KPR_GPU_ALLOC(sizeof(float), 4U);
     MUST(cudaMemcpy
          (a, v, (uint32_t) sizeof(float) * 4U, cudaMemcpyHostToDevice));
-    KPR_KCALL(__hoisted_0, 1U, 1U, 0U, a, 1.0f + 1.0f);
+    KPR_KCALL(__hoisted_hf_0, 1U, 1U, 0U, a, 1.0f + 1.0f);
     MUST(cudaDeviceSynchronize());
     MUST(cudaMemcpy
          (v, a, (uint32_t) sizeof(float) * 4U, cudaMemcpyDeviceToHost));
