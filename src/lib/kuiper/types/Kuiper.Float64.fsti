@@ -29,13 +29,40 @@ val valid : t -> bool
 val min_val : (x:t{valid x})
 val max_val : (x:t{valid x})
 
-val eq_spec (x y : t) (_ : (valid x /\ valid y)) : (eq x y <==> x == y)
-val lte_is_lt_or_eq (x y : t) (_ : (valid x /\ valid y)) : (lte x y <==> lt x y \/ eq x y)
-val negate_lt_is_lte (x y : t) (_ : (valid x /\ valid y)) : (lt x y <==> not (lte y x))
-val add_comm (x y : t) (_ : valid x) (_ : valid y) : (eq (add x y) (add y x))
-val mul_comm (x y : t) (_ : valid x) (_ : valid y) : (eq (mul x y) (mul y x))
-val add_zero (x : t) (_ : valid x) : (eq (add x zero) x)
-val min_val_spec (x : t) (_ : valid x) : (lte min_val x /\ lte x max_val)
+val eq_spec : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures eq x y <==> x == y)
+          [SMTPat (eq x y)]
+
+val lte_is_lt_or_eq : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures lte x y <==> lt x y \/ eq x y)
+          [SMTPat (lte x y)]
+
+val negate_lt_is_lte : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures lt x y <==> not (lte y x))
+          [SMTPat (lt x y)]
+
+val add_comm : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures eq (add x y) (add y x))
+          [SMTPat (add x y)]
+
+val mul_comm : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures eq (mul x y) (mul y x))
+          [SMTPat (mul x y)]
+
+val add_zero : (x : t) ->
+    Lemma (requires valid x)
+          (ensures eq (add x zero) x)
+          [SMTPat (add x zero)]
+
+val min_max_val_spec : (x : t) ->
+    Lemma (requires valid x)
+          (ensures lte min_val x /\ lte x max_val)
+          [SMTPat (lte min_val x)]
 
 inline_for_extraction noextract
 instance _ : scalar t = {
@@ -43,7 +70,7 @@ instance _ : scalar t = {
   add; mul; zero; one; lt; lte; eq; valid;
   min_val; max_val;
   eq_spec; lte_is_lt_or_eq; negate_lt_is_lte;
-  add_comm; mul_comm; add_zero; min_val_spec;
+  add_comm; mul_comm; add_zero; min_max_val_spec;
 }
 
 val exp : t -> t

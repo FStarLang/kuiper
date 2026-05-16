@@ -47,7 +47,7 @@ static uint32_t *mk_identity_matrix_u32(int rows, int cols)
 
 static float *mk_identity_matrix_f32(int rows, int cols)
 {
-    float *M = (float *) calloc(rows * cols, sizeof M[0]);
+    float *M = (float *)calloc(rows * cols, sizeof M[0]);
     int diag = rows < cols ? rows : cols;
     for (int i = 0; i < diag; i++)
         M[i * cols + i] = 1;
@@ -65,7 +65,7 @@ static uint32_t *mk_single_per_row_u32(int rows, int cols)
 
 static float *mk_single_per_row_f32(int rows, int cols)
 {
-    float *M = (float *) calloc(rows * cols, sizeof M[0]);
+    float *M = (float *)calloc(rows * cols, sizeof M[0]);
     for (int i = 0; i < rows; i++)
         M[i * cols + rand() % cols] = 1 + rand() % 99;
     return M;

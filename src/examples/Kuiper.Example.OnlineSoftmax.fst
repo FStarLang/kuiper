@@ -1,7 +1,7 @@
 module Kuiper.Example.OnlineSoftmax
 
 #lang-pulse
-open Kuiper 
+open Kuiper
 open Kuiper.Array1
 open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }

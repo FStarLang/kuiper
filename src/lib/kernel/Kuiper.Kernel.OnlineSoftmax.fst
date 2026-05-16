@@ -1,7 +1,7 @@
 module Kuiper.Kernel.OnlineSoftmax
 
 #lang-pulse
-open Kuiper 
+open Kuiper
 open Kuiper.Seq.Common
 module SZ = FStar.SizeT
 open Kuiper.Array1
@@ -10,7 +10,7 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 module SMX = Kuiper.Kernel.Softmax
 
-let max_real (x: real) (y: real) : real = 
+let max_real (x: real) (y: real) : real =
   if x >. y then x else y
 
 // TODO: refactor all these real lemma proofs into a separate file (in src/lib/spec)
@@ -64,7 +64,7 @@ private let pointwise_eq (xi m d summ : real)
     assert (rexp m *. d == d *. rexp m);
     ()
 
-let real_online_softmax_lemma (s: Seq.seq real{Seq.length s > 0}) : 
+let real_online_softmax_lemma (s: Seq.seq real{Seq.length s > 0}) :
   Lemma (online_softmax_real s == SMX.softmax_real s)
   = rexp_base ();
     let x0 = s @! 0 in
@@ -109,36 +109,36 @@ let kpost
   (tid : natlt lenab)
   : slprop
 = (a |-> Frac (1 /. lenab) va) **
-  (exists* (v': et). Cell b tid |-> 
+  (exists* (v': et). Cell b tid |->
     v' ** pure (v' %~ ((online_softmax_real ra) @! tid)))
 
-let online_softmax_float_iter (#et: Type0) {| floating et |} 
+let online_softmax_float_iter (#et: Type0) {| floating et |}
   (md: tuple2 et et) (x:et) : tuple2 et et =
-  let (m,d) = md in 
+  let (m,d) = md in
   let m' = if x `gt` m then x else m in
   let d' = d `mul` (exp (m `sub` m')) `add` (exp (x `sub` m')) in
   (m',d')
 
-let tup2_approximates (#a #b:Type) (#ar #br:Type) 
+let tup2_approximates (#a #b:Type) (#ar #br:Type)
   {| can_approximate a ar, can_approximate b br |}
-   (x: tuple2 a b) (y: tuple2 ar br): prop = 
+   (x: tuple2 a b) (y: tuple2 ar br): prop =
       (fst x) %~ (fst y) /\ (snd x) %~ (snd y)
 
-instance tup2_can_approximate (#a #b:Type) (#ar #br:Type) 
+instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
   {| can_approximate a ar, can_approximate b br |}
   : can_approximate (tuple2 a b) (tuple2 ar br) = {
   approximates = tup2_approximates;
 }
 
 inline_for_extraction noextract
-let max_float (#et : Type0) {| floating et |} 
-  (x: et) (y: et) : et = 
+let max_float (#et : Type0) {| floating et |}
+  (x: et) (y: et) : et =
   if x `gt` y then x else y
- 
-let max_float_approximates_max_real (#et: Type0) {| floating et, real_like et |}  
-  (x: et) (y: et) (xr: real) (yr: real): 
+
+let max_float_approximates_max_real (#et: Type0) {| floating et, real_like et |}
+  (x: et) (y: et) (xr: real) (yr: real):
     Lemma
-      (requires x %~ xr /\ y %~ yr) 
+      (requires x %~ xr /\ y %~ yr)
       (ensures max_float #et x y %~ max_real xr yr)
       [SMTPat (max_float x y); SMTPat (max_real xr yr);
        SMTPat (x %~ xr); SMTPat (y %~ yr);]
@@ -159,30 +159,30 @@ fn kfonline_softmax
   ()
   preserves
     gpu
-  requires 
+  requires
     kpre #et lenab #l a b #va tid
   ensures
-    kpost #et lenab #l a b #va ra tid 
+    kpost #et lenab #l a b #va ra tid
 {
   rexp_base ();
-  
+
   let mut i = 0sz;
   let mut sum: et = zero;
   let mut max: et = min_val;
   let mut gsum : erased real = 0.0R;
   let mut gmax : erased real = ra @! 0;
   while (!i <^ lenab)
-    invariant live i ** 
+    invariant live i **
       live max ** live gmax **
       live sum ** live gsum
     invariant pure (!sum %~ !gsum)
     // invariant pure (valid !max /\ valid !sum)
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==> !i <= Seq.length ra /\
-      (reveal !gmax, reveal !gsum) == 
-        seq_fold_left online_softmax_real_iter 
+      (reveal !gmax, reveal !gsum) ==
+        seq_fold_left online_softmax_real_iter
         (hide (ra @! 0, 1.0R)) (Seq.slice ra 1 (!i)))
-    invariant pure (!i == 0sz ==> 
+    invariant pure (!i == 0sz ==>
       (!sum == zero /\ !gsum == 0.0R /\ !max == min_val /\ !gmax == ra @! 0))
     decreases (lenab - !i) {
 
@@ -192,7 +192,7 @@ fn kfonline_softmax
 
     let old_sum = !gsum;
     let old_max = !gmax;
-    
+
     let max' = max_float #et !max x;
     let gmax' : erased real = max_real (reveal !gmax) gx; // if (i == 0) then gx else max_real gx (reveal !gmax); // ?
     assert pure (max' %~ gmax');
@@ -264,9 +264,9 @@ fn setup
     (fun (i:natlt lenab) -> (exists* (v: et). Cell b i |-> v))
     fn x { () };
   Kuiper.Array1.share_n a lenab;
-  forevery_zip 
+  forevery_zip
     (fun (bid:natlt lenab) -> (a |-> Frac (1 /. lenab) va))
-    (fun (bid:natlt lenab) -> (exists* (v: et). Cell b bid |-> v)) 
+    (fun (bid:natlt lenab) -> (exists* (v: et). Cell b bid |-> v))
 }
 
 ghost
@@ -291,19 +291,19 @@ fn teardown
 {
   forevery_unzip _ _; (*
     (fun (bid: natlt lenab) -> (a |-> Frac (1 /. lenab) va))
-    (fun (bid: natlt lenab) -> (exists* (v': et). Cell b bid |-> 
+    (fun (bid: natlt lenab) -> (exists* (v': et). Cell b bid |->
     v' ** pure (v' %~ ((online_softmax_real ra) @! bid))));*)
 
   Kuiper.Array1.gather_n a lenab;
-  let y = forevery_exists 
-    (fun (bid: natlt lenab) (v': et) -> Cell b bid |-> 
+  let y = forevery_exists
+    (fun (bid: natlt lenab) (v': et) -> Cell b bid |->
     v' ** pure (v' %~ ((online_softmax_real ra) @! bid)));
   let vb' = Seq.init_ghost lenab (fun (bid: natlt lenab) -> y bid);
   forevery_map
     (fun (i:natlt lenab) -> Cell b i |-> y i ** pure (y i %~ ((online_softmax_real ra) @! i)))
     (fun (i:natlt lenab) -> Cell b i |-> (vb' @! i) ** pure ((vb' @! i) %~ ((online_softmax_real ra) @! i)))
     fn x { };
-  forevery_extract_pure 
+  forevery_extract_pure
     (fun (i:natlt lenab) -> Cell b i |-> (vb' @! i) ** pure ((vb' @! i) %~ ((online_softmax_real ra) @! i)))
     (fun (i:natlt lenab) -> (vb' @! i) %~ ((online_softmax_real ra) @! i))
     fn x { };

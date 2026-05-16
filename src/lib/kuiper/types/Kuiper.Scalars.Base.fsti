@@ -35,41 +35,49 @@ class scalar (t : Type) = {
   (* Equality is sound, at least for valid terms. *)
   #[easy_fill ()]
   eq_spec : (x : t) -> (y : t) ->
-    valid x /\ valid y -> (eq x y <==> x == y);
+    Lemma (requires valid x /\ valid y)
+          (ensures eq x y <==> x == y)
+          [SMTPat (eq x y)];
 
   (* x <= y <==> x < y or x == y *)
   #[easy_fill ()]
-  lte_is_lt_or_eq :
-    (x : t) -> (y : t) ->
-      valid x /\ valid y -> (lte x y <==> lt x y \/ eq x y);
+  lte_is_lt_or_eq : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures lte x y <==> lt x y \/ eq x y)
+          [SMTPat (lte x y)];
 
   (* x < y <==> not (y <= x) *)
   #[easy_fill ()]
-  negate_lt_is_lte :
-    (x : t) -> (y : t) ->
-      valid x /\ valid y -> (lt x y <==> not (lte y x));
+  negate_lt_is_lte : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures lt x y <==> not (lte y x))
+          [SMTPat (lt x y)];
 
   (* Addition commutes. Note: this is true even for NaNs. *)
   #[easy_fill ()]
   add_comm : (x : t) -> (y : t) ->
-    valid x -> valid y ->
-    eq (add x y) (add y x);
+    Lemma (requires valid x /\ valid y)
+          (ensures eq (add x y) (add y x))
+          [SMTPat (add x y)];
 
   #[easy_fill ()]
   mul_comm : (x : t) -> (y : t) ->
-    valid x -> valid y ->
-    eq (mul x y) (mul y x);
+    Lemma (requires valid x /\ valid y)
+          (ensures eq (mul x y) (mul y x))
+          [SMTPat (mul x y)];
 
   #[easy_fill ()]
   add_zero : (x : t) ->
-    valid x ->
-    eq (add x zero) x;
+    Lemma (requires valid x)
+          (ensures eq (add x zero) x)
+          [SMTPat (add x zero)];
 
   (* min and max are correct. *)
   #[easy_fill ()]
-  min_val_spec : (x : t) ->
-    valid x ->
-    (lte min_val x /\ lte x max_val);
+  min_max_val_spec : (x : t) ->
+    Lemma (requires valid x)
+          (ensures lte min_val x /\ lte x max_val)
+          [SMTPat (lte min_val x)];
 }
 
 (* Derived methods *)
@@ -108,45 +116,3 @@ instance _ : scalar Real.real =
   lte = (fun _ _ -> false);
   valid = (fun _ -> false);
 }
-
-let eq_spec_pat (#t:Type) {| scalar t |} (x y : t)
-  : Lemma (requires valid x /\ valid y)
-          (ensures eq x y <==> x == y)
-          [SMTPat (eq x y)]
-  = eq_spec x y ()
-
-let lte_is_lt_or_eq_pat (#t:Type) {| scalar t |} (x y : t)
-  : Lemma (requires valid x /\ valid y)
-          (ensures lte x y <==> lt x y \/ eq x y)
-          [SMTPat (lte x y)]
-  = lte_is_lt_or_eq x y ()
-
-let negate_lt_is_lte_pat (#t:Type) {| scalar t |} (x y : t)
-  : Lemma (requires valid x /\ valid y)
-          (ensures lt x y <==> not (lte y x))
-          [SMTPat (lt x y)]
-  = negate_lt_is_lte x y ()
-
-let add_comm_pat (#t:Type) {| scalar t |} (x y : t)
-  : Lemma (requires valid x /\ valid y)
-          (ensures eq (add x y) (add y x))
-          [SMTPat (add x y)]
-  = add_comm x y () ()
-
-let mul_comm_pat (#t:Type) {| scalar t |} (x y : t)
-  : Lemma (requires valid x /\ valid y)
-          (ensures eq (mul x y) (mul y x))
-          [SMTPat (mul x y)]
-  = mul_comm x y () ()
-
-let add_zero_pat (#t:Type) {| scalar t |} (x : t)
-  : Lemma (requires valid x)
-          (ensures eq (add x zero) x)
-          [SMTPat (add x zero)]
-  = add_zero x ()
-
-let min_val_spec_pat (#t:Type) {| scalar t |} (x : t)
-  : Lemma (requires valid x)
-          (ensures lte min_val x /\ lte x max_val)
-          [SMTPat (lte min_val x)]
-  = min_val_spec x ()

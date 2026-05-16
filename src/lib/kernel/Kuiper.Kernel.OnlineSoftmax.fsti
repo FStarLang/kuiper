@@ -1,7 +1,7 @@
 module Kuiper.Kernel.OnlineSoftmax
 
 #lang-pulse
-open Kuiper 
+open Kuiper
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
 open Kuiper.Array1
@@ -13,7 +13,7 @@ module SMX = Kuiper.Kernel.Softmax
 val max_real: real -> real -> real
 
 let online_softmax_real_iter (md: erased (tuple2 real real)) (x:real) : erased (tuple2 real real) =
-  let (m,d) = md in 
+  let (m,d) = md in
   let m' = max_real m x in
   let d' = d *. (rexp (m -. m')) +. rexp (x -. m') in
   (m',d')
@@ -82,7 +82,7 @@ type softmax_notinplace_ty (et : Type0) {| floating et, real_like et, floating_r
      (ra : erased (lseq real lena))
   preserves
     cpu **
-    a |-> va 
+    a |-> va
   requires
     pure (va %~ ra) **
     pure (lena <= max_blocks * max_threads)
