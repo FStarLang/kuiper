@@ -37,7 +37,7 @@ static void run_spmm(const char *label, uint32_t *AD, int rows, int shared, int 
     TIME_void(Klas_SPMM_spmm_u32(rows, shared, cols, dA, drow_indices, dB, dC), &t);
     fprintf(stderr, ">>> RES (rows=%d, shared=%d, cols=%d, sparsity=%.2f%%) \t GFLOPS: %.3f\n",
             rows, shared, cols,
-            (1.0 - (double)A.nnz / (rows * shared)) * 100.0, (A.nnz * shared * 2.0) / t / 1e9);
+            (1.0 - (double)A.nnz / (rows * shared)) * 100.0, (A.nnz * cols * 2.0) / t / 1e9);
 
     uint32_t *C = (uint32_t *) calloc(rows * cols, sizeof C[0]);
     MUST(cudaMemcpy(C, dC, sizeof C[0] * rows * cols, cudaMemcpyDeviceToHost));
