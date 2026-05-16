@@ -103,12 +103,6 @@ let bcol_ (p : parameters { size_req p }) (bid : szlt (nblocks_ p))
 
 // MAYBE definir threadItemsX?
 
-inline_for_extraction noextract
-instance sized_sz : sized sz = {
-  size = 4sz;
-  default = 0sz;
-}
-
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
 let shmems_desc (et:Type0) {| sized et |}
