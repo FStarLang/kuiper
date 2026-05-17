@@ -67,10 +67,7 @@ val min_max_val_spec : (x : t) ->
 inline_for_extraction noextract
 instance _ : scalar t = {
   is_sized = solve;
-  add; mul; zero; one; lt; lte; eq; valid;
-  min_val; max_val;
-  eq_spec; lte_is_lt_or_eq; negate_lt_is_lte;
-  add_comm; mul_comm; add_zero; min_max_val_spec;
+  add; mul; zero; one; lt; lte; eq;
 }
 
 val exp : t -> t
@@ -108,7 +105,12 @@ val fma : t -> t -> t -> t
 inline_for_extraction noextract
 instance _ : floating t = {
   is_scalar = solve;
+  valid;
+  min_val; max_val;
+  eq_spec; lte_is_lt_or_eq; negate_lt_is_lte;
+  add_comm; mul_comm; add_zero; min_max_val_spec;
   div; sub;
+
   exp; log; sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
   sinh; cosh; tanh; ceil; floor; round; fabs; erf; log2;
   log10; exp2; pow; atan2; fmin; fmax; fmod; copysign;

@@ -1,12 +1,73 @@
 module Kuiper.Floating.Base
 
 open Kuiper.Scalars.Base
+open FStar.Tactics.Easy
 open FStar.Tactics.Typeclasses { solve, tcinstance }
 
 inline_for_extraction noextract
 class floating (t : Type) = {
   [@@@tcinstance]
   is_scalar : scalar t;
+
+  (* Is this a mathematically valid element? I.e., not a NaN. *)
+  valid : t -> bool;
+
+  min_val : t;
+  max_val : t;
+
+  #[easy_fill()] min_val_is_valid : squash (valid min_val);
+  #[easy_fill()] max_val_is_valid : squash (valid max_val);
+
+  (* Laws. *)
+
+  (* Equality is sound, at least for valid terms. *)
+  #[easy_fill ()]
+  eq_spec : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures eq x y <==> x == y)
+          [SMTPat (eq x y)];
+
+  (* x <= y <==> x < y or x == y *)
+  #[easy_fill ()]
+  lte_is_lt_or_eq : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures lte x y <==> lt x y \/ eq x y)
+          [SMTPat (lte x y)];
+
+  (* x < y <==> not (y <= x) *)
+  #[easy_fill ()]
+  negate_lt_is_lte : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures lt x y <==> not (lte y x))
+          [SMTPat (lt x y)];
+
+  (* Addition commutes. Note: this is true even for NaNs. *)
+  #[easy_fill ()]
+  add_comm : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures eq (add x y) (add y x))
+          [SMTPat (add x y)];
+
+  #[easy_fill ()]
+  mul_comm : (x : t) -> (y : t) ->
+    Lemma (requires valid x /\ valid y)
+          (ensures eq (mul x y) (mul y x))
+          [SMTPat (mul x y)];
+
+  #[easy_fill ()]
+  add_zero : (x : t) ->
+    Lemma (requires valid x)
+          (ensures eq (add x zero) x)
+          [SMTPat (add x zero)];
+
+  (* min and max are correct. *)
+  #[easy_fill ()]
+  min_max_val_spec : (x : t) ->
+    Lemma (requires valid x)
+          (ensures lte min_val x /\ lte x max_val)
+          [SMTPat (lte min_val x)];
+
+
   sub : t -> t -> t;
   div : t -> t -> t;
   exp : t -> t;
