@@ -28,6 +28,12 @@ let ( @! ) (#a:Type) (s : seq a) (i : nat { i < Seq.length s }) : a = Seq.index 
 unfold
 let ( @+ ) (#a:Type) (s1 s2 : seq a) : seq a = Seq.append s1 s2
 
+let seq_forall (#a : Type) (f: a -> prop) (s: seq a) : prop =
+  forall (i : nat { i < Seq.length s }). f (s @! i)
+
+let seq_forallb (#a : Type) (f: a -> GTot bool) (s: seq a) : prop =
+  seq_forall (fun x -> f x) s
+
 let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
   Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
 
