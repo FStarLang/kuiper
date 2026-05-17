@@ -1,7 +1,7 @@
 module Kuiper.Floating.Base
 
+include Kuiper.Scalars.Base
 open Kuiper.Real
-open Kuiper.Scalars.Base
 open FStar.Tactics.Easy
 open FStar.Tactics.Typeclasses { solve, tcinstance }
 
