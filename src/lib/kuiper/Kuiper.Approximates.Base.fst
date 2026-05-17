@@ -20,7 +20,9 @@ class real_like (a:Type) {| scalar a |} = {
   a0 : squash (v_approximates zero 0.0R);
   a1 : squash (v_approximates one 1.0R);
 
-  // It would be nice if we could directly write SMT patterns on the lemmas below.
+  // It would be nice if we could directly write SMT patterns on the lemmas
+  // below.  This is now supported by F*, but introduces a matching loop and
+  // breaks ton of things (see https://github.com/FStarLang/FStar/issues/4264)
   a_add : x:a -> y:a -> r:real -> s:real ->
           Lemma (requires v_approximates x r /\ v_approximates y s)
                 (ensures v_approximates (x `add` y) (r +. s));
