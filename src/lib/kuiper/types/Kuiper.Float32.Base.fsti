@@ -26,6 +26,8 @@ val smallest : t
 val largest : t
 val infinity : t
 
+val kind_one      : squash (kind one == Finite)
+val kind_zero     : squash (kind zero == Finite)
 val kind_smallest : squash (kind smallest == Finite)
 val kind_largest  : squash (kind largest  == Finite)
 val kind_infinity : squash (kind infinity == Infinite)
@@ -37,7 +39,7 @@ val eq_spec : (x : t) -> (y : t) ->
 
 val lte_is_lt_or_eq : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lte x y <==> lt x y \/ eq x y)
+          (ensures lte x y <==> lt x y \/ x == y)
           [SMTPat (lte x y)]
 
 val neg_kind : (x : t) ->
@@ -46,7 +48,7 @@ val neg_kind : (x : t) ->
 
 val neg_neg : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures eq (zero `sub` (zero `sub` x)) x)
+          (ensures zero `sub` (zero `sub` x) == x)
           [SMTPat (zero `sub` (zero `sub` x))]
 
 val lt_neg_flip : (x : t) -> (y : t) ->
@@ -61,18 +63,28 @@ val negate_lt_is_lte : (x : t) -> (y : t) ->
 
 val add_comm : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures eq (add x y) (add y x))
+          (ensures add x y == add y x)
           [SMTPat (add x y)]
 
 val mul_comm : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures eq (mul x y) (mul y x))
+          (ensures mul x y == mul y x)
           [SMTPat (mul x y)]
 
 val add_zero : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures eq (add x zero) x)
+          (ensures add x zero == x)
           [SMTPat (add x zero)]
+
+val  mul_zero : (x : t) ->
+    Lemma (requires Finite? (kind x))
+          (ensures mul x zero == zero)
+          [SMTPat (mul x zero)]
+
+val  mul_one : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures mul x one == x)
+          [SMTPat (mul x one)]
 
 val smallest_val_spec : (x : t) ->
     Lemma (requires Finite? (kind x) /\ zero `lt` x)

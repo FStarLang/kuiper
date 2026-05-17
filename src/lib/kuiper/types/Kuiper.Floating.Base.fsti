@@ -27,6 +27,8 @@ class floating (t : Type) = {
   largest  : t; (* largest (positive) representable value. *)
   infinity : t; (* positive infinity *)
 
+  #[easy_fill()] kind_one      : squash (kind one == Finite);
+  #[easy_fill()] kind_zero     : squash (kind zero == Finite);
   #[easy_fill()] kind_smallest : squash (kind smallest == Finite);
   #[easy_fill()] kind_largest  : squash (kind largest  == Finite);
   #[easy_fill()] kind_infinity : squash (kind infinity == Infinite);
@@ -44,7 +46,7 @@ class floating (t : Type) = {
   #[easy_fill ()]
   lte_is_lt_or_eq : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lte x y <==> lt x y \/ eq x y)
+          (ensures lte x y <==> lt x y \/ x == y)
           [SMTPat (lte x y)];
 
   #[easy_fill ()]
@@ -56,7 +58,7 @@ class floating (t : Type) = {
   #[easy_fill ()]
   neg_neg : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures eq (zero `sub` (zero `sub` x)) x)
+          (ensures zero `sub` (zero `sub` x) == x)
           [SMTPat (zero `sub` (zero `sub` x))];
 
   (* x < y <==> -y <= -x.  FIXME: This is not exactly true due to signed zeros! *)
@@ -77,20 +79,32 @@ class floating (t : Type) = {
   #[easy_fill ()]
   add_comm : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures eq (add x y) (add y x))
+          (ensures add x y == add y x)
           [SMTPat (add x y)];
 
   #[easy_fill ()]
   mul_comm : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures eq (mul x y) (mul y x))
+          (ensures mul x y == mul y x)
           [SMTPat (mul x y)];
 
   #[easy_fill ()]
   add_zero : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures eq (add x zero) x)
+          (ensures add x zero == x)
           [SMTPat (add x zero)];
+
+  #[easy_fill ()]
+  mul_zero : (x : t) ->
+    Lemma (requires Finite? (kind x))
+          (ensures mul x zero == zero)
+          [SMTPat (mul x zero)];
+
+  #[easy_fill ()]
+  mul_one : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures mul x one == x)
+          [SMTPat (mul x one)];
 
   #[easy_fill ()]
   smallest_val_spec : (x : t) ->

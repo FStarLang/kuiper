@@ -238,13 +238,13 @@ fn kfonline_softmax
     let gy2 = rexp (gx -. reveal gmax');
     assert pure (y2 %~ gy2);
 
-    (* At this point, we cannot prove y1 is valid. It may not be,
+    (* At this point, we cannot prove y1 is finite. It may not be,
        in the first iteration, since !max was -infinity
-       and !max - max' could underflow and return -INFINITY.
+       and !max - max' would underflow and return -INFINITY.
        But, exp(-INFINITY) is define to be zero, so we should be good
        in that case too. TODO: extend the scalar (or floating) class
        with a notion of the infinities that allows to prove this. *)
-    assume pure (zero `mul` y1 == zero #et);
+    assume pure (is_finite y1);
     assert pure ( (!sum `mul` y1)  %~  (reveal (!gsum) *. gy1) );
 
     let sum' = !sum `mul` y1 `add` y2;
