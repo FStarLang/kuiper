@@ -18,9 +18,9 @@ __hoisted_batched_gemm_f32_0(uint32_t rows,
         float sum = 0.0f;
         for (; k < shared; k++)
             sum +=
-                a[i * (rows * shared) + trow * shared +
-                  k] * b[i * (shared * cols) + k * cols + tcol];
-        out[i * (rows * cols) + trow * cols + tcol] = sum;
+                a[i * rows * shared + trow * shared + k] * b[i * shared * cols +
+                                                             k * cols + tcol];
+        out[i * rows * cols + trow * cols + tcol] = sum;
     }
 }
 
@@ -30,7 +30,7 @@ float
                                     uint32_t shared,
                                     uint32_t cols, float *a, float *b)
 {
-    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), batch * (rows * cols));
+    float *out = (float *)KPR_GPU_ALLOC(sizeof(float), batch * rows * cols);
     uint32_t idx = 0U;
     for (; idx < batch; idx++) {
         uint32_t i = idx;

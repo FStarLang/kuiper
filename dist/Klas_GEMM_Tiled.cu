@@ -620,10 +620,8 @@ __hoisted_g_gemm_f32_rrr_0(uint32_t tile,
     float s = sum;
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * s;
 }
 
@@ -680,10 +678,8 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile,
     double s = sum;
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * s;
 }
 
@@ -740,10 +736,8 @@ __hoisted_g_gemm_u32_rrr_0(uint32_t tile,
     uint32_t s = sum;
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * s;
 }
 
@@ -801,10 +795,8 @@ __hoisted_g_gemm_u64_rrr_0(uint32_t tile,
     uint64_t s = sum;
     gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
           tile * (blockIdx.x % nn) + threadIdx.x % tile]
-        =
-        beta *
-        gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
-              tile * (blockIdx.x % nn) + threadIdx.x % tile]
+        = beta * gTile[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile]
         + alpha * s;
 }
 
@@ -862,10 +854,8 @@ __hoisted_g_gemm_f32_tile32_rrr_0(float alpha,
     float s = sum;
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * s;
 }
 
@@ -919,10 +909,8 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
     double s = sum;
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * s;
 }
 
@@ -976,10 +964,8 @@ __hoisted_g_gemm_u32_tile32_rrr_0(uint32_t alpha,
     uint32_t s = sum;
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * s;
 }
 
@@ -1033,10 +1019,8 @@ __hoisted_g_gemm_u64_tile32_rrr_0(uint64_t alpha,
     uint64_t s = sum;
     gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
           32U * (blockIdx.x % nn) + threadIdx.x % 32U]
-        =
-        beta *
-        gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
-              32U * (blockIdx.x % nn) + threadIdx.x % 32U]
+        = beta * gTile[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U]
         + alpha * s;
 }
 
@@ -1090,10 +1074,8 @@ __hoisted_g_gemm_f32_tile16_rrr_0(float alpha,
     float s = sum;
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * s;
 }
 
@@ -1147,10 +1129,8 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
     double s = sum;
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * s;
 }
 
@@ -1204,10 +1184,8 @@ __hoisted_g_gemm_u32_tile16_rrr_0(uint32_t alpha,
     uint32_t s = sum;
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * s;
 }
 
@@ -1261,10 +1239,8 @@ __hoisted_g_gemm_u64_tile16_rrr_0(uint64_t alpha,
     uint64_t s = sum;
     gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
           16U * (blockIdx.x % nn) + threadIdx.x % 16U]
-        =
-        beta *
-        gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
-              16U * (blockIdx.x % nn) + threadIdx.x % 16U]
+        = beta * gTile[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U]
         + alpha * s;
 }
 

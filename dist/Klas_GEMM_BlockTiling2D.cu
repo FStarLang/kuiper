@@ -32,8 +32,8 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -47,8 +47,8 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -83,13 +83,16 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -146,8 +149,8 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -161,8 +164,8 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -197,13 +200,16 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -261,8 +267,8 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -276,8 +282,8 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -312,13 +318,16 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -376,8 +385,8 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -391,8 +400,8 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -427,13 +436,16 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -491,8 +503,8 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -506,8 +518,8 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -542,13 +554,16 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -605,8 +620,8 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -620,8 +635,8 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -656,13 +671,16 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -720,8 +738,8 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -735,8 +753,8 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -771,13 +789,16 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -835,8 +856,8 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -850,8 +871,8 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -886,13 +907,16 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -950,8 +974,8 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -965,8 +989,8 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1001,13 +1025,16 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -1064,8 +1091,8 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1079,8 +1106,8 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1115,13 +1142,16 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -1179,8 +1209,8 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1194,8 +1224,8 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1230,13 +1260,16 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -1294,8 +1327,8 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1309,8 +1342,8 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1345,13 +1378,16 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -1409,8 +1445,8 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1424,8 +1460,8 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1460,13 +1496,16 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -1523,8 +1562,8 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1538,8 +1577,8 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1574,13 +1613,16 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -1638,8 +1680,8 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1653,8 +1695,8 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1689,13 +1731,16 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -1753,8 +1798,8 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1768,8 +1813,8 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -1804,13 +1849,16 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -1868,8 +1916,8 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1883,8 +1931,8 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -1919,13 +1967,16 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -1983,8 +2034,8 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -1998,8 +2049,8 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2034,13 +2085,16 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -2098,8 +2152,8 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -2113,8 +2167,8 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2149,13 +2203,16 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -2213,8 +2270,8 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -2228,8 +2285,8 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2264,13 +2321,16 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -2328,8 +2388,8 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -2343,8 +2403,8 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2379,13 +2439,16 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -2443,8 +2506,8 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -2458,8 +2521,8 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2494,13 +2557,16 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -2558,8 +2624,8 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -2573,8 +2639,8 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2609,13 +2675,16 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -2673,8 +2742,8 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 32U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 32U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 32U + row] = local[k];
@@ -2688,8 +2757,8 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -2724,13 +2793,16 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(32U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -2788,8 +2860,8 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -2803,8 +2875,8 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -2839,13 +2911,16 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -2902,8 +2977,8 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -2917,8 +2992,8 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -2953,13 +3028,16 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -3017,8 +3095,8 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3032,8 +3110,8 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -3068,13 +3146,16 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -3132,8 +3213,8 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3147,8 +3228,8 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -3183,13 +3264,16 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -3247,8 +3331,8 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3262,8 +3346,8 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -3298,13 +3382,16 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -3361,8 +3448,8 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3376,8 +3463,8 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -3412,13 +3499,16 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -3476,8 +3566,8 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3491,8 +3581,8 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -3527,13 +3617,16 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -3591,8 +3684,8 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3606,8 +3699,8 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -3642,13 +3735,16 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -3706,8 +3802,8 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3721,8 +3817,8 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -3757,13 +3853,16 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -3820,8 +3919,8 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3835,8 +3934,8 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -3871,13 +3970,16 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -3935,8 +4037,8 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -3950,8 +4052,8 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -3986,13 +4088,16 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -4050,8 +4155,8 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4065,8 +4170,8 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -4101,13 +4206,16 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -4165,8 +4273,8 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4180,8 +4288,8 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -4216,13 +4324,16 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -4279,8 +4390,8 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4294,8 +4405,8 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -4330,13 +4441,16 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -4394,8 +4508,8 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4409,8 +4523,8 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -4445,13 +4559,16 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -4509,8 +4626,8 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4524,8 +4641,8 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -4560,13 +4677,16 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -4624,8 +4744,8 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4639,8 +4759,8 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -4675,13 +4795,16 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -4739,8 +4862,8 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4754,8 +4877,8 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -4790,13 +4913,16 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -4854,8 +4980,8 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4869,8 +4995,8 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -4905,13 +5031,16 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -4969,8 +5098,8 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -4984,8 +5113,8 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -5020,13 +5149,16 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -5084,8 +5216,8 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -5099,8 +5231,8 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -5135,13 +5267,16 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -5199,8 +5334,8 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -5214,8 +5349,8 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -5250,13 +5385,16 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -5314,8 +5452,8 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -5329,8 +5467,8 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -5365,13 +5503,16 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -5429,8 +5570,8 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 64U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 64U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 64U + row] = local[k];
@@ -5444,8 +5585,8 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -5480,13 +5621,16 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(64U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -5544,8 +5688,8 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -5559,8 +5703,8 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -5595,13 +5739,16 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -5659,8 +5806,8 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -5674,8 +5821,8 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -5710,13 +5857,16 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -5774,8 +5924,8 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -5789,8 +5939,8 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -5825,13 +5975,16 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -5889,8 +6042,8 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -5904,8 +6057,8 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -5940,13 +6093,16 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -6004,8 +6160,8 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6019,8 +6175,8 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -6055,13 +6211,16 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -6119,8 +6278,8 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6134,8 +6293,8 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -6170,13 +6329,16 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         8U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -6234,8 +6396,8 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6249,8 +6411,8 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -6285,13 +6447,16 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) + 8U * (threadIdx.x % 4U) +
-                   resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 8U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       8U * (threadIdx.x % 4U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 8U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -6349,8 +6514,8 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6364,8 +6529,8 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 32U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 32U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 32U + col + k] = local[k];
@@ -6400,13 +6565,16 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                     16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                   32U * (blockIdx.x % (cols / 32U)) +
-                   16U * (threadIdx.x % 2U) + resIdxN]
-                = beta *
+                   32U * (blockIdx.x % (cols / 32U))
+                   + 16U * (threadIdx.x % 2U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 32U)) +
                         16U * (threadIdx.x / 2U) + resIdxM) * cols +
-                       32U * (blockIdx.x % (cols / 32U)) +
-                       16U * (threadIdx.x % 2U) + resIdxN]
+                       32U * (blockIdx.x % (cols / 32U))
+                       + 16U * (threadIdx.x % 2U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -6464,8 +6632,8 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6479,8 +6647,8 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -6515,13 +6683,16 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -6579,8 +6750,8 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6594,8 +6765,8 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -6630,13 +6801,16 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -6694,8 +6868,8 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6709,8 +6883,8 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -6745,13 +6919,16 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -6809,8 +6986,8 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6824,8 +7001,8 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -6860,13 +7037,16 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -6924,8 +7104,8 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -6939,8 +7119,8 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -6975,13 +7155,16 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -7039,8 +7222,8 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7054,8 +7237,8 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -7090,13 +7273,16 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         8U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -7154,8 +7340,8 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7169,8 +7355,8 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -7205,13 +7391,16 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) + 8U * (threadIdx.x % 8U) +
-                   resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 8U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       8U * (threadIdx.x % 8U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 8U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -7269,8 +7458,8 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7284,8 +7473,8 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 64U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 64U + cols * row +
+                                col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 64U + col + k] = local[k];
@@ -7320,13 +7509,16 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                     16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                   64U * (blockIdx.x % (cols / 64U)) +
-                   16U * (threadIdx.x % 4U) + resIdxN]
-                = beta *
+                   64U * (blockIdx.x % (cols / 64U))
+                   + 16U * (threadIdx.x % 4U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 64U)) +
                         16U * (threadIdx.x / 4U) + resIdxM) * cols +
-                       64U * (blockIdx.x % (cols / 64U)) +
-                       16U * (threadIdx.x % 4U) + resIdxN]
+                       64U * (blockIdx.x % (cols / 64U))
+                       + 16U * (threadIdx.x % 4U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -7384,8 +7576,8 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7399,8 +7591,8 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -7435,13 +7627,16 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -7499,8 +7694,8 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7514,8 +7709,8 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -7550,13 +7745,16 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -7614,8 +7812,8 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7629,8 +7827,8 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -7665,13 +7863,16 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -7729,8 +7930,8 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 32U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 32U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 32U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7744,8 +7945,8 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 32U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 32U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -7780,13 +7981,16 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -7844,8 +8048,8 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7859,8 +8063,8 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -7895,13 +8099,16 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -7959,8 +8166,8 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -7974,8 +8181,8 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -8010,13 +8217,16 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         8U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
@@ -8074,8 +8284,8 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -8089,8 +8299,8 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -8125,13 +8335,16 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float alpha,
         for (; resIdxN < 8U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   8U * (threadIdx.x % 16U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 8U * (threadIdx.x % 16U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 16U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       8U * (threadIdx.x % 16U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 8U * (threadIdx.x % 16U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 8U + resIdxN];
     }
 }
@@ -8189,8 +8402,8 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha,
             uint32_t row = (i0 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i0 + threadIdx.x * 4U) % 64U;
             vec_memcpy(local,
-                       tileA + shared * (mrow * 128U) + __anf03 * 64U +
-                       shared * row + col);
+                       tileA + (shared * mrow * 128U + __anf03 * 64U +
+                                shared * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sA[(col + k) * 128U + row] = local[k];
@@ -8204,8 +8417,8 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha,
             uint32_t row = (i + threadIdx.x * 4U) / 128U;
             uint32_t col = (i + threadIdx.x * 4U) % 128U;
             vec_memcpy(local,
-                       tileB + cols * (__anf06 * 64U) + mcol * 128U +
-                       cols * row + col);
+                       tileB + (cols * __anf06 * 64U + mcol * 128U +
+                                cols * row + col));
             uint32_t k = 0U;
             for (; k < 4U; k++)
                 sB[row * 128U + col + k] = local[k];
@@ -8240,13 +8453,16 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float alpha,
         for (; resIdxN < 16U; resIdxN++)
             t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                     16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                   128U * (blockIdx.x % (cols / 128U)) +
-                   16U * (threadIdx.x % 8U) + resIdxN]
-                = beta *
+                   128U * (blockIdx.x % (cols / 128U))
+                   + 16U * (threadIdx.x % 8U)
+                   + resIdxN]
+                =
+                beta *
                 t_tile[(128U * (blockIdx.x / (cols / 128U)) +
                         16U * (threadIdx.x / 8U) + resIdxM) * cols +
-                       128U * (blockIdx.x % (cols / 128U)) +
-                       16U * (threadIdx.x % 8U) + resIdxN]
+                       128U * (blockIdx.x % (cols / 128U))
+                       + 16U * (threadIdx.x % 8U)
+                       + resIdxN]
                 + alpha * rchProd[resIdxM * 16U + resIdxN];
     }
 }
