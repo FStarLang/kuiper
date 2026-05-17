@@ -4,7 +4,7 @@ module Kuiper.Math.Relu
 open Kuiper
 
 let relu_lem
-  (#et:Type) {| scalar et, real_like et |}
+  (#et:Type) {| floating et, real_like et |}
   (x : et) (r : real)
   : Lemma (requires x %~ r)
           (ensures relu x %~ relu_real r)

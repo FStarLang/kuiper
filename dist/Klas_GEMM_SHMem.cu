@@ -80,7 +80,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile,
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(8U * (tile * tile));
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -96,7 +96,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < tile; k1++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
@@ -338,7 +338,7 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n,
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(8192U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -354,7 +354,7 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 32U; k1++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
@@ -582,7 +582,7 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n,
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(2048U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -598,7 +598,7 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 16U; k1++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +
@@ -840,7 +840,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile,
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(8U * (tile * tile));
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -856,7 +856,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < tile; k1++)
             sum1 +=
                 sa1[threadIdx.x / tile * tile + k1] * sa2[k1 * tile +
@@ -1128,7 +1128,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(8192U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -1144,7 +1144,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 32U; k1++)
             sum1 +=
                 sa1[threadIdx.x / 32U * 32U + k1] * sa2[k1 * 32U +
@@ -1402,7 +1402,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
     double *sa1 = (double *)KPR_SHMEM_AT(0U);
     double *sa2 = (double *)KPR_SHMEM_AT(2048U);
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double
@@ -1418,7 +1418,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
         sa2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 16U; k1++)
             sum1 +=
                 sa1[threadIdx.x / 16U * 16U + k1] * sa2[k1 * 16U +

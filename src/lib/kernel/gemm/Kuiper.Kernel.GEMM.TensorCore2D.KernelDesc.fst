@@ -312,7 +312,7 @@ fn setup
     (fun bid -> fun tid -> gB |-> Frac (fB /. (nblk*nthr)) eB)
     (fun bid -> fun tid ->
       (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) (tid/warp_size))
-        |-> Frac (recip warp_size)
+        |-> Frac (precip warp_size)
       (ematrix_subtile (ematrix_subtile eC bm bn (bid/(cols/bn)) (bid%(cols/bn)))
         (wm*tm) (wn*tn)
         (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
@@ -328,7 +328,7 @@ fn setup
   requires
     gA |-> Frac (fA /. (nblk*nthr)) eA ** gB |-> Frac (fB /. (nblk*nthr)) eB **
     (warp_tile (block_tile gC (SZ.v bm) (SZ.v bn) bid) (wm*tm) (wn*tn) (tid/warp_size))
-      |-> Frac (recip warp_size)
+      |-> Frac (precip warp_size)
     (ematrix_subtile (ematrix_subtile eC bm bn (bid/(cols/bn)) (bid%(cols/bn)))
       (wm*tm) (wn*tn)
       (warp_tile_idx_rows (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) (tid/warp_size))
@@ -478,7 +478,7 @@ fn warp_tile_pts_to_eq
   unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
   gpu_matrix_pts_to_eq
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
-    (recip warp_size)
+    (precip warp_size)
     #em1 #em2;
   fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
   fold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em2;
@@ -511,7 +511,7 @@ fn warp_tile_pts_to_gatherwarp
     (fun _ ->
       gpu_matrix_pts_to
         (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
-        #(recip warp_size)
+        #(precip warp_size)
         em)
     fn _ {
       unfold warp_tile_pts_to gC bm bn tm tn wm wn bid wid em;

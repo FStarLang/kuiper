@@ -20,7 +20,7 @@ module SZ = Kuiper.SizeT
 // Using 1.0R /. x can lead to many odd SMT failures...
 // work around it. We should investigate why and fix it.
 [@@pulse_unfold]
-let recip (x : pos) : y:Real.real{y >. 0.0R} = 1.0R /. x
+let precip (x : pos) : y:Real.real{y >. 0.0R} = 1.0R /. x
 
 type constraints (bm bn bk tm tn tk wm wn : pos) : prop =
   tm /?+ bm /\
@@ -49,7 +49,7 @@ let warp_tile_pts_to
   =
   gpu_matrix_pts_to
     (warp_tile (block_tile gC bm bn bid) (wm*tm) (wn*tn) wid)
-    #(recip warp_size)
+    #(precip warp_size)
     em
 
 let warp_tile_pts_to_full
@@ -169,7 +169,7 @@ let kpre
   : slprop
   =
   kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
-  live_c_shmems sh #(recip nthr)
+  live_c_shmems sh #(precip nthr)
 
 ghost
 fn setup
@@ -403,7 +403,7 @@ let kpost
   : slprop
   =
   kpost1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid **
-  live_c_shmems sh #(recip nthr)
+  live_c_shmems sh #(precip nthr)
 
 ghost
 fn block_teardown

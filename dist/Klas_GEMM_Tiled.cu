@@ -63,7 +63,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile,
                              double *gB, double *gC, uint32_t nn, uint32_t kk)
 {
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -71,7 +71,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile,
         uint32_t __anf01 = bk;
         double *tB = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < tile; k1++)
             sum1 +=
                 tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
@@ -264,7 +264,7 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n,
                                     double *gC, uint32_t nn, uint32_t kk)
 {
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -272,7 +272,7 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n,
         uint32_t __anf01 = bk;
         double *tB = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 32U; k1++)
             sum1 +=
                 tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
@@ -454,7 +454,7 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n,
                                     double *gC, uint32_t nn, uint32_t kk)
 {
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -462,7 +462,7 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n,
         uint32_t __anf01 = bk;
         double *tB = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 16U; k1++)
             sum1 +=
                 tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
@@ -659,7 +659,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile,
                            double *gB, double *gC, uint32_t nn, uint32_t kk)
 {
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -667,7 +667,7 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile,
         uint32_t __anf01 = bk;
         double *tB = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < tile; k1++)
             sum1 +=
                 tA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
@@ -898,7 +898,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
                                   double *gC, uint32_t nn, uint32_t kk)
 {
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -906,7 +906,7 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha,
         uint32_t __anf01 = bk;
         double *tB = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 32U; k1++)
             sum1 +=
                 tA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
@@ -1126,7 +1126,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
                                   double *gC, uint32_t nn, uint32_t kk)
 {
     double *gTile = gC;
-    double sum = 0.0l;
+    double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t __anf0 = bk;
@@ -1134,7 +1134,7 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha,
         uint32_t __anf01 = bk;
         double *tB = gB;
         uint32_t k1 = 0U;
-        double sum1 = 0.0l;
+        double sum1 = 0.0;
         for (; k1 < 16U; k1++)
             sum1 +=
                 tA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +

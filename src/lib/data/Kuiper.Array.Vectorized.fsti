@@ -6,7 +6,6 @@ open FStar.Seq
 
 open Kuiper
 open Kuiper.Seq.Common { seq_blit }
-
 module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
@@ -14,7 +13,8 @@ unfold
 class has_vec_cpy (et : Type) {| sized et |} = {
   [@@@FStar.Tactics.Typeclasses.no_method] _chunk : szp;
   [@@@FStar.Tactics.Typeclasses.no_method] _pf : squash (_chunk * size #et == 16);
-  (* ^ Vectorized copies are always 16 bytes wide. *)
+  (* ^ Vectorized copies are always 16 bytes wide, for us. One can do smaller
+     vectorized copies in CUDA. *)
 }
 
 unfold
@@ -23,13 +23,15 @@ let chunk (et : Type) {| sized et, hvc : has_vec_cpy et |} : szp =
   match hvc with
   | Mkhas_vec_cpy chunk _ -> chunk
 
-unfold
 inline_for_extraction noextract
-instance has_vec_cpy_float : has_vec_cpy float = { _chunk = 4sz; _pf = ez; }
+instance has_vec_cpy_float : has_vec_cpy float =
+  Kuiper.Float32.lem_sizeof ();
+  { _chunk = 4sz; _pf = ez; }
 
-unfold
 inline_for_extraction noextract
-instance has_vec_cpy_half  : has_vec_cpy half  = { _chunk = 8sz; _pf = ez; }
+instance has_vec_cpy_half  : has_vec_cpy half =
+  Kuiper.Float16.lem_sizeof ();
+  { _chunk = 8sz; _pf = ez; }
 
 (* These three operations are essentially the same. We need different
    variants since gpu_array is a different type from array. Sadly the

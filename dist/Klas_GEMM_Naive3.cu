@@ -51,8 +51,8 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t m,
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double acc = 0.0l;
-        double c = 0.0l;
+        double acc = 0.0;
+        double c = 0.0;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             double yc = gA[trow * k + __anf0] * gB[__anf0 * n + tcol] - c;
@@ -126,8 +126,8 @@ __hoisted_g_matmul_f64_ccc_0(uint32_t m,
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / n;
         uint32_t tcol = (1024U * blockIdx.x + threadIdx.x) % n;
         uint32_t k1 = 0U;
-        double acc = 0.0l;
-        double c = 0.0l;
+        double acc = 0.0;
+        double c = 0.0;
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
             double yc = gA[__anf0 * m + trow] * gB[tcol * k + __anf0] - c;

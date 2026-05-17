@@ -4,7 +4,7 @@ module Kuiper.Math.Relu
 open Kuiper
 
 let relu
-  (#et:Type) {| scalar et |}
+  (#et:Type) {| floating et |}
   (x : et)
   : et
   = if x `gt` zero then x else zero
@@ -16,7 +16,7 @@ let relu_real
   = if t2b (x >. 0.0R) then x else 0.0R
 
 val relu_lem
-  (#et:Type) {| scalar et, real_like et |}
+  (#et:Type) {| floating et, real_like et |}
   (x : et) (r : real)
   : Lemma (requires x %~ r)
           (ensures relu x %~ relu_real r)

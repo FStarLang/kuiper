@@ -17,7 +17,7 @@ type softmax_notinplace_gpu_ty (et : Type0) {| floating et, real_like et, floati
      (b : array1 et l { is_global b })
      (#va : erased (lseq et lenab))
      (ra : erased (lseq real lenab) { va %~ ra })
-     (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
+     (#_: squash (seq_forallb not_nan va))
   preserves
     cpu **
     on gpu_loc (a |-> va)

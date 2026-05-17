@@ -99,7 +99,7 @@ static void __hoisted_reduce_f64_plus_0(uint32_t nth, uint32_t lena, double *a,
                                         double *out)
 {
     double *sa = (double *)KPR_SHMEM_AT(0U);
-    double acc = 0.0l;
+    double acc = 0.0;
     uint32_t idx = threadIdx.x;
     for (; idx < lena; idx += nth)
         acc += a[idx];
@@ -130,7 +130,7 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
     KPR_KCALL(__hoisted_reduce_f64_plus_0, 1U, nth, 8U * nth, nth, lena, a,
               out);
     MUST(cudaDeviceSynchronize());
-    double hout = 0.0l;
+    double hout = 0.0;
     MUST(cudaMemcpy(&hout, out, sizeof(double), cudaMemcpyDeviceToHost));
     MUST(cudaFree(out));
     return hout;

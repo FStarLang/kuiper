@@ -70,6 +70,7 @@ ensures
   with s0. assert (gpu_pts_to_slice a (SZ.v global_idx) (SZ.v global_idx + 4) s0);
 
   let mut local = [| zero #float #_; 4sz |];
+  Kuiper.Float32.lem_sizeof();
 
   gpu_array_vec_cpy_dh local 0sz a global_idx;
 

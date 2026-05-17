@@ -10,7 +10,7 @@ static void __hoisted__test_0(uint32_t len, float *a, float *b)
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
         float sum = 0.0f;
-        float max = -FLT_MAX;
+        float max = 0.0f - INFINITY;
         for (; i < len; i++) {
             float x = a[i];
             float __anf02 = max;
@@ -44,7 +44,7 @@ static void __hoisted__testh_0(uint32_t len, half *a, half *b)
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
         half sum = __float2half_rn(0.0f);
-        half max = __float2half_rn(-65504.0f);
+        half max = __hsub(__float2half_rn(0.0f), HLF_INFINITY);
         for (; i < len; i++) {
             half x = a[i];
             half __anf02 = max;

@@ -75,7 +75,7 @@ static void __hoisted_reduce_f64_0(double *a, double *gr)
 
 double Klas_AtomicReduce_reduce_f64(uint32_t n, double *a)
 {
-    double r = 0.0l;
+    double r = 0.0;
     double *gr = (double *)KPR_GPU_ALLOC(sizeof(double), 1U);
     MUST(cudaMemcpy(gr, &r, sizeof(double), cudaMemcpyHostToDevice));
     KPR_KCALL(__hoisted_reduce_f64_0, n, 1U, 0U, a, gr);

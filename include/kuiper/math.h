@@ -18,24 +18,10 @@
 #include <math.h>
 #include <cuda_fp16.h>
 
-static inline __host__ __device__
-bool kpr_hisvalid(half x)
-{
-        float f = __half2float(x);
-        return !isnan(f) && !isinf(f);
-}
-
-static inline __host__ __device__
-bool kpr_fisvalid(float x)
-{
-        return !isnan(x) && !isinf(x);
-}
-
-static inline __host__ __device__
-bool kpr_disvalid(double x)
-{
-        return !isnan(x) && !isinf(x);
-}
+#define HLF_MIN      __float2half(6.10352e-5f)
+#define HLF_MAX      __float2half(65504.0f)
+#define HLF_INFINITY __float2half(INFINITY)
+#define __hrcp(x)    ((half)1.0 / (x))
 
 /* ---- dispatch helpers ------------------------------------------------ */
 

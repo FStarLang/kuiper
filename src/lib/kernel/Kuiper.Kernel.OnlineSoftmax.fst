@@ -193,7 +193,7 @@ fn kfonline_softmax
   (b : array1 et l)
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
+  (#_: squash (seq_forallb not_nan va))
   (tid : szlt lenab)
   ()
   preserves
@@ -207,7 +207,7 @@ fn kfonline_softmax
 
   let mut i = 0sz;
   let mut sum: et = zero;
-  let mut max: et = min_val;
+  let mut max: et = neg infinity;
   let mut gsum : erased real = 0.0R;
   let mut gmax : erased real = ra @! 0;
   while (!i <^ lenab)
@@ -222,7 +222,7 @@ fn kfonline_softmax
         seq_fold_left online_softmax_real_iter
         (hide (ra @! 0, 1.0R)) (Seq.slice ra 1 (!i)))
     invariant pure (!i == 0sz ==>
-      (!sum == zero /\ !gsum == 0.0R /\ !max == min_val /\ !gmax == ra @! 0))
+      (!sum == zero /\ !gsum == 0.0R /\ !max == neg infinity /\ !gmax == ra @! 0))
     decreases (lenab - !i) {
 
     let x = read a !i;
@@ -245,7 +245,7 @@ fn kfonline_softmax
     assert pure (y2 %~ gy2);
 
     (* At this point, we cannot prove y1 is valid. It may not be,
-       in the first iteration, since !max was -FLT_MAX
+       in the first iteration, since !max was -infinity
        and !max - max' could underflow and return -INFINITY.
        But, exp(-INFINITY) is define to be zero, so we should be good
        in that case too. TODO: extend the scalar (or floating) class
@@ -361,7 +361,7 @@ let konline_softmax
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
+  (#_: squash (seq_forallb not_nan va))
   : kernel_desc
       (requires a |-> va ** (exists* (vb : lseq et lenab). b |-> vb))
       (ensures  a |-> va ** (exists* (vb' : lseq et lenab).
@@ -390,7 +390,7 @@ fn online_softmax_gpu
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
+  (#_: squash (seq_forallb not_nan va))
   norewrite
   preserves
     cpu **
