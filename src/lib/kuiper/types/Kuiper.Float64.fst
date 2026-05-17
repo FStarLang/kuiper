@@ -145,4 +145,4 @@ instance is_floating : floating t = {
 instance is_real_like : real_like t = magic()
 instance is_floating_real_like : floating_real_like t = magic()
 
-let lem_sizeof () = admit()
+let lem_sizeof () = ()
