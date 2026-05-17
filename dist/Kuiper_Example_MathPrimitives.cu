@@ -131,11 +131,6 @@ half Kuiper_Example_MathPrimitives_test_fma_f16(half x, half y, half z)
     return kpr_hfma(x, y, z);
 }
 
-half Kuiper_Example_MathPrimitives_test_smallest_f16(void)
-{
-    return HLF_MIN;
-}
-
 half Kuiper_Example_MathPrimitives_test_largest_f16(void)
 {
     return HLF_MAX;
@@ -276,11 +271,6 @@ float Kuiper_Example_MathPrimitives_test_fma_f32(float x, float y, float z)
     return fmaf(x, y, z);
 }
 
-float Kuiper_Example_MathPrimitives_test_smallest_f32(void)
-{
-    return FLT_MIN;
-}
-
 float Kuiper_Example_MathPrimitives_test_largest_f32(void)
 {
     return FLT_MAX;
@@ -419,11 +409,6 @@ double Kuiper_Example_MathPrimitives_test_copysign_f64(double x, double y)
 double Kuiper_Example_MathPrimitives_test_fma_f64(double x, double y, double z)
 {
     return fma(x, y, z);
-}
-
-double Kuiper_Example_MathPrimitives_test_smallest_f64(void)
-{
-    return DBL_MIN;
 }
 
 double Kuiper_Example_MathPrimitives_test_largest_f64(void)

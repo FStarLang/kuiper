@@ -23,17 +23,30 @@ class floating (t : Type) = {
 
   kind : t -> fkind;
 
-  smallest : t; (* smallest (positive) epsilon *)
+  (* NOTE: We do not model a "smallest positive value" here. Whether that
+     means the smallest subnormal or the smallest normal depends on whether
+     flush-to-zero (FTZ) mode is active, which varies by type (fp16/bf16
+     typically use FTZ) and by compiler flags. *)
   largest  : t; (* largest (positive) representable value. *)
   infinity : t; (* positive infinity *)
 
   #[easy_fill()] kind_one      : squash (kind one == Finite);
   #[easy_fill()] kind_zero     : squash (kind zero == Finite);
-  #[easy_fill()] kind_smallest : squash (kind smallest == Finite);
   #[easy_fill()] kind_largest  : squash (kind largest  == Finite);
   #[easy_fill()] kind_infinity : squash (kind infinity == Infinite);
 
-  (* Laws. *)
+  (* Laws.
+
+     NOTE: These axioms assume IEEE 754 default rounding mode
+     (round-to-nearest-even). They may not hold under CUDA's --use_fast_math
+     or explicit rounding-mode intrinsics (__fadd_rd, __fmul_ru, etc.).
+
+     NOTE: We intentionally do not distinguish +0 and -0. The abstract type
+     identifies them (i.e., propositional equality == conflates both zeros).
+     This is sound for most GPU kernel verification but means copysign and
+     signbit cannot be faithfully axiomatized without extending the model.
+     See the note on copysign below.
+  *)
 
   (* Equality is sound, at least for non-NaNs. *)
   #[easy_fill ()]
@@ -61,7 +74,9 @@ class floating (t : Type) = {
           (ensures zero `sub` (zero `sub` x) == x)
           [SMTPat (zero `sub` (zero `sub` x))];
 
-  (* x < y <==> -y <= -x.  FIXME: This is not exactly true due to signed zeros! *)
+  (* x < y <==> -y <= -x.  NOTE: This is sound because we identify +0 and -0.
+     Under strict IEEE 754 with distinct signed zeros, this would fail:
+     lt (-0) (+0) is false, but lte (0-(+0)) (0-(-0)) = lte 0 0 = true. *)
   #[easy_fill ()]
   lt_neg_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
@@ -106,11 +121,12 @@ class floating (t : Type) = {
           (ensures mul x one == x)
           [SMTPat (mul x one)];
 
+  (* sub is add-of-negation. FIXME: adding the pattern breaks proofs. *)
   #[easy_fill ()]
-  smallest_val_spec : (x : t) ->
-    Lemma (requires Finite? (kind x) /\ zero `lt` x)
-          (ensures lte smallest x)
-          [SMTPat (lte smallest x)];
+  sub_is_add_neg : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures sub x y == add x (zero `sub` y));
+          // [SMTPat (sub x y)]
 
   #[easy_fill ()]
   largest_val_spec : (x : t) ->
@@ -150,6 +166,11 @@ class floating (t : Type) = {
   fmin : t -> t -> t;
   fmax : t -> t -> t;
   fmod : t -> t -> t;
+  (* NOTE: copysign is inherently about the sign bit, which our model cannot
+     faithfully express since we identify +0 and -0. Any axiomatization of
+     copysign would require extending fkind or the abstract type to
+     distinguish signs. For now, copysign is provided as an unaxiomatized
+     primitive for extraction purposes only. *)
   copysign : t -> t -> t;
   fma : t -> t -> t -> t;
 }
@@ -176,6 +197,11 @@ inline_for_extraction noextract
 let abs (#t:Type) {| floating t |} (x : t) : t =
   if x `gte` zero then x else sub zero x
 
+(* NOTE: max_float propagates NaN from the second argument but not the first
+   (if x is NaN, returns y; if y is NaN, returns y=NaN). This is inconsistent
+   with IEEE 754's fmax/fmaxf which return the non-NaN argument. We may want
+   to axiomatize max_float for non-NaN inputs and extract it as fmaxf/fmax
+   for better codegen and IEEE-compliant NaN handling. *)
 inline_for_extraction noextract
 let max_float (#et : Type0) {| floating et |} (x y : et) : et =
   if x `gt` y then x else y

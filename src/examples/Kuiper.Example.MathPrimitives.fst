@@ -33,7 +33,6 @@ let test_fmax_f16     (x y : f16)   : f16 = fmax x y
 let test_fmod_f16     (x y : f16)   : f16 = fmod x y
 let test_copysign_f16 (x y : f16)   : f16 = copysign x y
 let test_fma_f16      (x y z : f16) : f16 = fma x y z
-let test_smallest_f16 ()            : f16 = smallest
 let test_largest_f16  ()            : f16 = largest
 let test_infinity_f16 ()            : f16 = infinity
 
@@ -63,7 +62,6 @@ let test_fmax_f32     (x y : f32)   : f32 = fmax x y
 let test_fmod_f32     (x y : f32)   : f32 = fmod x y
 let test_copysign_f32 (x y : f32)   : f32 = copysign x y
 let test_fma_f32      (x y z : f32) : f32 = fma x y z
-let test_smallest_f32 ()            : f32 = smallest
 let test_largest_f32  ()            : f32 = largest
 let test_infinity_f32 ()            : f32 = infinity
 
@@ -93,6 +91,5 @@ let test_fmax_f64     (x y : f64)   : f64 = fmax x y
 let test_fmod_f64     (x y : f64)   : f64 = fmod x y
 let test_copysign_f64 (x y : f64)   : f64 = copysign x y
 let test_fma_f64      (x y z : f64) : f64 = fma x y z
-let test_smallest_f64 ()            : f64 = smallest
 let test_largest_f64  ()            : f64 = largest
 let test_infinity_f64 ()            : f64 = infinity

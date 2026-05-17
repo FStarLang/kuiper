@@ -69,7 +69,6 @@ let rec matmul_all_zeros_lemma
       matmul_all_zeros_lemma m1 m2 row col from (to - 1)
     )
 
-#restart-solver // Work around crash
 #push-options "--z3rlimit 20"
 let rec __matmul_dotprod_lemma
   (#et : Type0) {| scalar et |}

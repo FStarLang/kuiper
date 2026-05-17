@@ -22,13 +22,11 @@ val div : t -> t -> t
 
 val kind : t -> fkind
 
-val smallest : t
 val largest : t
 val infinity : t
 
 val kind_one      : squash (kind one == Finite)
 val kind_zero     : squash (kind zero == Finite)
-val kind_smallest : squash (kind smallest == Finite)
 val kind_largest  : squash (kind largest  == Finite)
 val kind_infinity : squash (kind infinity == Infinite)
 
@@ -86,10 +84,10 @@ val  mul_one : (x : t) ->
           (ensures mul x one == x)
           [SMTPat (mul x one)]
 
-val smallest_val_spec : (x : t) ->
-    Lemma (requires Finite? (kind x) /\ zero `lt` x)
-          (ensures lte smallest x)
-          [SMTPat (lte smallest x)]
+val sub_is_add_neg : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures sub x y == add x (zero `sub` y))
+          [SMTPat (sub x y)]
 
 val largest_val_spec : (x : t) ->
     Lemma (requires Finite? (kind x))

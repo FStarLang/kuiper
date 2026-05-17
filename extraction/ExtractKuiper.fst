@@ -624,7 +624,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float16.Base.eq",   [], [] -> EOp (Eq, Half)
   | "Kuiper.Float16.Base.lt",   [], [] -> EOp (Lt, Half)
   | "Kuiper.Float16.Base.lte",  [], [] -> EOp (Lte, Half)
-  | "Kuiper.Float16.Base.smallest", [], [] -> EConstant (Half, "HLF_MIN")
   | "Kuiper.Float16.Base.largest",  [], [] -> EConstant (Half, "HLF_MAX")
   | "Kuiper.Float16.Base.infinity", [], [] -> EConstant (Half, "HLF_INFINITY")
 
@@ -640,7 +639,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.lt",   [], [] -> EOp (Lt, Float)
   | "Kuiper.Float32.Base.lte",  [], [] -> EOp (Lte, Float)
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
-  | "Kuiper.Float32.Base.smallest", [], [] -> EConstant (Float, "FLT_MIN")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float, "INFINITY")
 
@@ -655,7 +653,6 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float64.Base.lt",   [], [] -> EOp (Lt, Double)
   | "Kuiper.Float64.Base.lte",  [], [] -> EOp (Lte, Double)
   | "Kuiper.Float64.Base.eq",   [], [] -> EOp (Eq, Double)
-  | "Kuiper.Float64.Base.smallest", [], [] -> EConstant (Double, "DBL_MIN")
   | "Kuiper.Float64.Base.largest",  [], [] -> EConstant (Double, "DBL_MAX")
   | "Kuiper.Float64.Base.infinity", [], [] -> EConstant (Double, "INFINITY")
 

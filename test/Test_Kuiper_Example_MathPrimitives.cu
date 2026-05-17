@@ -188,17 +188,14 @@ int main()
     /* ---- valid / min_val / max_val ---- */
 
     /* Float32 */
-    check_f32("smallest", Kuiper_Example_MathPrimitives_test_smallest_f32(), FLT_MIN, 0.0f);
     check_f32("largest", Kuiper_Example_MathPrimitives_test_largest_f32(), FLT_MAX, 0.0f);
     check_f32("infinity", Kuiper_Example_MathPrimitives_test_infinity_f32(), INFINITY, 0.0f);
 
     /* Float64 */
-    check_f64("smallest", Kuiper_Example_MathPrimitives_test_smallest_f64(), DBL_MIN, 0.0f);
     check_f64("largest", Kuiper_Example_MathPrimitives_test_largest_f64(), DBL_MAX, 0.0f);
     check_f64("infinity", Kuiper_Example_MathPrimitives_test_infinity_f64(), INFINITY, 0.0f);
 
     /* Float16 */
-    check_f16("smallest", Kuiper_Example_MathPrimitives_test_smallest_f16(), 6.10352e-5f, 0.0f);
     check_f16("largest", Kuiper_Example_MathPrimitives_test_largest_f16(), 65504.0f, 0.0f);
     check_f16("infinity", Kuiper_Example_MathPrimitives_test_infinity_f16(), INFINITY, 0.0f);
 
