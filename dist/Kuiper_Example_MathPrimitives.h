@@ -4,6 +4,64 @@
 
 #include <kuiper.h>
 
+half Kuiper_Example_MathPrimitives_test_sqrt_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_rsqrt_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_sin_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_cos_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_tan_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_asin_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_acos_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_atan_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_sinh_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_cosh_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_tanh_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_ceil_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_floor_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_round_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_fabs_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_erf_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_log2_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_log10_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_exp2_f16(half x);
+
+half Kuiper_Example_MathPrimitives_test_pow_f16(half x, half y);
+
+half Kuiper_Example_MathPrimitives_test_atan2_f16(half x, half y);
+
+half Kuiper_Example_MathPrimitives_test_fmin_f16(half x, half y);
+
+half Kuiper_Example_MathPrimitives_test_fmax_f16(half x, half y);
+
+half Kuiper_Example_MathPrimitives_test_fmod_f16(half x, half y);
+
+half Kuiper_Example_MathPrimitives_test_copysign_f16(half x, half y);
+
+half Kuiper_Example_MathPrimitives_test_fma_f16(half x, half y, half z);
+
+half Kuiper_Example_MathPrimitives_test_min_val_f16(void);
+
+half Kuiper_Example_MathPrimitives_test_max_val_f16(void);
+
+bool Kuiper_Example_MathPrimitives_test_valid_f16(half x);
+
 float Kuiper_Example_MathPrimitives_test_sqrt_f32(float x);
 
 float Kuiper_Example_MathPrimitives_test_rsqrt_f32(float x);
@@ -55,6 +113,12 @@ float Kuiper_Example_MathPrimitives_test_fmod_f32(float x, float y);
 float Kuiper_Example_MathPrimitives_test_copysign_f32(float x, float y);
 
 float Kuiper_Example_MathPrimitives_test_fma_f32(float x, float y, float z);
+
+float Kuiper_Example_MathPrimitives_test_min_val_f32(void);
+
+float Kuiper_Example_MathPrimitives_test_max_val_f32(void);
+
+bool Kuiper_Example_MathPrimitives_test_valid_f32(float x);
 
 double Kuiper_Example_MathPrimitives_test_sqrt_f64(double x);
 
@@ -108,75 +172,11 @@ double Kuiper_Example_MathPrimitives_test_copysign_f64(double x, double y);
 
 double Kuiper_Example_MathPrimitives_test_fma_f64(double x, double y, double z);
 
-half Kuiper_Example_MathPrimitives_test_sqrt_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_rsqrt_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_sin_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_cos_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_tan_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_asin_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_acos_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_atan_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_sinh_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_cosh_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_tanh_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_ceil_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_floor_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_round_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_fabs_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_erf_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_log2_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_log10_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_exp2_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_pow_f16(half x, half y);
-
-half Kuiper_Example_MathPrimitives_test_atan2_f16(half x, half y);
-
-half Kuiper_Example_MathPrimitives_test_fmin_f16(half x, half y);
-
-half Kuiper_Example_MathPrimitives_test_fmax_f16(half x, half y);
-
-half Kuiper_Example_MathPrimitives_test_fmod_f16(half x, half y);
-
-half Kuiper_Example_MathPrimitives_test_copysign_f16(half x, half y);
-
-half Kuiper_Example_MathPrimitives_test_fma_f16(half x, half y, half z);
-
-bool Kuiper_Example_MathPrimitives_test_valid_f32(float x);
-
-float Kuiper_Example_MathPrimitives_test_min_val_f32(void);
-
-float Kuiper_Example_MathPrimitives_test_max_val_f32(void);
-
-bool Kuiper_Example_MathPrimitives_test_valid_f64(double x);
-
 double Kuiper_Example_MathPrimitives_test_min_val_f64(void);
 
 double Kuiper_Example_MathPrimitives_test_max_val_f64(void);
 
-bool Kuiper_Example_MathPrimitives_test_valid_f16(half x);
-
-half Kuiper_Example_MathPrimitives_test_min_val_f16(void);
-
-half Kuiper_Example_MathPrimitives_test_max_val_f16(void);
+bool Kuiper_Example_MathPrimitives_test_valid_f64(double x);
 
 #define Kuiper_Example_MathPrimitives_H_DEFINED
 #endif                          /* Kuiper_Example_MathPrimitives_H */
