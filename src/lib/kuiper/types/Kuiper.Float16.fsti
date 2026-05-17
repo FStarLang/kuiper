@@ -3,6 +3,7 @@ module Kuiper.Float16
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 
+inline_for_extraction noextract
 val t : Type0
 
 inline_for_extraction noextract
