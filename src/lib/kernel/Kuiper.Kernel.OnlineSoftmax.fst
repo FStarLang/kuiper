@@ -169,11 +169,6 @@ instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
   approximates = tup2_approximates;
 }
 
-inline_for_extraction noextract
-let max_float (#et : Type0) {| floating et |}
-  (x: et) (y: et) : et =
-  if x `gt` y then x else y
-
 let max_float_approximates_max_real (#et: Type0) {| floating et, real_like et |}
   (x: et) (y: et) (xr: real) (yr: real):
     Lemma
@@ -182,7 +177,6 @@ let max_float_approximates_max_real (#et: Type0) {| floating et, real_like et |}
       [SMTPat (max_float x y); SMTPat (max_real xr yr);
        SMTPat (x %~ xr); SMTPat (y %~ yr);]
       = admit ()
-
 
 inline_for_extraction noextract
 fn kfonline_softmax
