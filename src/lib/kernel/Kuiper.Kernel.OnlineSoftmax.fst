@@ -13,18 +13,57 @@ module SMX = Kuiper.Kernel.Softmax
 let max_real (x: real) (y: real) : real =
   if x >. y then x else y
 
+let online_softmax_real_iter (md: erased (tuple2 real real)) (x:real) : erased (tuple2 real real) =
+  let (m,d) = md in
+  let m' = max_real m x in
+  let d' = d *. (rexp (m -. m')) +. rexp (x -. m') in
+  (m',d')
+
+let lem_online_softmax_real_iter'
+  (md: erased (tuple2 real real))
+  (x : real)
+  : Lemma (requires snd md >. 0.0R)
+          (ensures snd (online_softmax_real_iter md x) >. 0.0R)
+  = ()
+
+let rec lem_online_softmax_real_iter
+  (init : erased (tuple2 real real))
+  (s : seq real)
+  : Lemma (requires snd init >. 0.0R)
+          (ensures  snd (seq_fold_left #real #(erased (real & real)) online_softmax_real_iter init s) >. 0.0R)
+          (decreases Seq.length s)
+          [SMTPat (seq_fold_left #real #(erased (real & real)) online_softmax_real_iter init s)]
+  = match view_seq s with
+    | SNil -> ()
+    | SCons hd tl -> lem_online_softmax_real_iter (online_softmax_real_iter init hd) tl
+
+let test (x : real { x >. 0.0R }) =
+  assert (x =!= 0.0R)
+
+let online_softmax_real (s:Seq.seq real { Seq.length s > 0 }) : GTot (seq real) =
+  (* TODO: rewrite using some of the stuff in Kuiper.Seq.Common.fsti ?
+  seq_take, seq_drop *)
+  let x = Seq.index s 0 in
+  let (m, (d : real)) = reveal (seq_fold_left online_softmax_real_iter (hide (x, 1.0R)) (seq_drop 1 s)) in
+  // TODO: why ??
+  // assert (d >. 0.0R ==> d =!= 0.0R);
+  // let d': (r: real{r =!= 0.R}) = d in
+  // assert (d =!= 0.0R);
+  seq_map (fun x -> rexp (x -. m) /. d) s
+
+
 // TODO: refactor all these real lemma proofs into a separate file (in src/lib/spec)
 
-private let rsum_cons (x: real) (t: Seq.seq real)
+let rsum_cons (x: real) (t: Seq.seq real)
   : Lemma (rsum (Seq.cons x t) == x +. rsum t)
   = assert (Seq.equal (Seq.cons x t) (Seq.append (Seq.create 1 x) t));
     rsum_append (Seq.create 1 x) t
 
-private let seq_map_cons (#a #b: Type) (f: a -> b) (x: a) (t: Seq.seq a)
+let seq_map_cons (#a #b: Type) (f: a -> b) (x: a) (t: Seq.seq a)
   : Lemma (seq_map f (Seq.cons x t) == Seq.cons (f x) (seq_map f t))
   = assert (Seq.equal (seq_map f (Seq.cons x t)) (Seq.cons (f x) (seq_map f t)))
 
-private let rsum_map_cons (f: real -> real) (x: real) (t: Seq.seq real)
+let rsum_map_cons (f: real -> real) (x: real) (t: Seq.seq real)
   : Lemma (rsum (seq_map f (Seq.cons x t)) == f x +. rsum (seq_map f t))
   = seq_map_cons f x t;
     rsum_cons (f x) (seq_map f t)
@@ -32,7 +71,7 @@ private let rsum_map_cons (f: real -> real) (x: real) (t: Seq.seq real)
 (* Theorem 1 from the Online Softmax paper (unshifted invariant form):
    The online normalizer computation correctly tracks the running max and,
    when multiplied by exp(max), equals the sum of exponentials. *)
-private let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
+let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
   : Lemma (ensures (
       let r = reveal (seq_fold_left online_softmax_real_iter (hide (m0, d0)) s) in
       fst r == seq_fold_left max_real m0 s /\
@@ -55,7 +94,7 @@ private let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
         //         = d0 * exp(m0) + rsum(map rexp (cons x t))
         ()
 
-private let pointwise_eq (xi m d summ : real)
+let pointwise_eq (xi m d summ : real)
   : Lemma (requires d *. rexp m == summ /\ d >. 0.0R)
           (ensures rexp (xi -. m) /. d == rexp xi /. summ)
   = assert (rexp (xi -. m) == rexp xi /. rexp m);
@@ -154,7 +193,7 @@ fn kfonline_softmax
   (b : array1 et l)
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). valid (va @! i) /\ min_val `lte` (va @! i)))
+  (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
   (tid : szlt lenab)
   ()
   preserves
@@ -322,7 +361,7 @@ let konline_softmax
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). valid (va @! i) /\ min_val `lte` (va @! i)))
+  (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
   : kernel_desc
       (requires a |-> va ** (exists* (vb : lseq et lenab). b |-> vb))
       (ensures  a |-> va ** (exists* (vb' : lseq et lenab).
@@ -351,7 +390,7 @@ fn online_softmax_gpu
   (b : array1 et l { is_global b })
   (#va : erased (lseq et lenab))
   (ra : erased (lseq real lenab) { va %~ ra })
-  (#_: squash ( forall (i:natlt lenab). valid (va @! i) /\ min_val `lte` (va @! i)))
+  (#_: squash (seq_forall (fun x -> valid x /\ min_val `lte` x) va))
   norewrite
   preserves
     cpu **
