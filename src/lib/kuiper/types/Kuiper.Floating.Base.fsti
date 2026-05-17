@@ -1,7 +1,6 @@
 module Kuiper.Floating.Base
 
 include Kuiper.Scalars.Base
-open Kuiper.Real
 open FStar.Tactics.Easy
 open FStar.Tactics.Typeclasses { solve, tcinstance }
 
@@ -218,11 +217,3 @@ let is_inf (#t:Type) {| floating t |} (x : t) : GTot bool =
 
 let is_finite (#t:Type) {| floating t |} (x : t) : GTot bool =
   Finite? (kind x)
-
-// val max_float_approximates_max_real (#et: Type0) {| floating et |}
-//   (x: et) (y: et) (xr: real) (yr: real):
-//     Lemma
-//       (requires x %~ xr /\ y %~ yr)
-//       (ensures max_float #et x y %~ max_real xr yr)
-//       // [SMTPat (max_float x y); SMTPat (max_real xr yr);
-//       //  SMTPat (x %~ xr); SMTPat (y %~ yr)]
