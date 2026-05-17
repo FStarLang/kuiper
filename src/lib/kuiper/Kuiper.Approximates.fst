@@ -36,5 +36,5 @@ let rec sum_is_approx' #a {| scalar a, real_like a |}
 
 let sum_is_approx #a {| scalar a, real_like a |} (s: seq a) (s': seq real) :
     Lemma (requires s %~ s')
-          (ensures seq_fold_left add zero s %~ seq_fold_left (+.) 0.0R s') =
+          (ensures seq_fold_left add zero s %~ rsum s') =
   sum_is_approx' s s' zero 0.0R
