@@ -20,6 +20,10 @@ val eq : t -> t -> bool
 val sub : t -> t -> t
 val div : t -> t -> t
 
+val of_int       : Int64.t -> t
+val of_int_zero  : squash (of_int 0L == zero)
+val of_int_one   : squash (of_int 1L == one)
+
 val kind : t -> fkind
 
 val largest : t

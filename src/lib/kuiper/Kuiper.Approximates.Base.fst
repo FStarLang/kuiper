@@ -78,6 +78,9 @@ let approx_to_real #a {| scalar a, real_like a, precise_real_like a |} (x y: a) 
 
 (* Extra rules for types supporting division and exponentiation. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
+  approx_of_int : (x : Int64.t) ->
+    squash (v_approximates (of_int #a x) (Real.of_int (Int64.v x)));
+
   sub_approx : x:a -> y:a -> r:real -> s:real ->
                 Lemma (requires v_approximates x r /\ v_approximates y s)
                       (ensures v_approximates (sub x y) (r -. s));

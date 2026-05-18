@@ -1,6 +1,51 @@
 
 #include "Kuiper_Example_MathPrimitives.h"
 
+half Kuiper_Example_MathPrimitives_test_zero_f16(void)
+{
+    return __float2half_rn(0.0f);
+}
+
+half Kuiper_Example_MathPrimitives_test_one_f16(void)
+{
+    return __float2half_rn(1.0f);
+}
+
+half Kuiper_Example_MathPrimitives_test_of_int_f16(int64_t x)
+{
+    return (half) x;
+}
+
+float Kuiper_Example_MathPrimitives_test_zero_f32(void)
+{
+    return 0.0f;
+}
+
+float Kuiper_Example_MathPrimitives_test_one_f32(void)
+{
+    return 1.0f;
+}
+
+float Kuiper_Example_MathPrimitives_test_of_int_f32(int64_t x)
+{
+    return (float)x;
+}
+
+double Kuiper_Example_MathPrimitives_test_zero_f64(void)
+{
+    return 0.0;
+}
+
+double Kuiper_Example_MathPrimitives_test_one_f64(void)
+{
+    return 1.0;
+}
+
+double Kuiper_Example_MathPrimitives_test_of_int_f64(int64_t x)
+{
+    return (double)x;
+}
+
 half Kuiper_Example_MathPrimitives_test_sqrt_f16(half x)
 {
     return kpr_hsqrt(x);

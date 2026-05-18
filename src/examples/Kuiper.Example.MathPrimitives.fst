@@ -7,6 +7,18 @@ module Kuiper.Example.MathPrimitives
 
 open Kuiper
 
+let test_zero_f16     ()            : f16 = zero
+let test_one_f16      ()            : f16 = one
+let test_of_int_f16   (x : i64)     : f16 = of_int x
+
+let test_zero_f32     ()            : f32 = zero
+let test_one_f32      ()            : f32 = one
+let test_of_int_f32   (x : i64)     : f32 = of_int x
+
+let test_zero_f64     ()            : f64 = zero
+let test_one_f64      ()            : f64 = one
+let test_of_int_f64   (x : i64)     : f64 = of_int x
+
 let test_sqrt_f16     (x : f16)     : f16 = sqrt x
 let test_rsqrt_f16    (x : f16)     : f16 = rsqrt x
 let test_sin_f16      (x : f16)     : f16 = sin x

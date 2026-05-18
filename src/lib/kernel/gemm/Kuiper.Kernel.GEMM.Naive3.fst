@@ -1,5 +1,7 @@
 module Kuiper.Kernel.GEMM.Naive3
 
+#set-options "--z3rlimit 20"
+
 #lang-pulse
 open Kuiper
 module T = Kuiper.Tensor

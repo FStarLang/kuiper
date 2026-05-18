@@ -608,7 +608,7 @@ fn kf
     B.barrier_tok (barrier_contract tile slA slB (fst sh) (fst (snd sh))) **
     B.barrier_state (2 * k)
 {
-  unfold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
+  unfold_c_shmems sh #(1.0R /. Real.of_int (v tile)) (`%shmems_desc);
   let (ar1, (ar2, _)) = sh;
 
   gpu_pts_to_ref ar1;
@@ -709,7 +709,7 @@ fn kf
   rewrite each ar1 as fst sh;
   rewrite each ar2 as fst (snd sh);
   rewrite each tileC as array2_subtile gC (SZ.v tile) (SZ.v tile) (bid / n) (bid % n);
-  fold_c_shmems sh #(1.0R /. of_int (v tile)) (`%shmems_desc);
+  fold_c_shmems sh #(1.0R /. Real.of_int (v tile)) (`%shmems_desc);
 
   (* Functional correctness assumption (cf. SHMem.fst line 363).
      The accumulated subproduct_cols results, combined with the old cell values,

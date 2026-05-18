@@ -23,6 +23,7 @@ inline_for_extraction noextract
 instance is_floating : floating t = {
   is_scalar = solve;
   sub; div;
+  of_int; of_int_zero; of_int_one;
   kind;
   largest; infinity;
   kind_one; kind_zero; kind_largest; kind_infinity;

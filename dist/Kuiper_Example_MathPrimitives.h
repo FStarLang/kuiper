@@ -4,6 +4,24 @@
 
 #include <kuiper.h>
 
+half Kuiper_Example_MathPrimitives_test_zero_f16(void);
+
+half Kuiper_Example_MathPrimitives_test_one_f16(void);
+
+half Kuiper_Example_MathPrimitives_test_of_int_f16(int64_t x);
+
+float Kuiper_Example_MathPrimitives_test_zero_f32(void);
+
+float Kuiper_Example_MathPrimitives_test_one_f32(void);
+
+float Kuiper_Example_MathPrimitives_test_of_int_f32(int64_t x);
+
+double Kuiper_Example_MathPrimitives_test_zero_f64(void);
+
+double Kuiper_Example_MathPrimitives_test_one_f64(void);
+
+double Kuiper_Example_MathPrimitives_test_of_int_f64(int64_t x);
+
 half Kuiper_Example_MathPrimitives_test_sqrt_f16(half x);
 
 half Kuiper_Example_MathPrimitives_test_rsqrt_f16(half x);

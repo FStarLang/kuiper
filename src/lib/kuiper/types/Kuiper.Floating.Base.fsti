@@ -20,6 +20,11 @@ class floating (t : Type) = {
   sub : t -> t -> t;
   div : t -> t -> t;
 
+  of_int : Int64.t -> t;
+
+  #[easy_fill ()] of_int_zero : squash (of_int 0L == zero);
+  #[easy_fill ()] of_int_one  : squash (of_int 1L == one);
+
   kind : t -> fkind;
 
   (* NOTE: We do not model a "smallest positive value" here. Whether that

@@ -148,10 +148,10 @@ fn setup
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
     requires
-      Array2.pts_to #et gIn #(fIn /. of_int (SZ.v (SZ.mul rows cols))) eIn **
+      Array2.pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
         Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) (macc eOut (rc / cols) (rc % cols))
     ensures
-      Array2.pts_to #et gIn #(fIn /. of_int (SZ.v (SZ.mul rows cols))) eIn **
+      Array2.pts_to #et gIn #(fIn /. Real.of_int (SZ.v (SZ.mul rows cols))) eIn **
       (exists* vv. Array2.pts_to_cell gOut ((rc / cols <: natlt rows), (rc % cols <: natlt cols)) vv)
   {
     ()
