@@ -13,7 +13,7 @@ half Kuiper_Example_MathPrimitives_test_one_f16(void)
 
 half Kuiper_Example_MathPrimitives_test_of_int_f16(int64_t x)
 {
-    return (half) x;
+    return __ll2half_rn(x);
 }
 
 float Kuiper_Example_MathPrimitives_test_zero_f32(void)
