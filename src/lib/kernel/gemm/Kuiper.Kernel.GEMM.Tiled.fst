@@ -1,5 +1,6 @@
 module Kuiper.Kernel.GEMM.Tiled
 
+#set-options "--z3rlimit 20"
 #lang-pulse
 
 open Kuiper
@@ -16,7 +17,6 @@ module M = Kuiper.Array2
 module MT = Kuiper.Tensor.Tiling
 
 (* Move away somewhere, this is generic. *)
-#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn matmul_tiled_dotprod_real
   (#et : Type0) {| scalar et, real_like et |}
@@ -90,7 +90,6 @@ fn matmul_tiled_dotprod_real
 
   !sum
 }
-#pop-options
 
 unfold
 let kpre
@@ -168,7 +167,6 @@ let kpost
       v **
     pure (v %~ MS.gemm_single comb_r rA rB rC grow gcol))
 
-#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, real_like et |}
@@ -236,7 +234,6 @@ fn kf
   ()
 }
 
-#push-options "--z3rlimit 20"
 ghost
 fn setup
   (#et : Type0) {| scalar et, real_like et |}
@@ -324,7 +321,6 @@ fn setup
     (tile * tile) (SZ.v (tile *^ tile));
   ();
 }
-#pop-options
 
 #push-options "--z3rlimit 40"
 ghost
