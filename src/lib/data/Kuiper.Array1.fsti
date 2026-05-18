@@ -427,3 +427,18 @@ fn arr_read_1
     x : et
   ensures
     pure (x == Seq.index va i)
+
+ghost
+fn array1_collect_approx
+  (#et : Type0) {| floating et, real_like et |}
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (ra : lseq real len)
+  requires
+    pure (SZ.fits (layout_size l))
+  requires
+    forall+ (i:natlt len).
+      exists* (v: et). Cell a i |-> v ** pure (v %~ (ra `Seq.index` i))
+  ensures
+    exists* (va: lseq et len). (a |-> va) ** pure (va %~ ra)

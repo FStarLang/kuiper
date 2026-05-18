@@ -605,3 +605,32 @@ fn arr_read_1
 
   x;
 }
+
+ghost
+fn array1_collect_approx
+  (#et : Type0) {| floating et, real_like et |}
+  (#len : nat)
+  (#l : layout len)
+  (a : array1 et l)
+  (ra : lseq real len)
+  requires
+    pure (SZ.fits (layout_size l))
+  requires
+    forall+ (i:natlt len).
+      exists* (v: et). Cell a i |-> v ** pure (v %~ (ra `Seq.index` i))
+  ensures
+    exists* (va: lseq et len). (a |-> va) ** pure (va %~ ra)
+{
+  let fa = forevery_exists (fun (i:natlt len) (v: et) -> Cell a i |-> v ** pure (v %~ (ra `Seq.index` i)));
+  let va = Seq.init_ghost len (fun (i : natlt len) -> fa i);
+  forevery_extract_pure
+    (fun (i:natlt len) -> Cell a i |-> fa i ** pure (fa i %~ (ra `Seq.index` i)))
+    (fun (i : natlt len) -> (va `Seq.index` i) %~ (ra `Seq.index` i))
+    fn i { };
+  forevery_map
+    (fun (i:natlt len) -> Cell a i |-> fa i ** pure (fa i %~ (ra `Seq.index` i)))
+    (fun (i:natlt len) -> Cell a i |-> (va `Seq.index` i))
+    fn x { };
+  implode a;
+  ()
+}

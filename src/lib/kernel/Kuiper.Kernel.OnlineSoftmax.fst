@@ -284,24 +284,8 @@ fn teardown
       pure (vb' %~ online_softmax_real ra))
 {
   forevery_unzip _ _;
-
   Kuiper.Array1.gather_n a lenab;
-  let y = forevery_exists
-    (fun (bid: natlt lenab) (v': et) -> Cell b bid |->
-    v' ** pure (v' %~ ((online_softmax_real ra) @! bid)));
-  let vb' = Seq.init_ghost lenab (fun (bid: natlt lenab) -> y bid);
-  forevery_map
-    (fun (i:natlt lenab) -> Cell b i |-> y i ** pure (y i %~ ((online_softmax_real ra) @! i)))
-    (fun (i:natlt lenab) -> Cell b i |-> (vb' @! i) ** pure ((vb' @! i) %~ ((online_softmax_real ra) @! i)))
-    fn x { };
-  forevery_extract_pure
-    (fun (i:natlt lenab) -> Cell b i |-> (vb' @! i) ** pure ((vb' @! i) %~ ((online_softmax_real ra) @! i)))
-    (fun (i:natlt lenab) -> (vb' @! i) %~ ((online_softmax_real ra) @! i))
-    fn x { };
-  forevery_unzip _ _;
-  Kuiper.Array1.implode b;
-  admit(); // need a "array1_collect_approx" (no _tiled) ?
-  show_proof_state;
+  array1_collect_approx b (online_softmax_real ra);
 }
 
 inline_for_extraction noextract
