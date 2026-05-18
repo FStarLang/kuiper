@@ -6,7 +6,7 @@ open Kuiper.Array1
 open Kuiper.Seq.Common
 open Kuiper.Tensor.Layout { ctlayout }
 
-module SMX = Kuiper.Kernel.Softmax
+open Kuiper.Spec.Softmax
 
 unfold
 type softmax_notinplace_gpu_ty (et : Type0) {| floating et, real_like et, floating_real_like et |} =
@@ -26,7 +26,7 @@ type softmax_notinplace_gpu_ty (et : Type0) {| floating et, real_like et, floati
   ensures
     exists* (vb' : lseq et lenab).
       on gpu_loc (b |-> vb') **
-      pure (vb' %~ SMX.softmax_real ra)
+      pure (vb' %~ softmax_real ra)
 
 (*
 TODO

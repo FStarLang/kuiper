@@ -8,11 +8,7 @@ module Vec = Pulse.Lib.Vec
 open Kuiper.Array1
 open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
-
-let softmax_real (s:Seq.seq real { Seq.length s > 0 }) =
-  let exps = seq_map rexp s in
-  let summ : real = rsum exps in
-  seq_map (fun x -> rexp x /. summ) s
+open Kuiper.Spec.Softmax
 
 unfold
 type softmax_gpu_ty (et : Type0) {| floating et, real_like et |} =

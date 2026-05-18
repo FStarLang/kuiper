@@ -17,6 +17,7 @@ open Kuiper.Array1
 
 open Kuiper.Tensor { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Spec.Softmax
 
 let softmax_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}

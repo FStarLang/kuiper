@@ -7,8 +7,9 @@ module SZ = FStar.SizeT
 open Kuiper.Array1
 open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+open Kuiper.Spec.Softmax
 
-module SMX = Kuiper.Kernel.Softmax
+(* Proofs *)
 
 let online_softmax_real_iter (md: erased (tuple2 real real)) (x:real) : erased (tuple2 real real) =
   let (m,d) = md in
@@ -34,22 +35,11 @@ let rec lem_online_softmax_real_iter
     | SNil -> ()
     | SCons hd tl -> lem_online_softmax_real_iter (online_softmax_real_iter init hd) tl
 
-let test (x : real { x >. 0.0R }) =
-  assert (x =!= 0.0R)
-
+(* Real-value specification for online softmax, closer to the actual implementation. *)
 let online_softmax_real (s:Seq.seq real { Seq.length s > 0 }) : GTot (seq real) =
-  (* TODO: rewrite using some of the stuff in Kuiper.Seq.Common.fsti ?
-  seq_take, seq_drop *)
   let x = Seq.index s 0 in
   let (m, (d : real)) = reveal (seq_fold_left online_softmax_real_iter (hide (x, 1.0R)) (seq_drop 1 s)) in
-  // TODO: why ??
-  // assert (d >. 0.0R ==> d =!= 0.0R);
-  // let d': (r: real{r =!= 0.R}) = d in
-  // assert (d =!= 0.0R);
   seq_map (fun x -> rexp (x -. m) /. d) s
-
-
-// TODO: refactor all these real lemma proofs into a separate file (in src/lib/spec)
 
 let rsum_cons (x: real) (t: Seq.seq real)
   : Lemma (rsum (Seq.cons x t) == x +. rsum t)
@@ -100,8 +90,8 @@ let pointwise_eq (xi m d summ : real)
     assert (rexp m *. d == d *. rexp m);
     ()
 
-let real_online_softmax_lemma (s: Seq.seq real{Seq.length s > 0}) :
-  Lemma (online_softmax_real s == SMX.softmax_real s)
+let online_softmax_is_softmax (s: Seq.seq real{Seq.length s > 0}) :
+  Lemma (online_softmax_real s == softmax_real s)
   = rexp_base ();
     let x0 = s @! 0 in
     let tl = seq_drop 1 s in
@@ -118,7 +108,9 @@ let real_online_softmax_lemma (s: Seq.seq real{Seq.length s > 0}) :
       = pointwise_eq (s @! idx) m d summ
     in
     Classical.forall_intro aux;
-    assert (Seq.equal (online_softmax_real s) (SMX.softmax_real s))
+    assert (Seq.equal (online_softmax_real s) (softmax_real s))
+
+(* END Proofs *)
 
 unfold
 let kpre
@@ -147,24 +139,6 @@ let kpost
 = (a |-> Frac (1 /. lenab) va) **
   (exists* (v': et). Cell b tid |->
     v' ** pure (v' %~ ((online_softmax_real ra) @! tid)))
-
-let online_softmax_float_iter (#et: Type0) {| floating et |}
-  (md: tuple2 et et) (x:et) : tuple2 et et =
-  let (m,d) = md in
-  let m' = if x `gt` m then x else m in
-  let d' = d `mul` (exp (m `sub` m')) `add` (exp (x `sub` m')) in
-  (m',d')
-
-let tup2_approximates (#a #b:Type) (#ar #br:Type)
-  {| can_approximate a ar, can_approximate b br |}
-   (x: tuple2 a b) (y: tuple2 ar br): prop =
-      (fst x) %~ (fst y) /\ (snd x) %~ (snd y)
-
-instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
-  {| can_approximate a ar, can_approximate b br |}
-  : can_approximate (tuple2 a b) (tuple2 ar br) = {
-  approximates = tup2_approximates;
-}
 
 inline_for_extraction noextract
 fn kfonline_softmax
@@ -197,7 +171,6 @@ fn kfonline_softmax
       live max ** live gmax **
       live sum ** live gsum
     invariant pure (!sum %~ !gsum)
-    // invariant pure (valid !max /\ valid !sum)
     invariant pure (!i > 0 ==> !max %~ !gmax)
     invariant pure (!i > 0 ==> !i <= Seq.length ra /\
       (reveal !gmax, reveal !gsum) ==
@@ -215,7 +188,7 @@ fn kfonline_softmax
     let old_max = !gmax;
 
     let max' = fmax !max x;
-    let gmax' : erased real = rmax (reveal !gmax) gx; // if (i == 0) then gx else rmax gx (reveal !gmax); // ?
+    let gmax' : erased real = rmax (reveal !gmax) gx;
     assert pure (max' %~ gmax');
 
     let y1 = exp (!max `sub` max');
@@ -310,10 +283,7 @@ fn teardown
       b |-> vb' **
       pure (vb' %~ online_softmax_real ra))
 {
-  forevery_unzip _ _; (*
-    (fun (bid: natlt lenab) -> (a |-> Frac (1 /. lenab) va))
-    (fun (bid: natlt lenab) -> (exists* (v': et). Cell b bid |->
-    v' ** pure (v' %~ ((online_softmax_real ra) @! bid))));*)
+  forevery_unzip _ _;
 
   Kuiper.Array1.gather_n a lenab;
   let y = forevery_exists
@@ -382,9 +352,9 @@ fn online_softmax_gpu
   ensures
     exists* (vb' : lseq et lenab).
       on gpu_loc (b |-> vb') **
-      pure (vb' %~ SMX.softmax_real ra)
+      pure (vb' %~ softmax_real ra)
 {
   launch_sync (konline_softmax a b #va ra);
-  real_online_softmax_lemma ra;
+  online_softmax_is_softmax ra;
   ()
 }
