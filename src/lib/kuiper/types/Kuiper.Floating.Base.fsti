@@ -144,6 +144,15 @@ class floating (t : Type) = {
           (ensures lte x infinity)
           [SMTPat (lte x infinity)];
 
+  fmax : t -> t -> t;
+
+  // This spec could be strengthened: fmax returns the non-NaN if one the args is NaN
+  #[easy_fill ()]
+  fmax_spec : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures fmax x y == (if lt x y then y else x))
+          [SMTPat (fmax x y)];
+
   exp : t -> t;
   log : t -> t;
   sqrt : t -> t;
@@ -168,7 +177,6 @@ class floating (t : Type) = {
   pow : t -> t -> t;
   atan2 : t -> t -> t;
   fmin : t -> t -> t;
-  fmax : t -> t -> t;
   fmod : t -> t -> t;
   (* NOTE: copysign is inherently about the sign bit, which our model cannot
      faithfully express since we identify +0 and -0. Any axiomatization of
@@ -200,15 +208,6 @@ let neq (#t:Type) {| floating t |} (x y : t) : bool =
 inline_for_extraction noextract
 let abs (#t:Type) {| floating t |} (x : t) : t =
   if x `gte` zero then x else sub zero x
-
-(* NOTE: max_float propagates NaN from the second argument but not the first
-   (if x is NaN, returns y; if y is NaN, returns y=NaN). This is inconsistent
-   with IEEE 754's fmax/fmaxf which return the non-NaN argument. We may want
-   to axiomatize max_float for non-NaN inputs and extract it as fmaxf/fmax
-   for better codegen and IEEE-compliant NaN handling. *)
-inline_for_extraction noextract
-let max_float (#et : Type0) {| floating et |} (x y : et) : et =
-  if x `gt` y then x else y
 
 (* We could provide executable versions for these if needed. *)
 let is_nan (#t:Type) {| floating t |} (x : t) : GTot bool =

@@ -10,12 +10,9 @@ open Kuiper.Tensor.Layout.Alg { l1_forward }
 
 module SMX = Kuiper.Kernel.Softmax
 
-let max_real (x: real) (y: real) : real =
-  if x >. y then x else y
-
 let online_softmax_real_iter (md: erased (tuple2 real real)) (x:real) : erased (tuple2 real real) =
   let (m,d) = md in
-  let m' = max_real m x in
+  let m' = rmax m x in
   let d' = d *. (rexp (m -. m')) +. rexp (x -. m') in
   (m',d')
 
@@ -74,14 +71,14 @@ let rsum_map_cons (f: real -> real) (x: real) (t: Seq.seq real)
 let rec fold_correct (m0: real) (d0: real) (s: Seq.seq real)
   : Lemma (ensures (
       let r = reveal (seq_fold_left online_softmax_real_iter (hide (m0, d0)) s) in
-      fst r == seq_fold_left max_real m0 s /\
+      fst r == seq_fold_left rmax m0 s /\
       snd r *. rexp (fst r) == d0 *. rexp m0 +. rsum (seq_map rexp s)))
     (decreases Seq.length s)
   = rexp_base ();
     match view_seq s with
     | SNil -> ()
     | SCons x t ->
-        let m1 = max_real m0 x in
+        let m1 = rmax m0 x in
         let d1 = d0 *. rexp (m0 -. m1) +. rexp (x -. m1) in
         // d1 * exp(m1) = (d0 * exp(m0-m1) + exp(x-m1)) * exp(m1)
         //              = d0 * exp(m0-m1) * exp(m1) + exp(x-m1) * exp(m1)
@@ -169,15 +166,6 @@ instance tup2_can_approximate (#a #b:Type) (#ar #br:Type)
   approximates = tup2_approximates;
 }
 
-let max_float_approximates_max_real (#et: Type0) {| floating et, real_like et |}
-  (x: et) (y: et) (xr: real) (yr: real):
-    Lemma
-      (requires x %~ xr /\ y %~ yr)
-      (ensures max_float #et x y %~ max_real xr yr)
-      [SMTPat (max_float x y); SMTPat (max_real xr yr);
-       SMTPat (x %~ xr); SMTPat (y %~ yr);]
-      = admit ()
-
 inline_for_extraction noextract
 fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -226,8 +214,8 @@ fn kfonline_softmax
     let old_sum = !gsum;
     let old_max = !gmax;
 
-    let max' = max_float #et !max x;
-    let gmax' : erased real = max_real (reveal !gmax) gx; // if (i == 0) then gx else max_real gx (reveal !gmax); // ?
+    let max' = fmax !max x;
+    let gmax' : erased real = rmax (reveal !gmax) gx; // if (i == 0) then gx else rmax gx (reveal !gmax); // ?
     assert pure (max' %~ gmax');
 
     let y1 = exp (!max `sub` max');
@@ -261,7 +249,7 @@ fn kfonline_softmax
 
     i := !i `SZ.add` 1sz;
 
-    assert pure (gmax' == max_real (reveal old_max) gx);
+    assert pure (gmax' == rmax (reveal old_max) gx);
     assert pure (reveal gsum' == reveal old_sum *. (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax'));
     assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i)));
   };

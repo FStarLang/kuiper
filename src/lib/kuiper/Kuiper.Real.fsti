@@ -45,6 +45,9 @@ val log_div (x y : real{x >. 0.0R /\ y >. 0.0R})
 
 let rsum (s : Seq.seq real) : real = seq_fold_left (+.) 0.0R s
 
+let rmax (x: real) (y: real) : real =
+  if x >. y then x else y
+
 val sum_non_zero
     (s : Seq.seq real { forall (i:natlt (Seq.length s)). Seq.index s i >. 0.0R })
     (acc : real)

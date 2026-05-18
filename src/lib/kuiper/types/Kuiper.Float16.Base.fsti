@@ -103,6 +103,13 @@ val infinity_val_spec : (x : t) ->
           (ensures lte x infinity)
           [SMTPat (lte x infinity)]
 
+val fmax : t -> t -> t
+
+val fmax_spec : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures fmax x y == (if lt x y then y else x))
+          [SMTPat (fmax x y)]
+
 val exp : t -> t
 val log : t -> t
 val sqrt : t -> t
@@ -127,7 +134,6 @@ val exp2 : t -> t
 val pow : t -> t -> t
 val atan2 : t -> t -> t
 val fmin : t -> t -> t
-val fmax : t -> t -> t
 val fmod : t -> t -> t
 val copysign : t -> t -> t
 val fma : t -> t -> t -> t

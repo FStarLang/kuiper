@@ -78,8 +78,12 @@ let approx_to_real #a {| scalar a, real_like a, precise_real_like a |} (x y: a) 
 
 (* Extra rules for types supporting division and exponentiation. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
-  approx_of_int : (x : Int64.t) ->
+  of_int_approx : (x : Int64.t) ->
     squash (v_approximates (of_int #a x) (Real.of_int (Int64.v x)));
+
+  fmax_approx : (x: a) -> (y: a) -> (xr: real) -> (yr: real) ->
+    Lemma (requires v_approximates x xr /\ v_approximates y yr)
+          (ensures v_approximates (fmax x y) (rmax xr yr));
 
   sub_approx : x:a -> y:a -> r:real -> s:real ->
                 Lemma (requires v_approximates x r /\ v_approximates y s)
@@ -97,6 +101,17 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
                 Lemma (requires v_approximates x r)
                       (ensures v_approximates (log x) (rlog r));
 }
+
+let fmax_approx_pat
+  (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
+  (x y : a) (xr yr : real) :
+    Lemma (requires v_approximates x xr /\ v_approximates y yr)
+          (ensures v_approximates (fmax x y) (rmax xr yr))
+          [SMTPat (fmax x y);
+           SMTPat (v_approximates x xr);
+           SMTPat (v_approximates y yr);
+           SMTPat (has_type rr (floating_real_like a))]
+  = fmax_approx x y xr yr
 
 let sub_approx_pat
   (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}

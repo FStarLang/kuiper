@@ -13,8 +13,7 @@ static void __hoisted__test_0(uint32_t len, float *a, float *b)
         float max = 0.0f - INFINITY;
         for (; i < len; i++) {
             float x = a[i];
-            float __anf02 = max;
-            float max_ = x < __anf02 ? __anf02 : x;
+            float max_ = fmaxf(max, x);
             float y1 = expf(max - max_);
             float y2 = expf(x - max_);
             float sum_ = sum * y1 + y2;
@@ -47,8 +46,7 @@ static void __hoisted__testh_0(uint32_t len, half *a, half *b)
         half max = __hsub(__float2half_rn(0.0f), HLF_INFINITY);
         for (; i < len; i++) {
             half x = a[i];
-            half __anf02 = max;
-            half max_ = x < __anf02 ? __anf02 : x;
+            half max_ = kpr_hfmax(max, x);
             half y1 = hexp(__hsub(max, max_));
             half y2 = hexp(__hsub(x, max_));
             half sum_ = __hadd(__hmul(sum, y1), y2);
