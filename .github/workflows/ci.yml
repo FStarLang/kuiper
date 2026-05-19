@@ -20,10 +20,9 @@ on:
 # and advance.yml.
 jobs:
   verify:
-    runs-on: [self-hosted, linux, X64, cuda]
+    runs-on: ubuntu-latest
     container:
       image: mtzguido/pulse-cuda-devcontainer:latest
-      options: --gpus all
     defaults:
       run:
         shell: bash
@@ -52,8 +51,8 @@ jobs:
         run: |
           git submodule update --depth 1 --init --recursive
 
-      - name: Check CUDA
-        run: ./scripts/check-cuda.sh
+      # - name: Check CUDA
+        # run: ./scripts/check-cuda.sh
 
       - name: Set debug mode
         if: ${{ inputs.debug }}
