@@ -5,7 +5,6 @@ open Kuiper
 open Kuiper.Real { rlog }
 open Kuiper.Seq.Common
 module Vec = Pulse.Lib.Vec
-module SM = Kuiper.Kernel.Softmax
 module KS = Kuiper.Spec.Softmax
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }

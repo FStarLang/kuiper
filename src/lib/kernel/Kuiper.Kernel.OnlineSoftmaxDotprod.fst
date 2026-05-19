@@ -114,7 +114,7 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
         assert ( rexp (m0 -. m1) *. rexp m1 == rexp m0 );
         assert (dn1 *. rexp m1 == (dn0 *. rexp (m0 -. m1) +. rexp (x -. m1) *. y) *. rexp m1);
         assert (dn1 *. rexp m1 == dn0 *. rexp m0 +. rexp x *. y);
-        
+
         assert (dd1 *. rexp m1 == (dd0 *. rexp (m0 -. m1) +. rexp (x -. m1)) *. rexp m1);
         assert (dd1 *. rexp m1 == dd0 *. rexp m0 +. rexp x);
         fold_correct_dotprod m1 dn1 dd1 t;
@@ -426,9 +426,9 @@ fn kfonline_softmax_dotprod
     i := !i `SZ.add` 1sz;
 
     assert pure (gmax' == rmax (reveal old_max) gx);
-    assert pure (reveal gsum_n' == reveal old_sum_n *. 
+    assert pure (reveal gsum_n' == reveal old_sum_n *.
       (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax') *. gy);
-    assert pure (reveal gsum_d' == reveal old_sum_d *. 
+    assert pure (reveal gsum_d' == reveal old_sum_d *.
       (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax'));
     assert pure ((reveal gmax', reveal gsum_n', reveal gsum_d') == seq_fold_left online_softmax_dotprod_real_iter (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
   };
