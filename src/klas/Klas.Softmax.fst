@@ -4,6 +4,7 @@ module Klas.Softmax
 open Kuiper
 
 module K = Kuiper.Kernel.Softmax
+module KS = Kuiper.Spec.Softmax
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
@@ -24,7 +25,7 @@ fn inst_gpu
   ensures
     exists* (va' : lseq et lena).
       on gpu_loc (a |-> va') **
-      pure (va' %~ K.softmax_real ra)
+      pure (va' %~ KS.softmax_real ra)
 {
   K.softmax_gpu #et nth #lena a ra;
 }

@@ -3,6 +3,7 @@ module Klas.Softmax
 #lang-pulse
 open Kuiper
 module K = Kuiper.Kernel.Softmax
+module KS = Kuiper.Spec.Softmax
 open Kuiper.Array1
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
@@ -22,7 +23,7 @@ type softmax_gpu_flat_ty (et : Type0) {| floating et, real_like et, floating_rea
     ensures
       exists* (va' : lseq et lena).
         on gpu_loc (a |-> va') **
-        pure (va' %~ K.softmax_real ra)
+        pure (va' %~ KS.softmax_real ra)
 
 val softmax_gpu_n_f16 : softmax_gpu_flat_ty f16
 val softmax_gpu_n_f32 : softmax_gpu_flat_ty f32

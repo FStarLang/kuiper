@@ -44,12 +44,12 @@ let real_log_softmax_lemma (s : seq real{len s > 0})
       calc (==) {
         log_softmax_real s @! i;
         == {}
-        lseq_map rlog (seq_refine (fun x -> x >. 0.0R) (SM.softmax_real s))
+        lseq_map rlog (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s))
           @! i;
         == {}
-        rlog (seq_refine (fun x -> x >. 0.0R) (SM.softmax_real s) @! i);
-        == { lem_seq_refine_at #real (fun x -> x >. 0.0R) (SM.softmax_real s) i } // FIXME: should be automatic
-        rlog (SM.softmax_real s @! i);
+        rlog (seq_refine (fun x -> x >. 0.0R) (KS.softmax_real s) @! i);
+        == { lem_seq_refine_at #real (fun x -> x >. 0.0R) (KS.softmax_real s) i } // FIXME: should be automatic
+        rlog (KS.softmax_real s @! i);
         == {}
         rlog (rexp (s @! i) /. (rsum (seq_map rexp s)));
         == {}

@@ -316,6 +316,7 @@ let kpost
    Per-thread kernel function.
    ------------------------------------------------------------------------ *)
 
+#push-options "--z3rlimit 40"
 inline_for_extraction noextract
 fn kfonline_softmax_dotprod
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -448,7 +449,7 @@ fn kfonline_softmax_dotprod
       (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb));
   }
 }
-
+#pop-options
 
 (* ----------------------------------------------------------------------------
    Setup / teardown that split and re-gather the per-thread resources.
