@@ -114,7 +114,7 @@ FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
 # abspath is important so the fstar.sh script can be run from anywhere
-FSTAR = $(FSTAR_EXE)							\
+FSTAR = $(RAMON) $(FSTAR_EXE)						\
 	$(SIL)								\
 	--include $(abspath src)					\
 	$(FSTAR_FLAGS)
@@ -140,7 +140,7 @@ KRML_FLAGS += -warn-error @6 # VLA
 KRML_FLAGS += -warn-error -2@4-10@18
 KRML_FLAGS += $(KOTHERFLAGS)
 
-KRML := $(KRML_EXE) $(KRML_FLAGS)
+KRML := $(RAMON) $(KRML_EXE) $(KRML_FLAGS)
 
 # 2: unimplemented function (we trick krml into extracting macros, and we cannot give a prototype)
 # 4: type error / malformed input; krml usually skips the decl, we fail hard
