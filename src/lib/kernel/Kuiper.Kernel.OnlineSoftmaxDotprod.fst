@@ -3,13 +3,13 @@ module Kuiper.Kernel.OnlineSoftmaxDotprod
 #lang-pulse
 open Kuiper
 open Kuiper.Seq.Common
-module SZ = FStar.SizeT
 open Kuiper.Array1
 open Kuiper.Tensor.Layout { ctlayout }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
-
 open Kuiper.Spec.Softmax
 open Kuiper.DotProd
+module SZ = FStar.SizeT
+module Array1 = Kuiper.Array1
 
 (* Proofs *)
 
@@ -111,7 +111,7 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
         let dd1 = dd0 *. rexp (m0 -. m1) +. rexp (x -. m1) in
         // dn1 * exp(m1) = (dn0 * exp(m0-m1) + exp(x-m1)*y) * exp(m1)
         //               = dn0 * exp(m0) + exp(x) * y
-        assert ( rexp (m0 -. m1) *. rexp m1 == rexp m0 );
+        assert (rexp (m0 -. m1) *. rexp m1 == rexp m0);
         assert (dn1 *. rexp m1 == (dn0 *. rexp (m0 -. m1) +. rexp (x -. m1) *. y) *. rexp m1);
         assert (dn1 *. rexp m1 == dn0 *. rexp m0 +. rexp x *. y);
 
@@ -128,7 +128,7 @@ let rec rsum_init_dotprod_eq
   : Lemma (ensures (
       let sub : lseq real k = Seq.init k (fun (i:nat{i<k}) -> rexp (ra @! i) *. (rb @! i)) in
       let mra : lseq real n = seq_map rexp ra in
-      rsum sub == seq_dotprod mra rb k))
+      rsum sub == seq_dotprod' mra rb k))
     (decreases k)
   = if k = 0 then (
       let sub : lseq real 0 = Seq.init 0 (fun (i:nat{i<0}) -> rexp (ra @! i) *. (rb @! i)) in
@@ -148,13 +148,14 @@ let rec rsum_init_dotprod_eq
 
 (* Distribute [summ] out of [seq_dotprod] when the first argument is a
    softmax with denominator [summ = rsum (seq_map rexp ra)]. *)
+#push-options "--z3rlimit 20"
 let rec seq_dotprod_softmax_factor
   (#n: nat) (ra: lseq real n {n > 0}) (rb: lseq real n) (k: nat{k <= n})
   : Lemma (ensures (
             let mra : lseq real n = seq_map rexp ra in
             let summ : real = rsum mra in
             ~(summ == 0.0R) /\
-            seq_dotprod (softmax_real ra) rb k *. summ == seq_dotprod mra rb k))
+            seq_dotprod' (softmax_real ra) rb k *. summ == seq_dotprod' mra rb k))
           (decreases k)
   = let mra : lseq real n = seq_map rexp ra in
     sum_non_zero mra 0.0R;
@@ -164,6 +165,7 @@ let rec seq_dotprod_softmax_factor
     assert (Seq.equal (softmax_real ra) (seq_map (fun (x:real) -> rexp x /. summ) ra));
     if k = 0 then ()
     else seq_dotprod_softmax_factor ra rb (k-1)
+#pop-options
 
 (* [rsum] of [seq_map exp_x_y pairs] equals the unshifted numerator
    sum, and similarly for [exp_x] and the denominator. *)
@@ -172,7 +174,7 @@ let pairs_rsum_eq
   : Lemma (
       let pairs = dotprod_pair_seq ra rb in
       let mra : lseq real n = seq_map rexp ra in
-      rsum (seq_map exp_x_y pairs) == seq_dotprod mra rb n
+      rsum (seq_map exp_x_y pairs) == seq_dotprod' mra rb n
       /\ rsum (seq_map exp_x pairs) == rsum mra)
   = let pairs = dotprod_pair_seq ra rb in
     let mra : lseq real n = seq_map rexp ra in
@@ -199,9 +201,10 @@ let real_mul_assoc (a b c: real)
   : Lemma ((a *. b) *. c == a *. (b *. c))
   = ()
 
+#push-options "--split_queries always"
 let real_online_softmax_dotprod_lemma
   (#n: nat) (ra rb: lseq real n { n > 0 })
-  : Lemma (online_softmax_dotprod_real ra rb == seq_dotprod (softmax_real ra) rb n)
+  : Lemma (online_softmax_dotprod_real ra rb == seq_dotprod' (softmax_real ra) rb n)
   = rexp_base ();
     let pairs = dotprod_pair_seq ra rb in
     let x0 = ra @! 0 in
@@ -254,8 +257,8 @@ let real_online_softmax_dotprod_lemma
     // cancel rexp m' to get  sm * dd' == dn'
     // then divide by dd' to get  sm == dn' / dd'.
     seq_dotprod_softmax_factor ra rb n;
-    let sm = seq_dotprod (softmax_real ra) rb n in
-    assert (sm *. summ == seq_dotprod mra rb n);
+    let sm = seq_dotprod' (softmax_real ra) rb n in
+    assert (sm *. summ == seq_dotprod' mra rb n);
     assert (sm *. (dd' *. rexp m') == dn' *. rexp m');
     // Associativity of [*.] on reals:
     real_mul_assoc sm dd' (rexp m');
@@ -267,103 +270,94 @@ let real_online_softmax_dotprod_lemma
     assert ((sm *. dd') /. dd' == sm);
     assert (online_softmax_dotprod_real ra rb == dn' /. dd');
     assert (online_softmax_dotprod_real ra rb == sm)
+#pop-options
 
 (* END Proofs *)
 
-(* ----------------------------------------------------------------------------
-   Per-thread pre/post conditions.
-   - Each thread has read-only access to a and b (fractional permission 1/n).
-   - Thread 0 alone owns the output reference r and writes the result there.
-   ------------------------------------------------------------------------ *)
+(* Prove the fold invariant is maintained from iteration [old_i] to [old_i + 1].
+   When [old_i = 0] the fold over the empty slice equals the initial accumulator.
+   When [old_i > 0] we extend the fold by one step via [lemma_seq_fold_left_slice]. *)
+let loop_inv_maintained
+  (#n: pos) (ra rb: lseq real n)
+  (old_i : nat { old_i < n })
+  (old_max old_sn old_sd : real)
+  : Lemma
+    (requires
+      (old_i > 0 ==>
+        (old_max, old_sn, old_sd) ==
+          reveal (seq_fold_left online_softmax_dotprod_real_iter
+                    (hide (ra @! 0, rb @! 0, 1.0R))
+                    (Seq.slice (dotprod_pair_seq ra rb) 1 old_i))) /\
+      (old_i = 0 ==>
+        old_sn == 0.0R /\ old_sd == 0.0R /\ old_max == ra @! 0))
+    (ensures (
+      let gx = ra @! old_i in
+      let gy = rb @! old_i in
+      let m' = rmax old_max gx in
+      let sn' = old_sn *. rexp (old_max -. m') +. rexp (gx -. m') *. gy in
+      let sd' = old_sd *. rexp (old_max -. m') +. rexp (gx -. m') in
+      (m', sn', sd') ==
+        reveal (seq_fold_left online_softmax_dotprod_real_iter
+                  (hide (ra @! 0, rb @! 0, 1.0R))
+                  (Seq.slice (dotprod_pair_seq ra rb) 1 (old_i + 1)))))
+  = rexp_base ();
+    let pairs = dotprod_pair_seq ra rb in
+    let init = hide (ra @! 0, rb @! 0, 1.0R) in
+    if old_i = 0 then
+      assert (Seq.equal (Seq.slice pairs 1 1) Seq.empty)
+    else
+      lemma_seq_fold_left_slice init online_softmax_dotprod_real_iter pairs 1 old_i
 
-unfold
-let kpre
-  (#et : Type0) {| floating et, real_like et |}
-  (lenab : szp{ lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
-  (a : array1 et l)
-  (b : array1 et l)
-  (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (tid : natlt lenab)
-  : slprop
-= (a |-> Frac (1 /. lenab) va) **
-  (b |-> Frac (1 /. lenab) vb) **
-  if_ (op_Equality #nat tid 0) (live r)
-
-unfold
-let kpost
-  (#et : Type0) {| floating et, real_like et |}
-  (lenab : szp{ lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
-  (a : array1 et l)
-  (b : array1 et l)
-  (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (rb : erased (lseq real lenab) { vb %~ rb })
-  (tid : natlt lenab)
-  : slprop
-= (a |-> Frac (1 /. lenab) va) **
-  (b |-> Frac (1 /. lenab) vb) **
-  if_ (op_Equality #nat tid 0)
-      (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb))
-
-
-(* ----------------------------------------------------------------------------
-   Per-thread kernel function.
-   ------------------------------------------------------------------------ *)
-
-#push-options "--z3rlimit 40"
 inline_for_extraction noextract
-fn kfonline_softmax_dotprod
+fn softmax_dotprod
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
+  (len : szp)
+  (#l : Array1.layout len) {| ctlayout l |}
   (a : array1 et l)
   (b : array1 et l)
   (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (rb : erased (lseq real lenab) { vb %~ rb })
-  (#_: squash ( seq_forallb not_nan va ))
-  (tid : szlt lenab)
+  (#va : erased (lseq et len))
+  (#vb : erased (lseq et len))
+  (ra : erased (lseq real len) { va %~ ra })
+  (rb : erased (lseq real len) { vb %~ rb })
+  (#fa #fb : perm)
+  (#_: squash (seq_forallb not_nan va))
+  (tid : szlt len)
   ()
   preserves
-    gpu
-  requires
-    kpre #et lenab #l a b r #va #vb tid
+    gpu **
+    a |-> Frac fa va **
+    b |-> Frac fb vb
+  returns
+    res : et
   ensures
-    kpost #et lenab #l a b r #va #vb ra rb tid
+    pure (res %~ seq_dotprod (KS.softmax_real ra) rb)
 {
   rexp_base ();
 
-  let pairs : erased (lseq (real & real) lenab) = dotprod_pair_seq ra rb;
+  let pairs : erased (lseq (real & real) len) = dotprod_pair_seq ra rb;
 
-  let mut i = 0sz;
-  let mut sum_n: et = zero;
-  let mut sum_d: et = zero;
-  let mut max: et = neg infinity;
+  let mut i : szle len = 0sz;
+  let mut sum_n  : et = zero;
+  let mut sum_d  : et = zero;
+  let mut max    : et = neg infinity;
   let mut gsum_n : erased real = 0.0R;
   let mut gsum_d : erased real = 0.0R;
-  let mut gmax : erased real = ra @! 0;
-  while (!i <^ lenab)
-    invariant live i **
+  let mut gmax   : erased real = ra @! 0;
+  while (!i <^ len)
+    invariant live i
+    invariant
       live max ** live gmax **
       live sum_n ** live sum_d ** live gsum_n ** live gsum_d
     invariant pure (!sum_n %~ !gsum_n)
     invariant pure (!sum_d %~ !gsum_d)
     invariant pure (!i > 0 ==> !max %~ !gmax)
-    invariant pure (!i > 0 ==> !i <= Seq.length ra /\
+    invariant pure (!i > 0 ==>
       (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
-        seq_fold_left online_softmax_dotprod_real_iter
-        (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
+        seq_fold_left online_softmax_dotprod_real_iter (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
     invariant pure (!i == 0sz ==>
       (!sum_n == zero /\ !sum_d == zero /\ !gsum_n == 0.0R /\ !gsum_d == 0.0R /\ !max == neg infinity /\ !gmax == ra @! 0))
-    decreases (lenab - !i) {
+    decreases (len - !i) {
 
     let x = read a !i;
     let gx = ra @! !i;
@@ -423,170 +417,21 @@ fn kfonline_softmax_dotprod
     gsum_d := gsum_d';
     assert pure (!sum_d %~ !gsum_d);
 
+    loop_inv_maintained ra rb (!i) (reveal old_max) (reveal old_sum_n) (reveal old_sum_d);
+
     i := !i `SZ.add` 1sz;
 
-    assert pure (gmax' == rmax (reveal old_max) gx);
-    assert pure (reveal gsum_n' == reveal old_sum_n *.
-      (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax') *. gy);
-    assert pure (reveal gsum_d' == reveal old_sum_d *.
-      (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax'));
-    assert pure ((reveal gmax', reveal gsum_n', reveal gsum_d') == seq_fold_left online_softmax_dotprod_real_iter (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
+    assert pure ((reveal gmax', reveal gsum_n', reveal gsum_d') ==
+      seq_fold_left online_softmax_dotprod_real_iter (hide (ra @! 0, rb @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
+    ()
   };
 
   let res = !sum_n `div` !sum_d;
   assert pure (res %~ online_softmax_dotprod_real ra rb);
-
-  (* Thread 0 commits the result to r. *)
-  if (tid = 0sz) {
-    if_elim_true' (op_Equality #nat tid 0) (live r);
-    let s = res;
-    gpu_write r s;
-    if_intro_true' (op_Equality #nat tid 0)
-      (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb));
-  } else {
-    if_elim_false' (op_Equality #nat tid 0) (live r);
-    if_intro_false' (op_Equality #nat tid 0)
-      (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb));
-  }
-}
-#pop-options
-
-(* ----------------------------------------------------------------------------
-   Setup / teardown that split and re-gather the per-thread resources.
-   ------------------------------------------------------------------------ *)
-
-ghost
-fn setup
-  (#et : Type0) {| floating et, real_like et |}
-  (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
-  (a : array1 et l)
-  (b : array1 et l)
-  (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (rb : erased (lseq real lenab) { vb %~ rb })
-  ()
-  norewrite
-  requires
-    (a |-> va) ** (b |-> vb) ** live r
-  ensures
-    (forall+ (tid : natlt lenab).
-      kpre #et lenab #l a b r #va #vb tid) ** emp
-{
-  Kuiper.Array1.share_n a lenab;
-  Kuiper.Array1.share_n b lenab;
-  forevery_if_intro #(natlt lenab) 0 (fun _ -> live r);
-  forevery_ext
-    (fun (tid:natlt lenab) -> if_ (op_Equality #(natlt lenab) tid 0) (live r))
-    (fun (tid:natlt lenab) -> if_ (op_Equality #nat tid 0) (live r));
-  forevery_zip3
-    (fun (tid:natlt lenab) -> a |-> Frac (1 /. lenab) va)
-    (fun (tid:natlt lenab) -> b |-> Frac (1 /. lenab) vb)
-    (fun (tid:natlt lenab) -> if_ (op_Equality #nat tid 0) (live r));
-}
-
-ghost
-fn teardown
-  (#et : Type0) {| floating et, real_like et |}
-  (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
-  (a : array1 et l)
-  (b : array1 et l)
-  (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (rb : erased (lseq real lenab) { vb %~ rb })
-  ()
-  norewrite
-  requires
-    (forall+ (tid : natlt lenab).
-      kpost #et lenab #l a b r #va #vb ra rb tid) ** emp
-  ensures
-    (a |-> va) ** (b |-> vb) **
-    (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb))
-{
-  forevery_unzip3
-    (fun (tid:natlt lenab) -> a |-> Frac (1 /. lenab) va)
-    (fun (tid:natlt lenab) -> b |-> Frac (1 /. lenab) vb)
-    (fun (tid:natlt lenab) -> if_ (op_Equality #nat tid 0)
-      (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb)));
-  Kuiper.Array1.gather_n a lenab;
-  Kuiper.Array1.gather_n b lenab;
-  forevery_ext
-    (fun (tid:natlt lenab) -> if_ (op_Equality #nat tid 0)
-      (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb)))
-    (fun (tid:natlt lenab) -> if_ (op_Equality #(natlt lenab) tid 0)
-      (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb)));
-  forevery_if_elim #(natlt lenab) 0
-    (fun _ -> exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb));
-}
-
-(* ----------------------------------------------------------------------------
-   Kernel descriptor and CPU-side launcher.
-   ------------------------------------------------------------------------ *)
-
-inline_for_extraction noextract
-let konline_softmax_dotprod
-  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
-  (a : array1 et l { is_global a })
-  (b : array1 et l { is_global b })
-  (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (rb : erased (lseq real lenab) { vb %~ rb })
-  (#_: squash (seq_forallb not_nan va))
-  : kernel_desc
-      (requires (a |-> va) ** (b |-> vb) ** live r)
-      (ensures  (a |-> va) ** (b |-> vb) **
-        (exists* (v: et). r |-> v ** pure (v %~ online_softmax_dotprod_real ra rb)))
-= {
-    nthr = lenab;
-    f = kfonline_softmax_dotprod a b r ra rb;
-
-    frame    = emp;
-    teardown = teardown a b r #va #vb ra rb;
-    setup    = setup    a b r #va #vb ra rb;
-    kpre =  (kpre  #et lenab #l a b r #va #vb);
-    kpost = (kpost #et lenab #l a b r #va #vb ra rb);
-    kpost_sendable = solve;
-    kpre_sendable  = solve;
-  } <: kernel_desc_n _ _
-
-inline_for_extraction noextract
-fn online_softmax_dotprod_gpu
-  (#et : Type0) {| floating et, real_like et, floating_real_like et |}
-  (nth : szp{nth <= max_threads})
-  (#lenab : szp{lenab <= max_blocks * max_threads})
-  (#l : Kuiper.Array1.layout lenab) {| ctlayout l |}
-  (a : array1 et l { is_global a })
-  (b : array1 et l { is_global b })
-  (r : gpu_ref et)
-  (#va : erased (lseq et lenab))
-  (#vb : erased (lseq et lenab))
-  (ra : erased (lseq real lenab) { va %~ ra })
-  (rb : erased (lseq real lenab) { vb %~ rb })
-  (#_: squash (seq_forallb not_nan va))
-  norewrite
-  preserves
-    cpu **
-    on gpu_loc (a |-> va) **
-    on gpu_loc (b |-> vb)
-  requires
-    exists* (vr : et). on gpu_loc (r |-> vr)
-  ensures
-    exists* (vr : et). on gpu_loc (r |-> vr) **
-      pure (vr %~ seq_dotprod (softmax_real ra) rb lenab)
-{
-  launch_sync (konline_softmax_dotprod a b r #va #vb ra rb);
   real_online_softmax_dotprod_lemma ra rb;
-  ()
+  assert pure (res %~ seq_dotprod (softmax_real ra) rb);
+  res
 }
 
 let _test (len : szp{len <= max_blocks * max_threads}) =
-  online_softmax_dotprod_gpu #f32 1024sz #len #(l1_forward len)
+  softmax_dotprod #f32 len #(l1_forward len)

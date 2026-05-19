@@ -14,7 +14,7 @@ let rec seq_dotprod_is_sum
   (a b : lseq real n)
   (k : nat{k <= n})
   : Lemma (ensures
-            seq_dotprod a b k
+            seq_dotprod' a b k
             ==
             sum 0 k (fun (i : natlt n) -> (Seq.index a i) *. (Seq.index b i)))
           (decreases k)
@@ -30,11 +30,11 @@ let rec seq_dotprod_is_matmul_single
   (i : natlt rows) (j : natlt cols)
   (k : nat{k <= shared})
   : Lemma (ensures
-            seq_dotprod (ematrix_row eA i) (ematrix_col eB j) k
+            seq_dotprod' (ematrix_row eA i) (ematrix_col eB j) k
             ==
             MS.__matmul_single eA eB i j k)
           (decreases k)
-          [SMTPat (seq_dotprod (ematrix_row eA i) (ematrix_col eB j) k)]
+          [SMTPat (seq_dotprod' (ematrix_row eA i) (ematrix_col eB j) k)]
   = if k > 0 then begin
       seq_dotprod_is_matmul_single eA eB i j (k-1);
       assert (Seq.index (ematrix_row eA i) (k-1) == macc eA i (k-1));
@@ -61,14 +61,14 @@ fn dotprod
   returns
     res : et
   ensures
-    pure (res == seq_dotprod sA sB len)
+    pure (res == seq_dotprod sA sB)
 {
   let mut k : szle len = 0sz;
   let mut sum : et = zero;
 
   while (!k <^ len)
     invariant live k
-    invariant sum |-> seq_dotprod sA sB !k
+    invariant sum |-> seq_dotprod' sA sB !k
     decreases (len - !k)
   {
     sum := !sum `add` mul (Array1.(a.(!k))) (Array1.(b.(!k)));
@@ -97,7 +97,7 @@ fn kahan_dotprod
   returns
     res : et
   ensures
-    pure (res %~ seq_dotprod rA rB len)
+    pure (res %~ seq_dotprod rA rB)
 {
   let res =
     Kuiper.Kahan.kahan_sum #et

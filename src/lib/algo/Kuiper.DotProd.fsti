@@ -14,11 +14,15 @@ open Kuiper.Sum { sum }
 
 (* A simple dot product spec over sequences.
    For reals, equivalent to Kuiper.Sum.sum (see seq_dotprod_is_sum). *)
-let rec seq_dotprod (#et : Type0) {| scalar et |}
+let rec seq_dotprod' (#et : Type0) {| scalar et |}
   (a b : lseq et 'n) (k : nat{k <= 'n})
   : GTot et (decreases k)
   = if k = 0 then zero
-    else add (seq_dotprod a b (k-1)) (mul (a @! k-1) (b @! k-1))
+    else add (seq_dotprod' a b (k-1)) (mul (a @! k-1) (b @! k-1))
+
+let seq_dotprod (#et : Type0) {| scalar et |}
+  (a b : lseq et 'n)
+  = seq_dotprod' a b 'n
 
 (* Lemma: for reals, seq_dotprod equals Kuiper.Sum.sum *)
 val seq_dotprod_is_sum
@@ -26,7 +30,7 @@ val seq_dotprod_is_sum
   (a b : lseq real n)
   (k : nat{k <= n})
   : Lemma (ensures
-            seq_dotprod a b k
+            seq_dotprod'  a b k
             ==
             sum 0 k (fun (i : natlt n) -> (a @! i) *. (b @! i)))
 
@@ -38,10 +42,10 @@ val seq_dotprod_is_matmul_single
   (i : natlt rows) (j : natlt cols)
   (k : nat{k <= shared})
   : Lemma (ensures
-            seq_dotprod (ematrix_row eA i) (ematrix_col eB j) k
+            seq_dotprod' (ematrix_row eA i) (ematrix_col eB j) k
             ==
             MS.__matmul_single eA eB i j k)
-          [SMTPat (seq_dotprod (ematrix_row eA i) (ematrix_col eB j) k)]
+          [SMTPat (seq_dotprod' (ematrix_row eA i) (ematrix_col eB j) k)]
 
 (* A generic dot product between two Array1.t of the same length. *)
 inline_for_extraction noextract
@@ -61,7 +65,7 @@ fn dotprod
   returns
     res : et
   ensures
-    pure (res == seq_dotprod sA sB len)
+    pure (res == seq_dotprod sA sB)
 
 (* A generic dot product between two Array1.t of the same length. *)
 inline_for_extraction noextract
@@ -84,7 +88,7 @@ fn kahan_dotprod
   returns
     res : et
   ensures
-    pure (res %~ seq_dotprod rA rB len)
+    pure (res %~ seq_dotprod rA rB)
 
 (* Specialized to compute a cell of a matmul by extracting the appropriate row
 and column as Array1's, then calling dotprod above. *)
