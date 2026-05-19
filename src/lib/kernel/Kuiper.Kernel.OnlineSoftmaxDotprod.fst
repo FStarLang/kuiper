@@ -33,11 +33,6 @@ module Array1 = Kuiper.Array1
 let dotprod_pair_seq (#n: nat) (ra rb: lseq real n) : GTot (lseq (real & real) n) =
   Seq.init n (fun i -> (Seq.index ra i, Seq.index rb i))
 
-let dotprod_pair_seq_index (#n: nat) (ra rb: lseq real n) (i: natlt n)
-  : Lemma (Seq.index (dotprod_pair_seq ra rb) i == (Seq.index ra i, Seq.index rb i))
-          [SMTPat (Seq.index (dotprod_pair_seq ra rb) i)]
-  = Seq.init_index n (fun i -> (Seq.index ra i, Seq.index rb i))
-
 (* One iteration of the online-softmax-dotprod. *)
 let online_softmax_dotprod_real_iter
   (md: erased (real & real & real)) (xy : real & real) : erased (real & real & real) =
