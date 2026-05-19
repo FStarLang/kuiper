@@ -107,9 +107,6 @@ ensures
               (ems @! i) %~ (ematrix_subtile rm tm tk (arow*wm+i) dotIdx)))
       decreases (wm - !i0)
     {
-      // Guido: why is there a zero here? Can this really be right?
-      // Guido: I see. tile_for_tc_a_tiles is a very rectangular tile with height equal to one tile.
-      //        Zero is the only possible value here. Still seems a bit odd.
       let a_tile =
         gpu_matrix_extract_tile_ro' tile_for_tc_a_tiles (SZ.v tm) (SZ.v tk) (SZ.v !i0) 0;
       array_fragment_extract frags !i0;
