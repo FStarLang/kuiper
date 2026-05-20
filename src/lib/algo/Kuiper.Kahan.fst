@@ -2,8 +2,6 @@ module Kuiper.Kahan
 
 #lang-pulse
 
-#set-options "--z3seed 1" // Sigh
-
 open Kuiper
 open Kuiper.Approximates
 open Kuiper.Sum { sum, sum_pop_right }
@@ -36,7 +34,7 @@ fn kahan_sum
   while (!k <^ len)
     invariant live k
     invariant live acc ** pure (!acc %~ sum 0 !k vf)
-    invariant live c ** pure (!c %~ 0.0R)
+    invariant live c   ** pure (!c %~ 0.0R)
     decreases (len - !k)
   {
     let y = f !k;
