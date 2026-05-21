@@ -2,6 +2,12 @@ module Kuiper.Seq.Common
 
 open FStar.Seq
 
+let lemma_view_seq_cons (x : 'a) (s : seq 'a) :
+  Lemma (view_seq (Seq.cons x s) == SCons x s)
+        [SMTPat (view_seq (Seq.cons x s))]
+  =
+  assert Seq.equal (Seq.tail (Seq.cons x s)) s
+
 let seq_map_append (#a #b : Type) (f: a -> b) (s1 s2 : seq a)
   : Lemma (ensures seq_map f (s1 @+ s2) == seq_map f s1 @+ seq_map f s2)
   = assert (Seq.equal (seq_map f (s1 @+ s2)) (seq_map f s1 @+ seq_map f s2));

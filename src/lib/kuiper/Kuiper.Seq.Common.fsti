@@ -22,6 +22,10 @@ let view_seq (s : seq 'a) : v:(seq_view 'a){pack_seq v == s} =
     SNil
   ) else SCons (Seq.head s) (Seq.tail s)
 
+val lemma_view_seq_cons (x : 'a) (s : seq 'a) :
+  Lemma (view_seq (Seq.cons x s) == SCons x s)
+        [SMTPat (view_seq (Seq.cons x s))]
+
 unfold
 let ( @! ) (#a:Type) (s : seq a) (i : nat { i < Seq.length s }) : a = Seq.index #a s i
 

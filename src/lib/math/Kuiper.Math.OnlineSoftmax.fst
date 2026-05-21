@@ -5,7 +5,7 @@ open Kuiper
 open Kuiper.Spec.Softmax
 open Kuiper.Seq.Common
 
-let exp_sum (s : seq real{len s > 0}) : real =
+let exp_sum (s : seq real{len s > 0}) : r:real{r >. 0.0R} =
   rsum (seq_map rexp s)
 
 let adjust_factor (s : seq real{len s > 0}) (x : real) : real =
@@ -21,17 +21,34 @@ let rec seq_max (s : seq real{len s > 0})
   | SNil -> h
   | SCons _ _ -> rmax h (seq_max t)
 
-let seq_max_cons_lem (s : seq real{len s > 0}) (x : real)
-  : Lemma (ensures seq_max (s @+ seq![x]) == rmax (seq_max s) x)
+let rec seq_max_cons_lem (s : seq real{len s > 0}) (x : real)
+  : Lemma (ensures seq_max (s @+ seq![x]) == rmax x (seq_max s))
+          (decreases len s)
           [SMTPat (seq_max (s @+ seq![x]))]
-  = admit()
+  = let SCons h t = view_seq s in
+    assert Seq.equal (s @+ seq![x]) (Seq.cons h (t @+ seq![x]));
+    match view_seq t with
+    | SNil ->
+      lem_rmax_comm x (seq_max s)
+    | SCons _ _ ->
+      calc (==) {
+        seq_max (s @+ seq![x]);
+        == {}
+        rmax h (seq_max (t @+ seq![x]));
+        == { seq_max_cons_lem t x }
+        rmax h (rmax x (seq_max t));
+        == { lem_rmax_assoc h x (seq_max t)}
+        rmax (rmax h x) (seq_max t);
+        == {}
+        rmax x (seq_max s);
+      }
 
 // should not restrict len s > 0 eventually,
 // but the initial state makes things weird
 noeq
 type st (s : erased (seq real){len s > 0}) = {
   m : real; // maximum so far
-  d : real; // denominator, i.e. sum of exponentials
+  d : real; // denominator, i.e. the sum of exponentials, corrected
   #m_ok : m == seq_max s;
   #d_ok : d >. 0.0R /\ d == exp_sum s /. rexp m;
 }
@@ -59,19 +76,28 @@ let cancel' (a b c : real{b =!= 0.0R /\ c =!= 0.0R}) : Lemma ((a /. c) /. (b /. 
   calc (==) {
     (a /. c) /. (b /. c);
     == {}
-    (a *. c) /. (c *. b);
+    (a /. c *. c) /. (b /. c *. c);
+    == {}
+    a /. b;
   }
 
-#push-options "--z3refresh --split_queries always --z3rlimit 20" // very bad smt performance below
+let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /. c)) =
+  ()
+
+#push-options "--split_queries always --z3rlimit 5 --retry 5" // very bad smt performance below
+#restart-solver
 let softmax_step #s (s0 : st s) (x : real) :
   res:(real & st (s @+ seq![x]))
    { fst res /. (snd res).d == softmax_real (s @+ seq![x]) @! len s }
   =
   let m' = rmax s0.m x in
+  seq_max_cons_lem s x;
+  assert m' == seq_max (s @+ seq![x]);
   let y = rexp (x -. m') in
   exp_sum_snoc_lem s x;
   assert s0.d == exp_sum s /. rexp s0.m;
   let d' = s0.d *. rexp (s0.m -. m') +. y in
+  assert (d' >. 0.0R);
   (* Prove d' is correct. *)
   calc (==) {
     exp_sum (s @+ seq![x]) /. rexp m';
@@ -83,7 +109,11 @@ let softmax_step #s (s0 : st s) (x : real) :
     exp_sum s /. rexp m' *. rexp s0.m /. rexp s0.m +. rexp x /. rexp m';
     == { abcd_adcb (exp_sum s) (rexp s0.m) (rexp s0.m) (rexp m') }
     exp_sum s /. rexp s0.m *. rexp s0.m /. rexp m' +. rexp x /. rexp m';
-    == { assert rexp (s0.m -. m') == rexp s0.m /. rexp m' }
+    == { assoc_mul_div (exp_sum s /. rexp s0.m) (rexp s0.m) (rexp m') }
+    exp_sum s /. rexp s0.m *. (rexp s0.m /. rexp m') +. rexp x /. rexp m';
+    == { exp_sub s0.m m' }
+    exp_sum s /. rexp s0.m *. rexp (s0.m -. m') +. rexp x /. rexp m';
+    == {}
     s0.d *. rexp (s0.m -. m') +. rexp x /. rexp m';
     == { () }
     d';
