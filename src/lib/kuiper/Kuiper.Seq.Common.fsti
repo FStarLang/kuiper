@@ -37,6 +37,9 @@ let seq_forallb (#a : Type) (f: a -> GTot bool) (s: seq a) : prop =
 let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
   Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
 
+let seq_mapi (#a #b : Type) (s: seq a) (f: a -> (i: natlt (Seq.length s)) -> b) : GTot (seq b) =
+  Seq.init_ghost (Seq.length s) (fun i -> f (s @! i) i)
+
 let lseq_map (#a #b : Type) (#len : nat) (f: a -> b) (s: lseq a len) : GTot (lseq b len) =
   seq_map f s
 
