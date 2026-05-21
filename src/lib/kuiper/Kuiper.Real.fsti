@@ -45,6 +45,10 @@ val log_div (x y : real{x >. 0.0R /\ y >. 0.0R})
 
 let rsum (s : Seq.seq real) : real = seq_fold_left (+.) 0.0R s
 
+val rsum_append (s1 s2 : Seq.seq real)
+  : Lemma (ensures rsum (s1 @+ s2) == rsum s1 +. rsum s2)
+          [SMTPat (rsum (s1 @+ s2))]
+
 let rmax (x: real) (y: real) : real =
   if x >. y then x else y
 

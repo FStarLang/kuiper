@@ -2,6 +2,11 @@ module Kuiper.Seq.Common
 
 open FStar.Seq
 
+let seq_map_append (#a #b : Type) (f: a -> b) (s1 s2 : seq a)
+  : Lemma (ensures seq_map f (s1 @+ s2) == seq_map f s1 @+ seq_map f s2)
+  = assert (Seq.equal (seq_map f (s1 @+ s2)) (seq_map f s1 @+ seq_map f s2));
+    ()
+
 let rec lemma_seq_fold_right_sum
   (#a:Type) (e:a) (f: a -> a -> a)
   (s1 s2 : seq a)

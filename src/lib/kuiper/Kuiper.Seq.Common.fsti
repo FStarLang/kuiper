@@ -17,7 +17,7 @@ let pack_seq (v : seq_view 'a) : seq 'a =
 (* Mark as coercion? *)
 let view_seq (s : seq 'a) : v:(seq_view 'a){pack_seq v == s} =
   if Seq.length s = 0
-  then  (
+  then (
     assert (Seq.equal s Seq.empty);
     SNil
   ) else SCons (Seq.head s) (Seq.tail s)
@@ -36,6 +36,10 @@ let seq_forallb (#a : Type) (f: a -> GTot bool) (s: seq a) : prop =
 
 let seq_map (#a #b : Type) (f: a -> b) (s: seq a) : GTot (seq b) =
   Seq.init_ghost (Seq.length s) (fun i -> f (s @! i))
+
+val seq_map_append (#a #b : Type) (f: a -> b) (s1 s2 : seq a)
+  : Lemma (ensures seq_map f (s1 @+ s2) == seq_map f s1 @+ seq_map f s2)
+          [SMTPat (seq_map f (s1 @+ s2))]
 
 let lseq_map (#a #b : Type) (#len : nat) (f: a -> b) (s: lseq a len) : GTot (lseq b len) =
   seq_map f s
