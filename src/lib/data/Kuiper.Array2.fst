@@ -65,14 +65,14 @@ let is_global (#et : Type0) (#rows #cols : nat) (#l : layout rows cols)
 let from_array
   (#et : Type0) (#rows #cols : erased nat)
   (l : layout rows cols)
-  (a : gpu_array et (layout_size l))
+  (a : larray et (layout_size l))
   : t et l
   = T.from_array _ a
 
 let core
   (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
   (a : t et l)
-  : gpu_array et (layout_size l)
+  : larray et (layout_size l)
   = T.core a
 
 let lem_core_from_array
@@ -86,7 +86,7 @@ let lem_core_from_array
 let lem_from_array_core
   (#et : Type) (#rows #cols : erased nat)
   (l : layout rows cols)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
   = ()
@@ -225,7 +225,7 @@ fn raise
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : ematrix et rows cols)
   requires
@@ -247,7 +247,7 @@ fn raise'
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et (layout_size l))
   requires
@@ -404,7 +404,7 @@ let pts_to_cell_eq
   (a : t et l) (ij : ait rows cols) (f : perm) (v : et)
   : Lemma (pts_to_cell a #f ij v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
+           B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
   = T.tensor_pts_to_cell_eq a (adapt_idx_back ij) f v
 
 instance is_send_across_global_cell

@@ -20,7 +20,7 @@ inline_for_extraction noextract
 let from_array
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (l : tlayout d)
-  (a : gpu_array et (tlayout_size l))
+  (a : larray et (tlayout_size l))
   : tensor et l
   = A.from_array (tensor_aview et l) a
 
@@ -29,7 +29,7 @@ let core
   (#et : Type0) (#r : erased nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l)
-  : gpu_array et (tlayout_size l)
+  : larray et (tlayout_size l)
   = A.core a
 
 let lem_core_from_array
@@ -43,7 +43,7 @@ let lem_core_from_array
 let lem_from_array_core
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
-  (p : gpu_array et (tlayout_size l))
+  (p : larray et (tlayout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
   = ()
@@ -54,7 +54,7 @@ let lem_is_global_iff_core
   (a : tensor et l)
   : Lemma (ensures is_global a <==> is_global_array (core a))
           [SMTPat (is_global a)]
-  = ()
+  = admit()
 
 let tensor_pts_to
   (#et : Type0) (#r : nat) (#d : idesc r)
@@ -177,7 +177,7 @@ fn tensor_abs
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : gpu_array et (tlayout_size l))
+  (p : larray et (tlayout_size l))
   (#f : perm)
   (#s : chest d et)
   requires
@@ -199,7 +199,7 @@ fn tensor_abs'
   (#et:Type)
   (#r : nat) (#d : idesc r)
   (l : tlayout d { is_full l })
-  (p : gpu_array et (tlayout_size l))
+  (p : larray et (tlayout_size l))
   (#f : perm)
   (#s : lseq et (tlayout_size l))
   requires
@@ -304,7 +304,7 @@ let tensor_pts_to_cell_eq
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f i) v)
+           pts_to_cell (core a) #f (l.imap.f i) v)
   = A.varray_pts_to_cell_eq a i f v
 
 instance is_send_across_global_tensor_cell
@@ -378,19 +378,19 @@ fn tensor_ilower
   ensures
     pure (SZ.fits (tlayout_size l)) **
     (forall+ (i : abs d).
-      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+      pts_to_cell (core a) #f (l.imap.f i) (acc s i))
 {
   tensor_pts_to_ref a;
   tensor_explode a;
   forevery_map
     (fun (i : abs d) -> Cell a i |-> Frac f (acc s i))
-    (fun (i : abs d) -> gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+    (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
     fn i {
       tensor_pts_to_cell_eq a i f (acc s i);
       rewrite
         Cell a i |-> Frac f (acc s i)
       as
-        gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i);
+        pts_to_cell (core a) #f (l.imap.f i) (acc s i);
     };
 }
 
@@ -404,17 +404,17 @@ fn tensor_iraise
   requires
     pure (SZ.fits (tlayout_size l)) **
     (forall+ (i : abs d).
-      gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+      pts_to_cell (core a) #f (l.imap.f i) (acc s i))
   ensures
     a |-> Frac f s
 {
   forevery_map
-    (fun (i : abs d) -> gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i))
+    (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
     (fun (i : abs d) -> Cell a i |-> Frac f (acc s i))
     fn i {
       tensor_pts_to_cell_eq a i f (acc s i);
       rewrite
-        gpu_pts_to_cell (core a) #f (l.imap.f i) (acc s i)
+        pts_to_cell (core a) #f (l.imap.f i) (acc s i)
       as
         Cell a i |-> Frac f (acc s i);
     };

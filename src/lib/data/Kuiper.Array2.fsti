@@ -9,6 +9,7 @@ open Kuiper.Index
 open Kuiper.EMatrix
 open FStar.Tactics.Typeclasses { no_method }
 open Pulse.Lib.Trade
+module B = Kuiper.Array
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -83,14 +84,14 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0) (#rows #cols : erased nat)
   (l : layout rows cols)
-  (a : gpu_array et (layout_size l))
+  (a : larray et (layout_size l))
   : t et l
 
 inline_for_extraction noextract
 val core
   (#et : Type0) (#rows #cols : erased nat) (#l : layout rows cols)
   (a : t et l)
-  : gpu_array et (layout_size l)
+  : larray et (layout_size l)
 
 val lem_core_from_array
   (#et : Type) (#rows #cols : erased nat)
@@ -102,7 +103,7 @@ val lem_core_from_array
 val lem_from_array_core
   (#et : Type) (#rows #cols : erased nat)
   (l : layout rows cols)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
@@ -200,7 +201,7 @@ fn raise
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : ematrix et rows cols)
   requires
@@ -213,7 +214,7 @@ fn raise'
   (#et:Type)
   (#rows #cols : nat)
   (l : layout rows cols { is_full l })
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et (layout_size l))
   requires
@@ -315,7 +316,7 @@ val pts_to_cell_eq
   (a : t et l) (ij : ait rows cols) (f : perm) (v : et)
   : Lemma (Cell a ij |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
+           B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back ij)) v)
 
 instance
 val is_send_across_global_cell

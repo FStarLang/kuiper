@@ -19,8 +19,8 @@ let barrier_p_odd
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (tid : natlt p.blockWidth)
@@ -29,8 +29,8 @@ let barrier_p_odd
   =
   let off = ri + idx * p.blockItemsK in
   exists* (x : et) (c : sz).
-    gpu_pts_to_cell elems_tile (k * p.blockWidth + tid) x **
-    gpu_pts_to_cell col_ind_tile (k * p.blockWidth + tid) c **
+    pts_to_cell elems_tile (k * p.blockWidth + tid) x **
+    pts_to_cell col_ind_tile (k * p.blockWidth + tid) c **
     pure (
       off + k * p.blockWidth + tid < re ==>
         x == elems   @! off + k * p.blockWidth + tid /\
@@ -45,8 +45,8 @@ let barrier_p
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   : B.barrier_side p.blockWidth
@@ -68,8 +68,8 @@ let barrier_q_even
   (#et : Type0)
   (p : parameters)
   (nnz : sz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (tid : natlt p.blockWidth)
@@ -85,8 +85,8 @@ let barrier_q_odd
   (#nnz : sz)
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : nat{ri <= re /\ re <= nnz})
   (idx : nat)
   (k : natlt p.blockItemsK)
@@ -94,8 +94,8 @@ let barrier_q_odd
   =
   let off = ri + idx * p.blockItemsK in
   exists* (x : et) (c : sz).
-    gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k x **
-    gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c **
+    pts_to_cell elems_tile #(1.0R /. p.blockWidth) k x **
+    pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c **
     pure (
       off + k < re ==>
         x == elems   @! off + k /\
@@ -110,8 +110,8 @@ let barrier_q
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   : B.barrier_side p.blockWidth
@@ -144,8 +144,8 @@ let barrier_contract
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   : B.contract p.blockWidth =
@@ -174,8 +174,8 @@ fn barrier_p_fold_even
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -198,8 +198,8 @@ fn barrier_p_fold_odd
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -222,8 +222,8 @@ fn barrier_q_unfold_even
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -246,8 +246,8 @@ fn barrier_q_unfold_odd
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -277,8 +277,8 @@ fn barrier_q_unfold_odd_residue
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
@@ -304,8 +304,8 @@ fn barrier_p_to_q_transform
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   (it : nat)

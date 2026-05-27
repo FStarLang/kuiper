@@ -8,6 +8,7 @@ open Kuiper.Injection
 open Kuiper.Index
 open FStar.Tactics.Typeclasses { no_method }
 open Kuiper.Tensor.Layout.Alg { l1_forward }
+module B = Kuiper.Array
 module SZ = Kuiper.SizeT
 module Tac = FStar.Tactics.V2
 
@@ -69,14 +70,14 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0) (#len : erased nat)
   (l : layout len)
-  (a : gpu_array et (layout_size l))
+  (a : larray et (layout_size l))
   : t et l
 
 inline_for_extraction noextract
 val core
   (#et : Type0) (#len : erased nat) (#l : layout len)
   (a : t et l)
-  : gpu_array et (layout_size l)
+  : larray et (layout_size l)
 
 val lem_core_from_array
   (#et : Type) (#len : erased nat)
@@ -88,7 +89,7 @@ val lem_core_from_array
 val lem_from_array_core
   (#et : Type) (#len : erased nat)
   (l : layout len)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   : Lemma (ensures core (from_array l p) == p)
           [SMTPat (from_array l p)]
 
@@ -172,7 +173,7 @@ ghost
 fn raise
   (#et : Type) (#len : nat)
   (l : full_layout len)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et len)
   requires
@@ -184,7 +185,7 @@ ghost
 fn raise'
   (#et : Type) (#len : nat)
   (l : full_layout len)
-  (p : gpu_array et (layout_size l))
+  (p : larray et (layout_size l))
   (#f : perm)
   (#s : lseq et len)
   requires
@@ -262,7 +263,7 @@ val pts_to_cell_eq
   (a : t et l) (i : ait len) (f : perm) (v : et)
   : Lemma (Cell a i |-> Frac f v
            ==
-           gpu_pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
+           B.pts_to_cell (core a) #f (l.imap.f (adapt_idx_back i)) v)
 
 instance
 val is_send_across_global_cell

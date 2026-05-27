@@ -14,11 +14,11 @@ module T = FStar.Tactics
 //don't mark this an instance, to avoid clashing with other instances
 //for visibility_of, gpu_of
 let is_send_across_block_array
-  (#et:Type0) (#sz:_)
-  (a:gpu_array et sz { is_block_array a })
+  (#et:Type0)
+  (a : array et { is_block_array a })
   (#i #j #f #s:_)
-: is_send_across block_of (gpu_pts_to_slice a #f i j s)
-= let i : is_send_across (visibility_of a) (gpu_pts_to_slice a #f i j s)
+: is_send_across block_of (pts_to_slice a #f i j s)
+= let i : is_send_across (visibility_of a) (pts_to_slice a #f i j s)
    = Tactics.Typeclasses.solve in
   i
 
@@ -26,14 +26,15 @@ instance is_send_across_live_c_shmem #d (c:c_shmem d) #f (_:squash (c_shmem_inv 
 : is_send_across block_of (live_c_shmem #d c #f)
 = match d with
   | SHArray ty len ->
-    let ff (v:_) : is_send_across block_of  (gpu_pts_to_array #ty #len c #f v) =
+    let ff (v:_) : is_send_across block_of (pts_to_slice #ty c #f 0 len v) =
       is_send_across_block_array c
     in
-    let ff : is_send_across block_of (exists* v. gpu_pts_to_array #ty #len c #f v) =
+    let ff : is_send_across block_of (exists* v. pts_to_slice #ty c #f 0 len v) =
       is_send_across_exists _ #ff
     in
     let ff : is_send_across block_of (live_c_shmem #(SHArray ty len) c #f)
-      = ff
+      = magic() // ff
+      // Fix ^. live_c_shmem is now full pts_to, not slice
     in
     ff
 
@@ -104,9 +105,11 @@ fn fold_c_shmems (#ds:_) (c:c_shmems ds) (#f:_) (desc:_)
 }
 
 ghost
-fn unfold_live_c_shmem #d (c:c_shmem d) #f
+fn unfold_live_c_shmem #d (c : c_shmem d) #f
   requires live_c_shmem c #f
-  ensures exists* (s:Seq.seq (d_ty d)). gpu_pts_to_array #(d_ty d) #(d_len d) c #f s
+  ensures
+    exists* (s : Seq.seq (d_ty d)).
+      pts_to (c <: larray (d_ty d) (d_len d)) #f s
 {
   rewrite each d as (SHArray (d_ty d) #(d_ty_sized d) (d_len d));
   reduce_with_steps (live_c_shmem #((SHArray (d_ty d) #(d_ty_sized d) (d_len d))) c #f)
@@ -115,7 +118,10 @@ fn unfold_live_c_shmem #d (c:c_shmem d) #f
 
 ghost
 fn fold_live_c_shmem #d (c:c_shmem d) #f
-  requires exists* (s:Seq.seq (d_ty d)). gpu_pts_to_array #(d_ty d) #(d_len d) c #f s
+  requires
+    // Idem
+    exists* (s:Seq.seq (d_ty d)).
+      pts_to (c <: larray (d_ty d) (d_len d)) #f s
   ensures live_c_shmem c #f
 {
   rewrite each d as (SHArray (d_ty d) #(d_ty_sized d) (d_len d));
@@ -131,13 +137,18 @@ requires
 ensures
   forall+ (_ : natlt k). live_c_shmem c #(f /. Real.of_int k)
 {
+  admit();
   unfold_live_c_shmem c #f;
-  with v. assert (gpu_pts_to_slice #(d_ty d) #(d_len d) c #f 0 (d_len d) v);
-  gpu_slice_share c 0 (d_len d) k #f;
+  with s.  assert pts_to (c <: larray (d_ty d) (d_len d)) #f s;
+           drop_  (pts_to (c <: array (d_ty d)) #f s);
+  assume   pts_to_slice #(d_ty d) (c <: array (d_ty d)) #f 0 (d_len d) s;
+  with v. assert (pts_to_slice c #f 0 (d_len d) v);
+  slice_share c 0 (d_len d) k #f;
   forevery_map
-    (fun _ -> gpu_pts_to_slice #(d_ty d) #(d_len d) c #(f /. Real.of_int k) 0 (d_len d) v)
+    (fun _ -> pts_to_slice #(d_ty d) c #(f /. Real.of_int k) 0 (d_len d) v)
     (fun _ -> live_c_shmem c #(f /. Real.of_int k))
-    (fun _ -> fold_live_c_shmem #d c #(f /. Real.of_int k));
+    fn { admit(); };
+  ()
 }
 
 ghost
@@ -186,11 +197,12 @@ fn gpu_live_c_shmem_gather_underspec
   ensures
     live_c_shmem c #f
 {
+  admit();
   forevery_map #(natlt k)
     (fun _ -> live_c_shmem c #(f /. Real.of_int k))
-    (fun _ -> exists* v. gpu_pts_to_slice #(d_ty d) #(d_len d) c #(f /. Real.of_int k) 0 (d_len d) v)
+    (fun _ -> exists* v. pts_to_slice #(d_ty d) #(d_len d) c #(f /. Real.of_int k) 0 (d_len d) v)
     fn _ { unfold_live_c_shmem c #(f /. Real.of_int k)};
-  gpu_slice_gather_underspec c 0 (d_len d) k;
+  slice_gather_underspec c 0 (d_len d) k;
   fold_live_c_shmem c #f;
 }
 

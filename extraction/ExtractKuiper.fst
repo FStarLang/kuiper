@@ -777,13 +777,13 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     ECast (EApp (EQualified ([], "KPR_GPU_ALLOC"), [ sz; cb len ]),
            TBuf (translate_type env ty))
 
-  | "Kuiper.Array.Core.gpu_array_free", [ty], [ _sz; a; _v ] ->
+  | "Kuiper.Array.Core.gpu_array_free", [ty], [ a; _v ] ->
     _MUST <| EApp (EQualified ([], "cudaFree"), [cb a])
 
-  | "Kuiper.Array.Core.gpu_array_read", [ty], [ _sz; _i; _j; a; _f; idx; _s ] ->
+  | "Kuiper.Array.Core.slice_read", [ty], [ _i; _j; a; _f; idx; _s ] ->
     EBufRead (cb a, cb idx)
 
-  | "Kuiper.Array.Core.gpu_array_write", [ty], [ _sz; _i; _j; a; idx; v; _s ] ->
+  | "Kuiper.Array.Core.slice_write", [ty], [ _i; _j; a; idx; v; _s ] ->
     EBufWrite (cb a, cb idx, cb v)
 
   | "Kuiper.Array.Core.gpu_memcpy_host_to_device", [ty], [ sz; _elen; dst_ga; src_a; cnt; f; v; gv ] ->
@@ -803,7 +803,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ dst_ga; src_a; bytesize; cudaMemcpyHostToDevice ])
 
-  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty], [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
+  | "Kuiper.Array.Core.gpu_memcpy_device_to_host", [ty],
+  [ sz; _elen; dst_a; src_ga; cnt; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
     let bytesize : expr = mul_by_sz sz (cb cnt) in
     _MUST <| EApp (EQualified ([], "cudaMemcpy"), [ cb dst_a; cb src_ga; bytesize; cudaMemcpyDeviceToHost ])
@@ -828,50 +829,14 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** VECTORIZED ARRAY ********)
 
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dd",
+  | "Kuiper.Array.Vectorized.array_vec_cpy",
     [ et ],
     [ _sized; _has_vec_cpy;
-      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
-      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
+      dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
+      src_arr; src_off; _src_slice_i; _src_slice_j;
       _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
-    let dst_off = cb dst_off in
-    let dst_arr = cb dst_arr in
-    let dst_arr = EBufSub (dst_arr, dst_off) in
-    let src_off = cb src_off in
-    let src_arr = cb src_arr in
-    let src_arr = EBufSub (src_arr, src_off) in
-    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
-
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh",
-    [ et ],
-    [ _sized; _has_vec_cpy;
-      dst_arr; dst_off;
-      _src_sz; src_arr; src_off; _src_slice_i; _src_slice_j;
-      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
-    let dst_off = cb dst_off in
-    let dst_arr = cb dst_arr in
-    let dst_arr = EBufSub (dst_arr, dst_off) in
-    let src_off = cb src_off in
-    let src_arr = cb src_arr in
-    let src_arr = EBufSub (src_arr, src_off) in
-    EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_dh", _, _ ->
-    raise_error (mlloc_to_range e.loc) Fatal_ExtractionUnsupported [
-      text "unexpected arguments to gpu_array_vec_cpy_dh:" ^/^ pp e
-    ]
-
-  | "Kuiper.Array.Vectorized.gpu_array_vec_cpy_hd",
-    [ et ],
-    [ sized; _has_vec_cpy;
-      _dst_sz; dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
-      src_arr; src_off;
-      _f; _ss; _ds; _sq1; _sq2; _sq3; ] ->
-    let dst_off = cb dst_off in
-    let dst_arr = cb dst_arr in
-    let dst_arr = EBufSub (dst_arr, dst_off) in
-    let src_off = cb src_off in
-    let src_arr = cb src_arr in
-    let src_arr = EBufSub (src_arr, src_off) in
+    let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
+    let src_arr = EBufSub (cb src_arr, cb src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
 
   (******** ATOMIC OPS ********)

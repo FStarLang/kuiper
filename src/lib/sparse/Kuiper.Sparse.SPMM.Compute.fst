@@ -368,8 +368,8 @@ fn compute
   // creo que este refinamiento no hace falta
   (blockWidth blockItemsK blockItemsX : szp{blockWidth /? blockItemsX})
   // fragmentos sparse
-  (elems_tile : gpu_array et blockItemsK)
-  (col_ind_tile : gpu_array sz blockItemsK)
+  (elems_tile : larray et blockItemsK)
+  (col_ind_tile : larray sz blockItemsK)
   (#fA : perm)
   (nnz : sz)
   (#v_elems : erased (lseq et nnz))
@@ -390,8 +390,8 @@ fn compute
   norewrite
   preserves
     gpu **
-    gpu_pts_to_slice elems_tile #fA 0 nnz v_elems **
-    gpu_pts_to_slice col_ind_tile #fA 0 nnz v_col_ind **
+    pts_to_slice elems_tile #fA 0 nnz v_elems **
+    pts_to_slice col_ind_tile #fA 0 nnz v_col_ind **
     gB |-> Frac fB eB
   requires
     pure (fits (cols + blockItemsX)) **
@@ -431,8 +431,8 @@ fn compute
           v_k
       )
   {
-    let a = gpu_array_read elems_tile !k;
-    let c = gpu_array_read col_ind_tile !k;
+    let a = slice_read elems_tile !k;
+    let c = slice_read col_ind_tile !k;
     let mut x = 0sz;
 
     with v_out'. assert out |-> v_out';

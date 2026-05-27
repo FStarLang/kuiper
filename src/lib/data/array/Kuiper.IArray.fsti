@@ -23,7 +23,7 @@ inline_for_extraction noextract
 val from_array
   (#et : Type0)
   (vw : aiview)
-  (arr : gpu_array et (len vw))
+  (arr : larray et (len vw))
   : iarray et vw
 
 inline_for_extraction noextract
@@ -31,20 +31,20 @@ val core
   (#et : Type0)
   (#vw : aiview)
   (g : iarray et vw)
-  : arr : Kuiper.Array.gpu_array et (len vw) { from_array vw arr == g }
+  : larray et (len vw)
 
 val lem_from_array_core
   (#et : Type0)
   (#vw : aiview)
   (arr : iarray et vw)
-  : Lemma (ensures from_array vw (core arr) == arr /\ (is_global_array (core arr) <==> is_global_iarray arr))
+  : Lemma (ensures from_array vw (core arr) == arr)
           [SMTPat (core arr)]
 
 val lem_core_from_array
   (#et : Type0)
   (vw : aiview)
-  (p : gpu_array et (len vw))
-  : Lemma (ensures core (from_array vw p) == p /\ (is_global_iarray (from_array vw p) <==> is_global_array p))
+  (p : larray et (len vw))
+  : Lemma (ensures core (from_array vw p) == p)
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
@@ -65,7 +65,7 @@ val iarray_pts_to_cell_def
   (i : vw.ait)
   (v : et)
   : Lemma (iarray_pts_to_cell a #f i v ==
-            gpu_pts_to_cell (core a) #f (it_to_nat vw i) v)
+            pts_to_cell (core a) #f (it_to_nat vw i) v)
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#vw : aiview)
@@ -167,7 +167,7 @@ ghost
 fn iarray_begin_
   (#et : Type0)
   (#len : erased nat)
-  (a : gpu_array et len)
+  (a : larray et len)
   (#f : perm)
   (#v : lseq et len)
   requires
@@ -179,7 +179,7 @@ inline_for_extraction noextract
 fn iarray_begin
   (#et : Type0)
   (#len : erased nat)
-  (a : gpu_array et len)
+  (a : larray et len)
   (#f : perm)
   (#v : erased (lseq et len))
   requires
@@ -211,7 +211,7 @@ fn iarray_end
   requires
     a |-> Frac f v
   returns
-    a' : gpu_array et len
+    a' : larray et len
   ensures
     a' |-> Frac f (Seq.init_ghost len v)
 
@@ -225,7 +225,7 @@ fn iarray_end2
   requires
     a |-> Frac f v
   returns
-    a' : gpu_array et (len vw)
+    a' : larray et (len vw)
   ensures
     a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 

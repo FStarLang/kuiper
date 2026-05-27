@@ -37,7 +37,7 @@ let block_pre
   (#lB : Array2.layout p.shared p.cols)
   (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -71,7 +71,7 @@ let block_post
   (#lB : Array2.layout p.shared p.cols)
   (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -108,8 +108,8 @@ let barrier_contract
   (elems : lseq et nnz)
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (#_ : squash (well_formed p col_ind row_off))
   (bid : natlt (nblocks p))
   : B.contract p.blockWidth =
@@ -126,7 +126,7 @@ let kpre
   (#lB : Array2.layout p.shared p.cols)
   (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -161,7 +161,7 @@ let kpost
   (#lB : Array2.layout p.shared p.cols)
   (#lC : Array2.layout p.rows p.cols)
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -306,7 +306,7 @@ fn setup
   (#lC : Array2.layout p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -435,7 +435,7 @@ fn setup
         )
     );
 
-  gpu_slice_share row_indices 0 p.rows (allthreads p);
+  Kuiper.Array.Extra.array_share row_indices (allthreads p);
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   Array2.share_n gB (allthreads p) #fB;
@@ -469,7 +469,7 @@ fn block_setup
   (#lC : Array2.layout p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -513,13 +513,13 @@ fn block_setup
   with (x : seq _). assert fst sh |-> x;
   with (c : seq _). assert fst (snd sh) |-> c;
 
-  gpu_slice_share (fst sh) 0 p.blockItemsK p.blockWidth;
+  Kuiper.Array.Extra.array_share (fst sh) p.blockWidth;
   forevery_map #(natlt p.blockWidth)
     (fun _ -> fst sh |-> Frac (1.0R /. p.blockWidth) x)
     (fun _ -> (exists* (s : seq _). fst sh |-> Frac (1.0R /. p.blockWidth) s))
     fn _ {};
 
-  gpu_slice_share (fst (snd sh)) 0 p.blockItemsK p.blockWidth;
+  Kuiper.Array.Extra.array_share (fst (snd sh)) p.blockWidth;
   forevery_map #(natlt p.blockWidth)
     (fun _ -> fst (snd sh) |-> Frac (1.0R /. p.blockWidth) c)
     (fun _ -> (exists* (s : seq _). fst (snd sh) |-> Frac (1.0R /. p.blockWidth) s))
@@ -541,7 +541,7 @@ fn block_teardown
   (#lC : Array2.layout p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -583,60 +583,50 @@ fn block_teardown
   forevery_unzip3 _ _ _;
   forevery_natlt_pop p.blockWidth
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst sh) #(1.0R /. p.blockWidth) x
     );
   with elems_tile.
-    assert gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      elems_tile;
+    assert pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile;
   forevery_map_extra #(natlt (p.blockWidth - 1))
-    (gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      elems_tile)
+    (pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile)
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst sh) #(1.0R /. p.blockWidth) x
     )
     (fun tid ->
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        elems_tile
+      pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile
     )
     fn tid {
-      gpu_slice_pts_to_eq (fst sh) 0 p.blockItemsK (1.0R /. p.blockWidth)
-        #_ #elems_tile;
+      Pulse.Lib.Array.pts_to_injective_eq (fst sh);
     };
   forevery_natlt_push p.blockWidth
     (fun tid ->
-      gpu_pts_to_slice (fst sh) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        elems_tile
+      pts_to (fst sh) #(1.0R /. p.blockWidth) elems_tile
     );
 
   forevery_natlt_pop p.blockWidth
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) x
     );
   with col_ind_tile.
-    assert gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      col_ind_tile;
+    assert pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile;
   forevery_map_extra #(natlt (p.blockWidth - 1))
-    (gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-      col_ind_tile)
+    (pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile)
     (fun tid -> exists* x.
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK x
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) x
     )
     (fun tid ->
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        col_ind_tile
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile
     )
     fn tid {
-      gpu_slice_pts_to_eq (fst (snd sh)) 0 p.blockItemsK (1.0R /. p.blockWidth)
-        #_ #col_ind_tile;
+      Pulse.Lib.Array.pts_to_injective_eq (fst (snd sh));
     };
   forevery_natlt_push p.blockWidth
     (fun tid ->
-      gpu_pts_to_slice (fst (snd sh)) #(1.0R /. p.blockWidth) 0 p.blockItemsK
-        col_ind_tile
+      pts_to (fst (snd sh)) #(1.0R /. p.blockWidth) col_ind_tile
     );
 
-  gpu_slice_gather (fst sh) 0 p.blockItemsK p.blockWidth;
-  gpu_slice_gather (fst (snd sh)) 0 p.blockItemsK p.blockWidth;
+  Kuiper.Array.Extra.array_gather (fst sh)       p.blockWidth;
+  Kuiper.Array.Extra.array_gather (fst (snd sh)) p.blockWidth;
 
   fold_c_shmems sh (`%shmems_desc);
 
@@ -652,7 +642,7 @@ fn teardown
   (#lC : Array2.layout p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB)
   (gC : Array2.t et lC)
   // matriz sparse gA
@@ -694,7 +684,7 @@ fn teardown
     (fun _ _ ->
       row_indices |-> Frac (fri /. allthreads p) (ordering row_perm)
     );
-  gpu_slice_gather row_indices 0 p.rows (allthreads p);
+  Kuiper.Array.Extra.array_gather row_indices (allthreads p);
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
     (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
@@ -943,8 +933,8 @@ fn sparse_load_one
   (#eA : ematrix et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (ri re : sz{ri < re /\ re <= gA.nnz})
   (idx : sz)
   (tid : szlt (p.blockWidth))
@@ -969,20 +959,22 @@ fn sparse_load_one
   unfold array_live_cell elems_tile;
   unfold array_live_cell col_ind_tile;
 
-  let x = gpu_array_read gA.elems (off +^ tile_off);
-  gpu_array_write elems_tile tile_off x;
-  with s. assert gpu_pts_to_slice elems_tile tile_off (tile_off + 1) s;
+  let x = slice_read gA.elems (off +^ tile_off);
+  slice_write elems_tile tile_off x;
+  with s. assert pts_to_slice elems_tile tile_off (tile_off + 1) s;
   assert pure (Seq.equal s seq![elems @! off +^ tile_off]);
-  assert gpu_pts_to_cell elems_tile tile_off
+  assert pts_to_cell elems_tile tile_off
       (elems @! off +^ tile_off);
 
-  let c = gpu_array_read gA.col_ind (off +^ tile_off);
-  gpu_array_write col_ind_tile tile_off c;
-  with s. assert gpu_pts_to_slice col_ind_tile tile_off (tile_off + 1) s;
+  let c = slice_read gA.col_ind (off +^ tile_off);
+  slice_write col_ind_tile tile_off c;
+  with s. assert pts_to_slice col_ind_tile tile_off (tile_off + 1) s;
   assert pure (Seq.equal s seq![col_ind @! off +^ tile_off]);
-  assert gpu_pts_to_cell col_ind_tile tile_off
+  assert pts_to_cell col_ind_tile tile_off
     (col_ind @! off +^ tile_off);
 
+  slice_to_array gA.elems;
+  slice_to_array gA.col_ind;
   fold barrier_p_odd p elems col_ind elems_tile col_ind_tile ri re idx tid k;
 }
 
@@ -1000,8 +992,8 @@ fn sparse_load
   (#eA : ematrix et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (bid : szlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
@@ -1131,41 +1123,41 @@ ghost
 fn rec gpu_forall_cell_to_slice_
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (i j : nat {i < j})
   (#v : erased (seq a))
   (#_ : squash (Seq.length v == j - i))
   requires
     (forall+ (k : between i j).
-      gpu_pts_to_cell arr #f k (v @! k - i))
-  ensures gpu_pts_to_slice arr #f i j v
+      pts_to_cell arr #f k (v @! k - i))
+  ensures pts_to_slice arr #f i j v
   decreases j
 {
   let j' = j - 1;
   if (j' = i) {
     forevery_singleton_elim' #(between i j) _ j';
     assert pure (Seq.equal seq![v @! 0] v);
-    rewrite gpu_pts_to_slice arr #f j' (j' + 1) seq![v @! 0]
-      as gpu_pts_to_slice arr #f i j v;
+    rewrite pts_to_slice arr #f j' (j' + 1) seq![v @! 0]
+      as pts_to_slice arr #f i j v;
     ()
   } else {
     forevery_remove #(between i j)
-      (fun k -> gpu_pts_to_cell arr #f k (v @! k - i))
+      (fun k -> pts_to_cell arr #f k (v @! k - i))
       j';
     forevery_refine_ext #(between i j)
       (fun k -> k < j')
-      (fun k -> gpu_pts_to_cell arr #f k (v @! k - i));
+      (fun k -> pts_to_cell arr #f k (v @! k - i));
     forevery_between_restrict_down i j j'
-      (fun k -> gpu_pts_to_cell arr #f k (v @! k - i));
+      (fun k -> pts_to_cell arr #f k (v @! k - i));
     forevery_ext #(between i j')
-      (fun k -> gpu_pts_to_cell arr #f k (v @! k - i))
-      (fun k -> gpu_pts_to_cell arr #f k (Seq.slice v 0 (j' - i) @! k - i));
+      (fun k -> pts_to_cell arr #f k (v @! k - i))
+      (fun k -> pts_to_cell arr #f k (Seq.slice v 0 (j' - i) @! k - i));
     gpu_forall_cell_to_slice_ arr i j';
-    gpu_slice_concat arr #f i _ _;
+    slice_concat arr #f i _ _;
     assert pure (Seq.equal (Seq.append (Seq.slice v 0 (j' - i)) seq![v @! j' - i]) v);
-    rewrite gpu_pts_to_slice arr #f i (j' + 1) (Seq.append (Seq.slice v 0 (j' - i)) seq![v @! j' - i])
-      as gpu_pts_to_slice arr #f i j v;
+    rewrite pts_to_slice arr #f i (j' + 1) (Seq.append (Seq.slice v 0 (j' - i)) seq![v @! j' - i])
+      as pts_to_slice arr #f i j v;
   }
 }
 
@@ -1173,17 +1165,17 @@ ghost
 fn gpu_forall_cell_to_slice
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (i n #m : nat {i <= n /\ n <= m})
   (#v : erased (seq a))
   (#_ : squash (Seq.length v == n - i))
   requires
     (forall+ (k : between i n).
-      gpu_pts_to_cell arr #f k (v @! k - i))
+      pts_to_cell arr #f k (v @! k - i))
   preserves
     slice_live arr #f n m
-  ensures gpu_pts_to_slice arr #f i n v
+  ensures pts_to_slice arr #f i n v
 {
   if (i < n)
   {
@@ -1194,15 +1186,15 @@ fn gpu_forall_cell_to_slice
     unfold slice_live;
     assert pure (Seq.empty `Seq.equal` v);
 
-    with s. assert gpu_pts_to_slice arr #f n m s;
+    with s. assert pts_to_slice arr #f n m s;
     assert pure (Seq.append v s `Seq.equal` s);
-    assert gpu_pts_to_slice arr #f n m (Seq.append v s);
-    gpu_slice_split arr #f #v #s n n m;
+    assert pts_to_slice arr #f n m (Seq.append v s);
+    slice_split arr #f #v #s n n m;
 
 
     fold slice_live arr #f n m;
-    rewrite gpu_pts_to_slice arr #f n n v
-    as gpu_pts_to_slice arr #f i n v;
+    rewrite pts_to_slice arr #f n n v
+    as pts_to_slice arr #f i n v;
   };
 
 }
@@ -1245,19 +1237,19 @@ ghost
 fn gpu_forall_live_cell_to_slice
   (#a:Type u#0)
   (#sz:nat)
-  (arr : gpu_array a sz)
+  (arr : larray a sz)
   (#f : perm)
   (i j : nat {i < j})
   requires forall+ (k : between i j).
-    exists* x. gpu_pts_to_cell arr #f k x
+    exists* x. pts_to_cell arr #f k x
   ensures exists* v.
-    gpu_pts_to_slice arr #f i j v
+    pts_to_slice arr #f i j v
 {
-  let y = forevery_exists #(between i j) (gpu_pts_to_cell arr #f);
+  let y = forevery_exists #(between i j) (pts_to_cell arr #f);
   let v = Seq.init_ghost (j - i) (fun k -> y (k + i));
   forevery_ext #(between i j)
-    (fun k -> gpu_pts_to_cell arr #f k (y k))
-    (fun k -> gpu_pts_to_cell arr #f k (v @! k - i));
+    (fun k -> pts_to_cell arr #f k (y k))
+    (fun k -> pts_to_cell arr #f k (v @! k - i));
   gpu_forall_cell_to_slice_ arr i j;
 }
 
@@ -1274,8 +1266,8 @@ fn sparse_load_residue
   (#eA : ematrix et p.rows p.shared)
   (#fA : perm)
   (#_ : squash (well_formed p col_ind row_off))
-  (elems_tile : gpu_array et p.blockItemsK)
-  (col_ind_tile : gpu_array sz p.blockItemsK)
+  (elems_tile : larray et p.blockItemsK)
+  (col_ind_tile : larray sz p.blockItemsK)
   (bid : szlt (nblocks p))
   (ri : sz{ri == row_off @! (brow p bid |~> row_perm)})
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
@@ -1299,11 +1291,13 @@ fn sparse_load_residue
       re - (ri + idx * p.blockItemsK) < p.blockItemsK
     )
   ensures
+    (* FIXME: What is happening here? Doesn't this postcondition
+    duplicate the permission on elems_tile and col_ind_tile? How?! *)
     B.barrier_state ((idx + 1) * 2) **
-    gpu_pts_to_slice elems_tile #(1.0R /. p.blockWidth)
+    pts_to_slice elems_tile #(1.0R /. p.blockWidth)
       0 (re - (ri + idx * p.blockItemsK))
       (Seq.slice elems (ri + idx * p.blockItemsK) re) **
-    gpu_pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
+    pts_to_slice col_ind_tile #(1.0R /. p.blockWidth)
       0 (re - (ri + idx * p.blockItemsK))
       (Seq.slice col_ind (ri + idx * p.blockItemsK) re) **
     slice_live elems_tile #(1.0R /. p.blockWidth)
@@ -1440,18 +1434,18 @@ fn sparse_load_residue
     (barrier_q_odd p elems col_ind elems_tile col_ind_tile
       ri re idx)
     (fun k ->
-      gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
         (elems_slice @! k) **
-      gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
         (col_ind_slice @! k)
     )
     fn k { unfold barrier_q_odd };
 
   forevery_natlt_restrict #(re - off) p.blockItemsK
     (fun k ->
-      gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
         (elems_slice @! k) **
-      gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
         (col_ind_slice @! k)
     );
 
@@ -1460,20 +1454,20 @@ fn sparse_load_residue
 
   forevery_ext #(between 0 (re - off))
     (fun k ->
-      gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
         (elems_slice @! k) **
-      gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
         (col_ind_slice @! k))
     (fun k ->
-      gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
         (elems_slice @! k - 0) **
-      gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
+      pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
         (col_ind_slice @! k - 0));
 
   forevery_unzip #(between 0 (re - off))
-    (fun k -> gpu_pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
+    (fun k -> pts_to_cell elems_tile #(1.0R /. p.blockWidth) k
         (elems_slice @! k - 0))
-    (fun k -> gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
+    (fun k -> pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k
         (col_ind_slice @! k - 0));
 
 
@@ -1482,8 +1476,8 @@ fn sparse_load_residue
     (barrier_q_odd p elems col_ind elems_tile col_ind_tile
       ri re idx)
     (fun k ->
-      (exists* x. gpu_pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
-      (exists* c. gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c)
+      (exists* x. pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
+      (exists* c. pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c)
     )
     fn k { unfold barrier_q_odd };
 
@@ -1494,30 +1488,28 @@ fn sparse_load_residue
     (between 0 p.blockItemsK)
     (fun (k : natlt p.blockItemsK) -> ~(k < re - off))
     (fun (k : natlt p.blockItemsK) ->
-      (exists* x. gpu_pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
-      (exists* c. gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c)
+      (exists* x. pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
+      (exists* c. pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c)
     );
 
 
   forevery_refine_ext #(between 0 p.blockItemsK)
     (fun k -> re - off <= k)
     (fun k ->
-      (exists* x. gpu_pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
-      (exists* c. gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c)
+      (exists* x. pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
+      (exists* c. pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c)
     );
 
   forevery_between_restrict_up 0 p.blockItemsK (re - off)
     (fun k ->
-      (exists* x. gpu_pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
-      (exists* c. gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c));
+      (exists* x. pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x) **
+      (exists* c. pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c));
 
   forevery_unzip #(between (re - off) p.blockItemsK)
     (fun k ->
-      (exists* x. gpu_pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x))
+      (exists* x. pts_to_cell elems_tile   #(1.0R /. p.blockWidth) k x))
     (fun k ->
-      (exists* c. gpu_pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c));
-
-
+      (exists* c. pts_to_cell col_ind_tile #(1.0R /. p.blockWidth) k c));
 
   gpu_forall_live_cell_to_slice elems_tile   (re - off) p.blockItemsK;
   gpu_forall_live_cell_to_slice col_ind_tile (re - off) p.blockItemsK;
@@ -1658,6 +1650,7 @@ let barrier_count
   ((re - ri) / p.blockItemsK + 1) * 2
 
 #push-options "--z3rlimit 15"
+
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et |}
@@ -1668,7 +1661,7 @@ fn kf
   (#lc : Array2.layout p.rows p.cols)
   {| ctlayout lb, ctlayout lc |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lb)
   (gC : Array2.t et lc)
   // matriz sparse ga
@@ -1720,7 +1713,7 @@ fn kf
     ) **
     B.barrier_state (barrier_count p row_perm col_ind row_off bid)
 {
-  let m_idx = gpu_array_read row_indices (brow_ p bid);
+  let m_idx = slice_read row_indices (brow_ p bid);
   assert rewrites_to m_idx (SZ.uint_to_t (brow p bid |~> row_perm));
   let n_idx = bcol_ p bid;
 
@@ -1734,11 +1727,11 @@ fn kf
   assert rewrites_to elems_tile (fst sh);
   assert rewrites_to col_ind_tile (fst (snd sh));
 
-  gpu_pts_to_ref elems_tile;
-  gpu_pts_to_ref col_ind_tile;
+  Pulse.Lib.Array.pts_to_len elems_tile;
+  Pulse.Lib.Array.pts_to_len col_ind_tile;
 
-  let ri = gpu_array_read gA.row_off m_idx;
-  let re = gpu_array_read gA.row_off (m_idx +^ 1sz);
+  let ri = slice_read gA.row_off m_idx;
+  let re = slice_read gA.row_off (m_idx +^ 1sz);
 
   let row_elems : lseq et (re - ri) = hide (Seq.slice elems ri re);
   let row_pos : lseq nat (re - ri) = hide (Seq.slice (cast_pos col_ind) ri re);
@@ -1796,6 +1789,9 @@ fn kf
     assert pure (ri + (!idx + 1) * p.blockItemsK <= gA.nnz);
     assert pure (!idx < (re - ri) / p.blockItemsK);
 
+    slice_to_array gA.row_off;
+    slice_to_array elems_tile;
+    slice_to_array col_ind_tile;
     sparse_load p row_perm gA #row_off #elems #col_ind #eA
       elems_tile col_ind_tile bid ri re !idx tid #();
 
@@ -1839,6 +1835,11 @@ fn kf
 
     idx := !idx +^ 1sz;
     nnz := !nnz -^ p.blockItemsK;
+
+    slice_to_array gA.row_off;
+    slice_to_array (fst sh);
+    slice_to_array (fst (snd sh));
+    ()
   };
 
   //------------------residue-----------------------------------------
@@ -1849,6 +1850,8 @@ fn kf
   // let residue : sz = re -^ (ri +^ !idx *^ p.blockItemsK);
   (* ^ This is provably equal to the current value of nnz, using that
   to avoid the extra computation. *)
+
+  slice_to_array gA.row_off;
 
   sparse_load_residue p row_perm gA #row_off #elems #col_ind #eA
     elems_tile col_ind_tile bid ri re !idx tid;
@@ -1883,14 +1886,15 @@ fn kf
       p.blockWidth p.blockItemsX
       row_elems row_pos eB out0 tid n_idx;
 
+
   unfold slice_live elems_tile #(1.0R /. p.blockWidth)
     (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
-  gpu_slice_concat elems_tile #(1.0R /. p.blockWidth)
+  slice_concat elems_tile #(1.0R /. p.blockWidth)
     0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
 
   unfold slice_live col_ind_tile #(1.0R /. p.blockWidth)
     (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
-  gpu_slice_concat col_ind_tile #(1.0R /. p.blockWidth)
+  slice_concat col_ind_tile #(1.0R /. p.blockWidth)
     0 (re - (ri + !idx * p.blockItemsK)) p.blockItemsK;
 
   //------------------------------------------------------------------
@@ -1993,6 +1997,15 @@ fn kf
   FStar.Math.Lemmas.lemma_div_mod_plus (SZ.v !nnz) (SZ.v !idx) p.blockItemsK;
   assert pure (SZ.v !idx == (re - ri) / p.blockItemsK);
 
+  slice_to_array row_indices;
+
+  (* FIXME: Assuming until we fix (or I understand) what
+  sparse_load_residue is doing. *)
+  assume is_full_slice (fst sh) p.blockItemsK;
+  assume is_full_slice (fst (snd sh)) p.blockItemsK;
+  slice_to_array (fst sh);
+  slice_to_array (fst (snd sh));
+
   ()
 }
 #pop-options
@@ -2007,7 +2020,7 @@ let kdesc
   (#lC : Array2.layout p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
-  (row_indices : gpu_array sz p.rows)
+  (row_indices : larray sz p.rows)
   (gB : Array2.t et lB {Array2.is_global gB})
   (gC : Array2.t et lC {Array2.is_global gC})
   // matriz sparse gA
@@ -2123,7 +2136,7 @@ fn spmm
   {| ctlayout lB, ctlayout lC |}
   (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
   (#fA : perm)
-  (row_indices : gpu_array sz rows)
+  (row_indices : larray sz rows)
   (fri : perm)
   (gB : Array2.t et lB{Array2.is_global gB})
   (#fB : perm)
