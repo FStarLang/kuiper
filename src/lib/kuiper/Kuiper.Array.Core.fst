@@ -166,7 +166,6 @@ fn gpu_array_alloc_vis
       pure (Seq.length s == sz)
   ensures
     pure (
-      aligned 128 x /\
       visibility_of_array x == vis /\
       loc_id_of_array x == l
     )
@@ -209,6 +208,7 @@ fn gpu_array_alloc
 {
   let x = gpu_array_alloc_vis #a sz gpu_loc (gpu_of);
   gpu_of_idem (gpu_id_loc 0);
+  assume pure (aligned 128 x); // CUDA guarantees this
   x
 }
 

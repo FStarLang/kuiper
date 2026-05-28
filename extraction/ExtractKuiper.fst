@@ -874,23 +874,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     let src_arr = EBufSub (src_arr, src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])
 
-  | "Kuiper.Array.Vectorized.gpu_array_vec4_write", [], [ _sz; _i; _j; a; idx; v; _s ] ->
-    EApp (EQualified ([], "KPR_VECTZD_WRITE"), [ cb a; cb idx; cb v ])
-
   (******** ATOMIC OPS ********)
 
   | "Kuiper.AtomicOps.gpu_faa_u32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_u32"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_u64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_u64"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f32", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f32"), [cb r; cb v])
   | "Kuiper.AtomicOps.gpu_faa_f64", [], [ r; v; _ev ] -> EApp (EQualified ([], "atomic_add_f64"), [cb r; cb v])
-
-  (******** VECTOR OPS ********)
-  | "Kuiper.VectorType.make_float4", [], [ x; y; z; w; ] ->
-    EApp (EQualified ([], "make_float4"), [cb x; cb y; cb z; cb w])
-  | "Kuiper.VectorType.getx", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_X"), [ cb v ])
-  | "Kuiper.VectorType.gety", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Y"), [ cb v ])
-  | "Kuiper.VectorType.getz", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_Z"), [ cb v ])
-  | "Kuiper.VectorType.getw", [], [ v ] -> EApp (EQualified ([], "KPR_PROJ_W"), [ cb v ])
 
   (******** KERNEL CALL ********)
 

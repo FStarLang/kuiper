@@ -85,6 +85,7 @@ let rsum_map_cons (#a: Type) (f: a -> real) (x: a) (t: Seq.seq a)
 let exp_x   (xy: real & real) : real = rexp (fst xy)
 let exp_x_y (xy: real & real) : real = rexp (fst xy) *. snd xy
 
+#push-options "--z3rlimit 40"
 (* Theorem 1 from the Online Softmax paper, generalised to dot-product.
    Both numerator and denominator accumulators, multiplied by [exp m],
    recover the "unshifted" running sums. *)
@@ -115,6 +116,7 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
         fold_correct_dotprod m1 dn1 dd1 t;
         rsum_map_cons exp_x_y xy t;
         rsum_map_cons exp_x   xy t
+#pop-options
 
 (* [rsum] of an initialised sequence equals the recursive [seq_dotprod]
    of the corresponding mapped/index pair, expanded one step at a time. *)

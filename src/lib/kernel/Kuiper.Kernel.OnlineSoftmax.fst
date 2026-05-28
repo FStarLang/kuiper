@@ -140,6 +140,12 @@ let kpost
   (exists* (v': et). Cell b tid |->
     v' ** pure (v' %~ ((online_softmax_real ra) @! tid)))
 
+let lemma_seq_fold_left_slice' (#a #b:Type) (e:b) (f: b -> a -> b)
+  (s : seq a) (i j : nat)
+  : Lemma (ensures i <= j /\ j < len s ==>
+                     seq_fold_left f e (Seq.slice s i (j + 1)) == seq_fold_left f e (Seq.slice s i j) `f` (s @! j))
+  = ()
+
 inline_for_extraction noextract
 fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -222,9 +228,26 @@ fn kfonline_softmax
 
     i := !i `SZ.add` 1sz;
 
-    assert pure (gmax' == rmax (reveal old_max) gx);
+    assert pure (reveal gmax' == rmax (reveal old_max) gx);
     assert pure (reveal gsum' == reveal old_sum *. (rexp (reveal old_max -. reveal gmax'))  +.  rexp (gx -. reveal gmax'));
-    assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i)));
+    if (!i = 1sz) {
+      assert pure (gx == (ra @! 0));
+      assert pure (!gmax == (ra @! 0));
+      assert pure (old_sum == 0.0R);
+      assert pure (!gsum == gy2);
+      assert pure (gy2 == rexp 0.0R);
+      assert pure (gy2 == 1.0R);
+      assert pure (!gsum == 1.0R);
+      assert pure (seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 1)
+                   ==
+                   (hide (Seq.index ra 0, 1.0R)));
+      ();
+    } else {
+      assert pure ((reveal old_max, reveal old_sum) == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i - 1)));
+      assert pure ((reveal gmax', reveal gsum') == online_softmax_real_iter (reveal old_max, reveal old_sum) gx);
+      lemma_seq_fold_left_slice' (hide (ra @! 0, 1.0R)) online_softmax_real_iter ra 1 (!i);
+      assert pure ((reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ra 0, 1.0R)) (Seq.slice ra 1 (!i)));
+    };
   };
   let x = read a tid;
   let y = (exp (x `sub` !max) `div` !sum);

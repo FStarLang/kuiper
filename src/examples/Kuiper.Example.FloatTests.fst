@@ -1,7 +1,6 @@
 module Kuiper.Example.FloatTests
 
-open Kuiper.Scalars.Base
-open Kuiper.Floating.Base
+open Kuiper.Floating
 
 // Exactly one of these functions is true
 let test_kind_0 #t {| floating t |} (x : t) =

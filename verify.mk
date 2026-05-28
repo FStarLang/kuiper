@@ -110,6 +110,7 @@ FSTAR_FLAGS += --warn_error -288 # using has_type (we only use it in SMT pattern
 # FSTAR_FLAGS += --ext krml_inline_all
 # FSTAR_FLAGS += --error_contexts true
 FSTAR_FLAGS += --ext context_pruning_no_ambients
+FSTAR_FLAGS += --ext freshen
 FSTAR_FLAGS += $(OTHERFLAGS)
 FSTAR_FLAGS += $(FSTAR_DEBUG)
 
