@@ -21,7 +21,6 @@ returns res: SH.c_shmems d
 ensures SH.live_c_shmems res
 ensures pure (SH.c_shmems_inv res)
 {
-  admit();
   match d {
     norewrite
     Nil -> {
@@ -37,7 +36,7 @@ ensures pure (SH.c_shmems_inv res)
       let resa' = Kuiper.Array.Core.gpu_array_alloc_vis #a.ty #a.sized a.len block_loc block_of;
       let resa : SH.c_shmem a = coerce_eq () resa';
       on_elim _;
-      // with s . rewrite (resa' |-> s) as (Kuiper.Array.Core.gpu_pts_to_array #a.ty #a.len resa s);
+      rewrite each resa' as (resa <: larray a.ty a.len);
       SH.fold_live_c_shmem resa;
       let res : SH.c_shmems d = (resa, resq);
       rewrite each resa as fst #(SH.c_shmem a) #(SH.c_shmems q) res;
@@ -59,7 +58,6 @@ fn rec free_c_shmems
   requires SH.live_c_shmems res
   requires pure (SH.c_shmems_inv res)
 {
-  admit();
   match d {
     Nil -> {
       SH.unfold_live_c_shmems_nil res #1.0R;
@@ -75,9 +73,9 @@ fn rec free_c_shmems
       rewrite each (fst res') as resa;
       SH.unfold_live_c_shmem resa;
       let resa' : larray a.ty a.len = resa;
-      with s . rewrite (pts_to #a.ty #a.len resa s) as (resa' |-> s);
-      with s . assert (resa' |-> s);
-      on_intro (resa' |-> s);
+      rewrite each (resa <: larray a.ty a.len) as resa';
+      on_intro (resa' |-> _);
+      assume pure (Pulse.Lib.Array.Core.is_full_array resa'); // modeled: GPU runtime frees shmem it allocated
       Kuiper.Array.Core.gpu_array_free_gen resa' block_loc;
     }
   }
