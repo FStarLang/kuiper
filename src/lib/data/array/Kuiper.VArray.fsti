@@ -26,7 +26,7 @@ let view_equiv (#et #st : Type)
 inline_for_extraction
 val varray (#a : Type0) (#st : Type0) (vw : aview a st) : Type0
 
-val is_global_varray (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
+val is_global (#a : Type0) (#st : Type0) (#vw : aview a st) (_ : varray vw) : prop
 
 inline_for_extraction noextract
 val from_array
@@ -41,7 +41,14 @@ val core
   (#a : Type)
   (#st : Type) (#vw : aview a st)
   (g : varray vw)
-  : arr : larray a (len vw) { from_array vw arr == g }
+  : larray a (len vw)
+
+val lem_is_global_iff_core
+  (#a : Type0)
+  (#st : Type) (#vw : aview a st)
+  (g : varray vw)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
 
 val lem_from_array_core
   (#a : Type)
@@ -97,7 +104,7 @@ val is_send_across_global_varray
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (x: varray vw { is_global_varray x })
+  (x: varray vw { is_global x })
   (#f : perm)
   (v : st)
   : is_send_across gpu_of (varray_pts_to x #f v)
@@ -107,7 +114,7 @@ val is_send_across_global_varray_cell
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (a : varray vw { is_global_varray a })
+  (a : varray vw { is_global a })
   (#f : perm)
   (i : vw.iview.ait)
   (v : et)
@@ -372,7 +379,7 @@ fn varray_alloc0
   ensures
     exists* v. on gpu_loc (a |-> v)
   ensures
-    pure (is_global_varray a) **
+    pure (is_global a) **
     pure (is_full_array (core a))
 
 inline_for_extraction noextract

@@ -16,12 +16,12 @@ type varray
   (vw : aview et st)
 = IArray.iarray et vw.iview
 
-let is_global_varray
+let is_global
   (#et:Type0) (#st : Type0)
   (#vw : aview et st)
   (arr: varray vw)
 : prop
-= IArray.is_global_iarray arr
+= IArray.is_global arr
 
 inline_for_extraction noextract
 let from_array
@@ -32,6 +32,14 @@ let from_array
   = IArray.from_array vw.iview arr
 
 let core a = IArray.core a
+
+let lem_is_global_iff_core
+  (#a : Type0)
+  (#st : Type) (#vw : aview a st)
+  (g : varray vw)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
+  = ()
 
 let lem_from_array_core
   (#a : Type0)
@@ -84,7 +92,7 @@ instance is_send_across_global_varray
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (x: varray vw { is_global_varray x })
+  (x: varray vw { is_global x })
   (#f : perm)
   (v : st)
   : is_send_across gpu_of (varray_pts_to x #f v)
@@ -94,7 +102,7 @@ instance is_send_across_global_varray_cell
   (#et:Type0)
   (#st : Type0)
   (#vw : aview et st)
-  (a : varray vw { is_global_varray a })
+  (a : varray vw { is_global a })
   (#f : perm)
   (i : vw.iview.ait)
   (v : et)
@@ -567,14 +575,13 @@ fn varray_alloc0
   ensures
     exists* v. on gpu_loc (a |-> v)
   ensures
-    pure (is_global_varray a) **
+    pure (is_global a) **
     pure (is_full_array (core a))
 {
   let a = B.gpu_array_alloc #et len;
   with s. assert on gpu_loc (a |-> s);
   map_loc gpu_loc (fun () -> varray_abs_alt' vw _ a #1.0R #s);
   let r = from_array vw a; assert rewrites_to r (from_array vw a);
-  assume pure (is_global_varray r); // fixme
   r
 }
 

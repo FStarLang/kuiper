@@ -17,7 +17,7 @@ let oplus (#a #b : Type) (f : a -> GTot b) (x : a) (y : b) : a -> GTot b =
 inline_for_extraction
 val iarray (et : Type0) (vw : aiview) : Type0
 
-val is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop
+val is_global (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop
 
 inline_for_extraction noextract
 val from_array
@@ -32,6 +32,13 @@ val core
   (#vw : aiview)
   (g : iarray et vw)
   : larray et (len vw)
+
+val lem_is_global_iff_core
+  (#a : Type0)
+  (#vw : aiview)
+  (g : iarray a vw)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
 
 val lem_from_array_core
   (#et : Type0)
@@ -85,7 +92,7 @@ instance
 val is_send_across_global_iarray
   (#et:Type0)
   (#vw : aiview)
-  (x: iarray et vw { is_global_iarray x })
+  (x: iarray et vw { is_global x })
   (#f : perm)
   (v : (vw.ait -> GTot et))
   : is_send_across gpu_of (iarray_pts_to x #f v)
@@ -94,7 +101,7 @@ instance
 val is_send_across_global_iarray_cell
   (#et:Type0)
   (#vw : aiview)
-  (a: iarray et vw { is_global_iarray a })
+  (a: iarray et vw { is_global a })
   (#f : perm)
   (i : vw.ait)
   (v : et)

@@ -15,7 +15,7 @@ let is_global_matrix
   (#l : mlayout rows cols)
   (arr: gpu_matrix et l)
 : prop
-= A.is_global_varray (arr)
+= A.is_global arr
 
 let from_array l p = A.from_array (aview_from_mlayout _ l) p
 let core g = A.core g

@@ -13,7 +13,7 @@ inline_for_extraction
 type iarray (et : Type0) (vw : aiview) : Type0 =
   larray et (len vw)
 
-let is_global_iarray (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop =
+let is_global (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop =
   B.is_global_array arr
 
 inline_for_extraction noextract
@@ -25,6 +25,14 @@ let from_array
   = arr
 
 let core a = a
+
+let lem_is_global_iff_core
+  (#a : Type0)
+  (#vw : aiview)
+  (g : iarray a vw)
+  : Lemma (ensures is_global g <==> is_global_array (core g))
+          [SMTPat (is_global g)]
+  = ()
 
 let lem_from_array_core
   (#et : Type0)
@@ -77,7 +85,7 @@ let iarray_pts_to
 instance is_send_across_global_iarray
   (#et:Type0)
   (#vw : aiview)
-  (x: iarray et vw { is_global_iarray x })
+  (x: iarray et vw { is_global x })
   (#f : perm)
   (v : (vw.ait -> GTot et))
   : is_send_across gpu_of (iarray_pts_to x #f v)
@@ -86,7 +94,7 @@ instance is_send_across_global_iarray
 instance is_send_across_global_iarray_cell
   (#et:Type0)
   (#vw : aiview)
-  (a : iarray et vw { is_global_iarray a })
+  (a : iarray et vw { is_global a })
   (#f : perm)
   (i : vw.ait)
   (v : et)

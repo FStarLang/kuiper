@@ -14,7 +14,7 @@ let is_global
   (#et : Type0) (#r : nat) (#d : idesc r)
   (#l : tlayout d)
   (a : tensor et l) : prop
-  = A.is_global_varray a
+  = A.is_global a
 
 inline_for_extraction noextract
 let from_array
@@ -54,7 +54,7 @@ let lem_is_global_iff_core
   (a : tensor et l)
   : Lemma (ensures is_global a <==> is_global_array (core a))
           [SMTPat (is_global a)]
-  = admit()
+  = ()
 
 let tensor_pts_to
   (#et : Type0) (#r : nat) (#d : idesc r)
